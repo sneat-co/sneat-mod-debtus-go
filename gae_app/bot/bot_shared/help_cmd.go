@@ -1,0 +1,86 @@
+package bot_shared
+
+import (
+	"github.com/strongo/bots-framework/core"
+	"net/url"
+	"github.com/DebtsTracker/translations/trans"
+	"github.com/strongo/bots-api-telegram"
+	"fmt"
+	"strings"
+	"github.com/DebtsTracker/translations/emoji"
+	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
+	"bytes"
+)
+
+const HELP_COMMAND = "help"
+
+var helpRootCommand = bots.Command{
+	Code:     HELP_COMMAND,
+	Commands: []string{"/help"},
+	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+		return helpRootAction(whc, false)
+	},
+	CallbackAction: func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
+		_ = whc.ChatEntity()
+		q := callbackURL.Query().Get("q")
+		switch q {
+		case "":
+			return helpRootAction(whc, true)
+		case trans.HELP_HOW_TO_CREATE_BILL_Q:
+			return howToCreateNewBill(whc)
+		}
+		m.Format = bots.MessageFormatHTML
+		m.IsEdit = true
+		return
+	},
+}
+
+func helpRootAction(whc bots.WebhookContext, isCallback bool) (m bots.MessageFromBot, err error) {
+	m.Text = whc.Translate(trans.MESSAGE_TEXT_HELP_ROOT, strings.Replace(whc.GetBotCode(), "Bot", "Group", 1))
+	m.Format = bots.MessageFormatHTML
+	m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
+		[]tgbotapi.InlineKeyboardButton{{
+			Text:         whc.Translate(trans.HELP_HOW_TO_CREATE_BILL_Q),
+			CallbackData: "help?q=" + url.QueryEscape(trans.HELP_HOW_TO_CREATE_BILL_Q),
+		}},
+	)
+	if isCallback {
+		m.IsEdit = true
+	}
+	return
+}
+
+func howToCreateNewBill(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	var buffer bytes.Buffer
+	if err = common.HtmlTemplates.RenderTemplate(whc.Context(), &buffer, whc, trans.HELP_HOW_TO_CREATE_BILL_A, struct{ BotCode string }{whc.GetBotCode()}); err != nil {
+		return
+	}
+	m.Text = fmt.Sprintf("<b>%v</b>", whc.Translate(trans.HELP_HOW_TO_CREATE_BILL_Q)) +
+		"\n\n" + buffer.String()
+	m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
+		[]tgbotapi.InlineKeyboardButton{
+			{
+				Text: emoji.CONTACTS_ICON + " Split bill in Telegram Group",
+				URL:  "https://t.me/%v?startgroup=new-bill",
+			},
+		},
+		[]tgbotapi.InlineKeyboardButton{
+			tgbotapi.NewInlineKeyboardButtonSwitchInlineQuery(
+				emoji.ROCKET_ICON+" Split bill with Telegram user(s)",
+				"",
+			),
+		},
+		[]tgbotapi.InlineKeyboardButton{
+			{
+				Text:         emoji.CLIPBOARD_ICON + "New bill manually",
+				CallbackData: "new-bill-manually",
+			},
+		},
+		[]tgbotapi.InlineKeyboardButton{
+			{Text: emoji.RETURN_BACK_ICON + " " + whc.Translate(trans.MESSAGE_TEXT_HELP_BACK_TO_ROOT),
+				CallbackData: "help",
+			},
+		},
+	)
+	return
+}

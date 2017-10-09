@@ -1,0 +1,132 @@
+package splitus
+
+import (
+	"google.golang.org/appengine/delay"
+	"github.com/strongo/app/gae"
+	"strings"
+	"github.com/strongo/app"
+	"github.com/strongo/bots-api-telegram"
+	"google.golang.org/appengine/urlfetch"
+	"golang.org/x/net/context"
+	"github.com/strongo/app/log"
+	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
+	"github.com/DebtsTracker/translations/trans"
+	"bitbucket.com/debtstracker/gae_app/bot/platforms/telegram"
+	"fmt"
+	"bitbucket.com/debtstracker/gae_app/bot/bot_shared"
+	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/debtstracker/gae_app/gaestandard"
+)
+
+var (
+	delayUpdateBillCards       = delay.Func("UpdateBillCards", delayedUpdateBillCards)
+	delayUpdateBillTgChatCard = delay.Func("UpdateBillTgChatCard", delayedUpdateBillTgChartCard)
+)
+
+func delayUpdateBillCardOnUserJoin(c context.Context, billID string, message string) error {
+	if err := gae.CallDelayFunc(
+		c,
+		common.QUEUE_BILLS,
+		"update-bill-cards",
+		delayUpdateBillCards,
+		billID,
+		message,
+	); err != nil {
+		log.Errorf(c, "Failed to queue update of bill cards: %v", err)
+	}
+	return nil
+}
+
+func delayedUpdateBillCards(c context.Context, billID string, footer string) error {
+	log.Debugf(c, "delayedUpdateBillCards(billID=%d)", billID)
+	if bill, err := dal.Bill.GetBillByID(c, billID); err != nil {
+		return err
+	} else {
+		for _, tgChatMessageID := range bill.TgChatMessageIDs {
+			if err = gae.CallDelayFunc(c, common.QUEUE_BILLS, "update-bill-tg-chat-card", delayUpdateBillTgChatCard, billID, tgChatMessageID, footer); err != nil {
+				log.Errorf(c, "Failed to queue updated for %v: %v", tgChatMessageID, err)
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func delayedUpdateBillTgChartCard(c context.Context, billID string, tgChatMessageID, footer string) error {
+	log.Debugf(c, "delayedUpdateBillTgChartCard(billID=%d, tgChatMessageID=%v)", billID, tgChatMessageID)
+	if bill, err := dal.Bill.GetBillByID(c, billID); err != nil {
+		return err
+	} else {
+		ids := strings.Split(tgChatMessageID, "@")
+		inlineMessageID, botCode, localeCode5 := ids[0], ids[1], ids[2]
+		translator := strongo.NewSingleMapTranslator(strongo.GetLocaleByCode5(localeCode5), strongo.NewMapTranslator(c, trans.TRANS))
+
+		editMessage := tgbotapi.NewEditMessageText(0, 0, inlineMessageID, "")
+		editMessage.ParseMode = "HTML"
+		editMessage.DisableWebPagePreview = true
+
+		if err := updateInlineBillCardMessage(c, translator, true, editMessage, bill, botCode, footer); err != nil {
+			return err
+		} else {
+			telegramBots := telegram.Bots(gaestandard.GetEnvironment(c), nil)
+			botSettings, ok := telegramBots.ByCode[botCode]
+			if !ok {
+				log.Errorf(c, "No bot settings for bot: "+botCode)
+				return nil
+			}
+
+			tgApi := tgbotapi.NewBotAPIWithClient(botSettings.Token, urlfetch.Client(c))
+			if _, err := tgApi.Send(editMessage); err != nil {
+				log.Errorf(c, "Failed to sent message to Telegram: %v", err)
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func updateInlineBillCardMessage(c context.Context, translator strongo.SingleLocaleTranslator, isGroupChat bool, editedMessage *tgbotapi.EditMessageTextConfig, bill models.Bill, botCode string, footer string) (err error) {
+	if bill.ID == 0 {
+		panic("bill.ID == 0")
+	}
+	if bill.BillEntity == nil {
+		panic("bill.BillEntity == nil")
+	}
+
+	if editedMessage.Text, err = bot_shared.GetBillCardMessageText(c, botCode, translator, bill, true, footer); err != nil {
+		return
+	}
+	if isGroupChat {
+		editedMessage.ReplyMarkup = getPublicBillCardInlineKeyboard(translator, botCode, bill.ID)
+	} else {
+		editedMessage.ReplyMarkup = getPrivateBillCardInlineKeyboard(translator, botCode, bill)
+	}
+
+	return
+}
+
+func getPublicBillCardInlineKeyboard(translator strongo.SingleLocaleTranslator, botCode string, billID string) *tgbotapi.InlineKeyboardMarkup {
+	goToBotLink := func(command string) string {
+		return fmt.Sprintf("https://t.me/%v?start=%v-%v", botCode, command, billID)
+	}
+	keyboard := tgbotapi.NewInlineKeyboardMarkup(
+		[]tgbotapi.InlineKeyboardButton{
+			{
+				Text: translator.Translate(trans.BUTTON_TEXT_JOIN),
+				URL:  goToBotLink(bot_shared.JOIN_BILL_COMMAND),
+			},
+		},
+		[]tgbotapi.InlineKeyboardButton{
+			{
+				Text: translator.Translate(trans.BUTTON_TEXT_EDIT_BILL),
+				URL:  goToBotLink(bot_shared.EDIT_BILL_COMMAND),
+			},
+			{
+				Text:         translator.Translate(trans.BUTTON_TEXT_DUE, translator.Translate(trans.NOT_SET)),
+				CallbackData: bot_shared.BillCallbackCommandData(bot_shared.SET_BILL_DUE_DATE_COMMAND, billID),
+			},
+		},
+	)
+	return keyboard
+}

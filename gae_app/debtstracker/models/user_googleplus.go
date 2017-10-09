@@ -1,0 +1,30 @@
+package models
+
+import (
+	"github.com/strongo/app/db"
+	"github.com/strongo/app/user"
+)
+
+const UserGooglePlusKind = "UserGooglePlus"
+
+type UserGooglePlusEntity struct {
+	user.OwnedByUser
+	Email          string `datastore:",noindex"`
+	DisplayName    string `datastore:",noindex"`
+	RefreshToken   string `datastore:",noindex"`
+	ServerAuthCode string `datastore:",noindex"`
+	AccessToken    string `datastore:",noindex"`
+	ImageUrl       string `datastore:",noindex"`
+	IdToken        string `datastore:",noindex"`
+
+	Locale        string `datastore:",noindex"`
+	NameFirst     string `datastore:",noindex"`
+	NameLast      string `datastore:",noindex"`
+	EmailVerified bool   `datastore:",noindex"`
+}
+
+type UserGooglePlus struct {
+	db.NoIntID
+	ID string
+	*UserGooglePlusEntity
+}

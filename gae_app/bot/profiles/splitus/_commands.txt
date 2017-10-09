@@ -1,0 +1,4 @@
+groups - List of groups
+bills - List of outstanding bills
+split - Close outstanding bills & create debt records
+help - Learn how to use the bot & ask questions

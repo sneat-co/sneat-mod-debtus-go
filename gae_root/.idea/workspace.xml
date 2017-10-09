@@ -1,0 +1,593 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="ced45fa9-0908-4676-8bbb-4152a9a22660" name="Default" comment="">
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/.gitignore" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/app.yaml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/cron.yaml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/index.yaml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/main.go" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/main_test.go" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/queue.yaml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/5F4BAA801B97B9A93D1F038177783A83.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/OneSignalSDKUpdaterWorker.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/OneSignalSDKWorker.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/botmap.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/device/device-preview-android-tiny.jpg" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/device/device-preview-android.jpg" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/device/device-preview-ios-tiny.jpg" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/device/device-preview-ios.jpg" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/device/device.css" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/device/devices-sprite-tiny.jpg" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/device/devices-sprite.jpg" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicon.ico" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/android-chrome-144x144.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/android-chrome-192x192.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/android-chrome-256x256.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/android-chrome-36x36.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/android-chrome-384x384.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/android-chrome-48x48.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/android-chrome-512x512.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/android-chrome-72x72.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/android-chrome-96x96.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/apple-touch-icon-114x114-precomposed.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/apple-touch-icon-114x114.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/apple-touch-icon-120x120-precomposed.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/apple-touch-icon-120x120.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/apple-touch-icon-144x144-precomposed.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/apple-touch-icon-144x144.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/apple-touch-icon-152x152-precomposed.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/apple-touch-icon-152x152.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/apple-touch-icon-180x180-precomposed.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/apple-touch-icon-180x180.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/apple-touch-icon-57x57-precomposed.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/apple-touch-icon-57x57.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/apple-touch-icon-60x60-precomposed.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/apple-touch-icon-60x60.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/apple-touch-icon-72x72-precomposed.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/apple-touch-icon-72x72.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/apple-touch-icon-76x76-precomposed.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/apple-touch-icon-76x76.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/apple-touch-icon-precomposed.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/apple-touch-icon.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/browserconfig.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/favicon-16x16.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/favicon-194x194.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/favicon-32x32.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/favicon.ico" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/manifest.json" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/mstile-150x150.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/readme.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/favicons/safari-pinned-tab.svg" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/debtstracker-1024x1024-upscaled.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/debtstracker-144x144.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/debtstracker-150x150.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/debtstracker-152x152.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/debtstracker-168x168.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/debtstracker-16x16.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/debtstracker-192x192.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/debtstracker-278x278.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/debtstracker-32x32.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/debtstracker-48x48.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/debtstracker-512x512.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/debtstracker-72x72.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/debtstracker-96x96.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/AD.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/AE.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/AG.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/AM.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/AR.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/AT.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/AU.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/BE.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/BF.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/BG.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/BO.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/BR.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/CA.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/CD.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/CG.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/CH.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/CL.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/CM.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/CN.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/CO.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/CZ.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/DE.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/DJ.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/DK.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/DZ.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/EE.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/EG.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/ES.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/FI.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/FR.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/GA.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/GB.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/GM.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/GT.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/HN.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/HT.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/HU.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/ID.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/IE.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/IL.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/IN.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/IQ.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/IR.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/IT.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/JM.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/JO.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/JP.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/KG.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/KN.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/KP.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/KR.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/KW.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/KZ.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/LA.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/LB.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/LC.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/LS.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/LU.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/LV.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/MG.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/MK.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/ML.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/MM.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/MT.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/MX.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/NA.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/NE.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/NG.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/NI.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/NL.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/NO.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/OM.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/PA.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/PE.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/PG.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/PK.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/PL.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/PT.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/PY.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/QA.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/RO.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/RU.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/RW.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/SA.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/SE.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/SG.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/SL.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/SN.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/SO.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/SV.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/TD.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/TJ.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/TL.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/TR.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/TZ.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/UA.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/US.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/VE.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/VN.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/YE.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/_flags.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/stripe-flag-set/_spritesheet.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/table_money_16x16.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/img/table_money_32x32.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/invite.html" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/manifest.json" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/no-robots.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/static/robots.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/templates/_base.html" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/templates/ads.html" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/templates/balance-opengraph.html" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/templates/create-mass-invite.html" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/templates/device-switcher.html" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/templates/device.js.html" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/templates/help-us.html" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/templates/index.html" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/templates/receipt-opengraph.html" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/templates/song-iou-a-dance.html" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/templates/song-iou-dappy.html" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/appengine/templates/vk-iframe.html" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/dal/dalmocks/test_bill_dal_mock.go" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/dal/dalmocks/test_conatact_dal_mock.go" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/dal/dalmocks/test_empty_test.go" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/dal/dalmocks/test_mock_db.go" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/dal/dalmocks/test_reminder_dal_mock.go" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/dal/dalmocks/test_taskqueu_dal_mock.go" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/dal/dalmocks/test_transfer_dal_mock.go" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/dal/dalmocks/test_user_mock.go" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/facade/facade.go" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/facade/test_helpers.go" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/models/bill_json_ffjson.go" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/models/bill_member_json_ffjson.go" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/models/user_jsons_ffjson.go" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/bot/bot_shared/bill_card_cmd.go" afterPath="$PROJECT_DIR$/../gae_app/bot/bot_shared/bill_card_cmd.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/bot/bot_shared/bill_common.go" afterPath="$PROJECT_DIR$/../gae_app/bot/bot_shared/bill_common.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/bot/bot_shared/bot_params.go" afterPath="$PROJECT_DIR$/../gae_app/bot/bot_shared/bot_params.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/bot/bot_shared/group_cmd.go" afterPath="$PROJECT_DIR$/../gae_app/bot/bot_shared/group_cmd.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/bot/bot_shared/group_common.go" afterPath="$PROJECT_DIR$/../gae_app/bot/bot_shared/group_common.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/bot/bot_shared/groups_cmd.go" afterPath="$PROJECT_DIR$/../gae_app/bot/bot_shared/groups_cmd.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/bot/bot_shared/inline_choosen.go" afterPath="$PROJECT_DIR$/../gae_app/bot/bot_shared/inline_choosen.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/bot/bot_shared/link_by_callback.go" afterPath="$PROJECT_DIR$/../gae_app/bot/bot_shared/link_by_callback.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/bot/profiles/splitus/bill_join_delays.go" afterPath="$PROJECT_DIR$/../gae_app/bot/profiles/splitus/bill_join_delays.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/bot/profiles/splitus/router_splitus.go" afterPath="$PROJECT_DIR$/../gae_app/bot/profiles/splitus/router_splitus.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/api/api_groups.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/api/api_groups.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/dal/gaedal/bill_dal.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/dal/gaedal/bill_dal.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/dal/gaedal/common_test.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/dal/gaedal/common_test.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/dal/gaedal/fixes.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/dal/gaedal/fixes.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/dal/gaedal/group_dal.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/dal/gaedal/group_dal.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/dal/gaedal/group_dal_test.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/dal/gaedal/group_dal_test.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/dal/gaedal/invite_dal.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/dal/gaedal/invite_dal.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/dal/gaedal/register_dal_gae.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/dal/gaedal/register_dal_gae.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/dal/gaedal/user_dal.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/dal/gaedal/user_dal.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/dal/gaedal/user_google_dal.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/dal/gaedal/user_google_dal.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/dal/interfaces.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/dal/interfaces.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/facade/bill_facade.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/facade/bill_facade.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/facade/groups_facade.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/facade/groups_facade.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/facade/transfer_facade.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/facade/transfer_facade.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/facade/user_facade.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/facade/user_facade.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/models/bill.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/models/bill.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/models/bill_common.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/models/bill_common.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/models/bill_json.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/models/bill_json.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/models/bill_schedule.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/models/bill_schedule.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/models/group.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/models/group.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/models/interfaces.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/models/interfaces.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/models/tg_group.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/models/tg_group.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/models/transfer.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/models/transfer.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/debtstracker/models/user_jsons.go" afterPath="$PROJECT_DIR$/../gae_app/debtstracker/models/user_jsons.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../gae_app/gaestandard/environment.go" afterPath="$PROJECT_DIR$/../gae_app/gaestandard/environment.go" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf>
+      <file leaf-file-name="bill_facade.go" pinned="false" current-in-tab="true">
+        <entry file="file://$USER_HOME$/go_workspace/src/bitbucket.com/debtstracker/gae_app/debtstracker/facade/bill_facade.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="101">
+              <caret line="274" column="24" lean-forward="true" selection-start-line="274" selection-start-column="24" selection-end-line="274" selection-end-column="24" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>random</find>
+      <find>rand.</find>
+      <find>random := rand.New(</find>
+      <find>dalmocks</find>
+      <find>billID</find>
+      <find>billID int64</find>
+      <find>illID int64</find>
+    </findStrings>
+    <replaceStrings>
+      <replace>billID string</replace>
+      <replace>illID string</replace>
+    </replaceStrings>
+    <dirStrings>
+      <dir>$USER_HOME$/go_workspace/src/bitbucket.com/debtstracker/gae_app</dir>
+    </dirStrings>
+  </component>
+  <component name="GOROOT" path="/usr/local/go" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/main.go" />
+        <option value="$USER_HOME$/go_workspace/src/bitbucket.com/debtstracker/gae_app/debtstracker/dal/interfaces.go" />
+        <option value="$USER_HOME$/go_workspace/src/bitbucket.com/debtstracker/gae_app/debtstracker/dal/gaedal/invite_dal.go" />
+        <option value="$USER_HOME$/go_workspace/src/bitbucket.com/debtstracker/gae_app/debtstracker/dal/dalmocks/test_bill_dal_mock.go" />
+        <option value="$USER_HOME$/go_workspace/src/bitbucket.com/debtstracker/gae_app/debtstracker/dal/dalmocks/bill_dal_mock_test.go" />
+        <option value="$USER_HOME$/go_workspace/src/bitbucket.com/debtstracker/gae_app/bot/bot_shared/bill_card_cmd.go" />
+      </list>
+    </option>
+  </component>
+  <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsGulpfileManager">
+    <detection-done>true</detection-done>
+    <sorting>DEFINITION_ORDER</sorting>
+  </component>
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="56" />
+    <option name="y" value="23" />
+    <option name="width" value="1864" />
+    <option name="height" value="1177" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
+  <component name="ProjectView">
+    <navigator currentView="ProjectPane" proportions="" version="1">
+      <flattenPackages />
+      <showMembers />
+      <showModules />
+      <showLibraryContents />
+      <hideEmptyPackages />
+      <abbreviatePackageNames />
+      <autoscrollToSource />
+      <autoscrollFromSource />
+      <sortByType />
+      <manualOrder />
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scratches" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="gae_root" type="b2602c69:ProjectViewProjectNode" />
+              <item name="appengine" type="47feb1d3:ProjectViewModuleNode" />
+            </path>
+            <path>
+              <item name="gae_root" type="b2602c69:ProjectViewProjectNode" />
+              <item name="appengine" type="47feb1d3:ProjectViewModuleNode" />
+              <item name="gae_app" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="gae_root" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+            </path>
+            <path>
+              <item name="gae_root" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Go SDK 1.8.3" type="20ee2d1f:SyntheticLibraryElementNode" />
+            </path>
+            <path>
+              <item name="gae_root" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Go SDK 1.8.3" type="20ee2d1f:SyntheticLibraryElementNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="gae_root" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Go SDK 1.8.3" type="20ee2d1f:SyntheticLibraryElementNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="math" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="gae_root" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Go SDK 1.8.3" type="20ee2d1f:SyntheticLibraryElementNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="math" type="462c0819:PsiDirectoryNode" />
+              <item name="rand" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="Scope" />
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="ShelveChangesManager" show_recycled="false">
+    <option name="remove_strategy" value="false" />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="56" y="23" width="1864" height="1177" extended-state="6" />
+    <layout>
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32941177" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32941177" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+    </layout>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <ignored-roots>
+      <path value="$PROJECT_DIR$/.." />
+    </ignored-roots>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager />
+    <watches-manager />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$USER_HOME$/go_workspace/src/github.com/strongo/bots-framework/hosts/appengine/logger.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="660">
+          <caret line="48" column="4" lean-forward="false" selection-start-line="48" selection-start-column="4" selection-end-line="48" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/go_workspace/src/github.com/strongo/app/i18n_map_translator.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="18" column="5" lean-forward="false" selection-start-line="18" selection-start-column="5" selection-end-line="18" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../gae_app/init_bots.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="75">
+          <caret line="23" column="23" lean-forward="false" selection-start-line="23" selection-start-column="23" selection-end-line="23" selection-end-column="23" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../gae_app/debtstracker/models/bill.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="447">
+          <caret line="73" column="0" lean-forward="false" selection-start-line="73" selection-start-column="0" selection-end-line="73" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../gae_app/debtstracker/facade/bill_facade.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="417">
+          <caret line="492" column="18" lean-forward="false" selection-start-line="492" selection-start-column="18" selection-end-line="492" selection-end-column="18" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/go_workspace/src/bitbucket.com/debtstracker/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="1" column="7" lean-forward="true" selection-start-line="1" selection-start-column="7" selection-end-line="1" selection-end-column="7" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/go_workspace/src/bitbucket.com/debtstracker/gae_app/debtstracker/dal/gaedal/login_code.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="27" column="22" lean-forward="false" selection-start-line="27" selection-start-column="3" selection-end-line="27" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/go_workspace/src/bitbucket.com/debtstracker/gae_app/debtstracker/facade/helpers_test.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="330">
+          <caret line="22" column="0" lean-forward="true" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
+          <folding>
+            <element signature="e#16#231#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/go_workspace/src/bitbucket.com/debtstracker/gae_app/debtstracker/dal/dalmocks/bill_dal_mock_test.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="300">
+          <caret line="26" column="0" lean-forward="false" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/go_workspace/src/bitbucket.com/debtstracker/gae_app/debtstracker/dal/interfaces.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="291">
+          <caret line="238" column="5" lean-forward="false" selection-start-line="238" selection-start-column="5" selection-end-line="238" selection-end-column="5" />
+          <folding>
+            <element signature="e#13#432#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app.yaml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/go_workspace/src/bitbucket.com/debtstracker/gae_app/init_app.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="330">
+          <caret line="41" column="0" lean-forward="false" selection-start-line="41" selection-start-column="0" selection-end-line="41" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="10" column="13" lean-forward="false" selection-start-line="10" selection-start-column="13" selection-end-line="10" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main_test.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/go_workspace/src/bitbucket.com/debtstracker/gae_app/debtstracker/dal/gaedal/invite_dal.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="359">
+          <caret line="147" column="32" lean-forward="false" selection-start-line="147" selection-start-column="32" selection-end-line="147" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/go_workspace/src/bitbucket.com/debtstracker/gae_app/debtstracker/facade/auth_facade.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="300">
+          <caret line="28" column="63" lean-forward="false" selection-start-line="28" selection-start-column="6" selection-end-line="28" selection-end-column="63" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/go_workspace/src/github.com/strongo/app/db/interfaces.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="795">
+          <caret line="57" column="5" lean-forward="false" selection-start-line="57" selection-start-column="5" selection-end-line="57" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/go_workspace/src/bitbucket.com/debtstracker/gae_app/bot/bot_shared/bill_card_cmd.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="225">
+          <caret line="15" column="0" lean-forward="false" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/go_workspace/src/bitbucket.com/debtstracker/gae_app/debtstracker/facade/bill_facade.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="101">
+          <caret line="274" column="24" lean-forward="true" selection-start-line="274" selection-start-column="24" selection-end-line="274" selection-end-column="24" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>
