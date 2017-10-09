@@ -1,9 +1,9 @@
 package telegram
 
 import (
-	"testing"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 	"github.com/strongo/app"
+	"testing"
 )
 
 func TestGetBotSettingsByLang(t *testing.T) {
@@ -13,7 +13,7 @@ func TestGetBotSettingsByLang(t *testing.T) {
 			t.Fatal(err)
 		}
 		if botSettings.Code != code {
-			t.Error(code +" not found in settings, got: " + botSettings.Code)
+			t.Error(code + " not found in settings, got: " + botSettings.Code)
 		}
 	}
 	verify(bot.ProfileDebtus, strongo.LOCALE_RU_RU, "DebtsTrackerRuBot")

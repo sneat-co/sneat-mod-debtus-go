@@ -1,18 +1,18 @@
 package bot_shared
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/bots-api-telegram"
-	"net/url"
-	"golang.org/x/net/context"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"github.com/strongo/app/log"
-	"github.com/strongo/app"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/strongo/app"
 	"github.com/strongo/app/db"
+	"github.com/strongo/app/log"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/bots-framework/platforms/telegram"
+	"golang.org/x/net/context"
+	"net/url"
 )
 
 func startCommand(botParams BotParams) bots.Command {
@@ -133,8 +133,8 @@ func createGroupFromTelegram(whc bots.WebhookContext, chatEntity *models.DtTeleg
 	}
 	groupEntity.SetTelegramGroups([]models.GroupTgChatJson{
 		{
-			ChatID: tgChat.ID,
-			Title: tgChat.Title,
+			ChatID:         tgChat.ID,
+			Title:          tgChat.Title,
 			ChatInviteLink: chatInviteLink,
 		},
 	})

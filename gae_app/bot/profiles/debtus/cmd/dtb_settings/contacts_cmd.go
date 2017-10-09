@@ -1,21 +1,21 @@
 package dtb_settings
 
 import (
-	"github.com/strongo/bots-framework/core"
 	"github.com/DebtsTracker/translations/trans"
+	"github.com/strongo/bots-framework/core"
 	"net/url"
 	//"github.com/strongo/bots-api-telegram"
 	//"github.com/DebtsTracker/translations/emoji"
 	//"github.com/strongo/bots-framework/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"fmt"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"github.com/strongo/bots-api-telegram"
 	"github.com/DebtsTracker/translations/emoji"
-	"strconv"
+	"github.com/strongo/bots-api-telegram"
 	"html"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
+	"strconv"
 )
 
 const CONTACTS_LIST_COMMAND = "contacts-list"
@@ -32,7 +32,7 @@ var ContactsListCommand = bots.Command{
 		}
 		var buffer bytes.Buffer
 		buffer.WriteString(fmt.Sprintf("<b>%v</b>\n", whc.Translate(trans.COMMAND_TEXT_CONTACTS)))
-		linker := common. NewLinkerFromWhc(whc)
+		linker := common.NewLinkerFromWhc(whc)
 		contacts := user.Contacts()
 		numFormat := "%0" + strconv.Itoa(len(strconv.Itoa(len(contacts)))) + "d. "
 		if len(contacts) == 0 {
@@ -41,7 +41,7 @@ var ContactsListCommand = bots.Command{
 			for i, contact := range contacts {
 				buffer.WriteString(fmt.Sprintf(numFormat, i+1))
 				buffer.WriteString(fmt.Sprintf(`<a href="%v">%v</a>`, linker.UrlToContact(contact.ID), html.EscapeString(contact.Name)))
-				if contact.Status != ""  && contact.Status != models.STATUS_ACTIVE {
+				if contact.Status != "" && contact.Status != models.STATUS_ACTIVE {
 					buffer.WriteString(" (")
 					buffer.WriteString(contact.Status)
 					buffer.WriteString(")")

@@ -1,12 +1,12 @@
 package bot_shared
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bytes"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
-	"golang.org/x/net/context"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/strongo/bots-framework/core"
-	"bytes"
+	"golang.org/x/net/context"
 )
 
 type BotParams struct {
@@ -16,6 +16,6 @@ type BotParams struct {
 	DelayUpdateBillCardOnUserJoin    func(c context.Context, billID string, message string) error
 	ShowGroupMembers                 func(whc bots.WebhookContext, group models.Group, isEdit bool) (m bots.MessageFromBot, err error)
 	WelcomeText                      func(translator strongo.SingleLocaleTranslator, buf *bytes.Buffer)
-	InGroupWelcomeMessage func(whc bots.WebhookContext) (m bots.MessageFromBot, err error)
-	InBotWelcomeMessage func(whc bots.WebhookContext) (m bots.MessageFromBot, err error)
+	InGroupWelcomeMessage            func(whc bots.WebhookContext) (m bots.MessageFromBot, err error)
+	InBotWelcomeMessage              func(whc bots.WebhookContext) (m bots.MessageFromBot, err error)
 }

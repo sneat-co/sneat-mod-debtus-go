@@ -4,10 +4,10 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/DebtsTracker/translations/emoji"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/invites"
 	"fmt"
+	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app/log"
@@ -75,7 +75,7 @@ var AskInviteAddressCallbackCommand = bots.Command{
 	CallbackAction: func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
 		q := callbackURL.Query()
 		echoSelection := func(mt string) error {
-			if m, err = whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_ABOUT_INVITES) + "\n\n" + mt, bots.MessageFormatHTML); err != nil {
+			if m, err = whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_ABOUT_INVITES)+"\n\n"+mt, bots.MessageFormatHTML); err != nil {
 				return err
 			}
 			_, err := whc.Responder().SendMessage(whc.Context(), m, bots.BotApiSendMessageOverHTTPS)

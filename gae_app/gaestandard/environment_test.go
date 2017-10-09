@@ -1,9 +1,9 @@
 package gaestandard
 
 import (
-	"testing"
-	"golang.org/x/net/context"
 	"github.com/strongo/app"
+	"golang.org/x/net/context"
+	"testing"
 )
 
 func TestGetEnvironment(t *testing.T) {

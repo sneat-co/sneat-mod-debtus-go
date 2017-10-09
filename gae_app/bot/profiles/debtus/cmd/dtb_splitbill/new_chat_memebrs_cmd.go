@@ -1,8 +1,8 @@
 package dtb_splitbill
 
 import (
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/app/log"
+	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
 )
 

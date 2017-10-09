@@ -1,10 +1,10 @@
 package bot_shared
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 )
 
 func GetGroup(whc bots.WebhookContext) (group models.Group, err error) {
@@ -18,4 +18,3 @@ func GetGroup(whc bots.WebhookContext) (group models.Group, err error) {
 	tgChat := whc.Input().(telegram_bot.TelegramWebhookInput).TgUpdate().Chat()
 	return createGroupFromTelegram(whc, tgChatEntity, tgChat)
 }
-

@@ -2,19 +2,19 @@ package api
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/emails"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pkg/errors"
+	"github.com/strongo/app/db"
 	"github.com/strongo/app/log"
+	"github.com/strongo/app/user"
 	"golang.org/x/net/context"
 	"net/http"
 	"regexp"
-	"strings"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"time"
 	"strconv"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/emails"
-	"github.com/strongo/app/user"
-	"github.com/strongo/app/db"
+	"strings"
+	"time"
 )
 
 var (
@@ -201,9 +201,9 @@ var errInvalidEmailConformationPin = errors.New("email confirmation pin is not v
 
 func handleConfirmEmailAndSignIn(c context.Context, w http.ResponseWriter, r *http.Request) {
 	var (
-		err           error
+		err       error
 		userEmail models.UserEmail
-		pin string
+		pin       string
 	)
 
 	userEmail.ID, pin = r.PostFormValue("email"), r.PostFormValue("pin")

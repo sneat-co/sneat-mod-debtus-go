@@ -2,15 +2,15 @@ package api
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pkg/errors"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
 	"net/http"
 	"strconv"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 )
 
 // TODO: Obsolete - migrate to handleSignInWithPin
@@ -75,7 +75,7 @@ func handleSignInWithPin(c context.Context, w http.ResponseWriter, r *http.Reque
 			if authInfo.UserID != 0 && userID != authInfo.UserID {
 				log.Warningf(c, "userID:%v != authInfo.AppUserIntID:%v", userID, authInfo.UserID)
 			}
-			ReturnToken(c, w, userID, false,false)
+			ReturnToken(c, w, userID, false, false)
 		}
 	}
 }

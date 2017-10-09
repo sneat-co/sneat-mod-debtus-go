@@ -2,14 +2,14 @@ package gaedal
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"github.com/strongo/app/db"
+	"github.com/strongo/app/gaedb"
 	"github.com/strongo/bots-framework/core"
+	telegram_bot "github.com/strongo/bots-framework/platforms/telegram"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
 	"net/http"
-	"github.com/strongo/app/gaedb"
-	"github.com/strongo/app/db"
-	telegram_bot "github.com/strongo/bots-framework/platforms/telegram"
 )
 
 func RegisterDal() {

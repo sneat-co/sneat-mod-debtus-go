@@ -1,13 +1,13 @@
 package viber
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/viber"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"strings"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 )
 
 var _bots bots.SettingsBy
@@ -18,7 +18,7 @@ func Bots(c context.Context) bots.SettingsBy { //TODO: Consider to do pre-deploy
 		if strings.Contains(host, "dev") {
 			_bots = bots.NewBotSettingsBy(nil,
 				// Development bot
-				viber_bot.NewViberBot(strongo.EnvDevTest, bot.ProfileDebtus,"DebtsTrackerDev", "451be8dd024fbbc7-4fb4285be8dbb24e-1b2d99610f798855", strongo.LocalesByCode5[strongo.LOCALE_EN_US]),
+				viber_bot.NewViberBot(strongo.EnvDevTest, bot.ProfileDebtus, "DebtsTrackerDev", "451be8dd024fbbc7-4fb4285be8dbb24e-1b2d99610f798855", strongo.LocalesByCode5[strongo.LOCALE_EN_US]),
 			)
 		} else if strings.Contains(host, "st1") {
 			//_bots = bots.NewBotSettingsBy(
@@ -27,7 +27,7 @@ func Bots(c context.Context) bots.SettingsBy { //TODO: Consider to do pre-deploy
 		} else if strings.HasPrefix(host, "debtstracker-io.") {
 			_bots = bots.NewBotSettingsBy(nil,
 				// Production bot
-				viber_bot.NewViberBot(strongo.EnvProduction, bot.ProfileDebtus,"DebtsTracker", "4512c8fee64003e3-c80409381d9f87ff-b0f58459c505b13d", strongo.LocalesByCode5[strongo.LOCALE_EN_US]),
+				viber_bot.NewViberBot(strongo.EnvProduction, bot.ProfileDebtus, "DebtsTracker", "4512c8fee64003e3-c80409381d9f87ff-b0f58459c505b13d", strongo.LocalesByCode5[strongo.LOCALE_EN_US]),
 			)
 		}
 	}

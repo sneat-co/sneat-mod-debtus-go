@@ -1,20 +1,20 @@
 package api
 
 import (
-	"golang.org/x/net/context"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"fmt"
-	fb "github.com/strongo/facebook"
-	"github.com/pkg/errors"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"net/http"
-	"github.com/strongo/app/log"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbm"
-	"time"
-	"strconv"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"fmt"
+	"github.com/pkg/errors"
 	"github.com/strongo/app/db"
+	"github.com/strongo/app/log"
+	fb "github.com/strongo/facebook"
+	"golang.org/x/net/context"
+	"net/http"
+	"strconv"
+	"time"
 )
 
 var ErrUnauthorized = errors.New("Unauthorized")
@@ -66,7 +66,7 @@ func signInFbUser(c context.Context, fbAppID, fbUserID string, r *http.Request, 
 				}
 				var (
 					pageID string
-					ok bool
+					ok     bool
 				)
 				if pageID, ok = signedData.Get("page_id").(string); !ok {
 					pageID = strconv.FormatFloat(signedData.Get("page_id").(float64), 'f', 0, 64)
@@ -94,7 +94,7 @@ func signInFbUser(c context.Context, fbAppID, fbUserID string, r *http.Request, 
 	}
 
 	if userFacebook, err = dal.UserFacebook.GetFbUserByFbID(c, fbAppID, fbUserID); err != nil && !db.IsNotFound(err) {
-		err = errors.WithMessage(err, "Failed to get UserFacebook record by ID",)
+		err = errors.WithMessage(err, "Failed to get UserFacebook record by ID")
 		return
 	} else if !db.IsNotFound(err) && fbUserID != "" && fbUserID != userFacebook.FbUserOrPageScopeID {
 		err = errors.WithMessage(ErrUnauthorized, fmt.Sprintf("fbUserID:%v != userFacebook.ID:%v", fbUserID, userFacebook.FbUserOrPageScopeID))
@@ -126,7 +126,7 @@ func getFbUserInfo(c context.Context, fbSession *fb.Session, isFbm bool, fbUserI
 ) {
 	var (
 		endPoint string
-		fields string
+		fields   string
 	)
 	if isFbm {
 		endPoint = "/" + fbUserID
@@ -160,7 +160,7 @@ func getFbUserInfo(c context.Context, fbSession *fb.Session, isFbm bool, fbUserI
 
 func createOrUpdateFbUserDbRecord(c context.Context, isFbm bool, fbAppID, fbUserID string, fbSession *fb.Session, authInfo auth.AuthInfo, clientInfo models.ClientInfo) (user models.AppUser, userFacebook models.UserFacebook, isNewUser bool, err error) {
 	var (
-		emailConfirmed bool
+		emailConfirmed             bool
 		email, firstName, lastName string
 	)
 	emailConfirmed, email, firstName, lastName, err = getFbUserInfo(c, fbSession, isFbm, fbUserID)

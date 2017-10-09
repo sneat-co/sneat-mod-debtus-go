@@ -1,17 +1,17 @@
 package facade
 
 import (
-	"golang.org/x/net/context"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/pkg/errors"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/app/db"
-	"google.golang.org/appengine/delay"
-	"github.com/strongo/app/gae"
-	"github.com/strongo/app/slices"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/pkg/errors"
+	"github.com/strongo/app/db"
+	"github.com/strongo/app/gae"
 	"github.com/strongo/app/log"
+	"github.com/strongo/app/slices"
+	"github.com/strongo/bots-framework/core"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/taskqueue"
 )
 
@@ -100,7 +100,7 @@ func (groupFacade groupFacade) CreateGroup(c context.Context,
 }
 
 type NewUser struct {
-	Name       string
+	Name string
 	bots.BotUser
 	ChatMember bots.WebhookActor
 }
@@ -199,7 +199,6 @@ func delayedUpdateUserWithGroups(c context.Context, userID int64, groupIDs2add, 
 	}
 	return err
 }
-
 
 func (userFacade) UpdateUserWithGroups(c context.Context, user models.AppUser, groups2add []models.Group, groups2remove []string) (err error) {
 	log.Debugf(c, "updateUserWithGroup(user.ID=%d, len(groups2add)=%d, groups2remove=%v)", user.ID, len(groups2add), groups2remove)

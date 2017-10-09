@@ -2,10 +2,10 @@ package gaedal
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/strongo/app/gaedb"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"time"
-	"github.com/strongo/app/gaedb"
 )
 
 type UserOneSignalDalGae struct {
@@ -14,7 +14,6 @@ type UserOneSignalDalGae struct {
 func NewUserOneSignalDalGae() UserOneSignalDalGae {
 	return UserOneSignalDalGae{}
 }
-
 
 func (_ UserOneSignalDalGae) SaveUserOneSignal(c context.Context, userID int64, oneSignalUserID string) (userOneSignal models.UserOneSignal, err error) {
 	key := models.NewUserOneSignalKey(c, oneSignalUserID)

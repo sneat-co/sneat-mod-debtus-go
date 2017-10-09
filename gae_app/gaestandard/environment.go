@@ -1,10 +1,10 @@
 package gaestandard
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"github.com/strongo/app"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 )
 
 var defaultVersionHostname = appengine.DefaultVersionHostname

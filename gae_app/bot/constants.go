@@ -5,4 +5,3 @@ const (
 	ProfileSplitus   = "splitus"
 	ProfileCollectus = "collectus"
 )
-

@@ -1,12 +1,12 @@
 package models
 
 import (
-	"time"
+	"fmt"
+	"github.com/pquerna/ffjson/ffjson"
+	"github.com/strongo/app/gaedb"
 	"github.com/strongo/decimal"
 	"google.golang.org/appengine/datastore"
-	"github.com/strongo/app/gaedb"
-	"github.com/pquerna/ffjson/ffjson"
-	"fmt"
+	"time"
 )
 
 type SplitMode string
@@ -28,10 +28,10 @@ const (
 
 type BillCommon struct {
 	PayMode            PayMode
-	CreatorUserID      int64               `datastore:",noindex"`
-	UserGroupIDs       []string             `datastore:",noindex"`
-	TgInlineMessageIDs []string            `datastore:",noindex"`
-	SplitMode          SplitMode           `datastore:",noindex"`
+	CreatorUserID      int64     `datastore:",noindex"`
+	UserGroupIDs       []string  `datastore:",noindex"`
+	TgInlineMessageIDs []string  `datastore:",noindex"`
+	SplitMode          SplitMode `datastore:",noindex"`
 	Status             string
 	DtCreated          time.Time
 	Name               string              `datastore:",noindex"`
@@ -39,11 +39,11 @@ type BillCommon struct {
 	Currency           string              `datastore:",noindex"`
 	UserIDs            []int64
 	members            []BillMemberJson
-	MembersJson        string              `datastore:",noindex"`
-	MembersCount       int                 `datastore:",noindex"`
-	MemberLastID       int64               `datastore:",noindex"`
+	MembersJson        string  `datastore:",noindex"`
+	MembersCount       int     `datastore:",noindex"`
+	MemberLastID       int64   `datastore:",noindex"`
 	ContactIDs         []int64 // Holds contact IDs so we can update names in MembersJson on contact changed
-	Shares             int                 `datastore:",noindex"`
+	Shares             int     `datastore:",noindex"`
 }
 
 func (entity *BillCommon) AddOrGetMember(userID, contactID int64, name string) (isNew, changed bool, index int, member BillMemberJson, billMembers []BillMemberJson) {
@@ -55,7 +55,7 @@ func (entity *BillCommon) AddOrGetMember(userID, contactID int64, name string) (
 			MemberJson: m,
 		}
 		billMembers = append(billMembers, member)
-		if index != len(billMembers) - 1 {
+		if index != len(billMembers)-1 {
 			panic("index != len(billMembers) - 1")
 		}
 		changed = true
@@ -67,7 +67,6 @@ func (entity *BillCommon) AddOrGetMember(userID, contactID int64, name string) (
 	}
 	return
 }
-
 
 func (entity *BillCommon) AddUserGroupID(id string) (changed bool) {
 	if id == "" {

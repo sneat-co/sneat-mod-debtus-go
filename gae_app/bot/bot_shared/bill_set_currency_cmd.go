@@ -1,12 +1,12 @@
 package bot_shared
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"net/url"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/DebtsTracker/translations/trans"
 )
 
 const SET_BILL_CURRENCY_COMMAND = "set-bill-currency"
@@ -77,7 +77,6 @@ func CurrenciesInlineKeyboard(callbackDataPrefix string) *tgbotapi.InlineKeyboar
 		currencyButton("BYN", "🇧🇾"),
 		currencyButton("UAH", "🇺🇦"),
 		currencyButton("MDL", "🇲🇩"),
-
 	}
 
 	exUSSR := []tgbotapi.InlineKeyboardButton{
@@ -106,5 +105,3 @@ func CurrenciesInlineKeyboard(callbackDataPrefix string) *tgbotapi.InlineKeyboar
 		},
 	}
 }
-
-

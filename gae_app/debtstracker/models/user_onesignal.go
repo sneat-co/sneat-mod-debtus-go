@@ -1,10 +1,10 @@
 package models
 
 import (
+	"github.com/strongo/app/db"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"time"
-	"github.com/strongo/app/db"
 )
 
 const UserOneSignalKind = "UserOneSignal"

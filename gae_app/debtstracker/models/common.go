@@ -8,8 +8,8 @@ import (
 
 const (
 	STATUS_ACTIVE   = "active"
-	STATUS_DRAFT   = "draft"
-	STATUS_DELETED   = "deleted"
+	STATUS_DRAFT    = "draft"
+	STATUS_DELETED  = "deleted"
 	STATUS_ARCHIVED = "archived"
 )
 
@@ -34,4 +34,3 @@ var checkHasProperties = func(kind string, properties []datastore.Property) erro
 	}
 	return nil
 }
-

@@ -1,20 +1,20 @@
 package bot_shared
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/app/log"
-	"strings"
-	"github.com/strongo/bots-api-telegram"
-	"regexp"
-	"fmt"
-	"net/url"
-	"html"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/app"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
+	"github.com/strongo/app"
+	"github.com/strongo/app/log"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/bots-framework/platforms/telegram"
+	"html"
+	"net/url"
+	"regexp"
+	"strings"
 )
 
 var reInlineQueryNewBill = regexp.MustCompile(`^\s*(\d+(?:\.\d*)?)([^\s]*)\s+(.+?)\s*$`)

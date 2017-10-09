@@ -1,31 +1,29 @@
 package api
 
-
-
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/analytics"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/analytics"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/invites"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
+	"github.com/strongo/app/db"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"github.com/strongo/app/db"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 )
 
 func NewReceiptTransferDto(c context.Context, transfer models.Transfer) dto.ApiReceiptTransferDto {
@@ -104,10 +102,10 @@ func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request)
 	log.Debugf(c, "transfer.Creator(): %v", creator)
 
 	receiptDto := dto.ApiReceiptDto{
-		ID:      receiptID,
-		Code:    common.EncodeID(receiptID),
-		SentVia: receipt.SentVia,
-		SentTo:  sentTo,
+		ID:       receiptID,
+		Code:     common.EncodeID(receiptID),
+		SentVia:  receipt.SentVia,
+		SentTo:   sentTo,
 		Transfer: NewReceiptTransferDto(c, transfer),
 	}
 
@@ -125,8 +123,6 @@ func handleReceiptAccept(c context.Context, w http.ResponseWriter, r *http.Reque
 func handleReceiptDecline(c context.Context, w http.ResponseWriter, r *http.Request) {
 	jsonToResponse(c, w, "ok")
 }
-
-
 
 const RECEIPT_CHANNEL_DRAFT = "draft"
 

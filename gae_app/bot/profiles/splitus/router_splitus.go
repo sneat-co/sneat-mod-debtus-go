@@ -1,14 +1,14 @@
 package splitus
 
 import (
-	"github.com/strongo/bots-framework/core"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
-	"github.com/strongo/app"
-	"bytes"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/DebtsTracker/translations/emoji"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bytes"
+	"github.com/DebtsTracker/translations/emoji"
+	"github.com/DebtsTracker/translations/trans"
+	"github.com/strongo/app"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
 )
 
 var botParams = bot_shared.BotParams{
@@ -24,8 +24,8 @@ var botParams = bot_shared.BotParams{
 	},
 	InGroupWelcomeMessage: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		return whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_HI)+
-			"\n\n"+ whc.Translate(trans.SPLITUS_TEXT_HI_IN_GROUP)+
-			"\n\n"+ whc.Translate(trans.SPLITUS_TEXT_ABOUT_ME_AND_CO),
+			"\n\n"+whc.Translate(trans.SPLITUS_TEXT_HI_IN_GROUP)+
+			"\n\n"+whc.Translate(trans.SPLITUS_TEXT_ABOUT_ME_AND_CO),
 			bots.MessageFormatHTML)
 	},
 	InBotWelcomeMessage: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
@@ -101,4 +101,3 @@ func getWhoPaidInlineKeyboard(translator strongo.SingleLocaleTranslator, billID 
 		},
 	}
 }
-

@@ -1,21 +1,19 @@
 package api
 
-
-
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"encoding/json"
 	"fmt"
+	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
-	"github.com/strongo/app/log"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 )
 
 func getUserID(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) (userID int64) {
@@ -166,8 +164,6 @@ func contactToResponse(c context.Context, w http.ResponseWriter, authInfo auth.A
 
 	jsonToResponse(c, w, counterpartyJson)
 }
-
-
 
 //type CounterpartyTransfer struct {
 //

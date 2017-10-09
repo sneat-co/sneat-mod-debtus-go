@@ -1,15 +1,15 @@
 package splitus
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"net/url"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"fmt"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/bots-api-telegram"
 	"github.com/pkg/errors"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/bots-framework/platforms/telegram"
+	"net/url"
 )
 
 const BILLS_COMMAND = "bills"
@@ -17,7 +17,7 @@ const BILLS_COMMAND = "bills"
 var billsCommand = bots.Command{
 	Code:     BILLS_COMMAND,
 	Commands: []string{"/bills"},
-	Action: billsAction,
+	Action:   billsAction,
 	CallbackAction: func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
 		return billsAction(whc)
 	},
@@ -57,7 +57,7 @@ func billsAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		return
 	}
 	for i, bill := range outstandingBills {
-		fmt.Fprintf(buf, `  %d. <a href="https://t.me/%v?start=bill-%d">%v</a>` + "\n", i+1, whc.GetBotCode(), bill.ID, bill.Name)
+		fmt.Fprintf(buf, `  %d. <a href="https://t.me/%v?start=bill-%d">%v</a>`+"\n", i+1, whc.GetBotCode(), bill.ID, bill.Name)
 	}
 
 	fmt.Fprintf(buf, "\nSend /split@%v to close the bills.\nThe debts records will be available in @DebtsTrackerBot.", whc.GetBotCode())

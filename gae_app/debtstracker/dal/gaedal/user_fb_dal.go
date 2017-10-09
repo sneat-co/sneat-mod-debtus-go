@@ -2,10 +2,10 @@ package gaedal
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/strongo/app/db"
+	"github.com/strongo/app/gaedb"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"github.com/strongo/app/gaedb"
-	"github.com/strongo/app/db"
 )
 
 func NewUserFacebookKey(c context.Context, fbAppOrPageID, fbUserOrPageScopeID string) *datastore.Key {
@@ -15,7 +15,7 @@ func NewUserFacebookKey(c context.Context, fbAppOrPageID, fbUserOrPageScopeID st
 	if fbUserOrPageScopeID == "" {
 		panic("fbUserOrPageScopeID is empty string")
 	}
-	return gaedb.NewKey(c, models.UserFacebookKind, fbAppOrPageID + ":" + fbUserOrPageScopeID, 0, nil)
+	return gaedb.NewKey(c, models.UserFacebookKind, fbAppOrPageID+":"+fbUserOrPageScopeID, 0, nil)
 }
 
 type UserFacebookDalGae struct {
@@ -41,7 +41,6 @@ func (_ UserFacebookDalGae) DeleteFbUser(c context.Context, fbAppOrPageID, fbUse
 	return
 }
 
-
 func (_ UserFacebookDalGae) GetFbUserByFbID(c context.Context, fbAppOrPageID, fbUserOrPageScopeID string) (fbUser models.UserFacebook, err error) {
 	var entity models.UserFacebookEntity
 	if err = gaedb.Get(c, NewUserFacebookKey(c, fbAppOrPageID, fbUserOrPageScopeID), &entity); err != nil {
@@ -51,9 +50,9 @@ func (_ UserFacebookDalGae) GetFbUserByFbID(c context.Context, fbAppOrPageID, fb
 		return
 	}
 	fbUser = models.UserFacebook{
-		FbAppOrPageID: fbAppOrPageID,
+		FbAppOrPageID:       fbAppOrPageID,
 		FbUserOrPageScopeID: fbUserOrPageScopeID,
-		UserFacebookEntity: &entity,
+		UserFacebookEntity:  &entity,
 	}
 	return
 }

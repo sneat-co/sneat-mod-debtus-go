@@ -4,12 +4,12 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pkg/errors"
+	"github.com/strongo/app/gaedb"
 	"github.com/strongo/app/log"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"golang.org/x/net/context"
 	"strings"
 	"sync"
-	"github.com/strongo/app/gaedb"
 )
 
 type TgChatDalGae struct {

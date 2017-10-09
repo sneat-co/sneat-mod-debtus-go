@@ -5,6 +5,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/strongo/app/gaedb"
 	"github.com/strongo/app/log"
 	"github.com/strongo/bots-framework/hosts/appengine"
 	"github.com/strongo/bots-framework/platforms/fbm"
@@ -17,7 +18,6 @@ import (
 	"google.golang.org/appengine/taskqueue"
 	"strings"
 	"time"
-	"github.com/strongo/app/gaedb"
 )
 
 type AdminDalGae struct {

@@ -1,16 +1,16 @@
 package gaedal
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/strongo/app/db"
+	"github.com/strongo/app/gae"
+	"github.com/strongo/app/gaedb"
+	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"github.com/strongo/app/gaedb"
 	"google.golang.org/appengine/delay"
-	"github.com/strongo/app/gae"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"github.com/strongo/app/db"
-	"github.com/strongo/app/log"
 )
 
 var _ dal.GroupDal = (*GroupDalGae)(nil)
@@ -91,11 +91,11 @@ var delayedUpdateGroupWithBill = delay.Func("delayedUpdateWithBill", func(c cont
 			}
 		}
 		outstandingBills = append(outstandingBills, models.BillJson{
-			ID: bill.ID,
-			Name: bill.Name,
+			ID:           bill.ID,
+			Name:         bill.Name,
 			MembersCount: bill.MembersCount,
-			Total: bill.AmountTotal,
-			Currency: bill.Currency,
+			Total:        bill.AmountTotal,
+			Currency:     bill.Currency,
 		})
 		changed = true
 	updated:

@@ -10,9 +10,9 @@ import (
 	"github.com/strongo/app/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"net/url"
-	"html"
 	"github.com/strongo/bots-framework/platforms/telegram"
+	"html"
+	"net/url"
 )
 
 //func CancelReceiptAction(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {

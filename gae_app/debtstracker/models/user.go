@@ -1,22 +1,21 @@
 package models
 
 import (
+	"fmt"
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/app"
+	"github.com/strongo/app/db"
 	"github.com/strongo/app/gaedb"
+	"github.com/strongo/app/user"
 	"github.com/strongo/bots-framework/core"
 	"google.golang.org/appengine/datastore"
-	"time"
-	"fmt"
 	"net/http"
 	"strconv"
-	"github.com/strongo/app/db"
-	"github.com/strongo/app/user"
+	"time"
 )
 
 const AppUserKind = "User"
-
 
 type AppUser struct {
 	db.NoStrID
@@ -47,7 +46,6 @@ func (u *AppUser) SetIntID(id int64) {
 	u.ID = id
 }
 
-
 func IsKnownUserAccountProvider(p string) bool {
 	switch p {
 	case "telegram":
@@ -63,7 +61,6 @@ func IsKnownUserAccountProvider(p string) bool {
 	}
 	return true
 }
-
 
 type ClientInfo struct {
 	UserAgent  string
@@ -97,7 +94,7 @@ type AppUserEntity struct {
 	DtAccessGranted time.Time `datastore:",noindex"`
 	Balanced
 	SmsStats
-	DtCreated       time.Time
+	DtCreated time.Time
 	user.LastLogin
 
 	HasDueTransfers bool `datastore:",noindex"` // TODO: Check if we really need this prop and if yes document why
@@ -106,28 +103,28 @@ type AppUserEntity struct {
 
 	user.Accounts
 
-	TelegramUserIDs    []int64                       // TODO: Obsolete
-	ViberBotID         string `datastore:",noindex"` // TODO: Obsolete
-	ViberUserID        string                        // TODO: Obsolete
-	VkUserID           int64                         // TODO: Obsolete
-	GoogleUniqueUserID string `datastore:",noindex"` // TODO: Obsolete
+	TelegramUserIDs    []int64 // TODO: Obsolete
+	ViberBotID         string  `datastore:",noindex"` // TODO: Obsolete
+	ViberUserID        string  // TODO: Obsolete
+	VkUserID           int64   // TODO: Obsolete
+	GoogleUniqueUserID string  `datastore:",noindex"` // TODO: Obsolete
 	//FbUserID           string `datastore:",noindex"` // TODO: Obsolete Facebook assigns different IDs to same FB user for FB app & Messenger app.
 	//FbmUserID          string `datastore:",noindex"` // TODO: Obsolete So we would want to keep both IDs?
 	// TODO: How do we support multiple FBM bots? They will have different PSID (PageScopeID)
 
 	OBSOLETE_CounterpartyIDs []int64 `datastore:"CounterpartyIDs,noindex"` // TODO: Remove obsolete
 
-	ContactsCount int     `datastore:",noindex"` // TODO: Obsolete
-	ContactsJson  string  `datastore:",noindex"` // TODO: Obsolete
+	ContactsCount int    `datastore:",noindex"` // TODO: Obsolete
+	ContactsJson  string `datastore:",noindex"` // TODO: Obsolete
 
-	ContactsCountActive   int     `datastore:",noindex"`
-	ContactsCountArchived int     `datastore:",noindex"`
+	ContactsCountActive   int `datastore:",noindex"`
+	ContactsCountArchived int `datastore:",noindex"`
 
-	ContactsJsonActive   string  `datastore:",noindex"`
-	ContactsJsonArchived string  `datastore:",noindex"`
+	ContactsJsonActive   string `datastore:",noindex"`
+	ContactsJsonArchived string `datastore:",noindex"`
 
-	GroupsCountActive   int    `datastore:",noindex"`
-	GroupsCountArchived int    `datastore:",noindex"`
+	GroupsCountActive   int `datastore:",noindex"`
+	GroupsCountArchived int `datastore:",noindex"`
 
 	GroupsJsonActive   string `datastore:",noindex"`
 	GroupsJsonArchived string `datastore:",noindex"`
@@ -416,7 +413,7 @@ func (u *AppUserEntity) AddGroup(group Group, tgBot string) (changed bool) {
 				}
 				g.TgBots = append(g.TgBots, tgBot)
 				changed = true
-				found:
+			found:
 			}
 			return
 		}
@@ -524,7 +521,7 @@ func (u *AppUserEntity) Load(ps []datastore.Property) (err error) {
 			if telegramUserID, ok := p.Value.(int64); ok && telegramUserID != 0 {
 				u.AddAccount(user.Account{
 					Provider: "telegram",
-					ID: strconv.FormatInt(telegramUserID, 10),
+					ID:       strconv.FormatInt(telegramUserID, 10),
 				})
 			}
 		case "TelegramUserIDs":
@@ -533,7 +530,7 @@ func (u *AppUserEntity) Load(ps []datastore.Property) (err error) {
 				if id := p.Value.(int64); id != 0 {
 					u.AddAccount(user.Account{
 						Provider: "telegram",
-						ID: strconv.FormatInt(id, 10),
+						ID:       strconv.FormatInt(id, 10),
 					})
 				}
 			case []int64:
@@ -541,7 +538,7 @@ func (u *AppUserEntity) Load(ps []datastore.Property) (err error) {
 					if id != 0 {
 						u.AddAccount(user.Account{
 							Provider: "telegram",
-							ID: strconv.FormatInt(id, 10),
+							ID:       strconv.FormatInt(id, 10),
 						})
 					}
 				}
@@ -552,7 +549,7 @@ func (u *AppUserEntity) Load(ps []datastore.Property) (err error) {
 			if v, ok := p.Value.(string); ok && v != "" {
 				u.AddAccount(user.Account{
 					Provider: "google",
-					ID: v,
+					ID:       v,
 				})
 			}
 		default:
@@ -644,8 +641,8 @@ func (_ *AppUserEntity) cleanProps(properties []datastore.Property) ([]datastore
 		"LastUserIpAddress":                   gaedb.IsEmptyString,
 		"Nickname":                            gaedb.IsEmptyString,
 		"PhoneNumber":                         gaedb.IsZeroInt,
-		"PhoneNumberConfirmed":                gaedb.IsFalse,  // TODO: Duplicate of PhoneNumberIsConfirmed
-		"PhoneNumberIsConfirmed":              gaedb.IsFalse,  // TODO: Duplicate of PhoneNumberConfirmed
+		"PhoneNumberConfirmed":                gaedb.IsFalse, // TODO: Duplicate of PhoneNumberIsConfirmed
+		"PhoneNumberIsConfirmed":              gaedb.IsFalse, // TODO: Duplicate of PhoneNumberConfirmed
 		"EmailConfirmed":                      gaedb.IsFalse,
 		"PreferredLanguage":                   gaedb.IsEmptyString,
 		"PrimaryCurrency":                     gaedb.IsEmptyString,
@@ -658,14 +655,14 @@ func (_ *AppUserEntity) cleanProps(properties []datastore.Property) ([]datastore
 		"DtLastLogin":                         gaedb.IsZeroTime,
 		"PasswordBcryptHash":                  gaedb.IsObsolete,
 		//
-		"ViberBotID":                          gaedb.IsObsolete,
-		"ViberUserID":                         gaedb.IsObsolete,
-		"FbmUserID":                           gaedb.IsObsolete,
-		"FbUserID":                            gaedb.IsObsolete,
-		"FbUserIDs":                           gaedb.IsObsolete,
-		"GoogleUniqueUserID":                  gaedb.IsObsolete,
-		"TelegramUserID":                      gaedb.IsObsolete,
-		"TelegramUserIDs":                     gaedb.IsObsolete,
+		"ViberBotID":         gaedb.IsObsolete,
+		"ViberUserID":        gaedb.IsObsolete,
+		"FbmUserID":          gaedb.IsObsolete,
+		"FbUserID":           gaedb.IsObsolete,
+		"FbUserIDs":          gaedb.IsObsolete,
+		"GoogleUniqueUserID": gaedb.IsObsolete,
+		"TelegramUserID":     gaedb.IsObsolete,
+		"TelegramUserIDs":    gaedb.IsObsolete,
 		//
 	})
 }

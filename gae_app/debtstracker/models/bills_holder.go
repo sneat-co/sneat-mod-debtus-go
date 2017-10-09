@@ -1,13 +1,13 @@
 package models
 
 import (
-	"github.com/pquerna/ffjson/ffjson"
 	"github.com/pkg/errors"
+	"github.com/pquerna/ffjson/ffjson"
 )
 
 type billsHolder struct {
-	OutstandingBillsCount int     `datastore:",noindex"`
-	OutstandingBillsJson  string  `datastore:",noindex"`
+	OutstandingBillsCount int    `datastore:",noindex"`
+	OutstandingBillsJson  string `datastore:",noindex"`
 }
 
 func (entity *billsHolder) GetOutstandingBills() (outstandingBills []BillJson, err error) {
@@ -38,5 +38,3 @@ func (entity *billsHolder) SetOutstandingBills(outstandingBills []BillJson) (cha
 	}
 	return
 }
-
-

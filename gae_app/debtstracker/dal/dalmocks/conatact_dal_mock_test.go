@@ -3,9 +3,9 @@ package dalmocks
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"golang.org/x/net/context"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/app/db"
+	"github.com/strongo/bots-framework/core"
+	"golang.org/x/net/context"
 )
 
 var _ dal.ContactDal = (*ContactDalMock)(nil)
@@ -57,6 +57,7 @@ func (mock *ContactDalMock) InsertContact(c context.Context, userID, counterpart
 	mock.Contacts[mock.LastContactID] = contact.ContactEntity
 	return
 }
+
 //CreateContact(c context.Context, userID int64, contactDetails models.ContactDetails) (contact models.Contact, user models.AppUser, err error)
 //CreateContactWithinTransaction(c context.Context, user models.AppUser, contactUserID, counterpartyCounterpartyID int64, contactDetails models.ContactDetails, balanced models.Balanced) (contact models.Contact, err error)
 //UpdateContact(c context.Context, contactID int64, values map[string]string) (contactEntity *models.ContactEntity, err error)

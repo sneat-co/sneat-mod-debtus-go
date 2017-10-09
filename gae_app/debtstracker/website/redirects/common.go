@@ -10,9 +10,9 @@ import (
 	"google.golang.org/appengine"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
-	"regexp"
 )
 
 func redirectToWebApp(w http.ResponseWriter, r *http.Request, authRequired bool, path string, p2p map[string]string, optionalParams []string) {
@@ -111,6 +111,5 @@ func redirectToWebApp(w http.ResponseWriter, r *http.Request, authRequired bool,
 	//w.Header().Set("Location", redirectTo.String())
 	//w.Write([]byte(fmt.Sprintf(`<html><head><meta http-equiv="refresh" content="0;URL='%v'" /></head></html>`, redirectTo.String())))
 }
-
 
 var reUtm = regexp.MustCompile(`(?:&|#|\?)?(?:utm=)(.+?)(?:&|#|$)`)

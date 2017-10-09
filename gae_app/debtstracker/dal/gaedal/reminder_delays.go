@@ -4,12 +4,14 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/strongo/app/gae"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
+	"github.com/strongo/app/gae"
+	"github.com/strongo/app/gaedb"
 	"github.com/strongo/app/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/platforms/telegram"
@@ -20,8 +22,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"github.com/strongo/app/gaedb"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
 )
 
 func _delayReminderCreation(c context.Context, transferID int64, f *delay.Function) error {

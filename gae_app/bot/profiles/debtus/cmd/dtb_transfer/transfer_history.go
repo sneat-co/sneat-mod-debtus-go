@@ -4,18 +4,18 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/DebtsTracker/translations/emoji"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"fmt"
+	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
+	"github.com/yaa110/go-persian-calendar/ptime"
 	"net/url"
 	"strings"
 	"time"
-	"github.com/yaa110/go-persian-calendar/ptime"
 )
 
 const HistoryTopLimit = 5
@@ -28,7 +28,7 @@ var HistoryCommand = bots.Command{
 	Icon:     emoji.HISTORY_ICON,
 	Title:    trans.COMMAND_TEXT_HISTORY,
 	Commands: trans.Commands(trans.COMMAND_HISTORY, emoji.QUESTION_ICON), // TODO: Check icon!
-	Titles:   map[string]string{bots.SHORT_TITLE: emoji.QUESTION_ICON}, // TODO: Check icon!
+	Titles:   map[string]string{bots.SHORT_TITLE: emoji.QUESTION_ICON},   // TODO: Check icon!
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		return showHistoryCard(whc, HistoryTopLimit)
 	},

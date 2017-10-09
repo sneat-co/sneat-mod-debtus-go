@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
-	"google.golang.org/appengine/datastore"
-	"github.com/strongo/app/gaedb"
 	"github.com/strongo/app/db"
+	"github.com/strongo/app/gaedb"
+	"google.golang.org/appengine/datastore"
 	"strings"
 )
 
 const GroupKind = "Group"
-
 
 type Group struct {
 	db.StringID
@@ -35,7 +34,7 @@ var _ db.EntityHolder = (*Group)(nil)
 
 type GroupEntity struct {
 	CreatorUserID       int64
-	IsUser2User         bool `datastore:",noindex"`
+	IsUser2User         bool   `datastore:",noindex"`
 	Name                string `datastore:",noindex"`
 	Note                string `datastore:",noindex"`
 	members             []GroupMemberJson
@@ -231,7 +230,7 @@ func (entity *GroupEntity) SetGroupMembers(members []GroupMemberJson) {
 	}
 }
 
-func (entity *GroupEntity) validateMembers(members []GroupMemberJson, membersCount int) (error) {
+func (entity *GroupEntity) validateMembers(members []GroupMemberJson, membersCount int) error {
 	if membersCount != len(members) {
 		return errors.New(fmt.Sprintf("entity.MembersCount != len(members), %d != %d", entity.MembersCount, len(members)))
 	}

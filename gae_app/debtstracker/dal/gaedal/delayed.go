@@ -4,17 +4,21 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/strongo/app/gae"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"fmt"
+	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
+	"github.com/strongo/app/gae"
 	"github.com/strongo/app/log"
 	"github.com/strongo/bots-api-telegram"
 	//"github.com/strongo/bots-framework/core"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
+	"github.com/strongo/app/db"
+	"github.com/strongo/app/gaedb"
 	"github.com/strongo/bots-framework/hosts/appengine"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"golang.org/x/net/context"
@@ -23,10 +27,6 @@ import (
 	"google.golang.org/appengine/urlfetch"
 	"strconv"
 	"time"
-	"github.com/strongo/app/gaedb"
-	"github.com/strongo/app/db"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
 )
 
 func (_ UserDalGae) DelaySetUserPreferredLocale(c context.Context, delay time.Duration, userID int64, localeCode5 string) error {
@@ -369,7 +369,7 @@ var delayedSendReceiptToCounterpartyByTelegram = delay.Func("sendReceiptToCounte
 			},
 			ParseMode:             "HTML",
 			DisableWebPagePreview: true,
-			Text:                  messageText,
+			Text: messageText,
 		}
 		tgApi := tgbotapi.NewBotAPIWithClient(toUserBotSettings.Token, urlfetch.Client(c))
 		if _, err := tgApi.Send(tgMessage); err != nil {

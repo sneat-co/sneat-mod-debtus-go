@@ -2,9 +2,9 @@ package api
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
 	"net/http"
-	"github.com/strongo/app/log"
 )
 
 func handleSignedWithFacebook(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {

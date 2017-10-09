@@ -2,13 +2,13 @@ package invites
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/emails"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bytes"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
 	"html/template"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/emails"
-	"bytes"
 )
 
 type InviteTemplateParams struct {
@@ -67,7 +67,6 @@ func SendInviteByEmail(ec strongo.ExecutionContext, fromName, toEmail, toName, i
 	return
 }
 
-
 func SendReceiptByEmail(ec strongo.ExecutionContext, receipt models.Receipt, fromName, toName, toEmail string) (emailID string, err error) {
 	c := ec.Context()
 
@@ -92,7 +91,6 @@ func SendReceiptByEmail(ec strongo.ExecutionContext, receipt models.Receipt, fro
 	if err != nil {
 		return "", err
 	}
-
 
 	receiptURL := common.GetReceiptUrl(receipt.ID, common.GetWebsiteHost(receipt.CreatedOnID))
 	//displayUrl := strings.Split(string(templateParams.ReceiptURL), "#")[0]

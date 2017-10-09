@@ -2,9 +2,9 @@ package dalmocks
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/strongo/app/db"
 	"golang.org/x/net/context"
 	"time"
-	"github.com/strongo/app/db"
 )
 
 type UserDalMock struct {

@@ -1,14 +1,14 @@
 package telegram
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/secret"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"strings"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/secret"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 )
 
 var _bots bots.SettingsBy
@@ -18,7 +18,7 @@ const DEFAULT_LOCALE = strongo.LOCALE_EN_US
 var AdminBot = telegram_bot.NewTelegramBot(strongo.EnvProduction, "admin", "DebtsTrackerAdminBot", secret.AdminBotToken, "", "", strongo.LocalesByCode5[strongo.LOCALE_EN_US])
 
 func Bots(environment strongo.Environment, router func(profile string) bots.WebhooksRouter) bots.SettingsBy { //TODO: Consider to do pre-deployment replace
-	if len(_bots.ByCode) == 0 || (!_bots.HasRouter && router != nil){
+	if len(_bots.ByCode) == 0 || (!_bots.HasRouter && router != nil) {
 		//log.Debugf(c, "Bots() => hostname:%v, environment:%v:%v", hostname, environment, strongo.EnvironmentNames[environment])
 		switch environment {
 		case strongo.EnvProduction:

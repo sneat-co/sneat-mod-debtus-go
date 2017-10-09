@@ -1,12 +1,12 @@
 package splitus
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/DebtsTracker/translations/emoji"
+	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"net/url"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/DebtsTracker/translations/emoji"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 )
 
 const FINALIZE_BILL_COMMAND = "finalize_bill"
@@ -28,7 +28,7 @@ var finalizeBillCommand = bot_shared.BillCallbackCommand(FINALIZE_BILL_COMMAND,
 			},
 			[]tgbotapi.InlineKeyboardButton{
 				{
-					Text: emoji.NO_ENTRY_SIGN_ICON + " " + "Cancel",
+					Text:         emoji.NO_ENTRY_SIGN_ICON + " " + "Cancel",
 					CallbackData: bot_shared.BillCardCallbackCommandData(bill.ID),
 				},
 			},

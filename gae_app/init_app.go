@@ -12,13 +12,13 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/webhooks"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/website"
 	//"github.com/strongo/app"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/maintainance"
+	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/app/log"
 	"github.com/strongo/bots-framework/core"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"net/http"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/maintainance"
-	"github.com/julienschmidt/httprouter"
 )
 
 func Init(botHost bots.BotHost) {

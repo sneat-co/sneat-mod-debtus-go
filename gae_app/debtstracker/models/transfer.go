@@ -4,11 +4,11 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/strongo/app/db"
 	"github.com/strongo/app/gaedb"
 	"github.com/strongo/decimal"
 	"google.golang.org/appengine/datastore"
 	"time"
-	"github.com/strongo/app/db"
 )
 
 type TransferDirection string
@@ -20,9 +20,9 @@ const ( // Transfer directions
 )
 
 const ( // Transfer statuses
-	TransferViewed                     = "viewed"
-	TransferAccepted                   = "accepted"
-	TransferDeclined                   = "declined"
+	TransferViewed   = "viewed"
+	TransferAccepted = "accepted"
+	TransferDeclined = "declined"
 )
 
 const TransferKind = "Transfer"
@@ -423,23 +423,22 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 		return
 	}
 
-	if t.AmountInCentsReturned + t.AmountInCentsOutstanding > t.AmountInCents {
+	if t.AmountInCentsReturned+t.AmountInCentsOutstanding > t.AmountInCents {
 		err = fmt.Errorf("AmountInCentsReturned:%v + AmountInCentsOutstanding:%v > AmountInCents:%v", t.AmountInCentsReturned, t.AmountInCentsOutstanding, t.AmountInCents)
 		return
 	}
-
 
 	if t.IsReturn {
 		if len(t.ReturnToTransferIDs) == 0 {
 			err = errors.New("IsReturn && len(ReturnToTransferIDs) == 0")
 			return
 		}
-		if (t.AmountInCentsReturned != 0 || t.AmountInCentsOutstanding != 0) && t.AmountInCents != t.AmountInCentsReturned + t.AmountInCentsOutstanding {
+		if (t.AmountInCentsReturned != 0 || t.AmountInCentsOutstanding != 0) && t.AmountInCents != t.AmountInCentsReturned+t.AmountInCentsOutstanding {
 			err = fmt.Errorf("AmountInCents:%v != AmountInCentsReturned:%v + AmountInCentsOutstanding:%v", t.AmountInCents, t.AmountInCentsReturned, t.AmountInCentsOutstanding)
 			return
 		}
 	} else {
-		if t.AmountInCents != t.AmountInCentsReturned + t.AmountInCentsOutstanding {
+		if t.AmountInCents != t.AmountInCentsReturned+t.AmountInCentsOutstanding {
 			err = fmt.Errorf("AmountInCents:%v != AmountInCentsReturned:%v + AmountInCentsOutstanding:%v", t.AmountInCents, t.AmountInCentsReturned, t.AmountInCentsOutstanding)
 			return
 		}
@@ -515,7 +514,7 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 	// To optimize storage we filter out default values
 	properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
 		// Remove obsolete properties
-		"AmountTotal":            gaedb.IsObsolete,
+		"AmountTotal":       gaedb.IsObsolete,
 		"AmountReturned":    gaedb.IsObsolete,
 		"AmountOutstanding": gaedb.IsObsolete,
 		//

@@ -1,21 +1,22 @@
 package models
 
 import (
-	"google.golang.org/appengine/datastore"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/gaedb"
 	"github.com/strongo/app/db"
+	"github.com/strongo/app/gaedb"
 	"github.com/strongo/app/user"
+	"google.golang.org/appengine/datastore"
 )
 
 const UserFacebookKind = "UserFb"
 
 type UserFacebook struct {
 	db.NoIntID
-	FbAppOrPageID string
+	FbAppOrPageID       string
 	FbUserOrPageScopeID string
 	*UserFacebookEntity
 }
+
 var _ user.AccountRecord = (*UserFacebook)(nil)
 
 func (u UserFacebook) UserAccount() user.Account {
@@ -38,8 +39,6 @@ func (u *UserFacebook) SetStrID(id string) {
 	panic("Not implemented")
 }
 
-
-
 //func (u *UserFacebook) SetStrID(v string) {
 //	vals := strings.Split(v, ":")
 //	if len(vals) != 2 {
@@ -48,7 +47,6 @@ func (u *UserFacebook) SetStrID(id string) {
 //	u.FbAppOrPageID = vals[0]
 //	u.FbUserOrPageScopeID = vals[1]
 //}
-
 
 func (u *UserFacebook) Entity() interface{} {
 	if u.UserFacebookEntity == nil {
@@ -64,16 +62,16 @@ func (u *UserFacebook) SetEntity(entity interface{}) {
 type UserFacebookEntity struct {
 	user.LastLogin
 	user.Names
-	Email string `datastore:",noindex"`
-	EmailIsConfirmed bool `datastore:",noindex"`
+	Email            string `datastore:",noindex"`
+	EmailIsConfirmed bool   `datastore:",noindex"`
 	user.OwnedByUser
 }
+
 var _ user.AccountEntity = (*UserFacebookEntity)(nil)
 
 func (entity UserFacebookEntity) GetEmail() string {
 	return entity.Email
 }
-
 
 func (entity UserFacebookEntity) IsEmailConfirmed() bool {
 	return entity.EmailIsConfirmed

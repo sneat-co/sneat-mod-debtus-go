@@ -1,8 +1,8 @@
 package models
 
 import (
-	"time"
 	"github.com/strongo/app/db"
+	"time"
 )
 
 const UserBrowserKind = "UserBrowser"

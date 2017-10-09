@@ -5,10 +5,10 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
-	"time"
-	"strings"
 	"github.com/strongo/app/gaedb"
+	"golang.org/x/net/context"
+	"strings"
+	"time"
 )
 
 type LoginPinDalGae struct {
@@ -49,9 +49,9 @@ func (loginPinDalGae LoginPinDalGae) CreateLoginPin(c context.Context, channel, 
 	}
 
 	entity := models.LoginPinEntity{
-		Channel: channel,
-		Created: time.Now(),
-		UserID:  createdUserID,
+		Channel:    channel,
+		Created:    time.Now(),
+		UserID:     createdUserID,
 		GaClientID: gaClientID,
 	}
 	if key, err := gaedb.Put(c, NewLoginPinIncompleteKey(c), &entity); err != nil {
@@ -66,4 +66,3 @@ func (loginPinDalGae LoginPinDalGae) CreateLoginPin(c context.Context, channel, 
 //	err = gaedb.Get(c, models.NewLoginPinKey(c, loginID), entity)
 //	return
 //}
-

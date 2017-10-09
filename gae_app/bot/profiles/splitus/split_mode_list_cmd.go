@@ -1,14 +1,14 @@
 package splitus
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
+	"github.com/DebtsTracker/translations/trans"
+	"github.com/strongo/app/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"net/url"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/app/log"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 )
 
 var billSplitModesListCommand = bot_shared.BillCallbackCommand("split-modes",
@@ -32,19 +32,19 @@ var billSplitModesListCommand = bot_shared.BillCallbackCommand("split-modes",
 			},
 			[]tgbotapi.InlineKeyboardButton{
 				{
-					Text: whc.Translate(trans.SPLIT_MODE_PERCENTAGE),
+					Text:         whc.Translate(trans.SPLIT_MODE_PERCENTAGE),
 					CallbackData: callbackData + string(models.SplitModePercentage),
 				},
 			},
 			[]tgbotapi.InlineKeyboardButton{
 				{
-					Text: whc.Translate(trans.SPLIT_MODE_SHARES),
+					Text:         whc.Translate(trans.SPLIT_MODE_SHARES),
 					CallbackData: callbackData + string(models.SplitModeShare),
 				},
 			},
 			[]tgbotapi.InlineKeyboardButton{
 				{
-					Text: whc.Translate(trans.SPLIT_MODE_EXACT_AMOUNT),
+					Text:         whc.Translate(trans.SPLIT_MODE_EXACT_AMOUNT),
 					CallbackData: callbackData + string(models.SplitModeExactAmount),
 				},
 			},

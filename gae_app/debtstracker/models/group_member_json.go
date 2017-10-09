@@ -16,4 +16,3 @@ func (m *GroupMemberJson) String() string {
 	buffer, _ := ffjson.MarshalFast(m)
 	return string(buffer)
 }
-

@@ -2,10 +2,10 @@ package models
 
 import (
 	"fmt"
+	"github.com/strongo/app/db"
 	"github.com/strongo/app/gaedb"
 	"google.golang.org/appengine/datastore"
 	"strings"
-	"github.com/strongo/app/db"
 )
 
 func NewContactEntity(userID int64, details ContactDetails) *ContactEntity {
@@ -65,9 +65,9 @@ type ContactEntity struct {
 	//TelegramChatID int
 	//
 	//LastTransferID int64  `datastore:",noindex"` - Decided against as we do not need it really and would require either 2 Put() instead of 1 PutMulti()
-	SearchName          []string `datastore:",noindex"`  // Deprecated
+	SearchName          []string `datastore:",noindex"` // Deprecated
 	NoTransferUpdatesBy []string `datastore:",noindex"`
-	GroupIDs []string `datastore:",noindex"`
+	GroupIDs            []string `datastore:",noindex"`
 }
 
 func (entity ContactEntity) String() string {

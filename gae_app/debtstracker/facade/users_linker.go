@@ -1,13 +1,13 @@
 package facade
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"golang.org/x/net/context"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/pkg/errors"
-	"github.com/strongo/app/log"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
+	"github.com/pkg/errors"
 	"github.com/strongo/app/db"
+	"github.com/strongo/app/log"
+	"golang.org/x/net/context"
 )
 
 type UsersLinker struct {
@@ -19,7 +19,7 @@ func (l UsersLinker) LinkUsersWithinTransaction(
 	inviterUser, invitedUser models.AppUser,
 	inviterContact models.Contact,
 ) (
-	entitiesToSave [] db.EntityHolder,
+	entitiesToSave []db.EntityHolder,
 	invitedContact models.Contact,
 	err error,
 ) {
@@ -130,11 +130,11 @@ func (_ UsersLinker) getOrCreateInvitedContactByInviterUserAndInviterContact(
 		}
 		balanced.SetBalance(invitedCounterpartyBalance)
 		invitedContacts := models.ContactDetails{
-			FirstName: inviterUser.FirstName,
-			LastName: inviterUser.LastName,
-			Nickname: inviterUser.Nickname,
+			FirstName:  inviterUser.FirstName,
+			LastName:   inviterUser.LastName,
+			Nickname:   inviterUser.Nickname,
 			ScreenName: inviterUser.ScreenName,
-			Username: inviterUser.Username,
+			Username:   inviterUser.Username,
 		}
 		if invitedContact, err = CreateContactWithinTransaction(
 			tc, invitedUser, inviterUser.ID, inviterContact.ID, invitedContacts, balanced,

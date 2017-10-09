@@ -1,13 +1,13 @@
 package bot_shared
 
 import (
-	"github.com/strongo/bots-framework/core"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/DebtsTracker/translations/trans"
 	"fmt"
 	"github.com/DebtsTracker/translations/emoji"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"github.com/DebtsTracker/translations/trans"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
 )
 
 const NEW_CHAT_MEMBERS_COMMAND = "new-chat-members"
@@ -18,7 +18,6 @@ var newChatMembersCommand = bots.Command{
 		c := whc.Context()
 
 		newMembersMessage := whc.Input().(bots.WebhookNewChatMembersMessage)
-
 
 		newMembers := newMembersMessage.NewChatMembers()
 
@@ -52,8 +51,8 @@ var newChatMembersCommand = bots.Command{
 					}
 				}
 				newUsers = append(newUsers, facade.NewUser{
-					Name: tgChatMember.GetFullName(),
-					BotUser: botUser,
+					Name:       tgChatMember.GetFullName(),
+					BotUser:    botUser,
 					ChatMember: chatMember,
 				})
 			}
@@ -77,7 +76,7 @@ var newChatMembersCommand = bots.Command{
 				[]tgbotapi.InlineKeyboardButton{
 					{
 						Text: whc.CommandText(trans.COMMAND_TEXT_SETTING, emoji.SETTINGS_ICON),
-						URL: fmt.Sprintf("https:/t.me/%v?start=group-%d", whc.GetBotCode(), group.ID),
+						URL:  fmt.Sprintf("https:/t.me/%v?start=group-%d", whc.GetBotCode(), group.ID),
 					},
 				},
 			)
@@ -98,5 +97,3 @@ var newChatMembersCommand = bots.Command{
 		return
 	},
 }
-
-

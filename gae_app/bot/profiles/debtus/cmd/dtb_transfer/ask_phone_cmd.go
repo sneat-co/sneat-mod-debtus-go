@@ -15,13 +15,13 @@ import (
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/app/log"
+	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"golang.org/x/net/context"
 	"net/url"
 	"strconv"
 	"strings"
-	"github.com/strongo/bots-api-telegram"
 )
 
 const ASK_PHONE_NUMBER_FOR_RECEIPT_COMMAND = "ask-phone-number-for-receipt"
@@ -42,7 +42,7 @@ var AskPhoneNumberForReceiptCommand = bots.Command{
 		input := whc.Input()
 
 		var (
-			mt string
+			mt             string
 			phoneNumberStr string
 			phoneNumber    int64
 		)

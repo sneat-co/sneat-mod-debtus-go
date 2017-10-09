@@ -1,10 +1,10 @@
 package bot_shared
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/strongo/app/log"
 	"github.com/strongo/bots-framework/core"
 	"net/url"
-	"github.com/strongo/app/log"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 )
 
 const CLOSE_BILL_COMMAND = "close-bill"

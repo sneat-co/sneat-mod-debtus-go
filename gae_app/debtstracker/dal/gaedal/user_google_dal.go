@@ -2,10 +2,10 @@ package gaedal
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/strongo/app/db"
+	"github.com/strongo/app/gaedb"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"github.com/strongo/app/gaedb"
-	"github.com/strongo/app/db"
 )
 
 func NewUserGoogleKey(c context.Context, id string) *datastore.Key {

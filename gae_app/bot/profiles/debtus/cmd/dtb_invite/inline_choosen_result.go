@@ -25,7 +25,7 @@ var ChosenInlineResultCommand = bots.Command{
 		case "receipt":
 			return dtb_transfer.InlineReceipt(whc, choosenResult.GetInlineMessageID(), queryUrl)
 		default:
-			log.Warningf(c, "Unknown choosen inline query: " + query)
+			log.Warningf(c, "Unknown choosen inline query: "+query)
 		}
 		return
 	},

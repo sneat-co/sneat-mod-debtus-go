@@ -59,17 +59,23 @@ func getUserReportUrl(t strongo.SingleLocaleTranslator, submit string) string {
 	switch t.Locale().Code5 {
 	case strongo.LOCALE_RU_RU:
 		switch submit {
-		case "idea": return "https://goo.gl/dAKHFC"
-		case "bug": return "https://goo.gl/jQM2K5"
-		case "": return "https://goo.gl/Vge31X"
+		case "idea":
+			return "https://goo.gl/dAKHFC"
+		case "bug":
+			return "https://goo.gl/jQM2K5"
+		case "":
+			return "https://goo.gl/Vge31X"
 		default:
 			panic("Parameter 'submit' should be either 'idea' or 'bug'")
 		}
 	default:
 		switch submit {
-		case "idea": return "https://goo.gl/sl09Wr"
-		case "bug": return "https://goo.gl/x5H6Fn"
-		case "": return "https://goo.gl/3tB0FG"
+		case "idea":
+			return "https://goo.gl/sl09Wr"
+		case "bug":
+			return "https://goo.gl/x5H6Fn"
+		case "":
+			return "https://goo.gl/3tB0FG"
 		default:
 			panic("Parameter 'submit' should be either 'idea' or 'bug'")
 		}

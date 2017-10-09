@@ -1,9 +1,9 @@
 package models
 
 import (
+	"github.com/matryer/is"
 	"testing"
 	"time"
-	"github.com/matryer/is"
 )
 
 func TestAppUserEntity_Contacts(t *testing.T) {
@@ -20,8 +20,7 @@ func TestAppUserEntity_Contacts(t *testing.T) {
 }
 
 func TestAppUserEntity_SetLastCurrency(t *testing.T) {
-	userEntity := AppUserEntity{
-	}
+	userEntity := AppUserEntity{}
 	userEntity.SetLastCurrency("EUR")
 	if len(userEntity.LastCurrencies) != 1 {
 		t.Errorf("Expected 1 value in LastCurrencies, got: %d", len(userEntity.LastCurrencies))

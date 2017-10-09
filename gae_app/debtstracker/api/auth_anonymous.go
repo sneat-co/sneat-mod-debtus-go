@@ -4,10 +4,10 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/pkg/errors"
+	"github.com/strongo/app/db"
 	"golang.org/x/net/context"
 	"net/http"
 	"strconv"
-	"github.com/strongo/app/db"
 )
 
 func handleSignUpAnonymously(c context.Context, w http.ResponseWriter, r *http.Request) {

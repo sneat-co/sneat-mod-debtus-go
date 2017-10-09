@@ -1,9 +1,9 @@
 package admin
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_fbm"
 	"github.com/strongo/app"
 	"net/http"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_fbm"
 )
 
 func InitAdmin() {
@@ -13,6 +13,3 @@ func InitAdmin() {
 	strongo.AddHttpHandler("/admin/fix/transfers", FixTransfersHandler)
 	http.HandleFunc("/admin/fbm/set", dtb_fbm.SetupFbm)
 }
-
-
-

@@ -24,7 +24,7 @@ func (p PhoneContact) PhoneNumberAsString() string {
 type EmailContact struct {
 	EmailAddress         string
 	EmailAddressOriginal string `datastore:",noindex"`
-	EmailConfirmed       bool `datastore:",noindex"`
+	EmailConfirmed       bool   `datastore:",noindex"`
 }
 
 func (ec *EmailContact) SetEmail(email string, confirmed bool) EmailContact {
@@ -47,7 +47,7 @@ type ContactDetails struct {
 	ScreenName     string `datastore:",noindex"`
 	Nickname       string `datastore:",noindex"`
 	Username       string `datastore:",noindex"` //TODO: Should it be "Name"?
-	TelegramUserID int64                         // When user ads Telegram contact we store Telegram user_id so we can link users later.
+	TelegramUserID int64  // When user ads Telegram contact we store Telegram user_id so we can link users later.
 }
 
 func (contact *ContactDetails) FullName() string {

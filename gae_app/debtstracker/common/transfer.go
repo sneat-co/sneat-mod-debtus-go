@@ -70,7 +70,7 @@ func GetWebsiteHost(createdOnID string) string {
 	createdOnID = strings.ToLower(createdOnID)
 	if strings.Contains(createdOnID, "dev") {
 		return "debtstracker-dev1.appspot.com"
-	} else if strings.Contains(createdOnID, ".local"){
+	} else if strings.Contains(createdOnID, ".local") {
 		return "debtstracker.local"
 	} else {
 		return "debtstracker.io"

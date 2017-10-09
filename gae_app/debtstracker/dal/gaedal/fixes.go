@@ -4,11 +4,11 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	//"github.com/pkg/errors"
+	"github.com/strongo/app/gaedb"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"sync"
-	"github.com/strongo/app/gaedb"
 )
 
 type TransferFixter struct {

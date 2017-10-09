@@ -2,13 +2,13 @@ package api
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"golang.org/x/net/context"
-	"net/http"
-	"github.com/strongo/app/log"
-	"strings"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
+	"github.com/strongo/app/log"
+	"golang.org/x/net/context"
 	"io"
+	"net/http"
+	"strings"
 )
 
 func panicUnknownStatus(status string) {
@@ -26,7 +26,7 @@ func handleGetUserData(c context.Context, w http.ResponseWriter, r *http.Request
 
 	//getQueryValue := r.URL.Query().Get
 	getQueryValue := func(name string) string {
-		prefix := "/"+name+"-"
+		prefix := "/" + name + "-"
 		start := strings.Index(rPath, prefix) + len(prefix)
 		if start < 0 {
 			return ""
@@ -43,7 +43,7 @@ func handleGetUserData(c context.Context, w http.ResponseWriter, r *http.Request
 	status := getQueryValue("status")
 
 	if status != "" && status != models.STATUS_ACTIVE && status != models.STATUS_ARCHIVED {
-		BadRequestMessage(c, w, "Unknown status: " + status)
+		BadRequestMessage(c, w, "Unknown status: "+status)
 		return
 	}
 

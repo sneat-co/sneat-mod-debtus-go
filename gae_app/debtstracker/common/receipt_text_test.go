@@ -32,18 +32,18 @@ func TestWriteReceiptText(t *testing.T) {
 	transfer := models.Transfer{
 		ID: 123,
 		TransferEntity: models.NewTransferEntity(
-		12,
-		false,
-		models.Amount{Currency: "EUR", Value: 98765},
-		&models.TransferCounterpartyInfo{
-			ContactID:   23,
-			ContactName: "John White",
-		},
-		&models.TransferCounterpartyInfo{
-			UserID:   12,
-			UserName: "Anna Black",
-		},
-	)}
+			12,
+			false,
+			models.Amount{Currency: "EUR", Value: 98765},
+			&models.TransferCounterpartyInfo{
+				ContactID:   23,
+				ContactName: "John White",
+			},
+			&models.TransferCounterpartyInfo{
+				UserID:   12,
+				UserName: "Anna Black",
+			},
+		)}
 
 	receiptTextBuilder := newReceiptTextBuilder(ec, transfer, ShowReceiptToCounterparty)
 

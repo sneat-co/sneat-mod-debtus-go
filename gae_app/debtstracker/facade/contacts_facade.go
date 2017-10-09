@@ -1,15 +1,15 @@
 package facade
 
 import (
-	"golang.org/x/net/context"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/strongo/app/db"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/strongo/app/db"
 	"github.com/strongo/app/log"
-	"strconv"
+	"golang.org/x/net/context"
 	"reflect"
+	"strconv"
 )
 
 func ChangeContactStatus(c context.Context, contactID int64, newStatus string) (contact models.Contact, err error) {

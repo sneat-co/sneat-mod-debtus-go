@@ -1,14 +1,14 @@
 package models
 
 import (
-	"golang.org/x/crypto/bcrypt"
-	"time"
-	"strings"
-	"github.com/strongo/app/gaedb"
-	"google.golang.org/appengine/datastore"
 	"encoding/base64"
 	"github.com/strongo/app/db"
+	"github.com/strongo/app/gaedb"
 	"github.com/strongo/app/user"
+	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/appengine/datastore"
+	"strings"
+	"time"
 )
 
 const UserEmailKind = "UserEmail"
@@ -18,7 +18,7 @@ type UserEmailEntity struct {
 	user.Names
 	user.OwnedByUser
 	IsConfirmed        bool
-	PasswordBcryptHash []byte `datastore:",noindex"`
+	PasswordBcryptHash []byte   `datastore:",noindex"`
 	Providers          []string `datastore:",noindex"` // E.g. facebook, vk, user
 }
 
@@ -131,10 +131,10 @@ func (entity *UserEmailEntity) Save() (properties []datastore.Property, err erro
 		return
 	}
 	return gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"DtUpdated": gaedb.IsZeroTime,
-		"FirstName": gaedb.IsEmptyString,
-		"LastName":  gaedb.IsEmptyString,
-		"NickName":  gaedb.IsEmptyString,
+		"DtUpdated":          gaedb.IsZeroTime,
+		"FirstName":          gaedb.IsEmptyString,
+		"LastName":           gaedb.IsEmptyString,
+		"NickName":           gaedb.IsEmptyString,
 		"PasswordBcryptHash": gaedb.IsEmptyByteArray,
 	})
 }

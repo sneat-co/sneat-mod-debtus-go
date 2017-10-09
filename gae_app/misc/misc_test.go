@@ -5,8 +5,8 @@ import (
 )
 
 func TestSlice(t *testing.T) {
-	a := make([]struct{Name string}, 1)
-	a[0] = struct{Name string}{Name: "First"}
+	a := make([]struct{ Name string }, 1)
+	a[0] = struct{ Name string }{Name: "First"}
 	t.Log(a[0])
 	a[0].Name = "Second"
 	t.Log(a[0])

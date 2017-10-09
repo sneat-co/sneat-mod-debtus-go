@@ -20,7 +20,6 @@ type SplitEntity struct {
 	BillIDs []string `datastore:",noindex"`
 }
 
-
 func (Split) Kind() string {
 	return SplitKind
 }
@@ -29,6 +28,6 @@ func (record Split) Entity() interface{} {
 	return record.SplitEntity
 }
 
-func (record *Split) SetEntity(entity interface{})  {
+func (record *Split) SetEntity(entity interface{}) {
 	record.SplitEntity = entity.(*SplitEntity)
 }

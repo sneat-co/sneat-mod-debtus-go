@@ -1,17 +1,17 @@
 package bot_shared
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"net/url"
-	"github.com/DebtsTracker/translations/trans"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"fmt"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/bots-api-telegram"
+	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app/log"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
-	"strconv"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
+	"net/url"
+	"strconv"
 )
 
 const GROUPS_COMMAND = "groups"
@@ -30,11 +30,11 @@ func NewGroupTelegramInlineButton(whc bots.WebhookContext, groupsMessageID int) 
 }
 
 var groupsCommand = bots.Command{
-	Code: GROUPS_COMMAND,
+	Code:       GROUPS_COMMAND,
 	InputTypes: []bots.WebhookInputType{bots.WebhookInputText, bots.WebhookInputCallbackQuery},
-	Commands: []string{"/groups"},
+	Commands:   []string{"/groups"},
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
-		return groupsAction(whc, false , 0)
+		return groupsAction(whc, false, 0)
 	},
 	CallbackAction: func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
 		query := callbackURL.Query()
@@ -52,7 +52,6 @@ var groupsCommand = bots.Command{
 		return
 	},
 }
-
 
 func groupsAction(whc bots.WebhookContext, isEdit bool, groupsMessageID int) (m bots.MessageFromBot, err error) {
 	if whc.IsInGroup() {
@@ -107,8 +106,7 @@ func groupsAction(whc bots.WebhookContext, isEdit bool, groupsMessageID int) (m 
 	m.Text = buf.String()
 
 	tgKeyboard := tgbotapi.NewInlineKeyboardMarkup(
-		[]tgbotapi.InlineKeyboardButton{
-		},
+		[]tgbotapi.InlineKeyboardButton{},
 	)
 	if len(groups) > 0 {
 		tgKeyboard.InlineKeyboard = append(tgKeyboard.InlineKeyboard, groupsNavButtons(groups, ""))

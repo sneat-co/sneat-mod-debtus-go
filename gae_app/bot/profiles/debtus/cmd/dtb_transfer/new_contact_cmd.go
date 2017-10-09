@@ -1,20 +1,20 @@
 package dtb_transfer
 
 import (
-	"strconv"
-	"fmt"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/DebtsTracker/translations/trans"
-	"strings"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/pkg/errors"
-	"github.com/strongo/app/log"
-	"github.com/strongo/measurement-protocol"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	dtb_common "bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"fmt"
+	"github.com/DebtsTracker/translations/trans"
+	"github.com/pkg/errors"
+	"github.com/strongo/app/log"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/measurement-protocol"
+	"strconv"
+	"strings"
 )
 
 const NEW_COUNTERPARTY_COMMAND = "new-counterparty"
@@ -40,7 +40,7 @@ func NewCounterpartyCommand(nextCommand bots.Command) bots.Command {
 				var contact models.Contact
 
 				var (
-					contactDetails models.ContactDetails
+					contactDetails  models.ContactDetails
 					existingContact bool
 				)
 
@@ -69,7 +69,7 @@ func NewCounterpartyCommand(nextCommand bots.Command) bots.Command {
 
 					contactDetails = models.ContactDetails{
 						FirstName: contactMessage.FirstName(),
-						LastName: contactMessage.LastName(),
+						LastName:  contactMessage.LastName(),
 						//Username: username,
 					}
 					phoneStr := contactMessage.PhoneNumber()
@@ -136,5 +136,3 @@ func NewCounterpartyCommand(nextCommand bots.Command) bots.Command {
 		},
 	}
 }
-
-

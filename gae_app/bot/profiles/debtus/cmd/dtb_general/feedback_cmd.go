@@ -1,25 +1,25 @@
 package dtb_general
 
 import (
-	"github.com/DebtsTracker/translations/emoji"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"fmt"
+	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
+	"github.com/strongo/app"
+	"github.com/strongo/app/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"net/url"
 	"strings"
-	"github.com/strongo/app"
-	"github.com/strongo/app/log"
-	"fmt"
 	//"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
-	"strconv"
-	"github.com/strongo/bots-framework/platforms/telegram"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"golang.org/x/net/context"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/admin"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
+	"github.com/strongo/bots-framework/platforms/telegram"
+	"golang.org/x/net/context"
+	"strconv"
 )
 
 const (
@@ -189,7 +189,7 @@ var FeedbackCommand = bots.Command{
 			UserID: whc.AppUserIntID(),
 			CreatedOn: general.CreatedOn{
 				CreatedOnPlatform: whc.BotPlatform().Id(),
-				CreatedOnID: whc.GetBotCode(),
+				CreatedOnID:       whc.GetBotCode(),
 			},
 		}
 		switch like {
@@ -232,7 +232,6 @@ func feedbackOptionsTelegramKeyboard(whc bots.WebhookContext) *tgbotapi.InlineKe
 	)
 }
 
-
 func askIfCanRateAtStoreBot(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 	m, err = editTelegramMessageText(whc, "", whc.Translate(trans.MESSAGE_TEXT_CAN_YOU_RATE_AT_STOREBOT))
 	m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
@@ -243,7 +242,9 @@ func askIfCanRateAtStoreBot(whc bots.WebhookContext) (m bots.MessageFromBot, err
 	)
 	return
 }
+
 const CAN_YOU_RATE_COMMAND = "can-you-rate"
+
 var CanYouRateCommand = bots.Command{
 	Code: CAN_YOU_RATE_COMMAND,
 	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
@@ -292,11 +293,10 @@ func askToWriteFeedback(whc bots.WebhookContext, feedbackID int64) (m bots.Messa
 	return
 }
 
-
 func editTelegramMessageText(whc bots.WebhookContext, awaitingReplyTo, text string) (m bots.MessageFromBot, err error) {
 	var (
 		tgChatID int64
-		chatID string
+		chatID   string
 	)
 
 	if chatID, err = whc.BotChatID(); err != nil {
@@ -336,12 +336,12 @@ var FeedbackTextCommand = bots.Command{
 			if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 				if feedbackParam == "" {
 					feedback.FeedbackEntity = &models.FeedbackEntity{
-						Rate: "none",
+						Rate:   "none",
 						UserID: whc.AppUserIntID(),
-						Text: mt,
+						Text:   mt,
 						CreatedOn: general.CreatedOn{
 							CreatedOnPlatform: whc.BotPlatform().Id(),
-							CreatedOnID: whc.GetBotCode(),
+							CreatedOnID:       whc.GetBotCode(),
 						},
 					}
 				} else {

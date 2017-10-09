@@ -1,17 +1,17 @@
 package bot_shared
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"net/url"
-	"github.com/strongo/bots-api-telegram"
-	"fmt"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/DebtsTracker/translations/trans"
-	"golang.org/x/net/context"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"github.com/strongo/bots-framework/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"fmt"
+	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app/log"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/bots-framework/platforms/telegram"
+	"golang.org/x/net/context"
+	"net/url"
 )
 
 const JOIN_GROUP_COMMAND = "join-group"

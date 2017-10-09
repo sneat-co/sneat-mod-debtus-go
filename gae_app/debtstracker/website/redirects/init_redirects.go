@@ -1,10 +1,10 @@
 package redirects
 
 import (
+	"fmt"
 	"github.com/strongo/app"
 	"net/http"
 	"strconv"
-	"fmt"
 )
 
 func InitRedirects() {
@@ -24,7 +24,7 @@ func InitRedirects() {
 
 }
 
-func RedirectHandlerToEntityPageWithIntID(path string, optionalParams... string) func(w http.ResponseWriter, r *http.Request) {
+func RedirectHandlerToEntityPageWithIntID(path string, optionalParams ...string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if id, err := strconv.ParseInt(r.URL.Query().Get("id"), 10, 64); err != nil {
 			w.WriteHeader(http.StatusBadRequest)

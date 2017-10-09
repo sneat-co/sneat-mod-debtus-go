@@ -1,10 +1,10 @@
 package models
 
 import (
-	"time"
+	"github.com/pkg/errors"
 	"github.com/strongo/app/gaedb"
 	"google.golang.org/appengine/datastore"
-	"github.com/pkg/errors"
+	"time"
 )
 
 const EmailKind = "Email"

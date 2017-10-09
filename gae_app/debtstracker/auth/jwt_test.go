@@ -1,8 +1,8 @@
 package auth
 
 import (
-	"testing"
 	"strings"
+	"testing"
 )
 
 func TestIssueToken(t *testing.T) {

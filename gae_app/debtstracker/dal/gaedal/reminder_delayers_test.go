@@ -1,9 +1,9 @@
 package gaedal
 
 import (
-	"github.com/strongo/app/gae"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
+	"github.com/strongo/app/gae"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/delay"
 	"strings"

@@ -1,19 +1,19 @@
 package bot_shared
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"strings"
-	"net/url"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/DebtsTracker/translations/trans"
+	"github.com/pkg/errors"
+	"github.com/strongo/app/log"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/decimal"
 	"golang.org/x/net/context"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/pkg/errors"
+	"net/url"
 	"regexp"
-	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/app/log"
-	"github.com/DebtsTracker/translations/trans"
+	"strings"
 )
 
 func choosenInlineResultHandler(botParams BotParams) bots.Command {
@@ -68,7 +68,7 @@ func createBillFromInlineChoosenResult(whc bots.WebhookContext, botParams BotPar
 		amountStr := values.Get("amount")
 		amountIdx := reDecimal.FindStringIndex(amountStr)
 		amountNum := amountStr[:amountIdx[1]]
-		amountCcy :=  amountStr[amountIdx[1]:]
+		amountCcy := amountStr[amountIdx[1]:]
 
 		var amount decimal.Decimal64p2
 		if amount, err = decimal.ParseDecimal64p2(amountNum); err != nil {
@@ -78,13 +78,13 @@ func createBillFromInlineChoosenResult(whc bots.WebhookContext, botParams BotPar
 			BillEntity: &models.BillEntity{
 				BillCommon: models.BillCommon{
 					TgInlineMessageIDs: []string{choosenResult.GetInlineMessageID()},
-					Name:          billName,
-					AmountTotal:   amount,
-					Status:        models.STATUS_DRAFT,
-					CreatorUserID: userID,
-					UserIDs:       []int64{userID},
-					SplitMode:     models.SplitModeEqually,
-					Currency:      amountCcy,
+					Name:               billName,
+					AmountTotal:        amount,
+					Status:             models.STATUS_DRAFT,
+					CreatorUserID:      userID,
+					UserIDs:            []int64{userID},
+					SplitMode:          models.SplitModeEqually,
+					Currency:           amountCcy,
 				},
 			},
 		}
@@ -152,7 +152,7 @@ func createBillFromInlineChoosenResult(whc bots.WebhookContext, botParams BotPar
 
 		log.Infof(c, "createBillFromInlineChoosenResult() => suxx 1")
 
-		if m, err = whc.NewEditMessage(m.Text, bots.MessageFormatHTML); err != nil {  // TODO: Unnecessary hack?
+		if m, err = whc.NewEditMessage(m.Text, bots.MessageFormatHTML); err != nil { // TODO: Unnecessary hack?
 			log.Infof(c, "createBillFromInlineChoosenResult() => suxx 1.2")
 			log.Errorf(c, err.Error())
 			return
@@ -180,7 +180,6 @@ func createBillFromInlineChoosenResult(whc bots.WebhookContext, botParams BotPar
 
 	return
 }
-
 
 var reBillUrl = regexp.MustCompile(`\?start=bill-(\d+)$`)
 
@@ -255,7 +254,7 @@ var EditedBillCardHookCommand = bots.Command{
 						MemberJson: groupMember.MemberJson,
 					})
 					changed = true
-					memberFound:
+				memberFound:
 				}
 			}
 			if err = bill.SetBillMembers(billMembers); err != nil {

@@ -1,21 +1,21 @@
 package gaedal
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/strongo/app/db"
+	"github.com/strongo/app/gae"
+	"github.com/strongo/app/gaedb"
 	"github.com/strongo/app/log"
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
-	"strings"
-	"github.com/strongo/app/gae"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"google.golang.org/appengine/delay"
-	"github.com/strongo/app/gaedb"
-	"github.com/strongo/app/db"
+	"strings"
 )
 
 type ContactDalGae struct {
@@ -50,6 +50,7 @@ func (contactDalGae ContactDalGae) DeleteContact(c context.Context, contactID in
 }
 
 var deleteContactTransfersDelayFunc *delay.Function
+
 const DeleteContactTransfersFuncKey = "DeleteContactTransfers"
 
 func init() {
@@ -93,7 +94,6 @@ func (_ ContactDalGae) SaveContact(c context.Context, contact models.Contact) er
 	}
 	return err
 }
-
 
 func newContactQueryActive(userID int64) *datastore.Query {
 	return newContactQueryWithStatus(userID, models.STATUS_ACTIVE)
@@ -235,7 +235,6 @@ func zipCounterparty(keys []*datastore.Key, entities []*models.ContactEntity) (c
 	}
 	return
 }
-
 
 func (contactDalGae ContactDalGae) InsertContact(
 	c context.Context,

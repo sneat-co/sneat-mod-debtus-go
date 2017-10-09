@@ -2,13 +2,13 @@ package pages
 
 import (
 	"github.com/DebtsTracker/translations/trans"
+	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"html/template"
 	"net/http"
 	"strings"
-	"github.com/julienschmidt/httprouter"
 )
 
 const TEMPLATES_PATH = "templates/" //"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/pages/templates/"

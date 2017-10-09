@@ -1,14 +1,14 @@
 package dtb_fbm
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-api-fbm"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbm"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
 	"fmt"
 	"github.com/DebtsTracker/translations/emoji"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbm"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
+	"github.com/strongo/bots-api-fbm"
+	"github.com/strongo/bots-framework/core"
 )
 
 func aboutCard(whc bots.WebhookContext) fbm_api.RequestElement {
@@ -63,14 +63,13 @@ func mainMenuCard(whc bots.WebhookContext) fbm_api.RequestElement {
 func askLanguageCard(whc bots.WebhookContext) fbm_api.RequestAttachmentPayload {
 	fbm_api.NewButtonTemplate(
 		"",
-
 	)
 	requestElement := fbm_api.RequestElement{
-		Title: whc.Translate(trans.MESSAGE_TEXT_HI),
+		Title:    whc.Translate(trans.MESSAGE_TEXT_HI),
 		Subtitle: "Please choose your language:",
 	}
 	for _, lang := range []strongo.Locale{strongo.LocaleEnUS, strongo.LocaleRuRu} {
-		requestElement.Buttons = append(requestElement.Buttons, newPostbackButton(lang.FlagIcon, lang.NativeTitle, "fbm-set-lang?code5=" + lang.Code5))
+		requestElement.Buttons = append(requestElement.Buttons, newPostbackButton(lang.FlagIcon, lang.NativeTitle, "fbm-set-lang?code5="+lang.Code5))
 	}
 	requestElement.Buttons = append(requestElement.Buttons, newUrlButton("", "More...", fbmAppBaseUrl(whc), "#set-locale"))
 	return fbm_api.NewGenericTemplate(requestElement)
@@ -87,7 +86,6 @@ func welcomeCard(whc bots.WebhookContext) fbm_api.RequestElement {
 		newPostbackButton(emoji.ROBOT_ICON, "Used @ Telegram", "fbm-settings"),
 	)
 }
-
 
 func debtsCard(whc bots.WebhookContext) fbm_api.RequestElement {
 	baseUrl := fbmAppBaseUrl(whc)
@@ -126,7 +124,6 @@ func settingsCard(whc bots.WebhookContext) fbm_api.RequestElement {
 	)
 }
 
-
 func fbmAppBaseUrl(whc bots.WebhookContext) string {
 	fbApp, host, err := fbm.GetFbAppAndHost(whc.Request())
 	if err != nil {
@@ -139,7 +136,7 @@ func newDefaultUrlAction(baseUrl, hash string) fbm_api.RequestDefaultAction {
 	return fbm_api.NewDefaultActionWithWebUrl(
 		fbm_api.RequestWebUrlAction{
 			MessengerExtensions: true,
-			Url: baseUrl + hash,
+			Url:                 baseUrl + hash,
 		},
 	)
 }
@@ -150,7 +147,7 @@ func newUrlButton(icon, title, baseUrl, hash string) fbm_api.RequestButton {
 	}
 	button := fbm_api.NewRequestWebUrlButtonWithRatio(
 		title,
-		baseUrl + hash,
+		baseUrl+hash,
 		fbm_api.WebviewHeightRatioFull,
 	)
 	button.MessengerExtensions = true

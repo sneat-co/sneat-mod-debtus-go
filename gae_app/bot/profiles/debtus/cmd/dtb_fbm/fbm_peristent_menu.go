@@ -1,18 +1,17 @@
 package dtb_fbm
 
 import (
-	"net/http"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-api-fbm"
-	"strings"
-	"github.com/DebtsTracker/translations/emoji"
 	"fmt"
+	"github.com/DebtsTracker/translations/emoji"
 	"github.com/strongo/app/log"
+	"github.com/strongo/bots-api-fbm"
+	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
+	"net/http"
+	"strings"
 )
 
 var EM_SPACE = strings.Repeat("\u00A0", 2)
-
 
 func SetPersistentMenu(c context.Context, r *http.Request, bot bots.BotSettings, api fbm_api.GraphAPI) (err error) {
 	url := fmt.Sprintf("https://%v/app/#fbm%v", r.Host, bot.ID)
@@ -23,7 +22,7 @@ func SetPersistentMenu(c context.Context, r *http.Request, bot bots.BotSettings,
 	//		url + hash, fbm_api.WebviewHeightRatioFull, false, true)
 	//}
 	menuItemPostback := func(icon, title, payload string) fbm_api.MenuItemPostback {
-		return fbm_api.NewMenuItemPostback(icon + EM_SPACE+ title, payload)
+		return fbm_api.NewMenuItemPostback(icon+EM_SPACE+title, payload)
 	}
 
 	log.Debugf(c, "url: %v", url)

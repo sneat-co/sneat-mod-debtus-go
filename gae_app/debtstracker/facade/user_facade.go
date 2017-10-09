@@ -1,17 +1,17 @@
 package facade
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"golang.org/x/net/context"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"fmt"
 	"github.com/pkg/errors"
+	"github.com/strongo/app/db"
+	"github.com/strongo/app/log"
+	"github.com/strongo/app/user"
+	"golang.org/x/net/context"
+	gae_user "google.golang.org/appengine/user"
 	"strings"
 	"time"
-	"github.com/strongo/app/log"
-	gae_user "google.golang.org/appengine/user"
-	"fmt"
-	"github.com/strongo/app/user"
-	"github.com/strongo/app/db"
 )
 
 type userFacade struct {
@@ -169,7 +169,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 
 		isNewUser := userID == 0
 
-		updateUser := func () {
+		updateUser := func() {
 			appUser.SetLastLogin(now)
 			appUser.SetLastLogin(now)
 			if !appUser.EmailConfirmed && userAccountRecord.IsEmailConfirmed() {
@@ -328,13 +328,13 @@ func (uf userFacade) GetOrCreateUserFacebookOnSignIn(
 
 	newUserAccountRecord := func(c context.Context) (user.AccountRecord, error) {
 		userFacebook = models.UserFacebook{
-			FbAppOrPageID: fbAppOrPageID,
+			FbAppOrPageID:       fbAppOrPageID,
 			FbUserOrPageScopeID: fbUserOrPageScopeID,
 			UserFacebookEntity: &models.UserFacebookEntity{
 				Email: email,
 				Names: user.Names{
 					FirstName: firstName,
-					LastName: lastName,
+					LastName:  lastName,
 				},
 				EmailIsConfirmed: isEmailConfirmed,
 				OwnedByUser: user.OwnedByUser{

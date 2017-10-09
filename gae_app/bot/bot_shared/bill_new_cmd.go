@@ -1,25 +1,26 @@
 package bot_shared
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"net/url"
-	"github.com/strongo/app/log"
-	"github.com/pkg/errors"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/decimal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
+	"github.com/pkg/errors"
+	"github.com/strongo/app/log"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/decimal"
+	"net/url"
 )
 
 const (
-	NEW_BILL_PARAM_I = "i"
-	NEW_BILL_PARAM_V = "v"
-	NEW_BILL_PARAM_C = "c"
-	NEW_BILL_PARAM_I_OWE = "owe"
+	NEW_BILL_PARAM_I      = "i"
+	NEW_BILL_PARAM_V      = "v"
+	NEW_BILL_PARAM_C      = "c"
+	NEW_BILL_PARAM_I_OWE  = "owe"
 	NEW_BILL_PARAM_I_PAID = "paid"
 )
 
 const NEW_BILL_COMMAND = "new-bill"
+
 func NewBillCommand(params BotParams) bots.Command {
 	return bots.Command{
 		Code: NEW_BILL_COMMAND,

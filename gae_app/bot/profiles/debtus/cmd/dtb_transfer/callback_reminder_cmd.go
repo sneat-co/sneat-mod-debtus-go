@@ -1,30 +1,30 @@
 package dtb_transfer
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
+	"github.com/strongo/app"
+	"github.com/strongo/app/gae"
 	"github.com/strongo/app/log"
+	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/delay"
+	"google.golang.org/appengine/urlfetch"
+	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
-	"github.com/strongo/bots-api-telegram"
-	"google.golang.org/appengine/delay"
-	"github.com/strongo/app/gae"
-	"github.com/strongo/app"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"net/http"
-	"google.golang.org/appengine/urlfetch"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
-	"golang.org/x/net/context"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
 )
 
 var RemindAgainCallbackCommand = bots.NewCallbackCommand(dtb_common.CALLBACK_REMIND_AGAIN,
@@ -45,7 +45,7 @@ var RemindAgainCallbackCommand = bots.NewCallbackCommand(dtb_common.CALLBACK_REM
 		} else {
 			if strings.HasSuffix(remindIn, "d") {
 				// TODO: Temporary fix? Replaces 1d, 7d, 30d with hours
-				if remindInDays, err := strconv.Atoi(remindIn[0: len(remindIn)-1]); err == nil {
+				if remindInDays, err := strconv.Atoi(remindIn[0 : len(remindIn)-1]); err == nil {
 					remindIn = fmt.Sprintf("%vh", remindInDays*24)
 				} else {
 					log.Errorf(whc.Context(), errors.Wrap(err, "Failed to parse duration days").Error())

@@ -1,13 +1,13 @@
 package facade
 
 import (
-	"time"
-	"golang.org/x/net/context"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/pkg/errors"
-	"math/rand"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
+	"github.com/pkg/errors"
+	"golang.org/x/net/context"
+	"math/rand"
+	"time"
 )
 
 type authFacade struct {
@@ -62,5 +62,3 @@ func (authFacade) SignInWithPin(c context.Context, loginID int64, loginPinCode i
 	}, nil) // dal.CrossGroupTransaction)
 	return
 }
-
-

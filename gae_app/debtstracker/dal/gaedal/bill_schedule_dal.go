@@ -1,11 +1,11 @@
 package gaedal
 
 import (
-	"golang.org/x/net/context"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"google.golang.org/appengine/datastore"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/strongo/app/gaedb"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/datastore"
 )
 
 var _ dal.BillScheduleDal = (*BillScheduleDalGae)(nil)
@@ -24,7 +24,6 @@ func NewBillScheduleKey(c context.Context, id int64) *datastore.Key {
 func NewBillScheduleIncompleteKey(c context.Context) *datastore.Key {
 	return datastore.NewIncompleteKey(c, models.BillScheduleKind, nil)
 }
-
 
 func (BillScheduleDalGae) GetBillScheduleByID(c context.Context, id int64) (billSchedule models.BillSchedule, err error) {
 	billSchedule.BillScheduleEntity = new(models.BillScheduleEntity)

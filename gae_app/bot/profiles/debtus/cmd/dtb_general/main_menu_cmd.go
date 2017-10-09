@@ -1,8 +1,8 @@
 package dtb_general
 
 import (
-	"github.com/DebtsTracker/translations/emoji"
 	"fmt"
+	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app/log"
 	"github.com/strongo/bots-framework/core"

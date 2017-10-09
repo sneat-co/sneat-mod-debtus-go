@@ -1,8 +1,8 @@
 package redirects
 
 import (
-	"net/http"
 	"fmt"
+	"net/http"
 	"net/url"
 )
 
@@ -18,4 +18,3 @@ func confirmEmailRedirect(w http.ResponseWriter, r *http.Request) {
 		map[string]string{}, []string{},
 	)
 }
-

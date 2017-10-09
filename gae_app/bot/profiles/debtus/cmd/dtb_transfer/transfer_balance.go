@@ -37,7 +37,7 @@ func (m BalanceMessageBuilder) ByCounterparty(c context.Context, linker common.L
 	}
 
 	var (
-		counterpartiesWithZeroBalance bytes.Buffer
+		counterpartiesWithZeroBalance      bytes.Buffer
 		counterpartiesWithZeroBalanceCount int
 	)
 

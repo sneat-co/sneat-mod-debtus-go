@@ -6,8 +6,8 @@ import (
 	"net/http"
 	//"github.com/strongo/app"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/vk"
-	"github.com/strongo/app"
 	"github.com/julienschmidt/httprouter"
+	"github.com/strongo/app"
 )
 
 func InitVkIFrameApp(router *httprouter.Router) {

@@ -4,12 +4,12 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/strongo/app/gaedb"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"strings"
 	"time"
-	"github.com/strongo/app/gaedb"
 )
 
 func newUserBrowserIncompleteKey(c context.Context) *datastore.Key {

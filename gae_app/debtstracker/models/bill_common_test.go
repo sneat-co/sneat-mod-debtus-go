@@ -1,8 +1,8 @@
 package models
 
 import (
-	"testing"
 	"github.com/strongo/decimal"
+	"testing"
 )
 
 func TestBillCommon_GetBillMembers(t *testing.T) {

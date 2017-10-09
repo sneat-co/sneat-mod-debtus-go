@@ -1,18 +1,17 @@
 package emails
 
 import (
-	"golang.org/x/net/context"
-	"google.golang.org/appengine/delay"
-	"github.com/strongo/app/gae"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"github.com/strongo/app/log"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pkg/errors"
-	"time"
 	"github.com/strongo/app/db"
+	"github.com/strongo/app/gae"
+	"github.com/strongo/app/log"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/delay"
+	"time"
 )
-
 
 const SEND_EMAIL_TASK = "send-email"
 
@@ -22,7 +21,7 @@ func DelaySendEmail(c context.Context, id int64) error {
 
 var delayEmail = delay.Func(SEND_EMAIL_TASK, delayedSendEmail)
 
-var ErrEmailIsInWrongStatus =  errors.New("email is already sending or sent")
+var ErrEmailIsInWrongStatus = errors.New("email is already sending or sent")
 
 func delayedSendEmail(c context.Context, id int64) (err error) {
 	log.Debugf(c, "delayedSendEmail(%v)", id)
@@ -34,7 +33,7 @@ func delayedSendEmail(c context.Context, id int64) (err error) {
 			return err
 		}
 		if email.Status != "queued" {
-			return errors.WithMessage(ErrEmailIsInWrongStatus, "Expected 'queued' got email.Status=" + email.Status)
+			return errors.WithMessage(ErrEmailIsInWrongStatus, "Expected 'queued' got email.Status="+email.Status)
 		}
 		email.Status = "sending"
 		return dal.Email.UpdateEmail(c, email)
@@ -60,7 +59,7 @@ func delayedSendEmail(c context.Context, id int64) (err error) {
 				return err
 			}
 			if email.Status != "sending" {
-				return errors.WithMessage(ErrEmailIsInWrongStatus, "Expected 'sending' got email.Status=" + email.Status)
+				return errors.WithMessage(ErrEmailIsInWrongStatus, "Expected 'sending' got email.Status="+email.Status)
 			}
 			email.Status = "error"
 			email.Error = err.Error()
@@ -78,7 +77,7 @@ func delayedSendEmail(c context.Context, id int64) (err error) {
 			return err
 		}
 		if email.Status != "sending" {
-			return errors.WithMessage(ErrEmailIsInWrongStatus, "Expected 'sending' got email.Status=" + email.Status)
+			return errors.WithMessage(ErrEmailIsInWrongStatus, "Expected 'sending' got email.Status="+email.Status)
 		}
 		email.Status = "sent"
 		email.DtSent = time.Now()

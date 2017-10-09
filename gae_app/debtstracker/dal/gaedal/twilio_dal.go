@@ -4,13 +4,13 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pkg/errors"
+	"github.com/strongo/app/gaedb"
 	"github.com/strongo/app/log"
+	"github.com/strongo/decimal"
 	"github.com/strongo/gotwilio"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
-	"github.com/strongo/decimal"
-	"github.com/strongo/app/gaedb"
 )
 
 type TwilioDalGae struct {
@@ -31,7 +31,7 @@ func (_ TwilioDalGae) GetLastTwilioSmsesForUser(c context.Context, userID int64,
 		return
 	}
 	result = make([]models.TwilioSms, len(keys))
-	for i, entity := range entities{
+	for i, entity := range entities {
 		result[i] = models.TwilioSms{ID: keys[i].StringID(), TwilioSmsEntity: entity}
 	}
 	return
@@ -46,7 +46,7 @@ func (_ TwilioDalGae) SaveTwilioSms(
 	tgChatID int64,
 	smsStatusMessageID int,
 ) (twilioSms models.TwilioSms, err error) {
-	var twilioSmsEntity  models.TwilioSmsEntity
+	var twilioSmsEntity models.TwilioSmsEntity
 	if err = dal.DB.RunInTransaction(c, func(tc context.Context) error {
 		userKey := NewAppUserKey(c, userID)
 		transferKey := NewTransferKey(tc, transfer.ID)
@@ -62,7 +62,6 @@ func (_ TwilioDalGae) SaveTwilioSms(
 					twilioSmsEntity = models.NewTwilioSmsFromSmsResponse(userID, smsResponse)
 					twilioSmsEntity.CreatorTgChatID = tgChatID
 					twilioSmsEntity.CreatorTgSmsStatusMessageID = smsStatusMessageID
-
 
 					appUserEntity.SmsCount += 1
 					transfer.SmsCount += 1

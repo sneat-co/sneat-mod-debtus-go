@@ -1,16 +1,16 @@
 package facade
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"github.com/pkg/errors"
+	"github.com/qedus/nds"
+	"github.com/strongo/app"
+	"github.com/strongo/app/log"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"strconv"
-	"github.com/qedus/nds"
-	"google.golang.org/appengine/datastore"
 	"golang.org/x/net/context"
-	"github.com/strongo/app/log"
-	"github.com/strongo/app"
-	"github.com/pkg/errors"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"google.golang.org/appengine/datastore"
+	"strconv"
 )
 
 func GetLocale(c context.Context, botID string, tgChatIntID, userID int64) (locale strongo.Locale, err error) {

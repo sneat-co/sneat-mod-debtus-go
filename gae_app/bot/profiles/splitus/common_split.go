@@ -1,18 +1,18 @@
 package splitus
 
 import (
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/app"
-	"net/url"
-	"strconv"
-	"bytes"
-	"fmt"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bytes"
+	"errors"
+	"fmt"
+	"github.com/strongo/app"
+	"github.com/strongo/app/log"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/decimal"
 	"html"
-	"errors"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/app/log"
+	"net/url"
+	"strconv"
 )
 
 func editSplitCallbackAction(

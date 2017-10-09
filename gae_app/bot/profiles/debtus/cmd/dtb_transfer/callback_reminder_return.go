@@ -1,12 +1,13 @@
 package dtb_transfer
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/DebtsTracker/translations/emoji"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
+	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
@@ -16,7 +17,6 @@ import (
 	"net/url"
 	"strconv"
 	"time"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 )
 
 var ReturnCallbackCommand = bots.NewCallbackCommand(dtb_common.CALLBACK_DEBT_RETURNED_PATH, ProcessReturnAnswer)
@@ -65,14 +65,13 @@ func ProcessReturnAnswer(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.
 
 const ENABLE_REMINDER_AGAIN_COMMAND = "enable-reminder-again"
 
-
 var EnableReminderAgainCallbackCommand = bots.NewCallbackCommand(ENABLE_REMINDER_AGAIN_COMMAND, func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
 	log.Debugf(c, "EnableReminderAgainCallbackCommand()")
 	q := callbackUrl.Query()
 	var (
 		reminderID int64
-		transfer models.Transfer
+		transfer   models.Transfer
 	)
 	if reminderID, err = common.DecodeID(q.Get("reminder")); err != nil {
 		err = errors.WithMessage(err, "Can't decode parameter 'reminder'")

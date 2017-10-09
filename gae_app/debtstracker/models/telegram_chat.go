@@ -1,8 +1,8 @@
 package models
 
 import (
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/app/gaedb"
+	"github.com/strongo/bots-framework/platforms/telegram"
 	"google.golang.org/appengine/datastore"
 )
 

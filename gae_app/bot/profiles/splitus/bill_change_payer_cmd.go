@@ -1,13 +1,13 @@
 package splitus
 
 import (
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"net/url"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app/log"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"net/url"
 )
 
 const CHANGE_BILL_PAYER_COMMAND = "change-bill-payer"
@@ -17,7 +17,7 @@ var changeBillPayerCommand = bot_shared.BillCallbackCommand(CHANGE_BILL_PAYER_CO
 		c := whc.Context()
 		log.Debugf(c, "changeBillPayerCommand.CallbackAction()")
 		var (
-			mt            string
+			mt string
 			//editedMessage *tgbotapi.EditMessageTextConfig
 		)
 		if mt, err = bot_shared.GetBillCardMessageText(c, whc.GetBotCode(), whc, bill, true, whc.Translate(trans.MESSAGE_TEXT_BILL_ASK_WHO_PAID)); err != nil {

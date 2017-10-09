@@ -1,10 +1,10 @@
 package models
 
 import (
+	"github.com/strongo/app/db"
+	"github.com/strongo/decimal"
 	"github.com/strongo/gotwilio"
 	"time"
-	"github.com/strongo/decimal"
-	"github.com/strongo/app/db"
 )
 
 const SmsKind = "Sms"
@@ -36,7 +36,6 @@ func (u TwilioSms) StrID() string {
 	return u.ID
 }
 
-
 func (u *TwilioSms) Entity() interface{} {
 	if u.TwilioSmsEntity == nil {
 		u.TwilioSmsEntity = new(TwilioSmsEntity)
@@ -47,7 +46,6 @@ func (u *TwilioSms) Entity() interface{} {
 func (u *TwilioSms) SetEntity(entity interface{}) {
 	u.TwilioSmsEntity = entity.(*TwilioSmsEntity)
 }
-
 
 type TwilioSmsEntity struct {
 	UserID      int64
@@ -63,7 +61,7 @@ type TwilioSmsEntity struct {
 	Status      string
 	Direction   string
 	//ApiVersion  string   `datastore:",noindex"`
-	Price float32 `datastore:",noindex"` // TODO: Remove obsolete
+	Price    float32             `datastore:",noindex"` // TODO: Remove obsolete
 	PriceUSD decimal.Decimal64p2 `datastore:",noindex"`
 	//Url         string   `datastore:",noindex"`
 

@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	//"github.com/strongo/app"
+	"github.com/strongo/app/db"
 	"github.com/strongo/app/log"
+	"github.com/strongo/app/user"
 	"github.com/strongo/decimal"
 	"golang.org/x/net/context"
 	"math"
-	"time"
 	"strconv"
-	"github.com/strongo/app/user"
-	"github.com/strongo/app/db"
+	"time"
 )
 
 type billFacade struct {
@@ -468,7 +468,7 @@ func (billFacade billFacade) SplitBills(c context.Context, userID int64, groupID
 	return
 }
 
-func (billFacade billFacade) createTransfers(c context.Context, splitID int64) (error) {
+func (billFacade billFacade) createTransfers(c context.Context, splitID int64) error {
 	split, err := dal.Split.GetSplitByID(c, splitID)
 	if err != nil {
 		return err

@@ -1,15 +1,15 @@
 package api
 
 import (
-	"net/http"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"golang.org/x/net/context"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/strongo/app/log"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/user"
 	"github.com/strongo/app/db"
+	"github.com/strongo/app/log"
+	"github.com/strongo/app/user"
+	"golang.org/x/net/context"
+	"net/http"
 )
 
 func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
@@ -39,7 +39,7 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 		}
 
 		if !models.IsKnownUserAccountProvider(provider) {
-			ErrorAsJson(c, w, http.StatusBadRequest, errors.New("Unknown provider: " + provider))
+			ErrorAsJson(c, w, http.StatusBadRequest, errors.New("Unknown provider: "+provider))
 			return nil
 		}
 		if !appUser.HasAccount(provider, "") {
@@ -96,6 +96,6 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 		}
 		return nil
 	}, dal.CrossGroupTransaction); err != nil {
-		ErrorAsJson(c,  w, http.StatusInternalServerError, err)
+		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 	}
 }

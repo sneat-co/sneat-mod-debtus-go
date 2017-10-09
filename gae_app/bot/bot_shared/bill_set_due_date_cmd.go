@@ -1,10 +1,10 @@
 package bot_shared
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"net/url"
 	"github.com/strongo/app/log"
 	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"net/url"
 )
 
 const SET_BILL_DUE_DATE_COMMAND = "bill_due"

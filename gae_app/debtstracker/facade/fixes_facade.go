@@ -1,13 +1,13 @@
 package facade
 
 import (
-	"net/http"
-	"fmt"
-	"time"
-	"golang.org/x/net/context"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/app/log"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"fmt"
+	"github.com/strongo/app/log"
+	"golang.org/x/net/context"
+	"net/http"
+	"time"
 )
 
 func CheckTransferCreatorNameAndFixIfNeeded(c context.Context, w http.ResponseWriter, transfer models.Transfer) (models.Transfer, error) {
@@ -23,7 +23,7 @@ func CheckTransferCreatorNameAndFixIfNeeded(c context.Context, w http.ResponseWr
 		}
 
 		logMessage := fmt.Sprintf("Fixing transfer(%d).Creator().ContactName, created: %v", transfer.ID, transfer.DtCreated)
-		if transfer.DtCreated.After(time.Date(2017, 8, 1, 0,0, 0, 0, time.UTC)) {
+		if transfer.DtCreated.After(time.Date(2017, 8, 1, 0, 0, 0, 0, time.UTC)) {
 			log.Warningf(c, logMessage)
 		} else {
 			log.Infof(c, logMessage)
@@ -56,4 +56,3 @@ func CheckTransferCreatorNameAndFixIfNeeded(c context.Context, w http.ResponseWr
 	}
 	return transfer, nil
 }
-

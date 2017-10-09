@@ -1,15 +1,15 @@
 package gaedal
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"golang.org/x/net/context"
-	"time"
-	"google.golang.org/appengine/delay"
-	"github.com/strongo/app/gae"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"github.com/strongo/app/log"
 	"github.com/strongo/app/db"
+	"github.com/strongo/app/gae"
+	"github.com/strongo/app/log"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/delay"
+	"time"
 )
 
 type billDalGae struct {
@@ -90,7 +90,6 @@ var delayedUpdateBillDependencies = delay.Func("delayedUpdateBillDependencies", 
 	}
 	return
 })
-
 
 func (billDalGae) UpdateBillsHolder(c context.Context, billID string, getBillsHolder dal.BillsHolderGetter) (err error) {
 	return

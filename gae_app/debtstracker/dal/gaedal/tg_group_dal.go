@@ -1,12 +1,12 @@
 package gaedal
 
 import (
-	"golang.org/x/net/context"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"google.golang.org/appengine/datastore"
-	"github.com/strongo/app/gaedb"
-	"github.com/strongo/app/db"
 	"github.com/pkg/errors"
+	"github.com/strongo/app/db"
+	"github.com/strongo/app/gaedb"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/datastore"
 )
 
 type tgGroupDalGae struct {

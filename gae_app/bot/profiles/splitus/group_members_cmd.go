@@ -1,26 +1,26 @@
 package splitus
 
 import (
-	"fmt"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/DebtsTracker/translations/emoji"
-	"bytes"
-	"github.com/strongo/app/log"
-	"github.com/DebtsTracker/translations/trans"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bytes"
+	"fmt"
+	"github.com/DebtsTracker/translations/emoji"
+	"github.com/DebtsTracker/translations/trans"
+	"github.com/strongo/app"
+	"github.com/strongo/app/log"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/decimal"
 	"golang.org/x/net/context"
-	"github.com/strongo/app"
 	"net/url"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 )
 
 const GROUP_MEMBERS_COMMAND = "group-members"
 
 var groupMembersCommand = bots.Command{
-	Code: GROUP_MEMBERS_COMMAND,
+	Code:     GROUP_MEMBERS_COMMAND,
 	Commands: []string{"/members"},
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		return showGroupMembers(whc, models.Group{}, false)
@@ -34,7 +34,6 @@ var groupMembersCommand = bots.Command{
 		return showGroupMembers(whc, group, true)
 	},
 }
-
 
 func groupMembersCard(
 	c context.Context,
@@ -130,6 +129,3 @@ func showGroupMembers(whc bots.WebhookContext, group models.Group, isEdit bool) 
 	m.IsEdit = isEdit
 	return
 }
-
-
-

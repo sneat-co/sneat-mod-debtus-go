@@ -3,6 +3,8 @@ package api
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"encoding/json"
 	"github.com/strongo/decimal"
 	"golang.org/x/net/context"
@@ -12,8 +14,6 @@ import (
 	"net/url"
 	"strings"
 	"testing"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 )
 
 const (
@@ -25,7 +25,6 @@ func TestBillApiCreateBill(t *testing.T) {
 
 	c := context.Background()
 	facade.SetupMocks(c)
-
 
 	if contact, err := dal.Contact.InsertContact(c, creatorUserID, 0, 0, models.ContactDetails{
 		FirstName: "First",

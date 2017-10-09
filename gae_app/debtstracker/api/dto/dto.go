@@ -3,11 +3,11 @@ package dto
 //go:generate ffjson $GOFILE
 
 import (
-	"time"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/decimal"
 	"encoding/json"
 	"github.com/pquerna/ffjson/ffjson"
+	"github.com/strongo/decimal"
+	"time"
 )
 
 type UserMeDto struct {
@@ -18,8 +18,6 @@ type UserMeDto struct {
 	VkUserID     int64  `json:",omitempty"`
 	ViberUserID  string `json:",omitempty"`
 }
-
-
 
 type ApiAcknowledgeDto struct {
 	Status   string
@@ -52,10 +50,9 @@ type ApiReceiptTransferDto struct {
 	Acknowledge    *ApiAcknowledgeDto `json:",omitempty"`
 }
 
-
 type ContactDto struct {
-	ID     int64 `json:",omitempty"` // TODO: Document why it can be empty?
-	UserID int64 `json:",omitempty"`
+	ID     int64  `json:",omitempty"` // TODO: Document why it can be empty?
+	UserID int64  `json:",omitempty"`
 	Name   string `json:",omitempty"`
 	//Note string `json:",omitempty"`
 	Comment string `json:",omitempty"`
@@ -83,8 +80,8 @@ type BillDto struct {
 }
 
 type BillMemberDto struct {
-	UserID     int64               `json:",omitempty"`
-	ContactID  int64               `json:",omitempty"`
+	UserID     int64 `json:",omitempty"`
+	ContactID  int64 `json:",omitempty"`
 	Amount     decimal.Decimal64p2
 	Paid       decimal.Decimal64p2 `json:",omitempty"`
 	Share      int                 `json:",omitempty"`
@@ -109,14 +106,14 @@ type PhoneInfo struct {
 
 type ContactDetailsDto struct {
 	ContactListDto
-	Email  *EmailInfo `json:",omitempty"`
-	Phone  *PhoneInfo `json:",omitempty"`
+	Email *EmailInfo `json:",omitempty"`
+	Phone *PhoneInfo `json:",omitempty"`
 	TransfersResultDto
 	Groups []ContactGroupDto `json:",omitempty"`
 }
 
 type TransfersResultDto struct {
-	HasMoreTransfers bool `json:",omitempty"`
+	HasMoreTransfers bool           `json:",omitempty"`
 	Transfers        []*TransferDto `json:",omitempty"`
 }
 
@@ -192,14 +189,12 @@ type GroupDto struct {
 	Members      []GroupMemberDto `json:",omitempty"`
 }
 
-
 type GroupMemberDto struct {
 	ID        string
 	UserID    int64  `json:",omitempty"`
 	ContactID int64  `json:",omitempty"`
 	Name      string `json:",omitempty"`
 }
-
 
 type ContactGroupDto struct {
 	ID           string

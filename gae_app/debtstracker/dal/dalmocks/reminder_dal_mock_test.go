@@ -2,9 +2,9 @@ package dalmocks
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
 	"time"
-	"github.com/strongo/app/log"
 )
 
 type ReminderDalMock struct {
@@ -34,7 +34,6 @@ func (mock *ReminderDalMock) GetReminderByID(c context.Context, id int64) (model
 func (mock *ReminderDalMock) SaveReminder(c context.Context, reminder models.Reminder) (err error) {
 	panic(NOT_IMPLEMENTED_YET)
 }
-
 
 func (mock *ReminderDalMock) RescheduleReminder(c context.Context, reminderID int64, remindInDuration time.Duration) (oldReminder, newReminder models.Reminder, err error) {
 	panic(NOT_IMPLEMENTED_YET)

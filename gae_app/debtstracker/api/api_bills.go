@@ -1,8 +1,7 @@
 package api
 
-
-
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
@@ -14,7 +13,6 @@ import (
 	"golang.org/x/net/context"
 	"net/http"
 	"strconv"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 )
 
 func handleGetBill(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
@@ -57,7 +55,7 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 		return
 	}
 	billEntity := models.NewBillEntity(models.BillCommon{
-		Status: models.STATUS_DRAFT,
+		Status:        models.STATUS_DRAFT,
 		SplitMode:     splitMode,
 		CreatorUserID: authInfo.UserID,
 		Name:          r.PostFormValue("name"),

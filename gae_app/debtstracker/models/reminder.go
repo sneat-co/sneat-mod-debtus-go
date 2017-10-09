@@ -2,11 +2,11 @@ package models
 
 import (
 	"github.com/pkg/errors"
+	"github.com/strongo/app/db"
 	"github.com/strongo/app/gaedb"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"google.golang.org/appengine/datastore"
 	"time"
-	"github.com/strongo/app/db"
 )
 
 const (

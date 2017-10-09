@@ -1,24 +1,22 @@
 package api
 
-
-
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"fmt"
+	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
+	"github.com/strongo/app/db"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"fmt"
-	"io/ioutil"
 	"sync"
-	"github.com/strongo/app/db"
-	"github.com/pkg/errors"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 )
 
 func handlerCreateGroup(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo, user models.AppUser) {
@@ -64,7 +62,7 @@ func handlerGetGroup(c context.Context, w http.ResponseWriter, r *http.Request, 
 	}
 }
 
-func groupToResponse(c context.Context, w http.ResponseWriter, group models.Group, user models.AppUser) (error) {
+func groupToResponse(c context.Context, w http.ResponseWriter, group models.Group, user models.AppUser) error {
 	if jsons, err := groupsToJson([]models.Group{group}, user); err != nil {
 		return err
 	} else {
@@ -418,7 +416,6 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 	}
 }
 
-
 func StringToInt64s(s, sep string) (result []int64, err error) {
 	if s == "" {
 		return
@@ -432,4 +429,3 @@ func StringToInt64s(s, sep string) (result []int64, err error) {
 	}
 	return
 }
-

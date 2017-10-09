@@ -2,17 +2,17 @@ package api
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/strongo/app/db"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
+	"io/ioutil"
 	"net/http"
 	"strings"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"io/ioutil"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/app/db"
 )
 
 type AuthHandler func(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo)
@@ -140,12 +140,12 @@ func handleAuthLoginId(c context.Context, w http.ResponseWriter, r *http.Request
 
 	if gaClientID != "" {
 		if len(gaClientID) > 100 {
-			BadRequestMessage(c, w,fmt.Sprintf("Google Client ID is too long: %d", len(gaClientID)))
+			BadRequestMessage(c, w, fmt.Sprintf("Google Client ID is too long: %d", len(gaClientID)))
 			return
 		}
 
 		if strings.Count(gaClientID, ".") != 1 {
-			BadRequestMessage(c, w,fmt.Sprintf("Google Client ID has wrong format, a '.' char expected"))
+			BadRequestMessage(c, w, fmt.Sprintf("Google Client ID has wrong format, a '.' char expected"))
 			return
 		}
 	}

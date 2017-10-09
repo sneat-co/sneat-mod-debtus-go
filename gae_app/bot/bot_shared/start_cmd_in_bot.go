@@ -1,12 +1,12 @@
 package bot_shared
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/app/log"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/DebtsTracker/translations/trans"
-	"strings"
 	"bytes"
+	"github.com/DebtsTracker/translations/trans"
+	"github.com/strongo/app/log"
+	"github.com/strongo/bots-framework/core"
+	"strings"
 )
 
 func startInBotAction(whc bots.WebhookContext, startParams []string, botParams BotParams) (m bots.MessageFromBot, err error) {
@@ -44,7 +44,6 @@ func startInBotWelcomeAction(whc bots.WebhookContext, botParams BotParams) (m bo
 	m.Keyboard = LangKeyboard
 	return
 }
-
 
 func onStartCallbackInBot(whc bots.WebhookContext, params BotParams) (m bots.MessageFromBot, err error) {
 	c := whc.Context()

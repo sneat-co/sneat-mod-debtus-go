@@ -1,18 +1,18 @@
 package fbm
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/DebtsTracker/translations/trans"
-	fb "github.com/strongo/facebook"
+	"github.com/pkg/errors"
 	"github.com/strongo/app"
+	"github.com/strongo/app/log"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/fbm"
+	fb "github.com/strongo/facebook"
 	"golang.org/x/net/context"
 	"net/http"
-	"github.com/pkg/errors"
-	"github.com/strongo/app/log"
 	"strings"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 )
 
 const (
@@ -67,7 +67,7 @@ func Bots(_ context.Context) bots.SettingsBy {
 			),
 			fbm_bot.NewFbmBot(
 				strongo.EnvProduction,
-					bot.ProfileSplitus,
+				bot.ProfileSplitus,
 				"splitbill.co",
 				"286238251784027",
 				fbm_SPLITBILL_PROD_PAGE_ACCESS_TOKEN,

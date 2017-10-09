@@ -2,9 +2,9 @@ package dtb_transfer
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/DebtsTracker/translations/emoji"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
+	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app/log"
@@ -98,7 +98,7 @@ var AskReturnCounterpartyCommand = CreateAskTransferCounterpartyCommand(
 			}
 		case 0:
 			errorMessage := whc.Translate(trans.MESSAGE_TEXT_COUNTERPARTY_HAS_EMPTY_BALANCE, counterparty.FullName())
-			log.Debugf(c, "Balance is empty: " + errorMessage)
+			log.Debugf(c, "Balance is empty: "+errorMessage)
 			m = whc.NewMessage(errorMessage)
 		default:
 			buttons := make([][]string, len(balance)+1)

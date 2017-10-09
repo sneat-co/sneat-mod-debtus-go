@@ -9,10 +9,10 @@ import (
 
 type BillMemberJson struct {
 	MemberJson
-	Owes        decimal.Decimal64p2 `json:",omitempty"`
-	Percent     decimal.Decimal64p2 `json:",omitempty"`
-	Adjustment  decimal.Decimal64p2 `json:",omitempty"`
-	Paid        decimal.Decimal64p2 `json:",omitempty"`
+	Owes       decimal.Decimal64p2 `json:",omitempty"`
+	Percent    decimal.Decimal64p2 `json:",omitempty"`
+	Adjustment decimal.Decimal64p2 `json:",omitempty"`
+	Paid       decimal.Decimal64p2 `json:",omitempty"`
 	//TransferIDs []int64             `json:",omitempty"`
 }
 

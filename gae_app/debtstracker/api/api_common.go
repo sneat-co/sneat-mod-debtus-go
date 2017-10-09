@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/app"
-	"github.com/strongo/app/log"
 	"github.com/strongo/app/db"
+	"github.com/strongo/app/log"
 )
 
 func getEnvironment(r *http.Request) strongo.Environment {

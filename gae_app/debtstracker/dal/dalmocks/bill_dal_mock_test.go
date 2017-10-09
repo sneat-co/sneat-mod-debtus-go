@@ -4,14 +4,14 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 	"github.com/strongo/app/db"
+	"golang.org/x/net/context"
 )
 
 var _ dal.BillDal = (*BillDalMock)(nil)
 
 type BillDalMock struct {
-	Bills      map[string]*models.BillEntity
+	Bills map[string]*models.BillEntity
 }
 
 func NewBillDalMock() *BillDalMock {
@@ -34,7 +34,7 @@ func (billDalMock *BillDalMock) GetBillByID(c context.Context, billID string) (b
 	if billEntity, ok := billDalMock.Bills[billID]; !ok {
 		err = db.NewErrNotFoundByStrID(models.BillKind, billID, errors.New("Not found"))
 	} else {
-		bill = models.Bill{StringID: db.StringID{ID: billID} , BillEntity: billEntity}
+		bill = models.Bill{StringID: db.StringID{ID: billID}, BillEntity: billEntity}
 	}
 	return
 }

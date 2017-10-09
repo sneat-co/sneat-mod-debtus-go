@@ -1,10 +1,10 @@
 package models
 
 import (
-	"google.golang.org/appengine/datastore"
-	"github.com/strongo/app/gaedb"
 	"github.com/strongo/app/db"
+	"github.com/strongo/app/gaedb"
 	"github.com/strongo/app/user"
+	"google.golang.org/appengine/datastore"
 )
 
 const PasswordResetKind = "PwdRst"

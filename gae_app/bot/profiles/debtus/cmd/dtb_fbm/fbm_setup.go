@@ -1,16 +1,16 @@
 package dtb_fbm
 
 import (
-	"github.com/strongo/bots-api-fbm"
-	"fmt"
-	"time"
-	"net/http"
-	"google.golang.org/appengine/urlfetch"
-	"google.golang.org/appengine"
-	"golang.org/x/net/context"
-	"github.com/strongo/app/log"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbm"
 	"bytes"
+	"fmt"
+	"github.com/strongo/app/log"
+	"github.com/strongo/bots-api-fbm"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/urlfetch"
+	"net/http"
+	"time"
 )
 
 func SetupFbm(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +40,7 @@ func SetupFbm(w http.ResponseWriter, r *http.Request) {
 
 	if query.Get("whitelist-domains") == "1" {
 		if err = SetWhitelistedDomains(c, r, bot, api); err != nil {
-			reportError(err);
+			reportError(err)
 			return
 		}
 		buffer.WriteString("Whitelisted domains\n")

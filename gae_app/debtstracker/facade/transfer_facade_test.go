@@ -3,14 +3,14 @@ package facade
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	is2 "github.com/matryer/is"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/decimal"
 	"golang.org/x/net/context"
 	"testing"
 	"time"
-	is2 "github.com/matryer/is"
-	"github.com/strongo/decimal"
 )
 
 type assertHelper struct {
@@ -154,14 +154,14 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 	)
 
 	var (
-		output createTransferOutput
+		output     createTransferOutput
 		t1, t2, t3 models.Transfer
-		err error
+		err        error
 	)
 	source := dal.NewTransferSourceBot(telegram_bot.TelegramPlatformID, "test-bot", "444")
 	{ // Create 1st "gave" transfer
 		from := &models.TransferCounterpartyInfo{
-			UserID:  userID,
+			UserID: userID,
 		}
 
 		to := &models.TransferCounterpartyInfo{
@@ -196,7 +196,7 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 		}
 
 		to := &models.TransferCounterpartyInfo{
-			UserID:  userID,
+			UserID: userID,
 		}
 
 		newTransfer := NewTransferInput(strongo.EnvLocal,
@@ -233,7 +233,7 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 
 	{ // Create 3d transfer - full return
 		from := &models.TransferCounterpartyInfo{
-			UserID:  userID,
+			UserID: userID,
 		}
 
 		to := &models.TransferCounterpartyInfo{

@@ -1,18 +1,18 @@
 package dtb_inline
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"fmt"
+	"github.com/DebtsTracker/translations/trans"
+	"github.com/strongo/app/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/app/log"
+	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/decimal"
+	"html"
+	"net/url"
 	"regexp"
 	"strings"
-	"net/url"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/decimal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"html"
-	"fmt"
-	"github.com/strongo/bots-framework/platforms/telegram"
 )
 
 var ReInlineQueryAmount = regexp.MustCompile(`^\s*(\d+(?:\.\d*)?)\s*((?:\b|\B).+?)?\s*$`)
@@ -42,7 +42,7 @@ func InlineNewRecord(whc bots.WebhookContext, amountMatches []string) (m bots.Me
 			amountCurrency = models.CURRENCY_EUR
 		} else if ccLow == "гривна" || ccLow == "гривен" || ccLow == "г" || ccLow == models.UAH_SIGN {
 			amountCurrency = models.CURRENCY_UAH
-		} else if ccLow == "тенге" || ccLow == "теңге"  || ccLow == "т" || ccLow == models.KZT_SIGN {
+		} else if ccLow == "тенге" || ccLow == "теңге" || ccLow == "т" || ccLow == models.KZT_SIGN {
 			amountCurrency = models.CURRENCY_KZT
 		} else {
 			amountCurrency = models.Currency(currencyCode)

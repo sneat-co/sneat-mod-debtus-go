@@ -11,5 +11,3 @@ func GetReceiptUrl(receiptID int64, host string) string {
 	}
 	return fmt.Sprintf("https://%v/receipt?id=%v", host, EncodeID(receiptID))
 }
-
-

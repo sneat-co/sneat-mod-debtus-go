@@ -1,16 +1,16 @@
 package maintainance
 
 import (
-	"net/http"
-	"github.com/captaincodeman/datastore-mapper"
-	"google.golang.org/appengine/datastore"
-	"golang.org/x/net/context"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"google.golang.org/appengine/log"
-	"strings"
-	"github.com/pquerna/ffjson/ffjson"
 	"encoding/json"
+	"github.com/captaincodeman/datastore-mapper"
+	"github.com/pquerna/ffjson/ffjson"
 	"github.com/qedus/nds"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
+	"net/http"
+	"strings"
 )
 
 type verifyUsers struct {
@@ -64,7 +64,7 @@ func (m *verifyUsers) Next(c context.Context, counters mapper.Counters, key *dat
 	return nil
 }
 
-func FixUserContactsBalances(u *models.AppUserEntity) (changed bool, err error){
+func FixUserContactsBalances(u *models.AppUserEntity) (changed bool, err error) {
 	contacts := u.Contacts()
 	for i, contact := range contacts {
 		balance, err := contact.Balance()
@@ -93,7 +93,7 @@ func FixBalanceCurrencies(balance models.Balance) (changed bool) {
 	for c, v := range balance {
 		if c == euro {
 			c = models.CURRENCY_EUR
-		} else if len(c) == 3  {
+		} else if len(c) == 3 {
 			cc := strings.ToUpper(string(c))
 			if cc != string(c) {
 				if cu := models.Currency(cc); cu.IsMoney() {

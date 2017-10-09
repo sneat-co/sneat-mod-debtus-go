@@ -1,10 +1,10 @@
 package models
 
 import (
-	"time"
-	"google.golang.org/appengine/datastore"
-	"github.com/strongo/app/gaedb"
 	"github.com/strongo/app/db"
+	"github.com/strongo/app/gaedb"
+	"google.golang.org/appengine/datastore"
+	"time"
 )
 
 const (

@@ -1,17 +1,17 @@
 package maintainance
 
 import (
-	"net/http"
-	"github.com/captaincodeman/datastore-mapper"
-	"google.golang.org/appengine/datastore"
-	"golang.org/x/net/context"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
-	"github.com/strongo/app/log"
-	"strings"
+	"github.com/captaincodeman/datastore-mapper"
 	"github.com/qedus/nds"
 	"github.com/strongo/app/db"
+	"github.com/strongo/app/log"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/datastore"
+	"net/http"
+	"strings"
 )
 
 type verifyTransfers struct {

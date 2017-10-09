@@ -1,13 +1,13 @@
 package bot_shared
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"fmt"
+	"github.com/strongo/app/log"
+	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"net/url"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/bots-api-telegram"
-	"fmt"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"github.com/strongo/app/log"
 )
 
 const GROUP_COMMAND = "group"
@@ -34,14 +34,14 @@ var groupCommand = bots.NewCallbackCommand(GROUP_COMMAND,
 		id := query.Get("id")
 
 		var (
-			i int
+			i     int
 			group models.UserGroupJson
 		)
 		switch id {
 		case "first":
 			i = 0
 		case "last":
-			i = len(groups)-1
+			i = len(groups) - 1
 		default:
 			group.ID = id
 			for j, g := range groups {
@@ -67,7 +67,7 @@ var groupCommand = bots.NewCallbackCommand(GROUP_COMMAND,
 		tgKeyboard := tgbotapi.NewInlineKeyboardMarkup(groupsNavButtons(groups, group.ID))
 		tgKeyboard.InlineKeyboard = append(tgKeyboard.InlineKeyboard, []tgbotapi.InlineKeyboardButton{
 			{
-				Text: "Leave group",
+				Text:         "Leave group",
 				CallbackData: CallbackLink.ToGroup(groups[len(groups)-1].ID, true) + "&do=leave",
 			},
 		})
@@ -123,7 +123,7 @@ func groupsNavButtons(groups []models.UserGroupJson, currentGroupID string) []tg
 				Text:         "➡️",
 				CallbackData: CallbackLink.ToGroup(groups[0].ID, true),
 			})
-		case len(groups)-1:
+		case len(groups) - 1:
 			buttons = append(buttons, tgbotapi.InlineKeyboardButton{
 				Text:         "➡️",
 				CallbackData: GROUPS_COMMAND + "?edit=1",

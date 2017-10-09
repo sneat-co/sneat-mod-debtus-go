@@ -1,19 +1,19 @@
 package bot_shared
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"net/url"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/DebtsTracker/translations/trans"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"golang.org/x/net/context"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"fmt"
+	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app/log"
-	"strings"
 	"github.com/strongo/bots-api-telegram"
-	"fmt"
-	"time"
+	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
+	"golang.org/x/net/context"
+	"net/url"
+	"strings"
+	"time"
 )
 
 const JOIN_BILL_COMMAND = "join_bill"
@@ -110,8 +110,8 @@ func joinBillAction(whc bots.WebhookContext, botParams BotParams, bill models.Bi
 		}
 
 		var (
-			index int
-			member models.BillMemberJson
+			index   int
+			member  models.BillMemberJson
 			members []models.BillMemberJson
 		)
 		_, changed, index, member, members = bill.AddOrGetMember(userID, 0, userName)
@@ -156,5 +156,3 @@ func joinBillAction(whc bots.WebhookContext, botParams BotParams, bill models.Bi
 
 	return ShowBillCard(whc, botParams, isEditMessage, bill, "")
 }
-
-

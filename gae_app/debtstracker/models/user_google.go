@@ -1,12 +1,12 @@
 package models
 
 import (
-	gaeuser "google.golang.org/appengine/user" // TODO: Get rid of dependency to GAE?
-	"google.golang.org/appengine/datastore"
-	"github.com/strongo/app/gaedb"
 	"github.com/pkg/errors"
 	"github.com/strongo/app/db"
+	"github.com/strongo/app/gaedb"
 	"github.com/strongo/app/user"
+	"google.golang.org/appengine/datastore"
+	gaeuser "google.golang.org/appengine/user" // TODO: Get rid of dependency to GAE?
 )
 
 const UserGoogleKind = "UserGoogle"
@@ -17,6 +17,7 @@ type UserGoogleEntity struct {
 	user.LastLogin
 	user.OwnedByUser
 }
+
 var _ user.AccountEntity = (*UserGoogle)(nil)
 
 func (entity UserGoogleEntity) GetEmail() string {

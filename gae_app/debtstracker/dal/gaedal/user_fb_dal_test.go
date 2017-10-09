@@ -1,14 +1,14 @@
 package gaedal
 
 import (
+	"fmt"
 	"golang.org/x/net/context"
 	"testing"
-	"fmt"
 )
 
 func TestNewUserFacebookKey(t *testing.T) {
 	const (
-		fbAppID = "12345"
+		fbAppID  = "12345"
 		fbUserID = "975"
 	)
 	key := NewUserFacebookKey(context.Background(), fbAppID, fbUserID)

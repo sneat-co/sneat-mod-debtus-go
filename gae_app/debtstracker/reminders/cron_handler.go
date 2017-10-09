@@ -5,12 +5,12 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
+	"github.com/strongo/app/gae"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"net/http"
 	"time"
-	"github.com/strongo/app/gae"
 )
 
 func CronSendReminders(c context.Context, w http.ResponseWriter, r *http.Request) {
@@ -18,7 +18,7 @@ func CronSendReminders(c context.Context, w http.ResponseWriter, r *http.Request
 		Filter("Status =", models.ReminderStatusCreated).
 		Filter("DtNext >", time.Time{}).Filter("DtNext <", time.Now()).Order("DtNext").
 		Limit(100).KeysOnly()
-		//KeysOnly()
+	//KeysOnly()
 	reminderKeys, err := query.GetAll(c, nil)
 	if err != nil {
 		log.Errorf(c, "Failed to load due transfers: %v", err)

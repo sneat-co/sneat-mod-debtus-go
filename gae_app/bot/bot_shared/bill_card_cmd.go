@@ -1,21 +1,21 @@
 package bot_shared
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-api-telegram"
-	"fmt"
-	"bytes"
-	"github.com/DebtsTracker/translations/trans"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"net/url"
-	"github.com/strongo/app"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"golang.org/x/net/context"
-	"github.com/strongo/app/log"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/strongo/decimal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bytes"
+	"fmt"
+	"github.com/DebtsTracker/translations/emoji"
+	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
+	"github.com/strongo/app"
+	"github.com/strongo/app/log"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/decimal"
+	"golang.org/x/net/context"
+	"net/url"
 )
 
 const BILL_CARD_COMMAND = "bill"
@@ -190,7 +190,7 @@ func ShowBillCard(whc bots.WebhookContext, botParams BotParams, isEdit bool, bil
 	if whc.IsInGroup() || whc.Chat() == nil {
 		m.Keyboard = botParams.GetGroupBillCardInlineKeyboard(whc, bill)
 	} else {
-		m.Keyboard = botParams.GetPrivateBillCardInlineKeyboard(whc, whc.GetBotCode(), bill);
+		m.Keyboard = botParams.GetPrivateBillCardInlineKeyboard(whc, whc.GetBotCode(), bill)
 	}
 	return
 }

@@ -1,22 +1,20 @@
 package api
 
-
-
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"encoding/json"
 	"fmt"
+	"github.com/strongo/app/db"
 	"github.com/strongo/app/log"
 	"github.com/strongo/decimal"
 	"golang.org/x/net/context"
 	"net/http"
 	"strconv"
 	"time"
-	"github.com/strongo/app/db"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 )
 
 func handleGetTransfer(c context.Context, w http.ResponseWriter, r *http.Request) {
@@ -163,7 +161,7 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 	case "ios":
 	case "android":
 	default:
-		BadRequestMessage(c, w, "Unknown platform: " + platform)
+		BadRequestMessage(c, w, "Unknown platform: "+platform)
 		return
 	}
 
@@ -203,4 +201,3 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 	}
 	jsonToResponse(c, w, response)
 }
-

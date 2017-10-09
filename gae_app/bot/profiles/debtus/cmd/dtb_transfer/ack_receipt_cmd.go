@@ -57,7 +57,7 @@ func AcknowledgeReceipt(whc bots.WebhookContext, receiptID int64, operation stri
 
 		utm := common.NewUtmParams(whc, common.UTM_CAMPAIGN_RECEIPT)
 		if whc.InputType() == bots.WebhookInputCallbackQuery {
-			if m, err = whc.NewEditMessage(common.TextReceiptForTransfer(whc, transfer, 0, common.ShowReceiptToCounterparty, utm) + "\n\n" + operationMessage, bots.MessageFormatHTML); err != nil {
+			if m, err = whc.NewEditMessage(common.TextReceiptForTransfer(whc, transfer, 0, common.ShowReceiptToCounterparty, utm)+"\n\n"+operationMessage, bots.MessageFormatHTML); err != nil {
 				return
 			}
 		} else {
@@ -65,7 +65,6 @@ func AcknowledgeReceipt(whc bots.WebhookContext, receiptID int64, operation stri
 			m.Keyboard = dtb_general.MainMenuKeyboardOnReceiptAck(whc)
 			m.Format = bots.MessageFormatHTML
 		}
-
 
 		if transfer.CreatorTgChatID != 0 {
 			askMsgToCreator := whc.NewMessage("")

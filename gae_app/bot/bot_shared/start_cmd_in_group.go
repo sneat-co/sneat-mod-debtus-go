@@ -1,12 +1,12 @@
 package bot_shared
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/app/log"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/DebtsTracker/translations/trans"
+	"github.com/strongo/app/log"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/bots-framework/platforms/telegram"
 )
 
 func startInGroupAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
@@ -32,8 +32,8 @@ func startInGroupAction(whc bots.WebhookContext) (m bots.MessageFromBot, err err
 
 	if group, _, err = facade.Group.AddUsersToTheGroupAndOutstandingBills(c, group.ID, []facade.NewUser{
 		{
-			Name: appUser.FullName(),
-			BotUser: botUser,
+			Name:       appUser.FullName(),
+			BotUser:    botUser,
 			ChatMember: whc.Input().GetSender(),
 		},
 	}); err != nil {
@@ -69,4 +69,3 @@ func onStartCallbackInGroup(whc bots.WebhookContext, params BotParams) (m bots.M
 	var group models.Group
 	return params.ShowGroupMembers(whc, group, false)
 }
-

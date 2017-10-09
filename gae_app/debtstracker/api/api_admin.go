@@ -1,22 +1,22 @@
 package api
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"fmt"
 	"github.com/pkg/errors"
+	"github.com/strongo/app/gae"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/delay"
+	"google.golang.org/appengine/taskqueue"
 	"net/http"
 	"strconv"
-	"google.golang.org/appengine/delay"
-	"github.com/strongo/app/gae"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"google.golang.org/appengine/taskqueue"
-	"google.golang.org/appengine/datastore"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
-	"fmt"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 )
 
 func handleAdminFindUser(c context.Context, w http.ResponseWriter, r *http.Request, _ auth.AuthInfo) {
@@ -55,7 +55,6 @@ func handleAdminFindUser(c context.Context, w http.ResponseWriter, r *http.Reque
 		jsonToResponse(c, w, users)
 	}
 }
-
 
 func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *http.Request, _ auth.AuthInfo) {
 	keepID := getID(c, w, r, "keepID")

@@ -1,9 +1,9 @@
 package gaedal
 
 import (
-	"golang.org/x/net/context"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"golang.org/x/net/context"
 )
 
 type splitDalGae struct {

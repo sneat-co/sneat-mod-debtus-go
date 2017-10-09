@@ -2,14 +2,14 @@ package debtus
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_admin"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_fbm"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_invite"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_retention"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_settings"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_splitbill"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
 	"github.com/strongo/bots-framework/core"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_splitbill"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_fbm"
 )
 
 var textAndContactCommands = []bots.Command{ // TODO: Check for Action || CallbackAction and register accordingly.
@@ -102,8 +102,8 @@ var callbackCommands = []bots.Command{
 
 var Router bots.WebhooksRouter = bots.NewWebhookRouter(
 	map[bots.WebhookInputType][]bots.Command{
-		bots.WebhookInputText:    textAndContactCommands,
-		bots.WebhookInputContact: textAndContactCommands,
+		bots.WebhookInputText:          textAndContactCommands,
+		bots.WebhookInputContact:       textAndContactCommands,
 		bots.WebhookInputCallbackQuery: callbackCommands,
 		//
 		bots.WebhookInputReferral: {
@@ -124,4 +124,3 @@ var Router bots.WebhooksRouter = bots.NewWebhookRouter(
 	},
 	func() string { return "Please report any errors to @DebtsTrackerGroup" },
 )
-

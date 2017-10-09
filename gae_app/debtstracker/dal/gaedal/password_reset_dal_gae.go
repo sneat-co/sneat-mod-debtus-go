@@ -3,10 +3,10 @@ package gaedal
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/strongo/app/db"
+	"github.com/strongo/app/gaedb"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"github.com/strongo/app/gaedb"
-	"github.com/strongo/app/db"
 )
 
 func NewPasswordResetKey(c context.Context, id int64) *datastore.Key {
@@ -22,8 +22,8 @@ func NewPasswordResetDalGae() PasswordResetDalGae {
 }
 
 type PasswordResetDalGae struct {
-
 }
+
 var _ dal.PasswordResetDal = (*PasswordResetDalGae)(nil)
 
 func (_ PasswordResetDalGae) GetPasswordResetByID(c context.Context, id int64) (passwordReset models.PasswordReset, err error) {

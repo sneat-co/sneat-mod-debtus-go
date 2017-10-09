@@ -2,9 +2,9 @@ package facade
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"golang.org/x/net/context"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/dalmocks"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"golang.org/x/net/context"
 )
 
 func SetupMocks(c context.Context) dalmocks.MockDB {
@@ -17,18 +17,18 @@ func SetupMocks(c context.Context) dalmocks.MockDB {
 	dal.Contact.SaveContact(c, models.Contact{
 		ID: 2,
 		ContactEntity: &models.ContactEntity{
-			Status: models.STATUS_ACTIVE,
-			UserID: 1,
+			Status:             models.STATUS_ACTIVE,
+			UserID:             1,
 			CounterpartyUserID: 3,
-			ContactDetails: models.ContactDetails{Nickname: "Bono"}},
+			ContactDetails:     models.ContactDetails{Nickname: "Bono"}},
 	})
 	dal.Contact.SaveContact(c, models.Contact{
 		ID: 4,
 		ContactEntity: &models.ContactEntity{
-			Status: models.STATUS_ACTIVE,
-			UserID: 1,
+			Status:             models.STATUS_ACTIVE,
+			UserID:             1,
 			CounterpartyUserID: 5,
-			ContactDetails: models.ContactDetails{Nickname: "Carly"}},
+			ContactDetails:     models.ContactDetails{Nickname: "Carly"}},
 	})
 	dal.Contact.SaveContact(c, models.Contact{ID: 6, ContactEntity: &models.ContactEntity{
 		Status: models.STATUS_ACTIVE, UserID: 1, CounterpartyUserID: 0, ContactDetails: models.ContactDetails{Nickname: "Den"}}})

@@ -1,9 +1,9 @@
 package appengine
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app"
 	"github.com/strongo/app/log"
 	"github.com/strongo/bots-framework/hosts/appengine"
-	"bitbucket.com/asterus/debtstracker-server/gae_app"
 )
 
 func init() {

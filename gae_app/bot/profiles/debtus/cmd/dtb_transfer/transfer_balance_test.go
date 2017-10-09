@@ -3,15 +3,15 @@ package dtb_transfer
 import (
 	"github.com/DebtsTracker/translations/trans"
 	//"fmt"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/app"
-	"golang.org/x/net/context"
-	"testing"
-	"encoding/json"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"encoding/json"
 	"fmt"
-	"regexp"
+	"github.com/strongo/app"
 	"github.com/strongo/decimal"
+	"golang.org/x/net/context"
+	"regexp"
+	"testing"
 )
 
 func getTestMocks(t *testing.T, locale strongo.Locale) BalanceMessageBuilder {
@@ -43,7 +43,6 @@ func TestBalanceMessageSingleCounterparty(t *testing.T) {
 		},
 	}
 
-
 	c := context.TODO()
 	expectedEn := `<a href="https://debtstracker.local/contact?id=1&lang=en-US&secret=SECRET">John Doe</a>`
 	expectedRu := `<a href="https://debtstracker.local/contact?id=1&lang=ru-RU&secret=SECRET">John Doe</a>`
@@ -68,12 +67,12 @@ func TestBalanceMessageSingleCounterparty(t *testing.T) {
 
 func TestBalanceMessageTwoCounterparties(t *testing.T) {
 	john := models.UserContactJson{
-		ID: 1,
+		ID:   1,
 		Name: "Johnny The Doe",
 	}
 
 	jack := models.UserContactJson{
-		ID: 2,
+		ID:   2,
 		Name: "Jacky Dark Brown",
 	}
 

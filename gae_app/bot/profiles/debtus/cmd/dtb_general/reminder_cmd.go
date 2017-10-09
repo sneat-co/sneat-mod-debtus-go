@@ -28,4 +28,3 @@ func EditReminderMessage(whc bots.WebhookContext, transfer models.Transfer, mess
 
 	return
 }
-

@@ -5,9 +5,9 @@ package models
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"time"
-	"github.com/pkg/errors"
 )
 
 type LastTransfer struct {

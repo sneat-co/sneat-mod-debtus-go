@@ -1,26 +1,26 @@
 package splitus
 
 import (
-	"google.golang.org/appengine/delay"
-	"github.com/strongo/app/gae"
-	"strings"
-	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
-	"google.golang.org/appengine/urlfetch"
-	"golang.org/x/net/context"
-	"github.com/strongo/app/log"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"github.com/DebtsTracker/translations/trans"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
-	"fmt"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
+	"fmt"
+	"github.com/DebtsTracker/translations/trans"
+	"github.com/strongo/app"
+	"github.com/strongo/app/gae"
+	"github.com/strongo/app/log"
+	"github.com/strongo/bots-api-telegram"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/delay"
+	"google.golang.org/appengine/urlfetch"
+	"strings"
 )
 
 var (
-	delayUpdateBillCards       = delay.Func("UpdateBillCards", delayedUpdateBillCards)
+	delayUpdateBillCards      = delay.Func("UpdateBillCards", delayedUpdateBillCards)
 	delayUpdateBillTgChatCard = delay.Func("UpdateBillTgChatCard", delayedUpdateBillTgChartCard)
 )
 

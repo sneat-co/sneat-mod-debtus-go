@@ -1,15 +1,15 @@
 package emails
 
 import (
-	"fmt"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"fmt"
 	"golang.org/x/net/context"
 )
 
 func CreateConfirmationEmailAndQueueForSending(c context.Context, user models.AppUser, userEmail models.UserEmail) error {
 	emailEntity := &models.EmailEntity{
-		From: "Alex @ DebtsTracker.io <alex@debtstracker.io>",
-		To: userEmail.ID,
+		From:    "Alex @ DebtsTracker.io <alex@debtstracker.io>",
+		To:      userEmail.ID,
 		Subject: "Please confirm your account at DebtsTracker.io",
 		BodyText: fmt.Sprintf(`%v, we are thrilled to have you on board!
 
@@ -30,4 +30,3 @@ We are social:
 	_, err := CreateEmailRecordAndQueueForSending(c, emailEntity)
 	return err
 }
-

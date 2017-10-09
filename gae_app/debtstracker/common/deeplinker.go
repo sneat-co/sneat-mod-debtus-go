@@ -1,11 +1,11 @@
 package common
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bytes"
 	"fmt"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bytes"
 )
 
 type deeplink struct {
@@ -17,12 +17,11 @@ func (_ deeplink) AppHashPathToReceipt(receiptID int64) string {
 
 var Deeplink = deeplink{}
 
-
 type Linker struct {
 	userID int64
 	locale string
 	issuer string
-	host string
+	host   string
 }
 
 func NewLinker(environment strongo.Environment, userID int64, locale, issuer string) Linker {
@@ -30,7 +29,7 @@ func NewLinker(environment strongo.Environment, userID int64, locale, issuer str
 		userID: userID,
 		locale: locale,
 		issuer: issuer,
-		host: host(environment),
+		host:   host(environment),
 	}
 }
 
@@ -40,9 +39,12 @@ func NewLinkerFromWhc(whc bots.WebhookContext) Linker {
 
 func host(environment strongo.Environment) string {
 	switch environment {
-	case strongo.EnvProduction: return "debtstracker.io"
-	case strongo.EnvLocal: return "debtstracker.local"
-	case strongo.EnvDevTest: return "debtstracker-dev1.appspot.com"
+	case strongo.EnvProduction:
+		return "debtstracker.io"
+	case strongo.EnvLocal:
+		return "debtstracker.local"
+	case strongo.EnvDevTest:
+		return "debtstracker-dev1.appspot.com"
 	}
 	panic(fmt.Sprintf("Unknown environment: %v", environment))
 }

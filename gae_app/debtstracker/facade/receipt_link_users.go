@@ -5,10 +5,10 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/strongo/app/db"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
 	"time"
-	"github.com/strongo/app/db"
 )
 
 type ReceiptUsersLinker struct {

@@ -2,9 +2,9 @@ package dtb_transfer
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"github.com/DebtsTracker/translations/emoji"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
+	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app/log"
 	"github.com/strongo/bots-api-telegram"

@@ -1,9 +1,9 @@
 package models
 
 import (
-	"time"
-	"google.golang.org/appengine/datastore"
 	"github.com/strongo/app/gaedb"
+	"google.golang.org/appengine/datastore"
+	"time"
 )
 
 type BillScheduleStatus string
@@ -33,18 +33,18 @@ type BillSchedule struct {
 type BillScheduleEntity struct {
 	BillCommon
 	/* Repeat examples (RepeatPeriod:RepeatOn)
-	 * weekly:monday
-	 * monthly:2 - 2nd day of each month. possible values 1-28
-	 // * monthly:first-monday
-	 // * yearly:1-jan ???
+	* weekly:monday
+	* monthly:2 - 2nd day of each month. possible values 1-28
+	// * monthly:first-monday
+	// * yearly:1-jan ???
 	*/
-	BillsCount        int `datastore:",noindex"`
+	BillsCount        int    `datastore:",noindex"`
 	CreatedFromBillID string `datastore:",noindex"`
-	RepeatPeriod      Period    `datastore:",noindex"`
-	RepeatOn          string  `datastore:",noindex"`
-	IsAutoTransfer    bool `datastore:",noindex"`
+	RepeatPeriod      Period `datastore:",noindex"`
+	RepeatOn          string `datastore:",noindex"`
+	IsAutoTransfer    bool   `datastore:",noindex"`
 
-	LastBillID string `datastore:",noindex"`
+	LastBillID string    `datastore:",noindex"`
 	DtLast     time.Time `datastore:",noindex"`
 	DtNext     time.Time
 }

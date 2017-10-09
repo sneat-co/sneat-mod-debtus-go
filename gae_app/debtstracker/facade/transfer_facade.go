@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
+	"github.com/strongo/app/db"
 	"github.com/strongo/app/log"
 	"github.com/strongo/decimal"
 	"golang.org/x/net/context"
 	"time"
-	"github.com/strongo/app/db"
 )
 
 const (

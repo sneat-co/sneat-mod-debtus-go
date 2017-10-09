@@ -3,10 +3,10 @@ package models
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"github.com/pkg/errors"
+	"github.com/strongo/app/db"
 	"github.com/strongo/app/gaedb"
 	"google.golang.org/appengine/datastore"
 	"time"
-	"github.com/strongo/app/db"
 )
 
 const (

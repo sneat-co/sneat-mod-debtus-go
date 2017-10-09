@@ -11,10 +11,10 @@ import (
 	"github.com/strongo/app/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/bots-framework/platforms/telegram"
 	"html/template"
 	"net/url"
 	"strings"
-	"github.com/strongo/bots-framework/platforms/telegram"
 )
 
 //func InlineAcceptTransfer(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {

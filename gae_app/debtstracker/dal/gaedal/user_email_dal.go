@@ -1,11 +1,11 @@
 package gaedal
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/strongo/app/db"
+	"github.com/strongo/app/gaedb"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/app/gaedb"
-	"github.com/strongo/app/db"
 )
 
 func NewUserEmailKey(c context.Context, email string) *datastore.Key {

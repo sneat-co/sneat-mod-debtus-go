@@ -1,22 +1,22 @@
 package dtb_settings
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app/log"
+	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"regexp"
 	"strings"
 	"time"
-	"github.com/strongo/bots-api-telegram"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 )
 
 /*
@@ -56,7 +56,7 @@ var StartCommand = bots.Command{
 		}
 
 		if chatEntity.GetPreferredLanguage() == "" {
-			return onboardingAskLocaleAction(whc, whc.Translate(trans.MESSAGE_TEXT_HI) + "\n\n")
+			return onboardingAskLocaleAction(whc, whc.Translate(trans.MESSAGE_TEXT_HI)+"\n\n")
 		}
 
 		return dtb_general.MainMenuAction(whc, "", true)

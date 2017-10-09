@@ -1,14 +1,14 @@
 package dtb_settings
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"net/url"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"golang.org/x/net/context"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"net/url"
 )
 
 const SETTINGS_CALLBACK_PATH = "settings"
@@ -60,9 +60,8 @@ func BackToSettingsAction(whc bots.WebhookContext, messageText string) (m bots.M
 	return m, err
 }
 
-
 var FixBalanceCommand = bots.Command{
-	Code: "fixbalance",
+	Code:     "fixbalance",
 	Commands: []string{"/fixbalance"},
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		if err = dal.DB.RunInTransaction(whc.Context(), func(c context.Context) error {

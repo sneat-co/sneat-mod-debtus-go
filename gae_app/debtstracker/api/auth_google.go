@@ -7,13 +7,13 @@ import (
 	"encoding/json"
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
+	"github.com/strongo/app/db"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
-	"github.com/strongo/app/db"
 )
 
 type GoogleAuthData struct {
@@ -81,7 +81,7 @@ func handleSignedInWithGooglePlus(c context.Context, w http.ResponseWriter, r *h
 
 	var (
 		userGooglePlus models.UserGooglePlus
-		isNewUser bool
+		isNewUser      bool
 	)
 
 	err := dal.DB.RunInTransaction(
