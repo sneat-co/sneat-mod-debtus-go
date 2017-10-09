@@ -1,6 +1,6 @@
 package api
 
-//go:generate ffjson $GOFILE
+
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
@@ -15,6 +15,7 @@ import (
 	"io/ioutil"
 	"github.com/pkg/errors"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 )
 
 func getApiUser(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) (user models.AppUser, err error) {
@@ -72,7 +73,7 @@ func handleSaveVisitorData(c context.Context, w http.ResponseWriter, r *http.Req
 }
 
 func handleMe(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo, user models.AppUser) {
-	meDto := UserMeDto{
+	meDto := dto.UserMeDto{
 		UserID:       authInfo.UserID,
 		FullName:     user.FullName(),
 	}
@@ -98,15 +99,6 @@ func handleMe(c context.Context, w http.ResponseWriter, r *http.Request, authInf
 	}
 
 	jsonToResponse(c, w, meDto)
-}
-
-type UserMeDto struct {
-	UserID       int64
-	FullName     string `json:",omitempty"`
-	GoogleUserID string `json:",omitempty"`
-	FbUserID     string `json:",omitempty"`
-	VkUserID     int64  `json:",omitempty"`
-	ViberUserID  string `json:",omitempty"`
 }
 
 func setUserName(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {

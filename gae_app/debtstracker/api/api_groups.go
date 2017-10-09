@@ -1,6 +1,6 @@
 package api
 
-//go:generate ffjson $GOFILE
+
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
@@ -18,24 +18,8 @@ import (
 	"sync"
 	"github.com/strongo/app/db"
 	"github.com/pkg/errors"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 )
-
-type GroupDto struct {
-	ID           string
-	Name         string
-	Status       string
-	Note         string           `json:",omitempty"`
-	MembersCount int              `json:",omitempty"`
-	Members      []GroupMemberDto `json:",omitempty"`
-}
-
-
-type GroupMemberDto struct {
-	ID        string
-	UserID    int64  `json:",omitempty"`
-	ContactID int64  `json:",omitempty"`
-	Name      string `json:",omitempty"`
-}
 
 func handlerCreateGroup(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo, user models.AppUser) {
 	if err := r.ParseForm(); err != nil {
@@ -100,7 +84,7 @@ func groupsToJson(groups []models.Group, user models.AppUser) (result [][]byte, 
 	}
 
 	for i, group := range groups {
-		groupDto := GroupDto{
+		groupDto := dto.GroupDto{
 			ID:           group.ID,
 			Name:         group.Name,
 			Note:         group.Note,
@@ -114,7 +98,7 @@ func groupsToJson(groups []models.Group, user models.AppUser) (result [][]byte, 
 		contactsByID := user.ContactsByID()
 		if group.MembersJson != "" {
 			for _, member := range group.GetGroupMembers() {
-				memberDto := GroupMemberDto{
+				memberDto := dto.GroupMemberDto{
 					ID:   member.ID,
 					Name: member.Name,
 				}

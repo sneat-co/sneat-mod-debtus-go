@@ -16,6 +16,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
 	"fmt"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 )
 
 func handleAdminFindUser(c context.Context, w http.ResponseWriter, r *http.Request, _ auth.AuthInfo) {
@@ -24,7 +25,7 @@ func handleAdminFindUser(c context.Context, w http.ResponseWriter, r *http.Reque
 		if user, err := dal.User.GetUserByID(c, userID); err != nil {
 			log.Errorf(c, errors.Wrapf(err, "Failed to get user by ID=%v", userID).Error())
 		} else {
-			jsonToResponse(c, w, []ApiUserDto{{ID: userID, Name: user.FullName()}})
+			jsonToResponse(c, w, []dto.ApiUserDto{{ID: userID, Name: user.FullName()}})
 		}
 		return
 	} else {
@@ -42,10 +43,10 @@ func handleAdminFindUser(c context.Context, w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		users := make([]ApiUserDto, len(tgUsers))
+		users := make([]dto.ApiUserDto, len(tgUsers))
 
 		for i, tgUser := range tgUsers {
-			users[i] = ApiUserDto{
+			users[i] = dto.ApiUserDto{
 				ID:   tgUser.AppUserIntID,
 				Name: tgUser.Name(),
 			}

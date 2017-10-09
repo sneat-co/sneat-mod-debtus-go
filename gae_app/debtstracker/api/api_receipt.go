@@ -1,6 +1,6 @@
 package api
 
-//go:generate ffjson $GOFILE
+
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/analytics"
@@ -25,52 +25,27 @@ import (
 	"github.com/strongo/app/db"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 )
 
-type ApiReceiptDto struct {
-	ID       int64 `json:"Id"`
-	Code     string
-	Transfer ApiReceiptTransferDto
-	SentVia  string
-	SentTo   string `json:",omitempty"`
-}
-
-type ApiUserDto struct {
-	ID   int64  `json:"Id"`
-	Name string `json:",omitempty"`
-}
-
-type ApiReceiptTransferDto struct {
-	// TODO: We are not replacing with TransferDto as it has From/To => Creator optimisation. Think if we can reuse.
-	ID             int64 `json:"Id"`
-	Amount         models.Amount
-	From           ContactDto
-	DtCreated      time.Time
-	To             ContactDto
-	IsOutstanding  bool
-	Creator        ApiUserDto
-	CreatorComment string             `json:",omitempty"`
-	Acknowledge    *ApiAcknowledgeDto `json:",omitempty"`
-}
-
-func NewReceiptTransferDto(c context.Context, transfer models.Transfer) ApiReceiptTransferDto {
+func NewReceiptTransferDto(c context.Context, transfer models.Transfer) dto.ApiReceiptTransferDto {
 	creator := transfer.Creator()
-	transferDto := ApiReceiptTransferDto{
+	transferDto := dto.ApiReceiptTransferDto{
 		ID:             transfer.ID,
-		From:           NewContactDto(*transfer.From()),
-		To:             NewContactDto(*transfer.To()),
+		From:           dto.NewContactDto(*transfer.From()),
+		To:             dto.NewContactDto(*transfer.To()),
 		Amount:         transfer.GetAmount(),
 		IsOutstanding:  transfer.IsOutstanding,
 		DtCreated:      transfer.DtCreated,
 		CreatorComment: creator.Comment,
-		Creator: ApiUserDto{ // TODO: Rename field - it can be not a creator in case of bill created by 3d party (paid by not by bill creator)
+		Creator: dto.ApiUserDto{ // TODO: Rename field - it can be not a creator in case of bill created by 3d party (paid by not by bill creator)
 			ID:   creator.UserID,
 			Name: creator.ContactName,
 		},
 	}
 	// Set acknowledge info if presented
 	if !transfer.AcknowledgeTime.IsZero() {
-		transferDto.Acknowledge = &ApiAcknowledgeDto{
+		transferDto.Acknowledge = &dto.ApiAcknowledgeDto{
 			Status:   transfer.AcknowledgeStatus,
 			UnixTime: transfer.AcknowledgeTime.Unix(),
 		}
@@ -83,11 +58,6 @@ func NewReceiptTransferDto(c context.Context, transfer models.Transfer) ApiRecei
 		log.Warningf(c, "transferDto.To.Name is empty string")
 	}
 	return transferDto
-}
-
-type ApiAcknowledgeDto struct {
-	Status   string
-	UnixTime int64
 }
 
 func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request) {
@@ -133,7 +103,7 @@ func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request)
 
 	log.Debugf(c, "transfer.Creator(): %v", creator)
 
-	receiptDto := ApiReceiptDto{
+	receiptDto := dto.ApiReceiptDto{
 		ID:      receiptID,
 		Code:    common.EncodeID(receiptID),
 		SentVia: receipt.SentVia,
@@ -144,8 +114,8 @@ func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request)
 	jsonToResponse(c, w, &receiptDto)
 }
 
-func transferContactToDto(transferContact models.TransferCounterpartyInfo) ContactDto {
-	return NewContactDto(transferContact)
+func transferContactToDto(transferContact models.TransferCounterpartyInfo) dto.ContactDto {
+	return dto.NewContactDto(transferContact)
 }
 
 func handleReceiptAccept(c context.Context, w http.ResponseWriter, r *http.Request) {

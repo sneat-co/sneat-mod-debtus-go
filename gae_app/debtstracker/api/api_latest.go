@@ -10,6 +10,7 @@ import (
 	"golang.org/x/net/context"
 	"net/http"
 	"sync"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 )
 
 func handleAdminLatestUsers(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
@@ -22,30 +23,9 @@ func handleAdminLatestUsers(c context.Context, w http.ResponseWriter, r *http.Re
 	buffer.WriteString("[")
 	lastIndex := len(users) - 1
 	var wg sync.WaitGroup
-	type CounterpartyDto struct {
-		Id      int64
-		UserID  int64 `json:",omitempty"`
-		Name    string
-		Balance *json.RawMessage `json:",omitempty"`
-	}
-	type Record struct {
-		Id                     int64
-		Name                   string
-		Counterparties         []CounterpartyDto
-		Transfers              int
-		CountOfReceiptsCreated int
-		InvitedByUser          *struct {
-			Id   int64
-			Name string
-		} `json:",omitempty"`
-		//InvitedByUserID int64 `json:",omitempty"`
-		//InvitedByUserName string `json:",omitempty"`
-		Balance         *json.RawMessage `json:",omitempty"`
-		TelegramUserIDs []int64          `json:",omitempty"`
-	}
-	records := make([]*Record, len(users))
+	records := make([]*dto.Record, len(users))
 	for i, user := range users {
-		records[i] = &Record{
+		records[i] = &dto.Record{
 			Id:                     user.ID,
 			Name:                   user.FullName(),
 			Transfers:              user.CountOfTransfers,
@@ -68,7 +48,7 @@ func handleAdminLatestUsers(c context.Context, w http.ResponseWriter, r *http.Re
 				}
 				record := records[i]
 				for j, counterparty := range counterparties {
-					counterpartyDto := CounterpartyDto{
+					counterpartyDto := dto.CounterpartyDto{
 						Id:     userCounterpartiesIDs[j],
 						UserID: counterparty.CounterpartyUserID,
 						Name:   counterparty.FullName(),

@@ -1,6 +1,6 @@
 package api
 
-//go:generate ffjson $GOFILE
+
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
@@ -14,15 +14,8 @@ import (
 	"golang.org/x/net/context"
 	"net/http"
 	"strconv"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 )
-
-type BillDto struct {
-	// TODO: Generate ffjson
-	ID      string
-	Name    string
-	Amount  models.Amount
-	Members []BillMemberDto
-}
 
 func handleGetBill(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
 	billID := r.URL.Query().Get("id")
@@ -36,15 +29,6 @@ func handleGetBill(c context.Context, w http.ResponseWriter, r *http.Request, au
 		return
 	}
 	billToResponse(c, w, authInfo.UserID, bill)
-}
-
-type BillMemberDto struct {
-	UserID     int64               `json:",omitempty"`
-	ContactID  int64               `json:",omitempty"`
-	Amount     decimal.Decimal64p2
-	Paid       decimal.Decimal64p2 `json:",omitempty"`
-	Share      int                 `json:",omitempty"`
-	Adjustment decimal.Decimal64p2 `json:",omitempty"`
 }
 
 func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
@@ -63,7 +47,7 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 		BadRequestError(c, w, err)
 		return
 	}
-	var members []BillMemberDto
+	var members []dto.BillMemberDto
 	if err = ffjson.Unmarshal([]byte(r.PostFormValue("members")), &members); err != nil {
 		BadRequestError(c, w, err)
 		return
@@ -189,7 +173,7 @@ func billToResponse(c context.Context, w http.ResponseWriter, userID int64, bill
 		InternalError(c, w, errors.New("Required parameter bill.BillEntity is nil."))
 		return
 	}
-	billDto := BillDto{
+	billDto := dto.BillDto{
 		ID:   bill.ID,
 		Name: bill.Name,
 		Amount: models.Amount{
@@ -198,10 +182,10 @@ func billToResponse(c context.Context, w http.ResponseWriter, userID int64, bill
 		},
 	}
 	billMembers := bill.GetBillMembers()
-	members := make([]BillMemberDto, len(billMembers))
+	members := make([]dto.BillMemberDto, len(billMembers))
 	sUserID := strconv.FormatInt(userID, 10)
 	for i, billMember := range billMembers {
-		members[i] = BillMemberDto{
+		members[i] = dto.BillMemberDto{
 			UserID:     billMember.UserID,
 			ContactID:  billMember.ContactByUser[sUserID].ContactID,
 			Amount:     billMember.Owes,
@@ -210,5 +194,5 @@ func billToResponse(c context.Context, w http.ResponseWriter, userID int64, bill
 		}
 	}
 	billDto.Members = members
-	jsonToResponse(c, w, map[string]BillDto{"Bill": billDto}) // TODO: Define DTO as need to clean BillMember.ContactByUser
+	jsonToResponse(c, w, map[string]dto.BillDto{"Bill": billDto}) // TODO: Define DTO as need to clean BillMember.ContactByUser
 }

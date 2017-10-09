@@ -1,6 +1,6 @@
 package api
 
-//go:generate ffjson $GOFILE
+
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
@@ -15,6 +15,7 @@ import (
 	"strings"
 	"github.com/strongo/app/log"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 )
 
 func getUserID(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) (userID int64) {
@@ -37,7 +38,7 @@ func getUserID(c context.Context, w http.ResponseWriter, r *http.Request, authIn
 
 type UserCounterpartiesResponse struct {
 	UserID         int64
-	Counterparties []ContactListDto
+	Counterparties []dto.ContactListDto
 }
 
 func handleCreateCounterparty(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
@@ -111,18 +112,18 @@ func contactToResponse(c context.Context, w http.ResponseWriter, authInfo auth.A
 		return
 	}
 
-	counterpartyJson := ContactDetailsDto{
-		ContactListDto: ContactListDto{
+	counterpartyJson := dto.ContactDetailsDto{
+		ContactListDto: dto.ContactListDto{
 			Status: contact.Status,
-			ContactDto: ContactDto{
+			ContactDto: dto.ContactDto{
 				ID:     contact.ID,
 				Name:   contact.FullName(),
 				UserID: contact.UserID,
 			},
 		},
-		TransfersResultDto: TransfersResultDto{
+		TransfersResultDto: dto.TransfersResultDto{
 			HasMoreTransfers: hasMoreTransfers,
-			Transfers:        transfersToDto(authInfo.UserID, transfers),
+			Transfers:        dto.TransfersToDto(authInfo.UserID, transfers),
 		},
 	}
 	if contact.BalanceJson != "" {
@@ -130,13 +131,13 @@ func contactToResponse(c context.Context, w http.ResponseWriter, authInfo auth.A
 		counterpartyJson.Balance = &balance
 	}
 	if contact.EmailAddressOriginal != "" {
-		counterpartyJson.Email = &EmailInfo{
+		counterpartyJson.Email = &dto.EmailInfo{
 			Address:     contact.EmailAddressOriginal,
 			IsConfirmed: contact.EmailConfirmed,
 		}
 	}
 	if contact.PhoneNumber != 0 {
-		counterpartyJson.Phone = &PhoneInfo{
+		counterpartyJson.Phone = &dto.PhoneInfo{
 			Number:      contact.PhoneNumber,
 			IsConfirmed: contact.PhoneNumberConfirmed,
 		}
@@ -151,7 +152,7 @@ func contactToResponse(c context.Context, w http.ResponseWriter, authInfo auth.A
 			for _, member := range group.GetGroupMembers() {
 				for _, memberContactID := range member.ContactIDs {
 					if memberContactID == contact.ID {
-						counterpartyJson.Groups = append(counterpartyJson.Groups, ContactGroupDto{
+						counterpartyJson.Groups = append(counterpartyJson.Groups, dto.ContactGroupDto{
 							ID:           group.ID,
 							Name:         group.Name,
 							MemberID:     memberContactID,
@@ -166,36 +167,7 @@ func contactToResponse(c context.Context, w http.ResponseWriter, authInfo auth.A
 	jsonToResponse(c, w, counterpartyJson)
 }
 
-type ContactListDto struct {
-	ContactDto
-	Status  string
-	Balance *json.RawMessage `json:",omitempty"`
-}
 
-type EmailInfo struct {
-	Address     string
-	IsConfirmed bool
-}
-
-type PhoneInfo struct {
-	Number      int64
-	IsConfirmed bool
-}
-
-type ContactDetailsDto struct {
-	ContactListDto
-	Email  *EmailInfo `json:",omitempty"`
-	Phone  *PhoneInfo `json:",omitempty"`
-	TransfersResultDto
-	Groups []ContactGroupDto `json:",omitempty"`
-}
-
-type ContactGroupDto struct {
-	ID           string
-	Name         string
-	MemberID     int64
-	MembersCount int
-}
 
 //type CounterpartyTransfer struct {
 //

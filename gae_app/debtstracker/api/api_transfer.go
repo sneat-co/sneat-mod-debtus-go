@@ -1,6 +1,6 @@
 package api
 
-//go:generate ffjson $GOFILE
+
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
@@ -16,6 +16,7 @@ import (
 	"strconv"
 	"time"
 	"github.com/strongo/app/db"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 )
 
 func handleGetTransfer(c context.Context, w http.ResponseWriter, r *http.Request) {
@@ -183,8 +184,8 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 
 	//userBalance := json.RawMessage(user.BalanceJson)
 	log.Infof(c, "transfer.DtDueOn: %v", output.Transfer.DtDueOn)
-	response := CreateTransferResponse{
-		Transfer: transferToDto(authInfo.UserID, output.Transfer),
+	response := dto.CreateTransferResponse{
+		Transfer: dto.TransferToDto(authInfo.UserID, output.Transfer),
 	}
 
 	var counterparty models.Contact
@@ -203,9 +204,3 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 	jsonToResponse(c, w, response)
 }
 
-type CreateTransferResponse struct {
-	Error               string           `json:",omitempty"`
-	Transfer            *TransferDto     `json:",omitempty"`
-	CounterpartyBalance *json.RawMessage `json:",omitempty"`
-	UserBalance         *json.RawMessage `json:",omitempty"`
-}
