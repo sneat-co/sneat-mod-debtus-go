@@ -2,15 +2,15 @@ package facade
 
 import (
 	"golang.org/x/net/context"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/app/db"
 	"google.golang.org/appengine/delay"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/app/slices"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"github.com/strongo/app/log"
 	"google.golang.org/appengine/taskqueue"
 )
@@ -45,7 +45,7 @@ func (groupFacade groupFacade) CreateGroup(c context.Context,
 		members[memberIndex] = member
 		groupEntity.SetGroupMembers(members)
 
-		if group.ID == 0 {
+		if group.ID == "" {
 			for _, existingGroup := range existingGroups {
 				if existingGroup.Name == groupEntity.Name {
 					return errors.New("Duplicate group name")
@@ -106,8 +106,8 @@ type NewUser struct {
 }
 
 func (groupFacade) AddUsersToTheGroupAndOutstandingBills(c context.Context, groupID string, newUsers []NewUser) (models.Group, []NewUser, error) {
-	if groupID == 0 {
-		panic("groupID == 0")
+	if groupID == "" {
+		panic("groupID is empty string")
 	}
 	if len(newUsers) == 0 {
 		panic("len(newUsers) == 0")
@@ -147,15 +147,15 @@ func (groupFacade) AddUsersToTheGroupAndOutstandingBills(c context.Context, grou
 var delayUpdateGroupUsers = delay.Func("updateGroupUsers", updateGroupUsers)
 
 func (groupFacade) DelayUpdateGroupUsers(c context.Context, groupID string) error { // TODO: Move to DAL?
-	if groupID == 0 {
-		panic("groupID == 0")
+	if groupID == "" {
+		panic("groupID is empty string")
 	}
 	return gae.CallDelayFunc(c, common.QUEUE_USERS, "update-group-users", delayUpdateGroupUsers, groupID)
 }
 
 func updateGroupUsers(c context.Context, groupID string) error {
-	if groupID == 0 {
-		log.Criticalf(c, "groupID == 0")
+	if groupID == "" {
+		log.Criticalf(c, "groupID is empty string")
 		return nil
 	}
 
@@ -167,7 +167,7 @@ func updateGroupUsers(c context.Context, groupID string) error {
 	var tasks []*taskqueue.Task
 	for _, member := range group.GetGroupMembers() {
 		if member.UserID != 0 {
-			task, err := gae.CreateDelayTask(common.QUEUE_USERS, "update-user-with-groups", delayUpdateUserWithGroups, member.UserID, []int64{groupID}, []int64{})
+			task, err := gae.CreateDelayTask(common.QUEUE_USERS, "update-user-with-groups", delayUpdateUserWithGroups, member.UserID, []string{groupID}, []string{})
 			if err != nil {
 				return err
 			}
@@ -180,7 +180,7 @@ func updateGroupUsers(c context.Context, groupID string) error {
 
 var delayUpdateUserWithGroups = delay.Func("UpdateUserWithGroups", delayedUpdateUserWithGroups)
 
-func delayedUpdateUserWithGroups(c context.Context, userID int64, groupIDs2add, groupIDs2remove []int64) (err error) {
+func delayedUpdateUserWithGroups(c context.Context, userID int64, groupIDs2add, groupIDs2remove []string) (err error) {
 	log.Debugf(c, "delayedUpdateUserWithGroups(userID=%d, groupIDs2add=%v, groupIDs2remove=%v)", userID, groupIDs2add, groupIDs2remove)
 	groups2add := make([]models.Group, len(groupIDs2add))
 	for i, groupID := range groupIDs2add {
@@ -201,7 +201,7 @@ func delayedUpdateUserWithGroups(c context.Context, userID int64, groupIDs2add, 
 }
 
 
-func (userFacade) UpdateUserWithGroups(c context.Context, user models.AppUser, groups2add []models.Group, groups2remove []int64) (err error) {
+func (userFacade) UpdateUserWithGroups(c context.Context, user models.AppUser, groups2add []models.Group, groups2remove []string) (err error) {
 	log.Debugf(c, "updateUserWithGroup(user.ID=%d, len(groups2add)=%d, groups2remove=%v)", user.ID, len(groups2add), groups2remove)
 	groups := user.ActiveGroups()
 	updated := false
@@ -234,11 +234,11 @@ func (userFacade) UpdateUserWithGroups(c context.Context, user models.AppUser, g
 
 var delayUpdateContactWithGroups = delay.Func("UpdateContactWithGroups", delayedUpdateContactWithGroup)
 
-func (userFacade) DelayUpdateContactWithGroups(c context.Context, contactID int64, addGroupIDs, removeGroupIDs []int64) error {
+func (userFacade) DelayUpdateContactWithGroups(c context.Context, contactID int64, addGroupIDs, removeGroupIDs []string) error {
 	return gae.CallDelayFunc(c, common.QUEUE_USERS, "update-contact-groups", delayUpdateContactWithGroups, contactID, addGroupIDs, removeGroupIDs)
 }
 
-func delayedUpdateContactWithGroup(c context.Context, contactID int64, addGroupIDs, removeGroupIDs []int64) (err error) {
+func delayedUpdateContactWithGroup(c context.Context, contactID int64, addGroupIDs, removeGroupIDs []string) (err error) {
 	log.Debugf(c, "delayedUpdateContactWithGroup(contactID=%d, addGroupIDs=%v, removeGroupIDs=%v)", contactID, addGroupIDs, removeGroupIDs)
 	if _, err = dal.Contact.GetContactByID(c, contactID); err != nil {
 		return
@@ -251,14 +251,14 @@ func delayedUpdateContactWithGroup(c context.Context, contactID int64, addGroupI
 	return
 }
 
-func (userFacade) UpdateContactWithGroups(c context.Context, contactID int64, addGroupIDs, removeGroupIDs []int64) error {
+func (userFacade) UpdateContactWithGroups(c context.Context, contactID int64, addGroupIDs, removeGroupIDs []string) error {
 	log.Debugf(c, "UpdateContactWithGroups(contactID=%d, addGroupIDs=%v, removeGroupIDs=%v)", contactID, addGroupIDs, removeGroupIDs)
 	if contact, err := dal.Contact.GetContactByID(c, contactID); err != nil {
 		return err
 	} else {
 		var isAdded, isRemoved bool
-		contact.GroupIDs, isAdded = slices.MergeInt64(contact.GroupIDs, addGroupIDs)
-		contact.GroupIDs, isRemoved = slices.FilterInt64s(contact.GroupIDs, removeGroupIDs)
+		contact.GroupIDs, isAdded = slices.MergeStrings(contact.GroupIDs, addGroupIDs)
+		contact.GroupIDs, isRemoved = slices.FilterStrings(contact.GroupIDs, removeGroupIDs)
 		if isAdded || isRemoved {
 			return dal.Contact.SaveContact(c, contact)
 		}

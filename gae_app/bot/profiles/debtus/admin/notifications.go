@@ -4,9 +4,9 @@ import (
 	"golang.org/x/net/context"
 	"github.com/strongo/bots-api-telegram"
 	"google.golang.org/appengine/urlfetch"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
-	"bitbucket.com/debtstracker/gae_app/secret"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/secret"
 )
 
 func SendFeedbackToAdmins(c context.Context, feedback models.Feedback) (err error) {

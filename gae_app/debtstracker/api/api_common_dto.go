@@ -2,7 +2,7 @@ package api
 
 //go:generate ffjson $GOFILE
 
-import "bitbucket.com/debtstracker/gae_app/debtstracker/models"
+import "bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 
 type ContactDto struct {
 	ID     int64 `json:",omitempty"` // TODO: Document why it can be empty?

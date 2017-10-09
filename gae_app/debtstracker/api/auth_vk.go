@@ -1,20 +1,20 @@
 package api
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"golang.org/x/net/context"
 	"net/http"
-	//"bitbucket.com/debtstracker/gae_app/debtstracker/dal/gaedal"
+	//"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
 	//"google.golang.org/appengine/datastore"
 	//"github.com/pkg/errors"
-	//"bitbucket.com/debtstracker/gae_app/debtstracker/auth"
+	//"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	//"strconv"
-	//"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	//"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	//"github.com/qedus/nds"
 	//"github.com/strongo/vk"
 	//"strings"
 	//"fmt"
-	//"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	//"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 )
 
 //const VK_USER_ALEXT = 7631716

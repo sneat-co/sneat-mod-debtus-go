@@ -1,13 +1,13 @@
 package reminders
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/analytics"
-	"bitbucket.com/debtstracker/gae_app/bot/profiles/debtus/dtb_common"
-	"bitbucket.com/debtstracker/gae_app/bot/platforms/telegram"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/analytics"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/strongo/app/gae"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
@@ -22,8 +22,8 @@ import (
 	"google.golang.org/appengine/urlfetch"
 	"net/http"
 	"time"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/facade"
-	"bitbucket.com/debtstracker/gae_app/gaestandard"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
 )
 
 func sendReminderByTelegram(c context.Context, transferReminderTo TransferReminderTo, transfer models.Transfer, reminderID, userID, tgChatID int64, tgBot string) (sent, channelDisabledByUser bool, err error) {

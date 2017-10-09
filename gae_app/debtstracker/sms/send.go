@@ -1,7 +1,7 @@
 package sms
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/app/log"

@@ -3,9 +3,9 @@ package api
 //go:generate ffjson $GOFILE
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/auth"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"golang.org/x/net/context"
 	"net/http"
 	"time"

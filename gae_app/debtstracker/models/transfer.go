@@ -1,7 +1,7 @@
 package models
 
 import (
-	"bitbucket.com/debtstracker/gae_app/general"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/strongo/app/gaedb"
@@ -392,7 +392,7 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 
 	//switch t.Direction() { // TODO: Delete later!
 	//case "":
-	//	if t.BillID == 0 && t.From().UserID == 0 && t.To().UserID == 0 {
+	//	if t.BillID == "" && t.From().UserID == 0 && t.To().UserID == 0 {
 	//		err = errors.New("t.Direction is empty string")
 	//		return
 	//	}
@@ -467,8 +467,8 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 	}
 
 	if from.UserID == 0 && to.UserID == 0 {
-		if t.BillID == 0 {
-			err = errors.New("t.BillID == 0 && t.From().UserID == 0 && t.To().UserID == 0")
+		if t.BillID == "" {
+			err = errors.New("t.BillID is empty string && t.From().UserID == 0 && t.To().UserID == 0")
 			return
 		}
 		t.BothUserIDs = []int64{}

@@ -1,8 +1,8 @@
 package gaedal
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pkg/errors"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
@@ -10,7 +10,7 @@ import (
 	"strings"
 	"github.com/strongo/app/gaedb"
 	"github.com/strongo/app/db"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"github.com/strongo/app/gae"
 	"google.golang.org/appengine/delay"
 )
@@ -168,14 +168,14 @@ func (userDal UserDalGae) CreateUser(c context.Context, userEntity *models.AppUs
 	return
 }
 
-func (UserDalGae) DelayUpdateUserWithBill(c context.Context, userID, billID string) (err error) {
+func (UserDalGae) DelayUpdateUserWithBill(c context.Context, userID int64, billID string) (err error) {
 	if err = gae.CallDelayFunc(c, common.QUEUE_BILLS, "UpdateUserWithBill", delayedUpdateUserWithBill, userID, billID); err != nil {
 		return
 	}
 	return
 }
 
-var delayedUpdateUserWithBill = delay.Func("delayedUpdateWithBill", func(c context.Context, userID, billID string) (err error) {
+var delayedUpdateUserWithBill = delay.Func("delayedUpdateWithBill", func(c context.Context, userID int64, billID string) (err error) {
 	var user models.AppUser
 
 	if user, err = dal.User.GetUserByID(c, userID); err != nil {

@@ -3,24 +3,25 @@ package api
 //go:generate ffjson $GOFILE
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/auth"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
 	"net/http"
 	"strconv"
 	"strings"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"fmt"
 	"io/ioutil"
 	"sync"
 	"github.com/strongo/app/db"
+	"github.com/pkg/errors"
 )
 
 type GroupDto struct {
-	ID           int64
+	ID           string
 	Name         string
 	Status       string
 	Note         string           `json:",omitempty"`
@@ -63,9 +64,9 @@ func handlerCreateGroup(c context.Context, w http.ResponseWriter, r *http.Reques
 }
 
 func handlerGetGroup(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo, user models.AppUser) {
-	groupID, err := strconv.ParseInt(r.URL.Query().Get("id"), 10, 64)
-	if err != nil {
-		BadRequestError(c, w, err)
+	groupID := r.URL.Query().Get("id")
+	if groupID == "" {
+		BadRequestError(c, w, errors.New("Missing id parameter"))
 		return
 	}
 	group, err := dal.Group.GetGroupByID(c, groupID)
@@ -92,7 +93,7 @@ func groupToResponse(c context.Context, w http.ResponseWriter, group models.Grou
 func groupsToJson(groups []models.Group, user models.AppUser) (result [][]byte, err error) {
 	result = make([][]byte, len(groups))
 
-	groupStatuses := make(map[int64]string, len(groups))
+	groupStatuses := make(map[string]string, len(groups))
 
 	for _, group := range user.ActiveGroups() {
 		groupStatuses[group.ID] = models.STATUS_ACTIVE
@@ -143,11 +144,11 @@ func groupsToJson(groups []models.Group, user models.AppUser) (result [][]byte, 
 func handleJoinGroups(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
 	defer r.Body.Close()
 
-	var groupIDs []int64
+	var groupIDs []string
 	if body, err := ioutil.ReadAll(r.Body); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
-	} else if groupIDs, err = StringToInt64s(string(body), ","); err != nil {
-		BadRequestError(c, w, err)
+	} else if groupIDs = strings.Split(string(body), ","); len(groupIDs) == 0 {
+		BadRequestError(c, w, errors.New("Missing body"))
 		return
 	}
 
@@ -195,7 +196,7 @@ func handleJoinGroups(c context.Context, w http.ResponseWriter, r *http.Request,
 			}
 		}
 
-		if err = facade.User.UpdateUserWithGroups(c, user, groups, []int64{}); err != nil {
+		if err = facade.User.UpdateUserWithGroups(c, user, groups, []string{}); err != nil {
 			return
 		}
 
@@ -228,7 +229,6 @@ func handlerDeleteGroup(c context.Context, w http.ResponseWriter, r *http.Reques
 
 func handlerUpdateGroup(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
 	log.Debugf(c, "handlerUpdateGroup()")
-	idParam := r.URL.Query().Get("id")
 
 	var (
 		user  models.AppUser
@@ -236,8 +236,8 @@ func handlerUpdateGroup(c context.Context, w http.ResponseWriter, r *http.Reques
 		err   error
 	)
 
-	if group.ID, err = strconv.ParseInt(idParam, 10, 64); err != nil {
-		BadRequestError(c, w, err)
+	if group.ID = r.URL.Query().Get("id"); group.ID == "" {
+		BadRequestError(c, w, errors.New("Missing id parameter"))
 		return
 	}
 
@@ -296,7 +296,6 @@ func handlerUpdateGroup(c context.Context, w http.ResponseWriter, r *http.Reques
 
 func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo, user models.AppUser) {
 	log.Debugf(c, "handlerSetContactsToGroup()")
-	idParam := r.URL.Query().Get("id")
 
 	var (
 		groupID string
@@ -304,8 +303,8 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 		err     error
 	)
 
-	if groupID, err = strconv.ParseInt(idParam, 10, 64); err != nil {
-		BadRequestError(c, w, err)
+	if groupID = r.URL.Query().Get("id"); groupID == "" {
+		BadRequestError(c, w, errors.New("Missing id parameter"))
 		return
 	}
 
@@ -396,7 +395,7 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 			if user, err = dal.User.GetUserByID(c, user.ID); err != nil {
 				return err
 			}
-			if err = facade.User.UpdateUserWithGroups(c, user, []models.Group{group}, []int64{}); err != nil {
+			if err = facade.User.UpdateUserWithGroups(c, user, []models.Group{group}, []string{}); err != nil {
 				return err
 			}
 
@@ -411,10 +410,10 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 			}
 
 			if len(changedContactIDs) == 1 {
-				err = facade.User.UpdateContactWithGroups(c, changedContactIDs[0], []int64{groupID}, []int64{})
+				err = facade.User.UpdateContactWithGroups(c, changedContactIDs[0], []string{groupID}, []string{})
 			} else {
 				for _, contactID := range changedContactIDs {
-					if err = facade.User.DelayUpdateContactWithGroups(c, contactID, []int64{groupID}, []int64{}); err != nil {
+					if err = facade.User.DelayUpdateContactWithGroups(c, contactID, []string{groupID}, []string{}); err != nil {
 						return err
 					}
 				}

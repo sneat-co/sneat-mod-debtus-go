@@ -1,7 +1,7 @@
 package dtb_transfer
 
 import (
-	"bitbucket.com/debtstracker/gae_app/bot/profiles/debtus/cmd/dtb_general"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-framework/core"
 )

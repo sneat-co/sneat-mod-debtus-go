@@ -1,14 +1,14 @@
 package gaedal
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"github.com/strongo/app/gaedb"
 	"google.golang.org/appengine/delay"
 	"github.com/strongo/app/gae"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"github.com/strongo/app/db"
 	"github.com/strongo/app/log"
 )

@@ -1,8 +1,8 @@
 package pages
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"fmt"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/html"

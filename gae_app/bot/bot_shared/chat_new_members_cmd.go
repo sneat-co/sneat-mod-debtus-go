@@ -2,12 +2,12 @@ package bot_shared
 
 import (
 	"github.com/strongo/bots-framework/core"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/DebtsTracker/translations/trans"
 	"fmt"
 	"github.com/DebtsTracker/translations/emoji"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 )
 
 const NEW_CHAT_MEMBERS_COMMAND = "new-chat-members"

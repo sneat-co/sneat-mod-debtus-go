@@ -7,7 +7,7 @@ import (
 )
 
 type DtTelegramChatEntity struct {
-	UserGroupID      int64  `datastore:",index"`   // Do index
+	UserGroupID string `datastore:",index"` // Do index
 	telegram_bot.TelegramChatEntityBase
 }
 
@@ -23,11 +23,10 @@ func (entity *DtTelegramChatEntity) Save() (properties []datastore.Property, err
 		return
 	}
 	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"UserGroupID":        gaedb.IsZeroInt,
-		"TgChatInstanceID":     gaedb.IsEmptyString,
+		"UserGroupID":      gaedb.IsZeroInt,
+		"TgChatInstanceID": gaedb.IsEmptyString,
 	}); err != nil {
 		return
 	}
 	return
 }
-

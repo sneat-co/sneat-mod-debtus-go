@@ -1,8 +1,8 @@
 package api
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/auth"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/pkg/errors"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
@@ -10,11 +10,11 @@ import (
 	"strconv"
 	"google.golang.org/appengine/delay"
 	"github.com/strongo/app/gae"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"google.golang.org/appengine/taskqueue"
 	"google.golang.org/appengine/datastore"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal/gaedal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
 	"fmt"
 )
 

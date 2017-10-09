@@ -5,8 +5,8 @@ import (
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/app/log"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 )
 
 func startInGroupAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {

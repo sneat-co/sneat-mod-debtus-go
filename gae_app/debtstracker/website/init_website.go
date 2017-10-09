@@ -1,10 +1,10 @@
 package website
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/website/admin"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/website/pages"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/website/redirects"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/website/admin"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/website/pages"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/website/redirects"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
@@ -12,9 +12,9 @@ import (
 	"google.golang.org/appengine"
 	"net/http"
 	"strconv"
-	//"bitbucket.com/debtstracker/gae_app/debtstracker/common"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/auth"
-	//"bitbucket.com/debtstracker/gae_app/debtstracker/api"
+	//"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	//"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api"
 	"github.com/julienschmidt/httprouter"
 )
 

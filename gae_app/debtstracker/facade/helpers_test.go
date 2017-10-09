@@ -1,10 +1,10 @@
 package facade
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"golang.org/x/net/context"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal/dalmocks"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/dalmocks"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 )
 
 func SetupMocks(c context.Context) dalmocks.MockDB {

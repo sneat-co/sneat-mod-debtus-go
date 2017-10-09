@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"github.com/strongo/app/log"
 	"github.com/strongo/bots-api-telegram"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 )
 
 const CHANGE_BILL_TOTAL_COMMAND = "bill_total"

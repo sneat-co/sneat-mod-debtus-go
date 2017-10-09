@@ -2,10 +2,9 @@ package bot_shared
 
 import (
 	"net/url"
-	"strconv"
 	"golang.org/x/net/context"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/app/db"
@@ -19,9 +18,9 @@ func GetBillID(callbackUrl *url.URL) (billID string, err error) {
 	q := callbackUrl.Query()
 	sBillID := q.Get("bill")
 	if sBillID == "" {
-		return 0, errors.New("Required parameter 'bill' is not passed")
+		err = errors.New("Required parameter 'bill' is not passed")
 	}
-	return strconv.ParseInt(sBillID, 10, 64)
+	return
 }
 
 func getBill(c context.Context, callbackUrl *url.URL) (bill models.Bill, err error) {

@@ -1,10 +1,10 @@
 package dtb_transfer
 
 import (
-	"bitbucket.com/debtstracker/gae_app/bot/profiles/debtus/dtb_common"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
@@ -14,17 +14,17 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"bitbucket.com/debtstracker/gae_app/bot/profiles/debtus/cmd/dtb_general"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"github.com/strongo/bots-api-telegram"
 	"google.golang.org/appengine/delay"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/app"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"net/http"
 	"google.golang.org/appengine/urlfetch"
-	"bitbucket.com/debtstracker/gae_app/bot/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	"golang.org/x/net/context"
-	"bitbucket.com/debtstracker/gae_app/gaestandard"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
 )
 
 var RemindAgainCallbackCommand = bots.NewCallbackCommand(dtb_common.CALLBACK_REMIND_AGAIN,

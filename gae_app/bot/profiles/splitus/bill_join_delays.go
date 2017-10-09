@@ -9,14 +9,14 @@ import (
 	"google.golang.org/appengine/urlfetch"
 	"golang.org/x/net/context"
 	"github.com/strongo/app/log"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"github.com/DebtsTracker/translations/trans"
-	"bitbucket.com/debtstracker/gae_app/bot/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	"fmt"
-	"bitbucket.com/debtstracker/gae_app/bot/bot_shared"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
-	"bitbucket.com/debtstracker/gae_app/gaestandard"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
 )
 
 var (
@@ -87,8 +87,8 @@ func delayedUpdateBillTgChartCard(c context.Context, billID string, tgChatMessag
 }
 
 func updateInlineBillCardMessage(c context.Context, translator strongo.SingleLocaleTranslator, isGroupChat bool, editedMessage *tgbotapi.EditMessageTextConfig, bill models.Bill, botCode string, footer string) (err error) {
-	if bill.ID == 0 {
-		panic("bill.ID == 0")
+	if bill.ID == "" {
+		panic("bill.ID is empty string")
 	}
 	if bill.BillEntity == nil {
 		panic("bill.BillEntity == nil")

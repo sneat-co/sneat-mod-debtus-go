@@ -4,7 +4,7 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"net/url"
 	"github.com/strongo/app/log"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 )
 
 const EDIT_BILL_COMMAND = "edit_bill"

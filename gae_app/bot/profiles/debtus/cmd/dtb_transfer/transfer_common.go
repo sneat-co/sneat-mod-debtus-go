@@ -1,13 +1,13 @@
 package dtb_transfer
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/analytics"
-	"bitbucket.com/debtstracker/gae_app/bot/profiles/debtus/cmd/dtb_general"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/analytics"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/DebtsTracker/translations/emoji"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/facade"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
@@ -573,7 +573,7 @@ func CreateTransferFromBot(
 	newTransfer := facade.NewTransferInput(whc.Environment(),
 		GetTransferSource(whc),
 		whc.AppUserIntID(),
-		0,
+		"",
 		isReturn,
 		returnToTransferID,
 		from, to,

@@ -1,11 +1,11 @@
 package gae_app
 
 import (
-	"bitbucket.com/debtstracker/gae_app/bot/platforms/fbm"
-	"bitbucket.com/debtstracker/gae_app/bot/platforms/telegram"
-	"bitbucket.com/debtstracker/gae_app/bot/platforms/viber"
-	"bitbucket.com/debtstracker/gae_app/bot/profiles/splitus"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbm"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/viber"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/splitus"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
@@ -14,10 +14,10 @@ import (
 	"github.com/strongo/bots-framework/platforms/viber"
 	"golang.org/x/net/context"
 	"github.com/julienschmidt/httprouter"
-	"bitbucket.com/debtstracker/gae_app/bot/profiles/collectus"
-	"bitbucket.com/debtstracker/gae_app/bot/profiles/debtus"
-	"bitbucket.com/debtstracker/gae_app/bot"
-	"bitbucket.com/debtstracker/gae_app/gaestandard"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/collectus"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
 )
 
 func newTranslator(c context.Context) strongo.Translator {

@@ -2,7 +2,7 @@ package gaedal
 
 import (
 	"golang.org/x/net/context"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"google.golang.org/appengine/datastore"
 	"github.com/strongo/app/gaedb"
 	"github.com/strongo/app/db"

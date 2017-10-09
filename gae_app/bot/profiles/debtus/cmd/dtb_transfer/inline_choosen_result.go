@@ -1,15 +1,15 @@
 package dtb_transfer
 
 import (
-	"bitbucket.com/debtstracker/gae_app/bot/profiles/debtus/cmd/dtb_inline"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_inline"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	//"github.com/DebtsTracker/translations/emoji"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
-	//"bitbucket.com/debtstracker/gae_app/invites"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	//"bitbucket.com/asterus/debtstracker-server/gae_app/invites"
 	//"fmt"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/facade"
-	"bitbucket.com/debtstracker/gae_app/general"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"

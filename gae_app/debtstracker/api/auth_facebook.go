@@ -1,7 +1,7 @@
 package api
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"golang.org/x/net/context"
 	"net/http"
 	"github.com/strongo/app/log"

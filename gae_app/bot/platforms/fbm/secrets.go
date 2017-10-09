@@ -1,7 +1,7 @@
 package fbm
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/DebtsTracker/translations/trans"
 	fb "github.com/strongo/facebook"
 	"github.com/strongo/app"
@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/strongo/app/log"
 	"strings"
-	"bitbucket.com/debtstracker/gae_app/bot"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 )
 
 const (

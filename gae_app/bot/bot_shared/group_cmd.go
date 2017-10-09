@@ -3,10 +3,10 @@ package bot_shared
 import (
 	"github.com/strongo/bots-framework/core"
 	"net/url"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/strongo/bots-api-telegram"
 	"fmt"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"github.com/strongo/app/log"
 )
 

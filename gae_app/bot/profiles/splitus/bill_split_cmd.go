@@ -3,13 +3,13 @@ package splitus
 import (
 	"github.com/strongo/bots-framework/core"
 	"net/url"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"golang.org/x/net/context"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bytes"
-	"bitbucket.com/debtstracker/gae_app/bot/bot_shared"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 )
 
 const BILL_SPLIT_COMMAND = "bill-split"

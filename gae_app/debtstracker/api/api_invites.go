@@ -5,9 +5,9 @@ import (
 	"google.golang.org/appengine/user"
 	"net/http"
 	"strconv"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/facade"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 )
 
 func ApiCreateInvite(c context.Context, w http.ResponseWriter, r *http.Request) {

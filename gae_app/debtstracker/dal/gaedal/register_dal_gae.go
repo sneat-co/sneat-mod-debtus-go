@@ -1,7 +1,7 @@
 package gaedal
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"

@@ -4,16 +4,15 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"strings"
 	"net/url"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"github.com/strongo/decimal"
 	"golang.org/x/net/context"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/pkg/errors"
 	"regexp"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/app/log"
-	"strconv"
 	"github.com/DebtsTracker/translations/trans"
 )
 
@@ -200,10 +199,9 @@ func getBillIDFromUrlInEditedMessage(whc bots.WebhookContext) (billID string) {
 	for _, entity := range *tgUpdate.EditedMessage.Entities {
 		if entity.Type == "text_link" {
 			if s := reBillUrl.FindStringSubmatch(entity.URL); len(s) != 0 {
-				var err error
-				billID, err = strconv.ParseInt(s[1], 10, 64)
-				if err != nil {
-					log.Errorf(whc.Context(), err.Error())
+				billID = s[1]
+				if billID == "" {
+					log.Errorf(whc.Context(), "Missing bill ID")
 				}
 				return
 			}
@@ -219,8 +217,8 @@ var EditedBillCardHookCommand = bots.Command{
 		c := whc.Context()
 		billID := getBillIDFromUrlInEditedMessage(whc)
 		log.Debugf(c, "editedBillCardHookCommand.Action() => billID: %d", billID)
-		if billID == 0 {
-			panic("billID == 0")
+		if billID == "" {
+			panic("billID is empty string")
 		}
 
 		m.Text = bots.NoMessageToSend
@@ -230,8 +228,8 @@ var EditedBillCardHookCommand = bots.Command{
 			return
 		}
 
-		if group.ID == 0 {
-			log.Warningf(c, "group.ID == 0")
+		if group.ID == "" {
+			log.Warningf(c, "group.ID is empty string")
 			return
 		}
 
@@ -280,6 +278,6 @@ var EditedBillCardHookCommand = bots.Command{
 	},
 	Matcher: func(command bots.Command, whc bots.WebhookContext) bool {
 		log.Debugf(whc.Context(), "editedBillCardHookCommand.Matcher()")
-		return whc.IsInGroup() && getBillIDFromUrlInEditedMessage(whc) != 0
+		return whc.IsInGroup() && getBillIDFromUrlInEditedMessage(whc) != ""
 	},
 }

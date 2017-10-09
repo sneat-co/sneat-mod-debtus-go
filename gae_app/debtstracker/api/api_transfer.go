@@ -3,10 +3,10 @@ package api
 //go:generate ffjson $GOFILE
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/auth"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/facade"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"encoding/json"
 	"fmt"
 	"github.com/strongo/app/log"
@@ -169,7 +169,7 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 	newTransfer := facade.NewTransferInput(getEnvironment(r),
 		transferSourceSetToAPI{appPlatform: platform, createdOnID: r.Host},
 		authInfo.UserID,
-		0,
+		"",
 		isReturn, returnToTransferID,
 		from, to,
 		amountWithCurrency, dueOn)

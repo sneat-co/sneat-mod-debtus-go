@@ -5,7 +5,7 @@ import (
 	"google.golang.org/appengine"
 	"html/template"
 	"net/http"
-	"bitbucket.com/debtstracker/gae_app/bot/profiles/debtus/cmd/dtb_general"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 )
 
 var helpUsPageTmpl *template.Template

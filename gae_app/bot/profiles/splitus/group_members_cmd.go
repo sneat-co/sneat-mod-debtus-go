@@ -8,13 +8,13 @@ import (
 	"bytes"
 	"github.com/strongo/app/log"
 	"github.com/DebtsTracker/translations/trans"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/strongo/decimal"
 	"golang.org/x/net/context"
 	"github.com/strongo/app"
 	"net/url"
-	"bitbucket.com/debtstracker/gae_app/bot/bot_shared"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 )
 
 const GROUP_MEMBERS_COMMAND = "group-members"

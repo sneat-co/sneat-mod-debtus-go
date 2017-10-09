@@ -7,7 +7,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"strings"
-	"bitbucket.com/debtstracker/gae_app/bot"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 )
 
 var _bots bots.SettingsBy

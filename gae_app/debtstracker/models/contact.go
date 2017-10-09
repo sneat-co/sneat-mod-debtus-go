@@ -67,7 +67,7 @@ type ContactEntity struct {
 	//LastTransferID int64  `datastore:",noindex"` - Decided against as we do not need it really and would require either 2 Put() instead of 1 PutMulti()
 	SearchName          []string `datastore:",noindex"`  // Deprecated
 	NoTransferUpdatesBy []string `datastore:",noindex"`
-	GroupIDs []int64 `datastore:",noindex"`
+	GroupIDs []string `datastore:",noindex"`
 }
 
 func (entity ContactEntity) String() string {

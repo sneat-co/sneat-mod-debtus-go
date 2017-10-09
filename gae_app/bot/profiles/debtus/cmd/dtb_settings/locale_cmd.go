@@ -1,8 +1,8 @@
 package dtb_settings
 
 import (
-	"bitbucket.com/debtstracker/gae_app/bot/profiles/debtus/cmd/dtb_general"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"

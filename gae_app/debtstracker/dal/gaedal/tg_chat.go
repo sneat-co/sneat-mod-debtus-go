@@ -1,8 +1,8 @@
 package gaedal
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/auth"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pkg/errors"
 	"github.com/strongo/app/log"
 	"github.com/strongo/bots-framework/platforms/telegram"

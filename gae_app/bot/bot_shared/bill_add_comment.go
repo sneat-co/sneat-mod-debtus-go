@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/app/log"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 )
 
 const ADD_BILL_COMMENT_COMMAND = "bill_comment"

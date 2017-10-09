@@ -2,8 +2,8 @@ package dtb_transfer
 
 import (
 	"github.com/DebtsTracker/translations/emoji"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/facade"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
@@ -91,7 +91,7 @@ var ParseTransferCommand = bots.Command{
 		newTransfer := facade.NewTransferInput(whc.Environment(),
 			GetTransferSource(whc),
 			whc.AppUserIntID(),
-			0,
+			"",
 			isReturn,
 			0,
 			from, to,

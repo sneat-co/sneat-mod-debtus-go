@@ -2,7 +2,7 @@ package common
 
 import (
 	"github.com/DebtsTracker/translations/emoji"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"

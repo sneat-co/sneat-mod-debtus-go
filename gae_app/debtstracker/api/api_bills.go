@@ -3,10 +3,10 @@ package api
 //go:generate ffjson $GOFILE
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/auth"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/facade"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
@@ -18,16 +18,16 @@ import (
 
 type BillDto struct {
 	// TODO: Generate ffjson
-	ID      int64
+	ID      string
 	Name    string
 	Amount  models.Amount
 	Members []BillMemberDto
 }
 
 func handleGetBill(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
-	billID, err := strconv.ParseInt(r.URL.Query().Get("id"), 10, 64)
-	if err != nil {
-		BadRequestError(c, w, err)
+	billID := r.URL.Query().Get("id")
+	if billID == "" {
+		BadRequestError(c, w, errors.New("Missing id parameter"))
 		return
 	}
 	bill, err := dal.Bill.GetBillByID(c, billID)
@@ -181,8 +181,8 @@ func billToResponse(c context.Context, w http.ResponseWriter, userID int64, bill
 		InternalError(c, w, errors.New("Required parameter userID == 0."))
 		return
 	}
-	if bill.ID == 0 {
-		InternalError(c, w, errors.New("Required parameter bill.ID == 0."))
+	if bill.ID == "" {
+		InternalError(c, w, errors.New("Required parameter bill.ID is empty string."))
 		return
 	}
 	if bill.BillEntity == nil {

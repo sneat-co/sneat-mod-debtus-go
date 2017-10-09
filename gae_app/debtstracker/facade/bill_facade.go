@@ -1,8 +1,8 @@
 package facade
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/pkg/errors"
 	//"github.com/strongo/app"
@@ -324,7 +324,7 @@ func (billFacade) CreateBillTransfers(c context.Context, billID string) error {
 	return nil
 }
 
-func (billFacade) createBillTransfer(c context.Context, billID, creatorCounterpartyID int64) error {
+func (billFacade) createBillTransfer(c context.Context, billID string, creatorCounterpartyID int64) error {
 	err := dal.DB.RunInTransaction(c, func(c context.Context) error {
 		bill, err := dal.Bill.GetBillByID(c, billID)
 
@@ -417,7 +417,7 @@ func (billFacade) GetBillMembersUserInfo(c context.Context, bill models.Bill, fo
 	return
 }
 
-func (billFacade billFacade) SplitBills(c context.Context, userID, groupID string, billIDs []int64) (err error) {
+func (billFacade billFacade) SplitBills(c context.Context, userID int64, groupID string, billIDs []string) (err error) {
 	now := time.Now()
 
 	var split models.Split

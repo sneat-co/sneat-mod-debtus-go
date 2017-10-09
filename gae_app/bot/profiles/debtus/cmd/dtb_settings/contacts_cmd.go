@@ -7,15 +7,15 @@ import (
 	//"github.com/strongo/bots-api-telegram"
 	//"github.com/DebtsTracker/translations/emoji"
 	//"github.com/strongo/bots-framework/platforms/telegram"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"fmt"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/DebtsTracker/translations/emoji"
 	"strconv"
 	"html"
-	"bitbucket.com/debtstracker/gae_app/bot"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 )
 
 const CONTACTS_LIST_COMMAND = "contacts-list"

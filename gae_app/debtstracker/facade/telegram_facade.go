@@ -10,7 +10,7 @@ import (
 	"github.com/strongo/app/log"
 	"github.com/strongo/app"
 	"github.com/pkg/errors"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 )
 
 func GetLocale(c context.Context, botID string, tgChatIntID, userID int64) (locale strongo.Locale, err error) {

@@ -2,8 +2,8 @@ package dtb_general
 
 import (
 	"github.com/DebtsTracker/translations/emoji"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/facade"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-telegram"
@@ -13,13 +13,13 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/app/log"
 	"fmt"
-	//"bitbucket.com/debtstracker/gae_app/bot/profiles/debtus/dtb_common"
+	//"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
 	"strconv"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"golang.org/x/net/context"
-	"bitbucket.com/debtstracker/gae_app/bot/profiles/debtus/admin"
-	"bitbucket.com/debtstracker/gae_app/general"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/admin"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 )
 
 const (

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"github.com/DebtsTracker/translations/emoji"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bytes"
 )
 

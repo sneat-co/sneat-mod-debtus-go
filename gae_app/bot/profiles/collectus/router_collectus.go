@@ -2,13 +2,13 @@ package collectus
 
 import (
 	"github.com/strongo/bots-framework/core"
-	"bitbucket.com/debtstracker/gae_app/bot/bot_shared"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 	"github.com/strongo/app"
 	"bytes"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/DebtsTracker/translations/emoji"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 )
 
 var botParams = bot_shared.BotParams{

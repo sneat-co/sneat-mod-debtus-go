@@ -3,7 +3,7 @@ package maintainance
 import (
 	"github.com/captaincodeman/datastore-mapper"
 	"net/http"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 )
 
 func RegisterMappers() {

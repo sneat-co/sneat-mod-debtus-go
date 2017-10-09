@@ -3,9 +3,9 @@ package api
 //go:generate ffjson $GOFILE
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/auth"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"encoding/json"
 	"fmt"
 	"golang.org/x/net/context"
@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"github.com/strongo/app/log"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 )
 
 func getUserID(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) (userID int64) {
@@ -191,7 +191,7 @@ type ContactDetailsDto struct {
 }
 
 type ContactGroupDto struct {
-	ID           int64
+	ID           string
 	Name         string
 	MemberID     int64
 	MembersCount int

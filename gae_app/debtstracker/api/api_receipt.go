@@ -3,14 +3,14 @@ package api
 //go:generate ffjson $GOFILE
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/analytics"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/auth"
-	"bitbucket.com/debtstracker/gae_app/bot/platforms/telegram"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
-	"bitbucket.com/debtstracker/gae_app/general"
-	"bitbucket.com/debtstracker/gae_app/invites"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/analytics"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/invites"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
@@ -21,10 +21,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"github.com/strongo/app/db"
-	"bitbucket.com/debtstracker/gae_app/bot"
-	"bitbucket.com/debtstracker/gae_app/gaestandard"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
 )
 
 type ApiReceiptDto struct {

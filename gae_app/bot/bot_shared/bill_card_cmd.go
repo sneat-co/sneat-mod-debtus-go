@@ -6,15 +6,15 @@ import (
 	"fmt"
 	"bytes"
 	"github.com/DebtsTracker/translations/trans"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"net/url"
 	"github.com/strongo/app"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"golang.org/x/net/context"
 	"github.com/strongo/app/log"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/strongo/decimal"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/pkg/errors"
 )
 

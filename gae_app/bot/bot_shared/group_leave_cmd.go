@@ -3,7 +3,7 @@ package bot_shared
 import (
 	"github.com/strongo/bots-framework/core"
 	"net/url"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 )
 
 const LEAVE_GROUP_COMMAND = "leave-group"

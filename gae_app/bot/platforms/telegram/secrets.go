@@ -7,8 +7,8 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"strings"
-	"bitbucket.com/debtstracker/gae_app/secret"
-	"bitbucket.com/debtstracker/gae_app/bot"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/secret"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 )
 
 var _bots bots.SettingsBy

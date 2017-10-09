@@ -1,11 +1,11 @@
 package gaedal
 
 import (
-	"bitbucket.com/debtstracker/gae_app/bot/platforms/telegram"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/strongo/app/gae"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 	"github.com/strongo/app/gaedb"
-	"bitbucket.com/debtstracker/gae_app/gaestandard"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
 )
 
 func _delayReminderCreation(c context.Context, transferID int64, f *delay.Function) error {

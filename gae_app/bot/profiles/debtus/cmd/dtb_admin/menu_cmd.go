@@ -1,7 +1,7 @@
 package dtb_admin
 
 import (
-	"bitbucket.com/debtstracker/gae_app/bot/profiles/debtus/cmd/dtb_invite"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_invite"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 )

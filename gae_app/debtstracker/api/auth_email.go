@@ -1,18 +1,18 @@
 package api
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/pkg/errors"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
 	"net/http"
 	"regexp"
 	"strings"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/facade"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"time"
 	"strconv"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/emails"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/emails"
 	"github.com/strongo/app/user"
 	"github.com/strongo/app/db"
 )

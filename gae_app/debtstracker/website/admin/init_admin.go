@@ -3,7 +3,7 @@ package admin
 import (
 	"github.com/strongo/app"
 	"net/http"
-	"bitbucket.com/debtstracker/gae_app/bot/profiles/debtus/cmd/dtb_fbm"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_fbm"
 )
 
 func InitAdmin() {

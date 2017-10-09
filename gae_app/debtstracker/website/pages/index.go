@@ -11,7 +11,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-const TEMPLATES_PATH = "templates/" //"bitbucket.com/debtstracker/gae_app/debtstracker/pages/templates/"
+const TEMPLATES_PATH = "templates/" //"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/pages/templates/"
 const BASE_TEMPLATE = TEMPLATES_PATH + "_base.html"
 
 var countryToLocale = map[string]string{

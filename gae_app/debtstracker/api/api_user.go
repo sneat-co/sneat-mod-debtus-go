@@ -3,9 +3,9 @@ package api
 //go:generate ffjson $GOFILE
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/auth"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
@@ -14,7 +14,7 @@ import (
 	"strings"
 	"io/ioutil"
 	"github.com/pkg/errors"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal/gaedal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
 )
 
 func getApiUser(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) (user models.AppUser, err error) {

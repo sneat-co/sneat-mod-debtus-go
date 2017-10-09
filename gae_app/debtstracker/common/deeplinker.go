@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bytes"
 )
 

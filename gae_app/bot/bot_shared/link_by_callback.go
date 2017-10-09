@@ -1,14 +1,12 @@
 package bot_shared
 
-import "strconv"
-
 type callbackLink struct {
 }
 
 var CallbackLink = callbackLink{}
 
 func (callbackLink) ToGroup(groupID string, isEdit bool) string {
-	s := GROUP_COMMAND + "?id=" + strconv.FormatInt(groupID, 10)
+	s := GROUP_COMMAND + "?id=" + groupID
 	if isEdit {
 		s += "&edit=1"
 	}

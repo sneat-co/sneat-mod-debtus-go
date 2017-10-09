@@ -1,7 +1,7 @@
 package gae_app
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"testing"
 )
 

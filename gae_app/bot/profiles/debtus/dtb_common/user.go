@@ -2,7 +2,7 @@ package dtb_common
 
 import (
 	"github.com/strongo/bots-framework/core"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 )
 
 func GetUser(whc bots.WebhookContext) (user models.AppUser, err error) {

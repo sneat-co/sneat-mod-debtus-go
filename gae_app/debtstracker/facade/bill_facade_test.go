@@ -1,9 +1,9 @@
 package facade
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal/dalmocks"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/dalmocks"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pkg/errors"
 	"github.com/strongo/decimal"
 	"golang.org/x/net/context"
@@ -395,8 +395,8 @@ func TestCreateBillEquallySuccess(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	if bill.ID == 0 {
-		t.Error("bill.ID == 0")
+	if bill.ID == "" {
+		t.Error("bill.ID is empty string")
 	}
 }
 
@@ -413,8 +413,8 @@ func TestCreateBillAdjustmentSuccess(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	if bill.ID == 0 {
-		t.Error("bill.ID == 0")
+	if bill.ID == "" {
+		t.Error("bill.ID is empty string")
 	}
 }
 
@@ -499,8 +499,8 @@ func TestCreateBillShareSuccess(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	if bill.ID == 0 {
-		t.Error("bill.ID == 0")
+	if bill.ID == "" {
+		t.Error("bill.ID is empty string")
 	}
 }
 

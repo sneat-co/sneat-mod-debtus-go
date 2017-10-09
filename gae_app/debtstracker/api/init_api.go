@@ -1,8 +1,8 @@
 package api
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/reminders"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/reminders"
 	"github.com/strongo/bots-framework/core"
 	"github.com/julienschmidt/httprouter"
 )

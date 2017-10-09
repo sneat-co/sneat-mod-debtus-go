@@ -3,13 +3,12 @@ package bot_shared
 import (
 	"github.com/strongo/bots-framework/core"
 	"net/url"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"golang.org/x/net/context"
 	"github.com/pkg/errors"
 	"github.com/strongo/app/log"
-	"strconv"
 	"strings"
 	"github.com/strongo/bots-api-telegram"
 	"fmt"
@@ -26,7 +25,8 @@ func JoinBillCommand(botParams BotParams) bots.Command {
 		Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 			text := whc.Input().(bots.WebhookTextMessage).Text()
 			var bill models.Bill
-			if bill.ID, err = strconv.ParseInt(strings.Replace(text, "/start join_bill-", "", 1), 10, 64); err != nil {
+			if bill.ID = strings.Replace(text, "/start join_bill-", "", 1); bill.ID == "" {
+				err = errors.New("Missing bill ID")
 				return
 			}
 			if bill, err = dal.Bill.GetBillByID(whc.Context(), bill.ID); err != nil {
@@ -134,7 +134,7 @@ func joinBillAction(whc bots.WebhookContext, botParams BotParams, bill models.Bi
 			return err
 		}
 
-		if group.ID != 0 {
+		if group.ID != "" {
 			changed = bill.AddUserGroupID(group.ID) || changed
 		}
 

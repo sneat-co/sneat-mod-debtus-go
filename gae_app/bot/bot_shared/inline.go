@@ -9,12 +9,12 @@ import (
 	"fmt"
 	"net/url"
 	"html"
-	"strconv"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/app"
 	"github.com/DebtsTracker/translations/trans"
+	"github.com/pkg/errors"
 )
 
 var reInlineQueryNewBill = regexp.MustCompile(`^\s*(\d+(?:\.\d*)?)([^\s]*)\s+(.+?)\s*$`)
@@ -77,7 +77,8 @@ func inlineQueryJoinGroup(whc bots.WebhookContext, query string) (m bots.Message
 	inlineQuery := whc.Input().(bots.WebhookInlineQuery)
 
 	var group models.Group
-	if group.ID, err = strconv.ParseInt(query[len(JOIN_GROUP_COMMAND+"?id="):], 10, 64); err != nil {
+	if group.ID = query[len(JOIN_GROUP_COMMAND+"?id="):]; group.ID == "" {
+		err = errors.New("Missing group ID")
 		return
 	}
 	if group, err = dal.Group.GetGroupByID(c, group.ID); err != nil {

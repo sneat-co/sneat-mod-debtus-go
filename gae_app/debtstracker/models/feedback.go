@@ -2,7 +2,7 @@ package models
 
 import (
 	"time"
-	"bitbucket.com/debtstracker/gae_app/general"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"github.com/strongo/app/db"
 )
 

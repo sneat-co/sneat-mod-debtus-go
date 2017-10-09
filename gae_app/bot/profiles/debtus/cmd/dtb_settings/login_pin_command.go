@@ -1,8 +1,8 @@
 package dtb_settings
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-framework/core"

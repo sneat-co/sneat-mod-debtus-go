@@ -9,7 +9,7 @@ import (
 	"google.golang.org/appengine"
 	"golang.org/x/net/context"
 	"github.com/strongo/app/log"
-	"bitbucket.com/debtstracker/gae_app/bot/platforms/fbm"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbm"
 	"bytes"
 )
 

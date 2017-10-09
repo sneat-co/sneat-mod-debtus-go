@@ -3,16 +3,11 @@ package bot_shared
 import (
 	"github.com/strongo/bots-framework/core"
 	"net/url"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
-	"bytes"
-	"strconv"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 )
 
 func GroupCallbackCommandData(command string, groupID string) string {
-	var b bytes.Buffer
-	b.WriteString(command)
-	b.WriteString("?group=")
-	return string(strconv.AppendInt(b.Bytes(), groupID, 10))
+	return command + "?group=" + groupID
 }
 
 func GroupCallbackCommand(code string, f func(whc bots.WebhookContext, callbackURL *url.URL, group models.Group) (m bots.MessageFromBot, err error)) bots.Command {

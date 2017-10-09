@@ -2,7 +2,7 @@ package telegram
 
 import (
 	"testing"
-	"bitbucket.com/debtstracker/gae_app/bot"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 	"github.com/strongo/app"
 )
 

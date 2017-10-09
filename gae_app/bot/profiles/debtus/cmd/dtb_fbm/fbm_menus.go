@@ -5,10 +5,10 @@ import (
 	"github.com/strongo/bots-api-fbm"
 	"fmt"
 	"github.com/DebtsTracker/translations/emoji"
-	"bitbucket.com/debtstracker/gae_app/bot/platforms/fbm"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbm"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
-	"bitbucket.com/debtstracker/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
 )
 
 func aboutCard(whc bots.WebhookContext) fbm_api.RequestElement {

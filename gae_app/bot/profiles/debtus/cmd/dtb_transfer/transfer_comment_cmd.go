@@ -3,7 +3,7 @@ package dtb_transfer
 import (
 	//"github.com/DebtsTracker/translations/emoji"
 	//"fmt"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"

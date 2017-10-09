@@ -2,16 +2,16 @@ package bot_shared
 
 import (
 	"github.com/strongo/bots-framework/core"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/strongo/bots-api-telegram"
 	"net/url"
 	"golang.org/x/net/context"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"github.com/strongo/app/log"
 	"github.com/strongo/app"
-	"bitbucket.com/debtstracker/gae_app/bot/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/strongo/app/db"
 )
 
@@ -150,7 +150,7 @@ func createGroupFromTelegram(whc bots.WebhookContext, chatEntity *models.DtTeleg
 				return
 			}
 		}
-		if tgGroup.TgGroupEntity != nil && tgGroup.UserGroupID != 0 {
+		if tgGroup.TgGroupEntity != nil && tgGroup.UserGroupID != "" {
 			hasTgGroupEntity = true
 			return dal.Group.GetGroupByID(c, tgGroup.UserGroupID)
 		}

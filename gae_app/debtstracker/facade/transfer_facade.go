@@ -1,8 +1,8 @@
 package facade
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
@@ -51,7 +51,7 @@ type createTransferInput struct {
 	Env                strongo.Environment // TODO: I believe we don't need this
 	Source             dal.TransferSource
 	CreatorUserID      int64
-	BillID             int64
+	BillID             string
 	IsReturn           bool
 	ReturnToTransferID int64
 	//direction models.TransferDirection,
@@ -147,7 +147,8 @@ func (i createTransferInput) String() string {
 func NewTransferInput(
 	env strongo.Environment,
 	source dal.TransferSource,
-	creatorUserID, billID string,
+	creatorUserID int64,
+	billID string,
 	isReturn bool, returnToTransferID int64,
 	from, to *models.TransferCounterpartyInfo,
 	amount models.Amount,
@@ -271,7 +272,7 @@ func (transferFacade transferFacade) checkOutstandingTransfersForReturns(c conte
 		case input.To.UserID:
 			direction = models.TransferDirectionCounterparty2User
 		default:
-			if input.BillID == 0 {
+			if input.BillID == "" {
 				panic("Not able to detect direction")
 			}
 		}

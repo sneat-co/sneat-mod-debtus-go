@@ -1,7 +1,7 @@
 package common
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bytes"
 	"fmt"
 	"github.com/strongo/app"

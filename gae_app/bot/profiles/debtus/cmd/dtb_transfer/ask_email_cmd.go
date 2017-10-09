@@ -1,10 +1,10 @@
 package dtb_transfer
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/dal"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/models"
-	"bitbucket.com/debtstracker/gae_app/general"
-	"bitbucket.com/debtstracker/gae_app/invites"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/invites"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app/log"
 	"github.com/strongo/bots-framework/core"
