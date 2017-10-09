@@ -51,7 +51,7 @@ func (_ billDalGae) InsertBillEntity(c context.Context, billEntity *models.BillE
 
 	billEntity.DtCreated = time.Now()
 
-	_, err = dal.InsertWithRandomStringID(c, &bill, 8)
+	err = dal.InsertWithRandomStringID(c, &bill, 8)
 	return
 }
 

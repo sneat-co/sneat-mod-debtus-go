@@ -95,7 +95,7 @@ func (groupFacade groupFacade) CreateGroup(c context.Context,
 	}, dal.CrossGroupTransaction); err != nil {
 		return
 	}
-	log.Infof(c, "Group created, ID=%d", group.ID)
+	log.Infof(c, "Group created, ID=%v", group.ID)
 	return
 }
 

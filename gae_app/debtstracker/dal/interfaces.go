@@ -320,16 +320,16 @@ var (
 	HandleWithContext func(handler ContextHandler) func(w http.ResponseWriter, r *http.Request)
 )
 
-func InsertWithRandomStringID(c context.Context, entityHolder db.EntityHolder, idLen uint8) (db.EntityHolder, error) {
+func InsertWithRandomStringID(c context.Context, entityHolder db.EntityHolder, idLen uint8) error {
 	for i := 1; i <= 10; i++ {
 		id := db.RandomStringID(idLen)
 		entityHolder.SetStrID(id)
 		if err := DB.Get(c, entityHolder); err != nil {
 			if db.IsNotFound(err) {
-				return entityHolder, DB.Update(c, entityHolder)
+				return DB.Update(c, entityHolder)
 			}
 		}
 	}
 	entityHolder.SetStrID("")
-	return entityHolder, errors.New("too many attempts to create record with random string id")
+	return errors.New("too many attempts to create record with random string id")
 }

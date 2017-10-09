@@ -31,7 +31,7 @@ func NewGroupDalGae() GroupDalGae {
 
 func (_ GroupDalGae) InsertGroup(c context.Context, groupEntity *models.GroupEntity) (group models.Group, err error) {
 	group.GroupEntity = groupEntity
-	dal.InsertWithRandomStringID(c, &group, 8)
+	err = dal.InsertWithRandomStringID(c, &group, 8)
 	return
 }
 
@@ -46,7 +46,11 @@ func (GroupDalGae) GetGroupByID(c context.Context, groupID string) (group models
 	if group.ID = groupID; group.ID == "" {
 		panic("groupID is empty string")
 	}
-	return group, dal.DB.Get(c, &group)
+	group.GroupEntity = new(models.GroupEntity)
+	if err = dal.DB.Get(c, &group); err != nil {
+		group.ID = ""
+	}
+	return group, err
 }
 
 func (GroupDalGae) DelayUpdateGroupWithBill(c context.Context, groupID, billID string) (err error) {

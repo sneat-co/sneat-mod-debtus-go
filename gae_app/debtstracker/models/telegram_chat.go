@@ -23,7 +23,7 @@ func (entity *DtTelegramChatEntity) Save() (properties []datastore.Property, err
 		return
 	}
 	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"UserGroupID":      gaedb.IsZeroInt,
+		"UserGroupID":      gaedb.IsEmptyString,
 		"TgChatInstanceID": gaedb.IsEmptyString,
 	}); err != nil {
 		return

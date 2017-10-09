@@ -444,7 +444,7 @@ func (billFacade billFacade) SplitBills(c context.Context, userID int64, groupID
 			if bill.SplitID == 0 {
 				bill.SplitID = split.ID
 			} else {
-				return fmt.Errorf("bill %d already belongs to a split %d", bill.ID, bill.SplitID)
+				return fmt.Errorf("bill %v already belongs to a split %d", bill.ID, bill.SplitID)
 			}
 			billEntityHolders[i] = &bill
 		}

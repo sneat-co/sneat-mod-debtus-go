@@ -41,7 +41,7 @@ func handlerCreateGroup(c context.Context, w http.ResponseWriter, r *http.Reques
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	}
-	log.Infof(c, "Group created, ID: %d", group.ID)
+	log.Infof(c, "Group created, ID: %v", group.ID)
 	groupToResponse(c, w, group, user)
 }
 
