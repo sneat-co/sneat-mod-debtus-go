@@ -20,7 +20,7 @@ func setBillCurrencyCommand(params BotParams) bots.Command {
 
 			if bill.Currency != currencyCode {
 				bill.Currency = currencyCode
-				if err = dal.Bill.UpdateBill(c, bill); err != nil {
+				if err = dal.Bill.SaveBill(c, bill); err != nil {
 					return
 				}
 			}

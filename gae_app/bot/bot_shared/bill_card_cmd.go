@@ -202,7 +202,7 @@ func WriteBillCardTitle(c context.Context, bill models.Bill, botID string, buffe
 	} else {
 		amount = bill.TotalAmount()
 	}
-	titleWithLink := fmt.Sprintf(`<a href="https://t.me/%v?start=bill-%d">%v</a>`, botID, bill.ID, bill.Name)
+	titleWithLink := fmt.Sprintf(`<a href="https://t.me/%v?start=bill-%v">%v</a>`, botID, bill.ID, bill.Name)
 	log.Debugf(c, "titleWithLink: %v", titleWithLink)
 	header := translator.Translate(trans.MESSAGE_TEXT_BILL_CARD_HEADER, amount, titleWithLink)
 	log.Debugf(c, "header: %v", header)

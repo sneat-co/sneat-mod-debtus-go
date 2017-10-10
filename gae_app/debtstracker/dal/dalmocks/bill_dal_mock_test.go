@@ -25,7 +25,7 @@ func (billDalMock *BillDalMock) InsertBillEntity(c context.Context, billEntity *
 	return
 }
 
-func (billDalMock *BillDalMock) UpdateBill(c context.Context, bill models.Bill) (err error) {
+func (billDalMock *BillDalMock) SaveBill(c context.Context, bill models.Bill) (err error) {
 	billDalMock.Bills[bill.ID] = bill.BillEntity
 	return
 }

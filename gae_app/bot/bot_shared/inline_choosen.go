@@ -209,7 +209,7 @@ func getBillIDFromUrlInEditedMessage(whc bots.WebhookContext) (billID string) {
 	return
 }
 
-var EditedBillCardHookCommand = bots.Command{
+var EditedBillCardHookCommand = bots.Command{ // TODO: seems to be not used anywhere
 	Code: "edited-bill-card",
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		whc.LogRequest()
@@ -239,7 +239,10 @@ var EditedBillCardHookCommand = bots.Command{
 				return err
 			}
 
-			changed = bill.AddUserGroupID(group.ID) || changed
+			if bill.UserGroupID() != group.ID {
+				bill.AssignToGroup(group.ID)
+				changed = true
+			}
 
 			billMembers := bill.GetBillMembers()
 
@@ -262,7 +265,7 @@ var EditedBillCardHookCommand = bots.Command{
 			}
 
 			if changed {
-				return dal.Bill.UpdateBill(c, bill)
+				return dal.Bill.SaveBill(c, bill)
 			}
 
 			return err

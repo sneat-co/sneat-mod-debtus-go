@@ -15,9 +15,7 @@ func GetBillMembersCallbackData(billID string) string {
 }
 
 func GetBillID(callbackUrl *url.URL) (billID string, err error) {
-	q := callbackUrl.Query()
-	sBillID := q.Get("bill")
-	if sBillID == "" {
+	if billID = callbackUrl.Query().Get("bill"); billID == "" {
 		err = errors.New("Required parameter 'bill' is not passed")
 	}
 	return

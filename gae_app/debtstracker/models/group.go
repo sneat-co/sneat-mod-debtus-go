@@ -34,7 +34,7 @@ var _ db.EntityHolder = (*Group)(nil)
 
 type GroupEntity struct {
 	CreatorUserID       int64
-	IsUser2User         bool   `datastore:",noindex"`
+	//IsUser2User         bool   `datastore:",noindex"`
 	Name                string `datastore:",noindex"`
 	Note                string `datastore:",noindex"`
 	members             []GroupMemberJson
@@ -44,6 +44,28 @@ type GroupEntity struct {
 	TelegramGroupsCount int    `datastore:"TgGroupsCount,noindex"`
 	TelegramGroupsJson  string `datastore:"TgGroupsJson,noindex"`
 	billsHolder
+	BalanceJson         string `datastore:",noindex"`
+}
+
+func (entity *GroupEntity) GetBalance() (balance GroupBalanceByCurrencyAndMember, err error) {
+	balance = make(GroupBalanceByCurrencyAndMember)
+	return balance, ffjson.Unmarshal([]byte(entity.BalanceJson), &balance)
+}
+
+func (entity *GroupEntity) SetBalance(balance GroupBalanceByCurrencyAndMember) (changed bool) {
+	if balance == nil || len(balance) == 0 {
+		if changed = entity.BalanceJson != ""; changed {
+			entity.BalanceJson = ""
+		}
+	} else if data, err := ffjson.Marshal(balance); err != nil {
+		panic(err)
+	} else {
+		s := string(data)
+		if changed = entity.BalanceJson != s; changed {
+			entity.BalanceJson = s
+		}
+	}
+	return
 }
 
 func (entity *GroupEntity) GetTelegramGroups() (tgGroups []GroupTgChatJson, err error) {
@@ -240,6 +262,8 @@ func (entity *GroupEntity) validateMembers(members []GroupMemberJson, membersCou
 
 	EMPTY := Empty{}
 
+	totalBalance := make(Balance)
+
 	userIDs := make(map[int64]Empty, entity.MembersCount)
 	contactIDs := make(map[int64]Empty, entity.MembersCount)
 
@@ -268,6 +292,16 @@ func (entity *GroupEntity) validateMembers(members []GroupMemberJson, membersCou
 				}
 				contactIDs[contactID] = EMPTY
 			}
+		}
+		for currency, amount := range m.Balance {
+			totalBalance[currency] += amount
+		}
+	}
+
+	// Validate total balance is 0
+	for currency, amount := range totalBalance {
+		if amount != 0 {
+			return fmt.Errorf("group has non zero balance for %v=%v", currency, amount)
 		}
 	}
 	return nil

@@ -7,6 +7,7 @@ import (
 	"github.com/strongo/decimal"
 	"google.golang.org/appengine/datastore"
 	"time"
+	"github.com/pkg/errors"
 )
 
 type SplitMode string
@@ -28,10 +29,10 @@ const (
 
 type BillCommon struct {
 	PayMode            PayMode
-	CreatorUserID      int64     `datastore:",noindex"`
-	UserGroupIDs       []string  `datastore:",noindex"`
-	TgInlineMessageIDs []string  `datastore:",noindex"`
-	SplitMode          SplitMode `datastore:",noindex"`
+	CreatorUserID      int64               `datastore:",noindex"`
+	userGroupID        string              `datastore:"UserGroupID,noindex"`
+	TgInlineMessageIDs []string            `datastore:",noindex"`
+	SplitMode          SplitMode           `datastore:",noindex"`
 	Status             string
 	DtCreated          time.Time
 	Name               string              `datastore:",noindex"`
@@ -39,11 +40,25 @@ type BillCommon struct {
 	Currency           string              `datastore:",noindex"`
 	UserIDs            []int64
 	members            []BillMemberJson
-	MembersJson        string  `datastore:",noindex"`
-	MembersCount       int     `datastore:",noindex"`
-	MemberLastID       int64   `datastore:",noindex"`
+	MembersJson        string              `datastore:",noindex"`
+	MembersCount       int                 `datastore:",noindex"`
 	ContactIDs         []int64 // Holds contact IDs so we can update names in MembersJson on contact changed
-	Shares             int     `datastore:",noindex"`
+	Shares             int                 `datastore:",noindex"`
+}
+
+func (entity BillCommon) UserGroupID() string {
+	return entity.userGroupID
+}
+
+var ErrBillAlreadyAssignedToAnotherGroup = errors.New("bill already assigned to another group ")
+
+func (entity *BillCommon) AssignToGroup(groupID string) (err error) {
+	if entity.userGroupID == "" {
+		entity.userGroupID = groupID
+	} else if entity.userGroupID != groupID {
+		err = errors.WithMessage(ErrBillAlreadyAssignedToAnotherGroup, entity.userGroupID)
+	}
+	return
 }
 
 func (entity *BillCommon) AddOrGetMember(userID, contactID int64, name string) (isNew, changed bool, index int, member BillMemberJson, billMembers []BillMemberJson) {
@@ -66,19 +81,6 @@ func (entity *BillCommon) AddOrGetMember(userID, contactID int64, name string) (
 		panic("member.ID is empty string")
 	}
 	return
-}
-
-func (entity *BillCommon) AddUserGroupID(id string) (changed bool) {
-	if id == "" {
-		panic("id is empty string")
-	}
-	for _, groupID := range entity.UserGroupIDs {
-		if groupID == id {
-			return false
-		}
-	}
-	entity.UserGroupIDs = append(entity.UserGroupIDs, id)
-	return true
 }
 
 func (entity *BillCommon) IsOkToSplit() bool {
@@ -191,6 +193,17 @@ func (entity *BillCommon) SetBillMembers(members []BillMemberJson) (err error) {
 	return nil
 }
 
+func (entity *BillCommon) load(ps []datastore.Property) error {
+	for _, p := range ps {
+		switch p.Name {
+		case "UserGroupID":
+			entity.userGroupID = p.Value.(string)
+			break
+		}
+	}
+	return nil
+}
+
 func (entity *BillCommon) save(properties []datastore.Property) (filtered []datastore.Property, err error) {
 	if entity.CreatorUserID == 0 {
 		panic("entity.CreatorUserID == 0")
@@ -206,13 +219,16 @@ func (entity *BillCommon) save(properties []datastore.Property) (filtered []data
 	}
 	if filtered, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
 		"MembersCount": gaedb.IsZeroInt,
-		"MembersJson":  gaedb.IsEmptyString,
+		"MembersJson":  gaedb.IsEmptyJson,
 		"PayMode":      gaedb.IsEmptyString,
 		"ContactName":  gaedb.IsEmptyString,
 		"SplitMode":    gaedb.IsEmptyString,
 		"Shares":       gaedb.IsZeroInt,
 	}); err != nil {
 		return
+	}
+	if entity.userGroupID != "" {
+		filtered = append(filtered, datastore.Property{Name: "UserGroupID", Value: entity.userGroupID, NoIndex: true})
 	}
 	return
 }

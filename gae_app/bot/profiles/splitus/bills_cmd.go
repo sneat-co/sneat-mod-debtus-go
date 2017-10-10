@@ -57,7 +57,7 @@ func billsAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		return
 	}
 	for i, bill := range outstandingBills {
-		fmt.Fprintf(buf, `  %d. <a href="https://t.me/%v?start=bill-%d">%v</a>`+"\n", i+1, whc.GetBotCode(), bill.ID, bill.Name)
+		fmt.Fprintf(buf, `  %d. <a href="https://t.me/%v?start=bill-%v">%v</a>`+"\n", i+1, whc.GetBotCode(), bill.ID, bill.Name)
 	}
 
 	fmt.Fprintf(buf, "\nSend /split@%v to close the bills.\nThe debts records will be available in @DebtsTrackerBot.", whc.GetBotCode())

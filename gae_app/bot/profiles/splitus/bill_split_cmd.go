@@ -42,7 +42,7 @@ var billSplitCommand = bot_shared.BillCallbackCommand(BILL_SPLIT_COMMAND,
 							}
 							members[i] = m
 							bill.SetBillMembers(members)
-							if err = dal.Bill.UpdateBill(c, bill); err != nil {
+							if err = dal.Bill.SaveBill(c, bill); err != nil {
 								return
 							}
 							member = m.MemberJson

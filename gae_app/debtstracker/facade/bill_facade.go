@@ -21,6 +21,24 @@ type billFacade struct {
 
 var Bill = billFacade{}
 
+func (billFacade) AssignBillToGroup(c context.Context, billID, groupID string) (bill models.Bill, group models.Group, err error) {
+	bill.ID = billID
+	group.ID = groupID
+	bill.SetEntity(new(models.BillEntity))
+	group.SetEntity(new(models.GroupEntity))
+
+	err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+		if err = dal.DB.GetMulti(c, []db.EntityHolder{&bill, &group}); err != nil {
+			return
+		}
+		bill.AssignToGroup(group.ID)
+
+		panic("TODO")
+		return
+	}, db.CrossGroupTransaction)
+	return
+}
+
 func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntity) (bill models.Bill, err error) {
 	if c == nil {
 		panic("Parameter c context.Context is required")
@@ -417,7 +435,7 @@ func (billFacade) GetBillMembersUserInfo(c context.Context, bill models.Bill, fo
 	return
 }
 
-func (billFacade billFacade) SplitBills(c context.Context, userID int64, groupID string, billIDs []string) (err error) {
+func (billFacade billFacade) SettleUp(c context.Context, userID int64, groupID string, billIDs []string) (err error) {
 	now := time.Now()
 
 	var split models.Split
@@ -444,7 +462,7 @@ func (billFacade billFacade) SplitBills(c context.Context, userID int64, groupID
 			if bill.SplitID == 0 {
 				bill.SplitID = split.ID
 			} else {
-				return fmt.Errorf("bill %v already belongs to a split %d", bill.ID, bill.SplitID)
+				return fmt.Errorf("bill %d already belongs to a split %d", bill.ID, bill.SplitID)
 			}
 			billEntityHolders[i] = &bill
 		}
@@ -453,7 +471,7 @@ func (billFacade billFacade) SplitBills(c context.Context, userID int64, groupID
 			return err
 		}
 
-		billFacade.createTransfers(c, split.ID)
+		//billFacade.createTransfers(c, split.ID)
 		//var splitUser models.AppUser
 		//
 		//if groupID != 0 {
@@ -468,63 +486,79 @@ func (billFacade billFacade) SplitBills(c context.Context, userID int64, groupID
 	return
 }
 
-func (billFacade billFacade) createTransfers(c context.Context, splitID int64) error {
-	split, err := dal.Split.GetSplitByID(c, splitID)
-	if err != nil {
-		return err
+func (billFacade) AddBillMember(c context.Context, billID, memberID string, memberUserID int64, memberUserName string, paid decimal.Decimal64p2) (bill models.Bill, group models.Group, changed, isJoined bool, err error) {
+	if billID == "" {
+		panic("billID is empty string")
 	}
-	bills, err := dal.Bill.GetBillsByIDs(c, split.BillIDs)
-
-	balances := billFacade.getBalances(splitID, bills)
-	balances = billFacade.cleanupBalances(balances)
-
-	for currency, totalsByMember := range balances {
-		for memberID, memberTotal := range totalsByMember {
-			if memberTotal.Balance() > 0 { // TODO: Create delay task
-				if err = billFacade.createTransfer(c, splitID, memberTotal.BillIDs, memberID, currency, memberTotal.Balance()); err != nil {
-					return err
-				}
+	log.Debugf(c, "billFacade.AddBillMember(billID=%v)", billID)
+	err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+		if bill, err = dal.Bill.GetBillByID(c, billID); err != nil {
+			return
+		}
+		if userGroupID := bill.UserGroupID(); userGroupID != "" {
+			if group, err = dal.Group.GetGroupByID(c, userGroupID); err != nil {
+				return
 			}
 		}
-	}
-	return nil
-}
 
-func (billFacade) createTransfer(c context.Context, splitID int64, billIDs []int64, memberID, currency string, amount decimal.Decimal64p2) error {
-	return nil
-}
+		var (
+			//isNew bool
+			index   int
+			member  models.BillMemberJson
+			members []models.BillMemberJson
+		)
 
-type SplitMemberTotal struct {
-	Paid    decimal.Decimal64p2
-	Owes    decimal.Decimal64p2
-	BillIDs []int64
-}
+		_, changed, index, member, members = bill.AddOrGetMember(memberUserID, 0, memberUserName)
 
-func (t SplitMemberTotal) Balance() decimal.Decimal64p2 {
-	return t.Paid - t.Owes
-}
+		log.Debugf(c, "members: %v", members)
 
-type SplitTotalsByMember map[string]SplitMemberTotal
-type SplitTotalsByCurrency map[string]SplitTotalsByMember
-
-func (billFacade) getBalances(splitID int64, bills []models.Bill) (balanceByCurrency SplitTotalsByCurrency) {
-	balanceByCurrency = make(SplitTotalsByCurrency)
-	for _, bill := range bills {
-		balanceByMember := balanceByCurrency[bill.Currency]
-		if balanceByMember == nil {
-			balanceByMember = make(SplitTotalsByMember, bill.MembersCount)
-			balanceByCurrency[bill.Currency] = balanceByMember
+		if !changed {
+			return
 		}
-		for _, member := range bill.GetBillMembers() {
-			memberTotal := balanceByMember[member.ID]
-			memberTotal.Paid += member.Paid
-			memberTotal.Owes += member.Owes
-			balanceByMember[member.ID] = memberTotal
+
+		if paid != 0 && member.Paid == 0 {
+			member.Paid = paid
 		}
-	}
+		members[index] = member
+
+		if err = bill.SetBillMembers(members); err != nil {
+			return
+		}
+
+		if err = dal.Bill.SaveBill(c, bill); err != nil {
+			return
+		}
+
+		isJoined = true
+		return
+	}, dal.CrossGroupTransaction)
+
 	return
 }
 
-func (billFacade) cleanupBalances(balanceByCurrency SplitTotalsByCurrency) SplitTotalsByCurrency {
-	return balanceByCurrency
-}
+
+//func (billFacade billFacade) createTransfers(c context.Context, splitID int64) error {
+//	split, err := dal.Split.GetSplitByID(c, splitID)
+//	if err != nil {
+//		return err
+//	}
+//	bills, err := dal.Bill.GetBillsByIDs(c, split.BillIDs)
+//
+//	balances := billFacade.getBalances(splitID, bills)
+//	balances = billFacade.cleanupBalances(balances)
+//
+//	for currency, totalsByMember := range balances {
+//		for memberID, memberTotal := range totalsByMember {
+//			if memberTotal.Balance() > 0 { // TODO: Create delay task
+//				if err = billFacade.createTransfer(c, splitID, memberTotal.BillIDs, memberID, currency, memberTotal.Balance()); err != nil {
+//					return err
+//				}
+//			}
+//		}
+//	}
+//	return nil
+//}
+//
+//func (billFacade) createTransfer(c context.Context, splitID int64, billIDs []int64, memberID, currency string, amount decimal.Decimal64p2) error {
+//	return nil
+//}

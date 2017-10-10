@@ -16,6 +16,7 @@ import (
 	"regexp"
 	"sync"
 	"time"
+	"github.com/strongo/app/log"
 )
 
 type TransferSource interface {
@@ -147,7 +148,7 @@ type BillDal interface {
 	GetBillByID(c context.Context, billID string) (bill models.Bill, err error)
 	GetBillsByIDs(c context.Context, billIDs []string) (bills []models.Bill, err error)
 	InsertBillEntity(c context.Context, billEntity *models.BillEntity) (bill models.Bill, err error)
-	UpdateBill(c context.Context, bill models.Bill) (err error)
+	SaveBill(c context.Context, bill models.Bill) (err error)
 	UpdateBillsHolder(c context.Context, billID string, getBillsHolder BillsHolderGetter) (err error)
 }
 
@@ -321,11 +322,17 @@ var (
 )
 
 func InsertWithRandomStringID(c context.Context, entityHolder db.EntityHolder, idLen uint8) error {
+	log.Debugf(c, "InsertWithRandomStringID(entityHolder.Entity(): %v)", entityHolder.Entity())
+	entity := entityHolder.Entity()
+	if entity == nil {
+		panic("entity == nil")
+	}
 	for i := 1; i <= 10; i++ {
 		id := db.RandomStringID(idLen)
 		entityHolder.SetStrID(id)
 		if err := DB.Get(c, entityHolder); err != nil {
 			if db.IsNotFound(err) {
+				entityHolder.SetEntity(entity)
 				return DB.Update(c, entityHolder)
 			}
 		}

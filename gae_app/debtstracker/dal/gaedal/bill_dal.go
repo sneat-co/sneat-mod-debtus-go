@@ -22,14 +22,22 @@ func newBillDalGae() billDalGae {
 }
 
 func (_ billDalGae) GetBillByID(c context.Context, billID string) (bill models.Bill, err error) {
+	if billID == "" {
+		panic("billID is empty string")
+	}
 	bill.ID = billID
-	return bill, dal.DB.Get(c, &bill)
+	bill.BillEntity = new(models.BillEntity)
+	if err = dal.DB.Get(c, &bill); err != nil {
+		bill.ID = ""
+		bill.BillEntity = nil
+	}
+	return
 }
 
 func (_ billDalGae) GetBillsByIDs(c context.Context, billIDs []string) (bills []models.Bill, err error) {
 	entityHolders := make([]db.EntityHolder, len(billIDs))
 	for i, id := range billIDs {
-		entityHolders[i] = &models.Bill{StringID: db.StringID{ID: id}}
+		entityHolders[i] = &models.Bill{StringID: db.StringID{ID: id}, BillEntity: new(models.BillEntity)}
 	}
 	bills = make([]models.Bill, len(entityHolders))
 	if err = dal.DB.GetMulti(c, entityHolders); err != nil {
@@ -42,6 +50,9 @@ func (_ billDalGae) GetBillsByIDs(c context.Context, billIDs []string) (bills []
 }
 
 func (_ billDalGae) InsertBillEntity(c context.Context, billEntity *models.BillEntity) (bill models.Bill, err error) {
+	if billEntity == nil {
+		panic("billEntity == nil")
+	}
 	if billEntity.CreatorUserID == 0 {
 		panic("CreatorUserID == 0")
 	}
@@ -50,12 +61,13 @@ func (_ billDalGae) InsertBillEntity(c context.Context, billEntity *models.BillE
 	}
 
 	billEntity.DtCreated = time.Now()
+	bill.BillEntity = billEntity
 
 	err = dal.InsertWithRandomStringID(c, &bill, 8)
 	return
 }
 
-func (billDalGae) UpdateBill(c context.Context, bill models.Bill) (err error) {
+func (billDalGae) SaveBill(c context.Context, bill models.Bill) (err error) {
 	return dal.DB.Update(c, &bill)
 }
 
@@ -76,8 +88,8 @@ var delayedUpdateBillDependencies = delay.Func("delayedUpdateBillDependencies", 
 		}
 		return
 	}
-	for _, groupID := range bill.UserGroupIDs {
-		if err = dal.Group.DelayUpdateGroupWithBill(c, groupID, bill.ID); err != nil {
+	if userGroupID := bill.UserGroupID(); userGroupID != "" {
+		if err = dal.Group.DelayUpdateGroupWithBill(c, userGroupID, bill.ID); err != nil {
 			return
 		}
 	}

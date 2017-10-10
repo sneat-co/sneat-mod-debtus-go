@@ -10,10 +10,11 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"golang.org/x/net/context"
 	"net/url"
 	"strings"
 	"time"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"github.com/strongo/decimal"
 )
 
 const JOIN_BILL_COMMAND = "join_bill"
@@ -49,7 +50,11 @@ func JoinBillCommand(botParams BotParams) bots.Command {
 }
 
 func joinBillAction(whc bots.WebhookContext, botParams BotParams, bill models.Bill, memberStatus string, isEditMessage bool) (m bots.MessageFromBot, err error) {
+	if bill.ID == "" {
+		panic("bill.ID is empty string")
+	}
 	c := whc.Context()
+	log.Debugf(c, "joinBillAction(bill.ID=%v)", bill.ID)
 	userID := whc.AppUserIntID()
 
 	isAlreadyMember := func(members []models.BillMemberJson) (member models.BillMemberJson, isMember bool) {
@@ -58,11 +63,6 @@ func joinBillAction(whc bots.WebhookContext, botParams BotParams, bill models.Bi
 				return
 			}
 		}
-		return
-	}
-
-	var group models.Group
-	if group, err = GetGroup(whc); err != nil {
 		return
 	}
 
@@ -101,51 +101,17 @@ func joinBillAction(whc bots.WebhookContext, botParams BotParams, bill models.Bi
 		return
 	}
 
-	isJoined := false
-	changed := false
+	var isJoined bool
 
-	if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-		if bill, err = dal.Bill.GetBillByID(c, bill.ID); err != nil {
-			return err
-		}
+	var paid decimal.Decimal64p2
+	switch memberStatus {
+	case "paid":
+		paid = bill.AmountTotal
+	case "owe":
+	default:
+	}
 
-		var (
-			index   int
-			member  models.BillMemberJson
-			members []models.BillMemberJson
-		)
-		_, changed, index, member, members = bill.AddOrGetMember(userID, 0, userName)
-
-		switch memberStatus {
-		case "paid":
-			if member.Paid != bill.AmountTotal {
-				member.Paid = bill.AmountTotal
-				changed = true
-			}
-		case "owe":
-		default:
-		}
-		if !changed {
-			return nil
-		}
-		members[index] = member
-
-		if err := bill.SetBillMembers(members); err != nil {
-			return err
-		}
-
-		if group.ID != "" {
-			changed = bill.AddUserGroupID(group.ID) || changed
-		}
-
-		if changed {
-			if err := dal.Bill.UpdateBill(c, bill); err != nil {
-				return err
-			}
-		}
-		isJoined = true
-		return nil
-	}, dal.SingleGroupTransaction); err != nil {
+	if bill, _, _, isJoined, err = facade.Bill.AddBillMember(c, bill.ID, "", userID, userName, paid); err != nil {
 		return
 	}
 

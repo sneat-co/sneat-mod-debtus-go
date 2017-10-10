@@ -5,6 +5,7 @@ import (
 	"github.com/strongo/app/gaedb"
 	"google.golang.org/appengine/datastore"
 	"time"
+	"fmt"
 )
 
 const (
@@ -57,6 +58,9 @@ type BillEntity struct {
 	LocaleByMessage  []string  `datastore:",noindex"`
 	TgChatMessageIDs []string  `datastore:",noindex"`
 	SplitID          int64     `datastore:",noindex"`
+	//BalanceJson      string    `datastore:",noindex"`
+	//BalanceVersion   int       `datastore:",noindex"`
+	//balanceVersion   int       `datastore:"-"`
 }
 
 func NewBillEntity(data BillCommon) *BillEntity {
@@ -85,10 +89,17 @@ func (bill *Bill) Entity() interface{} {
 }
 
 func (bill *Bill) SetEntity(entity interface{}) {
-	bill.BillEntity = entity.(*BillEntity)
+	if entity == nil {
+		bill.BillEntity = nil
+	} else {
+		bill.BillEntity = entity.(*BillEntity)
+	}
 }
 
 func (entity *BillEntity) Load(ps []datastore.Property) error {
+	if err := entity.BillCommon.load(ps); err != nil {
+		return err
+	}
 	return datastore.LoadStruct(entity, ps)
 }
 
@@ -106,4 +117,26 @@ func (entity *BillEntity) Save() (properties []datastore.Property, err error) {
 		return
 	}
 	return
+}
+
+func (entity *BillEntity) GetBalance() (BillBalanceByCurrencyAndMember){
+	members := entity.GetBillMembers()
+	totalsByMember := make(BillBalanceByMember, len(members))
+
+	for i, member := range members {
+
+		if member.Owes < 0 {
+			panic(fmt.Sprintf("member[%d].Owes < 0: %v", i, member.Owes))
+		} else if member.Paid < 0 {
+			panic(fmt.Sprintf("member[%d].Paid < 0: %v", i, member.Paid))
+		}
+
+		if member.Owes != 0 || member.Paid != 0 {
+			totalsByMember[member.ID] = BillMemberBalance{
+				Owes: member.Owes,
+				Paid: member.Paid,
+			}
+		}
+	}
+	return BillBalanceByCurrencyAndMember{entity.Currency: totalsByMember}
 }

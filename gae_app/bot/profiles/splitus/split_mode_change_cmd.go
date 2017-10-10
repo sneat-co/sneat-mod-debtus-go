@@ -26,7 +26,7 @@ var billChangeSplitModeCommand = bots.Command{
 			splitMode := models.SplitMode(callbackUrl.Query().Get("mode"))
 			if bill.SplitMode != splitMode {
 				bill.SplitMode = splitMode
-				if err = dal.Bill.UpdateBill(c, bill); err != nil {
+				if err = dal.Bill.SaveBill(c, bill); err != nil {
 					return
 				}
 			}

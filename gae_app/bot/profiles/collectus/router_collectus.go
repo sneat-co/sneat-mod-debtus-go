@@ -57,18 +57,6 @@ var botParams = bot_shared.BotParams{
 
 var Router bots.WebhooksRouter = bots.NewWebhookRouter(
 	map[bots.WebhookInputType][]bots.Command{
-	//bots.WebhookInputInlineQuery: {
-	//},
-	//bots.WebhookInputChosenInlineResult: {
-	//},
-	//bots.WebhookInputText: {
-	//},
-	//bots.WebhookInputCallbackQuery: {
-	//},
-	//bots.WebhookInputNewChatMembers: {
-	//},
-	//bots.WebhookInputLeftChatMembers: {
-	//},
 	},
 	func() string { return "Please report any errors to @CollectusGroup" },
 )

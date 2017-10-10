@@ -5,6 +5,7 @@ package models
 type MemberJson struct {
 	ID            string
 	Name          string                   `json:",omitempty"`
+	AddedByUserID int64                    `json:",omitempty"`
 	UserID        int64                    `json:",omitempty"`
 	TgUserID      int64                    `json:",omitempty"`
 	ContactIDs    []int64                  `json:",omitempty"`
