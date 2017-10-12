@@ -29,7 +29,7 @@ import (
 func NewReceiptTransferDto(c context.Context, transfer models.Transfer) dto.ApiReceiptTransferDto {
 	creator := transfer.Creator()
 	transferDto := dto.ApiReceiptTransferDto{
-		ID:             transfer.ID,
+		ID:             strconv.FormatInt(transfer.ID, 10),
 		From:           dto.NewContactDto(*transfer.From()),
 		To:             dto.NewContactDto(*transfer.To()),
 		Amount:         transfer.GetAmount(),
@@ -37,7 +37,7 @@ func NewReceiptTransferDto(c context.Context, transfer models.Transfer) dto.ApiR
 		DtCreated:      transfer.DtCreated,
 		CreatorComment: creator.Comment,
 		Creator: dto.ApiUserDto{ // TODO: Rename field - it can be not a creator in case of bill created by 3d party (paid by not by bill creator)
-			ID:   creator.UserID,
+			ID:   strconv.FormatInt(creator.UserID, 10),
 			Name: creator.ContactName,
 		},
 	}
@@ -102,7 +102,7 @@ func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request)
 	log.Debugf(c, "transfer.Creator(): %v", creator)
 
 	receiptDto := dto.ApiReceiptDto{
-		ID:       receiptID,
+		ID:       strconv.FormatInt(receiptID, 10),
 		Code:     common.EncodeID(receiptID),
 		SentVia:  receipt.SentVia,
 		SentTo:   sentTo,

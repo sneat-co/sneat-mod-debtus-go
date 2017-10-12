@@ -13,6 +13,7 @@ import (
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/delay"
 	"strings"
+	"strconv"
 )
 
 func NewAppUserKey(c context.Context, appUserId int64) *datastore.Key {
@@ -55,6 +56,15 @@ func (userDal UserDalGae) SaveUser(c context.Context, user models.AppUser) (err 
 		user.ID = key.IntID()
 	}
 	return
+}
+
+func (userDal UserDalGae) GetUserByStrID(c context.Context, userID string) (user models.AppUser, err error) {
+	var intUserID int64
+	if intUserID, err = strconv.ParseInt(userID, 10, 64); err != nil {
+		err = errors.WithMessage(err, "UserDalGae.GetUserByStrID()")
+		return
+	}
+	return userDal.GetUserByID(c, intUserID)
 }
 
 func (userDal UserDalGae) GetUserByID(c context.Context, userID int64) (user models.AppUser, err error) {
@@ -168,17 +178,17 @@ func (userDal UserDalGae) CreateUser(c context.Context, userEntity *models.AppUs
 	return
 }
 
-func (UserDalGae) DelayUpdateUserWithBill(c context.Context, userID int64, billID string) (err error) {
+func (UserDalGae) DelayUpdateUserWithBill(c context.Context, userID, billID string) (err error) {
 	if err = gae.CallDelayFunc(c, common.QUEUE_BILLS, "UpdateUserWithBill", delayedUpdateUserWithBill, userID, billID); err != nil {
 		return
 	}
 	return
 }
 
-var delayedUpdateUserWithBill = delay.Func("delayedUpdateWithBill", func(c context.Context, userID int64, billID string) (err error) {
+var delayedUpdateUserWithBill = delay.Func("delayedUpdateWithBill", func(c context.Context, userID, billID string) (err error) {
 	var user models.AppUser
 
-	if user, err = dal.User.GetUserByID(c, userID); err != nil {
+	if user, err = dal.User.GetUserByStrID(c, userID); err != nil {
 		return
 	}
 	log.Debugf(c, "User: %v", user)

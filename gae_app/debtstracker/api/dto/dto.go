@@ -8,10 +8,11 @@ import (
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
 	"time"
+	"strconv"
 )
 
 type UserMeDto struct {
-	UserID       int64
+	UserID       string
 	FullName     string `json:",omitempty"`
 	GoogleUserID string `json:",omitempty"`
 	FbUserID     string `json:",omitempty"`
@@ -25,7 +26,7 @@ type ApiAcknowledgeDto struct {
 }
 
 type ApiReceiptDto struct {
-	ID       int64 `json:"Id"`
+	ID       string `json:"Id"`
 	Code     string
 	Transfer ApiReceiptTransferDto
 	SentVia  string
@@ -33,13 +34,13 @@ type ApiReceiptDto struct {
 }
 
 type ApiUserDto struct {
-	ID   int64  `json:"Id"`
+	ID   string `json:"Id"`
 	Name string `json:",omitempty"`
 }
 
 type ApiReceiptTransferDto struct {
 	// TODO: We are not replacing with TransferDto as it has From/To => Creator optimisation. Think if we can reuse.
-	ID             int64 `json:"Id"`
+	ID             string             `json:"Id"`
 	Amount         models.Amount
 	From           ContactDto
 	DtCreated      time.Time
@@ -51,8 +52,8 @@ type ApiReceiptTransferDto struct {
 }
 
 type ContactDto struct {
-	ID     int64  `json:",omitempty"` // TODO: Document why it can be empty?
-	UserID int64  `json:",omitempty"`
+	ID     string `json:",omitempty"` // TODO: Document why it can be empty?
+	UserID string `json:",omitempty"`
 	Name   string `json:",omitempty"`
 	//Note string `json:",omitempty"`
 	Comment string `json:",omitempty"`
@@ -60,8 +61,8 @@ type ContactDto struct {
 
 func NewContactDto(counterpartyInfo models.TransferCounterpartyInfo) ContactDto {
 	dto := ContactDto{
-		ID:      counterpartyInfo.ContactID,
-		UserID:  counterpartyInfo.UserID,
+		ID:      strconv.FormatInt(counterpartyInfo.ContactID, 10),
+		UserID:  strconv.FormatInt(counterpartyInfo.UserID, 10),
 		Name:    counterpartyInfo.Name(),
 		Comment: counterpartyInfo.Comment,
 	}
@@ -80,8 +81,8 @@ type BillDto struct {
 }
 
 type BillMemberDto struct {
-	UserID     int64 `json:",omitempty"`
-	ContactID  int64 `json:",omitempty"`
+	UserID     string              `json:",omitempty"`
+	ContactID  string              `json:",omitempty"`
 	Amount     decimal.Decimal64p2
 	Paid       decimal.Decimal64p2 `json:",omitempty"`
 	Share      int                 `json:",omitempty"`
@@ -106,8 +107,8 @@ type PhoneInfo struct {
 
 type ContactDetailsDto struct {
 	ContactListDto
-	Email *EmailInfo `json:",omitempty"`
-	Phone *PhoneInfo `json:",omitempty"`
+	Email  *EmailInfo        `json:",omitempty"`
+	Phone  *PhoneInfo        `json:",omitempty"`
 	TransfersResultDto
 	Groups []ContactGroupDto `json:",omitempty"`
 }
@@ -118,7 +119,7 @@ type TransfersResultDto struct {
 }
 
 type TransferDto struct {
-	Id            int64
+	Id            string
 	Created       time.Time
 	Amount        models.Amount
 	IsReturn      bool
@@ -153,7 +154,7 @@ type CreateTransferResponse struct {
 
 func TransferToDto(userID int64, transfer models.Transfer) *TransferDto {
 	transferDto := TransferDto{
-		Id:            transfer.ID,
+		Id:            strconv.FormatInt(transfer.ID, 10),
 		Amount:        transfer.GetAmount(),
 		Created:       transfer.DtCreated,
 		CreatorUserID: transfer.CreatorUserID,
@@ -164,8 +165,8 @@ func TransferToDto(userID int64, transfer models.Transfer) *TransferDto {
 	from := NewContactDto(*transfer.From())
 	to := NewContactDto(*transfer.To())
 
-	switch userID {
-	case 0:
+	switch strconv.FormatInt(userID, 10) {
+	case "0":
 		transferDto.From = &from
 		transferDto.To = &to
 	case from.UserID:
@@ -191,21 +192,21 @@ type GroupDto struct {
 
 type GroupMemberDto struct {
 	ID        string
-	UserID    int64  `json:",omitempty"`
-	ContactID int64  `json:",omitempty"`
+	UserID    string  `json:",omitempty"`
+	ContactID string  `json:",omitempty"`
 	Name      string `json:",omitempty"`
 }
 
 type ContactGroupDto struct {
 	ID           string
 	Name         string
-	MemberID     int64
+	MemberID     string
 	MembersCount int
 }
 
 type CounterpartyDto struct {
 	Id      int64
-	UserID  int64 `json:",omitempty"`
+	UserID  int64            `json:",omitempty"`
 	Name    string
 	Balance *json.RawMessage `json:",omitempty"`
 }
@@ -215,7 +216,7 @@ type Record struct {
 	Counterparties         []CounterpartyDto
 	Transfers              int
 	CountOfReceiptsCreated int
-	InvitedByUser          *struct {
+	InvitedByUser *struct {
 		Id   int64
 		Name string
 	} `json:",omitempty"`

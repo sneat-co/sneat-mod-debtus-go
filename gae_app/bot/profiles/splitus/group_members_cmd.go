@@ -67,7 +67,7 @@ func groupMembersCard(
 		}
 
 		for i, member := range members {
-			if member.TgUserID == 0 {
+			if member.TgUserID == "" {
 				fmt.Fprintf(&buffer, `  %d. %v`, i+1, member.Name) // TODO: Do a proper padding with 0 on left of #
 			} else {
 				fmt.Fprintf(&buffer, `  %d. <a href="tg://user?id=%d">%v</a>`, i+1, member.TgUserID, member.Name)

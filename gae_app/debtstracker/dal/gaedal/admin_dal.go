@@ -88,6 +88,8 @@ func (_ AdminDalGae) DeleteAll(c context.Context, botCode, botChatID string) err
 		models.LoginCodeKind,
 		models.LoginPinKind,
 		models.GroupKind,
+		models.BillKind,
+		models.BillScheduleKind,
 		//viber_bot.ViberChatKind,
 		//viber_bot.ViberUserKind,
 		viber_bot.ViberUserChatKind,

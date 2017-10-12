@@ -42,7 +42,7 @@ func TestCreateBillPanicOnNilBill(t *testing.T) {
 func TestCreateBillErrorNoMembers(t *testing.T) {
 	dal.Bill = dalmocks.NewBillDalMock()
 	billEntity := createGoodBillSplitByPercentage(t)
-	billEntity.SetBillMembers([]models.BillMemberJson{})
+	billEntity.setBillMembers([]models.BillMemberJson{})
 	bill, err := Bill.CreateBill(context.Background(), context.Background(), billEntity)
 	if err != nil {
 		if !strings.Contains(err.Error(), "members") {
@@ -100,7 +100,7 @@ func TestCreateBillAmountError(t *testing.T) {
 	members := billEntity.GetBillMembers()
 	billEntity.AmountTotal += 5
 	members[0].Paid += 5
-	billEntity.SetBillMembers(members)
+	billEntity.setBillMembers(members)
 	bill, err := Bill.CreateBill(context.Background(), context.Background(), billEntity)
 	if err == nil {
 		t.Error("Error expected")
@@ -155,7 +155,7 @@ func TestCreateBillMemberNegativeAmountError(t *testing.T) {
 	billEntity := createGoodBillSplitByPercentage(t)
 	members := billEntity.GetBillMembers()
 	members[3].Owes *= -1
-	billEntity.SetBillMembers(members)
+	billEntity.setBillMembers(members)
 	billEntity.AmountTotal += members[3].Owes
 	bill, err := Bill.CreateBill(context.Background(), context.Background(), billEntity)
 	if err == nil {
@@ -177,7 +177,7 @@ func TestCreateBillTooManyMembersError(t *testing.T) {
 	members[0].Paid = billEntity.AmountTotal / 2
 	members[1].Paid = billEntity.AmountTotal / 2
 	members[2].Paid = billEntity.AmountTotal / 2
-	if err := billEntity.SetBillMembers(members); err != nil {
+	if err := billEntity.setBillMembers(members); err != nil {
 		t.Error(err)
 	}
 	c := context.Background()
@@ -264,7 +264,7 @@ func createGoodBillSplitByPercentage(t *testing.T) (billEntity *models.BillEntit
 	billEntity.Currency = "EUR"
 
 	percent := 25
-	if err := billEntity.SetBillMembers([]models.BillMemberJson{
+	if err := billEntity.setBillMembers([]models.BillMemberJson{
 		{Owes: 212, MemberJson: models.MemberJson{ID: "1", Shares: percent, UserID: 1, Name: "First member"}, Paid: billEntity.AmountTotal},
 		{Owes: 212, MemberJson: models.MemberJson{ID: "2", Shares: percent, UserID: 3, Name: "Second contact", ContactByUser: models.MemberContactsJsonByUser{"1": models.MemberContactJson{ContactID: 2, ContactName: "Second contact"}}}},
 		{Owes: 212, MemberJson: models.MemberJson{ID: "3", Shares: percent, UserID: 5, Name: "Fifth user", ContactByUser: models.MemberContactsJsonByUser{"1": models.MemberContactJson{ContactID: 4, ContactName: "Forth contact"}}}},
@@ -284,7 +284,7 @@ func createGoodBillSplitEqually(t *testing.T) (billEntity *models.BillEntity, er
 	billEntity.AmountTotal = 637
 	billEntity.Currency = "EUR"
 
-	if err = billEntity.SetBillMembers([]models.BillMemberJson{
+	if err = billEntity.setBillMembers([]models.BillMemberJson{
 		{Owes: 213, MemberJson: models.MemberJson{ID: "1", UserID: 1, Name: "First user"}, Paid: billEntity.AmountTotal},
 		{Owes: 212, MemberJson: models.MemberJson{ID: "2", ContactByUser: models.MemberContactsJsonByUser{"1": models.MemberContactJson{ContactID: 2}}}},
 		{Owes: 212, MemberJson: models.MemberJson{ID: "3", ContactByUser: models.MemberContactsJsonByUser{"1": models.MemberContactJson{ContactID: 4}}}},
@@ -303,7 +303,7 @@ func createGoodBillSplitByShare(t *testing.T) (billEntity *models.BillEntity, er
 	billEntity.AmountTotal = 636
 	billEntity.Currency = "EUR"
 
-	if err = billEntity.SetBillMembers([]models.BillMemberJson{
+	if err = billEntity.setBillMembers([]models.BillMemberJson{
 		{Owes: 212, MemberJson: models.MemberJson{ID: "1", Shares: 2, UserID: 1, Name: "First user"}, Paid: billEntity.AmountTotal},
 		{Owes: 106, MemberJson: models.MemberJson{ID: "2", Shares: 1, ContactByUser: models.MemberContactsJsonByUser{"1": models.MemberContactJson{ContactID: 2}}}},
 		{Owes: 318, MemberJson: models.MemberJson{ID: "3", Shares: 3, ContactByUser: models.MemberContactsJsonByUser{"1": models.MemberContactJson{ContactID: 4}}}},
@@ -322,7 +322,7 @@ func createGoodBillSplitWithAdjustments(t *testing.T) (billEntity *models.BillEn
 	billEntity.AmountTotal = 636
 	billEntity.Currency = "EUR"
 
-	if err = billEntity.SetBillMembers([]models.BillMemberJson{
+	if err = billEntity.setBillMembers([]models.BillMemberJson{
 		{Owes: 202, MemberJson: models.MemberJson{ID: "1", UserID: 1, Name: "First user"}, Paid: billEntity.AmountTotal},
 		{Owes: 212, MemberJson: models.MemberJson{ID: "2", ContactByUser: models.MemberContactsJsonByUser{"1": models.MemberContactJson{ContactID: 2}}}, Adjustment: 10},
 		{Owes: 222, MemberJson: models.MemberJson{ID: "3", ContactByUser: models.MemberContactsJsonByUser{"1": models.MemberContactJson{ContactID: 4}}}, Adjustment: 20},
@@ -342,7 +342,7 @@ func TestCreateBillEquallyTooManyAmountsError(t *testing.T) {
 	}
 	members := billEntity.GetBillMembers()
 	members[1].Owes -= decimal.NewDecimal64p2FromFloat64(0.01)
-	billEntity.SetBillMembers(members)
+	billEntity.setBillMembers(members)
 	bill, err := Bill.CreateBill(context.Background(), context.Background(), billEntity)
 	if err == nil {
 		t.Error("Error expected")
@@ -367,7 +367,7 @@ func TestCreateBillEquallyAmountDeviateTooMuchError(t *testing.T) {
 	members := billEntity.GetBillMembers()
 	members[0].Owes += decimal.NewDecimal64p2FromFloat64(0.01)
 	members[1].Owes -= decimal.NewDecimal64p2FromFloat64(0.01)
-	billEntity.SetBillMembers(members)
+	billEntity.setBillMembers(members)
 	bill, err := Bill.CreateBill(context.Background(), context.Background(), billEntity)
 	if err == nil {
 		t.Error("Error expected")
@@ -427,7 +427,7 @@ func TestCreateBillAdjustmentTotalAdjustmentIsTooBigError(t *testing.T) {
 	members := billEntity.GetBillMembers()
 	members[1].Adjustment += decimal.NewDecimal64p2FromFloat64(4.15)
 	members[2].Adjustment += decimal.NewDecimal64p2FromFloat64(3.16)
-	billEntity.SetBillMembers(members)
+	billEntity.setBillMembers(members)
 	bill, err := Bill.CreateBill(context.Background(), context.Background(), billEntity)
 	if err == nil {
 		t.Error("Error expected")
@@ -450,7 +450,7 @@ func TestCreateBillAdjustmentMemberAdjustmentIsTooBigError(t *testing.T) {
 	}
 	members := billEntity.GetBillMembers()
 	members[1].Adjustment += decimal.NewDecimal64p2FromFloat64(7.19)
-	billEntity.SetBillMembers(members)
+	billEntity.setBillMembers(members)
 	bill, err := Bill.CreateBill(context.Background(), context.Background(), billEntity)
 	if err == nil {
 		t.Error("Error expected")
@@ -473,7 +473,7 @@ func TestCreateBillAdjustmentAmountDeviateTooMuchError(t *testing.T) {
 	}
 	members := billEntity.GetBillMembers()
 	members[1].Adjustment += decimal.NewDecimal64p2FromFloat64(0.10)
-	billEntity.SetBillMembers(members)
+	billEntity.setBillMembers(members)
 	bill, err := Bill.CreateBill(context.Background(), context.Background(), billEntity)
 	if err == nil {
 		t.Error("Error expected")
@@ -513,7 +513,7 @@ func TestCreateBillShareAmountDeviateTooMuchError(t *testing.T) {
 	members := billEntity.GetBillMembers()
 	members[1].Owes += decimal.NewDecimal64p2FromFloat64(0.10)
 	members[2].Owes -= decimal.NewDecimal64p2FromFloat64(0.10)
-	billEntity.SetBillMembers(members)
+	billEntity.setBillMembers(members)
 	bill, err := Bill.CreateBill(context.Background(), context.Background(), billEntity)
 	if err == nil {
 		t.Error("Error expected")

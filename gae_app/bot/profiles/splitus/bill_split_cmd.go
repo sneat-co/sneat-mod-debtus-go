@@ -12,28 +12,28 @@ import (
 	"net/url"
 )
 
-const BILL_SPLIT_COMMAND = "bill-split"
+const BILL_SHARES_COMMAND = "bill_shares"
 
-var billSplitCommand = bot_shared.BillCallbackCommand(BILL_SPLIT_COMMAND,
+var billSharesCommand = bot_shared.BillCallbackCommand(BILL_SHARES_COMMAND,
 	func(whc bots.WebhookContext, callbackURL *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
 		whc.LogRequest()
 		c := whc.Context()
+		members := bill.GetBillMembers()
 		return editSplitCallbackAction(
 			whc, callbackURL,
-			bot_shared.BillCallbackCommandData(BILL_SPLIT_COMMAND, bill.ID),
+			bot_shared.BillCallbackCommandData(BILL_SHARES_COMMAND, bill.ID),
 			bot_shared.BillCardCallbackCommandData(bill.ID),
 			trans.MESSAGE_TEXT_ASK_HOW_TO_SPLIT_IN_GROP,
-			bill.GetMembers(),
+			members,
 			bill.TotalAmount(),
 			func(buffer *bytes.Buffer) error {
 				return bot_shared.WriteBillCardTitle(c, bill, whc.GetBotCode(), buffer, whc)
 			},
-			func(memberID string, addValue int) (member models.MemberJson, err error) {
+			func(memberID string, addValue int) (member models.BillMemberJson, err error) {
 				err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 					if bill, err = dal.Bill.GetBillByID(c, bill.ID); err != nil {
 						return
 					}
-					members := bill.GetBillMembers()
 					for i, m := range members {
 						if m.ID == memberID {
 							m.Shares += addValue
@@ -41,11 +41,14 @@ var billSplitCommand = bot_shared.BillCallbackCommand(BILL_SPLIT_COMMAND,
 								m.Shares = 0
 							}
 							members[i] = m
-							bill.SetBillMembers(members)
+							bill.SplitMode = models.SplitModeShare
+							if err = bill.SetBillMembers(members); err != nil {
+								return
+							}
 							if err = dal.Bill.SaveBill(c, bill); err != nil {
 								return
 							}
-							member = m.MemberJson
+							member = m
 							return err
 						}
 					}

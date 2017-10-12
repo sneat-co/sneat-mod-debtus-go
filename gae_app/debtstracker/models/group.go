@@ -8,6 +8,7 @@ import (
 	"github.com/strongo/app/gaedb"
 	"google.golang.org/appengine/datastore"
 	"strings"
+	"github.com/strongo/decimal"
 )
 
 const GroupKind = "Group"
@@ -27,13 +28,17 @@ func (group Group) Entity() interface{} {
 }
 
 func (group Group) SetEntity(entity interface{}) {
-	group.GroupEntity = entity.(*GroupEntity)
+	if entity == nil {
+		group.GroupEntity = nil
+	} else {
+		group.GroupEntity = entity.(*GroupEntity)
+	}
 }
 
 var _ db.EntityHolder = (*Group)(nil)
 
 type GroupEntity struct {
-	CreatorUserID       int64
+	CreatorUserID       string
 	//IsUser2User         bool   `datastore:",noindex"`
 	Name                string `datastore:",noindex"`
 	Note                string `datastore:",noindex"`
@@ -44,28 +49,61 @@ type GroupEntity struct {
 	TelegramGroupsCount int    `datastore:"TgGroupsCount,noindex"`
 	TelegramGroupsJson  string `datastore:"TgGroupsJson,noindex"`
 	billsHolder
-	BalanceJson         string `datastore:",noindex"`
 }
 
-func (entity *GroupEntity) GetBalance() (balance GroupBalanceByCurrencyAndMember, err error) {
-	balance = make(GroupBalanceByCurrencyAndMember)
-	return balance, ffjson.Unmarshal([]byte(entity.BalanceJson), &balance)
-}
+func (entity *GroupEntity) ApplyBillBalanceDifference(diff BillBalanceDifference, currency Currency) (changed bool, err error) {
+	if currency == "" {
+		panic("currency parameter is required")
+	}
+	if strings.TrimSpace(string(currency)) != string(currency) {
+		panic("currency parameter has leading ot closing spaces: " + currency)
+	}
 
-func (entity *GroupEntity) SetBalance(balance GroupBalanceByCurrencyAndMember) (changed bool) {
-	if balance == nil || len(balance) == 0 {
-		if changed = entity.BalanceJson != ""; changed {
-			entity.BalanceJson = ""
-		}
-	} else if data, err := ffjson.Marshal(balance); err != nil {
-		panic(err)
-	} else {
-		s := string(data)
-		if changed = entity.BalanceJson != s; changed {
-			entity.BalanceJson = s
+	groupMembers := entity.GetGroupMembers()
+
+	var (
+		totalOwes, minOwes, maxOwes decimal.Decimal64p2
+	)
+
+	for i := range groupMembers {
+		groupMemberID := groupMembers[i].ID
+
+		if diffMember, ok := diff[groupMemberID]; ok {
+			delete(diff, groupMemberID)
+			if diffMember.Paid == 0 && diffMember.Owes == 0 {
+				panic("diffMember.Paid == 0 && diffMember.Owes == 0, memberID: " + groupMemberID)
+			}
+			{	// Calculate totals + max&min for integrity check
+				totalOwes += diffMember.Owes
+				if diffMember.Owes > maxOwes {
+					maxOwes = diffMember.Owes
+				}
+				if diffMember.Owes < minOwes {
+					minOwes = diffMember.Owes
+				}
+			}
+			diff := diffMember.Paid - diffMember.Owes
+			if groupMembers[i].Balance == nil || len(groupMembers) == 0 {
+				groupMembers[i].Balance = Balance{currency: diff}
+			} else {
+				groupMembers[i].Balance[currency] += diff
+				if len(groupMembers[i].Balance) == 0 {
+					groupMembers[i].Balance = nil
+				}
+			}
 		}
 	}
-	return
+
+	if len(diff) > 0 {
+		err = errors.WithMessage(ErrNonGroupMember, fmt.Sprintf("%v", diff))
+		return
+	}
+
+	if totalOwes != 0 && minOwes < 0 && maxOwes > 0 {
+		err = errors.WithMessage(ErrBillOwesDiffTotalIsNotZero, fmt.Sprintf("%v", totalOwes))
+		return
+	}
+	return entity.SetGroupMembers(groupMembers), err
 }
 
 func (entity *GroupEntity) GetTelegramGroups() (tgGroups []GroupTgChatJson, err error) {
@@ -100,11 +138,11 @@ func (entity *GroupEntity) SetTelegramGroups(tgGroups []GroupTgChatJson) (change
 	return
 }
 
-func (entity *GroupEntity) AddOrGetMember(userID, contactID int64, name string) (isNew, changed bool, index int, member GroupMemberJson, groupMembers []GroupMemberJson) {
+func (entity *GroupEntity) AddOrGetMember(userID, contactID, name string) (isNew, changed bool, index int, member GroupMemberJson, groupMembers []GroupMemberJson) {
 	members := entity.GetMembers()
 	groupMembers = entity.GetGroupMembers()
 	var m MemberJson
-	if index, m, isNew, changed = addOrGetMember(members, userID, contactID, name); isNew {
+	if index, m, isNew, changed = addOrGetMember(members, "", userID, contactID, name); isNew {
 		member = GroupMemberJson{
 			MemberJson: m,
 		}
@@ -122,13 +160,13 @@ func (entity *GroupEntity) AddOrGetMember(userID, contactID int64, name string) 
 	return
 }
 
-func addOrGetMember(members []MemberJson, userID, contactID int64, name string) (index int, member MemberJson, isNew, changed bool) {
-	if userID != 0 || contactID != 0 {
+func addOrGetMember(members []MemberJson, memberID, userID, contactID, name string) (index int, member MemberJson, isNew, changed bool) {
+	if userID != "" || contactID != "" {
 		for i, m := range members {
-			if m.UserID == userID {
+			if m.ID == memberID || m.UserID == userID {
 				member = m
 				index = i
-				if contactID != 0 {
+				if contactID != "" {
 					for _, cID := range m.ContactIDs {
 						if cID == contactID {
 							goto contactFound
@@ -141,7 +179,7 @@ func addOrGetMember(members []MemberJson, userID, contactID int64, name string) 
 				member = m
 				index = i
 				return
-			} else if contactID != 0 {
+			} else if contactID != "" {
 				for _, cID := range m.ContactIDs {
 					if cID == contactID {
 						member = m
@@ -153,21 +191,24 @@ func addOrGetMember(members []MemberJson, userID, contactID int64, name string) 
 		}
 	}
 	member = MemberJson{
+		ID: memberID,
 		Name:   name,
 		UserID: userID,
 	}
-	for j := 0; j < 100; j++ {
-		member.ID = db.RandomStringID(7)
-		for _, m := range members {
-			if m.ID == member.ID {
-				goto duplicate
-			}
-		}
-		break
-	duplicate:
-	}
 	if member.ID == "" {
-		panic("Failed to generate random member ID")
+		for j := 0; j < 100; j++ {
+			member.ID = db.RandomStringID(7)
+			for _, m := range members {
+				if m.ID == member.ID {
+					goto duplicate
+				}
+			}
+			break
+		duplicate:
+		}
+		if member.ID == "" {
+			panic("Failed to generate random member ID")
+		}
 	}
 	return len(members), member, true, true
 }
@@ -226,7 +267,7 @@ func (entity *GroupEntity) TotalShares() (n int) {
 	return
 }
 
-func (entity *GroupEntity) UserIsMember(userID int64) bool {
+func (entity *GroupEntity) UserIsMember(userID string) bool {
 	for _, m := range entity.GetGroupMembers() {
 		if m.UserID == userID {
 			return true
@@ -235,21 +276,38 @@ func (entity *GroupEntity) UserIsMember(userID int64) bool {
 	return false
 }
 
-func (entity *GroupEntity) SetGroupMembers(members []GroupMemberJson) {
-	if err := entity.validateMembers(members, len(members)); err != nil {
-		panic(err.Error())
+func (entity *GroupEntity) SetGroupMembers(members []GroupMemberJson) (changed bool) {
+	if len(members) == 0 {
+		if changed = entity.MembersJson != ""; changed {
+			entity.members = make([]GroupMemberJson, 0)
+			entity.MembersJson = ""
+			entity.MembersCount = 0
+		}
+		return
 	}
-
+	if err := entity.validateMembers(members, len(members)); err != nil {
+		panic(err)
+	}
 	if data, err := ffjson.Marshal(members); err != nil {
 		ffjson.Pool(data)
-		panic(err.Error())
-	} else {
-		entity.MembersJson = (string)(data)
+		panic(err)
+	} else if membersJson := (string)(data); membersJson != entity.MembersJson {
 		ffjson.Pool(data)
+		if membersJson == "[]" {
+			if entity.MembersJson == "" {
+				return
+			}
+			membersJson = ""
+		}
+		changed = true
+		entity.MembersJson = membersJson
 		entity.members = make([]GroupMemberJson, len(members))
 		copy(entity.members, members)
 		entity.MembersCount = len(members)
+	} else {
+		ffjson.Pool(data)
 	}
+	return
 }
 
 func (entity *GroupEntity) validateMembers(members []GroupMemberJson, membersCount int) error {
@@ -264,8 +322,8 @@ func (entity *GroupEntity) validateMembers(members []GroupMemberJson, membersCou
 
 	totalBalance := make(Balance)
 
-	userIDs := make(map[int64]Empty, entity.MembersCount)
-	contactIDs := make(map[int64]Empty, entity.MembersCount)
+	userIDs := make(map[string]Empty, entity.MembersCount)
+	contactIDs := make(map[string]Empty, entity.MembersCount)
 
 	memberIDs := make(map[string]Empty, entity.MembersCount)
 
@@ -277,10 +335,10 @@ func (entity *GroupEntity) validateMembers(members []GroupMemberJson, membersCou
 			return fmt.Errorf("members[%d]: Duplicate ID: %d", i, m.ID)
 		}
 		memberIDs[m.ID] = EMPTY
-		if m.UserID == 0 && len(m.ContactIDs) == 0 {
+		if m.UserID == "" && len(m.ContactIDs) == 0 {
 			return fmt.Errorf("members[%d]: m.UserID == 0 && len(m.ContactIDs) == 0", i)
 		}
-		if m.UserID != 0 {
+		if m.UserID != "" {
 			if _, ok := userIDs[m.UserID]; ok {
 				return fmt.Errorf("members[%d]: Duplicate UserID: %d", i, m.UserID)
 			}
@@ -301,7 +359,7 @@ func (entity *GroupEntity) validateMembers(members []GroupMemberJson, membersCou
 	// Validate total balance is 0
 	for currency, amount := range totalBalance {
 		if amount != 0 {
-			return fmt.Errorf("group has non zero balance for %v=%v", currency, amount)
+			return errors.WithMessage(GroupTotalBalanceHasNonZeroValue, fmt.Sprintf("%v=%v", currency, amount))
 		}
 	}
 	return nil
@@ -320,7 +378,7 @@ func (entity *GroupEntity) Load(ps []datastore.Property) (err error) {
 }
 
 func (entity *GroupEntity) Save() ([]datastore.Property, error) {
-	if entity.CreatorUserID == 0 {
+	if entity.CreatorUserID == "" {
 		return nil, errors.New("CreatorUserID == 0")
 	}
 	if strings.TrimSpace(entity.Name) == "" {

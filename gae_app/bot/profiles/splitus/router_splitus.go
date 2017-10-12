@@ -76,7 +76,7 @@ var Router bots.WebhooksRouter = bots.NewWebhookRouter(
 			bot_shared.NewBillCommand(botParams),
 			groupMembersCommand,
 			billsCommand,
-			billSplitCommand,
+			billSharesCommand,
 			billSplitModesListCommand,
 			finalizeBillCommand,
 			billChangeSplitModeCommand,

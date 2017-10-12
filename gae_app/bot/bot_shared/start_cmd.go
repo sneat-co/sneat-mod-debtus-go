@@ -13,6 +13,7 @@ import (
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"golang.org/x/net/context"
 	"net/url"
+	"strconv"
 )
 
 func startCommand(botParams BotParams) bots.Command {
@@ -126,7 +127,7 @@ func createGroupFromTelegram(whc bots.WebhookContext, chatEntity *models.DtTeleg
 		}
 	}
 
-	userID := whc.AppUserIntID()
+	userID := whc.AppUserStrID()
 	groupEntity := models.GroupEntity{
 		CreatorUserID: userID,
 		Name:          tgChat.Title,
@@ -154,8 +155,8 @@ func createGroupFromTelegram(whc bots.WebhookContext, chatEntity *models.DtTeleg
 			hasTgGroupEntity = true
 			return dal.Group.GetGroupByID(c, tgGroup.UserGroupID)
 		}
-		_, _, idx, member, members := groupEntity.AddOrGetMember(userID, 0, user.FullName())
-		member.TgUserID = int64(whc.Input().GetSender().GetID().(int))
+		_, _, idx, member, members := groupEntity.AddOrGetMember(userID, "", user.FullName())
+		member.TgUserID = strconv.FormatInt(int64(whc.Input().GetSender().GetID().(int)), 10)
 		members[idx] = member
 		groupEntity.SetGroupMembers(members)
 		return
@@ -175,7 +176,7 @@ func createGroupFromTelegram(whc bots.WebhookContext, chatEntity *models.DtTeleg
 		}
 
 		_ = user.AddGroup(group, whc.GetBotCode())
-		chatEntity.UserGroupID = group.ID
+		chatEntity.UserGroupID = group.ID  // TODO: !!! has to be updated in transaction!!!
 		if err = whc.SaveBotChat(c, whc.GetBotCode(), whc.MustBotChatID(), chatEntity); err != nil {
 			return
 		}

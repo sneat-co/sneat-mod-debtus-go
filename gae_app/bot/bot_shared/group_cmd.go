@@ -8,6 +8,7 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"net/url"
+	"strconv"
 )
 
 const GROUP_COMMAND = "group"
@@ -55,7 +56,7 @@ var groupCommand = bots.NewCallbackCommand(GROUP_COMMAND,
 		do := query.Get("do")
 		switch do {
 		case "leave":
-			if _, _, err = facade.Group.LeaveGroup(c, group.ID, whc.AppUserIntID()); err != nil {
+			if _, _, err = facade.Group.LeaveGroup(c, group.ID, strconv.FormatInt(whc.AppUserIntID(), 10)); err != nil {
 				return
 			}
 			return groupsAction(whc, true, 0)

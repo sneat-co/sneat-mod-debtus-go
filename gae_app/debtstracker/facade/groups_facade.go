@@ -13,6 +13,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/taskqueue"
+	"strconv"
 )
 
 type groupFacade struct {
@@ -27,7 +28,11 @@ func (groupFacade groupFacade) CreateGroup(c context.Context,
 	afterGroupInsert func(c context.Context, group models.Group, user models.AppUser) (err error),
 ) (group models.Group, groupMember models.GroupMember, err error) {
 	if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-		user, err := dal.User.GetUserByID(c, groupEntity.CreatorUserID)
+		var intUserID int64
+		if intUserID, err = strconv.ParseInt(groupEntity.CreatorUserID, 10, 64); err != nil {
+			return err
+		}
+		user, err := dal.User.GetUserByID(c, intUserID)
 		if err != nil {
 			return err
 		}
@@ -40,7 +45,7 @@ func (groupFacade groupFacade) CreateGroup(c context.Context,
 		}
 
 		var groupMembersChanged bool
-		groupMembersChanged, _, memberIndex, member, members := groupEntity.AddOrGetMember(groupEntity.CreatorUserID, 0, user.FullName())
+		groupMembersChanged, _, memberIndex, member, members := groupEntity.AddOrGetMember(groupEntity.CreatorUserID, "", user.FullName())
 		member.Shares = 1
 		members[memberIndex] = member
 		groupEntity.SetGroupMembers(members)
@@ -120,7 +125,7 @@ func (groupFacade) AddUsersToTheGroupAndOutstandingBills(c context.Context, grou
 		}
 		j := 0
 		for _, newUser := range newUsers {
-			_, isChanged, _, _, groupMembers := group.AddOrGetMember(newUser.GetAppUserIntID(), 0, newUser.Name)
+			_, isChanged, _, _, groupMembers := group.AddOrGetMember(strconv.FormatInt(newUser.GetAppUserIntID(), 10), "", newUser.Name)
 			changed = changed || isChanged
 			if isChanged {
 				group.SetGroupMembers(groupMembers)
@@ -159,14 +164,14 @@ func updateGroupUsers(c context.Context, groupID string) error {
 		return nil
 	}
 
-	log.Debugf(c, "updateGroupUsers(groupID=%d)", groupID)
+	log.Debugf(c, "updateGroupUsers(groupID=%v)", groupID)
 	group, err := dal.Group.GetGroupByID(c, groupID)
 	if err != nil {
 		return err
 	}
 	var tasks []*taskqueue.Task
 	for _, member := range group.GetGroupMembers() {
-		if member.UserID != 0 {
+		if member.UserID != "" {
 			task, err := gae.CreateDelayTask(common.QUEUE_USERS, "update-user-with-groups", delayUpdateUserWithGroups, member.UserID, []string{groupID}, []string{})
 			if err != nil {
 				return err
@@ -180,7 +185,7 @@ func updateGroupUsers(c context.Context, groupID string) error {
 
 var delayUpdateUserWithGroups = delay.Func("UpdateUserWithGroups", delayedUpdateUserWithGroups)
 
-func delayedUpdateUserWithGroups(c context.Context, userID int64, groupIDs2add, groupIDs2remove []string) (err error) {
+func delayedUpdateUserWithGroups(c context.Context, userID string, groupIDs2add, groupIDs2remove []string) (err error) {
 	log.Debugf(c, "delayedUpdateUserWithGroups(userID=%d, groupIDs2add=%v, groupIDs2remove=%v)", userID, groupIDs2add, groupIDs2remove)
 	groups2add := make([]models.Group, len(groupIDs2add))
 	for i, groupID := range groupIDs2add {
@@ -190,7 +195,7 @@ func delayedUpdateUserWithGroups(c context.Context, userID int64, groupIDs2add, 
 	}
 	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 		var user models.AppUser
-		if user, err = dal.User.GetUserByID(c, userID); err != nil {
+		if user, err = dal.User.GetUserByStrID(c, userID); err != nil {
 			return
 		}
 		return User.UpdateUserWithGroups(c, user, groups2add, groupIDs2remove)
@@ -265,7 +270,7 @@ func (userFacade) UpdateContactWithGroups(c context.Context, contactID int64, ad
 	}
 }
 
-func (groupFacade) LeaveGroup(c context.Context, groupID string, userID int64) (group models.Group, user models.AppUser, err error) {
+func (groupFacade) LeaveGroup(c context.Context, groupID string, userID string) (group models.Group, user models.AppUser, err error) {
 	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 		if group, err = dal.Group.GetGroupByID(c, groupID); err != nil {
 			return
@@ -285,7 +290,7 @@ func (groupFacade) LeaveGroup(c context.Context, groupID string, userID int64) (
 				return
 			}
 		}
-		if user, err = dal.User.GetUserByID(c, userID); err != nil {
+		if user, err = dal.User.GetUserByStrID(c, userID); err != nil {
 			return
 		}
 		groups := user.ActiveGroups()

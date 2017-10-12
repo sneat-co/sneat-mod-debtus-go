@@ -16,15 +16,21 @@ const GROUP_SPLIT_COMMAND = "group-split"
 var groupSplitCommand = bot_shared.GroupCallbackCommand(GROUP_SPLIT_COMMAND,
 	func(whc bots.WebhookContext, callbackURL *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
+
+		members := group.GetMembers()
+		billMembers := make([]models.BillMemberJson, len(members))
+		for i, m := range members {
+			billMembers[i].MemberJson = m
+		}
 		return editSplitCallbackAction(
 			whc, callbackURL,
 			bot_shared.GroupCallbackCommandData(GROUP_SPLIT_COMMAND, group.ID),
 			bot_shared.GroupCallbackCommandData(GROUP_MEMBERS_COMMAND, group.ID),
 			trans.MESSAGE_TEXT_ASK_HOW_TO_SPLIT_IN_GROP,
-			group.GetMembers(),
+			billMembers,
 			models.Amount{},
 			nil,
-			func(memberID string, addValue int) (member models.MemberJson, err error) {
+			func(memberID string, addValue int) (member models.BillMemberJson, err error) {
 				err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 					if group, err = dal.Group.GetGroupByID(c, group.ID); err != nil {
 						return
@@ -41,7 +47,7 @@ var groupSplitCommand = bot_shared.GroupCallbackCommand(GROUP_SPLIT_COMMAND,
 							if err = dal.Group.SaveGroup(c, group); err != nil {
 								return
 							}
-							member = m.MemberJson
+							member = models.BillMemberJson{MemberJson: m.MemberJson}
 							return err
 						}
 					}

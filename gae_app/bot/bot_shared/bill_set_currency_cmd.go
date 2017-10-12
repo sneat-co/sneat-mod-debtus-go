@@ -16,7 +16,7 @@ func setBillCurrencyCommand(params BotParams) bots.Command {
 		func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
 			c := whc.Context()
 			query := callbackUrl.Query()
-			currencyCode := query.Get("currency")
+			currencyCode := models.Currency(query.Get("currency"))
 
 			if bill.Currency != currencyCode {
 				bill.Currency = currencyCode

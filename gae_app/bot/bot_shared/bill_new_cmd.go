@@ -41,14 +41,16 @@ func NewBillCommand(params BotParams) bots.Command {
 				paidAmount = amountValue
 			}
 
+			strUserID := whc.AppUserStrID()
+
 			billEntity := models.NewBillEntity(
 				models.BillCommon{
 					Status:        models.BillStatusDraft,
 					SplitMode:     models.SplitModeEqually,
-					CreatorUserID: whc.AppUserIntID(),
+					CreatorUserID: strUserID,
 					AmountTotal:   amountValue,
-					Currency:      query.Get("c"),
-					UserIDs:       []int64{whc.AppUserIntID()},
+					Currency:      models.Currency(query.Get("c")),
+					UserIDs:       []string{strUserID},
 				},
 			)
 			//tgMessage := whc.Input().(telegram_bot.TelegramWebhookInput).

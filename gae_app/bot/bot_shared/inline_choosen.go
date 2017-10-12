@@ -48,7 +48,7 @@ func createBillFromInlineChoosenResult(whc bots.WebhookContext, botParams BotPar
 
 	switch {
 	case true:
-		userID := whc.AppUserIntID()
+		userID := whc.AppUserStrID()
 		var values url.Values
 		if values, err = url.ParseQuery(resultID[len(prefix):]); err != nil {
 			return
@@ -68,7 +68,7 @@ func createBillFromInlineChoosenResult(whc bots.WebhookContext, botParams BotPar
 		amountStr := values.Get("amount")
 		amountIdx := reDecimal.FindStringIndex(amountStr)
 		amountNum := amountStr[:amountIdx[1]]
-		amountCcy := amountStr[amountIdx[1]:]
+		amountCcy := models.Currency(amountStr[amountIdx[1]:])
 
 		var amount decimal.Decimal64p2
 		if amount, err = decimal.ParseDecimal64p2(amountNum); err != nil {
@@ -77,12 +77,13 @@ func createBillFromInlineChoosenResult(whc bots.WebhookContext, botParams BotPar
 		bill := models.Bill{
 			BillEntity: &models.BillEntity{
 				BillCommon: models.BillCommon{
+
 					TgInlineMessageIDs: []string{choosenResult.GetInlineMessageID()},
 					Name:               billName,
 					AmountTotal:        amount,
 					Status:             models.STATUS_DRAFT,
 					CreatorUserID:      userID,
-					UserIDs:            []int64{userID},
+					UserIDs:            []string{userID},
 					SplitMode:          models.SplitModeEqually,
 					Currency:           amountCcy,
 				},
@@ -98,7 +99,7 @@ func createBillFromInlineChoosenResult(whc bots.WebhookContext, botParams BotPar
 		//}
 		//appUserEntity = user.(*models.AppUserEntity)
 		//_, _, _, _, members := bill.AddOrGetMember(userID, 0, appUserEntity.FullName())
-		//if err = bill.SetBillMembers(members); err != nil {
+		//if err = bill.setBillMembers(members); err != nil {
 		//	return
 		//}
 		//billMember.Paid = bill.AmountTotal
@@ -239,15 +240,17 @@ var EditedBillCardHookCommand = bots.Command{ // TODO: seems to be not used anyw
 				return err
 			}
 
-			if bill.UserGroupID() != group.ID {
-				bill.AssignToGroup(group.ID)
+			if bill.UserGroupID() != group.ID { // TODO: Should we check for empty bill.UserGroupID() or better fail?
+				if err = bill.AssignToGroup(group.ID); err != nil {
+					return err
+				}
 				changed = true
 			}
 
 			billMembers := bill.GetBillMembers()
 
 			for _, groupMember := range group.GetGroupMembers() {
-				if groupMember.UserID != 0 {
+				if groupMember.UserID != "" {
 					for _, billMember := range billMembers {
 						if billMember.UserID == groupMember.UserID {
 							goto memberFound

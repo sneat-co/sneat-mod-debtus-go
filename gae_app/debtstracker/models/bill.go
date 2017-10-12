@@ -6,6 +6,8 @@ import (
 	"google.golang.org/appengine/datastore"
 	"time"
 	"fmt"
+	"github.com/strongo/decimal"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -97,13 +99,15 @@ func (bill *Bill) SetEntity(entity interface{}) {
 }
 
 func (entity *BillEntity) Load(ps []datastore.Property) error {
-	if err := entity.BillCommon.load(ps); err != nil {
-		return err
-	}
+	ps = entity.BillCommon.load(ps)
 	return datastore.LoadStruct(entity, ps)
 }
 
 func (entity *BillEntity) Save() (properties []datastore.Property, err error) {
+	if err = entity.validateBalance(); err != nil {
+		return
+	}
+
 	if properties, err = datastore.SaveStruct(entity); err != nil {
 		return
 	}
@@ -119,9 +123,50 @@ func (entity *BillEntity) Save() (properties []datastore.Property, err error) {
 	return
 }
 
-func (entity *BillEntity) GetBalance() (BillBalanceByCurrencyAndMember){
+var (
+	ErrNegativeAmount = errors.New("negative amount")
+	ErrTotalOwedIsNotMatchingBillAmount = errors.New("total owed is not matching bill amount")
+	ErrTotalPaidIsGreaterThenBillAmount = errors.New("total paid is greater then bill amount")
+	ErrBillOwesDiffTotalIsNotZero = errors.New("total bill difference of owes is not zero")
+	ErrNonGroupMember = errors.New("non group member")
+	GroupTotalBalanceHasNonZeroValue = errors.New("group total balance has non zero value")
+)
+
+func (entity *BillEntity) validateBalance() (err error) {
+	if entity.MembersCount > 0 {
+		var (
+			totalPaid decimal.Decimal64p2
+			totalOwed decimal.Decimal64p2
+		)
+
+		for i, member := range entity.GetBillMembers() {
+			if member.Owes < 0 {
+				err = errors.WithMessage(errors.WithMessage(ErrNegativeAmount, fmt.Sprintf("members[%d]", i)), fmt.Sprintf("owes=%v", member.Owes))
+				return
+			}
+			if member.Paid < 0 {
+				err = errors.WithMessage(errors.WithMessage(ErrNegativeAmount, fmt.Sprintf("members[%d]", i)), fmt.Sprintf("paid=%v", member.Paid))
+				return
+			}
+			totalPaid += member.Paid
+			totalOwed += member.Owes
+		}
+
+		if totalOwed != entity.AmountTotal {
+			err = errors.WithMessage(ErrTotalOwedIsNotMatchingBillAmount, fmt.Sprintf("totalOwed: %v, AmountTotal: %v", totalOwed, entity.AmountTotal))
+		}
+
+		if totalPaid > entity.AmountTotal {
+			err = errors.WithMessage(ErrTotalPaidIsGreaterThenBillAmount, fmt.Sprintf("totalPaid: %v, AmountTotal: %v", totalPaid, entity.AmountTotal))
+		}
+	}
+
+	return
+}
+
+func (entity *BillEntity) GetBalance() (billBalanceByMember BillBalanceByMember){
 	members := entity.GetBillMembers()
-	totalsByMember := make(BillBalanceByMember, len(members))
+	billBalanceByMember = make(BillBalanceByMember, len(members))
 
 	for i, member := range members {
 
@@ -132,11 +177,19 @@ func (entity *BillEntity) GetBalance() (BillBalanceByCurrencyAndMember){
 		}
 
 		if member.Owes != 0 || member.Paid != 0 {
-			totalsByMember[member.ID] = BillMemberBalance{
+			billBalanceByMember[member.ID] = BillMemberBalance{
 				Owes: member.Owes,
 				Paid: member.Paid,
 			}
 		}
 	}
-	return BillBalanceByCurrencyAndMember{entity.Currency: totalsByMember}
+	return
 }
+
+func (entity *BillEntity) SetBillMembers(members []BillMemberJson) (err error) {
+	if err = entity.updateMemberOwes(members); err != nil {
+		return
+	}
+	return entity.setBillMembers(members)
+}
+

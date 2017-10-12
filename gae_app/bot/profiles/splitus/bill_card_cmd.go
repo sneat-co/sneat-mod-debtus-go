@@ -26,7 +26,7 @@ func getGroupBillCardInlineKeyboard(translator strongo.SingleLocaleTranslator, b
 			{
 				{
 					Text:         translator.Translate(trans.BUTTON_TEXT_SPLIT_MODE, translator.Translate(string(bill.SplitMode))),
-					CallbackData: bot_shared.BillCallbackCommandData(BILL_SPLIT_COMMAND, bill.ID),
+					CallbackData: bot_shared.BillCallbackCommandData(BILL_SHARES_COMMAND, bill.ID),
 				},
 			},
 			{

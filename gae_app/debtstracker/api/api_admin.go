@@ -21,8 +21,8 @@ import (
 
 func handleAdminFindUser(c context.Context, w http.ResponseWriter, r *http.Request, _ auth.AuthInfo) {
 
-	if userID, err := strconv.ParseInt(r.URL.Query().Get("userID"), 10, 64); err == nil {
-		if user, err := dal.User.GetUserByID(c, userID); err != nil {
+	if userID := r.URL.Query().Get("userID"); userID != "" {
+		if user, err := dal.User.GetUserByStrID(c, userID); err != nil {
 			log.Errorf(c, errors.Wrapf(err, "Failed to get user by ID=%v", userID).Error())
 		} else {
 			jsonToResponse(c, w, []dto.ApiUserDto{{ID: userID, Name: user.FullName()}})
@@ -47,7 +47,7 @@ func handleAdminFindUser(c context.Context, w http.ResponseWriter, r *http.Reque
 
 		for i, tgUser := range tgUsers {
 			users[i] = dto.ApiUserDto{
-				ID:   tgUser.AppUserIntID,
+				ID:   strconv.FormatInt(tgUser.AppUserIntID, 10),
 				Name: tgUser.Name(),
 			}
 		}

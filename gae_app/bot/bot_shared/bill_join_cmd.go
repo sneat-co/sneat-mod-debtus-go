@@ -15,6 +15,8 @@ import (
 	"time"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"github.com/strongo/decimal"
+	"github.com/strongo/app/db"
+	"strconv"
 )
 
 const JOIN_BILL_COMMAND = "join_bill"
@@ -35,17 +37,12 @@ func JoinBillCommand(botParams BotParams) bots.Command {
 			}
 			return joinBillAction(whc, botParams, bill, "", false)
 		},
-		CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+		CallbackAction: transactionalCallbackAction(db.CrossGroupTransaction, billCallbackAction(func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
 			c := whc.Context()
 			log.Debugf(c, "joinBillCommand.CallbackAction()")
-			var bill models.Bill
-			if bill, err = getBill(c, callbackUrl); err != nil {
-				return m, err
-			}
 			memberStatus := callbackUrl.Query().Get("i")
-
 			return joinBillAction(whc, botParams, bill, memberStatus, true)
-		},
+		})),
 	}
 }
 
@@ -55,7 +52,7 @@ func joinBillAction(whc bots.WebhookContext, botParams BotParams, bill models.Bi
 	}
 	c := whc.Context()
 	log.Debugf(c, "joinBillAction(bill.ID=%v)", bill.ID)
-	userID := whc.AppUserIntID()
+	userID := strconv.FormatInt(whc.AppUserIntID(), 10)
 
 	isAlreadyMember := func(members []models.BillMemberJson) (member models.BillMemberJson, isMember bool) {
 		for _, member = range bill.GetBillMembers() {
@@ -111,7 +108,7 @@ func joinBillAction(whc bots.WebhookContext, botParams BotParams, bill models.Bi
 	default:
 	}
 
-	if bill, _, _, isJoined, err = facade.Bill.AddBillMember(c, bill.ID, "", userID, userName, paid); err != nil {
+	if bill, _, _, isJoined, err = facade.Bill.AddBillMember(c, bill, "", userID, userName, paid); err != nil {
 		return
 	}
 

@@ -50,9 +50,7 @@ type BillScheduleEntity struct {
 }
 
 func (entity *BillScheduleEntity) Load(ps []datastore.Property) error {
-	if err := entity.BillCommon.load(ps); err != nil {
-		return err
-	}
+	ps = entity.BillCommon.load(ps)
 	return datastore.LoadStruct(entity, ps)
 }
 

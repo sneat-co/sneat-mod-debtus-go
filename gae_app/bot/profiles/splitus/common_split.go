@@ -20,10 +20,10 @@ func editSplitCallbackAction(
 	callbackURL *url.URL,
 	editCommandPrefix, backCommandPrefix string,
 	msgTextAskToSplit string,
-	members []models.MemberJson,
+	members []models.BillMemberJson,
 	totalAmount models.Amount,
 	writeTitle func(buffer *bytes.Buffer) error,
-	addShares func(memberID string, addValue int) (member models.MemberJson, err error),
+	addShares func(memberID string, addValue int) (member models.BillMemberJson, err error),
 ) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
 
@@ -31,7 +31,7 @@ func editSplitCallbackAction(
 
 	var (
 		addValue int
-		member   models.MemberJson
+		member   models.BillMemberJson
 	)
 
 	if member, addValue, err = getSplitParamsAndCurrentMember(q, members); err != nil {
@@ -46,12 +46,6 @@ func editSplitCallbackAction(
 		if member, err = addShares(member.ID, addValue); err != nil {
 			return
 		}
-		for i, m := range members {
-			if m.ID == member.ID {
-				members[i] = member
-				break
-			}
-		}
 	}
 
 	buffer := new(bytes.Buffer)
@@ -65,7 +59,7 @@ func editSplitCallbackAction(
 
 	fmt.Fprintf(buffer, "<b>%v</b>\n\n", whc.Translate(msgTextAskToSplit))
 
-	writeSplitMembers(buffer, members, member.ID, totalAmount)
+	writeSplitMembers(buffer, members, member.ID, totalAmount.Currency)
 
 	writeSplitInstructions(buffer, member.TgUserID, member.Name)
 
@@ -83,7 +77,7 @@ func editSplitCallbackAction(
 	return
 }
 
-func getSplitParamsAndCurrentMember(q url.Values, members []models.MemberJson) (member models.MemberJson, add int, err error) {
+func getSplitParamsAndCurrentMember(q url.Values, members []models.BillMemberJson) (member models.BillMemberJson, add int, err error) {
 	if len(members) == 0 {
 		err = errors.New("len(members) == 0")
 		return
@@ -98,7 +92,7 @@ func getSplitParamsAndCurrentMember(q url.Values, members []models.MemberJson) (
 		member.ID = q.Get("m")
 		var (
 			i    int
-			m    models.MemberJson
+			m    models.BillMemberJson
 			move string
 		)
 		for i, m = range members {
@@ -136,17 +130,17 @@ func getSplitParamsAndCurrentMember(q url.Values, members []models.MemberJson) (
 	return
 }
 
-func writeSplitInstructions(buffer *bytes.Buffer, tgUserID int64, memberName string) {
+func writeSplitInstructions(buffer *bytes.Buffer, tgUserID, memberName string) {
 	buffer.WriteString("Use ⬆ & ⬇ to choose a member.")
 	buffer.WriteString("\n\n")
-	if tgUserID == 0 {
+	if tgUserID == "" {
 		buffer.WriteString(fmt.Sprintf("<b>Selected:</b> %v", memberName))
 	} else {
 		buffer.WriteString(fmt.Sprintf(`<b>Selected:</b> <a href="tg://user?id=%d">%v</a>`, tgUserID, memberName))
 	}
 }
 
-func writeSplitMembers(buffer *bytes.Buffer, members []models.MemberJson, currentMemberID string, amount models.Amount) {
+func writeSplitMembers(buffer *bytes.Buffer, members []models.BillMemberJson, currentMemberID string, currency models.Currency) {
 	var totalShares int
 	for _, m := range members {
 		totalShares += m.Shares
@@ -160,11 +154,9 @@ func writeSplitMembers(buffer *bytes.Buffer, members []models.MemberJson, curren
 		} else {
 			buffer.WriteString(fmt.Sprintf("  %d. %v\n", i+1, html.EscapeString(m.Name)))
 		}
-		mAmount := amount
-		mAmount.Value = decimal.Decimal64p2(int64(amount.Value) * int64(m.Shares) / int64(totalShares))
 		buffer.WriteString(fmt.Sprintf("     <i>Shares: %d</i> — <code>%v%%</code>", m.Shares, decimal.Decimal64p2(m.Shares*100*100/totalShares)))
-		if amount.Value != 0 {
-			buffer.WriteString(" = " + mAmount.String())
+		if m.Owes != 0 {
+			buffer.WriteString(" = " + models.Amount{Currency: currency, Value: m.Owes}.String())
 		}
 		buffer.WriteString("\n\n")
 	}

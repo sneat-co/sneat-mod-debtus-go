@@ -8,13 +8,28 @@ import (
 )
 
 func GetGroup(whc bots.WebhookContext) (group models.Group, err error) {
+
+	if group.ID, err = GetUserGroupID(whc); err != nil {
+		return
+	} else if group.ID != "" {
+		return dal.Group.GetGroupByID(whc.Context(), group.ID)
+	}
+
+	tgChat := whc.Input().(telegram_bot.TelegramWebhookInput).TgUpdate().Chat()
 	var tgChatEntity *models.DtTelegramChatEntity
 	if tgChatEntity, err = getTgChatEntity(whc); err != nil {
 		return
 	}
-	if tgChatEntity.UserGroupID != "" {
-		return dal.Group.GetGroupByID(whc.Context(), tgChatEntity.UserGroupID)
+	return createGroupFromTelegram(whc, tgChatEntity, tgChat) // TODO: No need to pass tgChatEntity - need to be updated in transaction
+}
+
+func GetUserGroupID(whc bots.WebhookContext) (groupID string, err error) {
+	var tgChatEntity *models.DtTelegramChatEntity
+	if tgChatEntity, err = getTgChatEntity(whc); err != nil || tgChatEntity == nil {
+		return
 	}
-	tgChat := whc.Input().(telegram_bot.TelegramWebhookInput).TgUpdate().Chat()
-	return createGroupFromTelegram(whc, tgChatEntity, tgChat)
+	if groupID = tgChatEntity.UserGroupID; groupID != "" {
+		return
+	}
+	return
 }

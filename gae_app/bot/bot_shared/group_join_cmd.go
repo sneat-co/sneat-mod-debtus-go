@@ -12,6 +12,7 @@ import (
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"golang.org/x/net/context"
 	"net/url"
+	"strconv"
 )
 
 const JOIN_GROUP_COMMAND = "join-group"
@@ -25,10 +26,10 @@ func joinGroupCommand(params BotParams) bots.Command {
 				return
 			}
 
-			userID := whc.AppUserIntID()
+			userID := whc.AppUserStrID()
 			var appUser models.AppUser
 			if group.UserIsMember(userID) {
-				if appUser, err = dal.User.GetUserByID(c, userID); err != nil {
+				if appUser, err = dal.User.GetUserByStrID(c, userID); err != nil {
 					return
 				}
 				whc.LogRequest()
@@ -37,16 +38,15 @@ func joinGroupCommand(params BotParams) bots.Command {
 				m.BotMessage = telegram_bot.CallbackAnswer(callbackAnswer)
 			} else {
 				err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-					if appUser, err = dal.User.GetUserByID(c, userID); err != nil {
+					if appUser, err = dal.User.GetUserByStrID(c, userID); err != nil {
 						return err
 					}
-					_, changed, memberIndex, member, members := group.AddOrGetMember(userID, 0, appUser.FullName())
-					tgUserID := int64(whc.Input().GetSender().GetID().(int))
-					if member.TgUserID == 0 {
+					_, changed, memberIndex, member, members := group.AddOrGetMember(userID, "", appUser.FullName())
+					tgUserID := strconv.FormatInt(int64(whc.Input().GetSender().GetID().(int)), 10)
+					if member.TgUserID == "" {
 						member.TgUserID = tgUserID
 						changed = true
 					} else {
-
 						if tgUserID != member.TgUserID {
 							log.Errorf(c, "tgUserID:%d != member.TgUserID:%d", tgUserID, member.TgUserID)
 						}
@@ -86,7 +86,7 @@ func joinGroupCommand(params BotParams) bots.Command {
 					if len(members) > 1 {
 						groupUsersCount := 0
 						for _, m := range members {
-							if m.UserID != 0 {
+							if m.UserID != "" {
 								groupUsersCount += 1
 							}
 						}

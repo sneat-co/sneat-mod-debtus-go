@@ -53,7 +53,7 @@ func (_ billDalGae) InsertBillEntity(c context.Context, billEntity *models.BillE
 	if billEntity == nil {
 		panic("billEntity == nil")
 	}
-	if billEntity.CreatorUserID == 0 {
+	if billEntity.CreatorUserID == "" {
 		panic("CreatorUserID == 0")
 	}
 	if billEntity.AmountTotal == 0 {
@@ -94,7 +94,7 @@ var delayedUpdateBillDependencies = delay.Func("delayedUpdateBillDependencies", 
 		}
 	}
 	for _, member := range bill.GetBillMembers() {
-		if member.UserID != 0 {
+		if member.UserID != "" {
 			if err = dal.User.DelayUpdateUserWithBill(c, member.UserID, bill.ID); err != nil {
 				return
 			}

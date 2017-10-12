@@ -14,26 +14,24 @@ func (t SplitMemberTotal) Balance() decimal.Decimal64p2 {
 }
 
 type SplitBalanceByMember map[string]SplitMemberTotal
-type SplitBalanceByCurrencyAndMember map[string]SplitBalanceByMember
+type SplitBalanceByCurrencyAndMember map[models.Currency]SplitBalanceByMember
 
 func (billFacade) getBalances(splitID int64, bills []models.Bill) (balanceByCurrency SplitBalanceByCurrencyAndMember) {
 	balanceByCurrency = make(SplitBalanceByCurrencyAndMember)
 	for _, bill := range bills {
-		for currency, billBalanceByCurrencyAndMember := range bill.GetBalance() {
-			var balanceByMember SplitBalanceByMember
-			var ok bool
-
-			if balanceByMember, ok = balanceByCurrency[currency]; !ok {
-				balanceByMember = make(SplitBalanceByMember)
-				balanceByCurrency[currency] = balanceByMember
-			}
-
-			for memberID, memberBalance := range billBalanceByCurrencyAndMember {
-				memberTotal := balanceByMember[memberID]
-				memberTotal.Paid += memberBalance.Paid
-				memberTotal.Owes += memberBalance.Owes
-				balanceByMember[memberID] = memberTotal
-			}
+		var (
+			balanceByMember SplitBalanceByMember
+			ok bool
+		)
+		if balanceByMember, ok = balanceByCurrency[bill.Currency]; !ok {
+			balanceByMember = make(SplitBalanceByMember)
+			balanceByCurrency[bill.Currency] = balanceByMember
+		}
+		for memberID, memberBalance := range bill.GetBalance() {
+			memberTotal := balanceByMember[memberID]
+			memberTotal.Paid += memberBalance.Paid
+			memberTotal.Owes += memberBalance.Owes
+			balanceByMember[memberID] = memberTotal
 		}
 	}
 	return

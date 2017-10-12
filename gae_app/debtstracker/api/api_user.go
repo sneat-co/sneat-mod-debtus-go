@@ -72,7 +72,7 @@ func handleSaveVisitorData(c context.Context, w http.ResponseWriter, r *http.Req
 
 func handleMe(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo, user models.AppUser) {
 	meDto := dto.UserMeDto{
-		UserID:   authInfo.UserID,
+		UserID:   strconv.FormatInt(authInfo.UserID, 10),
 		FullName: user.FullName(),
 	}
 	if ua, err := user.GetGoogleAccount(); err != nil {

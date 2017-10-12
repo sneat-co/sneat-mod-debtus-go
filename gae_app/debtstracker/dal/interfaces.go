@@ -99,6 +99,7 @@ func CreateUserEntity(createUserData CreateUserData) (user *models.AppUserEntity
 }
 
 type UserDal interface {
+	GetUserByStrID(c context.Context, userID string) (models.AppUser, error)
 	GetUserByID(c context.Context, userID int64) (models.AppUser, error)
 	GetUsersByIDs(c context.Context, userIDs []int64) ([]models.AppUser, error)
 	GetUserByVkUserID(c context.Context, vkUserID int64) (models.AppUser, error)
@@ -108,7 +109,7 @@ type UserDal interface {
 	DelaySetUserPreferredLocale(c context.Context, delay time.Duration, userID int64, localeCode5 string) error
 	DelayUpdateUserHasDueTransfers(c context.Context, userID int64) error
 	SetLastCurrency(c context.Context, userID int64, currency models.Currency) error
-	DelayUpdateUserWithBill(c context.Context, userID int64, billID string) error
+	DelayUpdateUserWithBill(c context.Context, userID, billID string) error
 }
 
 type PasswordResetDal interface {

@@ -57,9 +57,9 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 	billEntity := models.NewBillEntity(models.BillCommon{
 		Status:        models.STATUS_DRAFT,
 		SplitMode:     splitMode,
-		CreatorUserID: authInfo.UserID,
+		CreatorUserID: strconv.FormatInt(authInfo.UserID, 10),
 		Name:          r.PostFormValue("name"),
-		Currency:      r.PostFormValue("currency"),
+		Currency:      models.Currency(r.PostFormValue("currency")),
 		AmountTotal:   amount,
 	})
 
@@ -72,15 +72,23 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 	memberUserIDs := make([]int64, 0, len(members))
 
 	for i, member := range members {
-		if member.ContactID == 0 && member.UserID == 0 {
+		if member.ContactID == "" && member.UserID == "" {
 			BadRequestMessage(c, w, fmt.Sprintf("members[%d]: ContactID == 0 && UserID == 0", i))
 			return
 		}
-		if member.ContactID != 0 {
-			contactIDs = append(contactIDs, member.ContactID)
+		if member.ContactID != "" {
+			contactID, err := strconv.ParseInt(member.ContactID, 10, 64)
+			if err != nil {
+				BadRequestError(c, w, errors.WithMessage(err, "ContactID is not an integer"))
+			}
+			contactIDs = append(contactIDs, contactID)
 		}
-		if member.UserID != 0 {
-			memberUserIDs = append(memberUserIDs, member.UserID)
+		if member.UserID != "" {
+			memberUserID, err := strconv.ParseInt(member.ContactID, 10, 64)
+			if err != nil {
+				BadRequestError(c, w, errors.WithMessage(err, "memberUserID is not an integer"))
+			}
+			memberUserIDs = append(memberUserIDs, memberUserID)
 		}
 	}
 
@@ -101,7 +109,7 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 	}
 
 	for i, member := range members {
-		if member.UserID != 0 && member.ContactID != 0 {
+		if member.UserID != "" && member.ContactID != "" {
 			BadRequestMessage(c, w, fmt.Sprintf("Member has both UserID and ContactID: %v, %v", member.UserID, member.ContactID))
 			return
 		}
@@ -114,12 +122,12 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 			Owes:       member.Amount,
 			Adjustment: member.Adjustment,
 		}
-		if member.ContactID != 0 {
+		if member.ContactID != "" {
 			for _, contact := range contacts {
-				if contact.ID == member.ContactID {
+				if strconv.FormatInt(contact.ID, 10) == member.ContactID {
 					billMembers[i].ContactByUser = models.MemberContactsJsonByUser{
 						strconv.FormatInt(contact.UserID, 10): {
-							ContactID:   contact.ID,
+							ContactID:   member.ContactID,
 							ContactName: contact.FullName(),
 						},
 					}
@@ -129,9 +137,9 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 			panic(fmt.Sprintf("Contact not found by ID=%d", member.ContactID))
 		contactFound:
 		}
-		if member.UserID != 0 {
+		if member.UserID != "" {
 			for _, u := range memberUsers {
-				if u.ID == member.UserID {
+				if strconv.FormatInt(u.ID, 10) == member.UserID {
 					billMembers[i].Name = u.FullName()
 					break
 				}
@@ -142,8 +150,13 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 		BadRequestMessage(c, w, fmt.Sprintf("Total amount is not equal to sum of member's amounts: %v != %v", amount, totalByMembers))
 		return
 	}
-	billEntity.SetBillMembers(billMembers)
+
 	billEntity.SplitMode = models.SplitModePercentage
+
+	if err = billEntity.SetBillMembers(billMembers); err != nil {
+		return
+	}
+
 
 	var bill models.Bill
 	err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {

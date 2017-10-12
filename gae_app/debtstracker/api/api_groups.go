@@ -29,7 +29,7 @@ func handlerCreateGroup(c context.Context, w http.ResponseWriter, r *http.Reques
 	note := strings.TrimSpace(r.PostForm.Get("note"))
 
 	groupEntity := models.GroupEntity{
-		CreatorUserID: authInfo.UserID,
+		CreatorUserID: strconv.FormatInt(authInfo.UserID, 10),
 		Name:          name,
 	}
 	if len(note) > 0 {
@@ -100,15 +100,18 @@ func groupsToJson(groups []models.Group, user models.AppUser) (result [][]byte, 
 					ID:   member.ID,
 					Name: member.Name,
 				}
-				if member.UserID == user.ID {
+				if member.UserID == strconv.FormatInt(user.ID, 10) {
 					memberDto.Name = ""
-					memberDto.UserID = user.ID
+					memberDto.UserID = member.UserID
 				} else if member.Name == "" {
 					err = fmt.Errorf("Group(%d) has member(id=%d) without UserID and without Name", group.ID, member.ID)
 					return
 				}
 				for _, contactID := range member.ContactIDs {
-					if _, ok := contactsByID[contactID]; ok {
+					var intContactID int64
+					if intContactID, err = strconv.ParseInt(contactID, 10, 64); err != nil {
+						return
+					} else if _, ok := contactsByID[intContactID]; ok {
 						memberDto.ContactID = contactID
 						break
 					}
@@ -157,7 +160,7 @@ func handleJoinGroups(c context.Context, w http.ResponseWriter, r *http.Request,
 				if userName == models.NO_NAME {
 					userName = ""
 				}
-				if _, changed, _, _, members := group.AddOrGetMember(authInfo.UserID, 0, userName); changed {
+				if _, changed, _, _, members := group.AddOrGetMember(strconv.FormatInt(authInfo.UserID, 10), "", userName); changed {
 					group.SetGroupMembers(members)
 					if errs[i] = dal.Group.SaveGroup(c, group); errs[i] != nil {
 						waitGroup.Done()
@@ -231,7 +234,7 @@ func handlerUpdateGroup(c context.Context, w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		if group.CreatorUserID != authInfo.UserID {
+		if group.CreatorUserID != strconv.FormatInt(authInfo.UserID, 10) {
 			err = fmt.Errorf("User is not authrized to edit this group")
 			return
 		}
@@ -324,8 +327,11 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 		var groupUserIDs []int64
 
 		addGroupUserID := func(member models.GroupMemberJson) {
-			if member.UserID != 0 && member.UserID != user.ID {
-				groupUserIDs = append(groupUserIDs, member.UserID)
+			userID := strconv.FormatInt(user.ID, 10)
+			if member.UserID != "" && member.UserID != userID {
+				var intMemberUserID int64
+				intMemberUserID, err = strconv.ParseInt(member.UserID, 10, 64)
+				groupUserIDs = append(groupUserIDs, intMemberUserID)
 			}
 		}
 
@@ -335,12 +341,12 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 			)
 			for _, member := range members {
 				for _, mContactID := range member.ContactIDs {
-					if mContactID == contact2add.ID {
+					if mContactID == strconv.FormatInt(contact2add.ID, 10) {
 						goto found
 					}
 				}
 			}
-			_, isChanged, _, _, members = group.AddOrGetMember(contact2add.CounterpartyUserID, contact2add.ID, contact2add.FullName())
+			_, isChanged, _, _, members = group.AddOrGetMember(strconv.FormatInt(contact2add.CounterpartyUserID, 10), strconv.FormatInt(contact2add.ID, 10), contact2add.FullName())
 			if isChanged {
 				changed = true
 				changedContactIDs = append(changedContactIDs, contact2add.ID)
@@ -355,12 +361,14 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 					changed = true
 					addGroupUserID(member)
 					for _, contactID := range member.ContactIDs {
+						var intContactID int64
 						for _, changedContactID := range changedContactIDs {
-							if changedContactID == contactID {
+							if strconv.FormatInt(changedContactID, 10) == contactID {
 								goto alreadyChanged
 							}
 						}
-						changedContactIDs = append(changedContactIDs, contactID)
+						intContactID, err = strconv.ParseInt(contactID, 10, 64)
+						changedContactIDs = append(changedContactIDs, intContactID)
 					alreadyChanged:
 					}
 				}

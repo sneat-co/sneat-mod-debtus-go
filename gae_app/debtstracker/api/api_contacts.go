@@ -114,9 +114,9 @@ func contactToResponse(c context.Context, w http.ResponseWriter, authInfo auth.A
 		ContactListDto: dto.ContactListDto{
 			Status: contact.Status,
 			ContactDto: dto.ContactDto{
-				ID:     contact.ID,
+				ID:     strconv.FormatInt(contact.ID, 10),
 				Name:   contact.FullName(),
-				UserID: contact.UserID,
+				UserID: strconv.FormatInt(contact.UserID, 10),
 			},
 		},
 		TransfersResultDto: dto.TransfersResultDto{
@@ -149,7 +149,7 @@ func contactToResponse(c context.Context, w http.ResponseWriter, authInfo auth.A
 			}
 			for _, member := range group.GetGroupMembers() {
 				for _, memberContactID := range member.ContactIDs {
-					if memberContactID == contact.ID {
+					if memberContactID == strconv.FormatInt(contact.ID, 10) {
 						counterpartyJson.Groups = append(counterpartyJson.Groups, dto.ContactGroupDto{
 							ID:           group.ID,
 							Name:         group.Name,

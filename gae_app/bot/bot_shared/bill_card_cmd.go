@@ -128,6 +128,16 @@ func writeBillMembersList(
 			templateName string
 			err          error
 		)
+		if member.Paid == bill.AmountTotal {
+			buffer.WriteString("<b>")
+		}
+		if err = common.HtmlTemplates.RenderTemplate(c, buffer, translator, trans.MESSAGE_TEXT_BILL_CARD_MEMBER_TITLE, templateParams); err != nil {
+			log.Errorf(c, "Failed to render template")
+			return
+		}
+		if member.Paid == bill.AmountTotal {
+			buffer.WriteString("</b>")
+		}
 
 		if selectedMemberID == "" {
 			switch {
@@ -150,7 +160,7 @@ func writeBillMembersList(
 			log.Errorf(c, "Failed to render template")
 			return
 		}
-		buffer.WriteString("\n")
+		buffer.WriteString("\n\n")
 	}
 }
 
@@ -222,6 +232,7 @@ func GetBillCardMessageText(c context.Context, botID string, translator strongo.
 	if err := WriteBillCardTitle(c, bill, botID, &buffer, translator); err != nil {
 		return "", err
 	}
+	//buffer.WriteString("\n" + strings.Repeat("―", 15))
 
 	log.Debugf(c, "GetBillCardMessageText() => showGroupMembers=%v", showMembers)
 

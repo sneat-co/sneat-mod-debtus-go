@@ -53,7 +53,7 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 	if !models.IsValidBillSplit(billEntity.SplitMode) {
 		panic(fmt.Sprintf("billEntity.SplitMode has unknown value: %v", billEntity.SplitMode))
 	}
-	if billEntity.CreatorUserID == 0 {
+	if billEntity.CreatorUserID == "" {
 		err = errors.Wrap(ErrBadInput, "billEntity.CreatorUserID == 0")
 		return
 	}
@@ -155,25 +155,31 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 						err = errors.New(fmt.Sprintf("len(members[i].ContactByUser) == 0: i==%v", i))
 						return
 					}
-					if member.UserID == 0 {
+					if member.UserID == "" {
 						if len(member.ContactByUser) == 0 {
 							err = errors.New("Bill member is missing ContactByUser ID.")
 							return
 						}
 
 						for _, counterparty := range member.ContactByUser {
-							if counterparty.ContactID == 0 {
+							if counterparty.ContactID == "" {
 								panic("counterparty.ContactID == 0")
+							}
+							var counterpartyContactID int64
+							counterpartyContactID, err = strconv.ParseInt(counterparty.ContactID, 10, 64)
+							if err != nil {
+								return
 							}
 							var duplicateContactID bool
 							for _, cID := range contactIDs {
-								if cID == counterparty.ContactID {
+								if cID == counterpartyContactID {
 									duplicateContactID = true
 									break
 								}
 							}
 							if !duplicateContactID {
-								contactIDs = append(contactIDs, counterparty.ContactID)
+
+								contactIDs = append(contactIDs, counterpartyContactID)
 							}
 						}
 					}
@@ -288,17 +294,21 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 		}
 
 		// Assign userIDs from counterparty to respective member
-		sCreatorUserID := strconv.FormatInt(billEntity.CreatorUserID, 10)
 		for _, member := range members {
 			for _, counterparty := range counterparties {
 				// TODO: assign not just for creator?
-				if member.UserID == 0 && member.ContactByUser[sCreatorUserID].ContactID == counterparty.ID {
-					member.UserID = counterparty.CounterpartyUserID
+				if member.UserID == "" && member.ContactByUser[billEntity.CreatorUserID].ContactID == strconv.FormatInt(counterparty.ID, 10) {
+					member.UserID = strconv.FormatInt(counterparty.CounterpartyUserID, 10)
 					break
 				}
 			}
 		}
-		billEntity.ContactIDs = contactIDs
+
+		billEntity.ContactIDs = make([]string, len(contactIDs))
+		for i, contactID := range contactIDs {
+			billEntity.ContactIDs[i] = strconv.FormatInt(contactID, 10)
+		}
+
 	}
 
 	if bill, err = dal.Bill.InsertBillEntity(tc, billEntity); err != nil {
@@ -308,110 +318,109 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 	return
 }
 
-func (billFacade) CreateBillTransfers(c context.Context, billID string) error {
-	bill, err := dal.Bill.GetBillByID(c, billID)
-	if err != nil {
-		return err
-	}
-
-	members := bill.GetBillMembers()
-
-	{ // Verify payers count
-		payersCount := 0
-		for _, member := range members {
-			if member.Paid != 0 {
-				payersCount += 1
-			}
-		}
-		if payersCount == 0 {
-			return ErrBillHasNoPayer
-		} else if payersCount > 1 {
-			return ErrBillHasTooManyPayers
-		}
-	}
-
-	sCreatorUserID := strconv.FormatInt(bill.CreatorUserID, 10)
-	for _, member := range members {
-		if member.Paid == 0 {
-			creatorContactID := member.ContactByUser[sCreatorUserID].ContactID
-			if err = Bill.createBillTransfer(c, billID, creatorContactID); err != nil {
-				return errors.Wrapf(err, "Failed to create bill trasfer for %d", creatorContactID)
-			}
-		}
-	}
-	return nil
-}
-
-func (billFacade) createBillTransfer(c context.Context, billID string, creatorCounterpartyID int64) error {
-	err := dal.DB.RunInTransaction(c, func(c context.Context) error {
-		bill, err := dal.Bill.GetBillByID(c, billID)
-
-		if err != nil {
-			return err
-		}
-		members := bill.GetBillMembers()
-
-		var (
-			borrower *models.BillMemberJson
-			payer    *models.BillMemberJson
-		)
-		sCreatorUserID := strconv.FormatInt(bill.CreatorUserID, 10)
-		for _, member := range members {
-			if member.Paid > 0 {
-				if payer != nil {
-					return ErrBillHasTooManyPayers
-				}
-				payer = &member
-				if borrower != nil {
-					break
-				}
-			} else if member.ContactByUser[sCreatorUserID].ContactID == creatorCounterpartyID {
-				borrower = &member
-				if payer != nil {
-					break
-				}
-			}
-		}
-		if borrower == nil {
-			return errors.New("Bill member not found by creatorCounterpartyID")
-		}
-		if payer == nil {
-			return ErrBillHasNoPayer
-		}
-		//transferSource := dal.NewTransferSourceBot("api", "no-id", "0") // TODO: Needs refactoring! Move it out of DAL, do we really need an interface?
-
-		from := models.TransferCounterpartyInfo{
-			UserID:    payer.UserID,
-			ContactID: payer.ContactByUser[sCreatorUserID].ContactID,
-		}
-		to := models.TransferCounterpartyInfo{
-			UserID:    borrower.UserID,
-			ContactID: payer.ContactByUser[sCreatorUserID].ContactID,
-		}
-		log.Debugf(c, "from: %v", from)
-		log.Debugf(c, "to: %v", to)
-		//_, _, _, _, _, _, err = CreateTransfer(
-		//	c,
-		//	strongo.EnvUnknown,
-		//	transferSource,
-		//	bill.CreatorUserID,
-		//	billID,
-		//	false,
-		//	0,
-		//	from, to,
-		//	models.AmountTotal{Currency: models.Currency(bill.Currency), Value: bill.AmountTotal},
-		//	time.Time{},
-		//)
-		//if err != nil {
-		//	return err
-		//}
-		return nil
-	}, dal.CrossGroupTransaction)
-	return err
-}
+//func (billFacade) CreateBillTransfers(c context.Context, billID string) error {
+//	bill, err := dal.Bill.GetBillByID(c, billID)
+//	if err != nil {
+//		return err
+//	}
+//
+//	members := bill.GetBillMembers()
+//
+//	{ // Verify payers count
+//		payersCount := 0
+//		for _, member := range members {
+//			if member.Paid != 0 {
+//				payersCount += 1
+//			}
+//		}
+//		if payersCount == 0 {
+//			return ErrBillHasNoPayer
+//		} else if payersCount > 1 {
+//			return ErrBillHasTooManyPayers
+//		}
+//	}
+//
+//	for _, member := range members {
+//		if member.Paid == 0 {
+//			creatorContactID := member.ContactByUser[bill.CreatorUserID].ContactID
+//			if err = Bill.createBillTransfer(c, billID, strconv.FormatInt(bill.CreatorUserID, 10)); err != nil {
+//				return errors.Wrapf(err, "Failed to create bill trasfer for %d", creatorContactID)
+//			}
+//		}
+//	}
+//	return nil
+//}
+//
+//func (billFacade) createBillTransfer(c context.Context, billID string, creatorCounterpartyID int64) error {
+//	err := dal.DB.RunInTransaction(c, func(c context.Context) error {
+//		bill, err := dal.Bill.GetBillByID(c, billID)
+//
+//		if err != nil {
+//			return err
+//		}
+//		members := bill.GetBillMembers()
+//
+//		var (
+//			borrower *models.BillMemberJson
+//			payer    *models.BillMemberJson
+//		)
+//		sCreatorUserID := strconv.FormatInt(bill.CreatorUserID, 10)
+//		for _, member := range members {
+//			if member.Paid > 0 {
+//				if payer != nil {
+//					return ErrBillHasTooManyPayers
+//				}
+//				payer = &member
+//				if borrower != nil {
+//					break
+//				}
+//			} else if member.ContactByUser[sCreatorUserID].ContactID == creatorCounterpartyID {
+//				borrower = &member
+//				if payer != nil {
+//					break
+//				}
+//			}
+//		}
+//		if borrower == nil {
+//			return errors.New("Bill member not found by creatorCounterpartyID")
+//		}
+//		if payer == nil {
+//			return ErrBillHasNoPayer
+//		}
+//		//transferSource := dal.NewTransferSourceBot("api", "no-id", "0") // TODO: Needs refactoring! Move it out of DAL, do we really need an interface?
+//
+//		from := models.TransferCounterpartyInfo{
+//			UserID:    payer.UserID,
+//			ContactID: payer.ContactByUser[sCreatorUserID].ContactID,
+//		}
+//		to := models.TransferCounterpartyInfo{
+//			UserID:    borrower.UserID,
+//			ContactID: payer.ContactByUser[sCreatorUserID].ContactID,
+//		}
+//		log.Debugf(c, "from: %v", from)
+//		log.Debugf(c, "to: %v", to)
+//		//_, _, _, _, _, _, err = CreateTransfer(
+//		//	c,
+//		//	strongo.EnvUnknown,
+//		//	transferSource,
+//		//	bill.CreatorUserID,
+//		//	billID,
+//		//	false,
+//		//	0,
+//		//	from, to,
+//		//	models.AmountTotal{Currency: models.Currency(bill.Currency), Value: bill.AmountTotal},
+//		//	time.Time{},
+//		//)
+//		//if err != nil {
+//		//	return err
+//		//}
+//		return nil
+//	}, dal.CrossGroupTransaction)
+//	return err
+//}
 
 type BillMemberUserInfo struct {
-	ContactID int64
+	ContactID string
 	Name      string
 }
 
@@ -486,56 +495,88 @@ func (billFacade billFacade) SettleUp(c context.Context, userID int64, groupID s
 	return
 }
 
-func (billFacade) AddBillMember(c context.Context, billID, memberID string, memberUserID int64, memberUserName string, paid decimal.Decimal64p2) (bill models.Bill, group models.Group, changed, isJoined bool, err error) {
-	if billID == "" {
-		panic("billID is empty string")
+func (billFacade) AddBillMember(c context.Context, inBill models.Bill, memberID, memberUserID string, memberUserName string, paid decimal.Decimal64p2) (bill models.Bill, group models.Group, changed, isJoined bool, err error) {
+	log.Debugf(c, "billFacade.AddBillMember(memberID=%v, memberUserID=%v, paid=%v)", memberID, memberUserID, paid)
+	bill = inBill
+	if bill.ID == "" {
+		panic("bill.ID is empty string")
 	}
-	log.Debugf(c, "billFacade.AddBillMember(billID=%v)", billID)
-	err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if bill, err = dal.Bill.GetBillByID(c, billID); err != nil {
+	log.Debugf(c, "billFacade.AddBillMember(bill.ID=%v, paid=%v)", bill.ID, paid)
+	if !dal.DB.IsInTransaction(c) {
+		panic("This method should be called within transaction")
+	}
+	if bill.BillEntity == nil {
+		if bill, err = dal.Bill.GetBillByID(c, bill.ID); err != nil {
 			return
 		}
-		if userGroupID := bill.UserGroupID(); userGroupID != "" {
-			if group, err = dal.Group.GetGroupByID(c, userGroupID); err != nil {
+	}
+
+	if userGroupID := bill.UserGroupID(); userGroupID != "" {
+		if group, err = dal.Group.GetGroupByID(c, userGroupID); err != nil {
+			return
+		}
+	}
+
+	previousBalance := bill.GetBalance()
+
+	var (
+		//isNew bool
+		index        int
+		groupChanged bool
+		groupMember  models.GroupMemberJson
+		billMember   models.BillMemberJson
+		members      []models.BillMemberJson
+		groupMembers []models.GroupMemberJson
+	)
+
+	if userGroupID := bill.UserGroupID(); userGroupID != "" {
+		if group, err = dal.Group.GetGroupByID(c, userGroupID); err != nil {
+			return
+		}
+	}
+
+	if _, groupChanged, _, groupMember, groupMembers = group.AddOrGetMember(memberUserID, "", billMember.Name); groupChanged {
+		group.SetGroupMembers(groupMembers)
+	} else {
+		log.Debugf(c, "Group members not changed, groupMember.ID: " + groupMember.ID)
+	}
+
+	if _, changed, index, billMember, members = bill.AddOrGetMember(groupMember.ID, memberUserID, "", memberUserName); !changed {
+		return
+	}
+
+	log.Debugf(c, "billMember.ID: " + billMember.ID)
+
+	if paid != 0 && billMember.Paid == 0 {
+		billMember.Paid = paid
+	}
+	members[index] = billMember
+
+	if err = bill.SetBillMembers(members); err != nil {
+		return
+	}
+
+	if err = dal.Bill.SaveBill(c, bill); err != nil {
+		return
+	}
+
+	currentBalance := bill.GetBalance()
+
+	if balanceDifference := currentBalance.BillBalanceDifference(previousBalance); balanceDifference.IsAffectingGroupBalance() {
+		if groupChanged, err = group.ApplyBillBalanceDifference(balanceDifference, bill.Currency); err != nil {
+			err = errors.WithMessage(err, "Faield to apply bill difference")
+			return
+		}
+		if groupChanged {
+			if err = dal.Group.SaveGroup(c, group); err != nil {
 				return
 			}
 		}
+	}
 
-		var (
-			//isNew bool
-			index   int
-			member  models.BillMemberJson
-			members []models.BillMemberJson
-		)
-
-		_, changed, index, member, members = bill.AddOrGetMember(memberUserID, 0, memberUserName)
-
-		log.Debugf(c, "members: %v", members)
-
-		if !changed {
-			return
-		}
-
-		if paid != 0 && member.Paid == 0 {
-			member.Paid = paid
-		}
-		members[index] = member
-
-		if err = bill.SetBillMembers(members); err != nil {
-			return
-		}
-
-		if err = dal.Bill.SaveBill(c, bill); err != nil {
-			return
-		}
-
-		isJoined = true
-		return
-	}, dal.CrossGroupTransaction)
-
+	isJoined = true
 	return
 }
-
 
 //func (billFacade billFacade) createTransfers(c context.Context, splitID int64) error {
 //	split, err := dal.Split.GetSplitByID(c, splitID)
