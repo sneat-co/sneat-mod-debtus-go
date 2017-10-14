@@ -782,8 +782,8 @@ func GetTransferSource(whc bots.WebhookContext) dal.TransferSource {
 //
 //var CounterpartyNoTelegramCommand = bots.Command{
 //	ByCode: CALLBACK_COUNTERPARTY_WITHOUT_TG,
-//	CallbackAction: func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
-//		q := callbackURL.Query()
+//	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+//		q := callbackUrl.Query()
 //		transferEncodedID := q.Get(WIZARD_PARAM_TRANSFER)
 //		transferID, err := common.DecodeID(transferEncodedID)
 //		if err != nil {

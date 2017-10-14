@@ -72,8 +72,8 @@ func AskInviteAddress(channel, icon, commandText, messageCode, invalidMessageCod
 
 var AskInviteAddressCallbackCommand = bots.Command{
 	Code: "invite",
-	CallbackAction: func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
-		q := callbackURL.Query()
+	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+		q := callbackUrl.Query()
 		echoSelection := func(mt string) error {
 			if m, err = whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_ABOUT_INVITES)+"\n\n"+mt, bots.MessageFormatHTML); err != nil {
 				return err

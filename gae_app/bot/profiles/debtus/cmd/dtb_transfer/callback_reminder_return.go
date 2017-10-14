@@ -219,10 +219,10 @@ const (
 
 var SetNextReminderDateCallbackCommand = bots.Command{
 	Code: SET_NEXT_REMINDER_DATE_COMMAND,
-	CallbackAction: func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
 
-		reminderID, err := common.DecodeID(callbackURL.Query().Get("id"))
+		reminderID, err := common.DecodeID(callbackUrl.Query().Get("id"))
 		if err != nil {
 			return m, errors.Wrapf(err, "Failed to decode transfer id")
 		}

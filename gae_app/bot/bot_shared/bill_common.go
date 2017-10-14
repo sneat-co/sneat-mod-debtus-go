@@ -9,6 +9,7 @@ import (
 	"golang.org/x/net/context"
 	"net/url"
 	"github.com/strongo/app/log"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 )
 
 func GetBillMembersCallbackData(billID string) string {
@@ -32,25 +33,27 @@ func getBill(c context.Context, callbackUrl *url.URL) (bill models.Bill, err err
 	return
 }
 
-func BillCallbackCommand(code string, f func(whc bots.WebhookContext, callbackURL *url.URL, bill models.Bill) (m bots.MessageFromBot, err error)) bots.Command {
+type BillCallbackAction func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error)
+
+func BillCallbackCommand(code string, f BillCallbackAction) bots.Command {
 	return bots.NewCallbackCommand(code, billCallbackAction(f))
 }
 
-func billCallbackAction(f func(whc bots.WebhookContext, callbackURL *url.URL, bill models.Bill) (m bots.MessageFromBot, err error)) func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
-	return func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
+func billCallbackAction(f BillCallbackAction) func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	return func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
 		var bill models.Bill
-		if bill, err = getBill(c, callbackURL); err != nil {
+		if bill, err = getBill(c, callbackUrl); err != nil {
 			return
 		}
 		if bill.UserGroupID() == "" {
 			if whc.IsInGroup() {
 				if dal.DB.IsInTransaction(c) {
-					var groupID string
-					if groupID, err = GetUserGroupID(whc); err != nil {
+					var group models.Group
+					if group.ID, err = GetUserGroupID(whc); err != nil {
 						return
 					}
-					if err = bill.AssignToGroup(groupID); err != nil {
+					if bill, group, err = facade.Bill.AssignBillToGroup(c, bill, group.ID, whc.AppUserStrID()); err != nil {
 						return
 					}
 				} else {
@@ -60,7 +63,7 @@ func billCallbackAction(f func(whc bots.WebhookContext, callbackURL *url.URL, bi
 				log.Debugf(c, "Not in group")
 			}
 		}
-		return f(whc, callbackURL, bill)
+		return f(whc, callbackUrl, bill)
 	}
 }
 
@@ -70,13 +73,13 @@ func transactionalCallbackCommand(c bots.Command, o db.RunOptions) bots.Command 
 }
 
 func transactionalCallbackAction(o db.RunOptions,
-	f func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error),
-) func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
-	return func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
+	f func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error),
+) func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	return func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
 		err = dal.DB.RunInTransaction(c, func(tc context.Context) error {
 			whc.SetContext(tc)
-			m, err = f(whc, callbackURL)
+			m, err = f(whc, callbackUrl)
 			whc.SetContext(c)
 			return err
 		}, o)

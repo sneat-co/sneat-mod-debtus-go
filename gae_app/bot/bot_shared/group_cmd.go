@@ -14,7 +14,7 @@ import (
 const GROUP_COMMAND = "group"
 
 var groupCommand = bots.NewCallbackCommand(GROUP_COMMAND,
-	func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
+	func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "groupCommand.CallbackAction()")
 
@@ -30,7 +30,7 @@ var groupCommand = bots.NewCallbackCommand(GROUP_COMMAND,
 			return groupsAction(whc, true, 0)
 		}
 
-		query := callbackURL.Query()
+		query := callbackUrl.Query()
 
 		id := query.Get("id")
 

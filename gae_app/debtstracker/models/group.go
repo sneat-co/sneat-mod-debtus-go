@@ -51,7 +51,7 @@ type GroupEntity struct {
 	billsHolder
 }
 
-func (entity *GroupEntity) ApplyBillBalanceDifference(diff BillBalanceDifference, currency Currency) (changed bool, err error) {
+func (entity *GroupEntity) ApplyBillBalanceDifference(currency Currency, diff BillBalanceDifference) (changed bool, err error) {
 	if currency == "" {
 		panic("currency parameter is required")
 	}
@@ -61,34 +61,30 @@ func (entity *GroupEntity) ApplyBillBalanceDifference(diff BillBalanceDifference
 
 	groupMembers := entity.GetGroupMembers()
 
-	var (
-		totalOwes, minOwes, maxOwes decimal.Decimal64p2
-	)
+	var diffTotal, balanceTotal decimal.Decimal64p2
+	diffCopy := make(BillBalanceDifference, len(diff))
 
 	for i := range groupMembers {
 		groupMemberID := groupMembers[i].ID
 
-		if diffMember, ok := diff[groupMemberID]; ok {
+		if memberDifference, ok := diff[groupMemberID]; ok {
 			delete(diff, groupMemberID)
-			if diffMember.Paid == 0 && diffMember.Owes == 0 {
-				panic("diffMember.Paid == 0 && diffMember.Owes == 0, memberID: " + groupMemberID)
+			diffCopy[groupMemberID] = memberDifference
+			if memberDifference == 0 {
+				panic("memberDifference.Paid == 0 && memberDifference.Owes == 0, memberID: " + groupMemberID)
 			}
-			{	// Calculate totals + max&min for integrity check
-				totalOwes += diffMember.Owes
-				if diffMember.Owes > maxOwes {
-					maxOwes = diffMember.Owes
-				}
-				if diffMember.Owes < minOwes {
-					minOwes = diffMember.Owes
-				}
-			}
-			diff := diffMember.Paid - diffMember.Owes
-			if groupMembers[i].Balance == nil || len(groupMembers) == 0 {
-				groupMembers[i].Balance = Balance{currency: diff}
-			} else {
-				groupMembers[i].Balance[currency] += diff
-				if len(groupMembers[i].Balance) == 0 {
-					groupMembers[i].Balance = nil
+			diffTotal += memberDifference
+			if diffAmount := memberDifference; diffAmount != 0 {
+				if groupMembers[i].Balance == nil || len(groupMembers) == 0 {
+					groupMembers[i].Balance = Balance{currency: diffAmount}
+					balanceTotal += diffAmount
+				} else {
+					groupMembers[i].Balance[currency] += diffAmount
+					if len(groupMembers[i].Balance) == 0 {
+						groupMembers[i].Balance = nil
+					} else {
+						balanceTotal += groupMembers[i].Balance[currency]
+					}
 				}
 			}
 		}
@@ -99,8 +95,13 @@ func (entity *GroupEntity) ApplyBillBalanceDifference(diff BillBalanceDifference
 		return
 	}
 
-	if totalOwes != 0 && minOwes < 0 && maxOwes > 0 {
-		err = errors.WithMessage(ErrBillOwesDiffTotalIsNotZero, fmt.Sprintf("%v", totalOwes))
+	if diffTotal != 0 {
+		err = errors.WithMessage(ErrBillOwesDiffTotalIsNotZero, fmt.Sprintf("diffTotal=%v, diff=%v", diffTotal, diffCopy))
+		return
+	}
+
+	if balanceTotal != 0 {
+		err = errors.WithMessage(GroupTotalBalanceHasNonZeroValue, fmt.Sprintf("balanceTotal=%v, diff=%v", balanceTotal, diffCopy))
 		return
 	}
 	return entity.SetGroupMembers(groupMembers), err

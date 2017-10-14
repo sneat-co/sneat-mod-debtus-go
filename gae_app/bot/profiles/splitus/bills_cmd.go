@@ -18,7 +18,7 @@ var billsCommand = bots.Command{
 	Code:     BILLS_COMMAND,
 	Commands: []string{"/bills"},
 	Action:   billsAction,
-	CallbackAction: func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		return billsAction(whc)
 	},
 }

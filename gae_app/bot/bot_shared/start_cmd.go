@@ -79,8 +79,8 @@ const ON_START_CALLBACK_COMMAND = "on-start-callback"
 
 func onStartCallbackCommand(params BotParams) bots.Command {
 	return bots.NewCallbackCommand(ON_START_CALLBACK_COMMAND,
-		func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
-			lang := callbackURL.Query().Get("lang")
+		func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+			lang := callbackUrl.Query().Get("lang")
 			c := whc.Context()
 			log.Debugf(c, "Locale: "+lang)
 

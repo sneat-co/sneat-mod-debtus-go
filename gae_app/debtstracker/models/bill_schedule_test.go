@@ -7,7 +7,7 @@ import (
 
 func TestBillScheduleEntity_Save(t *testing.T) {
 	entity := NewBillEntity(BillCommon{
-		CreatorUserID: 1,
+		CreatorUserID: "1",
 		DtCreated:     time.Now(),
 		Status:        string(BillScheduleStatusDraft),
 		SplitMode:     "equally",

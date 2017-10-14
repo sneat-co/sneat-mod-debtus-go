@@ -15,14 +15,14 @@ func TestBillBalanceByMember_BillDifference(t *testing.T) {
 	{  // Test non empty current and empty previous
 		previous = BillBalanceByMember{}
 		current = BillBalanceByMember{
-			"m1": BillMemberBalance{Paid: 12, Owes: 4},
+			"m1": BillMemberBalance{Paid: 1200, Owes: 400},
 		}
 		if diff := current.BillBalanceDifference(previous); len(diff) != 1 {
-			t.Error("Should have single item", diff)
+			t.Fatal("Should have single item", diff)
 		} else if md, ok := diff["m1"]; !ok {
-			t.Error("Item should be m1", diff)
-		} else if md.Paid != 12 || md.Owes != 4 {
-			t.Error("Wrong value", diff)
+			t.Fatal("Item should be m1", diff)
+		} else if md != 800 {
+			t.Fatal("Wrong value", diff)
 		}
 	}
 
@@ -34,11 +34,11 @@ func TestBillBalanceByMember_BillDifference(t *testing.T) {
 			"m1": BillMemberBalance{Paid: 12, Owes: 4},
 		}
 		if diff := current.BillBalanceDifference(previous); len(diff) != 1 {
-			t.Error("Should have single item", diff)
+			t.Fatal("Should have single item", diff)
 		} else if md, ok := diff["m1"]; !ok {
-			t.Error("Item should be m1", diff)
-		} else if md.Paid != 2 || md.Owes != 0 {
-			t.Error("Wrong value", diff)
+			t.Fatal("Item should be m1", diff)
+		} else if md != 2 {
+			t.Fatal("Wrong value", diff)
 		}
 	}
 
@@ -50,70 +50,70 @@ func TestBillBalanceByMember_BillDifference(t *testing.T) {
 			"m1": BillMemberBalance{Paid: 12, Owes: 4},
 		}
 		if diff := current.BillBalanceDifference(previous); len(diff) != 1 {
-			t.Error("Should have single item", diff)
+			t.Fatal("Should have single item", diff)
 		} else if md, ok := diff["m1"]; !ok {
-			t.Error("Item should be m1", diff)
-		} else if md.Paid != 0 || md.Owes != 3 {
-			t.Error("Wrong value", diff)
+			t.Fatal("Item should be m1", diff)
+		} else if md != -3 {
+			t.Fatal("Wrong value", diff)
 		}
 	}
 
 	{  // Test decrease in Paid & Owes
 		previous = BillBalanceByMember{
-			"m1": BillMemberBalance{Paid: 15, Owes: 9},
+			"m1": BillMemberBalance{Paid: 1500, Owes: 900},
 		}
 		current = BillBalanceByMember{
-			"m1": BillMemberBalance{Paid: 12, Owes: 4},
+			"m1": BillMemberBalance{Paid: 1200, Owes: 400},
 		}
 		if diff := current.BillBalanceDifference(previous); len(diff) != 1 {
-			t.Error("Should have single item", diff)
+			t.Fatal("Should have single item", diff)
 		} else if md, ok := diff["m1"]; !ok {
-			t.Error("Item should be m1", diff)
-		} else if md.Paid != -3 || md.Owes != -5 {
-			t.Error("Wrong value", diff)
+			t.Fatal("Item should be m1", diff)
+		} else if md != 200 {
+			t.Fatal("Wrong value", diff)
 		}
 	}
 
 	{  // Test in member added
 		previous = BillBalanceByMember{
-			"m1": BillMemberBalance{Paid: 12, Owes: 12},
+			"m1": BillMemberBalance{Paid: 1200, Owes: 1200},
 		}
 		current = BillBalanceByMember{
-			"m1": BillMemberBalance{Paid: 12, Owes: 6},
-			"m2": BillMemberBalance{Paid: 0, Owes: 6},
+			"m1": BillMemberBalance{Paid: 1200, Owes: 600},
+			"m2": BillMemberBalance{Paid: 0, Owes: 600},
 		}
 		if diff := current.BillBalanceDifference(previous); len(diff) != 2 {
-			t.Error("Should have 2 items", diff)
+			t.Fatal("Should have 2 items", diff)
 		} else if m1, ok := diff["m1"]; !ok {
-			t.Error("Item should be m1", diff)
+			t.Fatal("Item should be m1", diff)
 		} else if m2, ok := diff["m2"]; !ok {
-			t.Error("Item should be m1", diff)
-		} else if m1.Paid != 0 || m1.Owes != -6 {
-			t.Error("Wrong m1 diff", m1)
-		} else if m2.Paid != 0 || m2.Owes != 6 {
-			t.Error("Wrong m2 diff", m2)
+			t.Fatal("Item should be m1", diff)
+		} else if m1 != 600 {
+			t.Fatal("Wrong m1 diff", m1)
+		} else if m2 != -600 {
+			t.Fatal("Wrong m2 diff", m2)
 		}
 	}
 
-	{  // Test in member changed
+	{  // Test in member swapped
 		previous = BillBalanceByMember{
-			"m1": BillMemberBalance{Paid: 12, Owes: 6},
-			"m2": BillMemberBalance{Paid: 0, Owes: 6},
+			"m1": BillMemberBalance{Paid: 1200, Owes: 600},
+			"m2": BillMemberBalance{Paid: 0, Owes: 600},
 		}
 		current = BillBalanceByMember{
-			"m1": BillMemberBalance{Paid: 12, Owes: 6},
-			"m3": BillMemberBalance{Paid: 0, Owes: 6},
+			"m1": BillMemberBalance{Paid: 1200, Owes: 600},
+			"m3": BillMemberBalance{Paid: 0, Owes: 600},
 		}
 		if diff := current.BillBalanceDifference(previous); len(diff) != 2 {
-			t.Error("Should have 2 items", diff)
+			t.Fatal("Should have 2 items", diff)
 		} else if m2, ok := diff["m2"]; !ok {
-			t.Error("Item should be m1", diff)
+			t.Fatal("Item should be m2", diff)
 		} else if m3, ok := diff["m3"]; !ok {
-			t.Error("Item should be m1", diff)
-		} else if m2.Paid != 0 || m2.Owes != -6 {
-			t.Error("Wrong m2 diff", m2)
-		} else if m3.Paid != 0 || m3.Owes != 6 {
-			t.Error("Wrong m3 diff", m3)
+			t.Fatal("Item should be m3", diff)
+		} else if m2 != 600 {
+			t.Fatal("Wrong m2 diff", m2)
+		} else if m3 != -600 {
+			t.Fatal("Wrong m3 diff", m3)
 		}
 	}
 }
@@ -124,27 +124,27 @@ func TestBillBalanceDifference_IsAffectingGroupBalance(t *testing.T) {
 
 	{	// verify empty
 		diff = BillBalanceDifference{}
-		if diff.IsAffectingGroupBalance() {
-			t.Errorf("should be false for empty map")
+		if diff.IsNoDifference() {
+			t.Fatal("should be false for empty map")
 		}
 	}
 
 	{	// verify paid=owes for single member
 		diff = BillBalanceDifference{
-			"m1": BillMemberBalance{Paid: 10, Owes: 10},
+			"m1": 0,
 		}
-		if diff.IsAffectingGroupBalance() {
-			t.Errorf("should be false for empty map")
+		if diff.IsNoDifference() {
+			t.Fatal("should be false for empty map")
 		}
 	}
 
 	{	// verify paid=owes for 2 members
 		diff = BillBalanceDifference{
-			"m1": BillMemberBalance{Paid: 10, Owes: 10},
-			"m2": BillMemberBalance{Paid: 5, Owes: 5},
+			"m1": 0,
+			"m2": 0,
 		}
-		if diff.IsAffectingGroupBalance() {
-			t.Errorf("should be false for empty map")
+		if diff.IsNoDifference() {
+			t.Fatal("should be false for empty map")
 		}
 	}
 }

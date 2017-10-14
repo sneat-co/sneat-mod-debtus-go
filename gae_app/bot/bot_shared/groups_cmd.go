@@ -36,8 +36,8 @@ var groupsCommand = bots.Command{
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		return groupsAction(whc, false, 0)
 	},
-	CallbackAction: func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
-		query := callbackURL.Query()
+	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+		query := callbackUrl.Query()
 		isRefresh := query.Get("do") == "refresh"
 		if m, err = groupsAction(whc, isRefresh || query.Get("edit") == "1", 0); err != nil {
 			return

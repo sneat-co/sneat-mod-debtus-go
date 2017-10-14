@@ -70,7 +70,7 @@ func ShareToTwitter() string {
 }
 
 /*
-var FeedbackCallbackCommand = bots.NewCallbackCommand(FEEDBACK_COMMAND, func(whc bots.WebhookContext, callbackURL *url.URL) (bots.MessageFromBot, error) {
+var FeedbackCallbackCommand = bots.NewCallbackCommand(FEEDBACK_COMMAND, func(whc bots.WebhookContext, callbackUrl *url.URL) (bots.MessageFromBot, error) {
 	return FeedbackCommand.Action(whc)
 })
 

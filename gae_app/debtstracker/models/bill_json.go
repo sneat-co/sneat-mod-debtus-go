@@ -25,15 +25,31 @@ func (t BillMemberBalance) Balance() decimal.Decimal64p2 {
 
 type BillBalanceByMember map[string]BillMemberBalance
 
-type BillBalanceDifference BillBalanceByMember
+type BalanceByMember map[string]decimal.Decimal64p2
 
-func (diff BillBalanceDifference) IsAffectingGroupBalance() bool {
-	for _, m := range diff {
-		if m.Paid != m.Owes {
-			return true
+type BillBalanceDifference BalanceByMember
+
+func (diff BillBalanceDifference) Reverse() BillBalanceDifference {
+	reversed := make(BillBalanceDifference, len(diff))
+	for k, v := range diff {
+		reversed[k] = -v
+	}
+	return reversed
+}
+
+func (diff BillBalanceDifference) IsNoDifference() bool {
+	diff.clear()
+	return len(diff) > 0
+}
+
+func (diff BillBalanceDifference) clear() (changed bool) {
+	for k, v := range diff {
+		if v == 0 {
+			delete(diff, k)
+			changed = true
 		}
 	}
-	return false
+	return
 }
 
 func (current BillBalanceByMember) BillBalanceDifference(previous BillBalanceByMember) (difference BillBalanceDifference) {
@@ -41,25 +57,18 @@ func (current BillBalanceByMember) BillBalanceDifference(previous BillBalanceByM
 	if len(previous) > capacity {
 		capacity = len(previous) + 1
 	}
+
 	difference = make(BillBalanceDifference, capacity)
 
 	for memberID, mCurrent := range current {
-		mPrevious := previous[memberID]
-		diff := BillMemberBalance{
-			Paid: mCurrent.Paid - mPrevious.Paid,
-			Owes: mCurrent.Owes - mPrevious.Owes,
-		}
-		if diff.Paid != 0 || diff.Owes != 0 {
+		if diff := mCurrent.Balance() - previous[memberID].Balance(); diff != 0 {
 			difference[memberID] = diff
 		}
 	}
 
 	for memberID, mPrevious := range previous {
 		if _, ok := current[memberID]; !ok {
-			difference[memberID] = BillMemberBalance{
-				Paid: -mPrevious.Paid,
-				Owes: -mPrevious.Owes,
-			}
+			difference[memberID] =  -mPrevious.Balance()
 		}
 	}
 

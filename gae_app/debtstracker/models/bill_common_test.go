@@ -9,6 +9,7 @@ func TestBillCommon_GetBillMembers(t *testing.T) {
 	billEntity := BillEntity{
 		BillCommon: BillCommon{
 			MembersJson: `[{"ID": "2", "Name": "Second", "Paid": 2.47}, {"ID": "3", "Name": "Third"}]`,
+			MembersCount: 2,
 		},
 	}
 

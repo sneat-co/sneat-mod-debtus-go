@@ -127,38 +127,48 @@ var (
 	ErrNegativeAmount = errors.New("negative amount")
 	ErrTotalOwedIsNotMatchingBillAmount = errors.New("total owed is not matching bill amount")
 	ErrTotalPaidIsGreaterThenBillAmount = errors.New("total paid is greater then bill amount")
+	ErrBillTotalBalanceIsNotZero = errors.New("total bill balance is not zero")
 	ErrBillOwesDiffTotalIsNotZero = errors.New("total bill difference of owes is not zero")
 	ErrNonGroupMember = errors.New("non group member")
 	GroupTotalBalanceHasNonZeroValue = errors.New("group total balance has non zero value")
 )
 
 func (entity *BillEntity) validateBalance() (err error) {
-	if entity.MembersCount > 0 {
-		var (
-			totalPaid decimal.Decimal64p2
-			totalOwed decimal.Decimal64p2
-		)
+	if entity.MembersCount == 0 {
+		return
+	}
+	var (
+		totalBalance decimal.Decimal64p2
+		totalPaid decimal.Decimal64p2
+		totalOwed decimal.Decimal64p2
+	)
 
-		for i, member := range entity.GetBillMembers() {
-			if member.Owes < 0 {
-				err = errors.WithMessage(errors.WithMessage(ErrNegativeAmount, fmt.Sprintf("members[%d]", i)), fmt.Sprintf("owes=%v", member.Owes))
-				return
-			}
-			if member.Paid < 0 {
-				err = errors.WithMessage(errors.WithMessage(ErrNegativeAmount, fmt.Sprintf("members[%d]", i)), fmt.Sprintf("paid=%v", member.Paid))
-				return
-			}
-			totalPaid += member.Paid
-			totalOwed += member.Owes
-		}
+	members := entity.GetBillMembers()
 
-		if totalOwed != entity.AmountTotal {
-			err = errors.WithMessage(ErrTotalOwedIsNotMatchingBillAmount, fmt.Sprintf("totalOwed: %v, AmountTotal: %v", totalOwed, entity.AmountTotal))
+	for i, member := range members {
+		if member.Owes < 0 {
+			err = errors.WithMessage(errors.WithMessage(ErrNegativeAmount, fmt.Sprintf("members[%d]", i)), fmt.Sprintf("owes=%v", member.Owes))
+			return
 		}
+		if member.Paid < 0 {
+			err = errors.WithMessage(errors.WithMessage(ErrNegativeAmount, fmt.Sprintf("members[%d]", i)), fmt.Sprintf("paid=%v", member.Paid))
+			return
+		}
+		totalBalance += member.Paid - member.Owes
+		totalPaid += member.Paid
+		totalOwed += member.Owes
+	}
 
-		if totalPaid > entity.AmountTotal {
-			err = errors.WithMessage(ErrTotalPaidIsGreaterThenBillAmount, fmt.Sprintf("totalPaid: %v, AmountTotal: %v", totalPaid, entity.AmountTotal))
-		}
+	if totalOwed != entity.AmountTotal {
+		err = errors.WithMessage(ErrTotalOwedIsNotMatchingBillAmount, fmt.Sprintf("totalOwed: %v, AmountTotal: %v", totalOwed, entity.AmountTotal))
+	}
+
+	if totalPaid > entity.AmountTotal {
+		err = errors.WithMessage(ErrTotalPaidIsGreaterThenBillAmount, fmt.Sprintf("totalPaid: %v, AmountTotal: %v", totalPaid, entity.AmountTotal))
+	}
+
+	if totalBalance != 0 {
+		err = errors.WithMessage(ErrBillTotalBalanceIsNotZero, fmt.Sprintf("totalBalance=%v, members: %+v", totalBalance, members))
 	}
 
 	return

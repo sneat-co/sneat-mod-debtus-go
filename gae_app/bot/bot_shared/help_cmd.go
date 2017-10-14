@@ -20,9 +20,9 @@ var helpRootCommand = bots.Command{
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		return helpRootAction(whc, false)
 	},
-	CallbackAction: func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		_ = whc.ChatEntity()
-		q := callbackURL.Query().Get("q")
+		q := callbackUrl.Query().Get("q")
 		switch q {
 		case "":
 			return helpRootAction(whc, true)

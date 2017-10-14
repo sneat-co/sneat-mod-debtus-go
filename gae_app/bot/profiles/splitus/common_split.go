@@ -17,7 +17,7 @@ import (
 
 func editSplitCallbackAction(
 	whc bots.WebhookContext,
-	callbackURL *url.URL,
+	callbackUrl *url.URL,
 	editCommandPrefix, backCommandPrefix string,
 	msgTextAskToSplit string,
 	members []models.BillMemberJson,
@@ -27,7 +27,7 @@ func editSplitCallbackAction(
 ) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
 
-	q := callbackURL.Query()
+	q := callbackUrl.Query()
 
 	var (
 		addValue int

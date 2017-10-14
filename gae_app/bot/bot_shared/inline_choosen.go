@@ -223,12 +223,10 @@ var EditedBillCardHookCommand = bots.Command{ // TODO: seems to be not used anyw
 
 		m.Text = bots.NoMessageToSend
 
-		var group models.Group
-		if group, err = GetGroup(whc); err != nil {
+		var groupID string
+		if groupID, err = GetUserGroupID(whc); err != nil {
 			return
-		}
-
-		if group.ID == "" {
+		} else if groupID == "" {
 			log.Warningf(c, "group.ID is empty string")
 			return
 		}
@@ -240,31 +238,11 @@ var EditedBillCardHookCommand = bots.Command{ // TODO: seems to be not used anyw
 				return err
 			}
 
-			if bill.UserGroupID() != group.ID { // TODO: Should we check for empty bill.UserGroupID() or better fail?
-				if err = bill.AssignToGroup(group.ID); err != nil {
+			if groupID != "" && bill.UserGroupID() != groupID { // TODO: Should we check for empty bill.UserGroupID() or better fail?
+				if bill, _, err = facade.Bill.AssignBillToGroup(c, bill, groupID, whc.AppUserStrID()); err != nil {
 					return err
 				}
 				changed = true
-			}
-
-			billMembers := bill.GetBillMembers()
-
-			for _, groupMember := range group.GetGroupMembers() {
-				if groupMember.UserID != "" {
-					for _, billMember := range billMembers {
-						if billMember.UserID == groupMember.UserID {
-							goto memberFound
-						}
-					}
-					billMembers = append(billMembers, models.BillMemberJson{
-						MemberJson: groupMember.MemberJson,
-					})
-					changed = true
-				memberFound:
-				}
-			}
-			if err = bill.SetBillMembers(billMembers); err != nil {
-				return err
 			}
 
 			if changed {
@@ -281,8 +259,9 @@ var EditedBillCardHookCommand = bots.Command{ // TODO: seems to be not used anyw
 		}
 		return
 	},
-	Matcher: func(command bots.Command, whc bots.WebhookContext) bool {
-		log.Debugf(whc.Context(), "editedBillCardHookCommand.Matcher()")
-		return whc.IsInGroup() && getBillIDFromUrlInEditedMessage(whc) != ""
+	Matcher: func(command bots.Command, whc bots.WebhookContext) (result bool) {
+		result = whc.IsInGroup() && getBillIDFromUrlInEditedMessage(whc) != ""
+		log.Debugf(whc.Context(), "editedBillCardHookCommand.Matcher(): %v", result)
+		return
 	},
 }

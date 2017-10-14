@@ -12,7 +12,7 @@ import (
 const FINALIZE_BILL_COMMAND = "finalize_bill"
 
 var finalizeBillCommand = bot_shared.BillCallbackCommand(FINALIZE_BILL_COMMAND,
-	func(whc bots.WebhookContext, callbackURL *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
+	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
 		footer := "<b>Are you ready to split the bill?</b>" +
 			"\n" + "You won't be able to add/remove participants or change total once the bill is finalized."
 		if m.Text, err = bot_shared.GetBillCardMessageText(whc.Context(), whc.GetBotCode(), whc, bill, true, footer); err != nil {

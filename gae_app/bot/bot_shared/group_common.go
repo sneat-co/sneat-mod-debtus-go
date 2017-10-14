@@ -10,14 +10,14 @@ func GroupCallbackCommandData(command string, groupID string) string {
 	return command + "?group=" + groupID
 }
 
-func GroupCallbackCommand(code string, f func(whc bots.WebhookContext, callbackURL *url.URL, group models.Group) (m bots.MessageFromBot, err error)) bots.Command {
+func GroupCallbackCommand(code string, f func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error)) bots.Command {
 	return bots.NewCallbackCommand(code,
-		func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
+		func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 			var group models.Group
 			if group, err = GetGroup(whc); err != nil {
 				return
 			}
-			return f(whc, callbackURL, group)
+			return f(whc, callbackUrl, group)
 		},
 	)
 }

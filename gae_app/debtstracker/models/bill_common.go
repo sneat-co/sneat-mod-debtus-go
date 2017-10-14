@@ -109,19 +109,21 @@ func (entity *BillCommon) TotalAmount() Amount {
 }
 
 func (entity *BillCommon) GetBillMembers() (members []BillMemberJson) {
-	if entity.members != nil {
-		members = make([]BillMemberJson, len(entity.members))
-		copy(members, entity.members)
-		return entity.members
-	}
-	if entity.MembersJson != "" {
-		if err := ffjson.Unmarshal([]byte(entity.MembersJson), &entity.members); err != nil {
+	if entity.members == nil {
+		if entity.MembersJson == "" {
+			if entity.MembersCount != 0 {
+				panic("entity.MembersJson is empty string && entity.MembersCount != 0")
+			}
+			return []BillMemberJson{}
+		} else if err := ffjson.Unmarshal([]byte(entity.MembersJson), &entity.members); err != nil {
 			panic(err)
 		}
-		members = make([]BillMemberJson, len(entity.members))
-		copy(members, entity.members)
 	}
-	return members
+	if len(entity.members) != entity.MembersCount {
+		panic("len(entity.members) != entity.MembersCount")
+	}
+	// copy to make sure we don't expose cache
+	return append(make([]BillMemberJson, 0, len(entity.members)), entity.members...)
 }
 
 func (entity *BillCommon) GetMembers() (members []MemberJson) {
@@ -158,7 +160,7 @@ func (entity *BillCommon) validateMembersForDuplicatesAndBasicChecks(members []B
 			}
 			uniqueUserIDs[member.UserID] = i
 		}
-		if member.Name == "" && len(member.ContactByUser) == 0 {
+		if member.Name == "" {
 			return fmt.Errorf("no name for the members[%d]", i)
 		}
 		if member.Owes > entity.AmountTotal {
@@ -182,10 +184,8 @@ func (entity *BillCommon) marshalMembersToJsonAndSetMembersCount(members []BillM
 		return err
 	} else {
 		entity.MembersCount = len(members)
-		entity.members = make([]BillMemberJson, entity.MembersCount)
-		if copied := copy(entity.members, members); copied != entity.MembersCount {
-			panic("copied != len(members)")
-		}
+		entity.members = append(make([]BillMemberJson, 0, entity.MembersCount), members...)
+		entity.validateMembersForDuplicatesAndBasicChecks(entity.members)
 		entity.MembersJson = string(json)
 	}
 	return nil

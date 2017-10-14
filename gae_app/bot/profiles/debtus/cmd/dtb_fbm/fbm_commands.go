@@ -9,9 +9,9 @@ import (
 
 var FbmGetStartedCommand = bots.Command{ // TODO: Move command to other package?
 	Code: "fbm-get-started",
-	CallbackAction: func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
-		log.Debugf(c, "FbmGetStartedCommand.CallbackAction() => callbackURL: %v", callbackURL)
+		log.Debugf(c, "FbmGetStartedCommand.CallbackAction() => callbackUrl: %v", callbackUrl)
 		//m.Text = "Welcome!"
 		m.FbmAttachment = &fbm_api.RequestAttachment{
 			Type: fbm_api.RequestAttachmentTypeTemplate,
@@ -34,9 +34,9 @@ var FbmGetStartedCommand = bots.Command{ // TODO: Move command to other package?
 
 var FbmMainMenuCommand = bots.Command{
 	Code: "fbm-main-menu",
-	CallbackAction: func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
-		log.Debugf(c, "FbmMainMenuCommand.CallbackAction() => callbackURL: %v", callbackURL)
+		log.Debugf(c, "FbmMainMenuCommand.CallbackAction() => callbackUrl: %v", callbackUrl)
 
 		m.FbmAttachment = &fbm_api.RequestAttachment{
 			Type: fbm_api.RequestAttachmentTypeTemplate,
@@ -54,9 +54,9 @@ var FbmMainMenuCommand = bots.Command{
 
 var FbmDebtsCommand = bots.Command{
 	Code: "fbm-debts",
-	CallbackAction: func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
-		log.Debugf(c, "FbmDebtsCommand.CallbackAction() => callbackURL: %v", callbackURL)
+		log.Debugf(c, "FbmDebtsCommand.CallbackAction() => callbackUrl: %v", callbackUrl)
 
 		m.FbmAttachment = &fbm_api.RequestAttachment{
 			Type: fbm_api.RequestAttachmentTypeTemplate,
@@ -71,9 +71,9 @@ var FbmDebtsCommand = bots.Command{
 
 var FbmBillsCommand = bots.Command{
 	Code: "fbm-bills",
-	CallbackAction: func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
-		log.Debugf(c, "FbmBillsCommand.CallbackAction() => callbackURL: %v", callbackURL)
+		log.Debugf(c, "FbmBillsCommand.CallbackAction() => callbackUrl: %v", callbackUrl)
 		//m.Text = "Welcome!"
 		m.FbmAttachment = &fbm_api.RequestAttachment{
 			Type: fbm_api.RequestAttachmentTypeTemplate,
@@ -88,9 +88,9 @@ var FbmBillsCommand = bots.Command{
 
 var FbmSettingsCommand = bots.Command{
 	Code: "fbm-settings",
-	CallbackAction: func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
-		log.Debugf(c, "FbmSettingsCommand.CallbackAction() => callbackURL: %v", callbackURL)
+		log.Debugf(c, "FbmSettingsCommand.CallbackAction() => callbackUrl: %v", callbackUrl)
 		m.FbmAttachment = &fbm_api.RequestAttachment{
 			Type: fbm_api.RequestAttachmentTypeTemplate,
 			Payload: fbm_api.NewGenericTemplate(

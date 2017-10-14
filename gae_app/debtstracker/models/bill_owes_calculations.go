@@ -97,7 +97,7 @@ func updateMemberOwesForSplitByShares(amountTotal decimal.Decimal64p2, creatorUs
 	creatorIndex := -1
 	for i := range members {
 		members[i].Owes = decimal.Decimal64p2(perShareBy100 * float64(members[i].Shares) / 100)
-		if members[i].UserID == creatorUserID {
+		if creatorUserID != "" && members[i].UserID == creatorUserID {
 			creatorIndex = i
 		}
 	}

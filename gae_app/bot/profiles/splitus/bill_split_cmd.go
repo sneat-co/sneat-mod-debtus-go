@@ -15,12 +15,12 @@ import (
 const BILL_SHARES_COMMAND = "bill_shares"
 
 var billSharesCommand = bot_shared.BillCallbackCommand(BILL_SHARES_COMMAND,
-	func(whc bots.WebhookContext, callbackURL *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
+	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
 		whc.LogRequest()
 		c := whc.Context()
 		members := bill.GetBillMembers()
 		return editSplitCallbackAction(
-			whc, callbackURL,
+			whc, callbackUrl,
 			bot_shared.BillCallbackCommandData(BILL_SHARES_COMMAND, bill.ID),
 			bot_shared.BillCardCallbackCommandData(bill.ID),
 			trans.MESSAGE_TEXT_ASK_HOW_TO_SPLIT_IN_GROP,

@@ -14,7 +14,7 @@ import (
 const GROUP_SPLIT_COMMAND = "group-split"
 
 var groupSplitCommand = bot_shared.GroupCallbackCommand(GROUP_SPLIT_COMMAND,
-	func(whc bots.WebhookContext, callbackURL *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
+	func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
 
 		members := group.GetMembers()
@@ -23,7 +23,7 @@ var groupSplitCommand = bot_shared.GroupCallbackCommand(GROUP_SPLIT_COMMAND,
 			billMembers[i].MemberJson = m
 		}
 		return editSplitCallbackAction(
-			whc, callbackURL,
+			whc, callbackUrl,
 			bot_shared.GroupCallbackCommandData(GROUP_SPLIT_COMMAND, group.ID),
 			bot_shared.GroupCallbackCommandData(GROUP_MEMBERS_COMMAND, group.ID),
 			trans.MESSAGE_TEXT_ASK_HOW_TO_SPLIT_IN_GROP,

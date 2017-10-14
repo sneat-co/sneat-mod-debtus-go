@@ -21,21 +21,78 @@ type billFacade struct {
 
 var Bill = billFacade{}
 
-func (billFacade) AssignBillToGroup(c context.Context, billID, groupID string) (bill models.Bill, group models.Group, err error) {
-	bill.ID = billID
-	group.ID = groupID
-	bill.SetEntity(new(models.BillEntity))
-	group.SetEntity(new(models.GroupEntity))
-
-	err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if err = dal.DB.GetMulti(c, []db.EntityHolder{&bill, &group}); err != nil {
-			return
-		}
-		bill.AssignToGroup(group.ID)
-
-		panic("TODO")
+func (billFacade) AssignBillToGroup(c context.Context, inBill models.Bill, groupID, userID string) (bill models.Bill, group models.Group, err error) {
+	bill = inBill
+	if err = bill.AssignToGroup(groupID); err != nil {
 		return
-	}, db.CrossGroupTransaction)
+	}
+	if bill.MembersCount == 0 {
+		{  // Get group,
+			var gc context.Context
+			if bill.Currency == models.Currency("") {
+				// we don't need to get it in transaction if no currency as balance will not be changed
+				gc = dal.DB.NonTransactionalContext(c)
+			} else {
+				gc = c
+			}
+			if group, err = dal.Group.GetGroupByID(gc, groupID); err != nil {
+				return
+			}
+		}
+		if group.MembersCount > 0 {
+			groupMembers := group.GetGroupMembers()
+
+			billMembers := make([]models.BillMemberJson, len(groupMembers))
+			paidIsSet := false
+			for i, gm := range groupMembers {
+				billMembers[i] = models.BillMemberJson{
+					MemberJson: gm.MemberJson,
+				}
+				billMembers[i].AddedByUserID = userID
+				if gm.UserID == bill.CreatorUserID {
+					billMembers[i].Paid = bill.AmountTotal
+					paidIsSet = true
+				}
+			}
+			if !paidIsSet {
+				for i, bm := range billMembers {
+					if bm.UserID == userID {
+						billMembers[i].Paid = bill.AmountTotal
+						paidIsSet = true
+						break
+					}
+				}
+				if !paidIsSet { // current user is not members of the bill
+					//group.AddOrGetMember(userID, "", )
+					var user models.AppUser
+					if user.ID, err = strconv.ParseInt(userID, 10, 64); err != nil {
+						return
+					}
+					if user, err = dal.User.GetUserByID(dal.DB.NonTransactionalContext(c), user.ID); err != nil {
+						return
+					}
+					_, _, _, groupMember, _ := group.AddOrGetMember(userID, "", user.FullName())
+
+					billMembers = append(billMembers, models.BillMemberJson{
+						MemberJson: groupMember.MemberJson,
+						Paid: bill.AmountTotal,
+					})
+				}
+			}
+			if err = bill.SetBillMembers(billMembers); err != nil {
+				return
+			}
+			if bill.Currency != models.Currency("") {
+				if _, err = group.ApplyBillBalanceDifference(bill.Currency, bill.GetBalance().BillBalanceDifference(models.BillBalanceByMember{})); err != nil {
+					return
+				}
+				if err = dal.Group.SaveGroup(c, group); err != nil {
+					return
+				}
+			}
+			log.Debugf(c, "bill.GetBillMembers(): %+v", bill.GetBillMembers())
+		}
+	}
 	return
 }
 
@@ -496,26 +553,19 @@ func (billFacade billFacade) SettleUp(c context.Context, userID int64, groupID s
 }
 
 func (billFacade) AddBillMember(c context.Context, inBill models.Bill, memberID, memberUserID string, memberUserName string, paid decimal.Decimal64p2) (bill models.Bill, group models.Group, changed, isJoined bool, err error) {
-	log.Debugf(c, "billFacade.AddBillMember(memberID=%v, memberUserID=%v, paid=%v)", memberID, memberUserID, paid)
+	log.Debugf(c, "billFacade.AddBillMember(bill.ID=%v, memberID=%v, memberUserID=%v, paid=%v)", bill.ID, memberID, memberUserID, paid)
+	if paid < 0 {
+		panic("paid < 0")
+	}
 	bill = inBill
 	if bill.ID == "" {
 		panic("bill.ID is empty string")
 	}
-	log.Debugf(c, "billFacade.AddBillMember(bill.ID=%v, paid=%v)", bill.ID, paid)
 	if !dal.DB.IsInTransaction(c) {
 		panic("This method should be called within transaction")
 	}
-	if bill.BillEntity == nil {
-		if bill, err = dal.Bill.GetBillByID(c, bill.ID); err != nil {
-			return
-		}
-	}
 
-	if userGroupID := bill.UserGroupID(); userGroupID != "" {
-		if group, err = dal.Group.GetGroupByID(c, userGroupID); err != nil {
-			return
-		}
-	}
+	// TODO: Verify bill was obtained within transaction
 
 	previousBalance := bill.GetBalance()
 
@@ -525,7 +575,7 @@ func (billFacade) AddBillMember(c context.Context, inBill models.Bill, memberID,
 		groupChanged bool
 		groupMember  models.GroupMemberJson
 		billMember   models.BillMemberJson
-		members      []models.BillMemberJson
+		billMembers  []models.BillMemberJson
 		groupMembers []models.GroupMemberJson
 	)
 
@@ -533,38 +583,65 @@ func (billFacade) AddBillMember(c context.Context, inBill models.Bill, memberID,
 		if group, err = dal.Group.GetGroupByID(c, userGroupID); err != nil {
 			return
 		}
+
+		if _, groupChanged, _, groupMember, groupMembers = group.AddOrGetMember(memberUserID, "", billMember.Name); groupChanged {
+			group.SetGroupMembers(groupMembers)
+		} else {
+			log.Debugf(c, "Group billMembers not changed, groupMember.ID: " + groupMember.ID)
+		}
 	}
 
-	if _, groupChanged, _, groupMember, groupMembers = group.AddOrGetMember(memberUserID, "", billMember.Name); groupChanged {
-		group.SetGroupMembers(groupMembers)
-	} else {
-		log.Debugf(c, "Group members not changed, groupMember.ID: " + groupMember.ID)
-	}
-
-	if _, changed, index, billMember, members = bill.AddOrGetMember(groupMember.ID, memberUserID, "", memberUserName); !changed {
-		return
-	}
+	_, changed, index, billMember, billMembers = bill.AddOrGetMember(groupMember.ID, memberUserID, "", memberUserName);
 
 	log.Debugf(c, "billMember.ID: " + billMember.ID)
 
-	if paid != 0 && billMember.Paid == 0 {
-		billMember.Paid = paid
+	if paid > 0 {
+		if billMember.Paid == paid {
+			// Already set
+		} else if paid == bill.AmountTotal {
+			for i := range billMembers {
+				billMembers[i].Paid = 0
+			}
+			billMember.Paid = paid
+			changed = true
+		} else {
+			paidTotal := paid
+			for _, bm := range billMembers {
+				paidTotal += bm.Paid
+			}
+			if paidTotal <= bill.AmountTotal {
+				billMember.Paid = paid
+				changed = true
+			} else {
+				err = errors.New("Total paid by members exceeds bill amount")
+				return
+			}
+		}
 	}
-	members[index] = billMember
-
-	if err = bill.SetBillMembers(members); err != nil {
+	if !changed {
 		return
 	}
+
+	billMembers[index] = billMember
+
+	log.Debugf(c, "billMembers: %+v", billMembers)
+	if err = bill.SetBillMembers(billMembers); err != nil {
+		return
+	}
+	log.Debugf(c, "bill.GetBillMembers(): %+v", bill.GetBillMembers())
 
 	if err = dal.Bill.SaveBill(c, bill); err != nil {
 		return
 	}
 
+	log.Debugf(c, "bill.GetBillMembers() after save: %v", bill.GetBillMembers())
+
 	currentBalance := bill.GetBalance()
 
-	if balanceDifference := currentBalance.BillBalanceDifference(previousBalance); balanceDifference.IsAffectingGroupBalance() {
-		if groupChanged, err = group.ApplyBillBalanceDifference(balanceDifference, bill.Currency); err != nil {
-			err = errors.WithMessage(err, "Faield to apply bill difference")
+	if balanceDifference := currentBalance.BillBalanceDifference(previousBalance); balanceDifference.IsNoDifference() {
+		log.Debugf(c, "Bill balanceDifference: %v", balanceDifference)
+		if groupChanged, err = group.ApplyBillBalanceDifference(bill.Currency, balanceDifference); err != nil {
+			err = errors.WithMessage(err, "Failed to apply bill difference")
 			return
 		}
 		if groupChanged {

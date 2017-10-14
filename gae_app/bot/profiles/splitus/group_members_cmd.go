@@ -25,7 +25,7 @@ var groupMembersCommand = bots.Command{
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		return showGroupMembers(whc, models.Group{}, false)
 	},
-	CallbackAction: func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		var group models.Group
 		if group, err = bot_shared.GetGroup(whc); err != nil {
 			err = nil

@@ -32,8 +32,8 @@ const CREATE_INVITE_IF_NO_INLINE_NOTIFICATION = "create-invite-if-no-inline-noti
 var CreateInviteIfNoInlineNotificationCommand = bots.Command{
 	Code:       CREATE_INVITE_IF_NO_INLINE_NOTIFICATION,
 	InputTypes: []bots.WebhookInputType{bots.WebhookInputCallbackQuery},
-	CallbackAction: func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
-		return InlineReceipt(whc, whc.Input().(bots.WebhookCallbackQuery).GetInlineMessageID(), callbackURL)
+	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+		return InlineReceipt(whc, whc.Input().(bots.WebhookCallbackQuery).GetInlineMessageID(), callbackUrl)
 	},
 }
 

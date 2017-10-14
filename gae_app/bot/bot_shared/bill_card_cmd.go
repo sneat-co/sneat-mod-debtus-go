@@ -52,7 +52,7 @@ func BillCallbackCommandData(command string, billID string) string {
 }
 
 var billMembersCommand = BillCallbackCommand(BILL_MEMBERS_COMMAND,
-	func(whc bots.WebhookContext, callbackURL *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
+	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
 		var buffer bytes.Buffer
 		if err = WriteBillCardTitle(whc.Context(), bill, whc.GetBotCode(), &buffer, whc); err != nil {
 			return
@@ -169,7 +169,7 @@ const INVITE_BILL_MEMBER_COMMAND = "invite2bill"
 const INLINE_COMMAND_JOIN = "join"
 
 var inviteToBillCommand = BillCallbackCommand(INVITE_BILL_MEMBER_COMMAND,
-	func(whc bots.WebhookContext, callbackURL *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
+	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
 		m.Keyboard = &tgbotapi.InlineKeyboardMarkup{
 			InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{
 				{
@@ -248,7 +248,9 @@ func GetBillCardMessageText(c context.Context, botID string, translator strongo.
 	}
 
 	if footer != "" {
-		buffer.WriteString("\n\n")
+		if !showMembers || bill.MembersCount == 0 {
+			buffer.WriteString("\n\n")
+		}
 		buffer.WriteString(footer)
 	}
 	log.Debugf(c, "GetBillCardMessageText() completed")

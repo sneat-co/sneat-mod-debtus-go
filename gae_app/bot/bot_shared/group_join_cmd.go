@@ -19,7 +19,7 @@ const JOIN_GROUP_COMMAND = "join-group"
 
 func joinGroupCommand(params BotParams) bots.Command {
 	return GroupCallbackCommand(JOIN_GROUP_COMMAND,
-		func(whc bots.WebhookContext, callbackURL *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
+		func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
 			c := whc.Context()
 
 			if group, err = GetGroup(whc); err != nil {

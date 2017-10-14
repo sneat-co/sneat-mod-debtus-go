@@ -23,7 +23,7 @@ const CONTACTS_LIST_COMMAND = "contacts-list"
 var ContactsListCommand = bots.Command{
 	Code:     CONTACTS_LIST_COMMAND,
 	Commands: trans.Commands(CONTACTS_LIST_COMMAND),
-	CallbackAction: func(whc bots.WebhookContext, callbackURL *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		var user *models.AppUserEntity
 		if appUser, err := whc.GetAppUser(); err != nil {
 			return m, err
@@ -60,7 +60,7 @@ var ContactsListCommand = bots.Command{
 		m = whc.NewMessage(buffer.String())
 		m.Keyboard = keyboard
 		m.IsEdit = whc.InputType() == bots.WebhookInputCallbackQuery
-		if callbackURL.Query().Get("do") == "refresh" {
+		if callbackUrl.Query().Get("do") == "refresh" {
 			if m, err = bot.SendRefreshOrNothingChanged(whc, m); err != nil {
 				return
 			}
