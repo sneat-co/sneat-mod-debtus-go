@@ -62,6 +62,7 @@ type BillEntity struct {
 	SplitID          int64     `datastore:",noindex"`
 	DebtorIDs        []string
 	SponsorIDs       []string
+	SettlementIDs    []string
 	//BalanceJson      string    `datastore:",noindex"`
 	//BalanceVersion   int       `datastore:",noindex"`
 	//balanceVersion   int       `datastore:"-"`

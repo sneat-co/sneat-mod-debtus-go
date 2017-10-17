@@ -39,6 +39,14 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 		if group, err = dal.Group.GetGroupByID(c, groupID); err != nil {
 			return
 		}
+
+		billsSettlement := models.BillsHistory{
+			BillsHistoryEntity: &models.BillsHistoryEntity{
+				Currency: currency,
+				GroupMembersJsonBefore: group.MembersJson,
+			},
+		}
+
 		if groupDebtor, err = group.GetGroupMemberByID(debtorID); err != nil {
 			return errors.WithMessage(err, "unknown debtor ID="+debtorID)
 		}
@@ -59,8 +67,9 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 			amount = v
 		}
 
-		toSave := make([]db.EntityHolder, 1, len(keys) + 1)
-		toSave[0] = &group
+		billsToSave := make([]models.Bill, 0, len(keys))
+
+		settlementBills := make([]models.BillSettlementJson, 0, len(keys))
 
 		for _, k := range keys {
 			if amount == 0 {
@@ -68,7 +77,7 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 			} else if amount < 0 {
 				panic(fmt.Sprintf("amount < 0: %v", amount))
 			}
-			var bill models.Bill
+			bill := models.Bill{}
 			if bill, err = dal.Bill.GetBillByID(c, k.StringID()); err != nil {
 				return
 			}
@@ -116,11 +125,19 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 
 			log.Debugf(c, "diff: %v", diff)
 			amount -= diff
+			billsSettlement.TotalAmount  += diff
 
 			debtor.Paid += diff
 			sponsor.Paid -= diff
+
 			groupDebtor.Balance[currency] += diff
+			if groupDebtor.Balance[currency] == 0 {
+				delete(groupDebtor.Balance, currency)
+			}
 			groupSponsor.Balance[currency] -= diff
+			if groupSponsor.Balance[currency] == 0 {
+				delete(groupSponsor.Balance, currency)
+			}
 
 			if err = bill.SetBillMembers(billMembers); err != nil {
 				return
@@ -129,12 +146,30 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 			log.Debugf(c, "groupDebtor.Balance: %v", groupDebtor.Balance)
 			log.Debugf(c, "groupSponsor.Balance: %v", groupSponsor.Balance)
 
-			toSave = append(toSave, &*&bill)
+			billsToSave = append(billsToSave, bill)
+			settlementBills = append(settlementBills, models.BillSettlementJson{
+				BillID: bill.ID,
+				GroupID: groupID,
+				DebtorID: debtorID,
+				SponsorID: sponsorID,
+				Amount: diff,
+			})
 
 			nextBill:
 		}
 
-		if len(toSave) > 1 {
+		if len(billsToSave) > 0 {
+			billsSettlement.SetBillSettlements(groupID, settlementBills)
+			if err = dal.InsertWithRandomStringID(c, &billsSettlement, 6); err != nil {
+				return
+			}
+			toSave := make([]db.EntityHolder, len(billsToSave) + 1)
+			toSave[0] = &group
+			for i, bill := range billsToSave {
+				bill.SettlementIDs = append(bill.SettlementIDs, billsSettlement.ID)
+				toSave[i+1] = &bill
+			}
+
 			groupMembers := group.GetGroupMembers()
 			for i, m := range groupMembers {
 				switch m.ID {
@@ -148,6 +183,10 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 				panic("Group members not changed - something wrong")
 			}
 			if err = dal.DB.UpdateMulti(c, toSave); err != nil {
+				return
+			}
+			billsSettlement.GroupMembersJsonAfter = group.MembersJson
+			if err = dal.DB.Update(c, &billsSettlement); err != nil {
 				return
 			}
 		} else {

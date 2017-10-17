@@ -68,9 +68,17 @@ func (current BillBalanceByMember) BillBalanceDifference(previous BillBalanceByM
 
 	for memberID, mPrevious := range previous {
 		if _, ok := current[memberID]; !ok {
-			difference[memberID] =  -mPrevious.Balance()
+			difference[memberID] = -mPrevious.Balance()
 		}
 	}
 
 	return
+}
+
+type BillSettlementJson struct {
+	BillID    string              `json:"bill"`
+	GroupID   string              `json:"group"`
+	DebtorID  string              `json:"debtor,omitempty"`
+	SponsorID string              `json:"sponsor,omitempty"`
+	Amount    decimal.Decimal64p2 `json:"amount,omitempty"`
 }
