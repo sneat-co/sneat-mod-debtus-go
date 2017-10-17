@@ -14,7 +14,7 @@ func startInGroupAction(whc bots.WebhookContext) (m bots.MessageFromBot, err err
 	log.Debugf(c, "startInGroupAction()")
 
 	var group models.Group
-	if group, err = GetGroup(whc); err != nil {
+	if group, err = GetGroup(whc, nil); err != nil {
 		return
 	}
 	var user bots.BotAppUser

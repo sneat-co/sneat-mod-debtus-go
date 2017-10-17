@@ -56,6 +56,10 @@ type BillMemberJson struct {
 	//TransferIDs []int64             `json:",omitempty"`
 }
 
+func (m BillMemberJson) Balance() decimal.Decimal64p2 {
+	return m.Paid - m.Owes
+}
+
 func (m *BillMemberJson) String() string {
 	buffer, _ := ffjson.MarshalFast(m)
 	return string(buffer)

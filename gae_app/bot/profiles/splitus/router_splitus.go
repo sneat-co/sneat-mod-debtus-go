@@ -68,12 +68,18 @@ var Router bots.WebhooksRouter = bots.NewWebhookRouter(
 		bots.WebhookInputText: {
 			bot_shared.EditedBillCardHookCommand,
 			billsCommand,
+			settingsCommand,
+			groupBalanceCommand,
 		},
 		bots.WebhookInputCallbackQuery: {
 			bot_shared.JoinBillCommand(botParams),
 			bot_shared.CloseBillCommand(botParams),
 			bot_shared.EditBillCommand(botParams),
 			bot_shared.NewBillCommand(botParams),
+			settingsCommand,
+			groupSettingsSetCurrencyCommand,
+			groupSettingsChooseCurrencyCommand,
+			groupBalanceCommand,
 			groupMembersCommand,
 			billsCommand,
 			billSharesCommand,

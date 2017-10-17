@@ -30,7 +30,7 @@ func billsAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 	}
 
 	var group models.Group
-	if group, err = bot_shared.GetGroup(whc); err != nil {
+	if group, err = bot_shared.GetGroup(whc, nil); err != nil {
 		return
 	}
 

@@ -67,12 +67,12 @@ func billCallbackAction(f BillCallbackAction) func(whc bots.WebhookContext, call
 	}
 }
 
-func transactionalCallbackCommand(c bots.Command, o db.RunOptions) bots.Command {
-	c.CallbackAction = transactionalCallbackAction(o, c.CallbackAction)
+func TransactionalCallbackCommand(c bots.Command, o db.RunOptions) bots.Command {
+	c.CallbackAction = TransactionalCallbackAction(o, c.CallbackAction)
 	return c
 }
 
-func transactionalCallbackAction(o db.RunOptions,
+func TransactionalCallbackAction(o db.RunOptions,
 	f func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error),
 ) func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 	return func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {

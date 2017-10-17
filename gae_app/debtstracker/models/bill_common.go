@@ -20,7 +20,7 @@ const (
 	SplitModeShare       SplitMode = "shares"
 )
 
-var ErrUnknownSplitMode = errors.New("Unnknown split mode")
+var ErrUnknownSplitMode = errors.New("Unknown split mode")
 
 type PayMode string
 
@@ -32,14 +32,14 @@ const (
 type BillCommon struct {
 	PayMode            PayMode
 	CreatorUserID      string              `datastore:",noindex"`
-	userGroupID        string              `datastore:"UserGroupID,noindex"`
+	userGroupID        string              `datastore:"UserGroupID"`
 	TgInlineMessageIDs []string            `datastore:",noindex"`
 	SplitMode          SplitMode           `datastore:",noindex"`
 	Status             string
 	DtCreated          time.Time
 	Name               string              `datastore:",noindex"`
 	AmountTotal        decimal.Decimal64p2 `datastore:"AmountTotal"`
-	Currency           Currency            `datastore:",noindex"`
+	Currency           Currency
 	UserIDs            []string
 	members            []BillMemberJson
 	MembersJson        string              `datastore:",noindex"`
@@ -256,7 +256,7 @@ func (entity *BillCommon) save(properties []datastore.Property) (filtered []data
 		return
 	}
 	if entity.userGroupID != "" {
-		filtered = append(filtered, datastore.Property{Name: "UserGroupID", Value: entity.userGroupID, NoIndex: true})
+		filtered = append(filtered, datastore.Property{Name: "UserGroupID", Value: entity.userGroupID, NoIndex: false})
 	}
 	return
 }

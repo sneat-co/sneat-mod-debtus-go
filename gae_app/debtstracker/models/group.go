@@ -38,16 +38,17 @@ func (group Group) SetEntity(entity interface{}) {
 var _ db.EntityHolder = (*Group)(nil)
 
 type GroupEntity struct {
-	CreatorUserID       string
+	CreatorUserID string
 	//IsUser2User         bool   `datastore:",noindex"`
-	Name                string `datastore:",noindex"`
-	Note                string `datastore:",noindex"`
+	Name                string   `datastore:",noindex"`
+	Note                string   `datastore:",noindex"`
+	DefaultCurrency     Currency `datastore:",noindex"`
 	members             []GroupMemberJson
-	MembersCount        int    `datastore:",noindex"`
-	MembersJson         string `datastore:",noindex"`
+	MembersCount        int      `datastore:",noindex"`
+	MembersJson         string   `datastore:",noindex"`
 	telegramGroups      []GroupTgChatJson
-	TelegramGroupsCount int    `datastore:"TgGroupsCount,noindex"`
-	TelegramGroupsJson  string `datastore:"TgGroupsJson,noindex"`
+	TelegramGroupsCount int      `datastore:"TgGroupsCount,noindex"`
+	TelegramGroupsJson  string   `datastore:"TgGroupsJson,noindex"`
 	billsHolder
 }
 
@@ -192,7 +193,7 @@ func addOrGetMember(members []MemberJson, memberID, userID, contactID, name stri
 		}
 	}
 	member = MemberJson{
-		ID: memberID,
+		ID:     memberID,
 		Name:   name,
 		UserID: userID,
 	}
@@ -231,6 +232,18 @@ func (entity *GroupEntity) GetGroupMembers() []GroupMemberJson {
 	entity.members = make([]GroupMemberJson, entity.MembersCount, entity.MembersCount)
 	copy(entity.members, members)
 	return members
+}
+
+func (entity *GroupEntity) GetGroupMemberByID(id string) (GroupMemberJson, error) {
+	if id == "" {
+		return GroupMemberJson{}, errors.WithMessage(db.ErrRecordNotFound, "empty id")
+	}
+	for _, m := range entity.GetGroupMembers() {
+		if m.ID == id {
+			return m, nil
+		}
+	}
+	return GroupMemberJson{}, errors.WithMessage(db.ErrRecordNotFound, "unknown id="+id)
 }
 
 func (entity *GroupEntity) GetMembers() (members []MemberJson) {
@@ -390,6 +403,7 @@ func (entity *GroupEntity) Save() ([]datastore.Property, error) {
 	}
 	ps, err := datastore.SaveStruct(entity)
 	if ps, err = gaedb.CleanProperties(ps, map[string]gaedb.IsOkToRemove{
+		"DefaultCurrency":       gaedb.IsEmptyString,
 		"MembersCount":          gaedb.IsZeroInt,
 		"MemberLastID":          gaedb.IsZeroInt,
 		"MembersJson":           gaedb.IsEmptyJson,

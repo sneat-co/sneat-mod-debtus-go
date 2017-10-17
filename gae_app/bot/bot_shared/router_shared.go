@@ -13,6 +13,9 @@ func AddSharedRoutes(router bots.WebhooksRouter, botParams BotParams) {
 	})
 	router.AddCommands(bots.WebhookInputCallbackQuery, []bots.Command{
 		onStartCallbackCommand(botParams),
+		settleGroupAskForCounterpartyCommand,
+		settleGroupCounterpartyChoosenCommand,
+		settleGroupCounterpartyConfirmedCommand,
 		joinGroupCommand(botParams),
 		billCardCommand(botParams),
 		setBillCurrencyCommand(botParams),

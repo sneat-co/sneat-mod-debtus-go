@@ -27,7 +27,7 @@ var groupMembersCommand = bots.Command{
 	},
 	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		var group models.Group
-		if group, err = bot_shared.GetGroup(whc); err != nil {
+		if group, err = bot_shared.GetGroup(whc, callbackUrl); err != nil {
 			err = nil
 			return
 		}
@@ -87,7 +87,7 @@ func groupMembersCard(
 func showGroupMembers(whc bots.WebhookContext, group models.Group, isEdit bool) (m bots.MessageFromBot, err error) {
 
 	if group.GroupEntity == nil {
-		if group, err = bot_shared.GetGroup(whc); err != nil {
+		if group, err = bot_shared.GetGroup(whc, nil); err != nil {
 			return
 		}
 	}

@@ -17,6 +17,8 @@ func startInBotAction(whc bots.WebhookContext, startParams []string, botParams B
 			return startBillAction(whc, startParams[0], botParams)
 		case strings.HasPrefix(startParams[0], "how-to"):
 			return howToCommand.Action(whc)
+		case startParams[0] == SETTLE_GROUP_ASK_FOR_COUNTERPARTY_COMMAND:
+			return settleGroupStartAction(whc, startParams[1:])
 		}
 	}
 
@@ -55,3 +57,5 @@ func onStartCallbackInBot(whc bots.WebhookContext, params BotParams) (m bots.Mes
 
 	return
 }
+
+

@@ -14,7 +14,20 @@ import (
 	"golang.org/x/net/context"
 	"net/url"
 	"strconv"
+	"fmt"
+	"bytes"
 )
+
+
+func StartBotLink(botID, command string, params... string) string {
+	var buf bytes.Buffer
+	fmt.Fprintf(&buf, "https://t.me/%v?start=%v", botID, command)
+	for _, p := range params {
+		buf.WriteString("__")
+		buf.WriteString(p)
+	}
+	return buf.String()
+}
 
 func startCommand(botParams BotParams) bots.Command {
 	return bots.Command{

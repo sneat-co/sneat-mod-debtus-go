@@ -60,6 +60,8 @@ type BillEntity struct {
 	LocaleByMessage  []string  `datastore:",noindex"`
 	TgChatMessageIDs []string  `datastore:",noindex"`
 	SplitID          int64     `datastore:",noindex"`
+	DebtorIDs        []string
+	SponsorIDs       []string
 	//BalanceJson      string    `datastore:",noindex"`
 	//BalanceVersion   int       `datastore:",noindex"`
 	//balanceVersion   int       `datastore:"-"`
@@ -108,6 +110,17 @@ func (entity *BillEntity) Save() (properties []datastore.Property, err error) {
 		return
 	}
 
+	entity.DebtorIDs = make([]string, 0, len(entity.members))
+	entity.SponsorIDs = make([]string, 0, len(entity.members))
+
+	for _, m := range entity.members {
+		if m.Paid > m.Owes {
+			entity.SponsorIDs = append(entity.SponsorIDs, m.ID)
+		} else if m.Paid < m.Owes {
+			entity.DebtorIDs = append(entity.DebtorIDs, m.ID)
+		}
+	}
+
 	if properties, err = datastore.SaveStruct(entity); err != nil {
 		return
 	}
@@ -124,13 +137,13 @@ func (entity *BillEntity) Save() (properties []datastore.Property, err error) {
 }
 
 var (
-	ErrNegativeAmount = errors.New("negative amount")
+	ErrNegativeAmount                   = errors.New("negative amount")
 	ErrTotalOwedIsNotMatchingBillAmount = errors.New("total owed is not matching bill amount")
 	ErrTotalPaidIsGreaterThenBillAmount = errors.New("total paid is greater then bill amount")
-	ErrBillTotalBalanceIsNotZero = errors.New("total bill balance is not zero")
-	ErrBillOwesDiffTotalIsNotZero = errors.New("total bill difference of owes is not zero")
-	ErrNonGroupMember = errors.New("non group member")
-	GroupTotalBalanceHasNonZeroValue = errors.New("group total balance has non zero value")
+	ErrBillTotalBalanceIsNotZero        = errors.New("total bill balance is not zero")
+	ErrBillOwesDiffTotalIsNotZero       = errors.New("total bill difference of owes is not zero")
+	ErrNonGroupMember                   = errors.New("non group member")
+	GroupTotalBalanceHasNonZeroValue    = errors.New("group total balance has non zero value")
 )
 
 func (entity *BillEntity) validateBalance() (err error) {
@@ -139,8 +152,8 @@ func (entity *BillEntity) validateBalance() (err error) {
 	}
 	var (
 		totalBalance decimal.Decimal64p2
-		totalPaid decimal.Decimal64p2
-		totalOwed decimal.Decimal64p2
+		totalPaid    decimal.Decimal64p2
+		totalOwed    decimal.Decimal64p2
 	)
 
 	members := entity.GetBillMembers()
@@ -174,7 +187,7 @@ func (entity *BillEntity) validateBalance() (err error) {
 	return
 }
 
-func (entity *BillEntity) GetBalance() (billBalanceByMember BillBalanceByMember){
+func (entity *BillEntity) GetBalance() (billBalanceByMember BillBalanceByMember) {
 	members := entity.GetBillMembers()
 	billBalanceByMember = make(BillBalanceByMember, len(members))
 
@@ -202,4 +215,3 @@ func (entity *BillEntity) SetBillMembers(members []BillMemberJson) (err error) {
 	}
 	return entity.setBillMembers(members)
 }
-

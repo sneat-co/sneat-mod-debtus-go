@@ -47,7 +47,7 @@ func ParseStartCommand(whc bots.WebhookContext) (startParam string, startParams 
 				case strings.HasPrefix(p, "utm_m="):
 					utm_medium = p[len("utm_m="):]
 				case strings.HasPrefix(p, "utm_s="):
-					utm_source = p[len("utm_m="):]
+					utm_source = p[len("utm_s="):]
 				}
 			}
 			if utm_medium != "" || utm_source != "" { // TODO: Handle analytics

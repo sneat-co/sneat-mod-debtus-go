@@ -103,6 +103,8 @@ func groupsAction(whc bots.WebhookContext, isEdit bool, groupsMessageID int) (m 
 		}
 	}
 
+	fmt.Fprint(buf, "\n", whc.Translate(trans.MESSAGE_TEXT_USE_ARROWS_TO_SELECT_GROUP))
+
 	m.Text = buf.String()
 
 	tgKeyboard := tgbotapi.NewInlineKeyboardMarkup(

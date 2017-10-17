@@ -59,7 +59,7 @@ var newChatMembersCommand = bots.Command{
 		}
 
 		var group models.Group
-		if group, err = GetGroup(whc); err != nil {
+		if group, err = GetGroup(whc, nil); err != nil {
 			return
 		}
 		if group, newUsers, err = facade.Group.AddUsersToTheGroupAndOutstandingBills(whc.Context(), group.ID, newUsers); err != nil {

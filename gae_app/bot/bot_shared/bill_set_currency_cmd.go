@@ -13,7 +13,7 @@ import (
 const SET_BILL_CURRENCY_COMMAND = "set-bill-currency"
 
 func setBillCurrencyCommand(params BotParams) bots.Command {
-	return transactionalCallbackCommand(BillCallbackCommand(SET_BILL_CURRENCY_COMMAND,
+	return TransactionalCallbackCommand(BillCallbackCommand(SET_BILL_CURRENCY_COMMAND,
 		func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
 			c := whc.Context()
 			log.Debugf(c, "setBillCurrencyCommand.CallbackAction()")
@@ -57,9 +57,11 @@ func setBillCurrencyCommand(params BotParams) bots.Command {
 	), dal.CrossGroupTransaction)
 }
 
-func CurrenciesInlineKeyboard(callbackDataPrefix string) *tgbotapi.InlineKeyboardMarkup {
+const CURRENCY_PARAM_NAME = "currency"
+
+func CurrenciesInlineKeyboard(callbackDataPrefix string, more... []tgbotapi.InlineKeyboardButton) *tgbotapi.InlineKeyboardMarkup {
 	currencyButton := func(code, flag string) tgbotapi.InlineKeyboardButton {
-		btn := tgbotapi.InlineKeyboardButton{CallbackData: callbackDataPrefix + "&currency=" + code}
+		btn := tgbotapi.InlineKeyboardButton{CallbackData: callbackDataPrefix + "&" + CURRENCY_PARAM_NAME + "=" + code}
 		if flag == "" {
 			btn.Text = code
 		} else {
@@ -111,14 +113,16 @@ func CurrenciesInlineKeyboard(callbackDataPrefix string) *tgbotapi.InlineKeyboar
 		//currencyButton("VND", "🇻🇳"),
 	}
 
+	keyboard := append([][]tgbotapi.InlineKeyboardButton{
+		usdRow,
+		eurRow,
+		rubRow,
+		exUSSR,
+		eurRow2,
+		asiaRow,
+	}, more...)
+
 	return &tgbotapi.InlineKeyboardMarkup{
-		InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{
-			usdRow,
-			eurRow,
-			rubRow,
-			exUSSR,
-			eurRow2,
-			asiaRow,
-		},
+		InlineKeyboard: keyboard,
 	}
 }

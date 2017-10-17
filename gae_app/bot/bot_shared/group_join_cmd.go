@@ -22,7 +22,7 @@ func joinGroupCommand(params BotParams) bots.Command {
 		func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
 			c := whc.Context()
 
-			if group, err = GetGroup(whc); err != nil {
+			if group, err = GetGroup(whc, callbackUrl); err != nil {
 				return
 			}
 

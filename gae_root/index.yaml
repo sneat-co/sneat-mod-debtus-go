@@ -1,5 +1,13 @@
 indexes:
 
+- kind: Bill
+  properties:
+  - name: UserGroupID
+  - name: Currency
+  - name: DebtorIDs
+  - name: SponsorIDs
+  - name: DtCreated
+
 - kind: User
   properties:
   - name: EmailAddress

@@ -37,7 +37,7 @@ func JoinBillCommand(botParams BotParams) bots.Command {
 			}
 			return joinBillAction(whc, botParams, bill, "", false)
 		},
-		CallbackAction: transactionalCallbackAction(db.CrossGroupTransaction, billCallbackAction(func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
+		CallbackAction: TransactionalCallbackAction(db.CrossGroupTransaction, billCallbackAction(func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
 			c := whc.Context()
 			log.Debugf(c, "joinBillCommand.CallbackAction()")
 			memberStatus := callbackUrl.Query().Get("i")
