@@ -16,13 +16,21 @@ var botParams = bot_shared.BotParams{
 	GetPrivateBillCardInlineKeyboard: getPrivateBillCardInlineKeyboard,
 	DelayUpdateBillCardOnUserJoin:    delayUpdateBillCardOnUserJoin,
 	OnAfterBillCurrencySelected:      getWhoPaidInlineKeyboard,
-	ShowGroupMembers:                 showGroupMembers,
+	//ShowGroupMembers:                 showGroupMembers,
 	WelcomeText: func(translator strongo.SingleLocaleTranslator, buf *bytes.Buffer) {
 		buf.WriteString(translator.Translate(trans.SPLITUS_TEXT_HI))
 		buf.WriteString("\n\n")
 		buf.WriteString(translator.Translate(trans.SPLITUS_TEXT_ABOUT_ME_AND_CO))
 	},
-	InGroupWelcomeMessage: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	InGroupWelcomeMessage: func(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error) {
+		m, err = bot_shared.GroupSettingsAction(whc, group, false)
+		if err != nil {
+			return
+		}
+		if _, err = whc.Responder().SendMessage(whc.Context(), m, bots.BotApiSendMessageOverHTTPS); err != nil {
+			return
+		}
+
 		return whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_HI)+
 			"\n\n"+whc.Translate(trans.SPLITUS_TEXT_HI_IN_GROUP)+
 			"\n\n"+whc.Translate(trans.SPLITUS_TEXT_ABOUT_ME_AND_CO),
@@ -68,7 +76,6 @@ var Router bots.WebhooksRouter = bots.NewWebhookRouter(
 		bots.WebhookInputText: {
 			bot_shared.EditedBillCardHookCommand,
 			billsCommand,
-			settingsCommand,
 			groupBalanceCommand,
 		},
 		bots.WebhookInputCallbackQuery: {
@@ -76,11 +83,7 @@ var Router bots.WebhooksRouter = bots.NewWebhookRouter(
 			bot_shared.CloseBillCommand(botParams),
 			bot_shared.EditBillCommand(botParams),
 			bot_shared.NewBillCommand(botParams),
-			settingsCommand,
-			groupSettingsSetCurrencyCommand,
-			groupSettingsChooseCurrencyCommand,
 			groupBalanceCommand,
-			groupMembersCommand,
 			billsCommand,
 			billSharesCommand,
 			billSplitModesListCommand,

@@ -1,7 +1,6 @@
-package splitus
+package bot_shared
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
@@ -17,6 +16,9 @@ import (
 	"net/url"
 )
 
+const GROUP_SPLIT_COMMAND = "group-split"
+
+
 const GROUP_MEMBERS_COMMAND = "group-members"
 
 var groupMembersCommand = bots.Command{
@@ -27,7 +29,7 @@ var groupMembersCommand = bots.Command{
 	},
 	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		var group models.Group
-		if group, err = bot_shared.GetGroup(whc, callbackUrl); err != nil {
+		if group, err = GetGroup(whc, callbackUrl); err != nil {
 			err = nil
 			return
 		}
@@ -87,7 +89,7 @@ func groupMembersCard(
 func showGroupMembers(whc bots.WebhookContext, group models.Group, isEdit bool) (m bots.MessageFromBot, err error) {
 
 	if group.GroupEntity == nil {
-		if group, err = bot_shared.GetGroup(whc, nil); err != nil {
+		if group, err = GetGroup(whc, nil); err != nil {
 			return
 		}
 	}
@@ -103,26 +105,20 @@ func showGroupMembers(whc bots.WebhookContext, group models.Group, isEdit bool) 
 		[]tgbotapi.InlineKeyboardButton{
 			{
 				Text:         whc.Translate(trans.BUTTON_TEXT_JOIN),
-				CallbackData: bot_shared.JOIN_GROUP_COMMAND,
-			},
-		},
-		[]tgbotapi.InlineKeyboardButton{
-			{
-				Text:         whc.Translate(trans.BUTTON_TEXT_SPLIT_MODE, whc.Translate(string(group.GetSplitMode()))),
-				CallbackData: bot_shared.GroupCallbackCommandData(GROUP_SPLIT_COMMAND, group.ID),
+				CallbackData: JOIN_GROUP_COMMAND,
 			},
 		},
 		[]tgbotapi.InlineKeyboardButton{
 			tgbotapi.NewInlineKeyboardButtonSwitchInlineQuery(
 				emoji.CONTACTS_ICON+" "+whc.Translate(trans.COMMAND_TEXT_INVITE_MEMBER),
-				bot_shared.GroupCallbackCommandData(bot_shared.JOIN_GROUP_COMMAND, group.ID),
+				GroupCallbackCommandData(JOIN_GROUP_COMMAND, group.ID),
 			),
 		},
 		[]tgbotapi.InlineKeyboardButton{
-			tgbotapi.NewInlineKeyboardButtonSwitchInlineQueryCurrentChat(
-				emoji.CLIPBOARD_ICON+whc.Translate(trans.COMMAND_TEXT_NEW_BILL),
-				"",
-			),
+			{
+				Text:         whc.CommandText(trans.COMMAND_TEXT_SETTING, emoji.SETTINGS_ICON),
+				CallbackData: GroupCallbackCommandData(SETTINGS_COMMAND, group.ID),
+			},
 		},
 	)
 	m.Keyboard = tgKeyboard

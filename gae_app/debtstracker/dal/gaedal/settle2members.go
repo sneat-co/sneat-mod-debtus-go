@@ -42,6 +42,7 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 
 		billsSettlement := models.BillsHistory{
 			BillsHistoryEntity: &models.BillsHistoryEntity{
+				Action: models.BillHistoryActionSettled,
 				Currency: currency,
 				GroupMembersJsonBefore: group.MembersJson,
 			},
@@ -125,7 +126,7 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 
 			log.Debugf(c, "diff: %v", diff)
 			amount -= diff
-			billsSettlement.TotalAmount  += diff
+			billsSettlement.TotalAmountDiff  += diff
 
 			debtor.Paid += diff
 			sponsor.Paid -= diff

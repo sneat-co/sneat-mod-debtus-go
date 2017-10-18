@@ -38,7 +38,6 @@ var CreateInviteIfNoInlineNotificationCommand = bots.Command{
 }
 
 func InlineSendReceipt(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
-
 	c := whc.Context()
 	log.Debugf(c, "InlineSendReceipt()")
 	inlineQuery := whc.Input().(bots.WebhookInlineQuery)
@@ -60,11 +59,12 @@ func InlineSendReceipt(whc bots.WebhookContext) (m bots.MessageFromBot, err erro
 	var transfer models.Transfer
 	transfer, err = dal.Transfer.GetTransferByID(c, transferID)
 	if err != nil {
-		log.Infof(c, "Faield to get tranfer by ID: %v", transferID)
+		log.Infof(c, "Faield to get transfer by ID: %v", transferID)
 		return m, err
 	}
 	log.Debugf(c, "Loaded transfer: %v", transfer)
 	creator := whc.GetSender()
+	receiptUrl := getReceiptUrl(whc.GetBotCode(), receiptID, whc.Locale().Code5)
 	m.BotMessage = telegram_bot.InlineBotMessage(tgbotapi.InlineConfig{
 		InlineQueryID: inlineQuery.GetInlineQueryID(),
 		//SwitchPmText: "Accept invite",
@@ -79,7 +79,7 @@ func InlineSendReceipt(whc bots.WebhookContext) (m bots.MessageFromBot, err erro
 				Title:       fmt.Sprintf(whc.Translate(trans.INLINE_RECEIPT_TITLE), transfer.GetAmount()),
 				Description: whc.Translate(trans.INLINE_RECEIPT_DESCRIPTION),
 				InputMessageContent: tgbotapi.InputTextMessageContent{
-					Text:      getInlineReceiptAnnouncementMessage(whc, false, fmt.Sprintf("%v %v", creator.GetFirstName(), creator.GetLastName())),
+					Text:      getInlineReceiptAnnouncementMessage(whc, false, fmt.Sprintf("%v %v", creator.GetFirstName(), creator.GetLastName()), receiptUrl),
 					ParseMode: "HTML",
 				},
 				ReplyMarkup: &tgbotapi.InlineKeyboardMarkup{
@@ -116,10 +116,11 @@ func InlineSendReceipt(whc bots.WebhookContext) (m bots.MessageFromBot, err erro
 	return m, err
 }
 
-func getInlineReceiptAnnouncementMessage(t strongo.SingleLocaleTranslator, inviteCreated bool, creator string) string {
+func getInlineReceiptAnnouncementMessage(t strongo.SingleLocaleTranslator, inviteCreated bool, creator, receiptUrl string) string {
 	data := map[string]interface{}{
 		"Creator":  creator,
 		"SiteLink": template.HTML(`<a href="https://debtstracker.io/#utm_source=telegram&utm_medium=bot&utm_campaign=receipt-inline-1st">DebtsTracker.IO</a>`),
+		"ReceiptUrl": receiptUrl,
 	}
 	result := t.Translate(trans.INLINE_RECEIPT_MESSAGE, data)
 	if inviteCreated {

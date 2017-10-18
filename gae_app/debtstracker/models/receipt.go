@@ -118,7 +118,7 @@ func (r *ReceiptEntity) Save() (properties []datastore.Property, err error) {
 		return
 	}
 
-	properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
+	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
 		"AcknowledgedByUserID	": gaedb.IsZeroInt,
 		"DtAcknowledged": gaedb.IsZeroTime,
 		"DtFailed":       gaedb.IsZeroTime,
@@ -128,7 +128,9 @@ func (r *ReceiptEntity) Save() (properties []datastore.Property, err error) {
 		"For":            gaedb.IsEmptyString,
 		"SentTo":         gaedb.IsEmptyString,
 		"SentVia":        gaedb.IsEmptyString,
-	})
+	}); err != nil {
+		return
+	}
 
 	return
 }

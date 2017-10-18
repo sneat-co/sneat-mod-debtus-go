@@ -112,7 +112,11 @@ func onStartCallbackCommand(params BotParams) bots.Command {
 			}
 
 			if whc.IsInGroup() {
-				return onStartCallbackInGroup(whc, params)
+				var group models.Group
+				if group, err = GetGroup(whc, callbackUrl); err != nil {
+					return
+				}
+				return onStartCallbackInGroup(whc, group, params)
 			} else {
 				return onStartCallbackInBot(whc, params)
 			}

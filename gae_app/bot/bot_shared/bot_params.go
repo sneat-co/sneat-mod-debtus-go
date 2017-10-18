@@ -14,8 +14,8 @@ type BotParams struct {
 	GetPrivateBillCardInlineKeyboard func(translator strongo.SingleLocaleTranslator, botCode string, bill models.Bill) *tgbotapi.InlineKeyboardMarkup
 	OnAfterBillCurrencySelected      func(translator strongo.SingleLocaleTranslator, billID string) *tgbotapi.InlineKeyboardMarkup
 	DelayUpdateBillCardOnUserJoin    func(c context.Context, billID string, message string) error
-	ShowGroupMembers                 func(whc bots.WebhookContext, group models.Group, isEdit bool) (m bots.MessageFromBot, err error)
+	//ShowGroupMembers                 func(whc bots.WebhookContext, group models.Group, isEdit bool) (m bots.MessageFromBot, err error)
 	WelcomeText                      func(translator strongo.SingleLocaleTranslator, buf *bytes.Buffer)
-	InGroupWelcomeMessage            func(whc bots.WebhookContext) (m bots.MessageFromBot, err error)
+	InGroupWelcomeMessage            func(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error)
 	InBotWelcomeMessage              func(whc bots.WebhookContext) (m bots.MessageFromBot, err error)
 }

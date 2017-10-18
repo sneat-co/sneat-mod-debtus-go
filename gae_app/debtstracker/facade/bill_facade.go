@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	//"github.com/strongo/app"
-	"github.com/strongo/app/db"
 	"github.com/strongo/app/log"
-	"github.com/strongo/app/user"
 	"github.com/strongo/decimal"
 	"golang.org/x/net/context"
 	"math"
@@ -372,6 +370,10 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 		return
 	}
 
+	billHistoryRecord := models.NewBillHistoryBillCreated(bill, nil)
+	if err = dal.InsertWithRandomStringID(c, &billHistoryRecord, models.BillsHistoryIdLen); err != nil {
+		return
+	}
 	return
 }
 
@@ -501,58 +503,7 @@ func (billFacade) GetBillMembersUserInfo(c context.Context, bill models.Bill, fo
 	return
 }
 
-func (billFacade billFacade) SettleUp(c context.Context, userID int64, groupID string, billIDs []string) (err error) {
-	now := time.Now()
-
-	var split models.Split
-
-	err = dal.DB.RunInTransaction(c, func(tc context.Context) error {
-		split, err = dal.Split.InsertSplit(tc, models.SplitEntity{
-			OwnedByUser: user.OwnedByUser{
-				AppUserIntID: userID,
-				DtCreated:    now,
-			},
-			BillIDs: billIDs,
-		})
-		if err != nil {
-			return err
-		}
-
-		bills, err := dal.Bill.GetBillsByIDs(tc, billIDs)
-		if err != nil {
-			return err
-		}
-
-		billEntityHolders := make([]db.EntityHolder, len(bills))
-		for i, bill := range bills { // Assign splitID to bills and fails if a bill already assigned to another split
-			if bill.SplitID == 0 {
-				bill.SplitID = split.ID
-			} else {
-				return fmt.Errorf("bill %d already belongs to a split %d", bill.ID, bill.SplitID)
-			}
-			billEntityHolders[i] = &bill
-		}
-
-		if err = dal.DB.UpdateMulti(c, billEntityHolders); err != nil {
-			return err
-		}
-
-		//billFacade.createTransfers(c, split.ID)
-		//var splitUser models.AppUser
-		//
-		//if groupID != 0 {
-		//	splitUser, err = dal.User.GetUserByID(c, -1*groupID)
-		//} else {
-		//	splitUser, err = dal.User.GetUserByID(c, userID)
-		//}
-
-		return nil
-	}, db.CrossGroupTransaction)
-
-	return
-}
-
-func (billFacade) AddBillMember(c context.Context, inBill models.Bill, memberID, memberUserID string, memberUserName string, paid decimal.Decimal64p2) (bill models.Bill, group models.Group, changed, isJoined bool, err error) {
+func (billFacade) AddBillMember(c context.Context, userID string, inBill models.Bill, memberID, memberUserID string, memberUserName string, paid decimal.Decimal64p2) (bill models.Bill, group models.Group, changed, isJoined bool, err error) {
 	log.Debugf(c, "billFacade.AddBillMember(bill.ID=%v, memberID=%v, memberUserID=%v, paid=%v)", bill.ID, memberID, memberUserID, paid)
 	if paid < 0 {
 		panic("paid < 0")
@@ -577,12 +528,17 @@ func (billFacade) AddBillMember(c context.Context, inBill models.Bill, memberID,
 		billMember   models.BillMemberJson
 		billMembers  []models.BillMemberJson
 		groupMembers []models.GroupMemberJson
+		groupMembersJsonBefore string
 	)
+
+	totalAboutBefore := bill.AmountTotal
 
 	if userGroupID := bill.UserGroupID(); userGroupID != "" {
 		if group, err = dal.Group.GetGroupByID(c, userGroupID); err != nil {
 			return
 		}
+
+		groupMembersJsonBefore = group.MembersJson
 
 		if _, groupChanged, _, groupMember, groupMembers = group.AddOrGetMember(memberUserID, "", billMember.Name); groupChanged {
 			group.SetGroupMembers(groupMembers)
@@ -649,6 +605,16 @@ func (billFacade) AddBillMember(c context.Context, inBill models.Bill, memberID,
 				return
 			}
 		}
+	}
+
+	log.Debugf(c, "group: %+v", group)
+	var groupMembersJsonAfter string
+	if group.GroupEntity != nil {
+		groupMembersJsonAfter = group.MembersJson
+	}
+	billHistoryRecord := models.NewBillHistoryMemberAdded(userID, bill, totalAboutBefore, groupMembersJsonBefore, groupMembersJsonAfter)
+	if err = dal.InsertWithRandomStringID(c, &billHistoryRecord, models.BillsHistoryIdLen); err != nil {
+		return
 	}
 
 	isJoined = true

@@ -108,7 +108,7 @@ func joinBillAction(whc bots.WebhookContext, botParams BotParams, bill models.Bi
 	default:
 	}
 
-	if bill, _, _, isJoined, err = facade.Bill.AddBillMember(c, bill, "", userID, userName, paid); err != nil {
+	if bill, _, _, isJoined, err = facade.Bill.AddBillMember(c, userID, bill, "", userID, userName, paid); err != nil {
 		return
 	}
 

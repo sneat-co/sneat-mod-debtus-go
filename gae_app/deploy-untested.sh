@@ -1,19 +1,20 @@
 #!/usr/bin/env bash
 
-projectFolder=~/debtstracker
-gaeAppFolder=${projectFolder}/gae_app/
+#projectFolder=~/debtstracker
+gaeAppFolder=~/go_workspace/src/bitbucket.com/asterus/debtstracker-server/
+ionicAppFolder=~/debtstracker/ionic/debtstracker-app/
 deployFolder=~/debtstracker_deploy
-testsBackupFolder=~/debtstracker_tests/
+#testsBackupFolder=~/debtstracker_tests/
 
 echo "Removing old files..."
 rm -rf ${deployFolder}
 echo "Copying new GAE files..."
-cp -r ${gaeAppFolder}/appengine/ ${deployFolder}
+cp -r ${gaeAppFolder}/gae_root/ ${deployFolder}
 echo "Removing test files..."
 rm ${deployFolder}/*_test.go
 #rsync --remove-source-files -a --prune-empty-dirs --include '*/' --include '*_test.go' --exclude '*' ${gaeAppFolder} ${testsBackupFolder}
 echo "Copying new Ionic app files..."
-cp -r ${projectFolder}/ionic-apps/public/platforms/browser/www/ ${deployFolder}/ionic-app
+cp -r ${ionicAppFolder}/platforms/browser/www/ ${deployFolder}/ionic-app
 echo "//Cordova.js disabled in browser" > ${deployFolder}/ionic-app/cordova.js
 
 while true; do

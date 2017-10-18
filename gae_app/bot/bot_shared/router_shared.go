@@ -10,6 +10,7 @@ func AddSharedRoutes(router bots.WebhooksRouter, botParams BotParams) {
 		helpRootCommand,
 		setBillDueDateCommand,
 		groupsCommand,
+		settingsCommand,
 	})
 	router.AddCommands(bots.WebhookInputCallbackQuery, []bots.Command{
 		onStartCallbackCommand(botParams),
@@ -19,6 +20,7 @@ func AddSharedRoutes(router bots.WebhooksRouter, botParams BotParams) {
 		joinGroupCommand(botParams),
 		billCardCommand(botParams),
 		setBillCurrencyCommand(botParams),
+		groupSettingsSetCurrencyCommand(botParams),
 		helpRootCommand,
 		groupsCommand,
 		groupCommand,
@@ -28,6 +30,9 @@ func AddSharedRoutes(router bots.WebhooksRouter, botParams BotParams) {
 		setBillDueDateCommand,
 		changeBillTotalCommand,
 		addBillComment,
+		settingsCommand,
+		groupSettingsChooseCurrencyCommand,
+		groupMembersCommand,
 	})
 	router.AddCommands(bots.WebhookInputNewChatMembers, []bots.Command{
 		newChatMembersCommand,

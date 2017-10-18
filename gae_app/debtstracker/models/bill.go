@@ -59,7 +59,6 @@ type BillEntity struct {
 	DtDueToCollect   time.Time `datastore:",noindex"`
 	LocaleByMessage  []string  `datastore:",noindex"`
 	TgChatMessageIDs []string  `datastore:",noindex"`
-	SplitID          int64     `datastore:",noindex"`
 	DebtorIDs        []string
 	SponsorIDs       []string
 	SettlementIDs    []string

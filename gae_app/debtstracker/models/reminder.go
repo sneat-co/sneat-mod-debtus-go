@@ -90,7 +90,7 @@ func (r *ReminderEntity) Save() (properties []datastore.Property, err error) {
 		return
 	}
 
-	properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
+	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
 		"DtDiscarded":      gaedb.IsZeroTime,
 		"DtNext":           gaedb.IsZeroTime,
 		"DtScheduled":      gaedb.IsZeroTime,
@@ -105,7 +105,9 @@ func (r *ReminderEntity) Save() (properties []datastore.Property, err error) {
 		"MessageStrID":     gaedb.IsEmptyString,
 		"ParentReminderID": gaedb.IsZeroInt,
 		"SentVia":          gaedb.IsEmptyString,
-	})
+	}); err != nil {
+		return
+	}
 
 	return
 }

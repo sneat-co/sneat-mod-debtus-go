@@ -11,9 +11,7 @@ import (
 	"net/url"
 )
 
-const GROUP_SPLIT_COMMAND = "group-split"
-
-var groupSplitCommand = bot_shared.GroupCallbackCommand(GROUP_SPLIT_COMMAND,
+var groupSplitCommand = bot_shared.GroupCallbackCommand(bot_shared.GROUP_SPLIT_COMMAND,
 	func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
 
@@ -24,8 +22,8 @@ var groupSplitCommand = bot_shared.GroupCallbackCommand(GROUP_SPLIT_COMMAND,
 		}
 		return editSplitCallbackAction(
 			whc, callbackUrl,
-			bot_shared.GroupCallbackCommandData(GROUP_SPLIT_COMMAND, group.ID),
-			bot_shared.GroupCallbackCommandData(GROUP_MEMBERS_COMMAND, group.ID),
+			bot_shared.GroupCallbackCommandData(bot_shared.GROUP_SPLIT_COMMAND, group.ID),
+			bot_shared.GroupCallbackCommandData(bot_shared.SETTINGS_COMMAND, group.ID),
 			trans.MESSAGE_TEXT_ASK_HOW_TO_SPLIT_IN_GROP,
 			billMembers,
 			models.Amount{},

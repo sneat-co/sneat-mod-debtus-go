@@ -99,7 +99,7 @@ func joinGroupCommand(params BotParams) bots.Command {
 					return err
 				}, dal.CrossGroupTransaction)
 
-				if m, err := params.ShowGroupMembers(whc, group, true); err != nil {
+				if m, err := showGroupMembers(whc, group, true); err != nil {
 					return m, err
 				} else if _, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
 					return m, err

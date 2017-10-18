@@ -543,8 +543,9 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 	log.Debugf(c, "from: %v", input.From)
 	log.Debugf(c, "to: %v", input.To)
 
+	log.Debugf(c, "transferEntity before insert: %+v", transferEntity)
 	if output.Transfer, err = dal.Transfer.InsertTransfer(c, transferEntity); err != nil {
-		err = errors.Wrap(err, "Failed to save transfe entity")
+		err = errors.Wrap(err, "Failed to save transfer entity")
 		return
 	}
 
@@ -554,7 +555,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		panic(fmt.Sprintf("Can't proceed creating transfer as InsertTransfer() returned transfer.ID == 0, err: %v", err))
 	}
 
-	log.Infof(c, "Transfer inserted to DB with ID=%d", output.Transfer.ID)
+	log.Infof(c, "Transfer inserted to DB with ID=%d, %+v", output.Transfer.ID, transfer.TransferEntity)
 
 	// Update user and counterparty entities with transfer info
 	{

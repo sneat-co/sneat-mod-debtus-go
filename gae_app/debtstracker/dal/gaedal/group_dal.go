@@ -31,7 +31,7 @@ func NewGroupDalGae() GroupDalGae {
 
 func (_ GroupDalGae) InsertGroup(c context.Context, groupEntity *models.GroupEntity) (group models.Group, err error) {
 	group.GroupEntity = groupEntity
-	err = dal.InsertWithRandomStringID(c, &group, 8)
+	err = dal.InsertWithRandomStringID(c, &group, models.GroupIdLen)
 	return
 }
 

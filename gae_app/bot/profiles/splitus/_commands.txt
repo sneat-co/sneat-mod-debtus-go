@@ -1,4 +1,5 @@
 groups - List of groups
 bills - List of outstanding bills
 settle - Create personal debts records
+settings - Change defaults
 help - Learn how to use the bot & ask questions

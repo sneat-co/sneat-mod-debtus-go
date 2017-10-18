@@ -199,7 +199,7 @@ func addOrGetMember(members []MemberJson, memberID, userID, contactID, name stri
 	}
 	if member.ID == "" {
 		for j := 0; j < 100; j++ {
-			member.ID = db.RandomStringID(7)
+			member.ID = db.RandomStringID(MemberIdLen)
 			for _, m := range members {
 				if m.ID == member.ID {
 					goto duplicate

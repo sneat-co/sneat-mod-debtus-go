@@ -7,6 +7,8 @@ import (
 	"github.com/strongo/app/log"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/bots-api-telegram"
+	"fmt"
 )
 
 func startInGroupAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
@@ -41,14 +43,22 @@ func startInGroupAction(whc bots.WebhookContext) (m bots.MessageFromBot, err err
 	}
 	m.Text = whc.Translate(trans.MESSAGE_TEXT_HI) +
 		"\n\n" + whc.Translate(trans.SPLITUS_TEXT_HI_IN_GROUP) +
-		"\n\n<b>" + whc.Translate(trans.MESSAGE_TEXT_ASK_LANG) + "</b>"
+		"\n\n<b>" + whc.Translate(trans.MESSAGE_TEXT_ASK_PRIMARY_CURRENCY_FOR_GROUP) + "</b>"
 
 	m.Format = bots.MessageFormatHTML
-	m.Keyboard = LangKeyboard
+	m.Keyboard = CurrenciesInlineKeyboard(
+		GROUP_SETTINGS_SET_CURRENCY_COMMAD + "?start=y&group=" + group.ID,
+		[]tgbotapi.InlineKeyboardButton{
+			{
+				Text: whc.Translate(trans.BT_OTHER_CURRENCY),
+				URL: fmt.Sprintf("https://t.me/%v?start=%v__group=%v", whc.GetBotCode(), GROUP_SETTINGS_CHOOSE_CURRENCY_COMMAND, group.ID),
+			},
+		},
+	)
 	return
 }
 
-func onStartCallbackInGroup(whc bots.WebhookContext, params BotParams) (m bots.MessageFromBot, err error) {
+func onStartCallbackInGroup(whc bots.WebhookContext, group models.Group, params BotParams) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
 	log.Debugf(c, "onStartCallbackInGroup()")
 
@@ -58,7 +68,7 @@ func onStartCallbackInGroup(whc bots.WebhookContext, params BotParams) (m bots.M
 		}
 	}
 
-	if m, err = params.InGroupWelcomeMessage(whc); err != nil {
+	if m, err = params.InGroupWelcomeMessage(whc, group); err != nil {
 		return
 	}
 
@@ -66,6 +76,5 @@ func onStartCallbackInGroup(whc bots.WebhookContext, params BotParams) (m bots.M
 		return
 	}
 
-	var group models.Group
-	return params.ShowGroupMembers(whc, group, false)
+	return showGroupMembers(whc, group, false)
 }

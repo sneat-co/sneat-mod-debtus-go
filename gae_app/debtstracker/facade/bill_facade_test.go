@@ -22,7 +22,7 @@ func TestCreateBillPanicOnNilContext(t *testing.T) {
 			}
 		}
 	}()
-	Bill.CreateBill(nil, nil, nil)
+	Bill.CreateBill(nil, nil, 0,nil)
 }
 
 func TestCreateBillPanicOnNilBill(t *testing.T) {

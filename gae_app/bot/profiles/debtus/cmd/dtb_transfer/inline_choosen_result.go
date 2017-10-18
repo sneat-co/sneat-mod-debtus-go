@@ -80,7 +80,10 @@ func showReceiptAnnouncement(whc bots.WebhookContext, receiptID int64, creatorNa
 	default:
 		return m, errors.New(fmt.Sprintf("showReceiptAnnouncement: Unsupported InputType=%T", input))
 	}
-	messageText := getInlineReceiptAnnouncementMessage(whc, true, creatorName)
+
+	receiptUrl := getReceiptUrl(whc.GetBotCode(), common.EncodeID(receiptID), whc.Locale().Code5)
+
+	messageText := getInlineReceiptAnnouncementMessage(whc, true, creatorName, receiptUrl)
 	m, err = whc.NewEditMessage(messageText, bots.MessageFormatHTML)
 	m.EditMessageUID = telegram_bot.NewInlineMessageUID(inlineMessageID)
 	m.DisableWebPagePreview = true
@@ -104,6 +107,10 @@ func showReceiptAnnouncement(whc bots.WebhookContext, receiptID int64, creatorNa
 }
 
 const VIEW_RECEIPT_IN_TELEGRAM_COMMAND = "tg-view-receipt"
+
+func getReceiptUrl(botCode, receiptID, localeCode5 string) string {
+	return fmt.Sprintf("https://t.me/%v?start=receipt-%v-view_%v", botCode, receiptID, localeCode5)
+}
 
 var ViewReceiptInTelegramCallbackCommand = bots.NewCallbackCommand(
 	VIEW_RECEIPT_IN_TELEGRAM_COMMAND,
@@ -142,7 +149,7 @@ var ViewReceiptInTelegramCallbackCommand = bots.NewCallbackCommand(
 		}
 
 		callbackAnswer := tgbotapi.NewCallbackWithUrl(
-			fmt.Sprintf("https://telegram.me/%v?start=receipt-%v-view_%v", whc.GetBotCode(), common.EncodeID(receiptID), localeCode5),
+			getReceiptUrl(whc.GetBotCode(), common.EncodeID(receiptID), localeCode5),
 			//common.GetReceiptUrlForUser(
 			//	receiptID,
 			//	whc.AppUserIntID(),

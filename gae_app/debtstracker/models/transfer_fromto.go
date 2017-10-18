@@ -203,7 +203,7 @@ func (t *TransferEntity) To() *TransferCounterpartyInfo {
 func (t *TransferEntity) onSaveSerializeJson() error {
 	if t.from != nil {
 		if s, err := ffjson.MarshalFast(t.from); err != nil {
-			panic(errors.Wrap(err, "Failed to marshal transfer.from"))
+			panic(errors.WithMessage(err, "Failed to marshal transfer.from"))
 		} else {
 			t.C_From = string(s)
 		}
@@ -212,7 +212,7 @@ func (t *TransferEntity) onSaveSerializeJson() error {
 	}
 	if t.to != nil {
 		if s, err := ffjson.MarshalFast(t.to); err != nil {
-			return errors.Wrap(err, "Failed to marshal transfer.to")
+			return errors.WithMessage(err, "Failed to marshal transfer.to")
 		} else {
 			t.C_To = string(s)
 		}

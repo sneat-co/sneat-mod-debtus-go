@@ -78,12 +78,12 @@ type TransferEntity struct {
 
 	CreatorTgBotID string `datastore:",noindex"` // TODO: Obsolete, replace with CreatedOnID as in Receipt entity
 
-	BillID string
+	BillIDs []string
 
 	SmsStats
-	DirectionObsoleteProp string  `datastore:"Direction,noindex"`
-	IsReturn              bool    `datastore:",noindex"` // We need it is not always possible to identify original transfer (think multiply & partial transfers)
-	ReturnToTransferIDs   []int64 // List of transfer to which this debt is a return. Should be populated only if IsReturn=True
+	DirectionObsoleteProp string `datastore:"Direction,noindex"`
+	IsReturn              bool   `datastore:",noindex"` // We need it is not always possible to identify original transfer (think multiply & partial transfers)
+	ReturnToTransferIDs   []int64                       // List of transfer to which this debt is a return. Should be populated only if IsReturn=True
 	//ReturnTransferIDs                 []int64   // List of transfers that return money to this debts
 	//
 	CreatorUserID             int64  `datastore:",noindex"`
@@ -134,9 +134,9 @@ type TransferEntity struct {
 	DtCreated time.Time
 	DtDueOn   time.Time
 
-	Amount                   float64 // TODO: Obsolete!, Replaced with AmountInCents
-	AmountReturned           float64 `datastore:",noindex"` // TODO: Obsolete!, Replaced with AmountInCentsReturned
-	AmountOutstanding        float64 `datastore:",noindex"` // TODO: Obsolete!, Replaced with AmountInCentsOutstanding
+	Amount                   float64                                    // TODO: Obsolete!, Replaced with AmountInCents
+	AmountReturned           float64             `datastore:",noindex"` // TODO: Obsolete!, Replaced with AmountInCentsReturned
+	AmountOutstanding        float64             `datastore:",noindex"` // TODO: Obsolete!, Replaced with AmountInCentsOutstanding
 	AmountInCents            decimal.Decimal64p2
 	AmountInCentsReturned    decimal.Decimal64p2 `datastore:",noindex"`
 	AmountInCentsOutstanding decimal.Decimal64p2 `datastore:",noindex"`
@@ -376,15 +376,20 @@ func (t *TransferEntity) fixAmountFieldsIfNeeded() {
 }
 
 func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
+	if t.CreatorUserID == 0 {
+		err = errors.New("*TransferEntity.CreatorUserID == 0")
+		return
+	}
+
 	t.fixAmountFieldsIfNeeded()
 
 	if t.AmountInCents == 0 { // Should be always presented
-		err = errors.New("AmountInCents == 0")
+		err = errors.New("*TransferEntity.AmountInCents == 0")
 		return
 	}
 
 	if t.Currency == "" { // Should be always presented
-		err = errors.New("Currency is empty string")
+		err = errors.New("*TransferEntity.Currency is empty string")
 		return
 	}
 
@@ -404,48 +409,48 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 	//}
 
 	if t.AmountInCentsReturned < 0 {
-		err = fmt.Errorf("AmountInCentsReturned:%v < 0", t.AmountInCentsReturned)
+		err = fmt.Errorf("*TransferEntity.AmountInCentsReturned:%v < 0", t.AmountInCentsReturned)
 		return
 	}
 
 	if t.AmountInCentsOutstanding < 0 {
-		err = fmt.Errorf("AmountInCentsOutstanding:%v < 0", t.AmountInCentsOutstanding)
+		err = fmt.Errorf("*TransferEntity.AmountInCentsOutstanding:%v < 0", t.AmountInCentsOutstanding)
 		return
 	}
 
 	if t.AmountInCentsReturned > t.AmountInCents {
-		err = fmt.Errorf("AmountInCentsReturned:%v > AmountInCents:%v", t.AmountInCentsReturned, t.AmountInCents)
+		err = fmt.Errorf("*TransferEntity.AmountInCentsReturned:%v > AmountInCents:%v", t.AmountInCentsReturned, t.AmountInCents)
 		return
 	}
 
 	if t.AmountInCentsOutstanding > t.AmountInCents {
-		err = fmt.Errorf("AmountInCentsOutstanding:%v > AmountInCents:%v", t.AmountInCentsOutstanding, t.AmountInCents)
+		err = fmt.Errorf("*TransferEntity.AmountInCentsOutstanding:%v > AmountInCents:%v", t.AmountInCentsOutstanding, t.AmountInCents)
 		return
 	}
 
 	if t.AmountInCentsReturned+t.AmountInCentsOutstanding > t.AmountInCents {
-		err = fmt.Errorf("AmountInCentsReturned:%v + AmountInCentsOutstanding:%v > AmountInCents:%v", t.AmountInCentsReturned, t.AmountInCentsOutstanding, t.AmountInCents)
+		err = fmt.Errorf("*TransferEntity.AmountInCentsReturned:%v + AmountInCentsOutstanding:%v > AmountInCents:%v", t.AmountInCentsReturned, t.AmountInCentsOutstanding, t.AmountInCents)
 		return
 	}
 
 	if t.IsReturn {
 		if len(t.ReturnToTransferIDs) == 0 {
-			err = errors.New("IsReturn && len(ReturnToTransferIDs) == 0")
+			err = errors.New("*TransferEntity.IsReturn && len(ReturnToTransferIDs) == 0")
 			return
 		}
 		if (t.AmountInCentsReturned != 0 || t.AmountInCentsOutstanding != 0) && t.AmountInCents != t.AmountInCentsReturned+t.AmountInCentsOutstanding {
-			err = fmt.Errorf("AmountInCents:%v != AmountInCentsReturned:%v + AmountInCentsOutstanding:%v", t.AmountInCents, t.AmountInCentsReturned, t.AmountInCentsOutstanding)
+			err = fmt.Errorf("*TransferEntity.AmountInCents:%v != AmountInCentsReturned:%v + AmountInCentsOutstanding:%v", t.AmountInCents, t.AmountInCentsReturned, t.AmountInCentsOutstanding)
 			return
 		}
 	} else {
 		if t.AmountInCents != t.AmountInCentsReturned+t.AmountInCentsOutstanding {
-			err = fmt.Errorf("AmountInCents:%v != AmountInCentsReturned:%v + AmountInCentsOutstanding:%v", t.AmountInCents, t.AmountInCentsReturned, t.AmountInCentsOutstanding)
+			err = fmt.Errorf("*TransferEntity.AmountInCents:%v != AmountInCentsReturned:%v + AmountInCentsOutstanding:%v", t.AmountInCents, t.AmountInCentsReturned, t.AmountInCentsOutstanding)
 			return
 		}
 	}
 
 	if t.CreatorUserID <= 0 { // Should be always presented
-		err = fmt.Errorf("CreatorUserID:%d <= 0", t.CreatorUserID)
+		err = fmt.Errorf("*TransferEntity.CreatorUserID:%d <= 0", t.CreatorUserID)
 		return
 	}
 
@@ -466,8 +471,8 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 	}
 
 	if from.UserID == 0 && to.UserID == 0 {
-		if t.BillID == "" {
-			err = errors.New("t.BillID is empty string && t.From().UserID == 0 && t.To().UserID == 0")
+		if len(t.BillIDs) == 0 {
+			err = errors.New("t.BillIDs is empty && t.From().UserID == 0 && t.To().UserID == 0")
 			return
 		}
 		t.BothUserIDs = []int64{}
@@ -512,7 +517,7 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 	}
 
 	// To optimize storage we filter out default values
-	properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
+	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
 		// Remove obsolete properties
 		"AmountTotal":       gaedb.IsObsolete,
 		"AmountReturned":    gaedb.IsObsolete,
@@ -520,8 +525,10 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 		//
 
 		// Remove defaults
+		"Amount":                    gaedb.IsZeroFloat, // TODO: Is it obsolete?
 		"SmsCount":                  gaedb.IsZeroInt,
 		"SmsCost":                   gaedb.IsZeroFloat,
+		"SmsCostUSD":                gaedb.IsZeroFloat,
 		"ReceiptsSentCount":         gaedb.IsZeroInt,
 		"CreatorReminderID":         gaedb.IsZeroInt,
 		"CounterpartyReminderID":    gaedb.IsZeroInt,
@@ -531,7 +538,7 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 		"CounterpartyTgBotID":       gaedb.IsEmptyString,
 		"CreatorTgBotID":            gaedb.IsEmptyString,
 		"Direction":                 gaedb.IsEmptyString,
-		"BillID":                    gaedb.IsZeroInt,
+		"BillID":                    gaedb.IsEmptyString,
 		"AmountInCentsOutstanding":  gaedb.IsZeroInt,
 		"AmountInCentsReturned":     gaedb.IsZeroInt,
 		"AcknowledgeStatus":         gaedb.IsEmptyString,
@@ -539,7 +546,9 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 		"DtDueOn":                   gaedb.IsZeroTime,
 		"IsOutstanding":             gaedb.IsFalse,
 		"IsReturn":                  gaedb.IsFalse,
-	})
+	}); err != nil {
+		return
+	}
 
 	// Obsolete properties also should be removed
 	{

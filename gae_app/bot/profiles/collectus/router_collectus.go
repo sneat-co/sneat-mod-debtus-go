@@ -16,13 +16,13 @@ var botParams = bot_shared.BotParams{
 	GetPrivateBillCardInlineKeyboard: nil,
 	DelayUpdateBillCardOnUserJoin:    nil,
 	OnAfterBillCurrencySelected:      nil,
-	ShowGroupMembers:                 nil,
+	//ShowGroupMembers:                 nil,
 	WelcomeText: func(translator strongo.SingleLocaleTranslator, buf *bytes.Buffer) {
 		buf.WriteString(translator.Translate(trans.COLLECTUS_TEXT_HI))
 		buf.WriteString("\n\n")
 		buf.WriteString(translator.Translate(trans.COLLECTUS_TEXT_ABOUT_ME_AND_CO))
 	},
-	InGroupWelcomeMessage: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	InGroupWelcomeMessage: func(whc bots.WebhookContext, _ models.Group) (m bots.MessageFromBot, err error) {
 		return whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_HI)+
 			"\n\n"+whc.Translate(trans.COLLECTUS_TEXT_HI_IN_GROUP)+
 			"\n\n"+whc.Translate(trans.COLLECTUS_TEXT_ABOUT_ME_AND_CO),
