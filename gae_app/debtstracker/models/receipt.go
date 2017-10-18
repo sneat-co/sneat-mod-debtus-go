@@ -68,21 +68,22 @@ type ReceiptFor string
 type ReceiptEntity struct {
 	Status               string
 	TransferID           int64
-	CreatorUserID        int64      // IMPORTANT: Can be different from transfer.CreatorUserID (usually same). Think of 3d party bills
+	CreatorUserID        int64                             // IMPORTANT: Can be different from transfer.CreatorUserID (usually same). Think of 3d party bills
 	For                  ReceiptFor `datastore:",noindex"` // TODO: always fill. If receipt.CreatorUserID != transfer.CreatorUserID then receipt.For must be set to either "from" or "to"
 	ViewedByUserIDs      []int64
 	CounterpartyUserID   int64 // TODO: Is it always equal to AcknowledgedByUserID?
 	AcknowledgedByUserID int64 // TODO: Is it always equal to CounterpartyUserID?
 	general.CreatedOn
-	DtCreated      time.Time
-	DtSent         time.Time
-	DtFailed       time.Time
-	DtViewed       time.Time
-	DtAcknowledged time.Time
-	SentVia        string
-	SentTo         string
-	Lang           string `datastore:",noindex"`
-	Error          string `datastore:",noindex"` //TODO: Need a comment on when it is used
+	TgInlineMsgID        string     `datastore:",noindex"`
+	DtCreated            time.Time
+	DtSent               time.Time
+	DtFailed             time.Time
+	DtViewed             time.Time
+	DtAcknowledged       time.Time
+	SentVia              string
+	SentTo               string
+	Lang                 string     `datastore:",noindex"`
+	Error                string     `datastore:",noindex"` //TODO: Need a comment on when it is used
 }
 
 func (receiptEntity ReceiptEntity) Validate() (err error) {
@@ -119,15 +120,16 @@ func (r *ReceiptEntity) Save() (properties []datastore.Property, err error) {
 	}
 
 	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"AcknowledgedByUserID	": gaedb.IsZeroInt,
-		"DtAcknowledged": gaedb.IsZeroTime,
-		"DtFailed":       gaedb.IsZeroTime,
-		"DtSent":         gaedb.IsZeroTime,
-		"DtViewed":       gaedb.IsZeroTime,
-		"Error":          gaedb.IsEmptyString,
-		"For":            gaedb.IsEmptyString,
-		"SentTo":         gaedb.IsEmptyString,
-		"SentVia":        gaedb.IsEmptyString,
+		"TgInlineMsgID":        gaedb.IsEmptyString,
+		"AcknowledgedByUserID": gaedb.IsZeroInt,
+		"DtAcknowledged":       gaedb.IsZeroTime,
+		"DtFailed":             gaedb.IsZeroTime,
+		"DtSent":               gaedb.IsZeroTime,
+		"DtViewed":             gaedb.IsZeroTime,
+		"Error":                gaedb.IsEmptyString,
+		"For":                  gaedb.IsEmptyString,
+		"SentTo":               gaedb.IsEmptyString,
+		"SentVia":              gaedb.IsEmptyString,
 	}); err != nil {
 		return
 	}

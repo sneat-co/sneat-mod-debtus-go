@@ -3,13 +3,8 @@ package dtb_transfer
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_inline"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	//"github.com/DebtsTracker/translations/emoji"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	//"bitbucket.com/asterus/debtstracker-server/gae_app/invites"
-	//"fmt"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
@@ -18,55 +13,6 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"net/url"
-	"time"
-)
-
-func CreateReceiptAndEditMessage(whc bots.WebhookContext, inlineMessageID string, transferID int64, creatorName string) (m bots.MessageFromBot, err error) {
-	c := whc.Context()
-
-	transfer, err := dal.Transfer.GetTransferByID(c, transferID)
-	if err != nil {
-		return m, err
-	}
-	receipt := models.NewReceiptEntity(whc.AppUserIntID(), transferID, transfer.Counterparty().UserID, whc.Locale().Code5, telegram_bot.TelegramPlatformID, "", general.CreatedOn{
-		CreatedOnID:       whc.GetBotCode(), // TODO: Replace with method call.
-		CreatedOnPlatform: whc.BotPlatform().Id(),
-	})
-	receiptID, err := dal.Receipt.CreateReceipt(c, &receipt)
-	if err != nil {
-		return m, err
-	}
-
-	dal.Receipt.DelayedMarkReceiptAsSent(c, receiptID, transferID, time.Now())
-	return showReceiptAnnouncement(whc, receiptID, creatorName)
-}
-
-const CHANGE_RECEIPT_LANG_COMMAND = "change-lang-receipt"
-
-var ChangeReceiptAnnouncementLangCommand = bots.NewCallbackCommand(
-	CHANGE_RECEIPT_LANG_COMMAND,
-	func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
-		query := callbackUrl.Query()
-		code5 := query.Get("locale")
-		if len(code5) != 5 {
-			return m, errors.New("ChangeReceiptAnnouncementLangCommand: len(code5) != 5")
-		}
-		whc.SetLocale(code5)
-		receiptID, err := common.DecodeID(query.Get("id"))
-		if err != nil {
-			return m, err
-		}
-		c := whc.Context()
-		receipt, err := dal.Receipt.GetReceiptByID(c, receiptID)
-		if err != nil {
-			return m, err
-		}
-		user, err := dal.User.GetUserByID(c, receipt.CreatorUserID)
-		if err != nil {
-			return m, err
-		}
-		return showReceiptAnnouncement(whc, receiptID, user.FullName())
-	},
 )
 
 func showReceiptAnnouncement(whc bots.WebhookContext, receiptID int64, creatorName string) (m bots.MessageFromBot, err error) {
@@ -81,9 +27,21 @@ func showReceiptAnnouncement(whc bots.WebhookContext, receiptID int64, creatorNa
 		return m, errors.New(fmt.Sprintf("showReceiptAnnouncement: Unsupported InputType=%T", input))
 	}
 
-	receiptUrl := getReceiptUrl(whc.GetBotCode(), common.EncodeID(receiptID), whc.Locale().Code5)
+	c := whc.Context()
 
-	messageText := getInlineReceiptAnnouncementMessage(whc, true, creatorName, receiptUrl)
+	receipt, err := dal.Receipt.GetReceiptByID(c, receiptID)
+	if err != nil {
+		return m, err
+	}
+	if creatorName == "" {
+		user, err := dal.User.GetUserByID(c, receipt.CreatorUserID)
+		if err != nil {
+			return m, err
+		}
+		creatorName = user.FullName()
+	}
+
+	messageText := getInlineReceiptMessageText(whc, whc.GetBotCode(), whc.Locale().Code5, creatorName, receiptID)
 	m, err = whc.NewEditMessage(messageText, bots.MessageFormatHTML)
 	m.EditMessageUID = telegram_bot.NewInlineMessageUID(inlineMessageID)
 	m.DisableWebPagePreview = true

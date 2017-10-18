@@ -51,7 +51,7 @@ var StartCommand = bots.Command{
 			//	return JoinBillCommand.Action(whc)
 		default:
 			if matched := reInviteCodeFromStart.FindStringSubmatch(startParam); matched != nil {
-				return startInviteCode(whc, matched)
+				return startByLinkCode(whc, matched)
 			}
 		}
 
@@ -86,16 +86,15 @@ func startLoginGac(whc bots.WebhookContext, loginID int64) (m bots.MessageFromBo
 	return whc.NewMessageByCode(trans.MESSAGE_TEXT_LOGIN_CODE, models.LoginCodeToString(loginPin.Code)), nil
 }
 
-func startInviteCode(whc bots.WebhookContext, matched []string) (m bots.MessageFromBot, err error) {
+func startByLinkCode(whc bots.WebhookContext, matches []string) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
-	log.Debugf(c, "operation: %v, invite: %v", matched[1], matched[2])
+	log.Debugf(c, "startByLinkCode() => matches: %v", matches)
 	chatEntity := whc.ChatEntity()
-	entityType := matched[1]
-	entityCode := matched[2]
-	operation := matched[4]
-	localeCode5 := matched[6]
-	gaClientId := matched[8]
-	log.Debugf(c, "gaClientId: [%v]", gaClientId)
+	entityType := matches[1]
+	entityCode := matches[2]
+	operation := matches[4]
+	localeCode5 := matches[6]
+	//gaClientId := matches[8]
 	if localeCode5 != "" {
 		if len(localeCode5) == 2 {
 			localeCode5 = common.Locale2to5(localeCode5)
@@ -109,32 +108,41 @@ func startInviteCode(whc bots.WebhookContext, matched []string) (m bots.MessageF
 	}
 	switch entityType {
 	case "receipt":
-		receiptID, err := common.DecodeID(entityCode)
-		if err != nil {
-			return m, errors.Wrap(err, "Failed to decode receipt ID")
-		}
-		switch operation {
-		case "view":
-			whc.SetLocale(localeCode5)
-			return dtb_transfer.ShowReceipt(whc, receiptID)
-		default:
-			return dtb_transfer.AcknowledgeReceipt(whc, receiptID, operation)
-		}
+		return startReceipt(whc, entityCode, operation, localeCode5)
 	case "invite":
-		invite, err := dal.Invite.GetInvite(c, entityCode)
-		if err == nil {
-			if invite == nil {
-				m = whc.NewMessage(fmt.Sprintf("Unknown invite code: %v", entityCode))
-			} else {
-				log.Debugf(c, "Invite(%v): ClaimedCount=%v, MaxClaimsCount=%v", entityCode, invite.ClaimedCount, invite.MaxClaimsCount)
-				if invite.MaxClaimsCount == 0 || invite.ClaimedCount < invite.MaxClaimsCount {
-					return handleInviteOnStart(whc, entityCode, invite)
-				} else {
-					m = whc.NewMessage(fmt.Sprintf("Known & already claimed invite code: %v", entityCode))
-				}
-			}
-		}
-		return m, err
+		return startInvite(whc, entityCode, operation, localeCode5)
 	}
 	return
+}
+
+func startInvite(whc bots.WebhookContext, inviteCode, operation, localeCode5 string) (m bots.MessageFromBot, err error) {
+	c := whc.Context()
+	invite, err := dal.Invite.GetInvite(c, inviteCode)
+	if err == nil {
+		if invite == nil {
+			m = whc.NewMessage(fmt.Sprintf("Unknown invite code: %v", inviteCode))
+		} else {
+			log.Debugf(c, "Invite(%v): ClaimedCount=%v, MaxClaimsCount=%v", inviteCode, invite.ClaimedCount, invite.MaxClaimsCount)
+			if invite.MaxClaimsCount == 0 || invite.ClaimedCount < invite.MaxClaimsCount {
+				return handleInviteOnStart(whc, inviteCode, invite)
+			} else {
+				m = whc.NewMessage(fmt.Sprintf("Known & already claimed invite code: %v", inviteCode))
+			}
+		}
+	}
+	return m, err
+}
+
+func startReceipt(whc bots.WebhookContext, receiptCode, operation, localeCode5 string) (m bots.MessageFromBot, err error) {
+	receiptID, err := common.DecodeID(receiptCode)
+	if err != nil {
+		return m, errors.Wrap(err, "Failed to decode receipt ID")
+	}
+	switch operation {
+	case "view":
+		whc.SetLocale(localeCode5)
+		return dtb_transfer.ShowReceipt(whc, receiptID)
+	default:
+		return dtb_transfer.AcknowledgeReceipt(whc, receiptID, operation)
+	}
 }

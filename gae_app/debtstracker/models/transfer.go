@@ -528,7 +528,7 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 		"Amount":                    gaedb.IsZeroFloat, // TODO: Is it obsolete?
 		"SmsCount":                  gaedb.IsZeroInt,
 		"SmsCost":                   gaedb.IsZeroFloat,
-		"SmsCostUSD":                gaedb.IsZeroFloat,
+		"SmsCostUSD":                gaedb.IsZeroInt,
 		"ReceiptsSentCount":         gaedb.IsZeroInt,
 		"CreatorReminderID":         gaedb.IsZeroInt,
 		"CounterpartyReminderID":    gaedb.IsZeroInt,

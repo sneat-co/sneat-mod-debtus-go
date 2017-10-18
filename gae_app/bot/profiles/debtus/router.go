@@ -79,7 +79,7 @@ var callbackCommands = []bots.Command{
 	dtb_invite.CreateMassInviteCommand,
 	dtb_invite.AskInviteAddressCallbackCommand,
 	//
-	dtb_transfer.CreateInviteIfNoInlineNotificationCommand,
+	dtb_transfer.CreateReceiptIfNoInlineNotificationCommand,
 	dtb_transfer.SendReceiptCallbackCommand,
 	//dtb_transfer.AcknowledgeReceiptCommand,
 	dtb_transfer.ViewReceiptInTelegramCallbackCommand,
