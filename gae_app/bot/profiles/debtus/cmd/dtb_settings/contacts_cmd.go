@@ -16,6 +16,7 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"html"
 	"strconv"
+	"time"
 )
 
 const CONTACTS_LIST_COMMAND = "contacts-list"
@@ -57,6 +58,7 @@ var ContactsListCommand = bots.Command{
 				},
 			},
 		)
+		buffer.WriteString(fmt.Sprintf("\n\nRefreshed on: %v", time.Now()))
 		m = whc.NewMessage(buffer.String())
 		m.Keyboard = keyboard
 		m.IsEdit = whc.InputType() == bots.WebhookInputCallbackQuery

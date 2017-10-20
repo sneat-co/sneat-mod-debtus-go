@@ -16,6 +16,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 )
 
 var SendReceiptCallbackCommand = bots.NewCallbackCommand(SEND_RECEIPT_CALLBACK_PATH, CallbackSendReceipt)
@@ -73,6 +74,8 @@ func CallbackSendReceipt(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.
 		return m, err
 	case string(models.InviteByTelegram):
 		panic(fmt.Sprintf("Unsupported option: %v", models.InviteByTelegram))
+	case string(models.InviteByLinkToTelegram):
+		return showLinkForReceiptInTelegram(whc, transfer)
 	case string(models.InviteBySms):
 
 		if counterparty.PhoneNumber > 0 {
@@ -100,7 +103,7 @@ func CallbackSendReceipt(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.
 			m = whc.NewMessage(mt)
 			m.Format = bots.MessageFormatHTML
 			keyboard := [][]tgbotapi.KeyboardButton{
-				[]tgbotapi.KeyboardButton{
+				{
 					{RequestContact: true, Text: whc.Translate(trans.COMMAND_TEXT_VIEW_MY_NUMBER_IN_INTERNATIONAL_FORMAT)},
 				},
 			}
@@ -124,6 +127,22 @@ func CallbackSendReceipt(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.
 		log.Errorf(c, err.Error())
 	}
 	return m, err
+}
+
+func showLinkForReceiptInTelegram(whc bots.WebhookContext, transfer models.Transfer) (m bots.MessageFromBot, err error) {
+	receipt := models.NewReceiptEntity(whc.AppUserIntID(), transfer.ID, transfer.Counterparty().UserID, whc.Locale().Code5, "link", "telegram", general.CreatedOn{
+		CreatedOnPlatform: whc.BotPlatform().Id(),
+		CreatedOnID:       whc.GetBotCode(),
+	})
+	var receiptID int64
+	if receiptID, err = dal.Receipt.CreateReceipt(whc.Context(), &receipt); err != nil {
+		return m, err
+	}
+	receiptUrl := GetUrlForReceiptInTelegram(whc.GetBotCode(), common.EncodeID(receiptID), whc.Locale().Code5)
+	m.Text = "Send this link to counterparty:\n\n" + fmt.Sprintf(`<a href="%v">%v</a>`, receiptUrl, receiptUrl) + "\n\nPlease be aware that the first person opening this link will be treated as counterparty for this debt."
+	m.Format  = bots.MessageFormatHTML
+	m.IsEdit = true
+	return
 }
 
 func IsTransferNotificationsBlockedForChannel(counterparty *models.ContactEntity, channel string) bool {

@@ -45,28 +45,29 @@ func showReceiptAnnouncement(whc bots.WebhookContext, receiptID int64, creatorNa
 	m, err = whc.NewEditMessage(messageText, bots.MessageFormatHTML)
 	m.EditMessageUID = telegram_bot.NewInlineMessageUID(inlineMessageID)
 	m.DisableWebPagePreview = true
-	m.Keyboard = &tgbotapi.InlineKeyboardMarkup{
-		InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{
-			{
-				tgbotapi.NewInlineKeyboardButtonData(
-					whc.Translate(trans.COMMAND_TEXT_VIEW_RECEIPT_DETAILS),
-					fmt.Sprintf("%v?id=%v&locale=%v",
-						VIEW_RECEIPT_IN_TELEGRAM_COMMAND, common.EncodeID(receiptID), whc.Locale().Code5,
-					),
+	kbRows := [][]tgbotapi.InlineKeyboardButton{
+		{
+			tgbotapi.NewInlineKeyboardButtonData(
+				whc.Translate(trans.COMMAND_TEXT_VIEW_RECEIPT_DETAILS),
+				fmt.Sprintf("%v?id=%v&locale=%v",
+					VIEW_RECEIPT_IN_TELEGRAM_COMMAND, common.EncodeID(receiptID), whc.Locale().Code5,
 				),
-			},
-			dtb_inline.GetChooseLangInlineKeyboard(
-				fmt.Sprintf("%v?id=%v", CHANGE_RECEIPT_LANG_COMMAND, common.EncodeID(receiptID))+"&locale=%v",
-				whc.Locale().Code5,
 			),
 		},
+	}
+	kbRows = append(kbRows, dtb_inline.GetChooseLangInlineKeyboard(
+		fmt.Sprintf("%v?id=%v", CHANGE_RECEIPT_LANG_COMMAND, common.EncodeID(receiptID))+"&locale=%v",
+		whc.Locale().Code5,
+	)...)
+	m.Keyboard = &tgbotapi.InlineKeyboardMarkup{
+		InlineKeyboard: kbRows,
 	}
 	return
 }
 
 const VIEW_RECEIPT_IN_TELEGRAM_COMMAND = "tg-view-receipt"
 
-func getReceiptUrl(botCode, receiptID, localeCode5 string) string {
+func GetUrlForReceiptInTelegram(botCode, receiptID, localeCode5 string) string {
 	return fmt.Sprintf("https://t.me/%v?start=receipt-%v-view_%v", botCode, receiptID, localeCode5)
 }
 
@@ -107,7 +108,7 @@ var ViewReceiptInTelegramCallbackCommand = bots.NewCallbackCommand(
 		}
 
 		callbackAnswer := tgbotapi.NewCallbackWithUrl(
-			getReceiptUrl(whc.GetBotCode(), common.EncodeID(receiptID), localeCode5),
+			GetUrlForReceiptInTelegram(whc.GetBotCode(), common.EncodeID(receiptID), localeCode5),
 			//common.GetReceiptUrlForUser(
 			//	receiptID,
 			//	whc.AppUserIntID(),

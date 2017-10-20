@@ -26,9 +26,19 @@ var ViewReceiptCallbackCommand = bots.NewCallbackCommand(VIEW_RECEIPT_CALLBACK_C
 func ShowReceipt(whc bots.WebhookContext, receiptID int64) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
 
-	receipt, err := facade.MarkReceiptAsViewed(c, receiptID, whc.AppUserIntID())
-	if err != nil {
+	var receipt models.Receipt
+	if receipt, err = dal.Receipt.GetReceiptByID(c, receiptID); err != nil {
 		return m, err
+	}
+
+	if receipt.CreatorUserID == whc.AppUserIntID() {
+		m.Text = whc.Translate(trans.MESSAGE_TEXT_RECEIPT_ATTEMPT_TO_VIEW_OWN)
+		return
+	}
+
+	receipt, err = facade.MarkReceiptAsViewed(c, receiptID, whc.AppUserIntID())
+	if err != nil {
+		return
 	}
 
 	transfer, err := dal.Transfer.GetTransferByID(c, receipt.TransferID)

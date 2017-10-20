@@ -97,6 +97,18 @@ func (receiptEntity ReceiptEntity) Validate() (err error) {
 }
 
 func NewReceiptEntity(creatorUserID, transferID, counterpartyUserID int64, lang, sentVia, sentTo string, createdOn general.CreatedOn) ReceiptEntity {
+	if creatorUserID == counterpartyUserID {
+		panic("creatorUserID == counterpartyUserID")
+	}
+	if transferID == 0 {
+		panic("transferID == 0")
+	}
+	if createdOn.CreatedOnID == "" {
+		panic("CreatedOnID is empty")
+	}
+	if createdOn.CreatedOnPlatform == "" {
+		panic("CreatedOnPlatform is empty")
+	}
 	return ReceiptEntity{
 		CreatorUserID:      creatorUserID,
 		CounterpartyUserID: counterpartyUserID,
@@ -115,6 +127,35 @@ func (r *ReceiptEntity) Load(ps []datastore.Property) error {
 }
 
 func (r *ReceiptEntity) Save() (properties []datastore.Property, err error) {
+	if r.CreatorUserID == 0 {
+		err = errors.New("ReceiptEntity.CreatorUserID == 0")
+		return
+	}
+	if r.CounterpartyUserID == r.CreatorUserID {
+		err = errors.New("ReceiptEntity.CounterpartyUserID == ReceiptEntity.CreatorUserID")
+		return
+	}
+	if r.CreatedOn.CreatedOnID == "" {
+		err = errors.New("ReceiptEntity.CreatedOnID is empty")
+		return
+	}
+	if r.CreatedOn.CreatedOnPlatform == "" {
+		err = errors.New("ReceiptEntity.CreatedOnPlatform is empty")
+		return
+	}
+	if r.Lang == "" {
+		err = errors.New("ReceiptEntity.Lang is empty")
+		return
+	}
+	if r.Status == "" {
+		err = errors.New("ReceiptEntity.Status is empty")
+		return
+	}
+
+	if r.DtCreated.IsZero() {
+		r.DtCreated = time.Now()
+	}
+
 	if properties, err = datastore.SaveStruct(r); err != nil {
 		return
 	}
@@ -122,6 +163,7 @@ func (r *ReceiptEntity) Save() (properties []datastore.Property, err error) {
 	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
 		"TgInlineMsgID":        gaedb.IsEmptyString,
 		"AcknowledgedByUserID": gaedb.IsZeroInt,
+		"CounterpartyUserID":   gaedb.IsZeroInt,
 		"DtAcknowledged":       gaedb.IsZeroTime,
 		"DtFailed":             gaedb.IsZeroTime,
 		"DtSent":               gaedb.IsZeroTime,

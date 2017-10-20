@@ -126,7 +126,7 @@ func getInlineReceiptMessageText(t strongo.SingleLocaleTranslator, botCode, loca
 		"SiteLink": template.HTML(`<a href="https://debtstracker.io/#utm_source=telegram&utm_medium=bot&utm_campaign=receipt-inline">DebtsTracker.IO</a>`),
 	}
 	if receiptID != 0 {
-		data["ReceiptUrl"] = getReceiptUrl(botCode, common.EncodeID(receiptID), localeCode5)
+		data["ReceiptUrl"] = GetUrlForReceiptInTelegram(botCode, common.EncodeID(receiptID), localeCode5)
 	}
 	var buf bytes.Buffer
 	if receiptID == 0 {

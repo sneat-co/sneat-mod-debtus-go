@@ -81,6 +81,7 @@ var AskPreferredLocaleFromSettingsCallback = bots.Command{
 				{Text: strongo.LocaleItIt.TitleWithIcon(), CallbackData: callbackData + strongo.LocaleItIt.Code5},
 			},
 			[]tgbotapi.InlineKeyboardButton{
+				{Text: strongo.LocaleDeDe.TitleWithIcon(), CallbackData: callbackData + strongo.LocaleDeDe.Code5},
 				{Text: strongo.LocaleFaIr.TitleWithIcon(), CallbackData: callbackData + strongo.LocaleFaIr.Code5},
 			},
 		) //dtb_general.LanguageOptions(whc, false)

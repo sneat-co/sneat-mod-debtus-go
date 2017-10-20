@@ -9,10 +9,11 @@ import (
 type InviteBy string
 
 const (
-	InviteByTelegram = InviteBy("telegram")
-	InviteByFbm      = InviteBy("fbm")
-	InviteByEmail    = InviteBy("email")
-	InviteBySms      = InviteBy("sms")
+	InviteByTelegram       = InviteBy("telegram")
+	InviteByFbm            = InviteBy("fbm")
+	InviteByEmail          = InviteBy("email")
+	InviteBySms            = InviteBy("sms")
+	InviteByLinkToTelegram = InviteBy("link2tg")
 )
 
 const InviteKind = "Invite"

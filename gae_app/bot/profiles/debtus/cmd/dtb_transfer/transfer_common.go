@@ -729,7 +729,7 @@ func createSendReceiptOptionsMessage(whc bots.WebhookContext, transfer models.Tr
 		m.Text = emoji.HOURGLASS_ICON + " " + fmt.Sprintf(whc.Translate(trans.MESSAGE_TEXT_RECEIPT_IS_SENDING_BY_TELEGRAM), transfer.Counterparty().ContactName)
 	} else {
 		telegramKeyboard.InlineKeyboard = [][]tgbotapi.InlineKeyboardButton{
-			[]tgbotapi.InlineKeyboardButton{sendReceiptByTelegramButton(transferEncodedID, whc)},
+			{sendReceiptByTelegramButton(transferEncodedID, whc)},
 		}
 		utmParams := common.UtmParams{
 			Source:   telegram_bot.TelegramPlatformID,
@@ -752,6 +752,12 @@ func createSendReceiptOptionsMessage(whc bots.WebhookContext, transfer models.Tr
 				tgbotapi.NewInlineKeyboardButtonData(
 					whc.Translate(trans.COMMAND_TEXT_SEND_RECEIPT_BY_SMS),
 					SendReceiptCallbackData(transfer.ID, "sms"),
+				),
+			},
+			[]tgbotapi.InlineKeyboardButton{
+				tgbotapi.NewInlineKeyboardButtonData(
+					whc.Translate(trans.COMMAND_TEXT_GET_LINK_FOR_RECEIPT_IN_TELEGRAM),
+					SendReceiptCallbackData(transfer.ID, string(models.InviteByLinkToTelegram)),
 				),
 			},
 		)
