@@ -66,9 +66,9 @@ func AcknowledgeReceipt(whc bots.WebhookContext, receiptID int64, operation stri
 			m.Format = bots.MessageFormatHTML
 		}
 
-		if transfer.CreatorTgChatID != 0 {
+		if transfer.Creator().TgChatID != 0 {
 			askMsgToCreator := whc.NewMessage("")
-			askMsgToCreator.ToChat = bots.ChatIntID(transfer.CreatorTgChatID)
+			askMsgToCreator.ToChat = bots.ChatIntID(transfer.Creator().TgChatID)
 			var operationMsg string
 			counterpartyName := transfer.Counterparty().ContactName
 			switch operation {
@@ -81,8 +81,8 @@ func AcknowledgeReceipt(whc bots.WebhookContext, receiptID int64, operation stri
 			}
 			askMsgToCreator.Text = operationMsg + "\n\n" + common.TextReceiptForTransfer(whc, transfer, transfer.CreatorUserID, common.ShowReceiptToAutodetect, utm)
 
-			if transfer.CreatorTgBotID != whc.GetBotCode() {
-				log.Warningf(c, "TODO: transferEntity.CreatorTgBotID != whc.GetBotCode(): "+askMsgToCreator.Text)
+			if transfer.Creator().TgBotID != whc.GetBotCode() {
+				log.Warningf(c, "TODO: transferEntity.Creator().TgBotID != whc.GetBotCode(): "+askMsgToCreator.Text)
 			} else {
 				if _, err = whc.Responder().SendMessage(c, askMsgToCreator, bots.BotApiSendMessageOverHTTPS); err != nil {
 					log.Errorf(c, "Failed to send acknowledge to creator: %v", err)

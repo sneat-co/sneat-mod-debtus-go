@@ -76,8 +76,6 @@ type TransferEntity struct {
 	from *TransferCounterpartyInfo
 	to   *TransferCounterpartyInfo
 
-	CreatorTgBotID string `datastore:",noindex"` // TODO: Obsolete, replace with CreatedOnID as in Receipt entity
-
 	BillIDs []string
 
 	SmsStats
@@ -86,24 +84,28 @@ type TransferEntity struct {
 	ReturnToTransferIDs   []int64                       // List of transfer to which this debt is a return. Should be populated only if IsReturn=True
 	//ReturnTransferIDs                 []int64   // List of transfers that return money to this debts
 	//
-	CreatorUserID             int64  `datastore:",noindex"`
-	CreatorCounterpartyID     int64  `datastore:",noindex"` //TODO: Replace with <From|To>ContactID
-	CreatorCounterpartyName   string `datastore:",noindex"` //TODO: Replace with <From|To>ContactName
-	CreatorNote               string `datastore:",noindex"` //TODO: Replace with <From|To>Note
-	CreatorComment            string `datastore:",noindex"` //TODO: Replace with <From|To>Comment
-	CreatorTgChatID           int64  `datastore:",noindex"`
-	CreatorTgReceiptByTgMsgID int64  `datastore:",noindex"`
+	CreatorUserID           int64  `datastore:",noindex"` // Do not delete
+	CreatorCounterpartyID   int64  `datastore:",noindex"` //TODO: Replace with <From|To>ContactID
+	CreatorCounterpartyName string `datastore:",noindex"` //TODO: Replace with <From|To>ContactName
+	CreatorNote             string `datastore:",noindex"` //TODO: Replace with <From|To>Note
+	CreatorComment          string `datastore:",noindex"` //TODO: Replace with <From|To>Comment
+
+	CreatorTgReceiptByTgMsgID int64 `datastore:",noindex"`
+	//
+	//CreatorTgBotID       string `datastore:",noindex"` // TODO: Migrated to TransferCounterpartyInfo
+	//CreatorTgChatID      int64  `datastore:",noindex"` // TODO: Migrated to TransferCounterpartyInfo
+	//CounterpartyTgBotID  string `datastore:",noindex"` // TODO: Migrated to TransferCounterpartyInfo
+	//CounterpartyTgChatID int64  `datastore:",noindex"` // TODO: Migrated to TransferCounterpartyInfo
+	//
 	//CreatorAutoRemindersDisabled bool   `datastore:",noindex"`
-	CreatorReminderID      int64 `datastore:",noindex"` // TODO: Consider deletion as prone to errors if not updated on re-schedule, or find and document the reason we have it
-	CounterpartyReminderID int64 `datastore:",noindex"`
+	//CreatorReminderID      int64 `datastore:",noindex"` // obsolete
+	//CounterpartyReminderID int64 `datastore:",noindex"` // obsolete
 	//
 	CounterpartyUserID           int64  `datastore:",noindex"` //TODO: Replace with <From|To>UserID
 	CounterpartyCounterpartyID   int64  `datastore:",noindex"` //TODO: Replace with <From|To>ContactID
 	CounterpartyCounterpartyName string `datastore:",noindex"` //TODO: Replace with <From|To>ContactName
 	CounterpartyNote             string `datastore:",noindex"` //TODO: Replace with <From|To>Note
 	CounterpartyComment          string `datastore:",noindex"` //TODO: Replace with <From|To>Comment
-	CounterpartyTgBotID          string `datastore:",noindex"`
-	CounterpartyTgChatID         int64  `datastore:",noindex"`
 	//CounterpartyAutoRemindersDisabled bool   `datastore:",noindex"`
 	//CounterpartyTgReceiptInlineMessageID string    `datastore:",noindex"` - not useful as we can edit message just once on callback
 
@@ -306,6 +308,11 @@ func (t *TransferEntity) Load(ps []datastore.Property) error {
 	// Load I and J as usual.
 	p2 := make([]datastore.Property, 0, len(ps))
 	var creationPlatform string
+	var ( // TODO: obsolete props migrated to TransferCounterpartyJson
+		creatorReminderID, counterpartyReminderID int64
+		creatorTgChatID, counterpartyTgChatID     int64
+		creatorTgBotID, counterpartyTgBotID       string
+	)
 	for _, p := range ps {
 		switch p.Name {
 		case "CounterpartyAutoRemindersDisabled": // Ignore legacy
@@ -331,6 +338,20 @@ func (t *TransferEntity) Load(ps []datastore.Property) error {
 			//case "ToCounterpartyName": // TODO:  Ignore legacy, temporary
 			//case "ToComment": // TODO: Ignore legacy, temporary
 			//case "ToNote": // TODO: Ignore legacy, temporary
+
+		case "CreatorReminderID":
+			creatorReminderID = p.Value.(int64)
+		case "CounterpartyReminderID":
+			counterpartyReminderID = p.Value.(int64)
+		case "CreatorTgBotID":
+			creatorTgBotID = p.Value.(string)
+		case "CounterpartyTgBotID":
+			counterpartyTgBotID = p.Value.(string)
+		case "CreatorTgChatID":
+			creatorTgChatID = p.Value.(int64)
+		case "CounterpartyTgChatID":
+			counterpartyTgChatID = p.Value.(int64)
+
 		default:
 			p2 = append(p2, p)
 		}
@@ -355,6 +376,27 @@ func (t *TransferEntity) Load(ps []datastore.Property) error {
 	if t.AmountInCentsOutstanding > 0 && !t.IsOutstanding {
 		t.IsOutstanding = true
 	}
+
+	{ // TODO: Get rid once all transfers migrated - Moves properties to JSON
+		migrateToCounterpartyInfo := func(
+			counterparty *TransferCounterpartyInfo,
+			reminderID, tgChatID int64,
+			tgBotID string,
+		) {
+			if reminderID != 0 {
+				counterparty.ReminderID = reminderID
+			}
+			if tgChatID != 0 {
+				counterparty.TgChatID = tgChatID
+			}
+			if tgBotID != "" {
+				counterparty.TgBotID = tgBotID
+			}
+		}
+		migrateToCounterpartyInfo(t.Creator(), creatorReminderID, creatorTgChatID, creatorTgBotID)
+		migrateToCounterpartyInfo(t.Counterparty(), counterpartyReminderID, counterpartyTgChatID, counterpartyTgBotID)
+	}
+
 	return nil
 }
 
@@ -489,11 +531,11 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 		return
 	}
 
-	if isFixed, s := FixContactName(from.ContactName); isFixed {
+	if isFixed, s := fixContactName(from.ContactName); isFixed {
 		from.ContactName = s
 	}
 
-	if isFixed, s := FixContactName(to.ContactName); isFixed {
+	if isFixed, s := fixContactName(to.ContactName); isFixed {
 		to.ContactName = s
 	}
 
@@ -525,27 +567,27 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 		//
 
 		// Remove defaults
-		"Amount":                    gaedb.IsZeroFloat, // TODO: Is it obsolete?
-		"SmsCount":                  gaedb.IsZeroInt,
-		"SmsCost":                   gaedb.IsZeroFloat,
-		"SmsCostUSD":                gaedb.IsZeroInt,
-		"ReceiptsSentCount":         gaedb.IsZeroInt,
-		"CreatorReminderID":         gaedb.IsZeroInt,
-		"CounterpartyReminderID":    gaedb.IsZeroInt,
-		"CreatorTgChatID":           gaedb.IsZeroInt,
-		"CounterpartyTgChatID":      gaedb.IsZeroInt,
+		"Amount":            gaedb.IsZeroFloat, // TODO: Is it obsolete?
+		"SmsCount":          gaedb.IsZeroInt,
+		"SmsCost":           gaedb.IsZeroFloat,
+		"SmsCostUSD":        gaedb.IsZeroInt,
+		"ReceiptsSentCount": gaedb.IsZeroInt,
+		//"CreatorReminderID":         gaedb.IsZeroInt,
+		//"CounterpartyReminderID":    gaedb.IsZeroInt,
+		//"CreatorTgChatID":           gaedb.IsZeroInt,
+		//"CounterpartyTgChatID":      gaedb.IsZeroInt,
 		"CreatorTgReceiptByTgMsgID": gaedb.IsZeroInt,
-		"CounterpartyTgBotID":       gaedb.IsEmptyString,
-		"CreatorTgBotID":            gaedb.IsEmptyString,
-		"Direction":                 gaedb.IsEmptyString,
-		"BillID":                    gaedb.IsEmptyString,
-		"AmountInCentsOutstanding":  gaedb.IsZeroInt,
-		"AmountInCentsReturned":     gaedb.IsZeroInt,
-		"AcknowledgeStatus":         gaedb.IsEmptyString,
-		"AcknowledgeTime":           gaedb.IsZeroTime,
-		"DtDueOn":                   gaedb.IsZeroTime,
-		"IsOutstanding":             gaedb.IsFalse,
-		"IsReturn":                  gaedb.IsFalse,
+		//"CounterpartyTgBotID":       gaedb.IsEmptyString,
+		//"CreatorTgBotID":            gaedb.IsEmptyString,
+		"Direction":                gaedb.IsEmptyString,
+		"BillID":                   gaedb.IsEmptyString,
+		"AmountInCentsOutstanding": gaedb.IsZeroInt,
+		"AmountInCentsReturned":    gaedb.IsZeroInt,
+		"AcknowledgeStatus":        gaedb.IsEmptyString,
+		"AcknowledgeTime":          gaedb.IsZeroTime,
+		"DtDueOn":                  gaedb.IsZeroTime,
+		"IsOutstanding":            gaedb.IsFalse,
+		"IsReturn":                 gaedb.IsFalse,
 	}); err != nil {
 		return
 	}
@@ -563,7 +605,8 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 					p.Name == "CounterpartyCounterpartyID" ||
 					p.Name == "CounterpartyCounterpartyName" ||
 					p.Name == "CounterpartyNote" ||
-					p.Name == "CounterpartyComment") {
+					p.Name == "CounterpartyComment" ||
+					p.Name == "DirectionObsoleteProp") {
 				continue
 			}
 			properties2 = append(properties2, p)

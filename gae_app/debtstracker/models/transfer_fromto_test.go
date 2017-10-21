@@ -93,19 +93,19 @@ func TestTransferCounterpartyInfo_Name(t *testing.T) {
 }
 
 func TestFixContactName(t *testing.T) {
-	if isFixed, _ := FixContactName(""); isFixed {
+	if isFixed, _ := fixContactName(""); isFixed {
 		t.Error("Should not fix empty string")
 	}
-	if _, s := FixContactName(""); s != "" {
+	if _, s := fixContactName(""); s != "" {
 		t.Errorf("Expected empty string, got: %v", s)
 	}
-	if isFixed, _ := FixContactName("Alex (Alex)"); !isFixed {
+	if isFixed, _ := fixContactName("Alex (Alex)"); !isFixed {
 		t.Error("Exected 'Alex (Alex)' to be fixed")
 	}
-	if _, s := FixContactName("Alex (Alex)"); s != "Alex" {
+	if _, s := fixContactName("Alex (Alex)"); s != "Alex" {
 		t.Errorf("Exected contact.ContactName() == 'Alex', got: %v", s)
 	}
-	if isFixed, s := FixContactName("Alex1 (Alex2)"); isFixed || s != "Alex1 (Alex2)" {
+	if isFixed, s := fixContactName("Alex1 (Alex2)"); isFixed || s != "Alex1 (Alex2)" {
 		t.Errorf("Exected isFiexed=false, s='Alex1 (Alex2)'. Got: isFiexed=%v, s=%v", isFixed, s)
 	}
 }

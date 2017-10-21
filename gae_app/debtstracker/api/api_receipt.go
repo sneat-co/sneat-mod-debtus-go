@@ -374,7 +374,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 	var messageToSend string
 
 	if channel == "telegram" {
-		tgBotID := transfer.CreatorTgBotID
+		tgBotID := transfer.Creator().TgBotID
 		if tgBotID == "" {
 			if strings.Contains(r.URL.Host, "dev") {
 				tgBotID = "DebtsTrackerDev1Bot"

@@ -325,7 +325,7 @@ func (u *AppUserEntity) ContactsByID() (contactsByID map[int64]UserContactJson) 
 
 func fixUserContacts(contacts []UserContactJson, status string) []UserContactJson {
 	for i, c := range contacts {
-		if isFixed, s := FixContactName(c.Name); isFixed {
+		if isFixed, s := fixContactName(c.Name); isFixed {
 			c.Name = s
 		}
 		if status != "" && c.Status != status {

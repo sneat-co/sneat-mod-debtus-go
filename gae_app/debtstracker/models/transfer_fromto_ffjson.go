@@ -11,20 +11,23 @@ import (
 	fflib "github.com/pquerna/ffjson/fflib/v1"
 )
 
-func (mj *TransferCounterpartyInfo) MarshalJSON() ([]byte, error) {
+// MarshalJSON marshal bytes to json - template
+func (j *TransferCounterpartyInfo) MarshalJSON() ([]byte, error) {
 	var buf fflib.Buffer
-	if mj == nil {
+	if j == nil {
 		buf.WriteString("null")
 		return buf.Bytes(), nil
 	}
-	err := mj.MarshalJSONBuf(&buf)
+	err := j.MarshalJSONBuf(&buf)
 	if err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
-func (mj *TransferCounterpartyInfo) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
-	if mj == nil {
+
+// MarshalJSONBuf marshal buff to json - template
+func (j *TransferCounterpartyInfo) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
+	if j == nil {
 		buf.WriteString("null")
 		return nil
 	}
@@ -33,34 +36,54 @@ func (mj *TransferCounterpartyInfo) MarshalJSONBuf(buf fflib.EncodingBuffer) err
 	_ = obj
 	_ = err
 	buf.WriteString(`{ `)
-	if mj.UserID != 0 {
+	if j.UserID != 0 {
 		buf.WriteString(`"UserID":`)
-		fflib.FormatBits2(buf, uint64(mj.UserID), 10, mj.UserID < 0)
+		fflib.FormatBits2(buf, uint64(j.UserID), 10, j.UserID < 0)
 		buf.WriteByte(',')
 	}
-	if len(mj.UserName) != 0 {
-		buf.WriteString(`"Name":`)
-		fflib.WriteJsonString(buf, string(mj.UserName))
+	if len(j.UserName) != 0 {
+		buf.WriteString(`"UserName":`)
+		fflib.WriteJsonString(buf, string(j.UserName))
 		buf.WriteByte(',')
 	}
-	if mj.ContactID != 0 {
+	if j.ContactID != 0 {
 		buf.WriteString(`"ContactID":`)
-		fflib.FormatBits2(buf, uint64(mj.ContactID), 10, mj.ContactID < 0)
+		fflib.FormatBits2(buf, uint64(j.ContactID), 10, j.ContactID < 0)
 		buf.WriteByte(',')
 	}
-	if len(mj.ContactName) != 0 {
+	if len(j.ContactName) != 0 {
 		buf.WriteString(`"ContactName":`)
-		fflib.WriteJsonString(buf, string(mj.ContactName))
+		fflib.WriteJsonString(buf, string(j.ContactName))
 		buf.WriteByte(',')
 	}
-	if len(mj.Note) != 0 {
+	if len(j.Note) != 0 {
 		buf.WriteString(`"Note":`)
-		fflib.WriteJsonString(buf, string(mj.Note))
+		fflib.WriteJsonString(buf, string(j.Note))
 		buf.WriteByte(',')
 	}
-	if len(mj.Comment) != 0 {
+	if len(j.Comment) != 0 {
 		buf.WriteString(`"Comment":`)
-		fflib.WriteJsonString(buf, string(mj.Comment))
+		fflib.WriteJsonString(buf, string(j.Comment))
+		buf.WriteByte(',')
+	}
+	if j.ReminderID != 0 {
+		buf.WriteString(`"ReminderID":`)
+		fflib.FormatBits2(buf, uint64(j.ReminderID), 10, j.ReminderID < 0)
+		buf.WriteByte(',')
+	}
+	if len(j.TgBotID) != 0 {
+		buf.WriteString(`"TgBotID":`)
+		fflib.WriteJsonString(buf, string(j.TgBotID))
+		buf.WriteByte(',')
+	}
+	if j.TgChatID != 0 {
+		buf.WriteString(`"TgChatID":`)
+		fflib.FormatBits2(buf, uint64(j.TgChatID), 10, j.TgChatID < 0)
+		buf.WriteByte(',')
+	}
+	if j.TgReceiptByTgMsgID != 0 {
+		buf.WriteString(`"TgReceiptByTgMsgID":`)
+		fflib.FormatBits2(buf, uint64(j.TgReceiptByTgMsgID), 10, j.TgReceiptByTgMsgID < 0)
 		buf.WriteByte(',')
 	}
 	buf.Rewind(1)
@@ -69,42 +92,60 @@ func (mj *TransferCounterpartyInfo) MarshalJSONBuf(buf fflib.EncodingBuffer) err
 }
 
 const (
-	ffj_t_TransferCounterpartyInfobase = iota
-	ffj_t_TransferCounterpartyInfono_such_key
+	ffjtTransferCounterpartyInfobase = iota
+	ffjtTransferCounterpartyInfonosuchkey
 
-	ffj_t_TransferCounterpartyInfo_UserID
+	ffjtTransferCounterpartyInfoUserID
 
-	ffj_t_TransferCounterpartyInfo_UserName
+	ffjtTransferCounterpartyInfoUserName
 
-	ffj_t_TransferCounterpartyInfo_CounterpartyID
+	ffjtTransferCounterpartyInfoContactID
 
-	ffj_t_TransferCounterpartyInfo_CounterpartyName
+	ffjtTransferCounterpartyInfoContactName
 
-	ffj_t_TransferCounterpartyInfo_Note
+	ffjtTransferCounterpartyInfoNote
 
-	ffj_t_TransferCounterpartyInfo_Comment
+	ffjtTransferCounterpartyInfoComment
+
+	ffjtTransferCounterpartyInfoReminderID
+
+	ffjtTransferCounterpartyInfoTgBotID
+
+	ffjtTransferCounterpartyInfoTgChatID
+
+	ffjtTransferCounterpartyInfoTgReceiptByTgMsgID
 )
 
-var ffj_key_TransferCounterpartyInfo_UserID = []byte("UserID")
+var ffjKeyTransferCounterpartyInfoUserID = []byte("UserID")
 
-var ffj_key_TransferCounterpartyInfo_UserName = []byte("Name")
+var ffjKeyTransferCounterpartyInfoUserName = []byte("UserName")
 
-var ffj_key_TransferCounterpartyInfo_CounterpartyID = []byte("ContactID")
+var ffjKeyTransferCounterpartyInfoContactID = []byte("ContactID")
 
-var ffj_key_TransferCounterpartyInfo_CounterpartyName = []byte("ContactName")
+var ffjKeyTransferCounterpartyInfoContactName = []byte("ContactName")
 
-var ffj_key_TransferCounterpartyInfo_Note = []byte("Note")
+var ffjKeyTransferCounterpartyInfoNote = []byte("Note")
 
-var ffj_key_TransferCounterpartyInfo_Comment = []byte("Comment")
+var ffjKeyTransferCounterpartyInfoComment = []byte("Comment")
 
-func (uj *TransferCounterpartyInfo) UnmarshalJSON(input []byte) error {
+var ffjKeyTransferCounterpartyInfoReminderID = []byte("ReminderID")
+
+var ffjKeyTransferCounterpartyInfoTgBotID = []byte("TgBotID")
+
+var ffjKeyTransferCounterpartyInfoTgChatID = []byte("TgChatID")
+
+var ffjKeyTransferCounterpartyInfoTgReceiptByTgMsgID = []byte("TgReceiptByTgMsgID")
+
+// UnmarshalJSON umarshall json - template of ffjson
+func (j *TransferCounterpartyInfo) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
-	return uj.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
+	return j.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
 }
 
-func (uj *TransferCounterpartyInfo) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
-	var err error = nil
-	currentKey := ffj_t_TransferCounterpartyInfobase
+// UnmarshalJSONFFLexer fast json unmarshall - template ffjson
+func (j *TransferCounterpartyInfo) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
+	var err error
+	currentKey := ffjtTransferCounterpartyInfobase
 	_ = currentKey
 	tok := fflib.FFTok_init
 	wantedTok := fflib.FFTok_init
@@ -150,7 +191,7 @@ mainparse:
 			kn := fs.Output.Bytes()
 			if len(kn) <= 0 {
 				// "" case. hrm.
-				currentKey = ffj_t_TransferCounterpartyInfono_such_key
+				currentKey = ffjtTransferCounterpartyInfonosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			} else {
@@ -158,82 +199,132 @@ mainparse:
 
 				case 'C':
 
-					if bytes.Equal(ffj_key_TransferCounterpartyInfo_CounterpartyID, kn) {
-						currentKey = ffj_t_TransferCounterpartyInfo_CounterpartyID
+					if bytes.Equal(ffjKeyTransferCounterpartyInfoContactID, kn) {
+						currentKey = ffjtTransferCounterpartyInfoContactID
 						state = fflib.FFParse_want_colon
 						goto mainparse
 
-					} else if bytes.Equal(ffj_key_TransferCounterpartyInfo_CounterpartyName, kn) {
-						currentKey = ffj_t_TransferCounterpartyInfo_CounterpartyName
+					} else if bytes.Equal(ffjKeyTransferCounterpartyInfoContactName, kn) {
+						currentKey = ffjtTransferCounterpartyInfoContactName
 						state = fflib.FFParse_want_colon
 						goto mainparse
 
-					} else if bytes.Equal(ffj_key_TransferCounterpartyInfo_Comment, kn) {
-						currentKey = ffj_t_TransferCounterpartyInfo_Comment
+					} else if bytes.Equal(ffjKeyTransferCounterpartyInfoComment, kn) {
+						currentKey = ffjtTransferCounterpartyInfoComment
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				case 'N':
 
-					if bytes.Equal(ffj_key_TransferCounterpartyInfo_Note, kn) {
-						currentKey = ffj_t_TransferCounterpartyInfo_Note
+					if bytes.Equal(ffjKeyTransferCounterpartyInfoNote, kn) {
+						currentKey = ffjtTransferCounterpartyInfoNote
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 'R':
+
+					if bytes.Equal(ffjKeyTransferCounterpartyInfoReminderID, kn) {
+						currentKey = ffjtTransferCounterpartyInfoReminderID
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 'T':
+
+					if bytes.Equal(ffjKeyTransferCounterpartyInfoTgBotID, kn) {
+						currentKey = ffjtTransferCounterpartyInfoTgBotID
+						state = fflib.FFParse_want_colon
+						goto mainparse
+
+					} else if bytes.Equal(ffjKeyTransferCounterpartyInfoTgChatID, kn) {
+						currentKey = ffjtTransferCounterpartyInfoTgChatID
+						state = fflib.FFParse_want_colon
+						goto mainparse
+
+					} else if bytes.Equal(ffjKeyTransferCounterpartyInfoTgReceiptByTgMsgID, kn) {
+						currentKey = ffjtTransferCounterpartyInfoTgReceiptByTgMsgID
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				case 'U':
 
-					if bytes.Equal(ffj_key_TransferCounterpartyInfo_UserID, kn) {
-						currentKey = ffj_t_TransferCounterpartyInfo_UserID
+					if bytes.Equal(ffjKeyTransferCounterpartyInfoUserID, kn) {
+						currentKey = ffjtTransferCounterpartyInfoUserID
 						state = fflib.FFParse_want_colon
 						goto mainparse
 
-					} else if bytes.Equal(ffj_key_TransferCounterpartyInfo_UserName, kn) {
-						currentKey = ffj_t_TransferCounterpartyInfo_UserName
+					} else if bytes.Equal(ffjKeyTransferCounterpartyInfoUserName, kn) {
+						currentKey = ffjtTransferCounterpartyInfoUserName
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				}
 
-				if fflib.SimpleLetterEqualFold(ffj_key_TransferCounterpartyInfo_Comment, kn) {
-					currentKey = ffj_t_TransferCounterpartyInfo_Comment
+				if fflib.EqualFoldRight(ffjKeyTransferCounterpartyInfoTgReceiptByTgMsgID, kn) {
+					currentKey = ffjtTransferCounterpartyInfoTgReceiptByTgMsgID
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.SimpleLetterEqualFold(ffj_key_TransferCounterpartyInfo_Note, kn) {
-					currentKey = ffj_t_TransferCounterpartyInfo_Note
+				if fflib.SimpleLetterEqualFold(ffjKeyTransferCounterpartyInfoTgChatID, kn) {
+					currentKey = ffjtTransferCounterpartyInfoTgChatID
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.SimpleLetterEqualFold(ffj_key_TransferCounterpartyInfo_CounterpartyName, kn) {
-					currentKey = ffj_t_TransferCounterpartyInfo_CounterpartyName
+				if fflib.SimpleLetterEqualFold(ffjKeyTransferCounterpartyInfoTgBotID, kn) {
+					currentKey = ffjtTransferCounterpartyInfoTgBotID
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.SimpleLetterEqualFold(ffj_key_TransferCounterpartyInfo_CounterpartyID, kn) {
-					currentKey = ffj_t_TransferCounterpartyInfo_CounterpartyID
+				if fflib.SimpleLetterEqualFold(ffjKeyTransferCounterpartyInfoReminderID, kn) {
+					currentKey = ffjtTransferCounterpartyInfoReminderID
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.EqualFoldRight(ffj_key_TransferCounterpartyInfo_UserName, kn) {
-					currentKey = ffj_t_TransferCounterpartyInfo_UserName
+				if fflib.SimpleLetterEqualFold(ffjKeyTransferCounterpartyInfoComment, kn) {
+					currentKey = ffjtTransferCounterpartyInfoComment
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.EqualFoldRight(ffj_key_TransferCounterpartyInfo_UserID, kn) {
-					currentKey = ffj_t_TransferCounterpartyInfo_UserID
+				if fflib.SimpleLetterEqualFold(ffjKeyTransferCounterpartyInfoNote, kn) {
+					currentKey = ffjtTransferCounterpartyInfoNote
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				currentKey = ffj_t_TransferCounterpartyInfono_such_key
+				if fflib.SimpleLetterEqualFold(ffjKeyTransferCounterpartyInfoContactName, kn) {
+					currentKey = ffjtTransferCounterpartyInfoContactName
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.SimpleLetterEqualFold(ffjKeyTransferCounterpartyInfoContactID, kn) {
+					currentKey = ffjtTransferCounterpartyInfoContactID
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.EqualFoldRight(ffjKeyTransferCounterpartyInfoUserName, kn) {
+					currentKey = ffjtTransferCounterpartyInfoUserName
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.EqualFoldRight(ffjKeyTransferCounterpartyInfoUserID, kn) {
+					currentKey = ffjtTransferCounterpartyInfoUserID
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				currentKey = ffjtTransferCounterpartyInfonosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			}
@@ -250,25 +341,37 @@ mainparse:
 			if tok == fflib.FFTok_left_brace || tok == fflib.FFTok_left_bracket || tok == fflib.FFTok_integer || tok == fflib.FFTok_double || tok == fflib.FFTok_string || tok == fflib.FFTok_bool || tok == fflib.FFTok_null {
 				switch currentKey {
 
-				case ffj_t_TransferCounterpartyInfo_UserID:
+				case ffjtTransferCounterpartyInfoUserID:
 					goto handle_UserID
 
-				case ffj_t_TransferCounterpartyInfo_UserName:
+				case ffjtTransferCounterpartyInfoUserName:
 					goto handle_UserName
 
-				case ffj_t_TransferCounterpartyInfo_CounterpartyID:
-					goto handle_CounterpartyID
+				case ffjtTransferCounterpartyInfoContactID:
+					goto handle_ContactID
 
-				case ffj_t_TransferCounterpartyInfo_CounterpartyName:
-					goto handle_CounterpartyName
+				case ffjtTransferCounterpartyInfoContactName:
+					goto handle_ContactName
 
-				case ffj_t_TransferCounterpartyInfo_Note:
+				case ffjtTransferCounterpartyInfoNote:
 					goto handle_Note
 
-				case ffj_t_TransferCounterpartyInfo_Comment:
+				case ffjtTransferCounterpartyInfoComment:
 					goto handle_Comment
 
-				case ffj_t_TransferCounterpartyInfono_such_key:
+				case ffjtTransferCounterpartyInfoReminderID:
+					goto handle_ReminderID
+
+				case ffjtTransferCounterpartyInfoTgBotID:
+					goto handle_TgBotID
+
+				case ffjtTransferCounterpartyInfoTgChatID:
+					goto handle_TgChatID
+
+				case ffjtTransferCounterpartyInfoTgReceiptByTgMsgID:
+					goto handle_TgReceiptByTgMsgID
+
+				case ffjtTransferCounterpartyInfonosuchkey:
 					err = fs.SkipField(tok)
 					if err != nil {
 						return fs.WrapErr(err)
@@ -284,7 +387,7 @@ mainparse:
 
 handle_UserID:
 
-	/* handler: uj.UserID type=int64 kind=int64 quoted=false*/
+	/* handler: j.UserID type=int64 kind=int64 quoted=false*/
 
 	{
 		if tok != fflib.FFTok_integer && tok != fflib.FFTok_null {
@@ -304,7 +407,7 @@ handle_UserID:
 				return fs.WrapErr(err)
 			}
 
-			uj.UserID = int64(tval)
+			j.UserID = int64(tval)
 
 		}
 	}
@@ -314,7 +417,7 @@ handle_UserID:
 
 handle_UserName:
 
-	/* handler: uj.Name type=string kind=string quoted=false*/
+	/* handler: j.UserName type=string kind=string quoted=false*/
 
 	{
 
@@ -330,7 +433,7 @@ handle_UserName:
 
 			outBuf := fs.Output.Bytes()
 
-			uj.UserName = string(string(outBuf))
+			j.UserName = string(string(outBuf))
 
 		}
 	}
@@ -338,9 +441,9 @@ handle_UserName:
 	state = fflib.FFParse_after_value
 	goto mainparse
 
-handle_CounterpartyID:
+handle_ContactID:
 
-	/* handler: uj.ContactID type=int64 kind=int64 quoted=false*/
+	/* handler: j.ContactID type=int64 kind=int64 quoted=false*/
 
 	{
 		if tok != fflib.FFTok_integer && tok != fflib.FFTok_null {
@@ -360,7 +463,7 @@ handle_CounterpartyID:
 				return fs.WrapErr(err)
 			}
 
-			uj.ContactID = int64(tval)
+			j.ContactID = int64(tval)
 
 		}
 	}
@@ -368,9 +471,9 @@ handle_CounterpartyID:
 	state = fflib.FFParse_after_value
 	goto mainparse
 
-handle_CounterpartyName:
+handle_ContactName:
 
-	/* handler: uj.ContactName type=string kind=string quoted=false*/
+	/* handler: j.ContactName type=string kind=string quoted=false*/
 
 	{
 
@@ -386,7 +489,7 @@ handle_CounterpartyName:
 
 			outBuf := fs.Output.Bytes()
 
-			uj.ContactName = string(string(outBuf))
+			j.ContactName = string(string(outBuf))
 
 		}
 	}
@@ -396,7 +499,7 @@ handle_CounterpartyName:
 
 handle_Note:
 
-	/* handler: uj.Note type=string kind=string quoted=false*/
+	/* handler: j.Note type=string kind=string quoted=false*/
 
 	{
 
@@ -412,7 +515,7 @@ handle_Note:
 
 			outBuf := fs.Output.Bytes()
 
-			uj.Note = string(string(outBuf))
+			j.Note = string(string(outBuf))
 
 		}
 	}
@@ -422,7 +525,7 @@ handle_Note:
 
 handle_Comment:
 
-	/* handler: uj.Comment type=string kind=string quoted=false*/
+	/* handler: j.Comment type=string kind=string quoted=false*/
 
 	{
 
@@ -438,7 +541,123 @@ handle_Comment:
 
 			outBuf := fs.Output.Bytes()
 
-			uj.Comment = string(string(outBuf))
+			j.Comment = string(string(outBuf))
+
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_ReminderID:
+
+	/* handler: j.ReminderID type=int64 kind=int64 quoted=false*/
+
+	{
+		if tok != fflib.FFTok_integer && tok != fflib.FFTok_null {
+			return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for int64", tok))
+		}
+	}
+
+	{
+
+		if tok == fflib.FFTok_null {
+
+		} else {
+
+			tval, err := fflib.ParseInt(fs.Output.Bytes(), 10, 64)
+
+			if err != nil {
+				return fs.WrapErr(err)
+			}
+
+			j.ReminderID = int64(tval)
+
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_TgBotID:
+
+	/* handler: j.TgBotID type=string kind=string quoted=false*/
+
+	{
+
+		{
+			if tok != fflib.FFTok_string && tok != fflib.FFTok_null {
+				return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for string", tok))
+			}
+		}
+
+		if tok == fflib.FFTok_null {
+
+		} else {
+
+			outBuf := fs.Output.Bytes()
+
+			j.TgBotID = string(string(outBuf))
+
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_TgChatID:
+
+	/* handler: j.TgChatID type=int64 kind=int64 quoted=false*/
+
+	{
+		if tok != fflib.FFTok_integer && tok != fflib.FFTok_null {
+			return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for int64", tok))
+		}
+	}
+
+	{
+
+		if tok == fflib.FFTok_null {
+
+		} else {
+
+			tval, err := fflib.ParseInt(fs.Output.Bytes(), 10, 64)
+
+			if err != nil {
+				return fs.WrapErr(err)
+			}
+
+			j.TgChatID = int64(tval)
+
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_TgReceiptByTgMsgID:
+
+	/* handler: j.TgReceiptByTgMsgID type=int64 kind=int64 quoted=false*/
+
+	{
+		if tok != fflib.FFTok_integer && tok != fflib.FFTok_null {
+			return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for int64", tok))
+		}
+	}
+
+	{
+
+		if tok == fflib.FFTok_null {
+
+		} else {
+
+			tval, err := fflib.ParseInt(fs.Output.Bytes(), 10, 64)
+
+			if err != nil {
+				return fs.WrapErr(err)
+			}
+
+			j.TgReceiptByTgMsgID = int64(tval)
 
 		}
 	}

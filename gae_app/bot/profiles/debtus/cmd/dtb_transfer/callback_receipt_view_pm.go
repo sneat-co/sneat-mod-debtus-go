@@ -149,7 +149,7 @@ func ShowReceipt(whc bots.WebhookContext, receiptID int64) (m bots.MessageFromBo
 		); err != nil {
 			return
 		}
-		m.EditMessageUID = telegram_bot.NewChatMessageUID(transfer.CreatorTgChatID, int(transfer.CreatorTgReceiptByTgMsgID))
+		m.EditMessageUID = telegram_bot.NewChatMessageUID(transfer.Creator().TgChatID, int(transfer.CreatorTgReceiptByTgMsgID))
 		//if _, err := whc.Responder().SendMessage(c, editCreatorMessage, bots.BotApiSendMessageOverHTTPS); err != nil {
 		//	log.Errorf(c, "Failed to edit creator message: %v", err)
 		//}

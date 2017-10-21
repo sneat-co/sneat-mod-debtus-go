@@ -16,9 +16,9 @@ func (s TransferSourceBot) PopulateTransfer(t *models.TransferEntity) {
 	t.CreatedOnPlatform = s.platform
 	t.CreatedOnID = s.botID
 	if s.platform == telegram_bot.TelegramPlatformID {
-		t.CreatorTgBotID = s.botID
+		t.Creator().TgBotID = s.botID
 		var err error
-		t.CreatorTgChatID, err = strconv.ParseInt(s.chatID, 10, 64)
+		t.Creator().TgChatID, err = strconv.ParseInt(s.chatID, 10, 64)
 		if err != nil {
 			panic(err.Error())
 		}

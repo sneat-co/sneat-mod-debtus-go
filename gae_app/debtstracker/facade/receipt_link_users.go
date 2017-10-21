@@ -115,7 +115,7 @@ func (linker ReceiptUsersLinker) linkUsersByReceiptWithinTransaction(
 	}
 
 	if transfer.DtDueOn.After(time.Now()) {
-		if err := dal.Reminder.DelayCreateReminderForTransferCounterparty(tc, receipt.TransferID); err != nil {
+		if err := dal.Reminder.DelayCreateReminderForTransferUser(tc, receipt.TransferID, transfer.Counterparty().UserID); err != nil {
 			return isCounterpartiesJustConnected, errors.Wrap(err, "Failed to delay creation of reminder for transfer coutnerparty")
 		}
 	} else {

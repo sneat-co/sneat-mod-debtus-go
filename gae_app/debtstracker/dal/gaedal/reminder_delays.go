@@ -19,94 +19,43 @@ import (
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/taskqueue"
-	"strconv"
 	"strings"
 	"time"
 )
 
-func _delayReminderCreation(c context.Context, transferID int64, f *delay.Function) error {
+func (_ ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, transferID, userID int64) (err error) {
 	if transferID == 0 {
 		panic("transferID == 0")
 	}
-	if task, err := gae.CreateDelayTask(common.QUEUE_REMINDERS, "create-reminder", f, transferID); err != nil {
-		return errors.Wrapf(err, "Failed to create a task for reminder creation, transfer id=%v", transferID)
+	if userID == 0 {
+		panic("userID == 0")
+	}
+	if task, err := gae.CreateDelayTask(common.QUEUE_REMINDERS, "create-reminder-4-transfer-user", delayCreateReminderForTransferUser, transferID, userID); err != nil {
+		return errors.WithMessage(err, fmt.Sprintf("Failed to create a task for reminder creation. transferID=%v, userID=%v", transferID, userID))
 	} else {
 		task.Delay = time.Duration(time.Second)
 		if _, err = gae.AddTaskToQueue(c, task, common.QUEUE_REMINDERS); err != nil {
 			return errors.Wrapf(err, "Failed to add a task for reminder creation, transfer id=%v", transferID)
 		}
-		log.Debugf(c, "Added task(%v) to create reminder for transfer id=%v", f, transferID)
+		log.Debugf(c, "Added task(%v) to create reminder for transfer id=%v", delayCreateReminderForTransferUser, transferID)
 	}
-	return nil
+	return
 }
 
-func (_ ReminderDalGae) DelayCreateReminderForTransferCreator(c context.Context, transferID int64) error {
-	log.Debugf(c, "DelayCreateReminderForTransferCreator(transferID=%v)", transferID)
-	return _delayReminderCreation(c, transferID, _delayedCreateReminderForTransferCreator)
-}
+var delayCreateReminderForTransferUser = delay.Func("createReminderForTransferUser", createReminderForTransferUser)
 
-func (_ ReminderDalGae) DelayCreateReminderForTransferCounterparty(c context.Context, transferID int64) error {
-	return _delayReminderCreation(c, transferID, _delayedCreateReminderForTransferCounterparty)
-}
-
-var _delayedCreateReminderForTransferCreator = delay.Func("_createReminderForTransferCreator", _createReminderForTransferCreator)
-var _delayedCreateReminderForTransferCounterparty = delay.Func("_createReminderForTransferCounterparty", _createReminderForTransferCounterparty)
-
-//type remindersFactory struct {
-//
-//}
-//var _remindersFactory = remindersFactory{}
-//
-//func (f remindersFactory) createReminderForCounterparty(c context.Context, transferID int64) {
-//
-//}
-
-func _createReminderForTransferCounterparty(c context.Context, transferID int64) error {
-	log.Debugf(c, "_createReminderForTransferCounterparty(transferID=%v)", transferID)
+func createReminderForTransferUser(c context.Context, transferID, userID int64) (err error) {
+	log.Debugf(c, "createReminderForTransferUser(transferID=%d, userID=%d)", transferID, userID)
 	if transferID == 0 {
 		log.Errorf(c, "transferID == 0")
 		return nil
 	}
-	transfer, err := dal.Transfer.GetTransferByID(c, transferID)
-	if err != nil {
-		if err == datastore.ErrNoSuchEntity {
-			log.Errorf(c, "Transfer not found by id=%v", transferID)
-			return nil
-		}
-		return errors.Wrap(err, "Failed to get transfer by id")
+	if userID == 0 {
+		log.Errorf(c, "userID == 0")
+		return nil
 	}
 
-	var (
-		counterpartyTgChatID int64
-		counterpartyTgChat   *telegram_bot.TelegramChatEntityBase
-		//counterpartyUser models.AppUser
-	)
-	if transfer.CounterpartyReminderID == 0 && transfer.Counterparty().UserID != 0 {
-		var entityID string
-		entityID, counterpartyTgChat, err = GetTelegramChatByUserID(c, transfer.Counterparty().UserID)
-		if err != nil {
-			if err == datastore.ErrNoSuchEntity {
-				log.Infof(c, "User transfer.Contact().UserID=%v has no Telegram chat", transfer.Counterparty().UserID)
-				return nil
-			} else {
-				return errors.Wrapf(err, "Failed to get Telegram chat for counterparty user (id=%v)", transfer.Counterparty().UserID)
-			}
-		}
-		if entityID == "" {
-			log.Infof(c, "User transfer.Contact().UserID=%v has no Telegram chat", transfer.Counterparty().UserID)
-			return nil
-		}
-
-		var counterpartyTgChatStringID string
-		if strings.Contains(entityID, ":") { // TODO: Temporary workaround for migrating from Int to Str ids.
-			counterpartyTgChatStringID = strings.Split(entityID, ":")[1]
-		} else {
-			counterpartyTgChatStringID = entityID
-		}
-		if counterpartyTgChatID, err = strconv.ParseInt(counterpartyTgChatStringID, 10, 64); err != nil {
-			return errors.Wrapf(err, "Failed to strconv.ParseInt(strings.Split(entityID, ':')[1], 10, 64): [%v]", entityID)
-		}
-	}
+	var transfer models.Transfer
 
 	err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 		transfer, err = dal.Transfer.GetTransferByID(c, transferID)
@@ -114,59 +63,9 @@ func _createReminderForTransferCounterparty(c context.Context, transferID int64)
 			return errors.Wrap(err, "Failed to get transfer by id in transaction")
 		}
 		isTransferChanged := false
-		if transfer.CounterpartyReminderID == 0 {
-			if transfer.CounterpartyTgChatID == 0 && counterpartyTgChatID != 0 {
-				transfer.CounterpartyTgChatID = counterpartyTgChatID
-				transfer.CounterpartyTgBotID = counterpartyTgChat.BotID
-				isTransferChanged = true
-			}
-			if transfer.CounterpartyTgChatID != 0 {
-				reminderKey := NewReminderIncompleteKey(c)
-				reminder := models.NewReminderViaTelegram(transfer.CounterpartyTgBotID, transfer.CounterpartyTgChatID, transfer.Counterparty().UserID, transferID, false, transfer.DtDueOn)
-				if reminderKey, err = gaedb.Put(c, reminderKey, &reminder); err != nil {
-					return errors.Wrap(err, "Faield to save reminder to datastore")
-				}
-				log.Infof(c, "Created reminder id=%v", reminderKey.IntID())
-				dueIn := transfer.DtDueOn.Sub(time.Now())
-				if err = QueueSendReminder(c, reminderKey.IntID(), dueIn); err != nil {
-					return errors.Wrap(err, "Failed to queue reminder for sending")
-				}
-				transfer.CreatorReminderID = reminderKey.IntID()
-				isTransferChanged = true
-			} else {
-				log.Infof(c, "Can not send reminder as transfer.CounterpartyTgChatID == 0")
-			}
-			return nil
-		}
-		if isTransferChanged {
-			if err = dal.Transfer.SaveTransfer(c, transfer); err != nil {
-				err = errors.Wrap(err, "Failed to save transfer")
-			}
-		}
-		return err
-	}, dal.CrossGroupTransaction)
-	return nil
-}
-
-func _createReminderForTransferCreator(c context.Context, transferID int64) error {
-	log.Debugf(c, "_createReminderForTransferCreator(transferID=%v)", transferID)
-	if transferID == 0 {
-		log.Errorf(c, "transferID == 0")
-		return nil
-	}
-	//transferKey, transfer, err := transferDal.GetTransferByID(c, transferID)
-	//if err != nil {
-	//	return errors.Wrap(err, "Failed to get transfer by id")
-	//}
-
-	err := dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		transfer, err := dal.Transfer.GetTransferByID(c, transferID)
-		if err != nil {
-			return errors.Wrap(err, "Failed to get transfer by id in transaction")
-		}
-		isTransferChanged := false
-		if transfer.CreatorReminderID == 0 {
-			if transfer.CreatorTgChatID != 0 {
+		counterpartyInfo := transfer.CounterpartyInfoByUserID(userID)
+		if counterpartyInfo.ReminderID == 0 {
+			if counterpartyInfo.TgChatID != 0 {
 				reminderKey := NewReminderIncompleteKey(c)
 				next := transfer.DtDueOn
 				isAutomatic := next.IsZero()
@@ -177,7 +76,7 @@ func _createReminderForTransferCreator(c context.Context, transferID int64) erro
 						next = time.Now().Add(7 * 24 * time.Hour)
 					}
 				}
-				reminder := models.NewReminderViaTelegram(transfer.CreatorTgBotID, transfer.CreatorTgChatID, transfer.CreatorUserID, transferID, isAutomatic, next)
+				reminder := models.NewReminderViaTelegram(counterpartyInfo.TgBotID, counterpartyInfo.TgChatID, counterpartyInfo.UserID, transferID, isAutomatic, next)
 				if reminderKey, err = gaedb.Put(c, reminderKey, &reminder); err != nil {
 					return errors.Wrap(err, "Failed to save reminder to datastore")
 				}
@@ -185,7 +84,7 @@ func _createReminderForTransferCreator(c context.Context, transferID int64) erro
 				if err = QueueSendReminder(c, reminderKey.IntID(), next.Sub(time.Now())); err != nil {
 					return errors.Wrap(err, "Failed to queue reminder for sending")
 				}
-				transfer.CreatorReminderID = reminderKey.IntID()
+				counterpartyInfo.ReminderID = reminderKey.IntID()
 				isTransferChanged = true
 			}
 		}
@@ -196,7 +95,8 @@ func _createReminderForTransferCreator(c context.Context, transferID int64) erro
 		}
 		return err
 	}, dal.CrossGroupTransaction)
-	return err
+
+	return
 }
 
 func (_ ReminderDalGae) DelayDiscardReminders(c context.Context, transferIDs []int64, returnTransferID int64) error {

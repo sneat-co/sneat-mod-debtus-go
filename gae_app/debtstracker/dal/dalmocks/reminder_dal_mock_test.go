@@ -23,7 +23,7 @@ func (mock *ReminderDalMock) DelayCreateReminderForTransferCounterparty(c contex
 	panic(NOT_IMPLEMENTED_YET)
 }
 
-func (mock *ReminderDalMock) DelayCreateReminderForTransferCreator(c context.Context, transferID int64) error {
+func (mock *ReminderDalMock) DelayCreateReminderForTransferUser(c context.Context, transferID, userID int64) error {
 	return nil
 }
 

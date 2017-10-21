@@ -589,7 +589,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		log.Debugf(c, "No receipt to counterpartyEntity: [%v]", transfer.Counterparty().ContactName)
 	}
 
-	if err = dal.Reminder.DelayCreateReminderForTransferCreator(c, transfer.ID); err != nil {
+	if err = dal.Reminder.DelayCreateReminderForTransferUser(c, transfer.ID, transfer.CreatorUserID); err != nil {
 		err = errors.Wrap(err, "Failed to delay reminder creation for creator")
 		return
 	}

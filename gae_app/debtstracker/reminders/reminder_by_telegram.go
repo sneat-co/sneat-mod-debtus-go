@@ -26,12 +26,19 @@ import (
 	"time"
 )
 
-func sendReminderByTelegram(c context.Context, transferReminderTo TransferReminderTo, transfer models.Transfer, reminderID, userID, tgChatID int64, tgBot string) (sent, channelDisabledByUser bool, err error) {
-	log.Debugf(c, "sendReminderByTelegram(transferReminderTo:%v, transfer.ID=%d, reminderID=%d)", transferReminderTo, transfer.ID, reminderID)
+func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminder models.Reminder, tgChatID int64, tgBot string) (sent, channelDisabledByUser bool, err error) {
+	log.Debugf(c, "sendReminderByTelegram(transfer.ID=%v, reminder.ID=%v, tgChatID=%v, tgBot=%v)", transfer.ID, reminder.ID, tgChatID, tgBot)
+
+	if tgChatID == 0 {
+		panic("tgChatID == 0")
+	}
+	if tgBot == "" {
+		panic("tgBot is empty string")
+	}
 
 	var locale strongo.Locale
 
-	if locale, err = facade.GetLocale(c, tgBot, tgChatID, userID); err != nil {
+	if locale, err = facade.GetLocale(c, tgBot, tgChatID, reminder.UserID); err != nil {
 		return
 	}
 
@@ -42,7 +49,12 @@ func sendReminderByTelegram(c context.Context, transferReminderTo TransferRemind
 
 	translator := strongo.NewSingleMapTranslator(locale, strongo.NewMapTranslator(c, trans.TRANS))
 
-	if botSettings, ok := telegram.Bots(gaestandard.GetEnvironment(c), nil).ByCode[transfer.CreatorTgBotID]; ok {
+	env := gaestandard.GetEnvironment(c)
+
+	if botSettings, ok := telegram.Bots(env, nil).ByCode[tgBot]; !ok {
+		err = fmt.Errorf("bot settings not found (env=%v, tgBotID=%v)", env, tgBot)
+		return
+	} else {
 		tgBotApi := tgbotapi.NewBotAPIWithClient(botSettings.Token, &http.Client{Transport: &urlfetch.Transport{Context: c}})
 		messageText := fmt.Sprintf(
 			"<b>%v</b>\n%v\n\n",
@@ -56,16 +68,16 @@ func sendReminderByTelegram(c context.Context, transferReminderTo TransferRemind
 			Medium:   telegram_bot.TelegramPlatformID,
 			Campaign: common.UTM_CAMPAIGN_REMINDER,
 		}
-		messageText += common.TextReceiptForTransfer(executionContext, transfer, userID, common.ShowReceiptToAutodetect, utm)
+		messageText += common.TextReceiptForTransfer(executionContext, transfer, reminder.UserID, common.ShowReceiptToAutodetect, utm)
 
 		messageConfig := tgbotapi.NewMessage(tgChatID, messageText)
 
 		err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
-			reminder, err := dal.Reminder.GetReminderByID(c, reminderID)
+			reminder, err := dal.Reminder.GetReminderByID(c, reminder.ID)
 			if err != nil {
 				return err
 			}
-			callbackData := fmt.Sprintf(dtb_common.DEBT_RETURN_CALLBACK_DATA, dtb_common.CALLBACK_DEBT_RETURNED_PATH, common.EncodeID(reminderID), "%v")
+			callbackData := fmt.Sprintf(dtb_common.DEBT_RETURN_CALLBACK_DATA, dtb_common.CALLBACK_DEBT_RETURNED_PATH, common.EncodeID(reminder.ID), "%v")
 			messageConfig.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 				[]tgbotapi.InlineKeyboardButton{
 					{Text: translator.Translate(trans.COMMAND_TEXT_REMINDER_RETURNED_IN_FULL), CallbackData: fmt.Sprintf(callbackData, dtb_common.RETURNED_FULLY)},
@@ -96,18 +108,18 @@ func sendReminderByTelegram(c context.Context, transferReminderTo TransferRemind
 			log.Infof(c, "Sent message to telegram. MessageID: %v", message.MessageID)
 
 			if err = dal.Reminder.SetReminderIsSentInTransaction(tc, reminder, time.Now(), int64(message.MessageID), "", locale.Code5, ""); err != nil {
-				err = dal.Reminder.DelaySetReminderIsSent(tc, reminderID, time.Now(), int64(message.MessageID), "", locale.Code5, "")
+				err = dal.Reminder.DelaySetReminderIsSent(tc, reminder.ID, time.Now(), int64(message.MessageID), "", locale.Code5, "")
 			}
 			//
-			return err
+			return
 		}, nil)
-
-		if sent {
-			analytics.ReminderSent(c, userID, translator.Locale().Code5, telegram_bot.TelegramPlatformID)
-		}
 
 		if err != nil {
 			log.Errorf(c, errors.Wrapf(err, "Error while sending by Telegram").Error())
+			return
+		}
+		if sent {
+			analytics.ReminderSent(c, reminder.UserID, translator.Locale().Code5, telegram_bot.TelegramPlatformID)
 		}
 	}
 	return

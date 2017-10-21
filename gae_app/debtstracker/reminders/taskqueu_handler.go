@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"fmt"
 )
 
 func SendReminderHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
@@ -106,15 +107,16 @@ func sendReminderToUser(c context.Context, reminderID int64, transfer models.Tra
 			return errReminderAlreadySentOrIsBeingSent
 		}
 		reminder.Status = models.ReminderStatusSending
-		if _, err := nds.Put(tc, gaedal.NewReminderKey(tc, reminderID), reminder.ReminderEntity); err != nil { // TODO: User dal.Reminder.SaveReminder()
+		if err = dal.Reminder.SaveReminder(tc, reminder); err != nil { // TODO: User dal.Reminder.SaveReminder()
 			return errors.Wrap(err, "Failed to save reminder with new status to db")
 		}
-		return nil
+		return
 	}, nil); err != nil {
 		if err == errReminderAlreadySentOrIsBeingSent {
 			log.Infof(c, err.Error())
 		} else {
-			log.Errorf(c, "Failed to update reminder status to '%v': %v", models.ReminderStatusSending, err)
+			err = errors.WithMessage(err, fmt.Sprintf("failed to update reminder status to '%v'", models.ReminderStatusSending))
+			log.Errorf(c, err.Error())
 		}
 		return
 	} else {
@@ -133,9 +135,9 @@ func sendReminderToUser(c context.Context, reminderID int64, transfer models.Tra
 			tgChatID int64
 			tgBotID  string
 		)
-		if reminder.UserID == transfer.CreatorUserID && transfer.CreatorTgChatID != 0 {
-			tgChatID = transfer.CreatorTgChatID
-			tgBotID = transfer.CreatorTgBotID
+		if transferUserInfo := transfer.CounterpartyInfoByUserID(reminder.UserID); transferUserInfo.TgChatID != 0 {
+			tgChatID = transferUserInfo.TgChatID
+			tgBotID = transferUserInfo.TgBotID
 		} else {
 			//user.TelegramUserIDs[0]
 			var tgChat *telegram_bot.TelegramChatEntityBase
@@ -146,12 +148,12 @@ func sendReminderToUser(c context.Context, reminderID int64, transfer models.Tra
 			tgChatID = (int64)(tgChat.TelegramUserID)
 			tgBotID = tgChat.BotID
 		}
-		reminderIsSent, channelDisabledByUser, err = sendReminderByTelegram(c, TransferReminderToCreator, transfer, reminderID, reminder.UserID, tgChatID, tgBotID)
-		if err != nil {
-			return
-		}
-		if !reminderIsSent && !channelDisabledByUser {
-			log.Warningf(c, "Reminder is not sent to Telegram")
+		if tgChatID != 0 && tgBotID != "" {
+			if reminderIsSent, channelDisabledByUser, err = sendReminderByTelegram(c, transfer, reminder, tgChatID, tgBotID); err != nil {
+				return
+			} else if !reminderIsSent && !channelDisabledByUser {
+				log.Warningf(c, "Reminder is not sent to Telegram, err=%v", err)
+			}
 		}
 	}
 	if !reminderIsSent { // TODO: This is wrong to send same reminder by email if Telegram failed, complex and will screw up stats
@@ -164,18 +166,16 @@ func sendReminderToUser(c context.Context, reminderID int64, transfer models.Tra
 				log.Errorf(c, "Can't send reminder")
 			}
 			err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-				reminderKey := gaedal.NewReminderKey(c, reminderID)
-				if err = nds.Get(c, reminderKey, reminder.ReminderEntity); err != nil {
+				if reminder, err = dal.Reminder.GetReminderByID(c, reminderID); err != nil {
 					return err
 				}
 				reminder.Status = models.ReminderStatusFailed
-				_, err = nds.Put(c, reminderKey, reminder.ReminderEntity)
-				return err
+				return dal.Reminder.SaveReminder(c, reminder)
 			}, nil)
 			if err != nil {
-				log.Errorf(c, errors.Wrapf(err, "Failed to set reminder status to '%v'", models.ReminderStatusFailed).Error())
+				log.Errorf(c, errors.WithMessage(err, fmt.Sprintf("failed to set reminder status to '%v'", models.ReminderStatusFailed)).Error())
 			} else {
-				log.Infof(c, "Reminder status set to '%v'", models.ReminderStatusFailed)
+				log.Infof(c, "Reminder status set to '%v'", reminder.Status)
 			}
 		}
 	}

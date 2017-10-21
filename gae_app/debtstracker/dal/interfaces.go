@@ -61,8 +61,7 @@ var ErrReminderAlreadyRescheduled = errors.New("Reminder already rescheduled")
 
 type ReminderDal interface {
 	DelayDiscardReminders(c context.Context, transferIDs []int64, returnTransferID int64) error
-	DelayCreateReminderForTransferCreator(c context.Context, transferID int64) error      // TODO: Combine with DelayCreateReminderForTransferCounterparty()
-	DelayCreateReminderForTransferCounterparty(c context.Context, transferID int64) error // TODO: Combine with DelayCreateReminderForTransferCreator()
+	DelayCreateReminderForTransferUser(c context.Context, transferID, userID int64) error
 	SaveReminder(c context.Context, reminder models.Reminder) (err error)
 	GetReminderByID(c context.Context, id int64) (models.Reminder, error)
 	RescheduleReminder(c context.Context, reminderID int64, remindInDuration time.Duration) (oldReminder, newReminder models.Reminder, err error)

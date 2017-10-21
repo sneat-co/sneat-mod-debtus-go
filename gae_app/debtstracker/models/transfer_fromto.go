@@ -1,5 +1,7 @@
 package models
 
+//go:generate ffjson $GOFILE
+
 import (
 	"bytes"
 	"fmt"
@@ -10,12 +12,16 @@ import (
 )
 
 type TransferCounterpartyInfo struct {
-	UserID      int64  `json:",omitempty"`
-	UserName    string `json:",omitempty"`
-	ContactID   int64  `json:",omitempty"`
-	ContactName string `json:",omitempty"`
-	Note        string `json:",omitempty"`
-	Comment     string `json:",omitempty"`
+	UserID             int64  `json:",omitempty"`
+	UserName           string `json:",omitempty"`
+	ContactID          int64  `json:",omitempty"`
+	ContactName        string `json:",omitempty"`
+	Note               string `json:",omitempty"`
+	Comment            string `json:",omitempty"`
+	ReminderID         int64  `json:",omitempty"` // TODO: Consider deletion as prone to errors if not updated on re-schedule, or find and document the reason we have it
+	TgBotID            string `json:",omitempty"`
+	TgChatID           int64  `json:",omitempty"`
+	TgReceiptByTgMsgID int64  `json:",omitempty"`
 }
 
 func NewFrom(userID int64, comment string) *TransferCounterpartyInfo {
@@ -34,12 +40,12 @@ func (t TransferCounterpartyInfo) String() string {
 	}
 }
 
-func FixContactName(contactName string) (isFixed bool, s string) {
+func fixContactName(contactName string) (isFixed bool, s string) {
 	if start := strings.Index(contactName, "("); start > 0 {
 		if end := strings.Index(contactName, ")"); end > start {
 			if l := len(contactName); end == l-1 {
 				if (end-start-1)*2 == len(contactName)-3 {
-					if s = contactName[start+1 : end]; s == contactName[:start-1] {
+					if s = contactName[start+1: end]; s == contactName[:start-1] {
 						isFixed = true
 						return
 					}
@@ -53,7 +59,7 @@ func FixContactName(contactName string) (isFixed bool, s string) {
 
 func (c TransferCounterpartyInfo) Name() string {
 	if c.ContactName != "" {
-		if isFixed, s := FixContactName(c.ContactName); isFixed {
+		if isFixed, s := fixContactName(c.ContactName); isFixed {
 			return s
 		}
 		return c.ContactName

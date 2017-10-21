@@ -32,6 +32,7 @@ var localesReplyKeyboard = tgbotapi.NewReplyKeyboard(
 		{Text: strongo.LocaleItIt.TitleWithIcon()},
 	},
 	[]tgbotapi.KeyboardButton{
+		{Text: strongo.LocaleDeDe.TitleWithIcon()},
 		{Text: strongo.LocaleFaIr.TitleWithIcon()},
 	},
 )

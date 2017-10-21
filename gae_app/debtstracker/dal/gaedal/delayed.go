@@ -85,9 +85,9 @@ var delayedUpdateTransferWithCreatorReceiptTgMessageID = delay.Func("UpdateTrans
 			}
 		}
 		log.Debugf(c, "Loaded transfer: %v", transfer.TransferEntity)
-		if transfer.CreatorTgBotID != botCode || transfer.CreatorTgChatID != creatorTgChatID || transfer.CreatorTgReceiptByTgMsgID != creatorTgReceiptMessageID {
-			transfer.CreatorTgBotID = botCode
-			transfer.CreatorTgChatID = creatorTgChatID
+		if transfer.Creator().TgBotID != botCode || transfer.Creator().TgChatID != creatorTgChatID || transfer.CreatorTgReceiptByTgMsgID != creatorTgReceiptMessageID {
+			transfer.Creator().TgBotID = botCode
+			transfer.Creator().TgChatID = creatorTgChatID
 			transfer.CreatorTgReceiptByTgMsgID = creatorTgReceiptMessageID
 			if err = dal.Transfer.SaveTransfer(c, transfer); err != nil {
 				err = errors.Wrap(err, "Failed to save transfer to db")
@@ -190,8 +190,8 @@ func onReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transf
 			return errors.New("receipt.TransferID != transferID")
 		}
 
-		transferEntity.CounterpartyTgBotID = tgBotID
-		transferEntity.CounterpartyTgChatID = tgChatID
+		transferEntity.Counterparty().TgBotID = tgBotID
+		transferEntity.Counterparty().TgChatID = tgChatID
 		receipt.DtSent = sentAt
 		receipt.Status = models.ReceiptStatusSent
 		if _, err := gaedb.PutMulti(c, []*datastore.Key{transferKey, receiptKey}, []interface{}{&transferEntity, &receipt}); err != nil {
@@ -199,7 +199,7 @@ func onReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transf
 		}
 
 		if transferEntity.DtDueOn.After(time.Now()) {
-			if err := dal.Reminder.DelayCreateReminderForTransferCounterparty(c, transferID); err != nil {
+			if err := dal.Reminder.DelayCreateReminderForTransferUser(c, transferID, transferEntity.Counterparty().UserID); err != nil {
 				return errors.Wrap(err, "Failed to delay creation of reminder for transfer coutnerparty")
 			}
 		}
@@ -304,7 +304,7 @@ var delayedSendReceiptToCounterpartyByTelegram = delay.Func("sendReceiptToCounte
 	var receiptID int64
 	err = dal.DB.RunInTransaction(c, func(c context.Context) error {
 		receipt := models.NewReceiptEntity(transfer.CreatorUserID, transferID, transfer.Counterparty().UserID, locale.Code5, telegram_bot.TelegramPlatformID, strconv.Itoa(tgChat.TelegramUserID), general.CreatedOn{
-			CreatedOnID:       transfer.CreatorTgBotID, // TODO: Replace with method call.
+			CreatedOnID:       transfer.Creator().TgBotID, // TODO: Replace with method call.
 			CreatedOnPlatform: transfer.CreatedOnPlatform,
 		})
 		if receiptKey, err := gaedb.Put(c, NewReceiptIncompleteKey(c), &receipt); err != nil {
@@ -376,7 +376,7 @@ var delayedSendReceiptToCounterpartyByTelegram = delay.Func("sendReceiptToCounte
 			if _, forbidden := err.(tgbotapi.ErrAPIForbidden); forbidden {
 				log.Infof(c, "Failed to send notification to user by Telegram: %v", err)
 				editMessageConfig := tgbotapi.NewEditMessageText( // TODO: Add option buttons to send receipt
-					transfer.CreatorTgChatID,
+					transfer.Creator().TgChatID,
 					int(transfer.CreatorTgReceiptByTgMsgID),
 					"",
 					emoji.ERROR_ICON+translator.Translate(trans.MESSAGE_TEXT_RECEIPT_NOT_SENT_AS_COUNTERPARTY_HAS_DISABLED_TG_BOT, locale.Code5, transfer.Counterparty().ContactName),
@@ -390,7 +390,7 @@ var delayedSendReceiptToCounterpartyByTelegram = delay.Func("sendReceiptToCounte
 			} else {
 				log.Errorf(c, "Failed to send notification to user by Telegram: %v", err)
 				editMessageConfig := tgbotapi.NewEditMessageText(
-					transfer.CreatorTgChatID,
+					transfer.Creator().TgChatID,
 					int(transfer.CreatorTgReceiptByTgMsgID),
 					"",
 					emoji.ERROR_ICON+" "+err.Error(),
@@ -414,13 +414,13 @@ var delayedSendReceiptToCounterpartyByTelegram = delay.Func("sendReceiptToCounte
 	{
 		//var fromUserBotSettings bots.BotSettings
 		//var ok bool
-		//if transfer.CreatorTgBotID != "" {
-		//	fromUserBotSettings, ok = telegram.BotsBy(c).ByCode[transfer.CreatorTgBotID] // TODO: This is wrong way to choose bot!
+		//if transfer.Creator().TgBotID != "" {
+		//	fromUserBotSettings, ok = telegram.BotsBy(c).ByCode[transfer.Creator().TgBotID] // TODO: This is wrong way to choose bot!
 		//	if !ok {
-		//		log.Errorf(c, "Bot settings not found for transfer(%v).CreatorTgBotID: [%v]", transferID, transfer.CreatorTgBotID)
+		//		log.Errorf(c, "Bot settings not found for transfer(%v).Creator().TgBotID: [%v]", transferID, transfer.Creator().TgBotID)
 		//	}
 		//} else {
-		//	log.Warningf(c, "Transfer.CreatorTgBotID is empty")
+		//	log.Warningf(c, "Transfer.Creator().TgBotID is empty")
 		//}
 		//if !ok {
 		//	fromUser, err := dal.User.GetUserByID(c, transfer.CreatorUserID)
@@ -441,7 +441,7 @@ var delayedSendReceiptToCounterpartyByTelegram = delay.Func("sendReceiptToCounte
 		//tgApi := tgbotapi.NewBotAPIWithClient(fromUserBotSettings.Token, urlfetch.Client(c))
 		//
 		//editMessageConfig := tgbotapi.NewEditMessageText( // TODO: Use creator's locale
-		//	transfer.CreatorTgChatID,
+		//	transfer.Creator().TgChatID,
 		//	int(transfer.CreatorTgReceiptByTgMsgID),
 		//	"",
 		//	"\xF0\x9F\x93\xA4 "+
