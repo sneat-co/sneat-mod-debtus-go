@@ -139,16 +139,19 @@ func sendReminderToUser(c context.Context, reminderID int64, transfer models.Tra
 			tgChatID = transferUserInfo.TgChatID
 			tgBotID = transferUserInfo.TgBotID
 		} else {
-			//user.TelegramUserIDs[0]
 			var tgChat *telegram_bot.TelegramChatEntityBase
-			_, tgChat, err = gaedal.GetTelegramChatByUserID(c, reminder.UserID)
+			_, tgChat, err = gaedal.GetTelegramChatByUserID(c, reminder.UserID) // TODO: replace with DAL method
 			if err != nil {
-				err = errors.Wrap(err, "Failed to GetTelegramChatByUserID() ")
+				if db.IsNotFound(err) { // TODO: Get rid of datastore reference
+					err = errors.WithMessage(err, fmt.Sprintf("failed to call gaedal.GetTelegramChatByUserID(userID=%v)", reminder.UserID))
+					return
+				}
+			} else {
+				tgChatID = (int64)(tgChat.TelegramUserID)
+				tgBotID = tgChat.BotID
 			}
-			tgChatID = (int64)(tgChat.TelegramUserID)
-			tgBotID = tgChat.BotID
 		}
-		if tgChatID != 0 && tgBotID != "" {
+		if tgChatID != 0 {
 			if reminderIsSent, channelDisabledByUser, err = sendReminderByTelegram(c, transfer, reminder, tgChatID, tgBotID); err != nil {
 				return
 			} else if !reminderIsSent && !channelDisabledByUser {
@@ -156,7 +159,7 @@ func sendReminderToUser(c context.Context, reminderID int64, transfer models.Tra
 			}
 		}
 	}
-	if !reminderIsSent { // TODO: This is wrong to send same reminder by email if Telegram failed, complex and will screw up stats
+	if !reminderIsSent { // TODO: This is wrong to send same reminder by email if Telegram failed, complex and will screw up stats <= Are you sure?
 		if user.EmailAddress != "" {
 			if err = sendReminderByEmail(c, reminder, user.EmailAddress, transfer, user); err != nil {
 				log.Errorf(c, "Failure in sendReminderByEmail()")

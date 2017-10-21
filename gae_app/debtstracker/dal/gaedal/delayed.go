@@ -14,7 +14,6 @@ import (
 	"github.com/strongo/app/gae"
 	"github.com/strongo/app/log"
 	"github.com/strongo/bots-api-telegram"
-	//"github.com/strongo/bots-framework/core"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
 	"github.com/strongo/app/db"
@@ -131,7 +130,7 @@ func GetTelegramChatByUserID(c context.Context, userID int64) (entityID string, 
 		return
 	} else {
 		log.Debugf(c, "len(tgChatKeys): %v", len(tgChatKeys))
-		err = datastore.ErrNoSuchEntity
+		err = db.NewErrNotFoundByStrID(telegram_bot.TelegramChatKind, "AppUserIntID="+strconv.FormatInt(userID, 10), datastore.ErrNoSuchEntity)
 	}
 	return
 }
@@ -239,7 +238,7 @@ var delayedSendReceiptToCounterpartyByTelegram = delay.Func("sendReceiptToCounte
 	chatEntityID, tgChat, err := GetTelegramChatByUserID(c, toUserID)
 	if err != nil {
 		err2 := errors.Wrapf(err, "Failed to get Telegram chat for user (id=%v)", toUserID)
-		if err == datastore.ErrNoSuchEntity {
+		if db.IsNotFound(err) {
 			log.Infof(c, "No telegram for user or user not found")
 			return nil
 		} else {
