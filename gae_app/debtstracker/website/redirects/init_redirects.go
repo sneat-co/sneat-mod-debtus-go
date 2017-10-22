@@ -2,30 +2,30 @@ package redirects
 
 import (
 	"fmt"
-	"github.com/strongo/app"
 	"net/http"
 	"strconv"
+	"github.com/julienschmidt/httprouter"
 )
 
-func InitRedirects() {
-	http.HandleFunc("/receipt", ReceiptRedirect)
+func InitRedirects(router *httprouter.Router) {
+	router.GET("/receipt", ReceiptRedirect)
 
-	http.HandleFunc("/transfer",
+	router.GET("/transfer",
 		RedirectHandlerToEntityPageWithIntID("transfer=%d", "send"))
 
-	http.HandleFunc("/contact",
+	router.GET("/contact",
 		RedirectHandlerToEntityPageWithIntID("contact=%d"))
 
-	strongo.AddHttpHandler("/open/new-debt", newDebtRedirect)
+	router.GET("/open/new-debt", newDebtRedirect)
 
-	strongo.AddHttpHandler("/choose-currency", chooseCurrencyRedirect)
+	router.GET("/choose-currency", chooseCurrencyRedirect)
 
-	strongo.AddHttpHandler("/confirm", confirmEmailRedirect)
+	router.GET("/confirm", confirmEmailRedirect)
 
 }
 
-func RedirectHandlerToEntityPageWithIntID(path string, optionalParams ...string) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+func RedirectHandlerToEntityPageWithIntID(path string, optionalParams ...string) func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		if id, err := strconv.ParseInt(r.URL.Query().Get("id"), 10, 64); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("Value of 'id' parameter is not an integer"))

@@ -320,10 +320,12 @@ func getReceiptChannel(r *http.Request) (channel string, err error) {
 
 func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
 	if err := r.ParseForm(); err != nil {
+		log.Debugf(c, "handleCreateReceipt() => Invalid form data: " + err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Invalid form data"))
 		return
 	}
+	log.Debugf(c, "handleCreateReceipt() => r.Form: %v", r.Form)
 	transferID, err := strconv.ParseInt(r.FormValue("transfer"), 10, 64)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -341,6 +343,11 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 		w.Write([]byte(err.Error()))
 		return
 	}
+	var user models.AppUser
+	if user, err = dal.User.GetUserByID(c, authInfo.UserID); err != nil {
+		ErrorAsJson(c, w, http.StatusInternalServerError, err)
+		return
+	}
 	channel, err := getReceiptChannel(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -351,7 +358,35 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 	}
 	creatorUserID := transfer.CreatorUserID // TODO: Get from session?
 
-	receipt := models.NewReceiptEntity(creatorUserID, transferID, transfer.Counterparty().UserID, "", channel, "", general.CreatedOn{
+	lang := user.PreferredLanguage
+	if lang == "" {
+		if acceptLanguage := r.Header.Get("Accept-Language"); acceptLanguage != "" {
+			for _, set1 := range strings.Split(acceptLanguage, ";") {
+				for _, al := range strings.Split(set1, ",") {
+					switch len(al) {
+					case 5:
+						if _, ok := trans.SupportedLocalesByCode5[strings.ToLower(al[:2])+"-"+strings.ToUpper(al[4:])]; ok {
+							lang = al
+							goto langSet
+						}
+					case 2:
+						al = strings.ToLower(al)
+						for localeCode, _ := range trans.SupportedLocalesByCode5 {
+							if strings.HasPrefix(localeCode, al) {
+								lang = localeCode
+								goto langSet
+							}
+						}
+					}
+				}
+			}
+			langSet:
+		}
+	}
+	if lang == "" {
+		lang = strongo.LOCALE_EN_US
+	}
+	receipt := models.NewReceiptEntity(creatorUserID, transferID, transfer.Counterparty().UserID, lang, channel, "", general.CreatedOn{
 		CreatedOnPlatform: "api", // TODO: Replace with actual, pass from client
 		CreatedOnID:       r.Host,
 	})
@@ -363,14 +398,14 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	user, err := dal.User.GetUserByID(c, transfer.CreatorUserID)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		err = errors.Wrapf(err, "Failed to get user by ID=%v", transfer.CreatorUserID)
-		w.Write([]byte(err.Error()))
-		log.Warningf(c, err.Error())
-		return
-	}
+	//user, err = dal.User.GetUserByID(c, transfer.CreatorUserID)
+	//if err != nil {
+	//	w.WriteHeader(http.StatusInternalServerError)
+	//	err = errors.Wrapf(err, "Failed to get user by ID=%v", transfer.CreatorUserID)
+	//	w.Write([]byte(err.Error()))
+	//	log.Warningf(c, err.Error())
+	//	return
+	//}
 	var messageToSend string
 
 	if channel == "telegram" {

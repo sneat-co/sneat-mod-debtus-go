@@ -42,13 +42,13 @@ func Init(botHost bots.BotHost) {
 
 	InitBots(httpRouter, botHost, common.TheAppContext)
 
-	httpRouter.HandlerFunc("GET", "/test-pointer", TestModelPointer)
-	httpRouter.HandlerFunc("GET", "/Users/astec/", NotFoundSilent)
+	httpRouter.GET("/test-pointer", TestModelPointer)
+	httpRouter.GET( "/Users/astec/", NotFoundSilent)
 
 	maintainance.RegisterMappers()
 }
 
-func NotFoundSilent(w http.ResponseWriter, r *http.Request) {
+func NotFoundSilent(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	w.WriteHeader(http.StatusNotFound)
 }
 
@@ -72,7 +72,7 @@ type TestTransfer struct {
 	To   TestTransferCounterparty
 }
 
-func TestModelPointer(w http.ResponseWriter, r *http.Request) {
+func TestModelPointer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	c := appengine.NewContext(r)
 	testTransfer := TestTransfer{
 		From: TestTransferCounterparty{UserID: 1, UserName: "First"},

@@ -46,4 +46,7 @@ func AddSharedRoutes(router bots.WebhooksRouter, botParams BotParams) {
 	router.AddCommands(bots.WebhookInputChosenInlineResult, []bots.Command{
 		choosenInlineResultHandler(botParams),
 	})
+	router.AddCommands(bots.WebhookInputSticker, []bots.Command{
+		bots.IgnoreCommand,
+	})
 }

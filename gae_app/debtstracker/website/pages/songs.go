@@ -5,11 +5,12 @@ import (
 	"github.com/strongo/app"
 	"html/template"
 	"net/http"
+	"github.com/julienschmidt/httprouter"
 )
 
 var iouADanceTmpl *template.Template
 
-func AnnieIOUaDancePage(w http.ResponseWriter, r *http.Request) {
+func AnnieIOUaDancePage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if iouADanceTmpl == nil {
 		iouADanceTmpl = template.Must(template.ParseFiles(
 			BASE_TEMPLATE,
@@ -32,7 +33,7 @@ func AnnieIOUaDancePage(w http.ResponseWriter, r *http.Request) {
 
 var iouDappyTmpl *template.Template
 
-func IOWDappyPage(w http.ResponseWriter, r *http.Request) {
+func IOWDappyPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if iouDappyTmpl == nil {
 		iouDappyTmpl = template.Must(template.ParseFiles(
 			BASE_TEMPLATE,

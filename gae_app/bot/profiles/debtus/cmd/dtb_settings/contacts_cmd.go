@@ -7,7 +7,6 @@ import (
 	//"github.com/strongo/bots-api-telegram"
 	//"github.com/DebtsTracker/translations/emoji"
 	//"github.com/strongo/bots-framework/platforms/telegram"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
@@ -62,11 +61,11 @@ var ContactsListCommand = bots.Command{
 		m = whc.NewMessage(buffer.String())
 		m.Keyboard = keyboard
 		m.IsEdit = whc.InputType() == bots.WebhookInputCallbackQuery
-		if callbackUrl.Query().Get("do") == "refresh" {
-			if m, err = bot.SendRefreshOrNothingChanged(whc, m); err != nil {
-				return
-			}
-		}
+		//if callbackUrl.Query().Get("do") == "refresh" {
+		//	if m, err = bot.SendRefreshOrNothingChanged(whc, m); err != nil {
+		//		return
+		//	}
+		//}
 		return
 	},
 }

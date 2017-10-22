@@ -5,11 +5,12 @@ import (
 	"google.golang.org/appengine"
 	"html/template"
 	"net/http"
+	"github.com/julienschmidt/httprouter"
 )
 
 var adsPageTmpl *template.Template
 
-func AdsPage(w http.ResponseWriter, r *http.Request) {
+func AdsPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	locale, err := getLocale(appengine.NewContext(r), w, r)
 	if err != nil {
 		return

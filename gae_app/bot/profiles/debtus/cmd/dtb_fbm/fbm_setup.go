@@ -11,9 +11,10 @@ import (
 	"google.golang.org/appengine/urlfetch"
 	"net/http"
 	"time"
+	"github.com/julienschmidt/httprouter"
 )
 
-func SetupFbm(w http.ResponseWriter, r *http.Request) {
+func SetupFbm(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	query := r.URL.Query()
 
 	botID := query.Get("bot")

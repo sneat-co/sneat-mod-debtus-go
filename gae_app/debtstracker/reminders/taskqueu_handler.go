@@ -135,7 +135,7 @@ func sendReminderToUser(c context.Context, reminderID int64, transfer models.Tra
 			tgChatID int64
 			tgBotID  string
 		)
-		if transferUserInfo := transfer.CounterpartyInfoByUserID(reminder.UserID); transferUserInfo.TgChatID != 0 {
+		if transferUserInfo := transfer.UserInfoByUserID(reminder.UserID); transferUserInfo.TgChatID != 0 {
 			tgChatID = transferUserInfo.TgChatID
 			tgBotID = transferUserInfo.TgBotID
 		} else {

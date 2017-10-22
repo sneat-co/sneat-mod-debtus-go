@@ -109,6 +109,9 @@ var Router bots.WebhooksRouter = bots.NewWebhookRouter(
 		bots.WebhookInputReferral: {
 			dtb_settings.StartCommand,
 		},
+		bots.WebhookInputSticker: {
+			bots.IgnoreCommand,
+		},
 		bots.WebhookInputConversationStarted: {
 			dtb_settings.StartCommand,
 		},

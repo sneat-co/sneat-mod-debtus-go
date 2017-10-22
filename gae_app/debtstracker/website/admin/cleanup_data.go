@@ -1,8 +1,11 @@
 package admin
 
-import "net/http"
+import (
+	"net/http"
+	"github.com/julienschmidt/httprouter"
+)
 
-func CleanupPage(w http.ResponseWriter, r *http.Request) {
+func CleanupPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	switch r.Method {
 	case "GET":
 		w.Write([]byte("<form method=post><button type=submit></form>"))

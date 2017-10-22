@@ -8,9 +8,10 @@ import (
 	"golang.org/x/net/html"
 	"google.golang.org/appengine"
 	"net/http"
+	"github.com/julienschmidt/httprouter"
 )
 
-func CounterpartyPage(w http.ResponseWriter, r *http.Request) {
+func CounterpartyPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	c := appengine.NewContext(r)
 	log.Infof(c, "CounterpartyPage: %v", r.Method)
 	encodedCounterpartyID := r.URL.Query().Get("id")

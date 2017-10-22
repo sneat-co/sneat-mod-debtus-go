@@ -262,6 +262,17 @@ func (t TransferEntity) CounterpartyInfoByUserID(userID int64) *TransferCounterp
 	}
 }
 
+func (t TransferEntity) UserInfoByUserID(userID int64) *TransferCounterpartyInfo {
+	switch userID {
+	case t.From().UserID:
+		return t.from
+	case t.To().UserID:
+		return t.to
+	default:
+		panic(t.transferIsNotAssociatedWithUser(userID))
+	}
+}
+
 //const TRANSFER_REMINDERS_DISABLED = "disabled"
 //
 //func (t *Transfer) IsRemindersDisabled(userID int64) bool {

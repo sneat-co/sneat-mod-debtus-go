@@ -451,7 +451,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 				continue
 			}
 			if returnToTransfer.AmountInCentsOutstanding <= 0 {
-				log.Warningf(c, "Transfer(%v).AmountInCentsOutstanding:%v <= 0", returnToTransfer.ID, returnToTransfer.AmountInCentsOutstanding)
+				log.Warningf(c, "Transfer(%v).AmountInCentsOutstanding:%d <= 0", returnToTransfer.ID, returnToTransfer.AmountInCentsOutstanding)
 				continue
 			}
 			if amountToAssign < returnToTransfer.AmountInCentsOutstanding {

@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"github.com/julienschmidt/httprouter"
 )
 
-func confirmEmailRedirect(w http.ResponseWriter, r *http.Request) {
+func confirmEmailRedirect(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	query := r.URL.Query()
 	email, pin := query.Get("email"), query.Get("pin")
 	if email == "" || pin == "" {

@@ -90,12 +90,18 @@ func IndexRootPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) 
 		}
 	}
 
-	IndexPage(w, r)
+	indexPage(appengine.NewContext(r), w, r)
 }
 
 var indexTmpl *template.Template
 
-func IndexPage(w http.ResponseWriter, r *http.Request) {
+func IndexPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	if !strings.HasSuffix(r.URL.Path, "/") {
+		w.WriteHeader(http.StatusPermanentRedirect)
+		path := r.URL.Path
+		w.Header().Add("Location", strings.Replace(r.URL.RequestURI(), path, path + "/", 1))
+		return
+	}
 	indexPage(appengine.NewContext(r), w, r)
 }
 

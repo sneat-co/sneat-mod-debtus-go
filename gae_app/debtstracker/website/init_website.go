@@ -21,22 +21,22 @@ import (
 func InitWebsite(router *httprouter.Router) {
 	router.GET("/", pages.IndexRootPage)
 
-	redirects.InitRedirects()
+	redirects.InitRedirects(router)
 
 	for _, locale := range strongo.LocalesByCode5 {
 		localeSiteCode := locale.SiteCode()
-		strongo.AddHttpHandler(fmt.Sprintf("/%v/ads", localeSiteCode), pages.AdsPage)
-		strongo.AddHttpHandler(fmt.Sprintf("/%v/help-us", localeSiteCode), pages.HelpUsPage)
-		strongo.AddHttpHandler(fmt.Sprintf("/%v/login", localeSiteCode), LoginHandler)
-		strongo.AddHttpHandler(fmt.Sprintf("/%v/counterparty", localeSiteCode), pages.CounterpartyPage)
-		strongo.AddHttpHandler(fmt.Sprintf("/%v/", localeSiteCode), pages.IndexPage)
+		router.GET(fmt.Sprintf("/%v/ads", localeSiteCode), pages.AdsPage)
+		router.GET(fmt.Sprintf("/%v/help-us", localeSiteCode), pages.HelpUsPage)
+		router.GET(fmt.Sprintf("/%v/login", localeSiteCode), LoginHandler)
+		router.GET(fmt.Sprintf("/%v/counterparty", localeSiteCode), pages.CounterpartyPage)
+		router.GET(fmt.Sprintf("/%v/", localeSiteCode), pages.IndexPage)
 		//strongo.AddHttpHandler(fmt.Sprintf("/%v/create-mass-invite", localeSiteCode), api.AuthOnly(CreateInvitePage))
 
 	}
-	strongo.AddHttpHandler("/en/songs/annie-iou-a-dance", pages.AnnieIOUaDancePage)
-	strongo.AddHttpHandler("/en/songs/iou-by-dappy", pages.IOWDappyPage)
+	router.GET("/en/songs/annie-iou-a-dance", pages.AnnieIOUaDancePage)
+	router.GET("/en/songs/iou-by-dappy", pages.IOWDappyPage)
 
-	admin.InitAdmin()
+	admin.InitAdmin(router)
 }
 
 func CreateInvitePage(w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {

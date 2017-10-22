@@ -13,9 +13,10 @@ import (
 	gaeUser "google.golang.org/appengine/user"
 	"net/http"
 	"strconv"
+	"github.com/julienschmidt/httprouter"
 )
 
-func LatestPage(w http.ResponseWriter, r *http.Request) {
+func LatestPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	c := appengine.NewContext(r)
 
 	if !gaeUser.IsAdmin(c) {
@@ -64,7 +65,7 @@ func LatestPage(w http.ResponseWriter, r *http.Request) {
 	b.Flush()
 }
 
-func FixTransfersHandler(w http.ResponseWriter, r *http.Request) {
+func FixTransfersHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	c := appengine.NewContext(r)
 	loadedCount, fixedCount, failedCount, err := gaedal.FixTransfers(c)
 	stats := fmt.Sprintf("\nLoaded: %v, Fixed: %v, Failed: %v", loadedCount, fixedCount, failedCount)

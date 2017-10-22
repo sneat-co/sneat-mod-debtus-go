@@ -55,48 +55,53 @@ func createReminderForTransferUser(c context.Context, transferID, userID int64) 
 		return nil
 	}
 
-	var transfer models.Transfer
-
-	err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	return dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+		var transfer models.Transfer
 		transfer, err = dal.Transfer.GetTransferByID(c, transferID)
 		if err != nil {
-			return errors.Wrap(err, "Failed to get transfer by id in transaction")
+			return errors.WithMessage(err, "failed to get transfer by id")
 		}
-		isTransferChanged := false
-		counterpartyInfo := transfer.CounterpartyInfoByUserID(userID)
-		if counterpartyInfo.ReminderID == 0 {
-			if counterpartyInfo.TgChatID != 0 {
-				reminderKey := NewReminderIncompleteKey(c)
-				next := transfer.DtDueOn
-				isAutomatic := next.IsZero()
-				if isAutomatic {
-					if strings.Contains(strings.ToLower(transfer.CreatedOnID), "dev") {
-						next = time.Now().Add(2 * time.Minute)
-					} else {
-						next = time.Now().Add(7 * 24 * time.Hour)
-					}
-				}
-				reminder := models.NewReminderViaTelegram(counterpartyInfo.TgBotID, counterpartyInfo.TgChatID, counterpartyInfo.UserID, transferID, isAutomatic, next)
-				if reminderKey, err = gaedb.Put(c, reminderKey, &reminder); err != nil {
-					return errors.Wrap(err, "Failed to save reminder to datastore")
-				}
-				log.Infof(c, "Created reminder id=%v", reminderKey.IntID())
-				if err = QueueSendReminder(c, reminderKey.IntID(), next.Sub(time.Now())); err != nil {
-					return errors.Wrap(err, "Failed to queue reminder for sending")
-				}
-				counterpartyInfo.ReminderID = reminderKey.IntID()
-				isTransferChanged = true
-			}
+		transferUserInfo := transfer.UserInfoByUserID(userID)
+		if transferUserInfo.UserID != userID {
+			panic("transferUserInfo.UserID != userID")
 		}
-		if isTransferChanged {
-			if err = dal.Transfer.SaveTransfer(c, transfer); err != nil {
-				return errors.Wrap(err, "Failed to save transfer to datastore")
-			}
-		}
-		return err
-	}, dal.CrossGroupTransaction)
 
-	return
+		if transferUserInfo.ReminderID != 0 {
+			log.Warningf(c, "Transfer user already has reminder # %v", transferUserInfo.ReminderID)
+			return
+		}
+
+		if transferUserInfo.TgChatID == 0 { // TODO: Try to get TgChat from user record or check other channels?
+			log.Warningf(c, "Transfer user has no associated TgChatID: %+v", transferUserInfo)
+			return
+		}
+
+		reminderKey := NewReminderIncompleteKey(c)
+		next := transfer.DtDueOn
+		isAutomatic := next.IsZero()
+		if isAutomatic {
+			if strings.Contains(strings.ToLower(transfer.CreatedOnID), "dev") {
+				next = time.Now().Add(2 * time.Minute)
+			} else {
+				next = time.Now().Add(7 * 24 * time.Hour)
+			}
+		}
+		reminder := models.NewReminderViaTelegram(transferUserInfo.TgBotID, transferUserInfo.TgChatID, userID, transferID, isAutomatic, next)
+		if reminderKey, err = gaedb.Put(c, reminderKey, &reminder); err != nil {
+			return errors.WithMessage(err, "failed to save reminder to datastore")
+		}
+		log.Infof(c, "Created reminder id=%v", reminderKey.IntID())
+		if err = QueueSendReminder(c, reminderKey.IntID(), next.Sub(time.Now())); err != nil {
+			return errors.WithMessage(err, "failed to queue reminder for sending")
+		}
+		transferUserInfo.ReminderID = reminderKey.IntID()
+
+		if err = dal.Transfer.SaveTransfer(c, transfer); err != nil {
+			return errors.WithMessage(err, "failed to save transfer to datastore")
+		}
+
+		return
+	}, dal.CrossGroupTransaction)
 }
 
 func (_ ReminderDalGae) DelayDiscardReminders(c context.Context, transferIDs []int64, returnTransferID int64) error {

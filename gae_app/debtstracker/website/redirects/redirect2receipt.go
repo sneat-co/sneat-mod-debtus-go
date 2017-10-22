@@ -12,11 +12,12 @@ import (
 	"html/template"
 	"net/http"
 	"strings"
+	"github.com/julienschmidt/httprouter"
 )
 
 var receiptOpenGraphPageTmpl *template.Template
 
-func ReceiptRedirect(w http.ResponseWriter, r *http.Request) {
+func ReceiptRedirect(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	c := appengine.NewContext(r)
 	query := r.URL.Query()
 	receiptCode := query.Get("id")

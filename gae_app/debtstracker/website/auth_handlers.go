@@ -13,9 +13,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"github.com/julienschmidt/httprouter"
 )
 
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
+func LoginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	c := appengine.NewContext(r)
 
 	q := r.URL.Query()
