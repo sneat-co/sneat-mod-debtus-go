@@ -11,6 +11,7 @@ import (
 	"github.com/strongo/decimal"
 	"golang.org/x/net/context"
 	"time"
+	"github.com/sanity-io/litter"
 )
 
 const (
@@ -50,7 +51,7 @@ var Transfers = transferFacade{}
 type createTransferInput struct {
 	Env                strongo.Environment // TODO: I believe we don't need this
 	Source             dal.TransferSource
-	CreatorUserID      int64
+	CreatorUser        models.AppUser
 	BillID             string
 	IsReturn           bool
 	ReturnToTransferID int64
@@ -59,6 +60,33 @@ type createTransferInput struct {
 	From, To *models.TransferCounterpartyInfo
 	Amount   models.Amount
 	DueOn    time.Time
+}
+
+func (input createTransferInput) Direction() (direction models.TransferDirection) {
+	if input.CreatorUser.ID == 0 {
+		panic("createTransferInput.CreatorUserID == 0")
+	}
+	switch input.CreatorUser.ID {
+	case input.From.UserID:
+		return models.TransferDirectionUser2Counterparty
+	case input.To.UserID:
+		return models.TransferDirectionCounterparty2User
+	default:
+		if input.BillID == "" {
+			panic("Not able to detect direction")
+		}
+		return models.TransferDirection3dParty
+	}
+}
+
+func (input createTransferInput) CreatorContactID() int64 {
+	switch input.CreatorUser.ID {
+	case input.From.UserID:
+		return input.To.ContactID
+	case input.To.UserID:
+		return input.From.ContactID
+	}
+	panic("Can't get creator's contact ID as it's a 3d-party transfer")
 }
 
 type createTransferOutputCounterparty struct {
@@ -81,83 +109,87 @@ func (output createTransferOutput) Validate() {
 	}
 }
 
-func (i createTransferInput) Validate() {
-	if i.Source == nil {
+func (input createTransferInput) Validate() {
+	if input.Source == nil {
 		panic("source == nil")
 	}
-	if i.CreatorUserID == 0 {
-		panic("creatorUserID == 0")
+	if input.CreatorUser.ID == 0 {
+		panic("creatorUser.ID == 0")
 	}
-	if i.Amount.Value <= 0 {
+	if input.CreatorUser.AppUserEntity == nil {
+		panic("creatorUser.AppUserEntity == nil")
+	}
+	if input.Amount.Value <= 0 {
 		panic("amount.Value <= 0")
 	}
-	if i.From == nil {
+	if input.From == nil {
 		panic("from == nil")
 	}
-	if i.To == nil {
+	if input.To == nil {
 		panic("to == nil")
 	}
 
-	if (i.From.ContactID == 0 && i.To.ContactID == 0) || (i.From.UserID == 0 && i.To.UserID == 0) {
+	if (input.From.ContactID == 0 && input.To.ContactID == 0) || (input.From.UserID == 0 && input.To.UserID == 0) {
 		panic("(from.ContactID == 0  && to.ContactID == 0) || (from.UserID == 0 && to.UserID == 0)")
 	}
-	if i.From.UserID != 0 && i.To.ContactID == 0 && i.To.UserID == 0 {
+	if input.From.UserID != 0 && input.To.ContactID == 0 && input.To.UserID == 0 {
 		panic("from.UserID != 0 && to.ContactID == 0 && to.UserID == 0")
 	}
-	if i.To.UserID != 0 && i.From.ContactID == 0 && i.From.UserID == 0 {
+	if input.To.UserID != 0 && input.From.ContactID == 0 && input.From.UserID == 0 {
 		panic("to.UserID != 0 && from.ContactID == 0 && from.UserID == 0")
 	}
 
-	if i.From.UserID == i.To.UserID {
-		if i.From.UserID == 0 && i.To.UserID == 0 {
-			if i.From.ContactID == 0 {
+	if input.From.UserID == input.To.UserID {
+		if input.From.UserID == 0 && input.To.UserID == 0 {
+			if input.From.ContactID == 0 {
 				panic("from.UserID == 0 && to.UserID == 0 && from.ContactID == 0")
 			}
-			if i.To.ContactID == 0 {
+			if input.To.ContactID == 0 {
 				panic("from.UserID == 0 && to.UserID == 0 && to.ContactID == 0")
 			}
 		} else {
 			panic("from.UserID == to.UserID")
 		}
 	}
-	switch i.CreatorUserID {
-	case i.From.UserID:
-		if i.To.ContactID == 0 {
+	switch input.CreatorUser.ID {
+	case input.From.UserID:
+		if input.To.ContactID == 0 {
 			panic("creatorUserID == from.UserID && to.ContactID == 0")
 		}
-	case i.To.UserID:
-		if i.From.ContactID == 0 {
+	case input.To.UserID:
+		if input.From.ContactID == 0 {
 			panic("creatorUserID == from.UserID && from.ContactID == 0")
 		}
 	default:
-		if i.From.ContactID == 0 {
+		if input.From.ContactID == 0 {
 			panic("3d party transfer and from.ContactID == 0")
 		}
-		if i.To.ContactID == 0 {
+		if input.To.ContactID == 0 {
 			panic("3d party transfer and to.ContactID == 0")
 		}
 	}
 }
 
-func (i createTransferInput) String() string {
+func (input createTransferInput) String() string {
 	return fmt.Sprintf("CreatorUserID=%d, IsReturn=%v, ReturnToTransferID=%d, Amount=%v, From=%v, To=%v, DueOn=%v",
-		i.CreatorUserID, i.IsReturn, i.ReturnToTransferID, i.Amount, i.From, i.To, i.DueOn)
+		input.CreatorUser.ID, input.IsReturn, input.ReturnToTransferID, input.Amount, input.From, input.To, input.DueOn)
 }
 
 func NewTransferInput(
 	env strongo.Environment,
 	source dal.TransferSource,
-	creatorUserID int64,
+	creatorUser models.AppUser,
 	billID string,
 	isReturn bool, returnToTransferID int64,
 	from, to *models.TransferCounterpartyInfo,
 	amount models.Amount,
 	dueOn time.Time,
 ) (input createTransferInput) {
+	// All checks are in the input.Validate()
 	input = createTransferInput{
 		Env:                env,
 		Source:             source,
-		CreatorUserID:      creatorUserID,
+		CreatorUser:        creatorUser,
 		BillID:             billID,
 		IsReturn:           isReturn,
 		ReturnToTransferID: returnToTransferID,
@@ -175,18 +207,32 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 ) {
 	log.Infof(c, "CreateTransfer(input=%v)", input)
 
-	originalAmountValue := input.Amount.Value
-	//var counterparty *Contact
-	//if creatorInfo.ContactID {
-	//	counterpartyDalGae, counterparty = GetContactByID(c, creatorInfo.ContactID)
-	//}
-
 	var returnToTransferIDs []int64
 
 	if input.ReturnToTransferID == 0 {
-		if returnToTransferIDs, err = transferFacade.checkOutstandingTransfersForReturns(c, input); err != nil {
-			return
+		log.Debugf(c, "input.ReturnToTransferID == 0")
+		contacts := input.CreatorUser.Contacts()
+		creatorContactID := input.CreatorContactID()
+		if creatorContactID == 0 {
+			panic("3d party transfers are not implemented yet")
 		}
+		log.Debugf(c, "creatorContactID=%v, contacts: %v", creatorContactID, litter.Sdump(contacts))
+		for _, contact := range contacts {
+			if contact.ID == creatorContactID {
+				var contactBalance models.Balance
+				if contactBalance, err = contact.Balance(); err != nil {
+					return
+				} else if v, ok := contactBalance[input.Amount.Currency]; !ok || v == 0 {
+					log.Debugf(c, "No need to check for outstanding transfers as contacts balance is 0")
+				} else if returnToTransferIDs, err = transferFacade.checkOutstandingTransfersForReturns(c, input); err != nil {
+					return
+				}
+				goto contactFound
+			}
+		}
+		err = fmt.Errorf("user contact not found by ID=%v, contacts: %v", creatorContactID, litter.Sdump(contacts))
+		return
+		contactFound:
 	} else if !input.IsReturn {
 		panic("ReturnToTransferID != 0 && !IsReturn")
 	} else {
@@ -235,11 +281,6 @@ transferToReturn.AmountInCentsReturned: %v`,
 		output.ReturnedTransfers = append(output.ReturnedTransfers, transferToReturn)
 	}
 
-	if originalAmountValue != input.Amount.Value {
-		// See above for case when amount.Value changes. Logged for now to troubleshoot issue with not fully returned transfers
-		log.Warningf(c, "(can be OK) originalAmountValue:%v != amount.Value:%v", originalAmountValue, input.Amount.Value)
-	}
-
 	if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
 		output, err = Transfers.createTransferWithinTransaction(c, input, returnToTransferIDs)
 		return err
@@ -252,45 +293,50 @@ transferToReturn.AmountInCentsReturned: %v`,
 }
 
 func (transferFacade transferFacade) checkOutstandingTransfersForReturns(c context.Context, input createTransferInput) (returnToTransferIDs []int64, err error) {
+	log.Debugf(c, "transferFacade.checkOutstandingTransfersForReturns()")
 	var (
 		outstandingTransfers []models.Transfer
 	)
-	outstandingTransfers, err = dal.Transfer.LoadOutstandingTransfers(c, input.CreatorUserID, input.Amount.Currency)
+
+	// TODO: Load outstanding transfer just for the specific contact & specific direction
+	outstandingTransfers, err = dal.Transfer.LoadOutstandingTransfers(c, input.CreatorUser.ID, input.Amount.Currency)
 	if err != nil {
-		err = errors.Wrap(err, "Failed to load outstanding transfers")
+		err = errors.WithMessage(err, "failed to load outstanding transfers")
 		return
 	}
+
+	log.Debugf(c, "facade.checkOutstandingTransfersForReturns() => dal.Transfer.LoadOutstandingTransfers(userID=%v, currency=%v) => %d transfers", input.CreatorUser.ID, input.Amount.Currency, len(outstandingTransfers))
+
 	{ // Assign the return to specific transfers
 		var (
 			assignedValue             decimal.Decimal64p2
 			outstandingRightDirection int
 		)
-		var direction models.TransferDirection
-		switch input.CreatorUserID {
-		case input.From.UserID:
-			direction = models.TransferDirectionUser2Counterparty
-		case input.To.UserID:
-			direction = models.TransferDirectionCounterparty2User
-		default:
-			if input.BillID == "" {
-				panic("Not able to detect direction")
-			}
-		}
+		direction := input.Direction()
+		creatorContactID := input.CreatorContactID()
+		log.Debugf(c, "return transfer direction: %v", direction)
 		for i, outstandingTransfer := range outstandingTransfers {
-			if outstandingTransfer.ReturnDirectionForUser(input.CreatorUserID) == direction {
-				outstandingTransferID := outstandingTransfers[i].ID
-				if outstandingTransfer.AmountInCents == input.Amount.Value { // A check for exact match that has higher priority then earlie transfers
-					log.Infof(c, "Found outstanding transfer with exact amount match: %v", outstandingTransferID)
-					assignedValue = input.Amount.Value
-					returnToTransferIDs = []int64{outstandingTransferID}
-					break
-				}
-				if assignedValue < input.Amount.Value { // Do not break so we check all outstanding transfers for exact match
-					returnToTransferIDs = append(returnToTransferIDs, outstandingTransferID)
-					assignedValue += outstandingTransfer.AmountInCentsOutstanding
-				}
-				outstandingRightDirection += 1
+			if cp := outstandingTransfer.CounterpartyInfoByUserID(input.CreatorUser.ID); cp.ContactID != creatorContactID {
+				log.Debugf(c, "Skipping outstanding Transfer(id=%v) as ContactID != creatorContactID: %v != %v", outstandingTransfer.ID, cp.ContactID, creatorContactID)
+				continue
 			}
+			if outstandingTransferReturnDirection := outstandingTransfer.ReturnDirectionForUser(input.CreatorUser.ID); outstandingTransferReturnDirection != direction {
+				log.Debugf(c, "Skipping outstanding Transfer(id=%v) as t.ReturnDirectionForUser(input.CreatorUserID): %v", outstandingTransfer.ID, outstandingTransferReturnDirection)
+				continue
+			}
+			log.Debugf(c, "outstanding transfer: %v", litter.Sdump(outstandingTransfer))
+			outstandingTransferID := outstandingTransfers[i].ID
+			if outstandingTransfer.AmountInCents == input.Amount.Value { // A check for exact match that has higher priority then earlie transfers
+				log.Infof(c, "Found outstanding transfer with exact amount match: %v", outstandingTransferID)
+				assignedValue = input.Amount.Value
+				returnToTransferIDs = []int64{outstandingTransferID}
+				break
+			}
+			if assignedValue < input.Amount.Value { // Do not break so we check all outstanding transfers for exact match
+				returnToTransferIDs = append(returnToTransferIDs, outstandingTransferID)
+				assignedValue += outstandingTransfer.AmountInCentsOutstanding
+			}
+			outstandingRightDirection += 1
 		}
 		if input.IsReturn && assignedValue < input.Amount.Value {
 			m := fmt.Sprintf(
@@ -421,12 +467,17 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		}
 	}
 
-	transferEntity := models.NewTransferEntity(input.CreatorUserID, input.IsReturn, input.Amount, input.From, input.To)
+	transferEntity := models.NewTransferEntity(input.CreatorUser.ID, input.IsReturn, input.Amount, input.From, input.To)
 	output.Transfer.TransferEntity = transferEntity
 	input.Source.PopulateTransfer(transferEntity)
 
+	type TransferReturnInfo struct {
+		Transfer       models.Transfer
+		ReturnedAmount decimal.Decimal64p2
+	}
+
 	var (
-		transferIDsToDiscard []int64
+		transferReturnInfos = make([]TransferReturnInfo, 0, len(returnToTransferIDs))
 	)
 
 	// For returns to specific transfers
@@ -437,13 +488,15 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 			returnToTransfers[i] = &models.Transfer{ID: returnToTransferID, TransferEntity: new(models.TransferEntity)}
 		}
 		if err = dal.DB.GetMulti(c, returnToTransfers); err != nil {
-			err = errors.Wrapf(err, "Failed to load returnToTransfers by keys (%v)", returnToTransferIDs)
+			err = errors.WithMessage(err, fmt.Sprintf("failed to load returnToTransfers by keys (%v)", returnToTransferIDs))
 			return
 		}
 		log.Debugf(c, "Loaded %d returnToTransfers by keys", len(returnToTransfers))
 		amountToAssign := input.Amount.Value
 		assignedToExistingTransfers := false
-		var returnedAmount decimal.Decimal64p2
+		var (
+			returnedAmount decimal.Decimal64p2
+		)
 		for _, transferEntityHolder := range returnToTransfers {
 			returnToTransfer := transferEntityHolder.(*models.Transfer)
 			if !returnToTransfer.IsOutstanding {
@@ -454,19 +507,16 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 				log.Warningf(c, "Transfer(%v).AmountInCentsOutstanding:%d <= 0", returnToTransfer.ID, returnToTransfer.AmountInCentsOutstanding)
 				continue
 			}
+			var amountReturnedToTransfer decimal.Decimal64p2
 			if amountToAssign < returnToTransfer.AmountInCentsOutstanding {
-				returnToTransfer.AmountInCentsReturned += amountToAssign
-				returnToTransfer.AmountInCentsOutstanding -= amountToAssign
-				returnedAmount += amountToAssign
-				amountToAssign = 0
+				amountReturnedToTransfer = amountToAssign
 			} else {
-				amountToAssign -= returnToTransfer.AmountInCentsOutstanding
-				returnedAmount += returnToTransfer.AmountInCentsOutstanding
-				returnToTransfer.AmountInCentsReturned += returnToTransfer.AmountInCentsOutstanding
-				returnToTransfer.AmountInCentsOutstanding = 0
-				returnToTransfer.IsOutstanding = false
-				transferIDsToDiscard = append(transferIDsToDiscard, returnToTransfer.ID)
+				amountReturnedToTransfer = returnToTransfer.AmountInCentsOutstanding
 			}
+			transferReturnInfos = append(transferReturnInfos, TransferReturnInfo{Transfer: *returnToTransfer, ReturnedAmount: amountReturnedToTransfer})
+			amountToAssign -= amountReturnedToTransfer
+			returnedAmount += amountReturnedToTransfer
+
 			assignedToExistingTransfers = true
 			entities = append(entities, returnToTransfer) // TODO: Potentially can exceed max number of entities in GAE transaction
 
@@ -549,13 +599,27 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		return
 	}
 
-	transfer := output.Transfer
+	createdTransfer := output.Transfer
 
 	if output.Transfer.ID == 0 {
 		panic(fmt.Sprintf("Can't proceed creating transfer as InsertTransfer() returned transfer.ID == 0, err: %v", err))
 	}
 
-	log.Infof(c, "Transfer inserted to DB with ID=%d, %+v", output.Transfer.ID, transfer.TransferEntity)
+	log.Infof(c, "Transfer inserted to DB with ID=%d, %+v", output.Transfer.ID, createdTransfer.TransferEntity)
+
+	if len(transferReturnInfos) > 2 {
+		transferReturnUpdates := make([]dal.TransferReturnUpdate, len(transferReturnInfos))
+		for i, tri := range transferReturnInfos {
+			transferReturnUpdates[i] = dal.TransferReturnUpdate{TransferID: tri.Transfer.ID, ReturnedAmount: tri.ReturnedAmount}
+		}
+		dal.Transfer.DelayUpdateTransfersOnReturn(c, createdTransfer.ID, transferReturnUpdates)
+	} else {
+		for _, transferReturnInfo := range transferReturnInfos {
+			if err = dal.Transfer.UpdateTransferOnReturn(c, createdTransfer, transferReturnInfo.Transfer, transferReturnInfo.ReturnedAmount); err != nil {
+				return
+			}
+		}
+	}
 
 	// Update user and counterparty entities with transfer info
 	{
@@ -572,29 +636,22 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		return
 	}
 
-	if len(transferIDsToDiscard) > 0 {
-		if err = dal.Reminder.DelayDiscardReminders(c, transferIDsToDiscard, transfer.ID); err != nil {
-			err = errors.Wrapf(err, "Failed to delay task to discard reminders (transferIDsToDiscard=%v)", len(transferIDsToDiscard), transferIDsToDiscard)
-			return
-		}
-	}
-
 	if output.Transfer.Counterparty().UserID != 0 {
-		if err = dal.Receipt.DelaySendReceiptToCounterpartyByTelegram(c, input.Env, transfer.ID, transfer.Counterparty().UserID); err != nil {
+		if err = dal.Receipt.DelaySendReceiptToCounterpartyByTelegram(c, input.Env, createdTransfer.ID, createdTransfer.Counterparty().UserID); err != nil {
 			// TODO: Send by any available channel
 			err = errors.Wrap(err, "Failed to delay sending receipt to counterpartyEntity by Telegram")
 			return
 		}
 	} else {
-		log.Debugf(c, "No receipt to counterpartyEntity: [%v]", transfer.Counterparty().ContactName)
+		log.Debugf(c, "No receipt to counterpartyEntity: [%v]", createdTransfer.Counterparty().ContactName)
 	}
 
-	if err = dal.Reminder.DelayCreateReminderForTransferUser(c, transfer.ID, transfer.CreatorUserID); err != nil {
+	if err = dal.Reminder.DelayCreateReminderForTransferUser(c, createdTransfer.ID, createdTransfer.CreatorUserID); err != nil {
 		err = errors.Wrap(err, "Failed to delay reminder creation for creator")
 		return
 	}
 
-	log.Debugf(c, "createTransferWithinTransaction(): transferID=%v", transfer.ID)
+	log.Debugf(c, "createTransferWithinTransaction(): transferID=%v", createdTransfer.ID)
 	return
 }
 

@@ -165,9 +165,15 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	var appUser models.AppUser
+	if appUser, err = dal.User.GetUserByID(c, authInfo.UserID); err != nil {
+		ErrorAsJson(c, w, http.StatusInternalServerError, err)
+		return
+	}
+
 	newTransfer := facade.NewTransferInput(getEnvironment(r),
 		transferSourceSetToAPI{appPlatform: platform, createdOnID: r.Host},
-		authInfo.UserID,
+		appUser,
 		"",
 		isReturn, returnToTransferID,
 		from, to,

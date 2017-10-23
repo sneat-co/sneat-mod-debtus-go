@@ -95,6 +95,8 @@ func AskTransferCurrencyButtons(whc bots.WebhookContext) [][]string {
 
 	var runesInRow int
 
+	var alreadyAddedCurrencies []models.Currency
+
 	addCurrencyAndNewLineIfNeeded := func(currency models.Currency) {
 		result[row] = append(result[row], currency.SignAndCode())
 		runesInRow += utf8.RuneCountInString(currency.SignAndCode()) // TODO: Proper runes count
@@ -108,10 +110,11 @@ func AskTransferCurrencyButtons(whc bots.WebhookContext) [][]string {
 			runesInRow = 0
 		}
 	}
-	var alreadyAddedCurrencies []models.Currency
 
 	for _, currency := range user.GetCurrencies() {
-		addCurrencyAndNewLineIfNeeded(models.Currency(currency))
+		curr := models.Currency(currency)
+		addCurrencyAndNewLineIfNeeded(curr)
+		alreadyAddedCurrencies = append(alreadyAddedCurrencies, curr)
 	}
 
 	alreadyAdded := func(currency models.Currency) bool {
@@ -570,9 +573,17 @@ func CreateTransferFromBot(
 
 	from, to := facade.TransferCounterparties(direction, creatorInfo)
 
+	var appUserEntity bots.BotAppUser
+	if appUserEntity, err = whc.GetAppUser(); err != nil {
+		return m, err
+	}
+	appUser := models.AppUser{
+		ID: whc.AppUserIntID(),
+		AppUserEntity: appUserEntity.(*models.AppUserEntity),
+	}
 	newTransfer := facade.NewTransferInput(whc.Environment(),
 		GetTransferSource(whc),
-		whc.AppUserIntID(),
+		appUser,
 		"",
 		isReturn,
 		returnToTransferID,

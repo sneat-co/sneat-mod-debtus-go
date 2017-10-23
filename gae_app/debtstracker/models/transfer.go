@@ -79,10 +79,10 @@ type TransferEntity struct {
 	BillIDs []string
 
 	SmsStats
-	DirectionObsoleteProp string `datastore:"Direction,noindex"`
-	IsReturn              bool   `datastore:",noindex"` // We need it is not always possible to identify original transfer (think multiply & partial transfers)
-	ReturnToTransferIDs   []int64                       // List of transfer to which this debt is a return. Should be populated only if IsReturn=True
-	//ReturnTransferIDs                 []int64   // List of transfers that return money to this debts
+	DirectionObsoleteProp string  `datastore:"Direction,noindex"`
+	IsReturn              bool    `datastore:",noindex"` // We need it is not always possible to identify original transfer (think multiply & partial transfers)
+	ReturnToTransferIDs   []int64                        // List of transfer to which this debt is a return. Should be populated only if IsReturn=True
+	ReturnTransferIDs     []int64 `datastore:",noindex"` // List of transfers that return money to this debts
 	//
 	CreatorUserID           int64  `datastore:",noindex"` // Do not delete
 	CreatorCounterpartyID   int64  `datastore:",noindex"` //TODO: Replace with <From|To>ContactID

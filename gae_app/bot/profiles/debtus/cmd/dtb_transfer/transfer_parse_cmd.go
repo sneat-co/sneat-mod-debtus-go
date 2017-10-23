@@ -26,7 +26,7 @@ var ParseTransferCommand = bots.Command{
 			return false
 		}
 	},
-	Action: func(whc bots.WebhookContext) (bots.MessageFromBot, error) {
+	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		match := transferRegex.FindStringSubmatch(whc.Input().(bots.WebhookTextMessage).Text())
 		var verb, valueS, counterpartyName, when string
 		var direction models.TransferDirection
@@ -74,7 +74,7 @@ var ParseTransferCommand = bots.Command{
 			}
 		}
 
-		m := whc.NewMessage("")
+		m = whc.NewMessage("")
 
 		value, _ := decimal.ParseDecimal64p2(valueS)
 
@@ -88,9 +88,16 @@ var ParseTransferCommand = bots.Command{
 
 		from, to := facade.TransferCounterparties(direction, creatorInfo)
 
+		var botUserEntity bots.BotAppUser
+		botUserEntity, err = whc.GetAppUser()
+		creatorUser := models.AppUser{
+			ID: whc.AppUserIntID(),
+			AppUserEntity: botUserEntity.(*models.AppUserEntity),
+		}
+
 		newTransfer := facade.NewTransferInput(whc.Environment(),
 			GetTransferSource(whc),
-			whc.AppUserIntID(),
+			creatorUser,
 			"",
 			isReturn,
 			0,

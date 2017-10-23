@@ -104,6 +104,7 @@ func (transferDalGae TransferDalGae) SaveTransfer(c context.Context, transfer mo
 }
 
 func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context, userID int64, currency models.Currency) (transfers []models.Transfer, err error) {
+	// TODO: Load outstanding transfer just for the specific contact & specific direction
 	const limit = 100
 	q := datastore.NewQuery(models.TransferKind)
 	q = q.Filter("BothUserIDs =", userID)

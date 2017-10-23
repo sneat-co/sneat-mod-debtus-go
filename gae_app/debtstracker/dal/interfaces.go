@@ -17,6 +17,7 @@ import (
 	"sync"
 	"time"
 	"github.com/strongo/app/log"
+	"github.com/strongo/decimal"
 )
 
 type TransferSource interface {
@@ -33,6 +34,12 @@ var (
 	SingleGroupTransaction = db.SingleGroupTransaction
 )
 
+type TransferReturnUpdate struct {
+	TransferID     int64
+	ReturnedAmount decimal.Decimal64p2
+}
+
+
 type TransferDal interface {
 	GetTransferByID(c context.Context, transferID int64) (models.Transfer, error)
 	SaveTransfer(c context.Context, transfer models.Transfer) error
@@ -41,11 +48,13 @@ type TransferDal interface {
 	LoadTransfersByContactID(c context.Context, contactID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error)
 	LoadTransferIDsByContactID(c context.Context, contactID int64, limit int, startCursor string) (transferIDs []int64, endCursor string, err error)
 	LoadOverdueTransfers(c context.Context, userID int64, limit int) (transfers []models.Transfer, err error)
-	LoadOutstandingTransfers(c context.Context, userID int64, currency models.Currency) (transfers []models.Transfer, err error)
+	LoadOutstandingTransfers(c context.Context, userID int64, currency models.Currency) (transfers []models.Transfer, err error) // TODO: Load outstanding transfer just for the specific contact & specific direction
 	LoadDueTransfers(c context.Context, userID int64, limit int) (transfers []models.Transfer, err error)
 	LoadLatestTransfers(c context.Context, offset, limit int) ([]models.Transfer, error)
 	DelayUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCode string, transferID, creatorTgChatID, creatorTgReceiptMessageID int64) error
 	DelayUpdateTransfersWithCounterparty(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) error
+	DelayUpdateTransfersOnReturn(c context.Context, returnTransferID int64, transferReturnUpdates []TransferReturnUpdate) (err error)
+	UpdateTransferOnReturn(c context.Context, returnTransfer, transfer models.Transfer, returnedAmount decimal.Decimal64p2) (err error)
 }
 
 type ReceiptDal interface {

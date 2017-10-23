@@ -183,13 +183,12 @@ func processReturnCommand(whc bots.WebhookContext, returnValue decimal.Decimal64
 	}
 	currency := models.Currency(awaitingUrl.Query().Get("currency"))
 
-	var transfer models.Transfer
+	if transferID != 0 && returnValue > 0 {
+		var transfer models.Transfer
+		if transfer, err = dal.Transfer.GetTransferByID(whc.Context(), transferID); err != nil {
+			return
+		}
 
-	if transfer, err = dal.Transfer.GetTransferByID(whc.Context(), transferID); err != nil {
-		return
-	}
-
-	if returnValue > 0 {
 		returnAmount := models.NewAmount(currency, returnValue)
 		if outstandingAmount := transfer.GetOutstandingAmount(); outstandingAmount.Value < returnValue {
 			m.Text = whc.Translate(trans.MESSAGE_TEXT_RETURN_IS_TOO_BIG, returnAmount, outstandingAmount, outstandingAmount.Value)
