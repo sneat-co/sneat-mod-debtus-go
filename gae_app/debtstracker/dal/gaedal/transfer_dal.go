@@ -10,6 +10,8 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"time"
+	"bytes"
+	"fmt"
 )
 
 func NewTransferKey(c context.Context, transferID int64) *datastore.Key {
@@ -103,10 +105,10 @@ func (transferDalGae TransferDalGae) SaveTransfer(c context.Context, transfer mo
 	}
 }
 
-func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context, userID int64, currency models.Currency) (transfers []models.Transfer, err error) {
-	// TODO: Load outstanding transfer just for the specific contact & specific direction
+func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context, userID, contactID int64, currency models.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error) {
+	log.Debugf(c, "TransferDalGae.LoadOutstandingTransfers(userID=%v, contactID=%v currency=%c, direction=%v)", userID, contactID, currency, direction)
 	const limit = 100
-	q := datastore.NewQuery(models.TransferKind)
+	q := datastore.NewQuery(models.TransferKind) // TODO: Load outstanding transfer just for the specific contact & specific direction
 	q = q.Filter("BothUserIDs =", userID)
 	q = q.Filter("Currency =", string(currency))
 	q = q.Filter("IsOutstanding =", true)
@@ -117,9 +119,34 @@ func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context,
 	if keys, err = q.GetAll(c, &transferEntities); err != nil {
 		return
 	}
-	transfers = make([]models.Transfer, len(keys))
+	transfers = make([]models.Transfer, 0, len(keys))
+	var warnings, debugs bytes.Buffer
 	for i, key := range keys {
-		transfers[i] = models.Transfer{ID: key.IntID(), TransferEntity: transferEntities[i]}
+		transfer := models.Transfer{ID: key.IntID(), TransferEntity: transferEntities[i]}
+		if contactID != 0 {
+			if cpContactID := transfer.CounterpartyInfoByUserID(userID).ContactID; cpContactID != contactID {
+				debugs.WriteString(fmt.Sprintf("Skipped outstanding Transfer(id=%v) as counterpartyContactID != contactID: %v != %v\n", transfer.ID, cpContactID, contactID))
+				continue
+			}
+		}
+		if direction != "" {
+			if d := transfer.DirectionForUser(userID); d != direction {
+				debugs.WriteString(fmt.Sprintf("Skipped outstanding Transfer(id=%v) as DirectionForUser(): %v\n", transfer.ID, d))
+				continue
+			}
+		}
+
+		if transfer.AmountInCentsOutstanding > 0 {
+			transfers = append(transfers, transfer)
+		} else {
+			warnings.WriteString(fmt.Sprintf("Transfer(id=%v).AmountInCentsOutstanding == %v && IsOutstanding==true\n", transfer.ID, transfer.AmountInCentsOutstanding))
+		}
+	}
+	if warnings.Len() > 0 {
+		log.Warningf(c, warnings.String())
+	}
+	if debugs.Len() > 0 {
+		log.Debugf(c, debugs.String())
 	}
 	return
 }

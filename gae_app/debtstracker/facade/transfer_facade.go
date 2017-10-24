@@ -216,7 +216,7 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 		if creatorContactID == 0 {
 			panic("3d party transfers are not implemented yet")
 		}
-		log.Debugf(c, "creatorContactID=%v, contacts: %v", creatorContactID, litter.Sdump(contacts))
+		log.Debugf(c, "creatorContactID=%v, contacts: %+v", creatorContactID, contacts)
 		for _, contact := range contacts {
 			if contact.ID == creatorContactID {
 				var contactBalance models.Balance
@@ -298,8 +298,9 @@ func (transferFacade transferFacade) checkOutstandingTransfersForReturns(c conte
 		outstandingTransfers []models.Transfer
 	)
 
-	// TODO: Load outstanding transfer just for the specific contact & specific direction
-	outstandingTransfers, err = dal.Transfer.LoadOutstandingTransfers(c, input.CreatorUser.ID, input.Amount.Currency)
+	creatorContactID := input.CreatorContactID()
+
+	outstandingTransfers, err = dal.Transfer.LoadOutstandingTransfers(c, input.CreatorUser.ID, creatorContactID, input.Amount.Currency, input.Direction().Reverse())
 	if err != nil {
 		err = errors.WithMessage(err, "failed to load outstanding transfers")
 		return
@@ -312,19 +313,8 @@ func (transferFacade transferFacade) checkOutstandingTransfersForReturns(c conte
 			assignedValue             decimal.Decimal64p2
 			outstandingRightDirection int
 		)
-		direction := input.Direction()
-		creatorContactID := input.CreatorContactID()
-		log.Debugf(c, "return transfer direction: %v", direction)
 		for i, outstandingTransfer := range outstandingTransfers {
-			if cp := outstandingTransfer.CounterpartyInfoByUserID(input.CreatorUser.ID); cp.ContactID != creatorContactID {
-				log.Debugf(c, "Skipping outstanding Transfer(id=%v) as ContactID != creatorContactID: %v != %v", outstandingTransfer.ID, cp.ContactID, creatorContactID)
-				continue
-			}
-			if outstandingTransferReturnDirection := outstandingTransfer.ReturnDirectionForUser(input.CreatorUser.ID); outstandingTransferReturnDirection != direction {
-				log.Debugf(c, "Skipping outstanding Transfer(id=%v) as t.ReturnDirectionForUser(input.CreatorUserID): %v", outstandingTransfer.ID, outstandingTransferReturnDirection)
-				continue
-			}
-			log.Debugf(c, "outstanding transfer: %v", litter.Sdump(outstandingTransfer))
+			log.Debugf(c, "outstanding transfer: %+v", outstandingTransfer)
 			outstandingTransferID := outstandingTransfers[i].ID
 			if outstandingTransfer.AmountInCents == input.Amount.Value { // A check for exact match that has higher priority then earlie transfers
 				log.Infof(c, "Found outstanding transfer with exact amount match: %v", outstandingTransferID)

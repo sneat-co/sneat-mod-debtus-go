@@ -48,7 +48,7 @@ type TransferDal interface {
 	LoadTransfersByContactID(c context.Context, contactID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error)
 	LoadTransferIDsByContactID(c context.Context, contactID int64, limit int, startCursor string) (transferIDs []int64, endCursor string, err error)
 	LoadOverdueTransfers(c context.Context, userID int64, limit int) (transfers []models.Transfer, err error)
-	LoadOutstandingTransfers(c context.Context, userID int64, currency models.Currency) (transfers []models.Transfer, err error) // TODO: Load outstanding transfer just for the specific contact & specific direction
+	LoadOutstandingTransfers(c context.Context, userID, contactID int64, currency models.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error)
 	LoadDueTransfers(c context.Context, userID int64, limit int) (transfers []models.Transfer, err error)
 	LoadLatestTransfers(c context.Context, offset, limit int) ([]models.Transfer, error)
 	DelayUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCode string, transferID, creatorTgChatID, creatorTgReceiptMessageID int64) error

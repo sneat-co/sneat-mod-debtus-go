@@ -13,6 +13,17 @@ import (
 
 type TransferDirection string
 
+func (d TransferDirection) Reverse() TransferDirection {
+	switch d {
+	case TransferDirectionUser2Counterparty:
+		return TransferDirectionCounterparty2User
+	case TransferDirectionCounterparty2User:
+		return TransferDirectionUser2Counterparty
+	default:
+		panic("Reverse not supported for %v" + string(d))
+	}
+}
+
 const ( // Transfer directions
 	TransferDirectionUser2Counterparty = "u2c"
 	TransferDirectionCounterparty2User = "c2u"

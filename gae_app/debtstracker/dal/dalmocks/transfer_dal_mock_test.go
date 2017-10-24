@@ -66,7 +66,7 @@ func (mock *TransferDalMock) LoadOverdueTransfers(c context.Context, userID int6
 	panic(NOT_IMPLEMENTED_YET)
 }
 
-func (mock *TransferDalMock) LoadOutstandingTransfers(c context.Context, userID int64, currency models.Currency) (transfers []models.Transfer, err error) {
+func (mock *TransferDalMock) LoadOutstandingTransfers(c context.Context, userID, contactID int64, currency models.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error) {
 	for id, t := range mock.Transfers {
 		if t.AmountInCentsOutstanding != 0 {
 			transfers = append(transfers, models.Transfer{ID: id, TransferEntity: t})
