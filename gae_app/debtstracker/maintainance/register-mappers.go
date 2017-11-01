@@ -15,5 +15,6 @@ func RegisterMappers() {
 	mapper.RegisterJob(&verifyUsers{})
 	mapper.RegisterJob(&verifyContacts{})
 	mapper.RegisterJob(&verifyTransfers{})
+	mapper.RegisterJob(&migrateTransfers{})
 	mapper.RegisterJob(&verifyContactTransfers{})
 }

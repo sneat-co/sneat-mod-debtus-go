@@ -57,37 +57,32 @@ func (m *verifyTransfers) Next(c context.Context, counters mapper.Counters, key 
 }
 
 func (m *verifyTransfers) verifyTransfer(c context.Context, counters mapper.Counters, transfer models.Transfer) {
+	defer m.wg.Done()
 	var err error
 	buf := new(bytes.Buffer)
 	if err = m.verifyTransferUsers(c, transfer, buf, counters); err != nil {
 		log.Errorf(c, errors.WithMessage(err, "verifyTransferUsers:transfer=%v").Error(), transfer.ID)
-		m.wg.Done()
 		return
 	}
 	if err = m.verifyTransferContacts(c, transfer, buf, counters); err != nil {
 		log.Errorf(c, errors.WithMessage(err, "verifyTransferContacts:transfer=%v").Error(), transfer.ID)
-		m.wg.Done()
 		return
 	}
 	if err = m.verifyTransferCurrency(c, transfer, buf, counters); err != nil {
 		log.Errorf(c, errors.WithMessage(err, "verifyTransferCurrency:transfer=%v").Error(), transfer.ID)
-		m.wg.Done()
 		return
 	}
 	if err = m.verifyReturnsTransferIDs(c, transfer, buf, counters); err != nil {
 		log.Errorf(c, errors.WithMessage(err, "verifyReturnsTransferIDs:transfer=%v").Error(), transfer.ID)
-		m.wg.Done()
 		return
 	}
 	if err = m.verifyReturnsToTransferIDs(c, transfer, buf, counters); err != nil {
 		log.Errorf(c, errors.WithMessage(err, "verifyReturnsToTransferIDs:transfer=%v").Error(), transfer.ID)
-		m.wg.Done()
 		return
 	}
 	if buf.Len() > 0 {
 		log.Warningf(c, fmt.Sprintf("Transfer: %v, Created: %v\n", transfer.ID, transfer.DtCreated)+buf.String())
 	}
-	m.wg.Done()
 }
 
 // JobStarted is called when a mapper job is started

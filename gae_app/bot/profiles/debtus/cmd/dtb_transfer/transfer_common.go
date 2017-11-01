@@ -618,7 +618,7 @@ func CreateTransferFromBot(
 			action = "debt-new-created"
 		}
 		gaEvent := whc.GaEventWithLabel(analytics.EventCategory_Transfers, action, gaEventLabel)
-		gaEvent.Value = uint(math.Abs(output.Transfer.Amount) + 0.5)
+		gaEvent.Value = uint(math.Abs(output.Transfer.AmountInCents.AsFloat64()) + 0.5)
 
 		if gaErr := gaMeasurement.Queue(gaEvent); gaErr != nil {
 			log.Warningf(c, "Failed to log event: %v", gaErr)
