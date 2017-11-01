@@ -13,6 +13,7 @@ func RegisterMappers() {
 	)
 	http.Handle(mapper.DefaultPath, mapperServer)
 	mapper.RegisterJob(&verifyUsers{})
-	mapper.RegisterJob(&verifyTransfers{})
 	mapper.RegisterJob(&verifyContacts{})
+	mapper.RegisterJob(&verifyTransfers{})
+	mapper.RegisterJob(&verifyContactTransfers{})
 }

@@ -25,7 +25,7 @@ func AuthOnly(handler AuthHandler) dal.ContextHandler {
 		if authInfo, _, err := auth.Authenticate(w, r, true); err == nil {
 			handler(c, w, r, authInfo)
 		} else {
-			log.Errorf(c, "Failed to authenticate: %v", err.Error())
+			log.Warningf(c, "Failed to authenticate: %v", err.Error())
 		}
 	}
 }

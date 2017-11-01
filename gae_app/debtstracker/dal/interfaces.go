@@ -39,9 +39,14 @@ type TransferReturnUpdate struct {
 	ReturnedAmount decimal.Decimal64p2
 }
 
+type RewardDal interface {
+	//GetRewardByID(c context.Context, rewardID int64) (reward models.Reward, err error)
+	InsertReward(c context.Context, rewardEntity *models.RewardEntity) (reward models.Reward, err error)
+}
 
 type TransferDal interface {
 	GetTransferByID(c context.Context, transferID int64) (models.Transfer, error)
+	GetTransfersByID(c context.Context, transferIDs []int64) ([]models.Transfer, error)
 	SaveTransfer(c context.Context, transfer models.Transfer) error
 	InsertTransfer(c context.Context, transferEntity *models.TransferEntity) (transfer models.Transfer, err error)
 	LoadTransfersByUserID(c context.Context, userID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error)
@@ -317,6 +322,7 @@ var (
 	Reminder       ReminderDal
 	TgGroup        TgGroupDal
 	Transfer       TransferDal
+	Reward         RewardDal
 	LoginPin       LoginPinDal
 	LoginCode      LoginCodeDal
 	Twilio         TwilioDal

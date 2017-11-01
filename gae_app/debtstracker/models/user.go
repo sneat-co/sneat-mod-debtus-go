@@ -84,6 +84,8 @@ func NewUser(clientInfo ClientInfo) AppUser {
 }
 
 type AppUserEntity struct {
+	UserRewardBalance
+
 	SavedCounter int `datastore:"A"` // Indexing to find most active users
 
 	IsAnonymous        bool   `datastore:",noindex"`
@@ -94,7 +96,7 @@ type AppUserEntity struct {
 	DtAccessGranted time.Time `datastore:",noindex"`
 	Balanced
 	SmsStats
-	DtCreated time.Time
+	DtCreated       time.Time
 	user.LastLogin
 
 	HasDueTransfers bool `datastore:",noindex"` // TODO: Check if we really need this prop and if yes document why
@@ -103,11 +105,11 @@ type AppUserEntity struct {
 
 	user.Accounts
 
-	TelegramUserIDs    []int64 // TODO: Obsolete
-	ViberBotID         string  `datastore:",noindex"` // TODO: Obsolete
-	ViberUserID        string  // TODO: Obsolete
-	VkUserID           int64   // TODO: Obsolete
-	GoogleUniqueUserID string  `datastore:",noindex"` // TODO: Obsolete
+	TelegramUserIDs    []int64                       // TODO: Obsolete
+	ViberBotID         string `datastore:",noindex"` // TODO: Obsolete
+	ViberUserID        string                        // TODO: Obsolete
+	VkUserID           int64                         // TODO: Obsolete
+	GoogleUniqueUserID string `datastore:",noindex"` // TODO: Obsolete
 	//FbUserID           string `datastore:",noindex"` // TODO: Obsolete Facebook assigns different IDs to same FB user for FB app & Messenger app.
 	//FbmUserID          string `datastore:",noindex"` // TODO: Obsolete So we would want to keep both IDs?
 	// TODO: How do we support multiple FBM bots? They will have different PSID (PageScopeID)
@@ -596,8 +598,9 @@ func (u *AppUserEntity) Load(ps []datastore.Property) (err error) {
 	return
 }
 
-func (_ *AppUserEntity) cleanProps(properties []datastore.Property) ([]datastore.Property, error) {
-	return gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
+func (u *AppUserEntity) cleanProps(properties []datastore.Property) ([]datastore.Property, error) {
+	var err error
+	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
 		"AA":              gaedb.IsObsolete,
 		"FmbUserID":       gaedb.IsObsolete,
 		"CounterpartyIDs": gaedb.IsObsolete,
@@ -664,7 +667,13 @@ func (_ *AppUserEntity) cleanProps(properties []datastore.Property) ([]datastore
 		"TelegramUserID":     gaedb.IsObsolete,
 		"TelegramUserIDs":    gaedb.IsObsolete,
 		//
-	})
+	}); err != nil {
+		return properties, err
+	}
+	if properties, err = u.UserRewardBalance.cleanProperties(properties); err != nil {
+		return properties, err
+	}
+	return properties, err
 }
 
 func (u *AppUserEntity) Save() (properties []datastore.Property, err error) {
@@ -713,6 +722,7 @@ func (u *AppUserEntity) Save() (properties []datastore.Property, err error) {
 	if properties, err = u.cleanProps(properties); err != nil {
 		return
 	}
+
 	checkHasProperties(AppUserKind, properties)
 	return properties, err
 }

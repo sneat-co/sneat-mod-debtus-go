@@ -4,6 +4,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
+	"github.com/sanity-io/litter"
 )
 
 func logJobCompletion(c context.Context, id string) {
@@ -14,6 +15,6 @@ func logJobCompletion(c context.Context, id string) {
 	if err := datastore.Get(c, key, &props); err != nil {
 		log.Errorf(c, "Failed to get job entity by ID=%v: %v", id, err)
 	} else {
-		log.Debugf(c, "Job entity: %v", props)
+		log.Debugf(c, "Job entity: %v", litter.Sdump(props))
 	}
 }

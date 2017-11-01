@@ -159,7 +159,7 @@ func ProcessPartialReturn(whc bots.WebhookContext, transfer models.Transfer) (bo
 	chatEntity.SetAwaitingReplyTo("")
 	chatEntity.AddWizardParam(WIZARD_PARAM_COUNTERPARTY, strconv.FormatInt(counterpartyID, 10))
 	chatEntity.AddWizardParam(WIZARD_PARAM_TRANSFER, strconv.FormatInt(transfer.ID, 10))
-	chatEntity.AddWizardParam("currency", transfer.Currency)
+	chatEntity.AddWizardParam("currency", string(transfer.Currency))
 
 	reportReminderIsActed(whc, "reminder-acted-returned-partially")
 

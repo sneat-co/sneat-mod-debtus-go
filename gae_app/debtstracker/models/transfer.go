@@ -59,6 +59,8 @@ type Transfer struct {
 	*TransferEntity
 }
 
+var _ db.EntityHolder = (*Transfer)(nil)
+
 func (Transfer) Kind() string {
 	return TransferKind
 }
@@ -92,7 +94,7 @@ type TransferEntity struct {
 	SmsStats
 	DirectionObsoleteProp string  `datastore:"Direction,noindex"`
 	IsReturn              bool    `datastore:",noindex"` // We need it is not always possible to identify original transfer (think multiply & partial transfers)
-	ReturnToTransferIDs   []int64                        // List of transfer to which this debt is a return. Should be populated only if IsReturn=True
+	ReturnToTransferIDs   []int64 `datastore:",noindex"` // List of transfer to which this debt is a return. Should be populated only if IsReturn=True
 	ReturnTransferIDs     []int64 `datastore:",noindex"` // List of transfers that return money to this debts
 	//
 	CreatorUserID           int64  `datastore:",noindex"` // Do not delete
@@ -154,8 +156,10 @@ type TransferEntity struct {
 	AmountInCentsReturned    decimal.Decimal64p2 `datastore:",noindex"`
 	AmountInCentsOutstanding decimal.Decimal64p2 `datastore:",noindex"`
 
+	TransferInterest
+
 	IsOutstanding bool
-	Currency      string // Should be indexed for loading outstanding transfers
+	Currency      Currency // Should be indexed for loading outstanding transfers
 	//
 	ReceiptsSentCount int64   `datastore:",noindex"`
 	ReceiptIDs        []int64 `datastore:",noindex"`
@@ -203,10 +207,33 @@ func (t *TransferEntity) DirectionForUser(userID int64) TransferDirection {
 	}
 }
 
+func (t *TransferEntity) IsReverseDirection(t2 *TransferEntity) bool {
+	return t.DirectionForUser(t.CreatorUserID) == t2.DirectionForUser(t.CreatorUserID).Reverse()
+}
+
+func (t *TransferEntity) DirectionForContact(contactID int64) TransferDirection {
+	switch contactID {
+	case t.From().ContactID:
+		return TransferDirectionCounterparty2User
+	case t.To().ContactID:
+		return TransferDirectionUser2Counterparty
+	default:
+		panic(t.transferIsNotAssociatedWithContact(contactID))
+	}
+}
+
+
 func (t *TransferEntity) transferIsNotAssociatedWithUser(userID int64) string {
 	return fmt.Sprintf(
 		"Transfer is not associated with userID=%d  (FromUserID=%d, ToUserID=%d)",
 		userID, t.From().UserID, t.To().UserID,
+	)
+}
+
+func (t *TransferEntity) transferIsNotAssociatedWithContact(contactID int64) string {
+	return fmt.Sprintf(
+		"Transfer is not associated with contactID=%v  (FromContactID=%v, ToContactID=%v)",
+		contactID, t.From().ContactID, t.To().ContactID,
 	)
 }
 
@@ -499,16 +526,16 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 
 	if t.IsReturn {
 		if len(t.ReturnToTransferIDs) == 0 {
-			err = errors.New("*TransferEntity.IsReturn && len(ReturnToTransferIDs) == 0")
+			err = errors.New("*TransferEntity: IsReturn == true && len(ReturnToTransferIDs) == 0")
 			return
 		}
 		if (t.AmountInCentsReturned != 0 || t.AmountInCentsOutstanding != 0) && t.AmountInCents != t.AmountInCentsReturned+t.AmountInCentsOutstanding {
-			err = fmt.Errorf("*TransferEntity.AmountInCents:%v != AmountInCentsReturned:%v + AmountInCentsOutstanding:%v", t.AmountInCents, t.AmountInCentsReturned, t.AmountInCentsOutstanding)
+			err = fmt.Errorf("*TransferEntity: IsReturn == true && AmountInCents != AmountInCentsReturned + AmountInCentsOutstanding: %v != %v + %v", t.AmountInCents, t.AmountInCentsReturned, t.AmountInCentsOutstanding)
 			return
 		}
 	} else {
 		if t.AmountInCents != t.AmountInCentsReturned+t.AmountInCentsOutstanding {
-			err = fmt.Errorf("*TransferEntity.AmountInCents:%v != AmountInCentsReturned:%v + AmountInCentsOutstanding:%v", t.AmountInCents, t.AmountInCentsReturned, t.AmountInCentsOutstanding)
+			err = fmt.Errorf("*TransferEntity: IsReturn == false && AmountInCents != AmountInCentsReturned + AmountInCentsOutstanding: %v != %v + %v", t.AmountInCents, t.AmountInCentsReturned, t.AmountInCentsOutstanding)
 			return
 		}
 	}
@@ -636,6 +663,10 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 		properties = properties2
 	}
 
+	if properties, err = t.TransferInterest.cleanInterestProperties(properties); err != nil {
+		return
+	}
+
 	// Make general application-wide checks and call hooks if any
 	if err = checkHasProperties(TransferKind, properties); err != nil {
 		return
@@ -671,7 +702,7 @@ func NewTransferEntity(creatorUserID int64, isReturn bool, amount Amount, from *
 		//
 		//DirectionObsoleteProp: string(direction),
 		AmountInCents: amount.Value,
-		Currency:      string(amount.Currency),
+		Currency:      amount.Currency,
 	}
 	if !isReturn {
 		transfer.AmountInCentsOutstanding = amount.Value
@@ -684,13 +715,13 @@ func (t *TransferEntity) GetAmount() Amount {
 	if t.AmountInCents == 0 { // TODO: Check for obsolete
 		t.AmountInCents = decimal.NewDecimal64p2FromFloat64(t.Amount)
 	}
-	return Amount{Currency: Currency(t.Currency), Value: t.AmountInCents}
+	return Amount{Currency: t.Currency, Value: t.AmountInCents}
 }
 
 func (t *TransferEntity) GetOutstandingAmount() Amount {
-	return Amount{Currency: Currency(t.Currency), Value: t.AmountInCentsOutstanding}
+	return Amount{Currency: t.Currency, Value: t.AmountInCentsOutstanding}
 }
 
 func (t *TransferEntity) GetReturnedAmount() Amount {
-	return Amount{Currency: Currency(t.Currency), Value: t.AmountInCentsReturned}
+	return Amount{Currency: t.Currency, Value: t.AmountInCentsReturned}
 }

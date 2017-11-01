@@ -21,6 +21,7 @@ import (
 	"google.golang.org/appengine/taskqueue"
 	"strings"
 	"time"
+	"github.com/strongo/app/db"
 )
 
 func (_ ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, transferID, userID int64) (err error) {
@@ -30,14 +31,17 @@ func (_ ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, tr
 	if userID == 0 {
 		panic("userID == 0")
 	}
+	if !dal.DB.IsInTransaction(c) {
+		panic("This function should be called within transaction")
+	}
 	if task, err := gae.CreateDelayTask(common.QUEUE_REMINDERS, "create-reminder-4-transfer-user", delayCreateReminderForTransferUser, transferID, userID); err != nil {
 		return errors.WithMessage(err, fmt.Sprintf("Failed to create a task for reminder creation. transferID=%v, userID=%v", transferID, userID))
 	} else {
 		task.Delay = time.Duration(time.Second)
 		if _, err = gae.AddTaskToQueue(c, task, common.QUEUE_REMINDERS); err != nil {
-			return errors.Wrapf(err, "Failed to add a task for reminder creation, transfer id=%v", transferID)
+			return errors.WithMessage(err, fmt.Sprintf("Failed to add a task for reminder creation, transfer id=%v", transferID))
 		}
-		log.Debugf(c, "Added task(%v) to create reminder for transfer id=%v", delayCreateReminderForTransferUser, transferID)
+		log.Debugf(c, "Added task(%v) to create reminder for transfer id=%v", task.Path, transferID)
 	}
 	return
 }
@@ -59,6 +63,10 @@ func createReminderForTransferUser(c context.Context, transferID, userID int64) 
 		var transfer models.Transfer
 		transfer, err = dal.Transfer.GetTransferByID(c, transferID)
 		if err != nil {
+			if db.IsNotFound(err) {
+				log.Errorf(c, errors.WithMessage(err, "Not able to create reminder for specified transfer").Error())
+				return
+			}
 			return errors.WithMessage(err, "failed to get transfer by id")
 		}
 		transferUserInfo := transfer.UserInfoByUserID(userID)

@@ -335,7 +335,7 @@ var delayedSendReceiptToCounterpartyByTelegram = delay.Func("sendReceiptToCounte
 			TransferCurrency string
 		}{
 			FromName:         transfer.Creator().ContactName,
-			TransferCurrency: transfer.Currency,
+			TransferCurrency: string(transfer.Currency),
 		}
 
 		messageText, err := common.TextTemplates.RenderTemplate(c, strongo.NewSingleMapTranslator(locale, translator), messageToTranslate, templateData)

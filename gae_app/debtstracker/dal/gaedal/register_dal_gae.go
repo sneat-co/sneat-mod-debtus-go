@@ -18,6 +18,7 @@ func RegisterDal() {
 	//
 	dal.Contact = NewContactDalGae()
 	dal.Transfer = NewTransferDalGae()
+	dal.Reward = NewRewardDalGae()
 	dal.User = NewUserDalGae()
 	dal.Bill = newBillDalGae()
 	dal.Split = splitDalGae{}

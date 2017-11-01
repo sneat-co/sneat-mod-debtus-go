@@ -90,9 +90,19 @@ func (_ TransferDalGae) UpdateTransferOnReturn(c context.Context, returnTransfer
 	if returnTransfer.Currency != transfer.Currency {
 		panic(fmt.Sprintf("returnTransfer.Currency != transfer.Currency => %v != %v", returnTransfer.Currency, transfer.Currency))
 	} else if cID := returnTransfer.From().ContactID; cID != 0 && cID != transfer.To().ContactID {
-		panic(fmt.Sprintf("returnTransfer.From().ContactID != transfer.To().ContactID => %v != %v", cID, transfer.To().ContactID))
+		if transfer.To().ContactID == 0 && returnTransfer.From().UserID == transfer.To().UserID {
+			transfer.To().ContactID = cID
+			log.Warningf(c, "Fixed Transfer(%v).To().ContactID: 0 => %v", transfer.ID, cID)
+		} else {
+			panic(fmt.Sprintf("returnTransfer.From().ContactID != transfer.To().ContactID => %v != %v", cID, transfer.To().ContactID))
+		}
 	} else if cID := returnTransfer.To().ContactID; cID != 0 && cID != transfer.From().ContactID {
-		panic(fmt.Sprintf("returnTransfer.To().ContactID != transfer.From().ContactID => %v != %v", cID, transfer.From().ContactID))
+		if transfer.From().ContactID == 0 && returnTransfer.To().UserID == transfer.From().UserID {
+			transfer.From().ContactID = cID
+			log.Warningf(c, "Fixed Transfer(%v).From().ContactID: 0 => %v", transfer.ID, cID)
+		} else {
+			panic(fmt.Sprintf("returnTransfer.To().ContactID != transfer.From().ContactID => %v != %v", cID, transfer.From().ContactID))
+		}
 	}
 
 	for _, id := range transfer.ReturnTransferIDs {

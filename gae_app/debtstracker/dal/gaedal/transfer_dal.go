@@ -83,6 +83,21 @@ func (transferDalGae TransferDalGae) GetTransferByID(c context.Context, id int64
 	return models.NewTransfer(id, &transferEntity), nil
 }
 
+func (transferDalGae TransferDalGae) GetTransfersByID(c context.Context, transferIDs []int64) (transfers []models.Transfer, err error) {
+	entityHolders := make([]db.EntityHolder, len(transferIDs))
+	for i, transferID := range transferIDs {
+		entityHolders[i] = &models.Transfer{ID: transferID}
+	}
+	if err = dal.DB.GetMulti(c, entityHolders); err != nil {
+		return
+	}
+	transfers = make([]models.Transfer, len(entityHolders))
+	for i, eh := range entityHolders {
+		transfers[i] = *eh.(*models.Transfer)
+	}
+	return
+}
+
 func (transferDalGae TransferDalGae) InsertTransfer(c context.Context, transferEntity *models.TransferEntity) (transfer models.Transfer, err error) {
 	log.Debugf(c, "TransferDalGae.InsertTransfer(%v)", *transferEntity)
 	key := NewTransferIncompleteKey(c)
@@ -106,7 +121,7 @@ func (transferDalGae TransferDalGae) SaveTransfer(c context.Context, transfer mo
 }
 
 func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context, userID, contactID int64, currency models.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error) {
-	log.Debugf(c, "TransferDalGae.LoadOutstandingTransfers(userID=%v, contactID=%v currency=%c, direction=%v)", userID, contactID, currency, direction)
+	log.Debugf(c, "TransferDalGae.LoadOutstandingTransfers(userID=%v, contactID=%v currency=%v, direction=%v)", userID, contactID, currency, direction)
 	const limit = 100
 	q := datastore.NewQuery(models.TransferKind) // TODO: Load outstanding transfer just for the specific contact & specific direction
 	q = q.Filter("BothUserIDs =", userID)

@@ -51,27 +51,21 @@ type ContactDetails struct {
 }
 
 func (contact *ContactDetails) FullName() string {
+	addUserNameIfNotSame := func(name string) string {
+		if contact.Username == "" || strings.ToLower(contact.Username) == strings.ToLower(name) {
+			return name
+		} else {
+			return fmt.Sprintf("%v (@%v)", name, contact.Username)
+		}
+	}
 	if contact.LastName != "" && contact.FirstName != "" {
-		if contact.Username == "" || strings.ToLower(contact.FirstName) == strings.ToLower(contact.Username) || strings.ToLower(contact.LastName) == strings.ToLower(contact.Username) {
-			return fmt.Sprintf("%v %v", contact.FirstName, contact.LastName)
-		} else {
-			return fmt.Sprintf("%v %v (%v)", contact.FirstName, contact.LastName, contact.Username)
-		}
-
+		return addUserNameIfNotSame(contact.FirstName + " " + contact.LastName)
 	} else if contact.FirstName != "" {
-		if contact.Username == "" || contact.Username == contact.FirstName {
-			return contact.FirstName
-		} else {
-			return fmt.Sprintf("%v (%v)", contact.FirstName, contact.Username)
-		}
+		return addUserNameIfNotSame(contact.FirstName)
 	} else if contact.LastName != "" {
-		if contact.Username == "" || contact.Username == contact.LastName {
-			return contact.FirstName
-		} else {
-			return fmt.Sprintf("%v (%v)", contact.LastName, contact.Username)
-		}
+		return addUserNameIfNotSame(contact.LastName)
 	} else if contact.ScreenName != "" {
-		return contact.ScreenName
+		return addUserNameIfNotSame(contact.ScreenName)
 	} else if contact.Username != "" {
 		return contact.Username
 	} else {

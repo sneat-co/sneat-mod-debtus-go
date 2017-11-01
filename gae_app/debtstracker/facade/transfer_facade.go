@@ -232,7 +232,7 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 		}
 		err = fmt.Errorf("user contact not found by ID=%v, contacts: %v", creatorContactID, litter.Sdump(contacts))
 		return
-		contactFound:
+	contactFound:
 	} else if !input.IsReturn {
 		panic("ReturnToTransferID != 0 && !IsReturn")
 	} else {
@@ -252,7 +252,7 @@ transferToReturn.AmountInCentsReturned: %v`,
 					transferToReturn.AmountInCents, transferToReturn.AmountInCentsOutstanding, transferToReturn.AmountInCentsReturned))
 		}
 
-		if transferToReturn.Currency != string(input.Amount.Currency) {
+		if transferToReturn.Currency != input.Amount.Currency {
 			panic("transferToReturn.Currency != amount.Currency")
 		}
 
@@ -329,11 +329,10 @@ func (transferFacade transferFacade) checkOutstandingTransfersForReturns(c conte
 			outstandingRightDirection += 1
 		}
 		if input.IsReturn && assignedValue < input.Amount.Value {
-			m := fmt.Sprintf(
+			log.Warningf(c,
 				"There are not enough outstanding transfers to return %v. All outstading count: %v, Right direction: %v, Assigned amount: %v. Could be data integrity issue.",
 				input.Amount, len(outstandingTransfers), outstandingRightDirection, assignedValue,
 			)
-			log.Errorf(c, m)
 		}
 	}
 	return
@@ -622,23 +621,25 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 	}
 
 	if err = dal.DB.UpdateMulti(c, entities); err != nil {
-		err = errors.Wrap(err, "Failed to update entities")
+		err = errors.WithMessage(err, "failed to update entities")
 		return
 	}
 
 	if output.Transfer.Counterparty().UserID != 0 {
 		if err = dal.Receipt.DelaySendReceiptToCounterpartyByTelegram(c, input.Env, createdTransfer.ID, createdTransfer.Counterparty().UserID); err != nil {
 			// TODO: Send by any available channel
-			err = errors.Wrap(err, "Failed to delay sending receipt to counterpartyEntity by Telegram")
+			err = errors.WithMessage(err, "failed to delay sending receipt to counterpartyEntity by Telegram")
 			return
 		}
 	} else {
 		log.Debugf(c, "No receipt to counterpartyEntity: [%v]", createdTransfer.Counterparty().ContactName)
 	}
 
-	if err = dal.Reminder.DelayCreateReminderForTransferUser(c, createdTransfer.ID, createdTransfer.CreatorUserID); err != nil {
-		err = errors.Wrap(err, "Failed to delay reminder creation for creator")
-		return
+	if createdTransfer.IsOutstanding {
+		if err = dal.Reminder.DelayCreateReminderForTransferUser(c, createdTransfer.ID, createdTransfer.CreatorUserID); err != nil {
+			err = errors.WithMessage(err, "failed to delay reminder creation for creator")
+			return
+		}
 	}
 
 	log.Debugf(c, "createTransferWithinTransaction(): transferID=%v", createdTransfer.ID)
@@ -691,7 +692,7 @@ func (_ transferFacade) updateUserAndCounterpartyWithTransferInfo(
 
 	user.LastTransferID = transfer.ID
 	user.LastTransferAt = transfer.DtCreated
-	user.SetLastCurrency(transfer.Currency)
+	user.SetLastCurrency(string(transfer.Currency))
 
 	var amountValue decimal.Decimal64p2
 	switch direction {

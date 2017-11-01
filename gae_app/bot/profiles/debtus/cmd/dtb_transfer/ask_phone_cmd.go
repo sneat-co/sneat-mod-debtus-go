@@ -158,7 +158,8 @@ func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact,
 	if receiptID, err = dal.Receipt.CreateReceipt(c, &receipt); err != nil {
 		return m, err
 	}
-	receiptUrl := common.GetReceiptUrl(receiptID, receipt.CreatedOnID)
+
+	receiptUrl := common.GetReceiptUrl(receiptID, common.GetWebsiteHost(receipt.CreatedOnID))
 
 	if counterparty.CounterpartyUserID == 0 {
 		//related := fmt.Sprintf("%v=%v", models.TransferKind, transferID)

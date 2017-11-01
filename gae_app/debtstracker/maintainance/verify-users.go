@@ -21,7 +21,14 @@ func (m *verifyUsers) Query(r *http.Request) (*mapper.Query, error) {
 	return mapper.NewQuery(models.AppUserKind), nil
 }
 
-func (m *verifyUsers) Next(c context.Context, counters mapper.Counters, key *datastore.Key) error {
+func (m *verifyUsers) Next(c context.Context, counters mapper.Counters, key *datastore.Key) (err error) {
+	if err = m.verifyUserBalanceAndContacts(c, counters, key); err != nil {
+		return
+	}
+	return nil
+}
+
+func (m *verifyUsers) verifyUserBalanceAndContacts(c context.Context, counters mapper.Counters, key *datastore.Key) (err error) {
 	if m.entity.BalanceCount > 0 {
 		balance, err := m.entity.Balance()
 		if err != nil {
@@ -61,15 +68,15 @@ func (m *verifyUsers) Next(c context.Context, counters mapper.Counters, key *dat
 			}
 		}
 	}
-	return nil
+	return
 }
 
 func FixUserContactsBalances(u *models.AppUserEntity) (changed bool, err error) {
 	contacts := u.Contacts()
 	for i, contact := range contacts {
-		balance, err := contact.Balance()
-		if err != nil {
-			return changed, err
+		var balance models.Balance
+		if balance, err = contact.Balance(); err != nil {
+			return
 		}
 		if FixBalanceCurrencies(balance) {
 			balanceJsonBytes, err := ffjson.Marshal(balance)

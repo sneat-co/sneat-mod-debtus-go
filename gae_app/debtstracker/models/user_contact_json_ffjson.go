@@ -12,20 +12,23 @@ import (
 	fflib "github.com/pquerna/ffjson/fflib/v1"
 )
 
-func (mj *LastTransfer) MarshalJSON() ([]byte, error) {
+// MarshalJSON marshal bytes to json - template
+func (j *LastTransfer) MarshalJSON() ([]byte, error) {
 	var buf fflib.Buffer
-	if mj == nil {
+	if j == nil {
 		buf.WriteString("null")
 		return buf.Bytes(), nil
 	}
-	err := mj.MarshalJSONBuf(&buf)
+	err := j.MarshalJSONBuf(&buf)
 	if err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
-func (mj *LastTransfer) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
-	if mj == nil {
+
+// MarshalJSONBuf marshal buff to json - template
+func (j *LastTransfer) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
+	if j == nil {
 		buf.WriteString("null")
 		return nil
 	}
@@ -34,12 +37,12 @@ func (mj *LastTransfer) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	_ = obj
 	_ = err
 	buf.WriteString(`{"ID":`)
-	fflib.FormatBits2(buf, uint64(mj.ID), 10, mj.ID < 0)
+	fflib.FormatBits2(buf, uint64(j.ID), 10, j.ID < 0)
 	buf.WriteString(`,"At":`)
 
 	{
 
-		obj, err = mj.At.MarshalJSON()
+		obj, err = j.At.MarshalJSON()
 		if err != nil {
 			return err
 		}
@@ -51,26 +54,28 @@ func (mj *LastTransfer) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 }
 
 const (
-	ffj_t_LastTransferbase = iota
-	ffj_t_LastTransferno_such_key
+	ffjtLastTransferbase = iota
+	ffjtLastTransfernosuchkey
 
-	ffj_t_LastTransfer_ID
+	ffjtLastTransferID
 
-	ffj_t_LastTransfer_At
+	ffjtLastTransferAt
 )
 
-var ffj_key_LastTransfer_ID = []byte("ID")
+var ffjKeyLastTransferID = []byte("ID")
 
-var ffj_key_LastTransfer_At = []byte("At")
+var ffjKeyLastTransferAt = []byte("At")
 
-func (uj *LastTransfer) UnmarshalJSON(input []byte) error {
+// UnmarshalJSON umarshall json - template of ffjson
+func (j *LastTransfer) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
-	return uj.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
+	return j.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
 }
 
-func (uj *LastTransfer) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
-	var err error = nil
-	currentKey := ffj_t_LastTransferbase
+// UnmarshalJSONFFLexer fast json unmarshall - template ffjson
+func (j *LastTransfer) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
+	var err error
+	currentKey := ffjtLastTransferbase
 	_ = currentKey
 	tok := fflib.FFTok_init
 	wantedTok := fflib.FFTok_init
@@ -116,7 +121,7 @@ mainparse:
 			kn := fs.Output.Bytes()
 			if len(kn) <= 0 {
 				// "" case. hrm.
-				currentKey = ffj_t_LastTransferno_such_key
+				currentKey = ffjtLastTransfernosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			} else {
@@ -124,35 +129,35 @@ mainparse:
 
 				case 'A':
 
-					if bytes.Equal(ffj_key_LastTransfer_At, kn) {
-						currentKey = ffj_t_LastTransfer_At
+					if bytes.Equal(ffjKeyLastTransferAt, kn) {
+						currentKey = ffjtLastTransferAt
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				case 'I':
 
-					if bytes.Equal(ffj_key_LastTransfer_ID, kn) {
-						currentKey = ffj_t_LastTransfer_ID
+					if bytes.Equal(ffjKeyLastTransferID, kn) {
+						currentKey = ffjtLastTransferID
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				}
 
-				if fflib.SimpleLetterEqualFold(ffj_key_LastTransfer_At, kn) {
-					currentKey = ffj_t_LastTransfer_At
+				if fflib.SimpleLetterEqualFold(ffjKeyLastTransferAt, kn) {
+					currentKey = ffjtLastTransferAt
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.SimpleLetterEqualFold(ffj_key_LastTransfer_ID, kn) {
-					currentKey = ffj_t_LastTransfer_ID
+				if fflib.SimpleLetterEqualFold(ffjKeyLastTransferID, kn) {
+					currentKey = ffjtLastTransferID
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				currentKey = ffj_t_LastTransferno_such_key
+				currentKey = ffjtLastTransfernosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			}
@@ -169,13 +174,13 @@ mainparse:
 			if tok == fflib.FFTok_left_brace || tok == fflib.FFTok_left_bracket || tok == fflib.FFTok_integer || tok == fflib.FFTok_double || tok == fflib.FFTok_string || tok == fflib.FFTok_bool || tok == fflib.FFTok_null {
 				switch currentKey {
 
-				case ffj_t_LastTransfer_ID:
+				case ffjtLastTransferID:
 					goto handle_ID
 
-				case ffj_t_LastTransfer_At:
+				case ffjtLastTransferAt:
 					goto handle_At
 
-				case ffj_t_LastTransferno_such_key:
+				case ffjtLastTransfernosuchkey:
 					err = fs.SkipField(tok)
 					if err != nil {
 						return fs.WrapErr(err)
@@ -191,7 +196,7 @@ mainparse:
 
 handle_ID:
 
-	/* handler: uj.ID type=int64 kind=int64 quoted=false*/
+	/* handler: j.ID type=int64 kind=int64 quoted=false*/
 
 	{
 		if tok != fflib.FFTok_integer && tok != fflib.FFTok_null {
@@ -211,7 +216,7 @@ handle_ID:
 				return fs.WrapErr(err)
 			}
 
-			uj.ID = int64(tval)
+			j.ID = int64(tval)
 
 		}
 	}
@@ -221,7 +226,7 @@ handle_ID:
 
 handle_At:
 
-	/* handler: uj.At type=time.Time kind=struct quoted=false*/
+	/* handler: j.At type=time.Time kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -235,7 +240,7 @@ handle_At:
 			return fs.WrapErr(err)
 		}
 
-		err = uj.At.UnmarshalJSON(tbuf)
+		err = j.At.UnmarshalJSON(tbuf)
 		if err != nil {
 			return fs.WrapErr(err)
 		}
@@ -263,20 +268,23 @@ done:
 	return nil
 }
 
-func (mj *UserContactJson) MarshalJSON() ([]byte, error) {
+// MarshalJSON marshal bytes to json - template
+func (j *UserContactJson) MarshalJSON() ([]byte, error) {
 	var buf fflib.Buffer
-	if mj == nil {
+	if j == nil {
 		buf.WriteString("null")
 		return buf.Bytes(), nil
 	}
-	err := mj.MarshalJSONBuf(&buf)
+	err := j.MarshalJSONBuf(&buf)
 	if err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
-func (mj *UserContactJson) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
-	if mj == nil {
+
+// MarshalJSONBuf marshal buff to json - template
+func (j *UserContactJson) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
+	if j == nil {
 		buf.WriteString("null")
 		return nil
 	}
@@ -285,27 +293,32 @@ func (mj *UserContactJson) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	_ = obj
 	_ = err
 	buf.WriteString(`{ "ID":`)
-	fflib.FormatBits2(buf, uint64(mj.ID), 10, mj.ID < 0)
+	fflib.FormatBits2(buf, uint64(j.ID), 10, j.ID < 0)
 	buf.WriteString(`,"Name":`)
-	fflib.WriteJsonString(buf, string(mj.Name))
+	fflib.WriteJsonString(buf, string(j.Name))
 	buf.WriteByte(',')
-	if len(mj.Status) != 0 {
+	if len(j.Status) != 0 {
 		buf.WriteString(`"Status":`)
-		fflib.WriteJsonString(buf, string(mj.Status))
+		fflib.WriteJsonString(buf, string(j.Status))
 		buf.WriteByte(',')
 	}
-	if mj.TgUserID != 0 {
+	if j.UserID != 0 {
+		buf.WriteString(`"UserID":`)
+		fflib.FormatBits2(buf, uint64(j.UserID), 10, j.UserID < 0)
+		buf.WriteByte(',')
+	}
+	if j.TgUserID != 0 {
 		buf.WriteString(`"TgUserID":`)
-		fflib.FormatBits2(buf, uint64(mj.TgUserID), 10, mj.TgUserID < 0)
+		fflib.FormatBits2(buf, uint64(j.TgUserID), 10, j.TgUserID < 0)
 		buf.WriteByte(',')
 	}
-	if mj.BalanceJson != nil {
+	if j.BalanceJson != nil {
 		if true {
 			buf.WriteString(`"Balance":`)
 
 			{
 
-				obj, err = mj.BalanceJson.MarshalJSON()
+				obj, err = j.BalanceJson.MarshalJSON()
 				if err != nil {
 					return err
 				}
@@ -315,13 +328,13 @@ func (mj *UserContactJson) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 			buf.WriteByte(',')
 		}
 	}
-	if mj.Transfers != nil {
+	if j.Transfers != nil {
 		if true {
 			buf.WriteString(`"Transfers":`)
 
 			{
 
-				err = mj.Transfers.MarshalJSONBuf(buf)
+				err = j.Transfers.MarshalJSONBuf(buf)
 				if err != nil {
 					return err
 				}
@@ -336,42 +349,48 @@ func (mj *UserContactJson) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 }
 
 const (
-	ffj_t_UserContactJsonbase = iota
-	ffj_t_UserContactJsonno_such_key
+	ffjtUserContactJsonbase = iota
+	ffjtUserContactJsonnosuchkey
 
-	ffj_t_UserContactJson_ID
+	ffjtUserContactJsonID
 
-	ffj_t_UserContactJson_Name
+	ffjtUserContactJsonName
 
-	ffj_t_UserContactJson_Status
+	ffjtUserContactJsonStatus
 
-	ffj_t_UserContactJson_TgUserID
+	ffjtUserContactJsonUserID
 
-	ffj_t_UserContactJson_BalanceJson
+	ffjtUserContactJsonTgUserID
 
-	ffj_t_UserContactJson_Transfers
+	ffjtUserContactJsonBalanceJson
+
+	ffjtUserContactJsonTransfers
 )
 
-var ffj_key_UserContactJson_ID = []byte("ID")
+var ffjKeyUserContactJsonID = []byte("ID")
 
-var ffj_key_UserContactJson_Name = []byte("Name")
+var ffjKeyUserContactJsonName = []byte("Name")
 
-var ffj_key_UserContactJson_Status = []byte("Status")
+var ffjKeyUserContactJsonStatus = []byte("Status")
 
-var ffj_key_UserContactJson_TgUserID = []byte("TgUserID")
+var ffjKeyUserContactJsonUserID = []byte("UserID")
 
-var ffj_key_UserContactJson_BalanceJson = []byte("Balance")
+var ffjKeyUserContactJsonTgUserID = []byte("TgUserID")
 
-var ffj_key_UserContactJson_Transfers = []byte("Transfers")
+var ffjKeyUserContactJsonBalanceJson = []byte("Balance")
 
-func (uj *UserContactJson) UnmarshalJSON(input []byte) error {
+var ffjKeyUserContactJsonTransfers = []byte("Transfers")
+
+// UnmarshalJSON umarshall json - template of ffjson
+func (j *UserContactJson) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
-	return uj.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
+	return j.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
 }
 
-func (uj *UserContactJson) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
-	var err error = nil
-	currentKey := ffj_t_UserContactJsonbase
+// UnmarshalJSONFFLexer fast json unmarshall - template ffjson
+func (j *UserContactJson) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
+	var err error
+	currentKey := ffjtUserContactJsonbase
 	_ = currentKey
 	tok := fflib.FFTok_init
 	wantedTok := fflib.FFTok_init
@@ -417,7 +436,7 @@ mainparse:
 			kn := fs.Output.Bytes()
 			if len(kn) <= 0 {
 				// "" case. hrm.
-				currentKey = ffj_t_UserContactJsonno_such_key
+				currentKey = ffjtUserContactJsonnosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			} else {
@@ -425,88 +444,102 @@ mainparse:
 
 				case 'B':
 
-					if bytes.Equal(ffj_key_UserContactJson_BalanceJson, kn) {
-						currentKey = ffj_t_UserContactJson_BalanceJson
+					if bytes.Equal(ffjKeyUserContactJsonBalanceJson, kn) {
+						currentKey = ffjtUserContactJsonBalanceJson
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				case 'I':
 
-					if bytes.Equal(ffj_key_UserContactJson_ID, kn) {
-						currentKey = ffj_t_UserContactJson_ID
+					if bytes.Equal(ffjKeyUserContactJsonID, kn) {
+						currentKey = ffjtUserContactJsonID
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				case 'N':
 
-					if bytes.Equal(ffj_key_UserContactJson_Name, kn) {
-						currentKey = ffj_t_UserContactJson_Name
+					if bytes.Equal(ffjKeyUserContactJsonName, kn) {
+						currentKey = ffjtUserContactJsonName
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				case 'S':
 
-					if bytes.Equal(ffj_key_UserContactJson_Status, kn) {
-						currentKey = ffj_t_UserContactJson_Status
+					if bytes.Equal(ffjKeyUserContactJsonStatus, kn) {
+						currentKey = ffjtUserContactJsonStatus
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				case 'T':
 
-					if bytes.Equal(ffj_key_UserContactJson_TgUserID, kn) {
-						currentKey = ffj_t_UserContactJson_TgUserID
+					if bytes.Equal(ffjKeyUserContactJsonTgUserID, kn) {
+						currentKey = ffjtUserContactJsonTgUserID
 						state = fflib.FFParse_want_colon
 						goto mainparse
 
-					} else if bytes.Equal(ffj_key_UserContactJson_Transfers, kn) {
-						currentKey = ffj_t_UserContactJson_Transfers
+					} else if bytes.Equal(ffjKeyUserContactJsonTransfers, kn) {
+						currentKey = ffjtUserContactJsonTransfers
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 'U':
+
+					if bytes.Equal(ffjKeyUserContactJsonUserID, kn) {
+						currentKey = ffjtUserContactJsonUserID
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				}
 
-				if fflib.EqualFoldRight(ffj_key_UserContactJson_Transfers, kn) {
-					currentKey = ffj_t_UserContactJson_Transfers
+				if fflib.EqualFoldRight(ffjKeyUserContactJsonTransfers, kn) {
+					currentKey = ffjtUserContactJsonTransfers
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.SimpleLetterEqualFold(ffj_key_UserContactJson_BalanceJson, kn) {
-					currentKey = ffj_t_UserContactJson_BalanceJson
+				if fflib.SimpleLetterEqualFold(ffjKeyUserContactJsonBalanceJson, kn) {
+					currentKey = ffjtUserContactJsonBalanceJson
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.EqualFoldRight(ffj_key_UserContactJson_TgUserID, kn) {
-					currentKey = ffj_t_UserContactJson_TgUserID
+				if fflib.EqualFoldRight(ffjKeyUserContactJsonTgUserID, kn) {
+					currentKey = ffjtUserContactJsonTgUserID
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.EqualFoldRight(ffj_key_UserContactJson_Status, kn) {
-					currentKey = ffj_t_UserContactJson_Status
+				if fflib.EqualFoldRight(ffjKeyUserContactJsonUserID, kn) {
+					currentKey = ffjtUserContactJsonUserID
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.SimpleLetterEqualFold(ffj_key_UserContactJson_Name, kn) {
-					currentKey = ffj_t_UserContactJson_Name
+				if fflib.EqualFoldRight(ffjKeyUserContactJsonStatus, kn) {
+					currentKey = ffjtUserContactJsonStatus
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.SimpleLetterEqualFold(ffj_key_UserContactJson_ID, kn) {
-					currentKey = ffj_t_UserContactJson_ID
+				if fflib.SimpleLetterEqualFold(ffjKeyUserContactJsonName, kn) {
+					currentKey = ffjtUserContactJsonName
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				currentKey = ffj_t_UserContactJsonno_such_key
+				if fflib.SimpleLetterEqualFold(ffjKeyUserContactJsonID, kn) {
+					currentKey = ffjtUserContactJsonID
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				currentKey = ffjtUserContactJsonnosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			}
@@ -523,25 +556,28 @@ mainparse:
 			if tok == fflib.FFTok_left_brace || tok == fflib.FFTok_left_bracket || tok == fflib.FFTok_integer || tok == fflib.FFTok_double || tok == fflib.FFTok_string || tok == fflib.FFTok_bool || tok == fflib.FFTok_null {
 				switch currentKey {
 
-				case ffj_t_UserContactJson_ID:
+				case ffjtUserContactJsonID:
 					goto handle_ID
 
-				case ffj_t_UserContactJson_Name:
+				case ffjtUserContactJsonName:
 					goto handle_Name
 
-				case ffj_t_UserContactJson_Status:
+				case ffjtUserContactJsonStatus:
 					goto handle_Status
 
-				case ffj_t_UserContactJson_TgUserID:
+				case ffjtUserContactJsonUserID:
+					goto handle_UserID
+
+				case ffjtUserContactJsonTgUserID:
 					goto handle_TgUserID
 
-				case ffj_t_UserContactJson_BalanceJson:
+				case ffjtUserContactJsonBalanceJson:
 					goto handle_BalanceJson
 
-				case ffj_t_UserContactJson_Transfers:
+				case ffjtUserContactJsonTransfers:
 					goto handle_Transfers
 
-				case ffj_t_UserContactJsonno_such_key:
+				case ffjtUserContactJsonnosuchkey:
 					err = fs.SkipField(tok)
 					if err != nil {
 						return fs.WrapErr(err)
@@ -557,7 +593,7 @@ mainparse:
 
 handle_ID:
 
-	/* handler: uj.ID type=int64 kind=int64 quoted=false*/
+	/* handler: j.ID type=int64 kind=int64 quoted=false*/
 
 	{
 		if tok != fflib.FFTok_integer && tok != fflib.FFTok_null {
@@ -577,7 +613,7 @@ handle_ID:
 				return fs.WrapErr(err)
 			}
 
-			uj.ID = int64(tval)
+			j.ID = int64(tval)
 
 		}
 	}
@@ -587,7 +623,7 @@ handle_ID:
 
 handle_Name:
 
-	/* handler: uj.Name type=string kind=string quoted=false*/
+	/* handler: j.Name type=string kind=string quoted=false*/
 
 	{
 
@@ -603,7 +639,7 @@ handle_Name:
 
 			outBuf := fs.Output.Bytes()
 
-			uj.Name = string(string(outBuf))
+			j.Name = string(string(outBuf))
 
 		}
 	}
@@ -613,7 +649,7 @@ handle_Name:
 
 handle_Status:
 
-	/* handler: uj.Status type=string kind=string quoted=false*/
+	/* handler: j.Status type=string kind=string quoted=false*/
 
 	{
 
@@ -629,7 +665,7 @@ handle_Status:
 
 			outBuf := fs.Output.Bytes()
 
-			uj.Status = string(string(outBuf))
+			j.Status = string(string(outBuf))
 
 		}
 	}
@@ -637,9 +673,9 @@ handle_Status:
 	state = fflib.FFParse_after_value
 	goto mainparse
 
-handle_TgUserID:
+handle_UserID:
 
-	/* handler: uj.TgUserID type=int64 kind=int64 quoted=false*/
+	/* handler: j.UserID type=int64 kind=int64 quoted=false*/
 
 	{
 		if tok != fflib.FFTok_integer && tok != fflib.FFTok_null {
@@ -659,7 +695,37 @@ handle_TgUserID:
 				return fs.WrapErr(err)
 			}
 
-			uj.TgUserID = int64(tval)
+			j.UserID = int64(tval)
+
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_TgUserID:
+
+	/* handler: j.TgUserID type=int64 kind=int64 quoted=false*/
+
+	{
+		if tok != fflib.FFTok_integer && tok != fflib.FFTok_null {
+			return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for int64", tok))
+		}
+	}
+
+	{
+
+		if tok == fflib.FFTok_null {
+
+		} else {
+
+			tval, err := fflib.ParseInt(fs.Output.Bytes(), 10, 64)
+
+			if err != nil {
+				return fs.WrapErr(err)
+			}
+
+			j.TgUserID = int64(tval)
 
 		}
 	}
@@ -669,12 +735,12 @@ handle_TgUserID:
 
 handle_BalanceJson:
 
-	/* handler: uj.BalanceJson type=json.RawMessage kind=slice quoted=false*/
+	/* handler: j.BalanceJson type=json.RawMessage kind=slice quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
 
-			uj.BalanceJson = nil
+			j.BalanceJson = nil
 
 			state = fflib.FFParse_after_value
 			goto mainparse
@@ -685,11 +751,11 @@ handle_BalanceJson:
 			return fs.WrapErr(err)
 		}
 
-		if uj.BalanceJson == nil {
-			uj.BalanceJson = new(json.RawMessage)
+		if j.BalanceJson == nil {
+			j.BalanceJson = new(json.RawMessage)
 		}
 
-		err = uj.BalanceJson.UnmarshalJSON(tbuf)
+		err = j.BalanceJson.UnmarshalJSON(tbuf)
 		if err != nil {
 			return fs.WrapErr(err)
 		}
@@ -701,22 +767,22 @@ handle_BalanceJson:
 
 handle_Transfers:
 
-	/* handler: uj.Transfers type=models.UserCounterpartyTransfersInfo kind=struct quoted=false*/
+	/* handler: j.Transfers type=models.UserCounterpartyTransfersInfo kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
 
-			uj.Transfers = nil
+			j.Transfers = nil
 
 			state = fflib.FFParse_after_value
 			goto mainparse
 		}
 
-		if uj.Transfers == nil {
-			uj.Transfers = new(UserCounterpartyTransfersInfo)
+		if j.Transfers == nil {
+			j.Transfers = new(UserCounterpartyTransfersInfo)
 		}
 
-		err = uj.Transfers.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+		err = j.Transfers.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
 			return err
 		}
@@ -744,20 +810,23 @@ done:
 	return nil
 }
 
-func (mj *UserCounterpartyTransfersInfo) MarshalJSON() ([]byte, error) {
+// MarshalJSON marshal bytes to json - template
+func (j *UserCounterpartyTransfersInfo) MarshalJSON() ([]byte, error) {
 	var buf fflib.Buffer
-	if mj == nil {
+	if j == nil {
 		buf.WriteString("null")
 		return buf.Bytes(), nil
 	}
-	err := mj.MarshalJSONBuf(&buf)
+	err := j.MarshalJSONBuf(&buf)
 	if err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
-func (mj *UserCounterpartyTransfersInfo) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
-	if mj == nil {
+
+// MarshalJSONBuf marshal buff to json - template
+func (j *UserCounterpartyTransfersInfo) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
+	if j == nil {
 		buf.WriteString("null")
 		return nil
 	}
@@ -766,12 +835,12 @@ func (mj *UserCounterpartyTransfersInfo) MarshalJSONBuf(buf fflib.EncodingBuffer
 	_ = obj
 	_ = err
 	buf.WriteString(`{"Count":`)
-	fflib.FormatBits2(buf, uint64(mj.Count), 10, mj.Count < 0)
+	fflib.FormatBits2(buf, uint64(j.Count), 10, j.Count < 0)
 	buf.WriteString(`,"Last":`)
 
 	{
 
-		err = mj.Last.MarshalJSONBuf(buf)
+		err = j.Last.MarshalJSONBuf(buf)
 		if err != nil {
 			return err
 		}
@@ -782,26 +851,28 @@ func (mj *UserCounterpartyTransfersInfo) MarshalJSONBuf(buf fflib.EncodingBuffer
 }
 
 const (
-	ffj_t_UserCounterpartyTransfersInfobase = iota
-	ffj_t_UserCounterpartyTransfersInfono_such_key
+	ffjtUserCounterpartyTransfersInfobase = iota
+	ffjtUserCounterpartyTransfersInfonosuchkey
 
-	ffj_t_UserCounterpartyTransfersInfo_Count
+	ffjtUserCounterpartyTransfersInfoCount
 
-	ffj_t_UserCounterpartyTransfersInfo_Last
+	ffjtUserCounterpartyTransfersInfoLast
 )
 
-var ffj_key_UserCounterpartyTransfersInfo_Count = []byte("Count")
+var ffjKeyUserCounterpartyTransfersInfoCount = []byte("Count")
 
-var ffj_key_UserCounterpartyTransfersInfo_Last = []byte("Last")
+var ffjKeyUserCounterpartyTransfersInfoLast = []byte("Last")
 
-func (uj *UserCounterpartyTransfersInfo) UnmarshalJSON(input []byte) error {
+// UnmarshalJSON umarshall json - template of ffjson
+func (j *UserCounterpartyTransfersInfo) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
-	return uj.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
+	return j.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
 }
 
-func (uj *UserCounterpartyTransfersInfo) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
-	var err error = nil
-	currentKey := ffj_t_UserCounterpartyTransfersInfobase
+// UnmarshalJSONFFLexer fast json unmarshall - template ffjson
+func (j *UserCounterpartyTransfersInfo) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
+	var err error
+	currentKey := ffjtUserCounterpartyTransfersInfobase
 	_ = currentKey
 	tok := fflib.FFTok_init
 	wantedTok := fflib.FFTok_init
@@ -847,7 +918,7 @@ mainparse:
 			kn := fs.Output.Bytes()
 			if len(kn) <= 0 {
 				// "" case. hrm.
-				currentKey = ffj_t_UserCounterpartyTransfersInfono_such_key
+				currentKey = ffjtUserCounterpartyTransfersInfonosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			} else {
@@ -855,35 +926,35 @@ mainparse:
 
 				case 'C':
 
-					if bytes.Equal(ffj_key_UserCounterpartyTransfersInfo_Count, kn) {
-						currentKey = ffj_t_UserCounterpartyTransfersInfo_Count
+					if bytes.Equal(ffjKeyUserCounterpartyTransfersInfoCount, kn) {
+						currentKey = ffjtUserCounterpartyTransfersInfoCount
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				case 'L':
 
-					if bytes.Equal(ffj_key_UserCounterpartyTransfersInfo_Last, kn) {
-						currentKey = ffj_t_UserCounterpartyTransfersInfo_Last
+					if bytes.Equal(ffjKeyUserCounterpartyTransfersInfoLast, kn) {
+						currentKey = ffjtUserCounterpartyTransfersInfoLast
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				}
 
-				if fflib.EqualFoldRight(ffj_key_UserCounterpartyTransfersInfo_Last, kn) {
-					currentKey = ffj_t_UserCounterpartyTransfersInfo_Last
+				if fflib.EqualFoldRight(ffjKeyUserCounterpartyTransfersInfoLast, kn) {
+					currentKey = ffjtUserCounterpartyTransfersInfoLast
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.SimpleLetterEqualFold(ffj_key_UserCounterpartyTransfersInfo_Count, kn) {
-					currentKey = ffj_t_UserCounterpartyTransfersInfo_Count
+				if fflib.SimpleLetterEqualFold(ffjKeyUserCounterpartyTransfersInfoCount, kn) {
+					currentKey = ffjtUserCounterpartyTransfersInfoCount
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				currentKey = ffj_t_UserCounterpartyTransfersInfono_such_key
+				currentKey = ffjtUserCounterpartyTransfersInfonosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			}
@@ -900,13 +971,13 @@ mainparse:
 			if tok == fflib.FFTok_left_brace || tok == fflib.FFTok_left_bracket || tok == fflib.FFTok_integer || tok == fflib.FFTok_double || tok == fflib.FFTok_string || tok == fflib.FFTok_bool || tok == fflib.FFTok_null {
 				switch currentKey {
 
-				case ffj_t_UserCounterpartyTransfersInfo_Count:
+				case ffjtUserCounterpartyTransfersInfoCount:
 					goto handle_Count
 
-				case ffj_t_UserCounterpartyTransfersInfo_Last:
+				case ffjtUserCounterpartyTransfersInfoLast:
 					goto handle_Last
 
-				case ffj_t_UserCounterpartyTransfersInfono_such_key:
+				case ffjtUserCounterpartyTransfersInfonosuchkey:
 					err = fs.SkipField(tok)
 					if err != nil {
 						return fs.WrapErr(err)
@@ -922,7 +993,7 @@ mainparse:
 
 handle_Count:
 
-	/* handler: uj.Count type=int kind=int quoted=false*/
+	/* handler: j.Count type=int kind=int quoted=false*/
 
 	{
 		if tok != fflib.FFTok_integer && tok != fflib.FFTok_null {
@@ -942,7 +1013,7 @@ handle_Count:
 				return fs.WrapErr(err)
 			}
 
-			uj.Count = int(tval)
+			j.Count = int(tval)
 
 		}
 	}
@@ -952,7 +1023,7 @@ handle_Count:
 
 handle_Last:
 
-	/* handler: uj.Last type=models.LastTransfer kind=struct quoted=false*/
+	/* handler: j.Last type=models.LastTransfer kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -961,7 +1032,7 @@ handle_Last:
 			goto mainparse
 		}
 
-		err = uj.Last.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+		err = j.Last.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
 			return err
 		}

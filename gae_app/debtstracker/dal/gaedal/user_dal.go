@@ -68,7 +68,7 @@ func (userDal UserDalGae) GetUserByStrID(c context.Context, userID string) (user
 }
 
 func (userDal UserDalGae) GetUserByID(c context.Context, userID int64) (user models.AppUser, err error) {
-	log.Debugf(c, "UserDalGae.GetUserByID(%d)", userID)
+	//log.Debugf(c, "UserDalGae.GetUserByID(%d)", userID)
 	if userID == 0 {
 		panic("GetUserByID(userID == 0)")
 	}
@@ -90,7 +90,7 @@ func (userDal UserDalGae) GetUserByID(c context.Context, userID int64) (user mod
 }
 
 func (userDal UserDalGae) GetUsersByIDs(c context.Context, userIDs []int64) (users []models.AppUser, err error) {
-	log.Debugf(c, "UserDalGae.GetUsersByIDs(%d)", userIDs)
+	//log.Debugf(c, "UserDalGae.GetUsersByIDs(%d)", userIDs)
 	if len(userIDs) == 0 {
 		return
 	}

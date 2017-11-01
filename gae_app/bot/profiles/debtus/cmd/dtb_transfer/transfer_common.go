@@ -603,9 +603,9 @@ func CreateTransferFromBot(
 	{ // Reporting to Google Analytics
 		gaMeasurement := whc.GaMeasurement()
 
-		gaEventLabel := output.Transfer.Currency
+		gaEventLabel := string(output.Transfer.Currency)
 		if len([]rune(gaEventLabel)) > 16 {
-			gaEventLabel = string([]rune(output.Transfer.Currency)[:16])
+			gaEventLabel = string([]rune(string(output.Transfer.Currency))[:16])
 		}
 		var action string
 		if isReturn {
