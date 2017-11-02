@@ -740,10 +740,6 @@ func (t *TransferEntity) GetAmount() Amount {
 	return Amount{Currency: t.Currency, Value: t.AmountInCents}
 }
 
-func (t *TransferEntity) GetOutstandingAmount() Amount {
-	return Amount{Currency: t.Currency, Value: t.AmountInCentsOutstanding}
-}
-
 func (t *TransferEntity) GetReturnedAmount() Amount {
 	return Amount{Currency: t.Currency, Value: t.AmountInCentsReturned}
 }

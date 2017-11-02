@@ -38,3 +38,11 @@ func TestTransfer_Save(t *testing.T) {
 		t.Errorf("len(saved):%v != 1", len(saved))
 	}
 }
+
+//func TestTransferDump(t *testing.T) {
+//	now := time.Now()
+//	litter.Config.HidePrivateFields = true
+//	t.Log("litter.Config.HidePrivateFields = true: ", litter.Sdump(now))
+//	litter.Config.HidePrivateFields = false
+//	t.Log("litter.Config.HidePrivateFields = false: ", litter.Options{HidePrivateFields: false}.Sdump(now))
+//}
