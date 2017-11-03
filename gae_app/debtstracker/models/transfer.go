@@ -100,7 +100,9 @@ type TransferEntity struct {
 	DirectionObsoleteProp string  `datastore:"Direction,noindex"`
 	IsReturn              bool    `datastore:",noindex"` // We need it is not always possible to identify original transfer (think multiply & partial transfers)
 	ReturnToTransferIDs   []int64 `datastore:",noindex"` // List of transfer to which this debt is a return. Should be populated only if IsReturn=True
-	ReturnTransferIDs     []int64 `datastore:",noindex"` // List of transfers that return money to this debts
+	ReturnsJson           string  `datastore:",noindex"`
+	// Obsolete
+	ReturnTransferIDs []int64 `datastore:",noindex"` // TODO: Obsolete - replace with ReturnsJson List of transfers that return money to this debts
 	//
 	CreatorUserID           int64  `datastore:",noindex"` // Do not delete
 	CreatorCounterpartyID   int64  `datastore:",noindex"` //TODO: Replace with <From|To>ContactID
@@ -506,7 +508,7 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 		return
 	}
 
-	if err = t.validateTransferInterest(); err != nil {
+	if err = t.validateTransferInterestAndReturns(); err != nil {
 		return
 	}
 	//t.onSaveMigrateUserProps()

@@ -38,6 +38,26 @@ var (
 	ErrInterestTypeIsNotSet = errors.New("InterestType is not set")
 )
 
+func (t *TransferEntity) validateTransferInterestAndReturns() (err error) {
+	if err = t.TransferInterest.validateTransferInterest(); err != nil {
+		return
+	}
+	if t.InterestType != "" { // TODO: Migrate old records and then do the check for all transfers
+		returns := t.GetReturns()
+		if len(returns) != len(t.ReturnTransferIDs) {
+			return fmt.Errorf("len(t.GetReturns()) != len(t.ReturnTransferIDs): %v != %v", len(t.GetReturns()), len(t.ReturnTransferIDs))
+		}
+		var amountReturned decimal.Decimal64p2
+		for _, r := range returns {
+			amountReturned += r.Amount
+		}
+		if amountReturned != t.AmountInCentsReturned {
+			return fmt.Errorf("sum(returns.Amount) != *TransferEntity.AmountInCentsReturned: %v != %v", amountReturned, t.AmountInCentsReturned)
+		}
+	}
+	return
+}
+
 func (entity TransferInterest) validateTransferInterest() (err error) {
 	if entity.InterestPeriod == 0 && entity.InterestAmountInCents == 0 && entity.InterestPercent == 0 && entity.InterestType == "" {
 		return
@@ -88,14 +108,33 @@ func (t *TransferEntity) GetOutstandingAmount() Amount {
 }
 
 func (t *TransferEntity) GetInterestAmount() (interestAmount decimal.Decimal64p2) {
-	switch t.InterestType {
-	case InterestPercentSimple:
+	firstPeriod := true
+	outstanding := t.AmountInCents
+	getSimpleInterestForPeriod := func(starts, ends time.Time) (interestAmount decimal.Decimal64p2) {
 		var interestRatePerDay = t.InterestPercent.AsFloat64() / float64(t.InterestPeriod) / 100
-		ageInDays := t.AgeInDays() - t.InterestGracePeriod
+		ageInDays := ageInDays(starts, ends)
 		if ageInDays < t.InterestMinimumPeriod {
 			ageInDays = t.InterestMinimumPeriod
 		}
-		interestAmount = decimal.NewDecimal64p2FromFloat64(float64(t.AmountInCents) * interestRatePerDay * float64(ageInDays))
+
+		if firstPeriod {
+			firstPeriod = false
+		} else {
+			ageInDays -= 1
+		}
+		interestAmount = decimal.NewDecimal64p2FromFloat64(float64(outstanding) * interestRatePerDay * float64(ageInDays))
+		return
+	}
+	switch t.InterestType {
+	case InterestPercentSimple:
+		periodStarts := t.DtCreated
+		for _, transferReturn := range t.GetReturns() {
+			interestAmount += getSimpleInterestForPeriod(periodStarts, transferReturn.Time)
+			outstanding -= transferReturn.Amount
+			periodStarts = transferReturn.Time
+		}
+		periodEnds := time.Now()
+		interestAmount += getSimpleInterestForPeriod(periodStarts, periodEnds)
 	case InterestPercentCompound:
 		panic("not implemented")
 	case "":
@@ -106,9 +145,13 @@ func (t *TransferEntity) GetInterestAmount() (interestAmount decimal.Decimal64p2
 	return
 }
 
-func (t *TransferEntity) AgeInDays() int {
-	hours := time.Now().Sub(t.DtCreated).Hours()
+func ageInDays(periodStarts, periodEnds time.Time) int {
+	hours := periodEnds.Sub(periodStarts).Hours()
 	return int((hours + 24) / 24) // The day of debt issuing is counted as a whole day even if 1 second passed.
+}
+
+func (t *TransferEntity) AgeInDays() int {
+	return ageInDays(time.Now(), t.DtCreated)
 }
 
 /*

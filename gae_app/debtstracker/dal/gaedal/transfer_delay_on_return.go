@@ -121,6 +121,14 @@ func (_ TransferDalGae) UpdateTransferOnReturn(c context.Context, returnTransfer
 	}
 
 	transfer.ReturnTransferIDs = append(transfer.ReturnTransferIDs, returnTransfer.ID)
+	returns := transfer.GetReturns()
+	returns = append(returns, models.TransferReturnJson{
+		TransferID: returnTransfer.ID,
+		Time: returnTransfer.DtCreated, // TODO: Replace with DtActual?
+		Amount: returnedAmount,
+	})
+	transfer.SetReturns(returns)
+
 	transfer.AmountInCentsOutstanding -= returnedAmount
 	transfer.AmountInCentsReturned += returnedAmount
 	if transfer.AmountInCentsOutstanding == 0 {
