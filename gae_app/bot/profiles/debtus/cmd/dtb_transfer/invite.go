@@ -6,7 +6,7 @@ package dtb_transfer
 //	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 //	"bitbucket.com/asterus/debtstracker-server/gae_app/invites"
 //	"github.com/pkg/errors"
-//	"github.com/qedus/nds"
+//	"github.com/strongo/nds"
 //	"github.com/strongo/bots-framework/core"
 //	"golang.org/x/net/context"
 //	"time"

@@ -3,7 +3,7 @@ package facade
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/pkg/errors"
-	"github.com/qedus/nds"
+	"github.com/strongo/nds"
 	"github.com/strongo/app"
 	"github.com/strongo/app/log"
 	"github.com/strongo/bots-framework/core"

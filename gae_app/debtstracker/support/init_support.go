@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
-	"github.com/qedus/nds"
+	"github.com/strongo/nds"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"

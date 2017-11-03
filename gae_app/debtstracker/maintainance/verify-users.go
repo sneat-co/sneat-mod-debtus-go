@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"github.com/captaincodeman/datastore-mapper"
 	"github.com/pquerna/ffjson/ffjson"
-	"github.com/qedus/nds"
+	"github.com/strongo/nds"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"

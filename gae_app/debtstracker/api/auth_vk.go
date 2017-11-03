@@ -10,7 +10,7 @@ import (
 	//"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	//"strconv"
 	//"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	//"github.com/qedus/nds"
+	//"github.com/strongo/nds"
 	//"github.com/strongo/vk"
 	//"strings"
 	//"fmt"
