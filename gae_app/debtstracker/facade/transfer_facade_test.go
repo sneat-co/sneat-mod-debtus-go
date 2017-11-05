@@ -72,12 +72,12 @@ func TestCreateTransfer(t *testing.T) {
 		newTransfer := NewTransferInput(strongo.EnvLocal,
 			source,
 			userID,
-			0,
+			"",
 			false,
 			0,
 			from, to,
 			models.NewAmount(models.CURRENCY_RUB, 10),
-			time.Now().Add(time.Minute))
+			time.Now().Add(time.Minute), models.TransferInterest{})
 
 		output, err := assert.OutputIsNilIfErr(Transfers.CreateTransfer(c, newTransfer))
 		if err != nil {
@@ -171,12 +171,12 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 		newTransfer := NewTransferInput(strongo.EnvLocal,
 			source,
 			userID,
-			0,
+			"",
 			false,
 			0,
 			from, to,
 			models.NewAmount(models.CURRENCY_RUB, decimal.NewDecimal64p2FromFloat64(10.00)),
-			time.Now().Add(time.Minute))
+			time.Now().Add(time.Minute), models.TransferInterest{})
 		//t1, _, fromUser, toUser, fromCounterparty, toCounterparty
 		if output, err = assert.OutputIsNilIfErr(Transfers.CreateTransfer(c, newTransfer)); err != nil {
 			t.Errorf(err.Error())
@@ -202,12 +202,12 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 		newTransfer := NewTransferInput(strongo.EnvLocal,
 			source,
 			userID,
-			0,
+			"",
 			false,
 			0,
 			from, to,
 			models.NewAmount(models.CURRENCY_RUB, decimal.NewDecimal64p2FromFloat64(17.00)),
-			time.Now().Add(time.Minute))
+			time.Now().Add(time.Minute), models.TransferInterest{})
 
 		if output, err = assert.OutputIsNilIfErr(Transfers.CreateTransfer(c, newTransfer)); err != nil {
 			t.Errorf(err.Error())
@@ -226,10 +226,8 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 		is.Equal(balance[models.CURRENCY_RUB], decimal.NewDecimal64p2FromFloat64(-7.00))
 	}
 
-	is.Equal(t1.AmountInCentsOutstanding, decimal.NewDecimal64p2FromFloat64(0))
 	is.Equal(t1.AmountInCentsReturned, decimal.NewDecimal64p2FromFloat64(10))
 	is.Equal(t2.AmountInCentsReturned, decimal.NewDecimal64p2FromFloat64(10))
-	is.Equal(t2.AmountInCentsOutstanding, decimal.NewDecimal64p2FromFloat64(7))
 
 	{ // Create 3d transfer - full return
 		from := &models.TransferCounterpartyInfo{
@@ -243,12 +241,12 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 		newTransfer := NewTransferInput(strongo.EnvLocal,
 			source,
 			userID,
-			0,
+			"",
 			true,
 			0,
 			from, to,
 			models.NewAmount(models.CURRENCY_RUB, decimal.NewDecimal64p2FromFloat64(7.00)),
-			time.Now().Add(time.Minute))
+			time.Now().Add(time.Minute), models.TransferInterest{})
 
 		if output, err = assert.OutputIsNilIfErr(Transfers.CreateTransfer(c, newTransfer)); err != nil {
 			t.Errorf(err.Error())
@@ -267,10 +265,10 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 	}
 
 	is.Equal(t2.AmountInCentsReturned, decimal.NewDecimal64p2FromFloat64(17))
-	is.Equal(t2.AmountInCentsOutstanding, decimal.NewDecimal64p2FromFloat64(0))
+	is.Equal(t2.GetOutstandingValue(), decimal.NewDecimal64p2FromFloat64(0))
 
 	is.Equal(t3.AmountInCentsReturned, decimal.NewDecimal64p2FromFloat64(0))
-	is.Equal(t3.AmountInCentsOutstanding, decimal.NewDecimal64p2FromFloat64(0))
+	is.Equal(t3.GetOutstandingValue(), decimal.NewDecimal64p2FromFloat64(0))
 
 	println("t1", t1.String())
 	println("t2", t2.String())

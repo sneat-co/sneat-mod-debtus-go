@@ -3,11 +3,12 @@ package models
 import (
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
+	"github.com/strongo/app/gaedb"
 )
 
 type billsHolder struct {
-	OutstandingBillsCount int    `datastore:",noindex"`
-	OutstandingBillsJson  string `datastore:",noindex"`
+	OutstandingBillsCount int    `datastore:",noindex,omitempty"`
+	OutstandingBillsJson  string `datastore:",noindex,omitempty"`
 }
 
 func (entity *billsHolder) GetOutstandingBills() (outstandingBills []BillJson, err error) {
@@ -37,4 +38,9 @@ func (entity *billsHolder) SetOutstandingBills(outstandingBills []BillJson) (cha
 		entity.OutstandingBillsJson = json
 	}
 	return
+}
+
+func init() {
+	userPropertiesToClean["OutstandingBillsJson"] = gaedb.IsEmptyJson
+	groupPropertiesToClean["OutstandingBillsJson"] = gaedb.IsEmptyJson
 }

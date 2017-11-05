@@ -208,6 +208,12 @@ func (r receiptTextBuilder) WriteReceiptText(buffer *bytes.Buffer, utmParams Utm
 	}
 
 	buffer.WriteString(r.translateAndFormatMessage(messageTextToTranslate, r.transfer.GetAmount(), utmParams))
+
+	if r.transfer.HasInterest() {
+		buffer.WriteString("\n")
+		WriteTransferInterest(buffer, r.transfer, r)
+	}
+
 	if !r.transfer.DtDueOn.IsZero() {
 		buffer.WriteString("\n" + emoji.ALARM_CLOCK_ICON + " " + fmt.Sprintf(r.Translate(trans.MESSAGE_TEXT_DUE_ON), r.transfer.DtDueOn.Format("2006-01-02 15:04")))
 	}
@@ -216,9 +222,28 @@ func (r receiptTextBuilder) WriteReceiptText(buffer *bytes.Buffer, utmParams Utm
 		buffer.WriteString("\n" + r.translateAndFormatMessage(trans.MESSAGE_TEXT_RECEIPT_ALREADY_RETURNED_AMOUNT, r.transfer.GetReturnedAmount(), utmParams))
 	}
 
-	if r.transfer.AmountInCentsOutstanding > 0 && r.transfer.AmountInCentsOutstanding != r.transfer.AmountInCents {
-		buffer.WriteString("\n" + r.translateAndFormatMessage(trans.MESSAGE_TEXT_RECEIPT_OUTSTANDING_AMOUNT, r.transfer.GetOutstandingAmount(), utmParams))
+	if outstandingAmount := r.transfer.GetOutstandingAmount(); outstandingAmount.Value > 0 && outstandingAmount.Value != r.transfer.AmountInCents {
+		buffer.WriteString("\n" + r.translateAndFormatMessage(trans.MESSAGE_TEXT_RECEIPT_OUTSTANDING_AMOUNT, outstandingAmount, utmParams))
 	}
+}
+
+func WriteTransferInterest(buffer *bytes.Buffer, transfer models.Transfer, translator strongo.SingleLocaleTranslator) {
+	buffer.WriteString(translator.Translate(trans.MESSAGE_TEXT_INTEREST, transfer.InterestPercent, days(translator, transfer.InterestPeriod)))
+	if transfer.InterestMinimumPeriod > 1 {
+		buffer.WriteString(", " + translator.Translate(trans.MESSAGE_TEXT_INTEREST_MIN_PERIOD, days(translator, transfer.InterestMinimumPeriod)))
+	}
+}
+
+func days(t strongo.SingleLocaleTranslator, d int) string {
+	var messageTextToTranslate string
+	if d == 1 {
+		messageTextToTranslate = trans.DAY
+	} else if d <= 4 {
+		messageTextToTranslate = trans.DAYS_234
+	} else {
+		messageTextToTranslate = trans.DAYS
+	}
+	return t.Translate(messageTextToTranslate, d)
 }
 
 func (r receiptTextBuilder) translateAndFormatMessage(messageTextToTranslate string, amount models.Amount, utmParams UtmParams) string {
@@ -247,7 +272,7 @@ func (r receiptTextBuilder) translateAndFormatMessage(messageTextToTranslate str
 	//		amountText = fmt.Sprintf(`<a href="%v">%v</a>`, transferUrl, r.transfer.GetAmount())
 	//	}
 	//}
-	amountText := fmt.Sprintf("%v", amount)
+	amountText := fmt.Sprintf("<b>%v</b>", amount)
 
 	return r.Translate(messageTextToTranslate, map[string]interface{}{
 		"Counterparty": template.HTML(counterpartyText),

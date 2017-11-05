@@ -77,3 +77,20 @@ func TestLastLogin_SetLastLogin(t *testing.T) {
 		t.Errorf("lastLoginSetter.DtLastLogin != now")
 	}
 }
+
+
+func TestAppUserEntity_BalanceWithInterest(t *testing.T) {
+	user := AppUserEntity{
+		TransfersWithInterestCount: 1,
+		Balanced: Balanced{
+			BalanceCount: 1,
+			BalanceJson: `{"EUR":58}`,
+		},
+		ContactsJsonActive: `[{"ID":6296903092273152,"Name":"Test1","Balance":{"EUR":58},"Transfers":{"Count":1,"Last":{"ID":6156165603917824,"At":"2017-11-04T23:05:30.847526702Z"},"OutstandingWithInterest":[{"TransferID":6156165603917824,"Starts":"2017-11-04T23:05:30.847526702Z","Currency":"EUR","Amount":14,"InterestType":"simple","InterestPeriod":3,"InterestPercent":3,"InterestMinimumPeriod":3}]}}]`,
+	}
+	balanceWithInterest := user.BalanceWithInterest()
+	if balanceWithInterest.IsZero() {
+		t.Fatal("balanceWithInterest.IsZero()")
+	}
+	t.Log(balanceWithInterest)
+}

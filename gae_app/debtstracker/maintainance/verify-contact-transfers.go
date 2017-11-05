@@ -172,7 +172,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, contact model
 			fmt.Fprintf(buf, p+"\t  To(): userID=%v, contactID=%v\n", transfer.To().UserID, transfer.To().ContactID)
 			fmt.Fprintf(buf, p+"\tAmount: %v\n", transfer.GetAmount())
 			fmt.Fprintf(buf, p+"\tReturned: %v\n", transfer.AmountInCentsReturned)
-			fmt.Fprintf(buf, p+"\tOutstanding: %v\n", transfer.AmountInCentsOutstanding)
+			fmt.Fprintf(buf, p+"\tOutstanding: %v\n", transfer.GetOutstandingValue())
 			fmt.Fprintf(buf, p+"\tIsReturn: %v\n", transfer.IsReturn)
 			fmt.Fprintf(buf, p+"\tReturnTransferIDs: %v\n", transfer.ReturnTransferIDs)
 			fmt.Fprintf(buf, p+"\tReturnToTransferIDs: %v\n", transfer.ReturnToTransferIDs)
@@ -211,9 +211,9 @@ func (m *verifyContactTransfers) processContact(c context.Context, contact model
 			//logTransfer(transfer, 1)
 			switch transfer.DirectionForContact(contact.ID) {
 			case models.TransferDirectionUser2Counterparty:
-				outstandingBalance[transfer.Currency] += transfer.AmountInCentsOutstanding
+				outstandingBalance[transfer.Currency] += transfer.GetOutstandingValue()
 			case models.TransferDirectionCounterparty2User:
-				outstandingBalance[transfer.Currency] -= transfer.AmountInCentsOutstanding
+				outstandingBalance[transfer.Currency] -= transfer.GetOutstandingValue()
 			default:
 				panic(fmt.Sprintf("transfer.DirectionForContact(%v): %v", contact.ID, transfer.DirectionForContact(contact.ID)))
 			}
@@ -314,10 +314,6 @@ func (m *verifyContactTransfers) processContact(c context.Context, contact model
 		transfersToSave := make(map[int64]*models.TransferEntity)
 
 		for _, transfer := range transfers {
-			if transfer.AmountInCentsOutstanding != 0 {
-				transfer.AmountInCentsOutstanding = 0
-				transfersToSave[transfer.ID] = transfer.TransferEntity
-			}
 			if transfer.AmountInCentsReturned != 0 {
 				transfer.AmountInCentsReturned = 0
 				transfersToSave[transfer.ID] = transfer.TransferEntity
@@ -336,22 +332,19 @@ func (m *verifyContactTransfers) processContact(c context.Context, contact model
 					previousTransfer.ReturnTransferIDs = append(previousTransfer.ReturnTransferIDs, transfer.ID)
 					transfer.ReturnToTransferIDs = append(transfer.ReturnToTransferIDs, previousTransfer.ID)
 					transfersToSave[previousTransfer.ID] = previousTransfer.TransferEntity
-					if amountToAssign <= previousTransfer.AmountInCentsOutstanding {
-						previousTransfer.AmountInCentsOutstanding -= amountToAssign
+					if previousTransferOutstandingValue := previousTransfer.GetOutstandingValue(); amountToAssign <= previousTransferOutstandingValue {
 						previousTransfer.AmountInCentsReturned += amountToAssign
 						amountToAssign = 0
 						break
 					} else /* previousTransfer.AmountInCentsOutstanding < amountToAssign */ {
-						amountToAssign -= previousTransfer.AmountInCentsOutstanding
-						previousTransfer.AmountInCentsReturned += previousTransfer.AmountInCentsOutstanding
-						previousTransfer.AmountInCentsOutstanding = 0
+						amountToAssign -= previousTransferOutstandingValue
+						previousTransfer.AmountInCentsReturned += previousTransferOutstandingValue
 						previousTransfer.IsOutstanding = false
 					}
 				}
 			}
 			transfer.IsReturn = len(transfer.ReturnToTransferIDs) > 0
 			if transfer.IsOutstanding = amountToAssign != 0; transfer.IsOutstanding {
-				transfer.AmountInCentsOutstanding = amountToAssign
 				transfer.AmountInCentsReturned = transfer.AmountInCents - amountToAssign
 				transfersToSave[transfer.ID] = transfer.TransferEntity
 			}

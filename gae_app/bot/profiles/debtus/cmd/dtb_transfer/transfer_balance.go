@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
-	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
 	"golang.org/x/net/html"
 	"strconv"
+	"github.com/strongo/app/log"
 )
 
 type BalanceMessageBuilder struct {
@@ -42,21 +42,17 @@ func (m BalanceMessageBuilder) ByCounterparty(c context.Context, linker common.L
 	)
 
 	for _, counterparty := range counterparties {
-		counterpartyBalance, err := counterparty.Balance()
-		if err != nil {
-			m := fmt.Sprintf("Failed to get balance of counterparty #%d: %v", counterparty.ID, err)
-			log.Errorf(c, m)
-			buffer.WriteString(m + "\n")
-			continue
-		}
-		if counterpartyBalance.IsZero() {
+		counterpartyBalanceWithInterest := counterparty.BalanceWithInterest(c)
+		counterpartyBalance, _ := counterparty.Balance()
+		log.Debugf(c, "counterpartyBalanceWithInterest: %v\ncounterpartyBalance: %v", counterpartyBalanceWithInterest, counterpartyBalance)
+		if counterpartyBalanceWithInterest.IsZero() {
 			counterpartiesWithZeroBalanceCount += 1
 			counterpartiesWithZeroBalance.WriteString(strconv.FormatInt(counterparty.ID, 10))
 			counterpartiesWithZeroBalance.WriteString(", ")
 			continue
 		}
-		writeBalanceRow(counterparty, counterpartyBalance.OnlyPositive(), trans.MESSAGE_TEXT_BALANCE_SINGLE_CURRENCY_COUNTERPARTY_DEBT_TO_USER)
-		writeBalanceRow(counterparty, counterpartyBalance.OnlyNegative(), trans.MESSAGE_TEXT_BALANCE_SINGLE_CURRENCY_COUNTERPARTY_DEBT_BY_USER)
+		writeBalanceRow(counterparty, counterpartyBalanceWithInterest.OnlyPositive(), trans.MESSAGE_TEXT_BALANCE_SINGLE_CURRENCY_COUNTERPARTY_DEBT_TO_USER)
+		writeBalanceRow(counterparty, counterpartyBalanceWithInterest.OnlyNegative(), trans.MESSAGE_TEXT_BALANCE_SINGLE_CURRENCY_COUNTERPARTY_DEBT_BY_USER)
 	}
 	//if counterpartiesWithZeroBalanceCount > 0 {
 	//	log.Debugf(c, "There are %d counterparties with zero balance: %v", counterpartiesWithZeroBalanceCount, strings.TrimRight(counterpartiesWithZeroBalance.String(), ", "))

@@ -95,11 +95,11 @@ func (b Balance) Add(amount Amount) Balance {
 
 // ffjson: skip
 type Balanced struct {
-	BalanceJson      string    `datastore:",noindex" json:",omitempty"`
-	LastTransferID   int64     `datastore:",noindex" json:",omitempty"`
-	LastTransferAt   time.Time // `json:",omitempty"` - http://stackoverflow.com/questions/32643815/golang-json-omitempty-with-time-time-field
-	CountOfTransfers int       `json:",omitempty"` // Do not remove, need for hiding balance/history menu in Telegram
-	BalanceCount     int       `datastore:",noindex" json:"-"`
+	BalanceJson      string    `datastore:",noindex,omitempty" json:",omitempty"`
+	LastTransferID   int64     `datastore:",noindex,omitempty" json:",omitempty"`
+	LastTransferAt   time.Time `datastore:",noindex,omitempty"`           // `json:",omitempty"` - http://stackoverflow.com/questions/32643815/golang-json-omitempty-with-time-time-field
+	CountOfTransfers int       `datastore:",omitempty" json:",omitempty"` // Do not remove, need for hiding balance/history menu in Telegram
+	BalanceCount     int       `datastore:",noindex,omitempty" json:"-"`
 }
 
 func ReverseBalance(from Balanced) (reversed Balance, err error) {

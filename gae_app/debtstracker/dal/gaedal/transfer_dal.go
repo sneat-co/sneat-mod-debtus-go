@@ -151,10 +151,10 @@ func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context,
 			}
 		}
 
-		if transfer.AmountInCentsOutstanding > 0 {
+		if outstandingValue := transfer.GetOutstandingValue(); outstandingValue > 0 {
 			transfers = append(transfers, transfer)
 		} else {
-			warnings.WriteString(fmt.Sprintf("Transfer(id=%v).AmountInCentsOutstanding == %v && IsOutstanding==true\n", transfer.ID, transfer.AmountInCentsOutstanding))
+			warnings.WriteString(fmt.Sprintf("Transfer(id=%v).GetOutstandingValue() == %v && IsOutstanding==true\n", transfer.ID, outstandingValue))
 		}
 	}
 	if warnings.Len() > 0 {

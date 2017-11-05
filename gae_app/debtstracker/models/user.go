@@ -93,69 +93,71 @@ type AppUserEntity struct {
 
 	ContactDetails
 
-	DtAccessGranted time.Time `datastore:",noindex"`
+	DtAccessGranted            time.Time `datastore:",noindex,omitempty"`
 	Balanced
+	TransfersWithInterestCount int       `datastore:",noindex"`
+
 	SmsStats
-	DtCreated       time.Time
+	DtCreated time.Time
 	user.LastLogin
 
 	HasDueTransfers bool `datastore:",noindex"` // TODO: Check if we really need this prop and if yes document why
 
-	InvitedByUserID int64
+	InvitedByUserID int64 `datastore:",omitempty"`
 
 	user.Accounts
 
-	TelegramUserIDs    []int64                       // TODO: Obsolete
-	ViberBotID         string `datastore:",noindex"` // TODO: Obsolete
-	ViberUserID        string                        // TODO: Obsolete
-	VkUserID           int64                         // TODO: Obsolete
-	GoogleUniqueUserID string `datastore:",noindex"` // TODO: Obsolete
+	TelegramUserIDs    []int64                                 // TODO: Obsolete
+	ViberBotID         string `datastore:",noindex,omitempty"` // TODO: Obsolete
+	ViberUserID        string `datastore:",noindex,omitempty"` // TODO: Obsolete
+	VkUserID           int64  `datastore:",noindex,omitempty"` // TODO: Obsolete
+	GoogleUniqueUserID string `datastore:",noindex,omitempty"` // TODO: Obsolete
 	//FbUserID           string `datastore:",noindex"` // TODO: Obsolete Facebook assigns different IDs to same FB user for FB app & Messenger app.
 	//FbmUserID          string `datastore:",noindex"` // TODO: Obsolete So we would want to keep both IDs?
 	// TODO: How do we support multiple FBM bots? They will have different PSID (PageScopeID)
 
-	OBSOLETE_CounterpartyIDs []int64 `datastore:"CounterpartyIDs,noindex"` // TODO: Remove obsolete
+	OBSOLETE_CounterpartyIDs []int64 `datastore:"CounterpartyIDs,noindex,omitempty"` // TODO: Remove obsolete
 
-	ContactsCount int    `datastore:",noindex"` // TODO: Obsolete
-	ContactsJson  string `datastore:",noindex"` // TODO: Obsolete
+	ContactsCount int    `datastore:",noindex,omitempty"` // TODO: Obsolete
+	ContactsJson  string `datastore:",noindex,omitempty"` // TODO: Obsolete
 
-	ContactsCountActive   int `datastore:",noindex"`
-	ContactsCountArchived int `datastore:",noindex"`
+	ContactsCountActive   int `datastore:",noindex,omitempty"`
+	ContactsCountArchived int `datastore:",noindex,omitempty"`
 
-	ContactsJsonActive   string `datastore:",noindex"`
-	ContactsJsonArchived string `datastore:",noindex"`
+	ContactsJsonActive   string `datastore:",noindex,omitempty"`
+	ContactsJsonArchived string `datastore:",noindex,omitempty"`
 
-	GroupsCountActive   int `datastore:",noindex"`
-	GroupsCountArchived int `datastore:",noindex"`
+	GroupsCountActive   int `datastore:",noindex,omitempty"`
+	GroupsCountArchived int `datastore:",noindex,omitempty"`
 
-	GroupsJsonActive   string `datastore:",noindex"`
-	GroupsJsonArchived string `datastore:",noindex"`
+	GroupsJsonActive   string `datastore:",noindex,omitempty"`
+	GroupsJsonArchived string `datastore:",noindex,omitempty"`
 	//
 	billsHolder
 	//
-	BillsCountActive int    `datastore:",noindex"`
-	BillsJsonActive  string `datastore:",noindex"`
+	BillsCountActive int    `datastore:",noindex,omitempty"`
+	BillsJsonActive  string `datastore:",noindex,omitempty"`
 	//
-	BillSchedulesCountActive int    `datastore:",noindex"`
-	BillSchedulesJsonActive  string `datastore:",noindex"`
+	BillSchedulesCountActive int    `datastore:",noindex,omitempty"`
+	BillSchedulesJsonActive  string `datastore:",noindex,omitempty"`
 	//
 	//DebtCounterpartyIDs    []int64 `datastore:",noindex"`
 	//DebtCounterpartyCount  int     `datastore:",noindex"`
 	//
-	PreferredLanguage string   `datastore:",noindex"`
-	PrimaryCurrency   string   `datastore:",noindex"`
+	PreferredLanguage string   `datastore:",noindex,omitempty"`
+	PrimaryCurrency   string   `datastore:",noindex,omitempty"`
 	LastCurrencies    []string `datastore:",noindex"`
 	// Counts
-	CountOfInvitesCreated               int `datastore:",noindex"`
-	CountOfInvitesAccepted              int `datastore:",noindex"`
-	CountOfAckTransfersByUser           int `datastore:",noindex"` // Do not remove, need for hiding balance/history menu in Telegram
-	CountOfReceiptsCreated              int `datastore:",noindex"`
-	CountOfAckTransfersByCounterparties int `datastore:",noindex"` // Do not remove, need for hiding balance/history menu in Telegram
+	CountOfInvitesCreated               int `datastore:",noindex,omitempty"`
+	CountOfInvitesAccepted              int `datastore:",noindex,omitempty"`
+	CountOfAckTransfersByUser           int `datastore:",noindex,omitempty"` // Do not remove, need for hiding balance/history menu in Telegram
+	CountOfReceiptsCreated              int `datastore:",noindex,omitempty"`
+	CountOfAckTransfersByCounterparties int `datastore:",noindex,omitempty"` // Do not remove, need for hiding balance/history menu in Telegram
 
-	LastUserAgent     string    `datastore:",noindex"`
-	LastUserIpAddress string    `datastore:",noindex"`
-	LastFeedbackAt    time.Time `datastore:",noindex"`
-	LastFeedbackRate  string    `datastore:",noindex"`
+	LastUserAgent     string    `datastore:",noindex,omitempty"`
+	LastUserIpAddress string    `datastore:",noindex,omitempty"`
+	LastFeedbackAt    time.Time `datastore:",noindex,omitempty"`
+	LastFeedbackRate  string    `datastore:",noindex,omitempty"`
 }
 
 func (u *AppUserEntity) SetLastCurrency(v string) {
@@ -264,14 +266,15 @@ func (u AppUser) AddOrUpdateContact(c Contact) (changed bool) {
 	if u.ID != c.UserID {
 		panic(fmt.Sprintf("appUser.ID:%d != contact.UserID:%d", u.ID, c.UserID))
 	}
-	c2 := NewUserCountactJson(c.ID, c.Status, c.FullName(), c.Balanced)
+	c2 := NewUserContactJson(c.ID, c.Status, c.FullName(), c.Balanced)
+	c2.Transfers = c.GetTransfersInfo()
 	c2.TgUserID = c.TelegramUserID
 	contacts := u.Contacts()
 	found := false
 	for i, c1 := range contacts {
 		if c1.ID == c.ID {
 			found = true
-			if c1 != c2 {
+			if !c1.Equal(c2) {
 				contacts[i] = c2
 				changed = true
 			}
@@ -598,76 +601,79 @@ func (u *AppUserEntity) Load(ps []datastore.Property) (err error) {
 	return
 }
 
+var userPropertiesToClean = map[string]gaedb.IsOkToRemove{
+	"AA":              gaedb.IsObsolete,
+	"FmbUserID":       gaedb.IsObsolete,
+	"CounterpartyIDs": gaedb.IsObsolete,
+	//
+	"ContactsCount": gaedb.IsZeroInt,   // TODO: Obsolete
+	"ContactsJson":  gaedb.IsEmptyJson, // TODO: Obsolete
+	//
+	"GroupsCountActive":                   gaedb.IsZeroInt,
+	"GroupsJsonActive":                    gaedb.IsEmptyJson,
+	"GroupsCountArchived":                 gaedb.IsZeroInt,
+	"GroupsJsonArchived":                  gaedb.IsEmptyJson,
+	"BillsCountActive":                    gaedb.IsZeroInt,
+	"BillsJsonActive":                     gaedb.IsEmptyJson,
+	"BillSchedulesCountActive":            gaedb.IsZeroInt,
+	"BillSchedulesJsonActive":             gaedb.IsEmptyJson,
+	"BalanceCount":                        gaedb.IsZeroInt,
+	"BalanceJson":                         gaedb.IsEmptyString,
+	"CountOfAckTransfersByCounterparties": gaedb.IsZeroInt,
+	"CountOfAckTransfersByUser":           gaedb.IsZeroInt,
+	"CountOfInvitesAccepted":              gaedb.IsZeroInt,
+	"CountOfInvitesCreated":               gaedb.IsZeroInt,
+	"CountOfReceiptsCreated":              gaedb.IsZeroInt,
+	"CountOfTransfers":                    gaedb.IsZeroInt,
+	"ContactsCountActive":                 gaedb.IsZeroInt,
+	"ContactsJsonActive":                  gaedb.IsEmptyJson,
+	"ContactsCountArchived":               gaedb.IsZeroInt,
+	"ContactsJsonArchived":                gaedb.IsEmptyJson,
+	"DtAccessGranted":                     gaedb.IsZeroTime,
+	"EmailAddress":                        gaedb.IsEmptyString,
+	"EmailAddressOriginal":                gaedb.IsEmptyString,
+	"FirstName":                           gaedb.IsEmptyString,
+	"HasDueTransfers":                     gaedb.IsFalse,
+	"InvitedByUserID":                     gaedb.IsZeroInt,
+	"IsAnonymous":                         gaedb.IsFalse,
+	"LastName":                            gaedb.IsEmptyString,
+	"LastTransferAt":                      gaedb.IsZeroTime,
+	"LastTransferID":                      gaedb.IsZeroInt,
+	"LastFeedbackAt":                      gaedb.IsZeroTime,
+	"LastFeedbackRate":                    gaedb.IsEmptyString,
+	"LastUserAgent":                       gaedb.IsEmptyString,
+	"LastUserIpAddress":                   gaedb.IsEmptyString,
+	"Nickname":                            gaedb.IsEmptyString,
+	"PhoneNumber":                         gaedb.IsZeroInt,
+	"PhoneNumberConfirmed":                gaedb.IsFalse, // TODO: Duplicate of PhoneNumberIsConfirmed
+	"PhoneNumberIsConfirmed":              gaedb.IsFalse, // TODO: Duplicate of PhoneNumberConfirmed
+	"EmailConfirmed":                      gaedb.IsFalse,
+	"PreferredLanguage":                   gaedb.IsEmptyString,
+	"PrimaryCurrency":                     gaedb.IsEmptyString,
+	"ScreenName":                          gaedb.IsEmptyString,
+	"SmsCost":                             gaedb.IsZeroFloat,
+	"SmsCostUSD":                          gaedb.IsZeroInt,
+	"SmsCount":                            gaedb.IsZeroInt,
+	"Username":                            gaedb.IsEmptyString,
+	"VkUserID":                            gaedb.IsZeroInt,
+	"DtLastLogin":                         gaedb.IsZeroTime,
+	"PasswordBcryptHash":                  gaedb.IsObsolete,
+	"TransfersWithInterestCount":          gaedb.IsZeroInt,
+	//
+	"ViberBotID":         gaedb.IsObsolete,
+	"ViberUserID":        gaedb.IsObsolete,
+	"FbmUserID":          gaedb.IsObsolete,
+	"FbUserID":           gaedb.IsObsolete,
+	"FbUserIDs":          gaedb.IsObsolete,
+	"GoogleUniqueUserID": gaedb.IsObsolete,
+	"TelegramUserID":     gaedb.IsObsolete,
+	"TelegramUserIDs":    gaedb.IsObsolete,
+	//
+}
+
 func (u *AppUserEntity) cleanProps(properties []datastore.Property) ([]datastore.Property, error) {
 	var err error
-	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"AA":              gaedb.IsObsolete,
-		"FmbUserID":       gaedb.IsObsolete,
-		"CounterpartyIDs": gaedb.IsObsolete,
-		//
-		"ContactsCount": gaedb.IsZeroInt,   // TODO: Obsolete
-		"ContactsJson":  gaedb.IsEmptyJson, // TODO: Obsolete
-		//
-		"GroupsCountActive":                   gaedb.IsZeroInt,
-		"GroupsJsonActive":                    gaedb.IsEmptyJson,
-		"GroupsCountArchived":                 gaedb.IsZeroInt,
-		"GroupsJsonArchived":                  gaedb.IsEmptyJson,
-		"BillsCountActive":                    gaedb.IsZeroInt,
-		"BillsJsonActive":                     gaedb.IsEmptyJson,
-		"BillSchedulesCountActive":            gaedb.IsZeroInt,
-		"BillSchedulesJsonActive":             gaedb.IsEmptyJson,
-		"BalanceCount":                        gaedb.IsZeroInt,
-		"BalanceJson":                         gaedb.IsEmptyString,
-		"CountOfAckTransfersByCounterparties": gaedb.IsZeroInt,
-		"CountOfAckTransfersByUser":           gaedb.IsZeroInt,
-		"CountOfInvitesAccepted":              gaedb.IsZeroInt,
-		"CountOfInvitesCreated":               gaedb.IsZeroInt,
-		"CountOfReceiptsCreated":              gaedb.IsZeroInt,
-		"CountOfTransfers":                    gaedb.IsZeroInt,
-		"ContactsCountActive":                 gaedb.IsZeroInt,
-		"ContactsJsonActive":                  gaedb.IsEmptyJson,
-		"ContactsCountArchived":               gaedb.IsZeroInt,
-		"ContactsJsonArchived":                gaedb.IsEmptyJson,
-		"DtAccessGranted":                     gaedb.IsZeroTime,
-		"EmailAddress":                        gaedb.IsEmptyString,
-		"EmailAddressOriginal":                gaedb.IsEmptyString,
-		"FirstName":                           gaedb.IsEmptyString,
-		"HasDueTransfers":                     gaedb.IsFalse,
-		"InvitedByUserID":                     gaedb.IsZeroInt,
-		"IsAnonymous":                         gaedb.IsFalse,
-		"LastName":                            gaedb.IsEmptyString,
-		"LastTransferAt":                      gaedb.IsZeroTime,
-		"LastTransferID":                      gaedb.IsZeroInt,
-		"LastFeedbackAt":                      gaedb.IsZeroTime,
-		"LastFeedbackRate":                    gaedb.IsEmptyString,
-		"LastUserAgent":                       gaedb.IsEmptyString,
-		"LastUserIpAddress":                   gaedb.IsEmptyString,
-		"Nickname":                            gaedb.IsEmptyString,
-		"PhoneNumber":                         gaedb.IsZeroInt,
-		"PhoneNumberConfirmed":                gaedb.IsFalse, // TODO: Duplicate of PhoneNumberIsConfirmed
-		"PhoneNumberIsConfirmed":              gaedb.IsFalse, // TODO: Duplicate of PhoneNumberConfirmed
-		"EmailConfirmed":                      gaedb.IsFalse,
-		"PreferredLanguage":                   gaedb.IsEmptyString,
-		"PrimaryCurrency":                     gaedb.IsEmptyString,
-		"ScreenName":                          gaedb.IsEmptyString,
-		"SmsCost":                             gaedb.IsZeroFloat,
-		"SmsCostUSD":                          gaedb.IsZeroInt,
-		"SmsCount":                            gaedb.IsZeroInt,
-		"Username":                            gaedb.IsEmptyString,
-		"VkUserID":                            gaedb.IsZeroInt,
-		"DtLastLogin":                         gaedb.IsZeroTime,
-		"PasswordBcryptHash":                  gaedb.IsObsolete,
-		//
-		"ViberBotID":         gaedb.IsObsolete,
-		"ViberUserID":        gaedb.IsObsolete,
-		"FbmUserID":          gaedb.IsObsolete,
-		"FbUserID":           gaedb.IsObsolete,
-		"FbUserIDs":          gaedb.IsObsolete,
-		"GoogleUniqueUserID": gaedb.IsObsolete,
-		"TelegramUserID":     gaedb.IsObsolete,
-		"TelegramUserIDs":    gaedb.IsObsolete,
-		//
-	}); err != nil {
+	if properties, err = gaedb.CleanProperties(properties, userPropertiesToClean); err != nil {
 		return properties, err
 	}
 	if properties, err = u.UserRewardBalance.cleanProperties(properties); err != nil {
@@ -691,6 +697,8 @@ func (u *AppUserEntity) Save() (properties []datastore.Property, err error) {
 
 	contactsByName := make(map[string]int, contactsCount)
 	contactsByTgUserID := make(map[int64]int, contactsCount)
+
+	u.TransfersWithInterestCount = 0
 	for i, contact := range contacts {
 		if contact.ID == 0 {
 			panic(fmt.Sprintf("contact[%d].ID == 0, contact: %v, contacts: %v", i, contact, contacts))
@@ -713,6 +721,9 @@ func (u *AppUserEntity) Save() (properties []datastore.Property, err error) {
 			}
 			contactsByTgUserID[contact.TgUserID] = i
 		}
+		if contact.Transfers != nil {
+			u.TransfersWithInterestCount += len(contact.Transfers.OutstandingWithInterest)
+		}
 	}
 
 	u.SavedCounter += 1
@@ -725,4 +736,38 @@ func (u *AppUserEntity) Save() (properties []datastore.Property, err error) {
 
 	checkHasProperties(AppUserKind, properties)
 	return properties, err
+}
+
+func (u *AppUserEntity) BalanceWithInterest() (balance Balance) {
+	if u.TransfersWithInterestCount == 0 {
+		var err error
+		if balance, err = u.Balance(); err != nil {
+			panic(err)
+		}
+	} else if u.TransfersWithInterestCount > 0 {
+		var (
+			userBalance Balance
+			err error
+		)
+		if userBalance, err = u.Balance(); err != nil {
+			panic(errors.WithMessage(err, "failed to get user total balance"))
+		}
+		balance = make(Balance, u.BalanceCount)
+		for _, contact := range u.Contacts() {
+			for currency, value := range contact.BalanceWithInterest(nil) {
+				balance[currency] += value
+			}
+		}
+		if len(balance) != u.BalanceCount {
+			panic(fmt.Sprintf("len(balance) != u.BalanceCount: %v != %v", len(balance), u.BalanceCount))
+		}
+		for c, v := range balance {
+			if tv := userBalance[c]; v < tv {
+				panic(fmt.Sprintf("For currency %v balance with interest is less then total balance: %v < %v", c, v, tv))
+			}
+		}
+	} else {
+		panic(fmt.Sprintf("TransfersWithInterestCount > 0: %v", u.TransfersWithInterestCount))
+	}
+	return
 }

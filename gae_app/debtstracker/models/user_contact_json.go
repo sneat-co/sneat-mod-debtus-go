@@ -8,26 +8,91 @@ import (
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"time"
+	"github.com/strongo/decimal"
+	"golang.org/x/net/context"
 )
 
 type LastTransfer struct {
-	ID int64
-	At time.Time
+	ID int64     `datastore:"LastTransferID,noindex""`
+	At time.Time `datastore:"LastTransferAt,noindex""`
 }
 
-type UserCounterpartyTransfersInfo struct {
-	Count int
-	Last  LastTransfer
+type TransferWithInterestJson struct {
+	TransferInterest
+	TransferID int64
+	Starts     time.Time
+	Currency   Currency
+	Amount     decimal.Decimal64p2
+	Returns    []TransferReturnJson `json:",omitempty"`
+}
+
+func (t TransferWithInterestJson) Equal(t2 TransferWithInterestJson) bool {
+	if t.TransferInterest != t2.TransferInterest ||
+		t.TransferID != t2.TransferID ||
+		t.Starts != t2.Starts ||
+		t.Currency != t2.Currency ||
+		t.Amount != t2.Amount ||
+		len(t.Returns) != len(t2.Returns) {
+		return false
+	}
+	for i, r := range t.Returns {
+		if r != t2.Returns[i] {
+			return false
+		}
+	}
+	return true
+}
+
+var _ = TransferInterestCalculable(TransferWithInterestJson{})
+
+func (t TransferWithInterestJson) GetLendingValue() decimal.Decimal64p2 {
+	return t.Amount
+}
+
+func (t TransferWithInterestJson) GetStartDate() time.Time {
+	return t.Starts
+}
+
+func (t TransferWithInterestJson) GetReturns() (returns []TransferReturnJson) {
+	return t.Returns
+}
+
+type UserContactTransfersInfo struct {
+	Count                   int                        `json:",omitempty"`
+	Last                    LastTransfer               `json:",omitempty"`
+	OutstandingWithInterest []TransferWithInterestJson `json:",omitempty"`
+}
+
+func (o *UserContactTransfersInfo) Equal(o2 *UserContactTransfersInfo) bool {
+	if o2 == nil || o.Count != o2.Count || o.Last != o2.Last || len(o.OutstandingWithInterest) != len(o2.OutstandingWithInterest) {
+		return false
+	}
+	for i, t := range o.OutstandingWithInterest {
+		if !t.Equal(o2.OutstandingWithInterest[i]) {
+			return false
+		}
+	}
+	return true
 }
 
 type UserContactJson struct {
 	ID          int64
 	Name        string
-	Status      string                         `json:",omitempty"`
-	UserID      int64                          `json:",omitempty"` // TODO: new prop, update in map reduce and change code!
-	TgUserID    int64                          `json:",omitempty"`
-	BalanceJson *json.RawMessage               `json:"Balance,omitempty"`
-	Transfers   *UserCounterpartyTransfersInfo `json:",omitempty"`
+	Status      string                    `json:",omitempty"`
+	UserID      int64                     `json:",omitempty"` // TODO: new prop, update in map reduce and change code!
+	TgUserID    int64                     `json:",omitempty"`
+	BalanceJson *json.RawMessage          `json:"Balance,omitempty"`
+	Transfers   *UserContactTransfersInfo `json:",omitempty"`
+}
+
+func (o UserContactJson) Equal(o2 UserContactJson) bool {
+	return o.ID == o2.ID &&
+		o.Name == o2.Name &&
+		o.Status == o2.Status &&
+		o.UserID == o2.UserID &&
+		o.TgUserID == o2.TgUserID &&
+		((o.BalanceJson == nil && o2.BalanceJson == nil) || (o.BalanceJson != nil && o2.BalanceJson != nil && string(*o.BalanceJson) == string(*o2.BalanceJson))) &&
+		((o.Transfers == nil && o2.Transfers == nil) || (o.Transfers != nil && o2.Transfers != nil && o.Transfers.Equal(o2.Transfers)))
 }
 
 func (o UserContactJson) Balance() (balance Balance, err error) {
@@ -41,7 +106,30 @@ func (o UserContactJson) Balance() (balance Balance, err error) {
 	return
 }
 
-func NewUserCountactJson(counterpartyID int64, status, name string, balanced Balanced) UserContactJson {
+func (o UserContactJson) BalanceWithInterest(c context.Context) (balance Balance) {
+	var err error
+	if balance, err = o.Balance(); err != nil {
+		panic(err)
+	}
+	if o.Transfers != nil {
+		updateBalanceWithInterest(balance, o.Transfers.OutstandingWithInterest)
+	}
+	return
+}
+
+func updateBalanceWithInterest(b Balance, outstandingWithInterest []TransferWithInterestJson) {
+	for _, outstandingTransferWithInterest := range outstandingWithInterest {
+		balanceValue, ok := b[outstandingTransferWithInterest.Currency]
+		if ok {
+			interestValue := CalculateInterestValue(outstandingTransferWithInterest)
+			b[outstandingTransferWithInterest.Currency] = balanceValue + interestValue
+		} else {
+			panic(fmt.Errorf("outstanding transfer %v with currency %v is not presented in balance", outstandingTransferWithInterest.TransferID, outstandingTransferWithInterest.Currency))
+		}
+	}
+}
+
+func NewUserContactJson(counterpartyID int64, status, name string, balanced Balanced) UserContactJson {
 	result := UserContactJson{
 		ID:     counterpartyID,
 		Status: status,
@@ -58,7 +146,7 @@ func NewUserCountactJson(counterpartyID int64, status, name string, balanced Bal
 		if balanced.LastTransferAt.IsZero() {
 			panic(fmt.Sprintf("balanced.CountOfTransfers:%v != 0 && balanced.LastTransferAt.IsZero():true", balanced.CountOfTransfers))
 		}
-		result.Transfers = &UserCounterpartyTransfersInfo{
+		result.Transfers = &UserContactTransfersInfo{
 			Count: balanced.CountOfTransfers,
 			Last: LastTransfer{
 				ID: balanced.LastTransferID,

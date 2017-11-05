@@ -269,6 +269,746 @@ done:
 }
 
 // MarshalJSON marshal bytes to json - template
+func (j *TransferWithInterestJson) MarshalJSON() ([]byte, error) {
+	var buf fflib.Buffer
+	if j == nil {
+		buf.WriteString("null")
+		return buf.Bytes(), nil
+	}
+	err := j.MarshalJSONBuf(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// MarshalJSONBuf marshal buff to json - template
+func (j *TransferWithInterestJson) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
+	if j == nil {
+		buf.WriteString("null")
+		return nil
+	}
+	var err error
+	var obj []byte
+	_ = obj
+	_ = err
+	buf.WriteString(`{ "TransferID":`)
+	fflib.FormatBits2(buf, uint64(j.TransferID), 10, j.TransferID < 0)
+	buf.WriteString(`,"Starts":`)
+
+	{
+
+		obj, err = j.Starts.MarshalJSON()
+		if err != nil {
+			return err
+		}
+		buf.Write(obj)
+
+	}
+	buf.WriteString(`,"Currency":`)
+	fflib.WriteJsonString(buf, string(j.Currency))
+	buf.WriteString(`,"Amount":`)
+
+	{
+
+		obj, err = j.Amount.MarshalJSON()
+		if err != nil {
+			return err
+		}
+		buf.Write(obj)
+
+	}
+	buf.WriteByte(',')
+	if len(j.Returns) != 0 {
+		buf.WriteString(`"Returns":`)
+		if j.Returns != nil {
+			buf.WriteString(`[`)
+			for i, v := range j.Returns {
+				if i != 0 {
+					buf.WriteString(`,`)
+				}
+
+				{
+
+					err = v.MarshalJSONBuf(buf)
+					if err != nil {
+						return err
+					}
+
+				}
+			}
+			buf.WriteString(`]`)
+		} else {
+			buf.WriteString(`null`)
+		}
+		buf.WriteByte(',')
+	}
+	buf.WriteString(`"InterestType":`)
+	fflib.WriteJsonString(buf, string(j.InterestType))
+	buf.WriteString(`,"InterestPeriod":`)
+	fflib.FormatBits2(buf, uint64(j.InterestPeriod), 10, j.InterestPeriod < 0)
+	buf.WriteString(`,"InterestPercent":`)
+
+	{
+
+		obj, err = j.InterestPercent.MarshalJSON()
+		if err != nil {
+			return err
+		}
+		buf.Write(obj)
+
+	}
+	buf.WriteByte(',')
+	if j.InterestGracePeriod != 0 {
+		buf.WriteString(`"InterestGracePeriod":`)
+		fflib.FormatBits2(buf, uint64(j.InterestGracePeriod), 10, j.InterestGracePeriod < 0)
+		buf.WriteByte(',')
+	}
+	if j.InterestMinimumPeriod != 0 {
+		buf.WriteString(`"InterestMinimumPeriod":`)
+		fflib.FormatBits2(buf, uint64(j.InterestMinimumPeriod), 10, j.InterestMinimumPeriod < 0)
+		buf.WriteByte(',')
+	}
+	buf.Rewind(1)
+	buf.WriteByte('}')
+	return nil
+}
+
+const (
+	ffjtTransferWithInterestJsonbase = iota
+	ffjtTransferWithInterestJsonnosuchkey
+
+	ffjtTransferWithInterestJsonTransferID
+
+	ffjtTransferWithInterestJsonStarts
+
+	ffjtTransferWithInterestJsonCurrency
+
+	ffjtTransferWithInterestJsonAmount
+
+	ffjtTransferWithInterestJsonReturns
+
+	ffjtTransferWithInterestJsonInterestType
+
+	ffjtTransferWithInterestJsonInterestPeriod
+
+	ffjtTransferWithInterestJsonInterestPercent
+
+	ffjtTransferWithInterestJsonInterestGracePeriod
+
+	ffjtTransferWithInterestJsonInterestMinimumPeriod
+)
+
+var ffjKeyTransferWithInterestJsonTransferID = []byte("TransferID")
+
+var ffjKeyTransferWithInterestJsonStarts = []byte("Starts")
+
+var ffjKeyTransferWithInterestJsonCurrency = []byte("Currency")
+
+var ffjKeyTransferWithInterestJsonAmount = []byte("Amount")
+
+var ffjKeyTransferWithInterestJsonReturns = []byte("Returns")
+
+var ffjKeyTransferWithInterestJsonInterestType = []byte("InterestType")
+
+var ffjKeyTransferWithInterestJsonInterestPeriod = []byte("InterestPeriod")
+
+var ffjKeyTransferWithInterestJsonInterestPercent = []byte("InterestPercent")
+
+var ffjKeyTransferWithInterestJsonInterestGracePeriod = []byte("InterestGracePeriod")
+
+var ffjKeyTransferWithInterestJsonInterestMinimumPeriod = []byte("InterestMinimumPeriod")
+
+// UnmarshalJSON umarshall json - template of ffjson
+func (j *TransferWithInterestJson) UnmarshalJSON(input []byte) error {
+	fs := fflib.NewFFLexer(input)
+	return j.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
+}
+
+// UnmarshalJSONFFLexer fast json unmarshall - template ffjson
+func (j *TransferWithInterestJson) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
+	var err error
+	currentKey := ffjtTransferWithInterestJsonbase
+	_ = currentKey
+	tok := fflib.FFTok_init
+	wantedTok := fflib.FFTok_init
+
+mainparse:
+	for {
+		tok = fs.Scan()
+		//	println(fmt.Sprintf("debug: tok: %v  state: %v", tok, state))
+		if tok == fflib.FFTok_error {
+			goto tokerror
+		}
+
+		switch state {
+
+		case fflib.FFParse_map_start:
+			if tok != fflib.FFTok_left_bracket {
+				wantedTok = fflib.FFTok_left_bracket
+				goto wrongtokenerror
+			}
+			state = fflib.FFParse_want_key
+			continue
+
+		case fflib.FFParse_after_value:
+			if tok == fflib.FFTok_comma {
+				state = fflib.FFParse_want_key
+			} else if tok == fflib.FFTok_right_bracket {
+				goto done
+			} else {
+				wantedTok = fflib.FFTok_comma
+				goto wrongtokenerror
+			}
+
+		case fflib.FFParse_want_key:
+			// json {} ended. goto exit. woo.
+			if tok == fflib.FFTok_right_bracket {
+				goto done
+			}
+			if tok != fflib.FFTok_string {
+				wantedTok = fflib.FFTok_string
+				goto wrongtokenerror
+			}
+
+			kn := fs.Output.Bytes()
+			if len(kn) <= 0 {
+				// "" case. hrm.
+				currentKey = ffjtTransferWithInterestJsonnosuchkey
+				state = fflib.FFParse_want_colon
+				goto mainparse
+			} else {
+				switch kn[0] {
+
+				case 'A':
+
+					if bytes.Equal(ffjKeyTransferWithInterestJsonAmount, kn) {
+						currentKey = ffjtTransferWithInterestJsonAmount
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 'C':
+
+					if bytes.Equal(ffjKeyTransferWithInterestJsonCurrency, kn) {
+						currentKey = ffjtTransferWithInterestJsonCurrency
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 'I':
+
+					if bytes.Equal(ffjKeyTransferWithInterestJsonInterestType, kn) {
+						currentKey = ffjtTransferWithInterestJsonInterestType
+						state = fflib.FFParse_want_colon
+						goto mainparse
+
+					} else if bytes.Equal(ffjKeyTransferWithInterestJsonInterestPeriod, kn) {
+						currentKey = ffjtTransferWithInterestJsonInterestPeriod
+						state = fflib.FFParse_want_colon
+						goto mainparse
+
+					} else if bytes.Equal(ffjKeyTransferWithInterestJsonInterestPercent, kn) {
+						currentKey = ffjtTransferWithInterestJsonInterestPercent
+						state = fflib.FFParse_want_colon
+						goto mainparse
+
+					} else if bytes.Equal(ffjKeyTransferWithInterestJsonInterestGracePeriod, kn) {
+						currentKey = ffjtTransferWithInterestJsonInterestGracePeriod
+						state = fflib.FFParse_want_colon
+						goto mainparse
+
+					} else if bytes.Equal(ffjKeyTransferWithInterestJsonInterestMinimumPeriod, kn) {
+						currentKey = ffjtTransferWithInterestJsonInterestMinimumPeriod
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 'R':
+
+					if bytes.Equal(ffjKeyTransferWithInterestJsonReturns, kn) {
+						currentKey = ffjtTransferWithInterestJsonReturns
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 'S':
+
+					if bytes.Equal(ffjKeyTransferWithInterestJsonStarts, kn) {
+						currentKey = ffjtTransferWithInterestJsonStarts
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 'T':
+
+					if bytes.Equal(ffjKeyTransferWithInterestJsonTransferID, kn) {
+						currentKey = ffjtTransferWithInterestJsonTransferID
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				}
+
+				if fflib.EqualFoldRight(ffjKeyTransferWithInterestJsonInterestMinimumPeriod, kn) {
+					currentKey = ffjtTransferWithInterestJsonInterestMinimumPeriod
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.EqualFoldRight(ffjKeyTransferWithInterestJsonInterestGracePeriod, kn) {
+					currentKey = ffjtTransferWithInterestJsonInterestGracePeriod
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.EqualFoldRight(ffjKeyTransferWithInterestJsonInterestPercent, kn) {
+					currentKey = ffjtTransferWithInterestJsonInterestPercent
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.EqualFoldRight(ffjKeyTransferWithInterestJsonInterestPeriod, kn) {
+					currentKey = ffjtTransferWithInterestJsonInterestPeriod
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.EqualFoldRight(ffjKeyTransferWithInterestJsonInterestType, kn) {
+					currentKey = ffjtTransferWithInterestJsonInterestType
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.EqualFoldRight(ffjKeyTransferWithInterestJsonReturns, kn) {
+					currentKey = ffjtTransferWithInterestJsonReturns
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.SimpleLetterEqualFold(ffjKeyTransferWithInterestJsonAmount, kn) {
+					currentKey = ffjtTransferWithInterestJsonAmount
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.SimpleLetterEqualFold(ffjKeyTransferWithInterestJsonCurrency, kn) {
+					currentKey = ffjtTransferWithInterestJsonCurrency
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.EqualFoldRight(ffjKeyTransferWithInterestJsonStarts, kn) {
+					currentKey = ffjtTransferWithInterestJsonStarts
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.EqualFoldRight(ffjKeyTransferWithInterestJsonTransferID, kn) {
+					currentKey = ffjtTransferWithInterestJsonTransferID
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				currentKey = ffjtTransferWithInterestJsonnosuchkey
+				state = fflib.FFParse_want_colon
+				goto mainparse
+			}
+
+		case fflib.FFParse_want_colon:
+			if tok != fflib.FFTok_colon {
+				wantedTok = fflib.FFTok_colon
+				goto wrongtokenerror
+			}
+			state = fflib.FFParse_want_value
+			continue
+		case fflib.FFParse_want_value:
+
+			if tok == fflib.FFTok_left_brace || tok == fflib.FFTok_left_bracket || tok == fflib.FFTok_integer || tok == fflib.FFTok_double || tok == fflib.FFTok_string || tok == fflib.FFTok_bool || tok == fflib.FFTok_null {
+				switch currentKey {
+
+				case ffjtTransferWithInterestJsonTransferID:
+					goto handle_TransferID
+
+				case ffjtTransferWithInterestJsonStarts:
+					goto handle_Starts
+
+				case ffjtTransferWithInterestJsonCurrency:
+					goto handle_Currency
+
+				case ffjtTransferWithInterestJsonAmount:
+					goto handle_Amount
+
+				case ffjtTransferWithInterestJsonReturns:
+					goto handle_Returns
+
+				case ffjtTransferWithInterestJsonInterestType:
+					goto handle_InterestType
+
+				case ffjtTransferWithInterestJsonInterestPeriod:
+					goto handle_InterestPeriod
+
+				case ffjtTransferWithInterestJsonInterestPercent:
+					goto handle_InterestPercent
+
+				case ffjtTransferWithInterestJsonInterestGracePeriod:
+					goto handle_InterestGracePeriod
+
+				case ffjtTransferWithInterestJsonInterestMinimumPeriod:
+					goto handle_InterestMinimumPeriod
+
+				case ffjtTransferWithInterestJsonnosuchkey:
+					err = fs.SkipField(tok)
+					if err != nil {
+						return fs.WrapErr(err)
+					}
+					state = fflib.FFParse_after_value
+					goto mainparse
+				}
+			} else {
+				goto wantedvalue
+			}
+		}
+	}
+
+handle_TransferID:
+
+	/* handler: j.TransferID type=int64 kind=int64 quoted=false*/
+
+	{
+		if tok != fflib.FFTok_integer && tok != fflib.FFTok_null {
+			return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for int64", tok))
+		}
+	}
+
+	{
+
+		if tok == fflib.FFTok_null {
+
+		} else {
+
+			tval, err := fflib.ParseInt(fs.Output.Bytes(), 10, 64)
+
+			if err != nil {
+				return fs.WrapErr(err)
+			}
+
+			j.TransferID = int64(tval)
+
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_Starts:
+
+	/* handler: j.Starts type=time.Time kind=struct quoted=false*/
+
+	{
+		if tok == fflib.FFTok_null {
+
+			state = fflib.FFParse_after_value
+			goto mainparse
+		}
+
+		tbuf, err := fs.CaptureField(tok)
+		if err != nil {
+			return fs.WrapErr(err)
+		}
+
+		err = j.Starts.UnmarshalJSON(tbuf)
+		if err != nil {
+			return fs.WrapErr(err)
+		}
+		state = fflib.FFParse_after_value
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_Currency:
+
+	/* handler: j.Currency type=models.Currency kind=string quoted=false*/
+
+	{
+
+		{
+			if tok != fflib.FFTok_string && tok != fflib.FFTok_null {
+				return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for Currency", tok))
+			}
+		}
+
+		if tok == fflib.FFTok_null {
+
+		} else {
+
+			outBuf := fs.Output.Bytes()
+
+			j.Currency = Currency(string(outBuf))
+
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_Amount:
+
+	/* handler: j.Amount type=decimal.Decimal64p2 kind=int64 quoted=false*/
+
+	{
+		if tok == fflib.FFTok_null {
+
+			state = fflib.FFParse_after_value
+			goto mainparse
+		}
+
+		tbuf, err := fs.CaptureField(tok)
+		if err != nil {
+			return fs.WrapErr(err)
+		}
+
+		err = j.Amount.UnmarshalJSON(tbuf)
+		if err != nil {
+			return fs.WrapErr(err)
+		}
+		state = fflib.FFParse_after_value
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_Returns:
+
+	/* handler: j.Returns type=[]models.TransferReturnJson kind=slice quoted=false*/
+
+	{
+
+		{
+			if tok != fflib.FFTok_left_brace && tok != fflib.FFTok_null {
+				return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for ", tok))
+			}
+		}
+
+		if tok == fflib.FFTok_null {
+			j.Returns = nil
+		} else {
+
+			j.Returns = []TransferReturnJson{}
+
+			wantVal := true
+
+			for {
+
+				var tmpJReturns TransferReturnJson
+
+				tok = fs.Scan()
+				if tok == fflib.FFTok_error {
+					goto tokerror
+				}
+				if tok == fflib.FFTok_right_brace {
+					break
+				}
+
+				if tok == fflib.FFTok_comma {
+					if wantVal == true {
+						// TODO(pquerna): this isn't an ideal error message, this handles
+						// things like [,,,] as an array value.
+						return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
+					}
+					continue
+				} else {
+					wantVal = true
+				}
+
+				/* handler: tmpJReturns type=models.TransferReturnJson kind=struct quoted=false*/
+
+				{
+					if tok == fflib.FFTok_null {
+
+						state = fflib.FFParse_after_value
+						goto mainparse
+					}
+
+					err = tmpJReturns.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+					if err != nil {
+						return err
+					}
+					state = fflib.FFParse_after_value
+				}
+
+				j.Returns = append(j.Returns, tmpJReturns)
+
+				wantVal = false
+			}
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_InterestType:
+
+	/* handler: j.InterestType type=models.InterestPercentType kind=string quoted=false*/
+
+	{
+
+		{
+			if tok != fflib.FFTok_string && tok != fflib.FFTok_null {
+				return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for InterestPercentType", tok))
+			}
+		}
+
+		if tok == fflib.FFTok_null {
+
+		} else {
+
+			outBuf := fs.Output.Bytes()
+
+			j.InterestType = InterestPercentType(string(outBuf))
+
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_InterestPeriod:
+
+	/* handler: j.InterestPeriod type=int kind=int quoted=false*/
+
+	{
+		if tok != fflib.FFTok_integer && tok != fflib.FFTok_null {
+			return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for int", tok))
+		}
+	}
+
+	{
+
+		if tok == fflib.FFTok_null {
+
+		} else {
+
+			tval, err := fflib.ParseInt(fs.Output.Bytes(), 10, 64)
+
+			if err != nil {
+				return fs.WrapErr(err)
+			}
+
+			j.InterestPeriod = int(tval)
+
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_InterestPercent:
+
+	/* handler: j.InterestPercent type=decimal.Decimal64p2 kind=int64 quoted=false*/
+
+	{
+		if tok == fflib.FFTok_null {
+
+			state = fflib.FFParse_after_value
+			goto mainparse
+		}
+
+		tbuf, err := fs.CaptureField(tok)
+		if err != nil {
+			return fs.WrapErr(err)
+		}
+
+		err = j.InterestPercent.UnmarshalJSON(tbuf)
+		if err != nil {
+			return fs.WrapErr(err)
+		}
+		state = fflib.FFParse_after_value
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_InterestGracePeriod:
+
+	/* handler: j.InterestGracePeriod type=int kind=int quoted=false*/
+
+	{
+		if tok != fflib.FFTok_integer && tok != fflib.FFTok_null {
+			return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for int", tok))
+		}
+	}
+
+	{
+
+		if tok == fflib.FFTok_null {
+
+		} else {
+
+			tval, err := fflib.ParseInt(fs.Output.Bytes(), 10, 64)
+
+			if err != nil {
+				return fs.WrapErr(err)
+			}
+
+			j.InterestGracePeriod = int(tval)
+
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_InterestMinimumPeriod:
+
+	/* handler: j.InterestMinimumPeriod type=int kind=int quoted=false*/
+
+	{
+		if tok != fflib.FFTok_integer && tok != fflib.FFTok_null {
+			return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for int", tok))
+		}
+	}
+
+	{
+
+		if tok == fflib.FFTok_null {
+
+		} else {
+
+			tval, err := fflib.ParseInt(fs.Output.Bytes(), 10, 64)
+
+			if err != nil {
+				return fs.WrapErr(err)
+			}
+
+			j.InterestMinimumPeriod = int(tval)
+
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+wantedvalue:
+	return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
+wrongtokenerror:
+	return fs.WrapErr(fmt.Errorf("ffjson: wanted token: %v, but got token: %v output=%s", wantedTok, tok, fs.Output.String()))
+tokerror:
+	if fs.BigError != nil {
+		return fs.WrapErr(fs.BigError)
+	}
+	err = fs.Error.ToError()
+	if err != nil {
+		return fs.WrapErr(err)
+	}
+	panic("ffjson-generated: unreachable, please report bug.")
+done:
+
+	return nil
+}
+
+// MarshalJSON marshal bytes to json - template
 func (j *UserContactJson) MarshalJSON() ([]byte, error) {
 	var buf fflib.Buffer
 	if j == nil {
@@ -767,7 +1507,7 @@ handle_BalanceJson:
 
 handle_Transfers:
 
-	/* handler: j.Transfers type=models.UserCounterpartyTransfersInfo kind=struct quoted=false*/
+	/* handler: j.Transfers type=models.UserContactTransfersInfo kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -779,7 +1519,7 @@ handle_Transfers:
 		}
 
 		if j.Transfers == nil {
-			j.Transfers = new(UserCounterpartyTransfersInfo)
+			j.Transfers = new(UserContactTransfersInfo)
 		}
 
 		err = j.Transfers.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
@@ -811,7 +1551,7 @@ done:
 }
 
 // MarshalJSON marshal bytes to json - template
-func (j *UserCounterpartyTransfersInfo) MarshalJSON() ([]byte, error) {
+func (j *UserContactTransfersInfo) MarshalJSON() ([]byte, error) {
 	var buf fflib.Buffer
 	if j == nil {
 		buf.WriteString("null")
@@ -825,7 +1565,7 @@ func (j *UserCounterpartyTransfersInfo) MarshalJSON() ([]byte, error) {
 }
 
 // MarshalJSONBuf marshal buff to json - template
-func (j *UserCounterpartyTransfersInfo) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
+func (j *UserContactTransfersInfo) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	if j == nil {
 		buf.WriteString("null")
 		return nil
@@ -834,45 +1574,81 @@ func (j *UserCounterpartyTransfersInfo) MarshalJSONBuf(buf fflib.EncodingBuffer)
 	var obj []byte
 	_ = obj
 	_ = err
-	buf.WriteString(`{"Count":`)
-	fflib.FormatBits2(buf, uint64(j.Count), 10, j.Count < 0)
-	buf.WriteString(`,"Last":`)
-
-	{
-
-		err = j.Last.MarshalJSONBuf(buf)
-		if err != nil {
-			return err
-		}
-
+	buf.WriteString(`{ `)
+	if j.Count != 0 {
+		buf.WriteString(`"Count":`)
+		fflib.FormatBits2(buf, uint64(j.Count), 10, j.Count < 0)
+		buf.WriteByte(',')
 	}
+	if true {
+		buf.WriteString(`"Last":`)
+
+		{
+
+			err = j.Last.MarshalJSONBuf(buf)
+			if err != nil {
+				return err
+			}
+
+		}
+		buf.WriteByte(',')
+	}
+	if len(j.OutstandingWithInterest) != 0 {
+		buf.WriteString(`"OutstandingWithInterest":`)
+		if j.OutstandingWithInterest != nil {
+			buf.WriteString(`[`)
+			for i, v := range j.OutstandingWithInterest {
+				if i != 0 {
+					buf.WriteString(`,`)
+				}
+
+				{
+
+					err = v.MarshalJSONBuf(buf)
+					if err != nil {
+						return err
+					}
+
+				}
+			}
+			buf.WriteString(`]`)
+		} else {
+			buf.WriteString(`null`)
+		}
+		buf.WriteByte(',')
+	}
+	buf.Rewind(1)
 	buf.WriteByte('}')
 	return nil
 }
 
 const (
-	ffjtUserCounterpartyTransfersInfobase = iota
-	ffjtUserCounterpartyTransfersInfonosuchkey
+	ffjtUserContactTransfersInfobase = iota
+	ffjtUserContactTransfersInfonosuchkey
 
-	ffjtUserCounterpartyTransfersInfoCount
+	ffjtUserContactTransfersInfoCount
 
-	ffjtUserCounterpartyTransfersInfoLast
+	ffjtUserContactTransfersInfoLast
+
+	ffjtUserContactTransfersInfoOutstandingWithInterest
 )
 
-var ffjKeyUserCounterpartyTransfersInfoCount = []byte("Count")
+var ffjKeyUserContactTransfersInfoCount = []byte("Count")
 
-var ffjKeyUserCounterpartyTransfersInfoLast = []byte("Last")
+var ffjKeyUserContactTransfersInfoLast = []byte("Last")
+
+var ffjKeyUserContactTransfersInfoOutstandingWithInterest = []byte("OutstandingWithInterest")
 
 // UnmarshalJSON umarshall json - template of ffjson
-func (j *UserCounterpartyTransfersInfo) UnmarshalJSON(input []byte) error {
+func (j *UserContactTransfersInfo) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
 	return j.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
 }
 
 // UnmarshalJSONFFLexer fast json unmarshall - template ffjson
-func (j *UserCounterpartyTransfersInfo) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
+func (j *UserContactTransfersInfo) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
 	var err error
-	currentKey := ffjtUserCounterpartyTransfersInfobase
+	currentKey := ffjtUserContactTransfersInfobase
 	_ = currentKey
 	tok := fflib.FFTok_init
 	wantedTok := fflib.FFTok_init
@@ -918,7 +1694,7 @@ mainparse:
 			kn := fs.Output.Bytes()
 			if len(kn) <= 0 {
 				// "" case. hrm.
-				currentKey = ffjtUserCounterpartyTransfersInfonosuchkey
+				currentKey = ffjtUserContactTransfersInfonosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			} else {
@@ -926,35 +1702,49 @@ mainparse:
 
 				case 'C':
 
-					if bytes.Equal(ffjKeyUserCounterpartyTransfersInfoCount, kn) {
-						currentKey = ffjtUserCounterpartyTransfersInfoCount
+					if bytes.Equal(ffjKeyUserContactTransfersInfoCount, kn) {
+						currentKey = ffjtUserContactTransfersInfoCount
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				case 'L':
 
-					if bytes.Equal(ffjKeyUserCounterpartyTransfersInfoLast, kn) {
-						currentKey = ffjtUserCounterpartyTransfersInfoLast
+					if bytes.Equal(ffjKeyUserContactTransfersInfoLast, kn) {
+						currentKey = ffjtUserContactTransfersInfoLast
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 'O':
+
+					if bytes.Equal(ffjKeyUserContactTransfersInfoOutstandingWithInterest, kn) {
+						currentKey = ffjtUserContactTransfersInfoOutstandingWithInterest
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				}
 
-				if fflib.EqualFoldRight(ffjKeyUserCounterpartyTransfersInfoLast, kn) {
-					currentKey = ffjtUserCounterpartyTransfersInfoLast
+				if fflib.EqualFoldRight(ffjKeyUserContactTransfersInfoOutstandingWithInterest, kn) {
+					currentKey = ffjtUserContactTransfersInfoOutstandingWithInterest
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.SimpleLetterEqualFold(ffjKeyUserCounterpartyTransfersInfoCount, kn) {
-					currentKey = ffjtUserCounterpartyTransfersInfoCount
+				if fflib.EqualFoldRight(ffjKeyUserContactTransfersInfoLast, kn) {
+					currentKey = ffjtUserContactTransfersInfoLast
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				currentKey = ffjtUserCounterpartyTransfersInfonosuchkey
+				if fflib.SimpleLetterEqualFold(ffjKeyUserContactTransfersInfoCount, kn) {
+					currentKey = ffjtUserContactTransfersInfoCount
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				currentKey = ffjtUserContactTransfersInfonosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			}
@@ -971,13 +1761,16 @@ mainparse:
 			if tok == fflib.FFTok_left_brace || tok == fflib.FFTok_left_bracket || tok == fflib.FFTok_integer || tok == fflib.FFTok_double || tok == fflib.FFTok_string || tok == fflib.FFTok_bool || tok == fflib.FFTok_null {
 				switch currentKey {
 
-				case ffjtUserCounterpartyTransfersInfoCount:
+				case ffjtUserContactTransfersInfoCount:
 					goto handle_Count
 
-				case ffjtUserCounterpartyTransfersInfoLast:
+				case ffjtUserContactTransfersInfoLast:
 					goto handle_Last
 
-				case ffjtUserCounterpartyTransfersInfonosuchkey:
+				case ffjtUserContactTransfersInfoOutstandingWithInterest:
+					goto handle_OutstandingWithInterest
+
+				case ffjtUserContactTransfersInfonosuchkey:
 					err = fs.SkipField(tok)
 					if err != nil {
 						return fs.WrapErr(err)
@@ -1037,6 +1830,75 @@ handle_Last:
 			return err
 		}
 		state = fflib.FFParse_after_value
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_OutstandingWithInterest:
+
+	/* handler: j.OutstandingWithInterest type=[]models.TransferWithInterestJson kind=slice quoted=false*/
+
+	{
+
+		{
+			if tok != fflib.FFTok_left_brace && tok != fflib.FFTok_null {
+				return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for ", tok))
+			}
+		}
+
+		if tok == fflib.FFTok_null {
+			j.OutstandingWithInterest = nil
+		} else {
+
+			j.OutstandingWithInterest = []TransferWithInterestJson{}
+
+			wantVal := true
+
+			for {
+
+				var tmpJOutstandingWithInterest TransferWithInterestJson
+
+				tok = fs.Scan()
+				if tok == fflib.FFTok_error {
+					goto tokerror
+				}
+				if tok == fflib.FFTok_right_brace {
+					break
+				}
+
+				if tok == fflib.FFTok_comma {
+					if wantVal == true {
+						// TODO(pquerna): this isn't an ideal error message, this handles
+						// things like [,,,] as an array value.
+						return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
+					}
+					continue
+				} else {
+					wantVal = true
+				}
+
+				/* handler: tmpJOutstandingWithInterest type=models.TransferWithInterestJson kind=struct quoted=false*/
+
+				{
+					if tok == fflib.FFTok_null {
+
+						state = fflib.FFParse_after_value
+						goto mainparse
+					}
+
+					err = tmpJOutstandingWithInterest.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+					if err != nil {
+						return err
+					}
+					state = fflib.FFParse_after_value
+				}
+
+				j.OutstandingWithInterest = append(j.OutstandingWithInterest, tmpJOutstandingWithInterest)
+
+				wantVal = false
+			}
+		}
 	}
 
 	state = fflib.FFParse_after_value

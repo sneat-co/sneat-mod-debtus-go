@@ -105,23 +105,43 @@ func (_ TransferDalGae) UpdateTransferOnReturn(c context.Context, returnTransfer
 		}
 	}
 
-	for _, id := range transfer.ReturnTransferIDs {
-		if id == returnTransfer.ID {
+	for _, previousReturn := range transfer.GetReturns() {
+		if previousReturn.TransferID == returnTransfer.ID {
 			log.Infof(c, "Transfer already has information about return transfer")
 			return
 		}
 	}
 
-	if transfer.AmountInCentsOutstanding < returnedAmount {
-		log.Errorf(c, "transfer.AmountInCentsOutstanding < returnedAmount (%v <  %v0", transfer.AmountInCentsOutstanding, returnedAmount)
-		if transfer.AmountInCentsOutstanding <= 0 {
+	if outstandingValue := transfer.GetOutstandingValue(); outstandingValue < returnedAmount {
+		log.Errorf(c, "transfer.GetOutstandingValue() < returnedAmount: %v <  %v", outstandingValue, returnedAmount)
+		if outstandingValue <= 0 {
 			return
 		}
-		returnedAmount = transfer.AmountInCentsOutstanding
+		returnedAmount = outstandingValue
 	}
 
-	transfer.ReturnTransferIDs = append(transfer.ReturnTransferIDs, returnTransfer.ID)
+	//transfer.ReturnTransferIDs = append(transfer.ReturnTransferIDs, returnTransfer.ID)
 	returns := transfer.GetReturns()
+	if len(returns) == 0 && len(transfer.ReturnTransferIDs) != 0 { // TODO: Remove fix for old transfers
+		var returnTransfers []models.Transfer
+		if returnTransfers, err = dal.Transfer.GetTransfersByID(c, transfer.ReturnTransferIDs); err != nil {
+			return
+		}
+		returns = make([]models.TransferReturnJson, len(transfer.ReturnTransferIDs), len(transfer.ReturnTransferIDs)+1)
+		var returnedVal decimal.Decimal64p2
+		for i, rt := range returnTransfers {
+			returns[i] = models.TransferReturnJson{
+				TransferID: rt.ID,
+				Time: rt.DtCreated, // TODO: Replace with DtActual?
+				Amount: rt.AmountInCents,
+			}
+			returnedVal += rt.AmountInCents
+			if returnedAmount > transfer.AmountInCents {
+				err = errors.New("failed to migrated ReturnTransferIDs to ReturnsJson: returnedAmount > transfer.AmountInCents")
+				return
+			}
+		}
+	}
 	returns = append(returns, models.TransferReturnJson{
 		TransferID: returnTransfer.ID,
 		Time: returnTransfer.DtCreated, // TODO: Replace with DtActual?
@@ -129,11 +149,7 @@ func (_ TransferDalGae) UpdateTransferOnReturn(c context.Context, returnTransfer
 	})
 	transfer.SetReturns(returns)
 
-	transfer.AmountInCentsOutstanding -= returnedAmount
-	transfer.AmountInCentsReturned += returnedAmount
-	if transfer.AmountInCentsOutstanding == 0 {
-		transfer.IsOutstanding = true
-	}
+	transfer.IsOutstanding = transfer.GetOutstandingValue() > 0
 
 	if err = dal.Transfer.SaveTransfer(c, transfer); err != nil {
 		return

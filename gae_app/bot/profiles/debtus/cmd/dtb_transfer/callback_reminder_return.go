@@ -90,7 +90,7 @@ var EnableReminderAgainCallbackCommand = bots.NewCallbackCommand(ENABLE_REMINDER
 })
 
 func ProcessFullReturn(whc bots.WebhookContext, transfer models.Transfer) (m bots.MessageFromBot, err error) {
-	amountValue := transfer.AmountInCentsOutstanding
+	amountValue := transfer.GetOutstandingValue()
 	if amountValue == 0 {
 		return dtb_general.EditReminderMessage(whc, transfer, whc.Translate(trans.MESSAGE_TEXT_TRANSFER_ALREADY_FULLY_RETURNED))
 	} else if amountValue < 0 {

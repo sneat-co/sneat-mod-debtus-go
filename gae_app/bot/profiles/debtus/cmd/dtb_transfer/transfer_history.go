@@ -98,6 +98,11 @@ func transferHistoryRows(whc bots.WebhookContext, transfers []models.Transfer) s
 		} else {
 			s.WriteString(whc.Translate(trans.MESSAGE_TEXT_HISTORY_ROW_TO_USER_WITH_NAME, shortDate(transfer.DtCreated, whc), counterpartyName, amount))
 		}
+
+		if transfer.HasInterest() {
+			s.WriteString("\n")
+			common.WriteTransferInterest(&s, transfer, whc)
+		}
 		s.WriteString("\n\n")
 	}
 	return strings.TrimSpace(s.String())

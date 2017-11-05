@@ -41,14 +41,14 @@ type GroupEntity struct {
 	CreatorUserID string
 	//IsUser2User         bool   `datastore:",noindex"`
 	Name                string   `datastore:",noindex"`
-	Note                string   `datastore:",noindex"`
-	DefaultCurrency     Currency `datastore:",noindex"`
+	Note                string   `datastore:",noindex,omitempty"`
+	DefaultCurrency     Currency `datastore:",noindex,omitempty"`
 	members             []GroupMemberJson
-	MembersCount        int      `datastore:",noindex"`
-	MembersJson         string   `datastore:",noindex"`
+	MembersCount        int      `datastore:",noindex,omitempty"`
+	MembersJson         string   `datastore:",noindex,omitempty"`
 	telegramGroups      []GroupTgChatJson
-	TelegramGroupsCount int      `datastore:"TgGroupsCount,noindex"`
-	TelegramGroupsJson  string   `datastore:"TgGroupsJson,noindex"`
+	TelegramGroupsCount int      `datastore:"TgGroupsCount,noindex,omitempty"`
+	TelegramGroupsJson  string   `datastore:"TgGroupsJson,noindex,omitempty"`
 	billsHolder
 }
 
@@ -391,6 +391,18 @@ func (entity *GroupEntity) Load(ps []datastore.Property) (err error) {
 	return nil
 }
 
+var groupPropertiesToClean = map[string]gaedb.IsOkToRemove{
+	"DefaultCurrency":       gaedb.IsEmptyString,
+	"MembersCount":          gaedb.IsZeroInt,
+	"MemberLastID":          gaedb.IsZeroInt,
+	"MembersJson":           gaedb.IsEmptyJson,
+	"Note":                  gaedb.IsEmptyString,
+	"OutstandingBillsJson":  gaedb.IsEmptyJson,
+	"OutstandingBillsCount": gaedb.IsZeroInt,
+	"TgGroupsCount":         gaedb.IsZeroInt,
+	"TgGroupsJson":          gaedb.IsEmptyJson,
+}
+
 func (entity *GroupEntity) Save() ([]datastore.Property, error) {
 	if entity.CreatorUserID == "" {
 		return nil, errors.New("CreatorUserID == 0")
@@ -402,17 +414,7 @@ func (entity *GroupEntity) Save() ([]datastore.Property, error) {
 		return nil, err
 	}
 	ps, err := datastore.SaveStruct(entity)
-	if ps, err = gaedb.CleanProperties(ps, map[string]gaedb.IsOkToRemove{
-		"DefaultCurrency":       gaedb.IsEmptyString,
-		"MembersCount":          gaedb.IsZeroInt,
-		"MemberLastID":          gaedb.IsZeroInt,
-		"MembersJson":           gaedb.IsEmptyJson,
-		"Note":                  gaedb.IsEmptyString,
-		"OutstandingBillsJson":  gaedb.IsEmptyJson,
-		"OutstandingBillsCount": gaedb.IsZeroInt,
-		"TgGroupsCount":         gaedb.IsZeroInt,
-		"TgGroupsJson":          gaedb.IsEmptyJson,
-	}); err != nil {
+	if ps, err = gaedb.CleanProperties(ps, groupPropertiesToClean); err != nil {
 		return ps, err
 	}
 	if err == nil {

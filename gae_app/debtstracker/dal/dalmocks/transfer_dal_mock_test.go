@@ -68,7 +68,7 @@ func (mock *TransferDalMock) LoadOverdueTransfers(c context.Context, userID int6
 
 func (mock *TransferDalMock) LoadOutstandingTransfers(c context.Context, userID, contactID int64, currency models.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error) {
 	for id, t := range mock.Transfers {
-		if t.AmountInCentsOutstanding != 0 {
+		if t.GetOutstandingValue() != 0 {
 			transfers = append(transfers, models.Transfer{ID: id, TransferEntity: t})
 		}
 	}

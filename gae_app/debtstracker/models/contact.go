@@ -6,6 +6,7 @@ import (
 	"github.com/strongo/app/gaedb"
 	"google.golang.org/appengine/datastore"
 	"strings"
+	"github.com/pquerna/ffjson/ffjson"
 )
 
 func NewContactEntity(userID int64, details ContactDetails) *ContactEntity {
@@ -57,9 +58,10 @@ type ContactEntity struct {
 	CounterpartyUserID         int64 // The counterparty user ID if registered
 	CounterpartyCounterpartyID int64
 	//
-	Status string
+	Status        string
 	ContactDetails
 	Balanced
+	TransfersJson string `datastore:",noindex"`
 	SmsStats
 	//
 	//TelegramChatID int
@@ -72,6 +74,26 @@ type ContactEntity struct {
 
 func (entity ContactEntity) String() string {
 	return fmt.Sprintf("Contact{UserID: %v, CounterpartyUserID: %v, CounterpartyCounterpartyID: %v, Status: %v, ContactDetails: %v, Balance: '%v', LastTransferAt: %v}", entity.UserID, entity.CounterpartyUserID, entity.CounterpartyCounterpartyID, entity.Status, entity.ContactDetails, entity.BalanceJson, entity.LastTransferAt)
+}
+
+func (entity ContactEntity) GetTransfersInfo() (transfersInfo *UserContactTransfersInfo) {
+	if entity.TransfersJson == "" {
+		return &UserContactTransfersInfo{}
+	}
+	transfersInfo = new(UserContactTransfersInfo)
+	if err := ffjson.Unmarshal([]byte(entity.TransfersJson), transfersInfo); err != nil {
+		panic(err)
+	}
+	return
+}
+
+func (entity *ContactEntity) SetTransfersInfo(transfersInfo UserContactTransfersInfo) error {
+	if data, err := ffjson.Marshal(transfersInfo); err != nil {
+		return err
+	} else {
+		entity.TransfersJson = string(data)
+		return nil
+	}
 }
 
 func (entity *ContactEntity) Info(counterpartyID int64, note, comment string) TransferCounterpartyInfo {
@@ -119,6 +141,31 @@ func (entity *ContactEntity) Load(ps []datastore.Property) error {
 	return nil
 }
 
+var contactPropertiesToClean = map[string]gaedb.IsOkToRemove{
+	// Remove obsolete
+	"PhoneNumberIsConfirmed": gaedb.IsObsolete,
+	"SearchName":             gaedb.IsObsolete,
+	// Remove defaults
+	"CounterpartyUserID":         gaedb.IsZeroInt,
+	"CounterpartyCounterpartyID": gaedb.IsZeroInt,
+	"BalanceCount":               gaedb.IsZeroInt,
+	"BalanceJson":                gaedb.IsEmptyStringOrSpecificValue("null"), //TODO: Remove once DB cleared
+	"SmsCount":                   gaedb.IsZeroInt,
+	"SmsCost":                    gaedb.IsZeroFloat,
+	"SmsCostUSD":                 gaedb.IsZeroInt,
+	"EmailAddress":               gaedb.IsEmptyString,
+	"EmailAddressOriginal":       gaedb.IsEmptyString,
+	"TransfersJson":              gaedb.IsEmptyJson,
+	"Nickname":                   gaedb.IsEmptyString,
+	"FirstName":                  gaedb.IsEmptyString,
+	"LastName":                   gaedb.IsEmptyString,
+	"ScreenName":                 gaedb.IsEmptyString,
+	"PhoneNumber":                gaedb.IsZeroInt,
+	"PhoneNumberConfirmed":       gaedb.IsFalse,
+	"EmailConfirmed":             gaedb.IsFalse,
+	"TelegramUserID":             gaedb.IsZeroInt,
+}
+
 func (entity *ContactEntity) Save() (properties []datastore.Property, err error) {
 	entity.EmailAddressOriginal = strings.TrimSpace(entity.EmailAddressOriginal)
 	entity.EmailAddress = strings.ToLower(entity.EmailAddressOriginal)
@@ -131,36 +178,24 @@ func (entity *ContactEntity) Save() (properties []datastore.Property, err error)
 		return
 	}
 
-	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		// Remove obsolete
-		"PhoneNumberIsConfirmed": gaedb.IsObsolete,
-		"SearchName":             gaedb.IsObsolete,
-		// Remove defaults
-		"CounterpartyUserID":         gaedb.IsZeroInt,
-		"CounterpartyCounterpartyID": gaedb.IsZeroInt,
-		"BalanceCount":               gaedb.IsZeroInt,
-		"BalanceJson":                gaedb.IsEmptyStringOrSpecificValue("null"), //TODO: Remove once DB cleared
-		"SmsCount":                   gaedb.IsZeroInt,
-		"SmsCost":                    gaedb.IsZeroFloat,
-		"SmsCostUSD":                 gaedb.IsZeroInt,
-		"EmailAddress":               gaedb.IsEmptyString,
-		"EmailAddressOriginal":       gaedb.IsEmptyString,
-		"LastTransferID":             gaedb.IsZeroInt,
-		"Nickname":                   gaedb.IsEmptyString,
-		"FirstName":                  gaedb.IsEmptyString,
-		"LastName":                   gaedb.IsEmptyString,
-		"ScreenName":                 gaedb.IsEmptyString,
-		"PhoneNumber":                gaedb.IsZeroInt,
-		"PhoneNumberConfirmed":       gaedb.IsFalse,
-		"EmailConfirmed":             gaedb.IsFalse,
-		"TelegramUserID":             gaedb.IsZeroInt,
-	}); err != nil {
+	if properties, err = gaedb.CleanProperties(properties, contactPropertiesToClean); err != nil {
 		return
 	}
 
 	return
 }
 
-type test interface {
-	datastore.PropertyLoadSaver
+func (entity *ContactEntity) BalanceWithInterest() (balance Balance) {
+	var err error
+
+	if balance, err = entity.Balance(); err != nil {
+		panic(err)
+	}
+
+	if transferInfo := entity.GetTransfersInfo(); transferInfo != nil {
+		//log.Debugf(c, "transferInfo: %+v", transferInfo)
+		updateBalanceWithInterest(balance, transferInfo.OutstandingWithInterest)
+		//log.Debugf(c, "BalanceWithInterest(): %+v", balance)
+	}
+	return
 }

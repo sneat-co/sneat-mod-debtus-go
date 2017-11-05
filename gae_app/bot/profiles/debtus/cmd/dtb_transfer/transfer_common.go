@@ -306,10 +306,7 @@ func CreateAskTransferCounterpartyCommand(
 
 					var isTooManyRows bool
 					for _, counterparty := range counterparties {
-						balance, err := counterparty.Balance()
-						if err != nil {
-							return m, err
-						}
+						balance := counterparty.BalanceWithInterest()
 						if (len(buttons) + len(balance)) > 4 {
 							isTooManyRows = true
 							log.Warningf(c, "Condider performance optimization - dublicate queries to get counterparties")
@@ -526,7 +523,15 @@ func TransferWizardCompletedCommand(code string) bots.Command {
 				creatorInfo.Comment = comment
 			}
 
-			m, err = CreateTransferFromBot(whc, false, 0, direction, creatorInfo, amount, dueOn)
+			var transferInterest models.TransferInterest
+
+			if interest := params.Get(TRANSFER_WIZARD_PARAM_INTEREST); interest != "" {
+				if transferInterest, err = getInterestData(interest); err != nil {
+					return m, err
+				}
+			}
+
+			m, err = CreateTransferFromBot(whc, false, 0, direction, creatorInfo, amount, dueOn, transferInterest)
 			if err != nil {
 				return m, err
 			}
@@ -548,6 +553,7 @@ func CreateTransferFromBot(
 	creatorInfo models.TransferCounterpartyInfo,
 	amount models.Amount,
 	dueOn time.Time,
+	transferInterest models.TransferInterest,
 ) (
 	m bots.MessageFromBot,
 	err error,
@@ -578,7 +584,7 @@ func CreateTransferFromBot(
 		return m, err
 	}
 	appUser := models.AppUser{
-		ID: whc.AppUserIntID(),
+		ID:            whc.AppUserIntID(),
 		AppUserEntity: appUserEntity.(*models.AppUserEntity),
 	}
 	newTransfer := facade.NewTransferInput(whc.Environment(),
@@ -589,7 +595,9 @@ func CreateTransferFromBot(
 		returnToTransferID,
 		from, to,
 		amount,
-		dueOn)
+		dueOn,
+		transferInterest,
+	)
 
 	output, err := facade.Transfers.CreateTransfer(whc.Context(), newTransfer)
 

@@ -86,10 +86,7 @@ var AskReturnCounterpartyCommand = CreateAskTransferCounterpartyCommand(
 		c := whc.Context()
 
 		log.Debugf(c, "StartReturnWizardCommand.onCounterpartySelectedAction(counterparty.ID=%v)", counterparty.ID)
-		balance, err := counterparty.Balance()
-		if err != nil {
-			return m, err
-		}
+		balance := counterparty.BalanceWithInterest()
 		//TODO: Display MESSAGE_TEXT_COUNTERPARTY_OWES_YOU_SINGLE_DEBT or MESSAGE_TEXT_YOU_OWE_TO_COUNTERPARTY_SINGLE_DEBT
 		switch len(balance) {
 		case 1:
@@ -275,9 +272,7 @@ var AskToChooseDebtToReturnCommand = bots.Command{
 			for _, counterpartyItem := range counterparties {
 				counterpartyItemTitle := counterpartyItem.FullName()
 				if counterpartyItemTitle == counterpartyTitle {
-					if balance, err = counterpartyItem.Balance(); err != nil {
-						return m, err
-					}
+					balance = counterpartyItem.BalanceWithInterest()
 					theCounterparty = counterpartyItem
 					counterpartyFound = true
 					chatEntity.AddWizardParam(WIZARD_PARAM_COUNTERPARTY, strconv.FormatInt(counterpartyItem.ID, 10))
@@ -321,7 +316,7 @@ func CreateReturnAndShowReceipt(whc bots.WebhookContext, returnToTransferID, cou
 		ContactID: counterpartyID,
 	}
 
-	if m, err = CreateTransferFromBot(whc, true, returnToTransferID, direction, creatorInfo, returnAmount, time.Time{}); err != nil {
+	if m, err = CreateTransferFromBot(whc, true, returnToTransferID, direction, creatorInfo, returnAmount, time.Time{}, models.TransferInterest{}); err != nil {
 		return m, err
 	}
 	log.Debugf(c, "createReturnAndShowReceipt(): %v", m)
@@ -353,7 +348,9 @@ func getReturnWizardParams(whc bots.WebhookContext) (counterpartyID, transferID 
 
 func getCounterpartyAndBalance(whc bots.WebhookContext, counterpartyID int64) (counterparty models.Contact, counterpartyBalance models.Balance, err error) {
 	//counterparty = new(models.Contact)
-	counterparty, err = dal.Contact.GetContactByID(whc.Context(), counterpartyID)
-	counterpartyBalance, err = counterparty.Balance()
+	if counterparty, err = dal.Contact.GetContactByID(whc.Context(), counterpartyID); err != nil {
+		return
+	}
+	counterpartyBalance = counterparty.BalanceWithInterest()
 	return
 }

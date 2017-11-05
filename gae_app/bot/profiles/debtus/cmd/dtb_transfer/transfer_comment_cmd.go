@@ -103,7 +103,9 @@ func createTransferAskNoteOrCommentCommand(code string, nextCommand bots.Command
 			addCommentCommand,
 		},
 		Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
-
+			if m, err = interestAction(whc, nextCommand.Action); err != nil || m.Text != "" {
+				return
+			}
 			c := whc.Context()
 			log.Infof(c, "createTransferAskNoteOrCommentCommand().Action()")
 			chatEntity := whc.ChatEntity()

@@ -103,7 +103,9 @@ var ParseTransferCommand = bots.Command{
 			0,
 			from, to,
 			models.Amount{Currency: currency, Value: value},
-			time.Time{})
+			time.Time{},
+			models.TransferInterest{},
+			)
 
 		output, err := facade.Transfers.CreateTransfer(c, newTransfer)
 

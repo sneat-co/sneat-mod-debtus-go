@@ -3,8 +3,8 @@ package models
 import (
 	"github.com/strongo/decimal"
 	"fmt"
-	"google.golang.org/appengine/datastore"
-	"github.com/strongo/app/gaedb"
+	//"google.golang.org/appengine/datastore"
+	//"github.com/strongo/app/gaedb"
 	"github.com/pkg/errors"
 	"time"
 )
@@ -21,17 +21,25 @@ const (
 type InterestPercentType string
 
 const (
-	InterestPercentSimple   InterestPercentType = "simple"
-	InterestPercentCompound InterestPercentType = "compound"
+	InterestPercentSimple   = "simple"
+	InterestPercentCompound = "compound"
 )
 
 type TransferInterest struct {
-	InterestType          InterestPercentType `datastore:",noindex"`
-	InterestPeriod        InterestRatePeriod  `datastore:",noindex"`
-	InterestPercent       decimal.Decimal64p2 `datastore:",noindex"`
-	InterestGracePeriod   int                 `datastore:",noindex"` // How many days are without any interest
-	InterestMinimumPeriod int                 `datastore:",noindex"` // Minimum days for interest (e.g. penalty for earlier return).
-	InterestAmountInCents decimal.Decimal64p2 `datastore:",noindex"`
+	InterestType          InterestPercentType `datastore:",noindex,omitempty"`
+	InterestPeriod        int                 `datastore:",noindex,omitempty"`
+	InterestPercent       decimal.Decimal64p2 `datastore:",noindex,omitempty"`
+	InterestGracePeriod   int                 `datastore:",noindex,omitempty" json:",omitempty"` // How many days are without any interest
+	InterestMinimumPeriod int                 `datastore:",noindex,omitempty" json:",omitempty"` // Minimum days for interest (e.g. penalty for earlier return).
+	//InterestAmountInCents decimal.Decimal64p2 `datastore:",noindex" json:",omitempty"`
+}
+
+func (t TransferInterest) HasInterest() bool {
+	return t.InterestPercent != 0
+}
+
+func (t TransferInterest) GetInterestData() TransferInterest {
+	return t
 }
 
 var (
@@ -44,8 +52,9 @@ func (t *TransferEntity) validateTransferInterestAndReturns() (err error) {
 	}
 	if t.InterestType != "" { // TODO: Migrate old records and then do the check for all transfers
 		returns := t.GetReturns()
-		if len(returns) != len(t.ReturnTransferIDs) {
-			return fmt.Errorf("len(t.GetReturns()) != len(t.ReturnTransferIDs): %v != %v", len(t.GetReturns()), len(t.ReturnTransferIDs))
+		if len(returns) != len(t.ReturnTransferIDs) && len(returns) > 0 {
+			t.ReturnTransferIDs = nil
+			//return fmt.Errorf("len(t.GetReturns()) != len(t.ReturnTransferIDs): %v != %v", len(t.GetReturns()), len(t.ReturnTransferIDs))
 		}
 		var amountReturned decimal.Decimal64p2
 		for _, r := range returns {
@@ -58,63 +67,87 @@ func (t *TransferEntity) validateTransferInterestAndReturns() (err error) {
 	return
 }
 
-func (entity TransferInterest) validateTransferInterest() (err error) {
-	if entity.InterestPeriod == 0 && entity.InterestAmountInCents == 0 && entity.InterestPercent == 0 && entity.InterestType == "" {
+func (ti TransferInterest) validateTransferInterest() (err error) {
+	if ti.InterestPeriod == 0 && ti.InterestPercent == 0 && ti.InterestType == "" {
 		return
 	}
-	if entity.InterestPeriod < 0 {
-		return fmt.Errorf("InterestPeriod < 0: %v", entity.InterestPeriod)
+	if ti.InterestPeriod < 0 {
+		return fmt.Errorf("InterestPeriod < 0: %v", ti.InterestPeriod)
 	}
-	if entity.InterestPercent <= 0 {
-		return fmt.Errorf("InterestPercent <= 0: %v", entity.InterestPercent)
+	if ti.InterestPercent <= 0 {
+		return fmt.Errorf("InterestPercent <= 0: %v", ti.InterestPercent)
 	}
-	if entity.InterestAmountInCents < 0 {
-		return fmt.Errorf("InterestAmountInCents < 0: %v", entity.InterestAmountInCents)
-	}
-	if entity.InterestType == "" {
+	//if entity.InterestAmountInCents < 0 {
+	//	return fmt.Errorf("InterestAmountInCents < 0: %v", entity.InterestAmountInCents)
+	//}
+	if ti.InterestType == "" {
 		return ErrInterestTypeIsNotSet
 	}
-	if entity.InterestType == InterestPercentSimple && entity.InterestType != InterestPercentCompound {
-		return fmt.Errorf("unknown InterestType: %v", entity.InterestType)
+	if ti.InterestType != InterestPercentSimple && ti.InterestType != InterestPercentCompound {
+		return fmt.Errorf("unknown InterestType: %v", ti.InterestType)
 	}
-	if entity.InterestPeriod == 0 || entity.InterestAmountInCents == 0 || entity.InterestPercent == 0 {
+	if ti.InterestPeriod == 0 || ti.InterestPercent == 0 {
 		return fmt.Errorf(
-			"one of values is 0: InterestPeriod=%v, InterestAmountInCents=%v, InterestPercent=%v",
-			entity.InterestPeriod,
-			entity.InterestAmountInCents,
-			entity.InterestPercent,
+			"one of values is 0: InterestPeriod=%v, InterestPercent=%v",
+			ti.InterestPeriod,
+			ti.InterestPercent,
 		)
 	}
 	return
 }
 
-func (entity TransferInterest) cleanInterestProperties(properties []datastore.Property) ([]datastore.Property, error) {
-	return gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"InterestType":          gaedb.IsEmptyString,
-		"InterestPeriod":        gaedb.IsZeroInt,
-		"InterestPercent":       gaedb.IsZeroInt,
-		"InterestGracePeriod":   gaedb.IsZeroInt,
-		"InterestMinimumPeriod": gaedb.IsZeroInt,
-		"InterestAmountInCents": gaedb.IsZeroInt,
-	})
+//func init() {
+//	addInterestPropertiesToClean := func(props2clean map[string]gaedb.IsOkToRemove) {
+//		props2clean["InterestType"] = gaedb.IsEmptyString
+//		props2clean["InterestPeriod"] = gaedb.IsZeroInt
+//		props2clean["InterestPercent"] = gaedb.IsZeroInt
+//		props2clean["InterestGracePeriod"] = gaedb.IsZeroInt
+//		props2clean["InterestMinimumPeriod"] = gaedb.IsZeroInt
+//	}
+//	addInterestPropertiesToClean(transferPropertiesToClean)
+//}
+
+func (t *TransferEntity) GetOutstandingValue() (outstandingValue decimal.Decimal64p2) {
+	if t.IsReturn && t.AmountInCentsReturned == 0 {
+		return 0
+	}
+	interestValue := t.GetInterestValue()
+	outstandingValue = t.AmountInCents + interestValue - t.AmountInCentsReturned
+	if outstandingValue < 0 {
+		panic(fmt.Sprintf("outstandingValue < 0: %v, IsReturn: %v, Amount: %v, Returned: %v, Interest: %v", outstandingValue, t.IsReturn, t.AmountInCents, t.AmountInCentsReturned, t.GetInterestValue()))
+	}
+	return
 }
+
 
 func (t *TransferEntity) GetOutstandingAmount() Amount {
-	if t.InterestType == "" {
-		return Amount{Currency: t.Currency, Value: t.AmountInCentsOutstanding}
-	}
-	outstandingValue := t.AmountInCents - t.AmountInCentsReturned + t.GetInterestAmount()
-	return Amount{Currency: t.Currency, Value: outstandingValue}
+	return Amount{Currency: t.Currency, Value: t.GetOutstandingValue()}
 }
 
-func (t *TransferEntity) GetInterestAmount() (interestAmount decimal.Decimal64p2) {
+type TransferInterestCalculable interface {
+	GetLendingValue() decimal.Decimal64p2
+	GetStartDate() time.Time
+	GetReturns() []TransferReturnJson
+	GetInterestData() TransferInterest
+}
+
+func (t *TransferEntity) GetInterestValue() (interestValue decimal.Decimal64p2) {
+	return CalculateInterestValue(t)
+}
+
+func CalculateInterestValue(t TransferInterestCalculable) (interestValue decimal.Decimal64p2) {
 	firstPeriod := true
-	outstanding := t.AmountInCents
+	interestData := t.GetInterestData()
+	outstanding := t.GetLendingValue()
 	getSimpleInterestForPeriod := func(starts, ends time.Time) (interestAmount decimal.Decimal64p2) {
-		var interestRatePerDay = t.InterestPercent.AsFloat64() / float64(t.InterestPeriod) / 100
+		if outstanding <= 0 {
+			return 0
+		}
+		interestRate := interestData.InterestPercent.AsFloat64() / 100
+		interestRatePerDay := interestRate / float64(interestData.InterestPeriod)
 		ageInDays := ageInDays(starts, ends)
-		if ageInDays < t.InterestMinimumPeriod {
-			ageInDays = t.InterestMinimumPeriod
+		if ageInDays < interestData.InterestMinimumPeriod {
+			ageInDays = interestData.InterestMinimumPeriod
 		}
 
 		if firstPeriod {
@@ -122,25 +155,25 @@ func (t *TransferEntity) GetInterestAmount() (interestAmount decimal.Decimal64p2
 		} else {
 			ageInDays -= 1
 		}
-		interestAmount = decimal.NewDecimal64p2FromFloat64(float64(outstanding) * interestRatePerDay * float64(ageInDays))
+		interestAmount = decimal.NewDecimal64p2FromFloat64(outstanding.AsFloat64() * interestRatePerDay * float64(ageInDays))
 		return
 	}
-	switch t.InterestType {
+	switch interestData.InterestType {
 	case InterestPercentSimple:
-		periodStarts := t.DtCreated
+		periodStarts := t.GetStartDate()
 		for _, transferReturn := range t.GetReturns() {
-			interestAmount += getSimpleInterestForPeriod(periodStarts, transferReturn.Time)
+			interestValue += getSimpleInterestForPeriod(periodStarts, transferReturn.Time)
 			outstanding -= transferReturn.Amount
 			periodStarts = transferReturn.Time
 		}
 		periodEnds := time.Now()
-		interestAmount += getSimpleInterestForPeriod(periodStarts, periodEnds)
+		interestValue += getSimpleInterestForPeriod(periodStarts, periodEnds)
 	case InterestPercentCompound:
 		panic("not implemented")
 	case "":
 		// Ignore
 	default:
-		panic(fmt.Sprintf("unknown interest type: %v", t.InterestType))
+		panic(fmt.Sprintf("unknown interest type: %v", interestData.InterestType))
 	}
 	return
 }

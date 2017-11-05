@@ -177,7 +177,7 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 		"",
 		isReturn, returnToTransferID,
 		from, to,
-		amountWithCurrency, dueOn)
+		amountWithCurrency, dueOn, models.TransferInterest{})
 	output, err := facade.Transfers.CreateTransfer(c, newTransfer)
 
 	if err != nil {
