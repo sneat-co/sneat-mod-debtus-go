@@ -72,6 +72,14 @@ func updateTransferOnReturn(c context.Context, returnTransferID, transferID int6
 		return
 	}
 
+	var txOptions db.RunOptions
+
+	if transfer.HasInterest() {
+		txOptions = db.CrossGroupTransaction
+	} else {
+		txOptions = db.SingleGroupTransaction
+	}
+
 	return dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 		if transfer, err = dal.Transfer.GetTransferByID(c, transferID); err != nil {
 			if db.IsNotFound(err) {
@@ -84,39 +92,82 @@ func updateTransferOnReturn(c context.Context, returnTransferID, transferID int6
 			return
 		}
 		if transfer.HasInterest() && !transfer.IsOutstanding {
-			removeFromOutstandingInUser := func(userID, contactID int64) (err error) {
-				var user models.AppUser
-				if user, err = dal.User.GetUserByID(c, userID); err != nil {
-					return
-				}
-				contacts := user.Contacts()
-				for _, contact := range contacts {
-					for i, outstanding := range contact.Transfers.OutstandingWithInterest {
-						if outstanding.TransferID == transfer.ID {
-							// https://github.com/golang/go/wiki/SliceTricks
-							a := contact.Transfers.OutstandingWithInterest
-							contact.Transfers.OutstandingWithInterest = append(a[:i], a[i+1:]...)
-							user.SetContacts(contacts)
-							user.TransfersWithInterestCount -= 1
-							return dal.User.SaveUser(c, user)
-						}
-					}
-				}
+			if err = removeFromOutstandingWithInterest(c, transfer); err != nil {
 				return
-			}
-			if transfer.From().UserID != 0 && transfer.To().ContactID != 0 {
-				if err = removeFromOutstandingInUser(transfer.From().UserID, transfer.To().ContactID); err != nil {
-					return
-				}
-			}
-			if transfer.To().UserID != 0 && transfer.From().ContactID != 0 {
-				if err = removeFromOutstandingInUser(transfer.To().UserID, transfer.From().ContactID); err != nil {
-					return
-				}
 			}
 		}
 		return
-	}, db.CrossGroupTransaction)
+	}, txOptions)
+}
+
+func removeFromOutstandingWithInterest(c context.Context, transfer models.Transfer) (err error) {
+	removeFromOutstanding := func(userID, contactID int64) (err error) {
+		removeFromUser := func() (err error) {
+			var (
+				user models.AppUser
+				//contact models.Contact
+			)
+			if user, err = dal.User.GetUserByID(c, userID); err != nil {
+				return
+			}
+			contacts := user.Contacts()
+			for _, userContact := range contacts {
+				for i, outstanding := range userContact.Transfers.OutstandingWithInterest {
+					if outstanding.TransferID == transfer.ID {
+						// https://github.com/golang/go/wiki/SliceTricks
+						a := userContact.Transfers.OutstandingWithInterest
+						userContact.Transfers.OutstandingWithInterest = append(a[:i], a[i+1:]...)
+						user.SetContacts(contacts)
+						user.TransfersWithInterestCount -= 1
+						err = dal.User.SaveUser(c, user)
+					}
+				}
+			}
+			return
+		}
+		removeFromContact := func() (err error) {
+			var (
+				contact models.Contact
+			)
+			if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil {
+				return
+			}
+			if contact.UserID != userID {
+				return fmt.Errorf("contact.UserID != userID: %v != %v", contact.UserID, userID)
+			}
+			transfersInfo := *contact.GetTransfersInfo()
+			for i, outstanding := range transfersInfo.OutstandingWithInterest {
+				if outstanding.TransferID == transfer.ID {
+					// https://github.com/golang/go/wiki/SliceTricks
+					a := transfersInfo.OutstandingWithInterest
+					transfersInfo.OutstandingWithInterest = append(a[:i], a[i+1:]...)
+					if err = contact.SetTransfersInfo(transfersInfo); err != nil {
+						return
+					}
+					return dal.Contact.SaveContact(c, contact)
+				}
+			}
+			return
+		}
+		if err = removeFromUser(); err != nil {
+			return
+		}
+		if err = removeFromContact(); err != nil {
+			return
+		}
+		return
+	}
+	if transfer.From().UserID != 0 && transfer.To().ContactID != 0 {
+		if err = removeFromOutstanding(transfer.From().UserID, transfer.To().ContactID); err != nil {
+			return
+		}
+	}
+	if transfer.To().UserID != 0 && transfer.From().ContactID != 0 {
+		if err = removeFromOutstanding(transfer.To().UserID, transfer.From().ContactID); err != nil {
+			return
+		}
+	}
+	return
 }
 
 func (_ TransferDalGae) UpdateTransferOnReturn(c context.Context, returnTransfer, transfer models.Transfer, returnedAmount decimal.Decimal64p2) (err error) {
