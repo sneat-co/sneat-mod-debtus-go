@@ -80,8 +80,43 @@ func updateTransferOnReturn(c context.Context, returnTransferID, transferID int6
 			}
 			return
 		}
-		return dal.Transfer.UpdateTransferOnReturn(c, returnTransfer, transfer, returnedAmount)
-	}, db.SingleGroupTransaction)
+		if err = dal.Transfer.UpdateTransferOnReturn(c, returnTransfer, transfer, returnedAmount); err != nil {
+			return
+		}
+		if transfer.HasInterest() && !transfer.IsOutstanding {
+			removeFromOutstandingInUser := func(userID, contactID int64) (err error) {
+				var user models.AppUser
+				if user, err = dal.User.GetUserByID(c, userID); err != nil {
+					return
+				}
+				contacts := user.Contacts()
+				for _, contact := range contacts {
+					for i, outstanding := range contact.Transfers.OutstandingWithInterest {
+						if outstanding.TransferID == transfer.ID {
+							// https://github.com/golang/go/wiki/SliceTricks
+							a := contact.Transfers.OutstandingWithInterest
+							contact.Transfers.OutstandingWithInterest = append(a[:i], a[i+1:]...)
+							user.SetContacts(contacts)
+							user.TransfersWithInterestCount -= 1
+							return dal.User.SaveUser(c, user)
+						}
+					}
+				}
+				return
+			}
+			if transfer.From().UserID != 0 && transfer.To().ContactID != 0 {
+				if err = removeFromOutstandingInUser(transfer.From().UserID, transfer.To().ContactID); err != nil {
+					return
+				}
+			}
+			if transfer.To().UserID != 0 && transfer.From().ContactID != 0 {
+				if err = removeFromOutstandingInUser(transfer.To().UserID, transfer.From().ContactID); err != nil {
+					return
+				}
+			}
+		}
+		return
+	}, db.CrossGroupTransaction)
 }
 
 func (_ TransferDalGae) UpdateTransferOnReturn(c context.Context, returnTransfer, transfer models.Transfer, returnedAmount decimal.Decimal64p2) (err error) {
@@ -129,6 +164,7 @@ func (_ TransferDalGae) UpdateTransferOnReturn(c context.Context, returnTransfer
 		}
 		returns = make([]models.TransferReturnJson, len(transfer.ReturnTransferIDs), len(transfer.ReturnTransferIDs)+1)
 		var returnedVal decimal.Decimal64p2
+
 		for i, rt := range returnTransfers {
 			returns[i] = models.TransferReturnJson{
 				TransferID: rt.ID,
@@ -136,9 +172,11 @@ func (_ TransferDalGae) UpdateTransferOnReturn(c context.Context, returnTransfer
 				Amount: rt.AmountInCents,
 			}
 			returnedVal += rt.AmountInCents
-			if returnedAmount > transfer.AmountInCents {
-				err = errors.New("failed to migrated ReturnTransferIDs to ReturnsJson: returnedAmount > transfer.AmountInCents")
-				return
+		}
+		if returnedVal > transfer.AmountInCents {
+			log.Warningf(c, "failed to properly migrated ReturnTransferIDs to ReturnsJson: returnedAmount > transfer.AmountInCents")
+			for i := range returns {
+				returns[i].Amount = 0
 			}
 		}
 	}

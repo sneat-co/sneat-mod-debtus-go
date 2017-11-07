@@ -50,6 +50,15 @@ func (t *TransferEntity) validateTransferInterestAndReturns() (err error) {
 	if err = t.TransferInterest.validateTransferInterest(); err != nil {
 		return
 	}
+	if t.AmountInCentsInterest < 0 {
+		panic(fmt.Sprintf("t.AmountInCentsInterest < 0: %v", t.AmountInCentsInterest))
+	}
+	if !t.IsReturn && t.AmountInCentsInterest != 0 {
+		panic(fmt.Sprintf("!t.IsReturn && t.AmountInCentsInterest != 0: %v",t.AmountInCentsInterest ))
+	}
+	if t.AmountInCentsInterest > t.AmountInCents {
+		panic(fmt.Sprintf("t.AmountInCentsInterest > t.AmountInCents: %v > %v", t.AmountInCentsInterest, t.AmountInCents))
+	}
 	if t.InterestType != "" { // TODO: Migrate old records and then do the check for all transfers
 		returns := t.GetReturns()
 		if len(returns) != len(t.ReturnTransferIDs) && len(returns) > 0 {

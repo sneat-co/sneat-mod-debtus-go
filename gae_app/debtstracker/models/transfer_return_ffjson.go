@@ -35,7 +35,7 @@ func (j *TransferReturnJson) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	var obj []byte
 	_ = obj
 	_ = err
-	buf.WriteString(`{"TransferID":`)
+	buf.WriteString(`{ "TransferID":`)
 	fflib.FormatBits2(buf, uint64(j.TransferID), 10, j.TransferID < 0)
 	buf.WriteString(`,"Time":`)
 
@@ -48,17 +48,22 @@ func (j *TransferReturnJson) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 		buf.Write(obj)
 
 	}
-	buf.WriteString(`,"Amount":`)
+	buf.WriteByte(',')
+	if j.Amount != 0 {
+		buf.WriteString(`"Amount":`)
 
-	{
+		{
 
-		obj, err = j.Amount.MarshalJSON()
-		if err != nil {
-			return err
+			obj, err = j.Amount.MarshalJSON()
+			if err != nil {
+				return err
+			}
+			buf.Write(obj)
+
 		}
-		buf.Write(obj)
-
+		buf.WriteByte(',')
 	}
+	buf.Rewind(1)
 	buf.WriteByte('}')
 	return nil
 }

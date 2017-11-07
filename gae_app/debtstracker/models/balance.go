@@ -130,6 +130,11 @@ func (b *Balanced) SetBalance(balance Balance) error {
 		b.BalanceJson = ""
 		b.BalanceCount = 0
 	} else {
+		for currency, val := range balance {
+			if val == 0 {
+				return errors.New("balance currency has 0 value: " + string(currency))
+			}
+		}
 		if v, err := ffjson.Marshal(balance); err != nil {
 			return err
 		} else {

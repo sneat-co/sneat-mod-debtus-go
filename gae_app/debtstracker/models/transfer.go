@@ -172,6 +172,7 @@ type TransferEntity struct {
 
 	AmountInCents         decimal.Decimal64p2
 	AmountInCentsReturned decimal.Decimal64p2 `datastore:",noindex,omitempty"`
+	AmountInCentsInterest decimal.Decimal64p2 `datastore:",noindex,omitempty"`
 	//AmountInCentsOutstanding decimal.Decimal64p2 `datastore:",noindex,omitempty"` // TODO: Should be removed!
 
 	TransferInterest
