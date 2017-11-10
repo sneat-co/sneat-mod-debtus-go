@@ -21,15 +21,10 @@ type verifyTransfers struct {
 }
 
 func (m *verifyTransfers) Next(c context.Context, counters mapper.Counters, key *datastore.Key) (err error) {
-	return m.startProcess(c, func() func(){
-		transferEntity := *m.entity
-		user := models.Transfer{ID: key.IntID(), TransferEntity: &transferEntity}
-		return func() { m.verifyTransfer(c, counters, user) }
-	})
+	return m.startTransferWorker(c, counters, key, m.verifyTransfer)
 }
 
-func (m *verifyTransfers) verifyTransfer(c context.Context, counters mapper.Counters, transfer models.Transfer) {
-	var err error
+func (m *verifyTransfers) verifyTransfer(c context.Context, counters *asyncCounters, transfer models.Transfer) (err error) {
 	buf := new(bytes.Buffer)
 	if err = m.verifyTransferUsers(c, transfer, buf, counters); err != nil {
 		log.Errorf(c, errors.WithMessage(err, "verifyTransferUsers:transfer=%v").Error(), transfer.ID)
@@ -54,9 +49,10 @@ func (m *verifyTransfers) verifyTransfer(c context.Context, counters mapper.Coun
 	if buf.Len() > 0 {
 		log.Warningf(c, fmt.Sprintf("Transfer: %v, Created: %v\n", transfer.ID, transfer.DtCreated)+buf.String())
 	}
+	return
 }
 
-func (m *verifyTransfers) verifyTransferUsers(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters mapper.Counters) (err error) {
+func (m *verifyTransfers) verifyTransferUsers(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
 	for _, userID := range transfer.BothUserIDs {
 		if userID != 0 {
 			if _, err2 := dal.User.GetUserByID(c, userID); db.IsNotFound(err2) {
@@ -71,7 +67,7 @@ func (m *verifyTransfers) verifyTransferUsers(c context.Context, transfer models
 	return
 }
 
-func (m *verifyTransfers) verifyTransferContacts(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters mapper.Counters) (err error) {
+func (m *verifyTransfers) verifyTransferContacts(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
 	for _, contactID := range transfer.BothCounterpartyIDs {
 		if contactID != 0 {
 			if _, err2 := dal.Contact.GetContactByID(c, contactID); db.IsNotFound(err2) {
@@ -133,7 +129,7 @@ func (m *verifyTransfers) verifyTransferContacts(c context.Context, transfer mod
 	return nil
 }
 
-func (_ *verifyTransfers) verifyTransferCurrency(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters mapper.Counters) (err error) {
+func (_ *verifyTransfers) verifyTransferCurrency(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
 	var currency models.Currency
 	if transfer.Currency == models.Currency("euro") {
 		currency = models.Currency("EUR")
@@ -162,7 +158,7 @@ func (_ *verifyTransfers) verifyTransferCurrency(c context.Context, transfer mod
 	return
 }
 
-func (_ *verifyTransfers) verifyReturnsTransferIDs(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters mapper.Counters) (err error) {
+func (_ *verifyTransfers) verifyReturnsTransferIDs(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
 	if len(transfer.ReturnTransferIDs) == 0 {
 		return
 	}
@@ -181,7 +177,7 @@ func (_ *verifyTransfers) verifyReturnsTransferIDs(c context.Context, transfer m
 	return
 }
 
-func (_ *verifyTransfers) verifyReturnsToTransferIDs(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters mapper.Counters) (err error) {
+func (_ *verifyTransfers) verifyReturnsToTransferIDs(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
 	if len(transfer.ReturnToTransferIDs) == 0 {
 		return
 	}

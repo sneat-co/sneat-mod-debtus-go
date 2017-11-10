@@ -14,15 +14,14 @@ type migrateTransfers struct {
 }
 
 func (m *migrateTransfers) Next(c context.Context, counters mapper.Counters, key *datastore.Key) (err error) {
-	return m.startProcess(c, func() func(){
-		transferEntity := *m.entity
-		user := models.Transfer{ID: key.IntID(), TransferEntity: &transferEntity}
-		return func() { m.migrateTransfer(c, counters, user) }
-	})
+	return m.startTransferWorker(c, counters, key, m.migrateTransfer)
 }
 
-func (m *migrateTransfers) migrateTransfer(c context.Context, counters mapper.Counters, transfer models.Transfer) {
-	if err := datastore.RunInTransaction(c, func(tc context.Context) (err error) {
+func (m *migrateTransfers) migrateTransfer(c context.Context, counters *asyncCounters, transfer models.Transfer) (err error) {
+	if !transfer.HasObsoleteProps() {
+		return
+	}
+	if err = datastore.RunInTransaction(c, func(tc context.Context) (err error) {
 		if transfer, err = dal.Transfer.GetTransferByID(c, transfer.ID); err != nil {
 			return
 		}
@@ -36,4 +35,5 @@ func (m *migrateTransfers) migrateTransfer(c context.Context, counters mapper.Co
 	}, nil); err != nil {
 		log.Errorf(c, "failed to fix transfer %v: %v", transfer.ID, err)
 	}
+	return
 }

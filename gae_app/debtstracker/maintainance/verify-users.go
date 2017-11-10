@@ -41,24 +41,27 @@ func (m *verifyUsers) Query(r *http.Request) (query *mapper.Query, err error) {
 }
 
 func (m *verifyUsers) Next(c context.Context, counters mapper.Counters, key *datastore.Key) (err error) {
-	return m.startProcess(c, func() func(){
-		userEntity := *m.entity
-		user := models.AppUser{ID: key.IntID(), AppUserEntity: &userEntity}
-		return func() { m.processUser(c, user, counters) }
+	userEntity := *m.entity
+	user := models.AppUser{ID: key.IntID(), AppUserEntity: &userEntity}
+	return m.startWorker(c, counters, func() Worker {
+		return func(counters *asyncCounters) error {
+			return m.processUser(c, user, counters)
+		}
 	})
 }
 
-func (m *verifyUsers) processUser(c context.Context, user models.AppUser, counters mapper.Counters) {
+func (m *verifyUsers) processUser(c context.Context, user models.AppUser, counters *asyncCounters) (err error) {
 	buf := new(bytes.Buffer)
-	if err := m.verifyUserBalanceAndContacts(c, buf, counters, user); err != nil {
+	if err = m.verifyUserBalanceAndContacts(c, buf, counters, user); err != nil {
 		return
 	}
 	if buf.Len() > 0 {
 		log.Infof(c, buf.String())
 	}
+	return
 }
 
-func (m *verifyUsers) verifyUserBalanceAndContacts(c context.Context, buf *bytes.Buffer, counters mapper.Counters, user models.AppUser) (err error) {
+func (m *verifyUsers) verifyUserBalanceAndContacts(c context.Context, buf *bytes.Buffer, counters *asyncCounters, user models.AppUser) (err error) {
 	if user.BalanceCount > 0 {
 		balance := user.Balance()
 
@@ -117,4 +120,3 @@ func fixUserContactsBalances(u *models.AppUserEntity) (changed bool, err error) 
 	}
 	return
 }
-

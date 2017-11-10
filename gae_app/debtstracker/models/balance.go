@@ -26,6 +26,23 @@ func (b Balance) IsZero() bool {
 	return true
 }
 
+func (b Balance) Equal(b2 Balance) bool {
+	if len(b) != len(b2) {
+		return false
+	}
+	for c, v := range b {
+		if v != b2[c] {
+			return false
+		}
+	}
+	for c, v := range b2 {
+		if v != b[c] {
+			return false
+		}
+	}
+	return true
+}
+
 func (b Balance) OnlyPositive() Balance {
 	result := make(Balance, len(b))
 	for c, v := range b {
@@ -131,7 +148,7 @@ func (b *Balanced) SetBalance(balance Balance) error {
 	}
 	for currency, val := range balance {
 		if val == 0 {
-			return errors.New("balance currency has 0 value: " + string(currency))
+			return errors.WithStack(errors.New("balance currency has 0 value: " + string(currency)))
 		}
 	}
 	if v, err := ffjson.Marshal(balance); err != nil {

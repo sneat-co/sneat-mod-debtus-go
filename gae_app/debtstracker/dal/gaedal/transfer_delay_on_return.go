@@ -106,9 +106,9 @@ func removeFromOutstandingWithInterest(c context.Context, transfer models.Transf
 		if userID == 0 && contactID == 0 {
 			return
 		} else if userID == 0 {
-			panic("userID == 0")
+			panic("removeFromOutstandingWithInterest(): userID == 0")
 		} else if contactID == 0 {
-			panic("contactID == 0")
+			panic("removeFromOutstandingWithInterest(): contactID == 0")
 		}
 		removeFromUser := func() (err error) {
 			var (

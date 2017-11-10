@@ -29,7 +29,7 @@ var _ dal.ContactDal = (*ContactDalGae)(nil)
 
 func NewContactKey(c context.Context, contactID int64) *datastore.Key {
 	if contactID == 0 {
-		panic("contactID == 0")
+		panic("NewContactKey(): contactID == 0")
 	}
 	return gaedb.NewKey(c, models.ContactKind, "", contactID, nil)
 }

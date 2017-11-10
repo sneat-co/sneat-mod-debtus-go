@@ -17,17 +17,13 @@ type verifyContacts struct {
 }
 
 func (m *verifyContacts) Next(c context.Context, counters mapper.Counters, key *datastore.Key) error {
-	return m.startProcess(c, func() func(){
-		contactEntity := *m.entity
-		contact := models.Contact{ID: key.IntID(), ContactEntity: &contactEntity}
-		return func() { m.processContact(c, contact, counters) }
-	})
+	return m.startContactWorker(c, counters, key, m.processContact)
 }
 
-func (m *verifyContacts) processContact(c context.Context, contact models.Contact, counters mapper.Counters) {
+func (m *verifyContacts) processContact(c context.Context, counters *asyncCounters, contact models.Contact) (err error) {
 	//buf := new(bytes.Buffer)
 
-	if _, err := dal.User.GetUserByID(c, m.entity.UserID); db.IsNotFound(err) {
+	if _, err = dal.User.GetUserByID(c, m.entity.UserID); db.IsNotFound(err) {
 		counters.Increment(fmt.Sprintf("User:%d", m.entity.UserID), 1)
 		log.Warningf(c, "Contact %d reference unknown user %d", contact.ID, m.entity.UserID)
 	} else if err != nil {
@@ -36,7 +32,7 @@ func (m *verifyContacts) processContact(c context.Context, contact models.Contac
 	}
 	balance := m.entity.Balance()
 	if FixBalanceCurrencies(balance) {
-		if err := nds.RunInTransaction(c, func(c context.Context) (err error) {
+		if err = nds.RunInTransaction(c, func(c context.Context) (err error) {
 			if contact, err = dal.Contact.GetContactByID(c, contact.ID); err != nil {
 				return err
 			}
@@ -51,9 +47,9 @@ func (m *verifyContacts) processContact(c context.Context, contact models.Contac
 			}
 			return nil
 		}, nil); err != nil {
-			log.Errorf(c, err.Error())
 			return
 		}
 	}
+	return
 }
 

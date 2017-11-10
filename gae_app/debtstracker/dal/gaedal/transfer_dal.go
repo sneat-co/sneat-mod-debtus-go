@@ -190,14 +190,14 @@ func (transferDalGae TransferDalGae) LoadTransfersByUserID(c context.Context, us
 
 func (transferDalGae TransferDalGae) LoadTransferIDsByContactID(c context.Context, contactID int64, limit int, startCursor string) (transferIDs []int64, endCursor string, err error) {
 	if limit == 0 {
-		err = errors.New("limit == 0")
+		err = errors.New("LoadTransferIDsByContactID(): limit == 0")
 		return
 	} else if limit > 1000 {
-		err = errors.New("limit > 1000")
+		err = errors.New("LoadTransferIDsByContactID(): limit > 1000")
 		return
 	}
 	if contactID == 0 {
-		err = errors.New("contactID == 0")
+		err = errors.New("LoadTransferIDsByContactID(): contactID == 0")
 		return
 	}
 	q := datastore.NewQuery(models.TransferKind)
@@ -234,11 +234,11 @@ func (transferDalGae TransferDalGae) LoadTransferIDsByContactID(c context.Contex
 
 func (transferDalGae TransferDalGae) LoadTransfersByContactID(c context.Context, contactID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error) {
 	if limit == 0 {
-		err = errors.New("limit == 0")
+		err = errors.New("LoadTransfersByContactID(): limit == 0")
 		return
 	}
 	if contactID == 0 {
-		err = errors.New("contactID == 0")
+		err = errors.New("LoadTransfersByContactID(): contactID == 0")
 		return
 	}
 	q := datastore.NewQuery(models.TransferKind)

@@ -319,6 +319,23 @@ func (u *AppUserEntity) Contacts() (contacts []UserContactJson) {
 	return append(u.ActiveContacts(), u.ArchivedContacts()...)
 }
 
+func (u *AppUserEntity) ContactByID(id int64) (contact *UserContactJson) {
+	if id == 0 {
+		panic("*AppUserEntity.ContactByID() => id == 0")
+	}
+	for _, c := range u.ActiveContacts() {
+		if c.ID == id {
+			return &c
+		}
+	}
+	for _, c := range u.ArchivedContacts() {
+		if c.ID == id {
+			return &c
+		}
+	}
+	return
+}
+
 func (u *AppUserEntity) ContactsByID() (contactsByID map[int64]UserContactJson) {
 	contacts := u.Contacts()
 	contactsByID = make(map[int64]UserContactJson, len(contacts))
@@ -680,6 +697,22 @@ func (u *AppUserEntity) cleanProps(properties []datastore.Property) ([]datastore
 		return properties, err
 	}
 	return properties, err
+}
+
+func (u *AppUserEntity) TotalBalanceFromContacts() (balance Balance) {
+	balance = make(Balance, u.BalanceCount)
+
+	for _, contact := range u.Contacts() {
+		for currency, cv := range contact.Balance() {
+			if v := balance[currency] + cv; v ==  0 {
+				delete(balance, currency)
+			} else {
+				balance[currency] = v
+			}
+		}
+	}
+
+	return
 }
 
 func (u *AppUserEntity) Save() (properties []datastore.Property, err error) {
