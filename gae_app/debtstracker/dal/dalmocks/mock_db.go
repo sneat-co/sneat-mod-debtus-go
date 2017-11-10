@@ -38,6 +38,22 @@ func NewMockDB() MockDB {
 	return mockDB
 }
 
+func (mockDB MockDB) Get(c context.Context, entityHolder db.EntityHolder) error {
+	panic("not implemented yet")
+}
+
+func (mockDB MockDB) Update(c context.Context, entityHolder db.EntityHolder) error {
+	panic("not implemented yet")
+}
+
+func (mockDB MockDB) IsInTransaction(c context.Context) bool {
+	panic("not implemented yet")
+}
+
+func (mockDB MockDB) NonTransactionalContext(c context.Context) context.Context {
+	panic("not implemented yet")
+}
+
 func (mockDB MockDB) GetMulti(c context.Context, entityHolders []db.EntityHolder) error {
 	for _, entityHolder := range entityHolders {
 		switch entityHolder.Kind() {
@@ -48,7 +64,7 @@ func (mockDB MockDB) GetMulti(c context.Context, entityHolders []db.EntityHolder
 		//		entityHolder.SetEntity(newEntityHolder.Entity())
 		//	}
 		case models.BillKind:
-			if newEntityHolder, err := mockDB.BillMock.GetBillByID(c, entityHolder.IntID()); err != nil {
+			if newEntityHolder, err := mockDB.BillMock.GetBillByID(c, entityHolder.StrID()); err != nil {
 				return err
 			} else {
 				entityHolder.SetEntity(newEntityHolder.Entity())
@@ -82,7 +98,7 @@ func (mockDB MockDB) UpdateMulti(c context.Context, entityHolders []db.EntityHol
 	for _, entityHolder := range entityHolders {
 		switch entityHolder.Kind() {
 		case models.BillKind:
-			mockDB.BillMock.Bills[entityHolder.IntID()] = entityHolder.Entity().(*models.BillEntity)
+			mockDB.BillMock.Bills[entityHolder.StrID()] = entityHolder.Entity().(*models.BillEntity)
 		case models.AppUserKind:
 			mockDB.UserMock.Users[entityHolder.IntID()] = entityHolder.Entity().(*models.AppUserEntity)
 		case models.ContactKind:

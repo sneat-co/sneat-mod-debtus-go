@@ -475,7 +475,7 @@ func (t *TransferEntity) Load(ps []datastore.Property) error {
 		t.DirectionObsoleteProp = TransferDirectionCounterparty2User
 	}
 
-	if t.GetOutstandingValue() > 0 && !t.IsOutstanding {
+	if t.GetOutstandingValue(time.Now()) > 0 && !t.IsOutstanding {
 		t.IsOutstanding = true
 	}
 
@@ -755,4 +755,11 @@ func (t *TransferEntity) GetAmount() Amount {
 
 func (t *TransferEntity) GetReturnedAmount() Amount {
 	return Amount{Currency: t.Currency, Value: t.AmountInCentsReturned}
+}
+
+func ReverseTransfers(t []Transfer) {
+	last := len(t) - 1
+	for i := 0; i < len(t)/2; i++ {
+		t[i], t[last-i] = t[last-i], t[i]
+	}
 }

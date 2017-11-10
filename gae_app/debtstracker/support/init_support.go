@@ -250,11 +250,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get stored user total balance
-	userBalance, err := user.Balance()
-	if err != nil {
-		log.Errorf(c, "Failed to get user.Balance(): %v", err)
-		return
-	}
+	userBalance := user.Balance()
 
 	transfersBalanceByCounterpartyID := make(map[int64]models.Balance, len(counterpartyIDs))
 
@@ -372,11 +368,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 	for i, counterpartyKey := range counterpartyKeys {
 		counterpartyID := counterpartyKey.IntID()
 		counterparty := userCounterparties[i]
-		counterpartyBalance, err := counterparty.Balance()
-		if err != nil {
-			log.Errorf(c, "Failed to get counterparty.Balance() for counterparty ID=%v: %v", counterpartyID, err)
-			continue
-		}
+		counterpartyBalance := counterparty.Balance()
 
 		if transfersCounterpartyBalance := transfersBalanceByCounterpartyID[counterpartyID]; (len(transfersCounterpartyBalance) == 0 && len(counterpartyBalance) == 0) || reflect.DeepEqual(transfersCounterpartyBalance, counterpartyBalance) {
 			counterpartyIDsWithMatchingBalance = append(counterpartyIDsWithMatchingBalance, counterpartyID)
@@ -387,10 +379,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 						if err := nds.Get(c, counterpartyKey, &txCounterparty); err != nil {
 							return err
 						}
-						counterpartyBalance, err := txCounterparty.Balance()
-						if err != nil {
-							return errors.Wrap(err, "Failed to decode txCounterparty.Balance()")
-						}
+						counterpartyBalance := txCounterparty.Balance()
 						balanceCount := len(counterpartyBalance)
 						if txCounterparty.BalanceCount != balanceCount {
 							txCounterparty.BalanceCount = balanceCount

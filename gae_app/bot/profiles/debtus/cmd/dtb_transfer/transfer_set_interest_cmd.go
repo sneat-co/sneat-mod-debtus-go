@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var reInterest = regexp.MustCompile(`^\s*(?P<percent>\d+(?:\.\d+)?)%?(?:/(?P<period>\d+|w(?:eek)?|y(?:ear)?|m(?:onth)?))?(?:/(?P<minimum>\d+))?(?:/(?P<grace>\d+))?(?::\s*(?P<comment>.+?)$)?`)
+var reInterest = regexp.MustCompile(`^\s*(?P<percent>\d+(?:[\.,]\d+)?)%?(?:/(?P<period>\d+|w(?:eek)?|y(?:ear)?|m(?:onth)?))?(?:/(?P<minimum>\d+))?(?:/(?P<grace>\d+))?(?::\s*(?P<comment>.+?))?\s*$`)
 
 func interestAction(whc bots.WebhookContext, nextAction bots.CommandAction) (m bots.MessageFromBot, err error) {
 	mt := whc.Input().(bots.WebhookTextMessage).Text()
@@ -25,6 +25,7 @@ func interestAction(whc bots.WebhookContext, nextAction bots.CommandAction) (m b
 			v := matches[i]
 			switch name {
 			case "percent":
+				v = strings.Replace(v, ",", ".", 1)
 				if data.InterestPercent, err = decimal.ParseDecimal64p2(v); err != nil {
 					return
 				}

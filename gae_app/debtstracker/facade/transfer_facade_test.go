@@ -69,9 +69,14 @@ func TestCreateTransfer(t *testing.T) {
 		to := &models.TransferCounterpartyInfo{
 			ContactID: counterpartyID,
 		}
+
+		creatorUser := models.AppUser{
+			ID: userID,
+			AppUserEntity: &models.AppUserEntity{},
+		}
 		newTransfer := NewTransferInput(strongo.EnvLocal,
 			source,
-			userID,
+			creatorUser,
 			"",
 			false,
 			0,
@@ -158,6 +163,11 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 		t1, t2, t3 models.Transfer
 		err        error
 	)
+	creatorUser := models.AppUser{
+		ID: userID,
+		AppUserEntity: &models.AppUserEntity{},
+	}
+
 	source := dal.NewTransferSourceBot(telegram_bot.TelegramPlatformID, "test-bot", "444")
 	{ // Create 1st "gave" transfer
 		from := &models.TransferCounterpartyInfo{
@@ -170,7 +180,7 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 
 		newTransfer := NewTransferInput(strongo.EnvLocal,
 			source,
-			userID,
+			creatorUser,
 			"",
 			false,
 			0,
@@ -201,7 +211,7 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 
 		newTransfer := NewTransferInput(strongo.EnvLocal,
 			source,
-			userID,
+			creatorUser,
 			"",
 			false,
 			0,
@@ -220,8 +230,7 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 		is.Equal(output.To.Contact.ID, zero)
 		is.Equal(output.From.User.ID, zero)
 
-		balance, err := output.To.User.Balance()
-		is.Equal(err, nil)
+		balance := output.To.User.Balance()
 		is.Equal(len(balance), 1)
 		is.Equal(balance[models.CURRENCY_RUB], decimal.NewDecimal64p2FromFloat64(-7.00))
 	}
@@ -240,7 +249,7 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 
 		newTransfer := NewTransferInput(strongo.EnvLocal,
 			source,
-			userID,
+			creatorUser,
 			"",
 			true,
 			0,
@@ -259,18 +268,37 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 		is.Equal(output.From.Contact.ID, zero)
 		is.Equal(output.To.User.ID, zero)
 
-		balance, err := output.From.User.Balance()
-		is.Equal(err, nil)
+		balance := output.From.User.Balance()
 		is.Equal(len(balance), 0)
 	}
 
 	is.Equal(t2.AmountInCentsReturned, decimal.NewDecimal64p2FromFloat64(17))
-	is.Equal(t2.GetOutstandingValue(), decimal.NewDecimal64p2FromFloat64(0))
+	is.Equal(t2.GetOutstandingValue(time.Now()), decimal.NewDecimal64p2FromFloat64(0))
 
 	is.Equal(t3.AmountInCentsReturned, decimal.NewDecimal64p2FromFloat64(0))
-	is.Equal(t3.GetOutstandingValue(), decimal.NewDecimal64p2FromFloat64(0))
+	is.Equal(t3.GetOutstandingValue(time.Now()), decimal.NewDecimal64p2FromFloat64(0))
 
 	println("t1", t1.String())
 	println("t2", t2.String())
 	println("t3", t3.String())
+}
+
+
+func Test_removeClosedTransfersFromOutstandingWithInterest(t *testing.T) {
+	transfersWithInterest := []models.TransferWithInterestJson{
+		{TransferID: 1},
+		{TransferID: 2},
+		{TransferID: 3},
+		{TransferID: 4},
+		{TransferID: 5},
+	}
+	transfersWithInterest = removeClosedTransfersFromOutstandingWithInterest(transfersWithInterest, []int64{2,3})
+	if len(transfersWithInterest) != 3 {
+		t.Fatalf("len(transfersWithInterest) != 3: %v", transfersWithInterest)
+	}
+	for i, transferID := range []int64{1,4,5} {
+		if transfersWithInterest[i].TransferID != transferID {
+			t.Fatalf("transfersWithInterest[%d].TransferID: %v != %v", transfersWithInterest[i].TransferID, transferID)
+		}
+	}
 }

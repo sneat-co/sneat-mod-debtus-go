@@ -5,7 +5,6 @@ package models
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"time"
 	"github.com/strongo/decimal"
@@ -95,39 +94,25 @@ func (o UserContactJson) Equal(o2 UserContactJson) bool {
 		((o.Transfers == nil && o2.Transfers == nil) || (o.Transfers != nil && o2.Transfers != nil && o.Transfers.Equal(o2.Transfers)))
 }
 
-func (o UserContactJson) Balance() (balance Balance, err error) {
+func (o UserContactJson) Balance() (balance Balance) {
 	balance = make(Balance)
-	if o.BalanceJson != nil {
-		if err = ffjson.Unmarshal(*o.BalanceJson, &balance); err != nil { // TODO: Migrate to ffjson.UnmarshalFast() ?
-			err = errors.Wrapf(err, "Failed to unmarshal BalanceJson for counterparty with ID=%v", o.ID)
-			return
-		}
+	if o.BalanceJson == nil {
+		return
 	}
-	return
-}
-
-func (o UserContactJson) BalanceWithInterest(c context.Context) (balance Balance) {
-	var err error
-	if balance, err = o.Balance(); err != nil {
+	if err := ffjson.Unmarshal(*o.BalanceJson, &balance); err != nil { // TODO: Migrate to ffjson.UnmarshalFast() ?
 		panic(err)
 	}
+	return
+}
+
+func (o UserContactJson) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance Balance) {
+	balance = o.Balance()
 	if o.Transfers != nil {
-		updateBalanceWithInterest(balance, o.Transfers.OutstandingWithInterest)
+		updateBalanceWithInterest(balance, o.Transfers.OutstandingWithInterest, periodEnds)
 	}
 	return
 }
 
-func updateBalanceWithInterest(b Balance, outstandingWithInterest []TransferWithInterestJson) {
-	for _, outstandingTransferWithInterest := range outstandingWithInterest {
-		balanceValue, ok := b[outstandingTransferWithInterest.Currency]
-		if ok {
-			interestValue := CalculateInterestValue(outstandingTransferWithInterest)
-			b[outstandingTransferWithInterest.Currency] = balanceValue + interestValue
-		} else {
-			panic(fmt.Errorf("outstanding transfer %v with currency %v is not presented in balance", outstandingTransferWithInterest.TransferID, outstandingTransferWithInterest.Currency))
-		}
-	}
-}
 
 func NewUserContactJson(counterpartyID int64, status, name string, balanced Balanced) UserContactJson {
 	result := UserContactJson{

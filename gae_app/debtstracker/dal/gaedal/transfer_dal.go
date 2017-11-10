@@ -120,8 +120,8 @@ func (transferDalGae TransferDalGae) SaveTransfer(c context.Context, transfer mo
 	}
 }
 
-func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context, userID, contactID int64, currency models.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error) {
-	log.Debugf(c, "TransferDalGae.LoadOutstandingTransfers(userID=%v, contactID=%v currency=%v, direction=%v)", userID, contactID, currency, direction)
+func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context, periodEnds time.Time, userID, contactID int64, currency models.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error) {
+	log.Debugf(c, "TransferDalGae.LoadOutstandingTransfers(periodEnds=%v, userID=%v, contactID=%v currency=%v, direction=%v)", periodEnds, userID, contactID, currency, direction)
 	const limit = 100
 	q := datastore.NewQuery(models.TransferKind) // TODO: Load outstanding transfer just for the specific contact & specific direction
 	q = q.Filter("BothUserIDs =", userID)
@@ -151,7 +151,7 @@ func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context,
 			}
 		}
 
-		if outstandingValue := transfer.GetOutstandingValue(); outstandingValue > 0 {
+		if outstandingValue := transfer.GetOutstandingValue(periodEnds); outstandingValue > 0 {
 			transfers = append(transfers, transfer)
 		} else {
 			warnings.WriteString(fmt.Sprintf("Transfer(id=%v).GetOutstandingValue() == %v && IsOutstanding==true\n", transfer.ID, outstandingValue))

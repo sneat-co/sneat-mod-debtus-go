@@ -136,10 +136,7 @@ var ParseTransferCommand = bots.Command{
 		case models.TransferDirectionCounterparty2User:
 			counterparty = output.From.Contact
 		}
-		counterpartyBalance, err := counterparty.Balance()
-		if err != nil {
-			return m, nil
-		}
+		counterpartyBalance := counterparty.Balance()
 		buffer.WriteString(fmt.Sprintf(".\nTotal balance: %v", counterpartyBalance))
 		//switch {
 		//case counterparty.BalanceJson > 0: buffer.WriteString(fmt.Sprintf(".\nTotal balance: %v ows to you %v %v", contact, counterparty.BalanceJson, currency))

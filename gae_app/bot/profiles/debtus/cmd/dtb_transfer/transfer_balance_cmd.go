@@ -13,6 +13,7 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"net/url"
 	"strings"
+	"time"
 )
 
 const BALANCE_COMMAND = "balance"
@@ -64,13 +65,7 @@ func balanceAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 			var currencies []models.Currency
 			for _, counterparty := range contacts {
 				//log.Debugf(c, "counterparty: %v", counterparty)
-				balance, err := counterparty.Balance()
-				if err != nil {
-					log.Errorf(c, "Failed to get counterparty.Balance(): %v", err)
-					err = nil
-					continue
-				}
-				for currency, _ := range balance {
+				for currency, _ := range counterparty.Balance() {
 					//log.Debugf(c, "currency: %v", currency)
 					for _, curr := range currencies {
 						//log.Debugf(c, "curr: %v; curr == currency: %v", curr, curr == currency)
@@ -86,7 +81,7 @@ func balanceAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		}
 
 		if len(contacts) > 1 && thereAreFewDebtsForSingleCurrency() {
-			userBalanceWithInterest := user.BalanceWithInterest()
+			userBalanceWithInterest := user.BalanceWithInterest(time.Now())
 			buffer.WriteString("\n" + strings.Repeat("─", 16) + "\n" + balanceMessageBuilder.ByCurrency(true, userBalanceWithInterest))
 		}
 

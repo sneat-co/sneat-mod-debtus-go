@@ -4,6 +4,9 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/strongo/app/db"
 	"golang.org/x/net/context"
+	"time"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"github.com/strongo/decimal"
 )
 
 type TransferDalMock struct {
@@ -16,12 +19,24 @@ func NewTransferDalMock() *TransferDalMock {
 	}
 }
 
+func (mock *TransferDalMock) DelayUpdateTransfersOnReturn (c context.Context, returnTransferID int64, transferReturnUpdates []dal.TransferReturnUpdate) (err error) {
+	panic("not implemented yet")
+}
+
 func (mock *TransferDalMock) GetTransferByID(c context.Context, transferID int64) (models.Transfer, error) {
 	if transferEntity, ok := mock.Transfers[transferID]; ok {
 		return models.Transfer{ID: transferID, TransferEntity: transferEntity}, nil
 	} else {
 		return models.Transfer{}, db.NewErrNotFoundByIntID(models.TransferKind, transferID, nil)
 	}
+}
+
+func (mock *TransferDalMock) GetTransfersByID(c context.Context, transferIDs []int64) ([]models.Transfer, error) {
+	panic("not implemented yet")
+}
+
+func (mock *TransferDalMock) UpdateTransferOnReturn(c context.Context, returnTransfer, transfer models.Transfer, returnedAmount decimal.Decimal64p2) (err error) {
+	panic("not implemented yet")
 }
 
 func (mock *TransferDalMock) SaveTransfer(c context.Context, transfer models.Transfer) error {
@@ -66,9 +81,9 @@ func (mock *TransferDalMock) LoadOverdueTransfers(c context.Context, userID int6
 	panic(NOT_IMPLEMENTED_YET)
 }
 
-func (mock *TransferDalMock) LoadOutstandingTransfers(c context.Context, userID, contactID int64, currency models.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error) {
+func (mock *TransferDalMock) LoadOutstandingTransfers(c context.Context, periodEnds time.Time, userID, contactID int64, currency models.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error) {
 	for id, t := range mock.Transfers {
-		if t.GetOutstandingValue() != 0 {
+		if t.GetOutstandingValue(periodEnds) != 0 {
 			transfers = append(transfers, models.Transfer{ID: id, TransferEntity: t})
 		}
 	}

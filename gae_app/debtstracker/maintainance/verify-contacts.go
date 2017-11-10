@@ -10,63 +10,50 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
-	"net/http"
 )
 
 type verifyContacts struct {
-	entity *models.ContactEntity
-}
-
-func (m *verifyContacts) Query(r *http.Request) (*mapper.Query, error) {
-	return mapper.NewQuery(models.ContactKind), nil
+	contactsAsyncJob
 }
 
 func (m *verifyContacts) Next(c context.Context, counters mapper.Counters, key *datastore.Key) error {
+	return m.startProcess(c, func() func(){
+		contactEntity := *m.entity
+		contact := models.Contact{ID: key.IntID(), ContactEntity: &contactEntity}
+		return func() { m.processContact(c, contact, counters) }
+	})
+}
+
+func (m *verifyContacts) processContact(c context.Context, contact models.Contact, counters mapper.Counters) {
+	//buf := new(bytes.Buffer)
+
 	if _, err := dal.User.GetUserByID(c, m.entity.UserID); db.IsNotFound(err) {
 		counters.Increment(fmt.Sprintf("User:%d", m.entity.UserID), 1)
-		log.Warningf(c, "Contact %d reference unknown user %d", key.IntID(), m.entity.UserID)
+		log.Warningf(c, "Contact %d reference unknown user %d", contact.ID, m.entity.UserID)
 	} else if err != nil {
-		return err
+		log.Errorf(c, err.Error())
+		return
 	}
-	balance, err := m.entity.Balance()
-	if err != nil {
-		return err
-	}
+	balance := m.entity.Balance()
 	if FixBalanceCurrencies(balance) {
-		if err = nds.RunInTransaction(c, func(c context.Context) error {
-			if err = nds.Get(c, key, m.entity); err != nil {
+		if err := nds.RunInTransaction(c, func(c context.Context) (err error) {
+			if contact, err = dal.Contact.GetContactByID(c, contact.ID); err != nil {
 				return err
 			}
-			balance, err := m.entity.Balance()
-			if err != nil {
-				return err
-			}
-			if FixBalanceCurrencies(balance) {
-				m.entity.SetBalance(balance)
-				if _, err = nds.Put(c, key, m.entity); err != nil {
+			if balance := m.entity.Balance(); FixBalanceCurrencies(balance) {
+				if err = m.entity.SetBalance(balance); err != nil {
 					return err
 				}
-				log.Infof(c, "Contact fixed: %d", key.IntID())
+				if err = dal.Contact.SaveContact(c, contact); err != nil {
+					return err
+				}
+				log.Infof(c, "Contact fixed: %d", contact.ID)
 			}
 			return nil
 		}, nil); err != nil {
-			return err
+			log.Errorf(c, err.Error())
+			return
 		}
 	}
-	return nil
 }
 
-func (m *verifyContacts) Make() interface{} {
-	m.entity = new(models.ContactEntity)
-	return m.entity
-}
-
-// JobStarted is called when a mapper job is started
-func (m *verifyContacts) JobStarted(c context.Context, id string) {
-	log.Debugf(c, "Job started: %v", id)
-}
-
-// JobStarted is called when a mapper job is completed
-func (m *verifyContacts) JobCompleted(c context.Context, id string) {
-	logJobCompletion(c, id)
-}

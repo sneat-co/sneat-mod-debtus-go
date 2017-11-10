@@ -10,54 +10,25 @@ import (
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"net/http"
 	"strings"
 	"strconv"
 	"bytes"
-	"sync"
-	"github.com/strongo/app/gaedb"
 	"github.com/pkg/errors"
 )
 
 type verifyTransfers struct {
-	sync.Mutex
-	wg     sync.WaitGroup
-	entity *models.TransferEntity
-}
-
-var _ mapper.SliceLifecycle = (*verifyTransfers)(nil)
-
-func (m *verifyTransfers) SliceStarted(c context.Context, id string, namespace string, shard, slice int) {
-	gaedb.LoggingEnabled = false
-}
-
-// SliceStarted is called when a mapper job for an individual slice of a
-// shard within a namespace is completed
-func (m *verifyTransfers) SliceCompleted(c context.Context, id string, namespace string, shard, slice int) {
-	log.Debugf(c, "Awaiting completion...")
-	m.wg.Wait()
-	log.Debugf(c, "Processing completed.")
-	gaedb.LoggingEnabled = true
-}
-
-func (m *verifyTransfers) Query(r *http.Request) (*mapper.Query, error) {
-	userID, _ := strconv.ParseInt(r.URL.Query().Get("user"), 10, 64)
-	query := mapper.NewQuery(models.TransferKind)
-	if userID != 0 {
-		query = query.Filter("BothUserIDs =", userID)
-	}
-	return query, nil
+	transfersAsyncJob
 }
 
 func (m *verifyTransfers) Next(c context.Context, counters mapper.Counters, key *datastore.Key) (err error) {
-	transferEntity := *m.entity
-	m.wg.Add(1)
-	go m.verifyTransfer(c, counters, models.Transfer{ID: key.IntID(), TransferEntity: &transferEntity})
-	return
+	return m.startProcess(c, func() func(){
+		transferEntity := *m.entity
+		user := models.Transfer{ID: key.IntID(), TransferEntity: &transferEntity}
+		return func() { m.verifyTransfer(c, counters, user) }
+	})
 }
 
 func (m *verifyTransfers) verifyTransfer(c context.Context, counters mapper.Counters, transfer models.Transfer) {
-	defer m.wg.Done()
 	var err error
 	buf := new(bytes.Buffer)
 	if err = m.verifyTransferUsers(c, transfer, buf, counters); err != nil {
@@ -83,21 +54,6 @@ func (m *verifyTransfers) verifyTransfer(c context.Context, counters mapper.Coun
 	if buf.Len() > 0 {
 		log.Warningf(c, fmt.Sprintf("Transfer: %v, Created: %v\n", transfer.ID, transfer.DtCreated)+buf.String())
 	}
-}
-
-// JobStarted is called when a mapper job is started
-func (m *verifyTransfers) JobStarted(c context.Context, id string) {
-
-}
-
-// JobStarted is called when a mapper job is completed
-func (m *verifyTransfers) JobCompleted(c context.Context, id string) {
-	logJobCompletion(c, id)
-}
-
-func (m *verifyTransfers) Make() interface{} {
-	m.entity = new(models.TransferEntity)
-	return m.entity
 }
 
 func (m *verifyTransfers) verifyTransferUsers(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters mapper.Counters) (err error) {

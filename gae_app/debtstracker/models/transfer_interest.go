@@ -54,7 +54,7 @@ func (t *TransferEntity) validateTransferInterestAndReturns() (err error) {
 		panic(fmt.Sprintf("t.AmountInCentsInterest < 0: %v", t.AmountInCentsInterest))
 	}
 	if !t.IsReturn && t.AmountInCentsInterest != 0 {
-		panic(fmt.Sprintf("!t.IsReturn && t.AmountInCentsInterest != 0: %v",t.AmountInCentsInterest ))
+		panic(fmt.Sprintf("!t.IsReturn && t.AmountInCentsInterest != 0: %v", t.AmountInCentsInterest))
 	}
 	if t.AmountInCentsInterest > t.AmountInCents {
 		panic(fmt.Sprintf("t.AmountInCentsInterest > t.AmountInCents: %v > %v", t.AmountInCentsInterest, t.AmountInCents))
@@ -116,21 +116,20 @@ func (ti TransferInterest) validateTransferInterest() (err error) {
 //	addInterestPropertiesToClean(transferPropertiesToClean)
 //}
 
-func (t *TransferEntity) GetOutstandingValue() (outstandingValue decimal.Decimal64p2) {
+func (t *TransferEntity) GetOutstandingValue(periodEnds time.Time) (outstandingValue decimal.Decimal64p2) {
 	if t.IsReturn && t.AmountInCentsReturned == 0 {
 		return 0
 	}
-	interestValue := t.GetInterestValue()
+	interestValue := t.GetInterestValue(periodEnds)
 	outstandingValue = t.AmountInCents + interestValue - t.AmountInCentsReturned
 	if outstandingValue < 0 {
-		panic(fmt.Sprintf("outstandingValue < 0: %v, IsReturn: %v, Amount: %v, Returned: %v, Interest: %v", outstandingValue, t.IsReturn, t.AmountInCents, t.AmountInCentsReturned, t.GetInterestValue()))
+		panic(fmt.Sprintf("outstandingValue < 0: %v, IsReturn: %v, Amount: %v, Returned: %v, Interest: %v", outstandingValue, t.IsReturn, t.AmountInCents, t.AmountInCentsReturned, t.GetInterestValue(periodEnds)))
 	}
 	return
 }
 
-
-func (t *TransferEntity) GetOutstandingAmount() Amount {
-	return Amount{Currency: t.Currency, Value: t.GetOutstandingValue()}
+func (t *TransferEntity) GetOutstandingAmount(periodEnds time.Time) Amount {
+	return Amount{Currency: t.Currency, Value: t.GetOutstandingValue(periodEnds)}
 }
 
 type TransferInterestCalculable interface {
@@ -140,43 +139,54 @@ type TransferInterestCalculable interface {
 	GetInterestData() TransferInterest
 }
 
-func (t *TransferEntity) GetInterestValue() (interestValue decimal.Decimal64p2) {
-	return CalculateInterestValue(t)
+func (t *TransferEntity) GetInterestValue(periodEnds time.Time) (interestValue decimal.Decimal64p2) {
+	return CalculateInterestValue(t, periodEnds)
 }
 
-func CalculateInterestValue(t TransferInterestCalculable) (interestValue decimal.Decimal64p2) {
+func CalculateInterestValue(t TransferInterestCalculable, periodEnds time.Time) (interestValue decimal.Decimal64p2) {
 	firstPeriod := true
 	interestData := t.GetInterestData()
 	outstanding := t.GetLendingValue()
-	getSimpleInterestForPeriod := func(starts, ends time.Time) (interestAmount decimal.Decimal64p2) {
-		if outstanding <= 0 {
-			return 0
-		}
+	calculateSimpleInterest := func() (interestAmount decimal.Decimal64p2) {
 		interestRate := interestData.InterestPercent.AsFloat64() / 100
 		interestRatePerDay := interestRate / float64(interestData.InterestPeriod)
-		ageInDays := ageInDays(starts, ends)
-		if ageInDays < interestData.InterestMinimumPeriod {
-			ageInDays = interestData.InterestMinimumPeriod
+
+		getSimpleInterestForPeriod := func(starts, ends time.Time) (simpleInterest decimal.Decimal64p2) {
+			if outstanding <= 0 {
+				return 0
+			}
+			ageInDays := ageInDays(starts, ends)
+			if ageInDays < interestData.InterestMinimumPeriod {
+				ageInDays = interestData.InterestMinimumPeriod
+			}
+
+			if firstPeriod {
+				firstPeriod = false
+			} else {
+				ageInDays -= 1
+			}
+			simpleInterest = decimal.NewDecimal64p2FromFloat64(outstanding.AsFloat64() * interestRatePerDay * float64(ageInDays))
+			return
 		}
 
-		if firstPeriod {
-			firstPeriod = false
-		} else {
-			ageInDays -= 1
-		}
-		interestAmount = decimal.NewDecimal64p2FromFloat64(outstanding.AsFloat64() * interestRatePerDay * float64(ageInDays))
-		return
-	}
-	switch interestData.InterestType {
-	case InterestPercentSimple:
 		periodStarts := t.GetStartDate()
 		for _, transferReturn := range t.GetReturns() {
-			interestValue += getSimpleInterestForPeriod(periodStarts, transferReturn.Time)
+			interestForPeriod := getSimpleInterestForPeriod(periodStarts, transferReturn.Time)
+			if transferReturn.Amount < interestForPeriod {
+				unpaidInterest := interestForPeriod - transferReturn.Amount
+				interestValue += unpaidInterest
+				outstanding += unpaidInterest
+			}
 			outstanding -= transferReturn.Amount
 			periodStarts = transferReturn.Time
 		}
-		periodEnds := time.Now()
 		interestValue += getSimpleInterestForPeriod(periodStarts, periodEnds)
+		return
+	}
+
+	switch interestData.InterestType {
+	case InterestPercentSimple:
+		calculateSimpleInterest()
 	case InterestPercentCompound:
 		panic("not implemented")
 	case "":
@@ -194,6 +204,18 @@ func ageInDays(periodStarts, periodEnds time.Time) int {
 
 func (t *TransferEntity) AgeInDays() int {
 	return ageInDays(time.Now(), t.DtCreated)
+}
+
+func updateBalanceWithInterest(b Balance, outstandingWithInterest []TransferWithInterestJson, periodEnds time.Time) {
+	for _, outstandingTransferWithInterest := range outstandingWithInterest {
+		balanceValue, ok := b[outstandingTransferWithInterest.Currency]
+		if ok {
+			interestValue := CalculateInterestValue(outstandingTransferWithInterest, periodEnds)
+			b[outstandingTransferWithInterest.Currency] = balanceValue + interestValue
+		} else {
+			panic(fmt.Errorf("outstanding transfer %v with currency %v is not presented in balance", outstandingTransferWithInterest.TransferID, outstandingTransferWithInterest.Currency))
+		}
+	}
 }
 
 /*

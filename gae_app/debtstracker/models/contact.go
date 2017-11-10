@@ -7,6 +7,7 @@ import (
 	"google.golang.org/appengine/datastore"
 	"strings"
 	"github.com/pquerna/ffjson/ffjson"
+	"time"
 )
 
 func NewContactEntity(userID int64, details ContactDetails) *ContactEntity {
@@ -185,16 +186,11 @@ func (entity *ContactEntity) Save() (properties []datastore.Property, err error)
 	return
 }
 
-func (entity *ContactEntity) BalanceWithInterest() (balance Balance) {
-	var err error
-
-	if balance, err = entity.Balance(); err != nil {
-		panic(err)
-	}
-
+func (entity *ContactEntity) BalanceWithInterest(periodEnds time.Time) (balance Balance) {
+	balance = entity.Balance()
 	if transferInfo := entity.GetTransfersInfo(); transferInfo != nil {
 		//log.Debugf(c, "transferInfo: %+v", transferInfo)
-		updateBalanceWithInterest(balance, transferInfo.OutstandingWithInterest)
+		updateBalanceWithInterest(balance, transferInfo.OutstandingWithInterest, periodEnds)
 		//log.Debugf(c, "BalanceWithInterest(): %+v", balance)
 	}
 	return

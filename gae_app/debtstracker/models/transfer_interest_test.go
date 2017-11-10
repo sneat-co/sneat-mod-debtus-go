@@ -19,7 +19,7 @@ const day = 24 * time.Hour
 
 func assertOutstandingValue(t *testing.T, transfer *TransferEntity, expected decimal.Decimal64p2) bool {
 	t.Helper()
-	if v := transfer.GetOutstandingValue(); v != expected {
+	if v := transfer.GetOutstandingValue(time.Now()); v != expected {
 		t.Errorf("Expected %v, got: %v", expected, v)
 		return false
 	}
@@ -105,11 +105,39 @@ func TestUserContactJson_BalanceWithInterest(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf("%+v", userContact.Transfers.OutstandingWithInterest[0])
-	balanceWithInterest := userContact.BalanceWithInterest(nil)
+	balanceWithInterest := userContact.BalanceWithInterest(nil, time.Now())
 	if len(balanceWithInterest) != 1 {
 		t.Fatalf("len(balanceWithInterest) != 1: %v", len(balanceWithInterest))
 	}
 	if expected := decimal.NewDecimal64p2(100 + 4, 0); balanceWithInterest["EUR"] != expected {
 		t.Errorf("Expected %v, got %v", expected, balanceWithInterest["EUR"])
 	}
+}
+
+func Test_updateBalanceWithInterest(t *testing.T) {
+	balance := Balance{
+		CURRENCY_EUR: decimal.NewDecimal64p2FromFloat64(52.00),
+	}
+	now := time.Now()
+	outstandingWithInterest := []TransferWithInterestJson{
+		{
+			TransferInterest: TransferInterest{
+				InterestType: InterestPercentSimple,
+				InterestPercent: decimal.NewDecimal64p2FromFloat64(2.00),
+				InterestPeriod: 1,
+				InterestMinimumPeriod: 1,
+			},
+			Starts: now,
+			Currency: CURRENCY_EUR,
+			Amount: decimal.NewDecimal64p2FromFloat64(100.00),
+			Returns: []TransferReturnJson {
+				{
+					Time: now.Add(time.Minute),
+					Amount: decimal.NewDecimal64p2FromFloat64(50.00),
+				},
+			},
+		},
+	}
+	updateBalanceWithInterest(balance, outstandingWithInterest, now.Add(time.Hour))
+	t.Log(balance)
 }

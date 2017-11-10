@@ -305,8 +305,9 @@ func CreateAskTransferCounterpartyCommand(
 					var buttons [][]string
 
 					var isTooManyRows bool
+					now := time.Now()
 					for _, counterparty := range counterparties {
-						balance := counterparty.BalanceWithInterest()
+						balance := counterparty.BalanceWithInterest(now)
 						if (len(buttons) + len(balance)) > 4 {
 							isTooManyRows = true
 							log.Warningf(c, "Condider performance optimization - dublicate queries to get counterparties")

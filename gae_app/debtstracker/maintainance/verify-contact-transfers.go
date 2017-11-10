@@ -7,42 +7,26 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
-	"net/http"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"sync"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/gaedb"
 	"bytes"
-	"strconv"
 	"github.com/sanity-io/litter"
 	"strings"
 	"github.com/strongo/app/db"
+	"time"
 )
 
 type verifyContactTransfers struct {
-	wg     sync.WaitGroup
-	sync.Mutex
-	entity *models.ContactEntity
+	contactsAsyncJob
 }
 
-func (m *verifyContactTransfers) Query(r *http.Request) (*mapper.Query, error) {
-	userID, _ := strconv.ParseInt(r.URL.Query().Get("user"), 10, 64)
-	query := mapper.NewQuery(models.ContactKind)
-	if userID != 0 {
-		query = query.Filter("UserID =", userID)
-	}
-	return query, nil
+func (m *verifyContactTransfers) Next(c context.Context, counters mapper.Counters, key *datastore.Key) error {
+	return m.startProcess(c, func() func(){
+		contactEntity := *m.entity
+		contact := models.Contact{ID: key.IntID(), ContactEntity: &contactEntity}
+		return func() { m.processContact(c, contact, counters) }
+	})
 }
-
-func (m *verifyContactTransfers) IncrementCounter(counters mapper.Counters, name string, delta int64) {
-	m.Lock()
-	counters.Increment(name, delta)
-	m.Unlock()
-}
-
-//func (m *verifyContactTransfers) LogError(err error){
-//
-//}
 
 func (m *verifyContactTransfers) processContact(c context.Context, contact models.Contact, counters mapper.Counters) {
 	buf := new(bytes.Buffer)
@@ -55,7 +39,6 @@ func (m *verifyContactTransfers) processContact(c context.Context, contact model
 	)
 
 	defer func() {
-		m.wg.Done()
 		if r := recover(); r != nil {
 			log.Errorf(c, "Panic for Contact(%v): %v", contact.ID, r)
 		} else if warningsCount > 0 {
@@ -99,7 +82,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, contact model
 	for i, transfer := range transferEntities {
 		transfers[i] = models.Transfer{ID: transferKeys[i].IntID(), TransferEntity: transfer}
 	}
-	reverse(transfers)
+	models.ReverseTransfers(transfers)
 
 	transfersByID := make(map[int64]models.Transfer, len(transfers))
 
@@ -110,6 +93,8 @@ func (m *verifyContactTransfers) processContact(c context.Context, contact model
 
 	if contact.CounterpartyCounterpartyID != 0 || contact.CounterpartyUserID != 0 { // Fixing names
 		for _, transfer := range transfers {
+			originalTransfer := transfer
+			*originalTransfer.TransferEntity = *transfer.TransferEntity
 			changed := false
 			self := transfer.UserInfoByUserID(contact.UserID)
 			counterparty := transfer.CounterpartyInfoByUserID(contact.UserID)
@@ -152,7 +137,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, contact model
 			}
 
 			if changed {
-				log.Warningf(c, "Fixing contact details for transfer %v: From:%v, To: %v", transfer.ID, litter.Sdump(transfer.From()), litter.Sdump(transfer.To()))
+				log.Warningf(c, "Fixing contact details for transfer %v: From:%v, To: %v\n\noriginal: %v\n\n new: %v", transfer.ID, litter.Sdump(transfer.From()), litter.Sdump(transfer.To()), litter.Sdump(originalTransfer), litter.Sdump(transfer))
 				if err = dal.Transfer.SaveTransfer(c, transfer); err != nil {
 					log.Errorf(c, errors.WithMessage(err, "failed to save transfer").Error())
 					return
@@ -172,7 +157,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, contact model
 			fmt.Fprintf(buf, p+"\t  To(): userID=%v, contactID=%v\n", transfer.To().UserID, transfer.To().ContactID)
 			fmt.Fprintf(buf, p+"\tAmount: %v\n", transfer.GetAmount())
 			fmt.Fprintf(buf, p+"\tReturned: %v\n", transfer.AmountInCentsReturned)
-			fmt.Fprintf(buf, p+"\tOutstanding: %v\n", transfer.GetOutstandingValue())
+			fmt.Fprintf(buf, p+"\tOutstanding: %v\n", transfer.GetOutstandingValue(time.Now()))
 			fmt.Fprintf(buf, p+"\tIsReturn: %v\n", transfer.IsReturn)
 			fmt.Fprintf(buf, p+"\tReturnTransferIDs: %v\n", transfer.ReturnTransferIDs)
 			fmt.Fprintf(buf, p+"\tReturnToTransferIDs: %v\n", transfer.ReturnToTransferIDs)
@@ -205,15 +190,18 @@ func (m *verifyContactTransfers) processContact(c context.Context, contact model
 		return
 	}
 
+	now := time.Now()
+
 	getTransfersOutstanding := func(transfers []models.Transfer) (outstandingBalance models.Balance) {
 		outstandingBalance = make(models.Balance)
+
 		for _, transfer := range transfers {
 			//logTransfer(transfer, 1)
 			switch transfer.DirectionForContact(contact.ID) {
 			case models.TransferDirectionUser2Counterparty:
-				outstandingBalance[transfer.Currency] += transfer.GetOutstandingValue()
+				outstandingBalance[transfer.Currency] += transfer.GetOutstandingValue(now)
 			case models.TransferDirectionCounterparty2User:
-				outstandingBalance[transfer.Currency] -= transfer.GetOutstandingValue()
+				outstandingBalance[transfer.Currency] -= transfer.GetOutstandingValue(now)
 			default:
 				panic(fmt.Sprintf("transfer.DirectionForContact(%v): %v", contact.ID, transfer.DirectionForContact(contact.ID)))
 			}
@@ -254,11 +242,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, contact model
 
 	verifyTotals := func() (valid bool) {
 		valid = true
-		contactBalance, err := contact.Balance()
-		if err != nil {
-			log.Errorf(c, errors.WithMessage(err, "failed to get contact balance").Error())
-			return
-		}
+		contactBalance := contact.Balance()
 		for currency, transfersTotal := range transfersBalance {
 			if contactTotal := contactBalance[currency]; contactTotal != transfersTotal {
 				valid = false
@@ -286,19 +270,17 @@ func (m *verifyContactTransfers) processContact(c context.Context, contact model
 	verifyOutstanding := func(iteration int) (valid bool) {
 		valid = true
 		transfersOutstanding := getTransfersOutstanding(transfers)
-		for currency, transfersTotal := range transfersBalance {
-			if outstandingTotal := transfersOutstanding[currency]; outstandingTotal != transfersTotal {
+		for currency, balanceTotal := range transfersBalance {
+			if outstandingTotal := transfersOutstanding[currency]; outstandingTotal == balanceTotal {
+				fmt.Fprintf(buf, "\t%v: balanceTotal == outstandingTotal: %v\n", currency, balanceTotal)
+			} else {
 				valid = false
-				fmt.Fprintf(buf, "\tcurrency %v: transfersTotal != outstandingTotal: %v != %v\n", currency, transfersTotal, outstandingTotal)
+				fmt.Fprintf(buf, "\tcurrency %v: balanceTotal != outstandingTotal: %v != %v\n", currency, balanceTotal, outstandingTotal)
 				warningsCount += 1
 			}
 			delete(transfersOutstanding, currency)
 		}
-		if valid {
-			fmt.Fprintf(buf, "\tverifyOutstanding(%v): valid=true\n", iteration)
-		} else {
-			fmt.Fprintf(buf, "\tverifyOutstanding(%v): valid=false\n", iteration)
-		}
+		fmt.Fprintf(buf, "\tverifyOutstanding(iteration=%v): valid=%v\n", iteration, valid)
 		return
 	}
 
@@ -332,7 +314,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, contact model
 					previousTransfer.ReturnTransferIDs = append(previousTransfer.ReturnTransferIDs, transfer.ID)
 					transfer.ReturnToTransferIDs = append(transfer.ReturnToTransferIDs, previousTransfer.ID)
 					transfersToSave[previousTransfer.ID] = previousTransfer.TransferEntity
-					if previousTransferOutstandingValue := previousTransfer.GetOutstandingValue(); amountToAssign <= previousTransferOutstandingValue {
+					if previousTransferOutstandingValue := previousTransfer.GetOutstandingValue(now); amountToAssign <= previousTransferOutstandingValue {
 						previousTransfer.AmountInCentsReturned += amountToAssign
 						amountToAssign = 0
 						break
@@ -362,21 +344,21 @@ func (m *verifyContactTransfers) processContact(c context.Context, contact model
 		} else if valid = verifyReturnIDs(); !valid {
 			fmt.Fprint(buf, "Return IDs are invalid after fix")
 		} else {
-			fmt.Fprintf(buf, "SAVING %v transfers...\n", len(transfersToSave))
+			fmt.Fprintf(buf, "%v transfers to save!\n", len(transfersToSave))
 			logTransfers(transfers, 1, true)
 			entitiesToSave := make([]db.EntityHolder, 0, len(transfersToSave))
 			for id, transfer := range transfersToSave {
 				entitiesToSave = append(entitiesToSave, &models.Transfer{ID: id, TransferEntity: transfer})
 			}
-			gaedb.LoggingEnabled = true
-			if err = dal.DB.UpdateMulti(c, entitiesToSave); err != nil {
-				gaedb.LoggingEnabled = false
-				fmt.Fprintf(buf, "ERROR: failed to save transfers: "+err.Error())
-				hasError = true
-				return
-			}
-			gaedb.LoggingEnabled = false
-			fmt.Fprintf(buf, "SAVED %v transfers!\n", len(entitiesToSave))
+			//gaedb.LoggingEnabled = true
+			//if err = dal.DB.UpdateMulti(c, entitiesToSave); err != nil {
+			//	gaedb.LoggingEnabled = false
+			//	fmt.Fprintf(buf, "ERROR: failed to save transfers: "+err.Error())
+			//	hasError = true
+			//	return
+			//}
+			//gaedb.LoggingEnabled = false
+			//fmt.Fprintf(buf, "SAVED %v transfers!\n", len(entitiesToSave))
 		}
 	}
 
@@ -390,62 +372,14 @@ func (m *verifyContactTransfers) processContact(c context.Context, contact model
 		m.Unlock()
 
 		if user, err = dal.User.GetUserByID(c, contact.UserID); err != nil {
-			log.Errorf(c, errors.WithMessage(err, fmt.Sprintf("Contact(%v): ", contact.ID)+"user not loaded by ID").Error())
+			log.Errorf(c, errors.WithMessage(err, fmt.Sprintf("Contact(%v): ", contact.ID)+"user not found by ID").Error())
 			return
 		}
 
-		contactBalance, err := contact.Balance()
-		if err != nil {
-			log.Errorf(c, errors.WithMessage(err, "failed to get user balance").Error())
-			return
-		}
+		contactBalance := contact.Balance()
 
 		if len(contactBalance) == 0 {
 			contactBalance = nil
 		}
-	}
-}
-
-func (m *verifyContactTransfers) Next(c context.Context, counters mapper.Counters, key *datastore.Key) (error) {
-	contact := *m.entity
-	m.wg.Add(1)
-	go m.processContact(c, models.Contact{ID: key.IntID(), ContactEntity: &contact}, counters)
-	return nil
-}
-
-func (m *verifyContactTransfers) Make() interface{} {
-	m.entity = new(models.ContactEntity)
-	return m.entity
-}
-
-// JobStarted is called when a mapper job is started
-func (m *verifyContactTransfers) JobStarted(c context.Context, id string) {
-	log.Debugf(c, "Job started: %v", id)
-}
-
-// JobStarted is called when a mapper job is completed
-func (m *verifyContactTransfers) JobCompleted(c context.Context, id string) {
-	logJobCompletion(c, id)
-}
-
-var _ mapper.SliceLifecycle = (*verifyContactTransfers)(nil)
-
-func (m *verifyContactTransfers) SliceStarted(c context.Context, id string, namespace string, shard, slice int) {
-	gaedb.LoggingEnabled = false
-}
-
-// SliceStarted is called when a mapper job for an individual slice of a
-// shard within a namespace is completed
-func (m *verifyContactTransfers) SliceCompleted(c context.Context, id string, namespace string, shard, slice int) {
-	log.Debugf(c, "Awaiting completion...")
-	m.wg.Wait()
-	log.Debugf(c, "Processing completed.")
-	gaedb.LoggingEnabled = true
-}
-
-func reverse(t []models.Transfer) {
-	last := len(t) - 1
-	for i := 0; i < len(t)/2; i++ {
-		t[i], t[last-i] = t[last-i], t[i]
 	}
 }

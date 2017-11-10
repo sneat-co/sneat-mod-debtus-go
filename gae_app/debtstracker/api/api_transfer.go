@@ -119,9 +119,8 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 			}
 			return
 		} else {
-			if balance, err := counterparty.Balance(); err != nil {
-				InternalError(c, w, err)
-			} else if balanceAmount, ok := balance[amountWithCurrency.Currency]; !ok {
+			balance := counterparty.Balance()
+			if balanceAmount, ok := balance[amountWithCurrency.Currency]; !ok {
 				BadRequestMessage(c, w, fmt.Sprintf("No balance for %v", amountWithCurrency.Currency))
 			} else {
 				switch direction {

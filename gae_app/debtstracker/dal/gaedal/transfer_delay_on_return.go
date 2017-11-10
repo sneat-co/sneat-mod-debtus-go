@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/sanity-io/litter"
+	"time"
 )
 
 func (_ TransferDalGae) DelayUpdateTransfersOnReturn(c context.Context, returnTransferID int64, transferReturnsUpdate []dal.TransferReturnUpdate) (err error) {
@@ -102,6 +103,13 @@ func updateTransferOnReturn(c context.Context, returnTransferID, transferID int6
 
 func removeFromOutstandingWithInterest(c context.Context, transfer models.Transfer) (err error) {
 	removeFromOutstanding := func(userID, contactID int64) (err error) {
+		if userID == 0 && contactID == 0 {
+			return
+		} else if userID == 0 {
+			panic("userID == 0")
+		} else if contactID == 0 {
+			panic("contactID == 0")
+		}
 		removeFromUser := func() (err error) {
 			var (
 				user models.AppUser
@@ -157,15 +165,13 @@ func removeFromOutstandingWithInterest(c context.Context, transfer models.Transf
 		}
 		return
 	}
-	if transfer.From().UserID != 0 && transfer.To().ContactID != 0 {
-		if err = removeFromOutstanding(transfer.From().UserID, transfer.To().ContactID); err != nil {
-			return
-		}
+	from, to := transfer.From(), transfer.To()
+
+	if err = removeFromOutstanding(from.UserID, to.ContactID); err != nil {
+		return
 	}
-	if transfer.To().UserID != 0 && transfer.From().ContactID != 0 {
-		if err = removeFromOutstanding(transfer.To().UserID, transfer.From().ContactID); err != nil {
-			return
-		}
+	if err = removeFromOutstanding(to.UserID, from.ContactID); err != nil {
+		return
 	}
 	return
 }
@@ -198,7 +204,7 @@ func (_ TransferDalGae) UpdateTransferOnReturn(c context.Context, returnTransfer
 		}
 	}
 
-	if outstandingValue := transfer.GetOutstandingValue(); outstandingValue < returnedAmount {
+	if outstandingValue := transfer.GetOutstandingValue(returnTransfer.DtCreated); outstandingValue < returnedAmount {
 		log.Errorf(c, "transfer.GetOutstandingValue() < returnedAmount: %v <  %v", outstandingValue, returnedAmount)
 		if outstandingValue <= 0 {
 			return
@@ -238,7 +244,7 @@ func (_ TransferDalGae) UpdateTransferOnReturn(c context.Context, returnTransfer
 	})
 	transfer.SetReturns(returns)
 
-	transfer.IsOutstanding = transfer.GetOutstandingValue() > 0
+	transfer.IsOutstanding = transfer.GetOutstandingValue(time.Now()) > 0
 
 	if err = dal.Transfer.SaveTransfer(c, transfer); err != nil {
 		return

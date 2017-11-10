@@ -209,6 +209,8 @@ func NewTransferInput(
 func (transferFacade transferFacade) CreateTransfer(c context.Context, input createTransferInput) (
 	output createTransferOutput, err error,
 ) {
+	now := time.Now()
+
 	log.Infof(c, "CreateTransfer(input=%v)", input)
 
 	var returnToTransferIDs []int64
@@ -223,12 +225,10 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 		log.Debugf(c, "creatorContactID=%v, contacts: %+v", creatorContactID, contacts)
 		for _, contact := range contacts {
 			if contact.ID == creatorContactID {
-				var contactBalance models.Balance
-				if contactBalance, err = contact.Balance(); err != nil {
-					return
-				} else if v, ok := contactBalance[input.Amount.Currency]; !ok || v == 0 {
+				contactBalance := contact.Balance()
+				if v, ok := contactBalance[input.Amount.Currency]; !ok || v == 0 {
 					log.Debugf(c, "No need to check for outstanding transfers as contacts balance is 0")
-				} else if returnToTransferIDs, err = transferFacade.checkOutstandingTransfersForReturns(c, input); err != nil {
+				} else if returnToTransferIDs, err = transferFacade.checkOutstandingTransfersForReturns(c, now, input); err != nil {
 					return
 				}
 				goto contactFound
@@ -250,24 +250,24 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 			panic("transferToReturn.Currency != amount.Currency")
 		}
 
-		if transferToReturn.GetOutstandingValue() == 0 {
+		if transferToReturn.GetOutstandingValue(now) == 0 {
 			// When the transfer has been already returned
 			err = ErrDebtAlreadyReturned
 			return
 		}
 
-		if input.Amount.Value > transferToReturn.GetOutstandingValue() {
-			log.Debugf(c, "amount.Value (%v) > transferToReturn.AmountInCentsOutstanding (%v)", input.Amount.Value, transferToReturn.GetOutstandingValue())
+		if input.Amount.Value > transferToReturn.GetOutstandingValue(now) {
+			log.Debugf(c, "amount.Value (%v) > transferToReturn.AmountInCentsOutstanding (%v)", input.Amount.Value, transferToReturn.GetOutstandingValue(now))
 			if input.Amount.Value == transferToReturn.AmountInCents {
 				// For situations when a transfer was partially returned but user wants to mark it as fully returned.
 				log.Debugf(c, "amount.Value (%v) == transferToReturn.AmountInCents (%v)", input.Amount.Value, transferToReturn.AmountInCents)
-				input.Amount.Value = transferToReturn.GetOutstandingValue()
+				input.Amount.Value = transferToReturn.GetOutstandingValue(now)
 				log.Debugf(c, "Updated amount.Value: %v", input.Amount.Value)
 			} else {
 				err = ErrPartialReturnGreaterThenOutstanding
 				return
 			}
-		} else if input.Amount.Value < transferToReturn.GetOutstandingValue() {
+		} else if input.Amount.Value < transferToReturn.GetOutstandingValue(now) {
 			log.Debugf(c, "amount.Value < transferToReturn.AmountInCentsOutstanding")
 		}
 
@@ -276,7 +276,7 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 	}
 
 	if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-		output, err = Transfers.createTransferWithinTransaction(c, input, returnToTransferIDs)
+		output, err = Transfers.createTransferWithinTransaction(c, now, input, returnToTransferIDs)
 		return err
 	}, dal.CrossGroupTransaction); err != nil {
 		return
@@ -286,7 +286,7 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 	return
 }
 
-func (transferFacade transferFacade) checkOutstandingTransfersForReturns(c context.Context, input createTransferInput) (returnToTransferIDs []int64, err error) {
+func (transferFacade transferFacade) checkOutstandingTransfersForReturns(c context.Context, now time.Time, input createTransferInput) (returnToTransferIDs []int64, err error) {
 	log.Debugf(c, "transferFacade.checkOutstandingTransfersForReturns()")
 	var (
 		outstandingTransfers []models.Transfer
@@ -294,7 +294,7 @@ func (transferFacade transferFacade) checkOutstandingTransfersForReturns(c conte
 
 	creatorContactID := input.CreatorContactID()
 
-	outstandingTransfers, err = dal.Transfer.LoadOutstandingTransfers(c, input.CreatorUser.ID, creatorContactID, input.Amount.Currency, input.Direction().Reverse())
+	outstandingTransfers, err = dal.Transfer.LoadOutstandingTransfers(c, time.Now(), input.CreatorUser.ID, creatorContactID, input.Amount.Currency, input.Direction().Reverse())
 	if err != nil {
 		err = errors.WithMessage(err, "failed to load outstanding transfers")
 		return
@@ -310,7 +310,7 @@ func (transferFacade transferFacade) checkOutstandingTransfersForReturns(c conte
 		for i, outstandingTransfer := range outstandingTransfers {
 			log.Debugf(c, "outstanding transfer: %+v", outstandingTransfer)
 			outstandingTransferID := outstandingTransfers[i].ID
-			outstandingValue := outstandingTransfer.GetOutstandingValue()
+			outstandingValue := outstandingTransfer.GetOutstandingValue(now)
 			if outstandingValue == input.Amount.Value { // A check for exact match that has higher priority then earlie transfers
 				log.Infof(c, "Found outstanding transfer with exact amount match: %v", outstandingTransferID)
 				assignedValue = input.Amount.Value
@@ -334,7 +334,7 @@ func (transferFacade transferFacade) checkOutstandingTransfersForReturns(c conte
 }
 
 func (transferFacade transferFacade) createTransferWithinTransaction(
-	c context.Context, input createTransferInput, returnToTransferIDs []int64,
+	c context.Context, dtCreated time.Time, input createTransferInput, returnToTransferIDs []int64,
 ) (
 	output createTransferOutput, err error,
 ) {
@@ -452,6 +452,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 	}
 
 	transferEntity := models.NewTransferEntity(input.CreatorUser.ID, input.IsReturn, input.Amount, input.From, input.To)
+	transferEntity.DtCreated = dtCreated
 	output.Transfer.TransferEntity = transferEntity
 	input.Source.PopulateTransfer(transferEntity)
 	transferEntity.TransferInterest = input.Interest
@@ -462,9 +463,9 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 	}
 
 	var (
-		transferReturnInfos              = make([]TransferReturnInfo, 0, len(returnToTransferIDs))
+		transferReturnInfos             = make([]TransferReturnInfo, 0, len(returnToTransferIDs))
 		returnedValue, returnedInterest decimal.Decimal64p2
-		closedTransferIDs []int64
+		closedTransferIDs               []int64
 	)
 
 	// For returns to specific transfers
@@ -485,7 +486,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		assignedToExistingTransfers := false
 		for _, transferEntityHolder := range returnToTransfers {
 			returnToTransfer := transferEntityHolder.(*models.Transfer)
-			returnToTransferOutstandingValue := returnToTransfer.GetOutstandingValue()
+			returnToTransferOutstandingValue := returnToTransfer.GetOutstandingValue(dtCreated)
 			if !returnToTransfer.IsOutstanding {
 				log.Warningf(c, "Transfer(%v).IsOutstanding: false", returnToTransfer.ID)
 				continue
@@ -501,7 +502,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 			} else {
 				amountReturnedToTransfer = returnToTransferOutstandingValue
 			}
-			interestReturnedToTransfer := returnToTransfer.GetInterestValue()
+			interestReturnedToTransfer := returnToTransfer.GetInterestValue(dtCreated)
 			if interestReturnedToTransfer > 0 {
 				if interestReturnedToTransfer > amountReturnedToTransfer {
 					interestReturnedToTransfer = amountReturnedToTransfer
@@ -511,7 +512,6 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 			transferReturnInfos = append(transferReturnInfos, TransferReturnInfo{Transfer: *returnToTransfer, ReturnedAmount: amountReturnedToTransfer})
 			amountToAssign -= amountReturnedToTransfer
 			returnedValue += amountReturnedToTransfer
-
 
 			assignedToExistingTransfers = true
 			entities = append(entities, returnToTransfer) // TODO: Potentially can exceed max number of entities in GAE transaction
@@ -626,7 +626,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		var amountWithoutInterest models.Amount
 		if returnedValue > 0 {
 			amountWithoutInterest = models.Amount{Currency: input.Amount.Currency, Value: returnedValue - returnedInterest}
-		}  else if returnedValue < 0 {
+		} else if returnedValue < 0 {
 			panic(fmt.Sprintf("returnedValue < 0: %v", returnedValue))
 		} else {
 			amountWithoutInterest = input.Amount
@@ -639,6 +639,43 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		}
 		if output.To.User.ID != 0 {
 			transferFacade.updateUserAndCounterpartyWithTransferInfo(c, amountWithoutInterest, output.Transfer, output.To.User, output.From.Contact, models.TransferDirectionCounterparty2User, closedTransferIDs)
+		}
+	}
+
+	{ // Integrity checks
+		checkContacts := func(c1, c2 string, contact models.Contact, user models.AppUser) {
+			contacts := user.Contacts()
+			contactBalance := contact.Balance()
+			for _, c := range contacts {
+				if c.ID == contact.ID {
+					cBalance := c.Balance()
+					for currency, val := range contactBalance {
+						if cVal := cBalance[currency]; cVal != val {
+							panic(fmt.Sprintf(
+								"balance inconsistency for (user=%v&contact=%v VS user=%v&contact=%v) => "+
+									"%v: %v != %v\n%v.Balance: %v\n\n%v.Balance: %v",
+								contact.UserID, contact.ID, user.ID, c.ID, currency, cVal, val, c1, contactBalance, c2, cBalance))
+						}
+					}
+					return
+				}
+			}
+			panic(fmt.Sprintf("Contact.ID not found in counterparty Contacts(): %v", contact.ID))
+		}
+
+		if output.From.User.AppUserEntity != nil {
+			checkContacts("to", "from", output.To.Contact, output.From.User)
+		}
+		if output.To.User.AppUserEntity != nil {
+			checkContacts("from", "to", output.From.Contact, output.To.User)
+		}
+		if output.From.User.AppUserEntity != nil && output.To.User.AppUserEntity != nil {
+			currency := output.Transfer.Currency
+			fromBalance := output.From.Contact.Balance()[currency]
+			toBalance := output.To.Contact.Balance()[currency]
+			if fromBalance != -toBalance {
+				panic(fmt.Sprintf("fromBalance != -1*toBalance => %v != -1*%v", fromBalance, -toBalance))
+			}
 		}
 	}
 
@@ -677,9 +714,17 @@ func (_ transferFacade) updateUserAndCounterpartyWithTransferInfo(
 	direction models.TransferDirection,
 	closedTransferIDs []int64,
 ) (err error) {
+	log.Debugf(c, "updateUserAndCounterpartyWithTransferInfo(user=%v, counterparty=%v)", user, counterparty)
 	if user.ID != counterparty.UserID {
 		panic(fmt.Sprintf("user.ID != counterparty.UserID (%d != %d)", user.ID, counterparty.UserID))
 	}
+	//userBalanceBefore := user.Balance()[amount.Currency]
+	//defer func() {
+	//	userBalanceAfter := user.Balance()[amount.Currency]
+	//	if userBalanceAfter != (userBalanceBefore+amount.Value) && userBalanceAfter != (userBalanceBefore-amount.Value) {
+	//		log.Warningf(c, "New balance does not match SUM(old_balance + transfer): amount: %v, userBalanceBefore: %v, userBalanceAfter: %v", amount.Value, userBalanceBefore, userBalanceAfter)
+	//	}
+	//}()
 
 	var updateBalanceAndContactTransfersInfo = func(curr models.Currency, val decimal.Decimal64p2, user models.AppUser, cp models.Contact) (err error) {
 		log.Debugf(c, "Updating balance with [%v %v] for user #%d, counterparty #%d", val, curr, user.ID, cp.ID)
@@ -692,7 +737,7 @@ func (_ transferFacade) updateUserAndCounterpartyWithTransferInfo(
 			return
 		} else {
 			cp.CountOfTransfers += 1
-			cpBalance, _ := cp.Balance()
+			cpBalance := cp.Balance()
 			log.Debugf(c, "Updated balance to %v | %v for counterparty #%d", balance, cpBalance, cp.ID)
 		}
 
@@ -702,22 +747,45 @@ func (_ transferFacade) updateUserAndCounterpartyWithTransferInfo(
 			contactTransfersInfo.Last.At = transfer.DtCreated
 			if transfer.HasInterest() {
 				contactTransfersInfo.OutstandingWithInterest = append(contactTransfersInfo.OutstandingWithInterest, models.TransferWithInterestJson{
-					TransferID: transfer.ID,
-					Amount: transfer.AmountInCents,
-					Currency: transfer.Currency,
-					Starts: transfer.DtCreated,
+					TransferID:       transfer.ID,
+					Amount:           transfer.AmountInCents,
+					Currency:         transfer.Currency,
+					Starts:           transfer.DtCreated,
 					TransferInterest: transfer.TransferInterest,
 				})
-			} else if len(closedTransferIDs) > 0 && len(contactTransfersInfo.OutstandingWithInterest) > 0 {
-				var i int
-				for _, outstanding := range contactTransfersInfo.OutstandingWithInterest {
-					if !slices.IsInInt64Slice(outstanding.TransferID, closedTransferIDs) {
-						contactTransfersInfo.OutstandingWithInterest[i] = outstanding
-						i += 1
+			}
+			log.Debugf(c, "len(contactTransfersInfo.OutstandingWithInterest): %v", len(contactTransfersInfo.OutstandingWithInterest))
+			if len(contactTransfersInfo.OutstandingWithInterest) > 0 {
+				if len(closedTransferIDs) > 0 {
+					log.Debugf(c, "removeClosedTransfersFromOutstandingWithInterest(closedTransferIDs: %v)", closedTransferIDs)
+					contactTransfersInfo.OutstandingWithInterest = removeClosedTransfersFromOutstandingWithInterest(contactTransfersInfo.OutstandingWithInterest, closedTransferIDs)
+				}
+				log.Debugf(c, "transfer.ReturnToTransferIDs: %v", transfer.ReturnToTransferIDs)
+				for _, returnToTransferID := range transfer.ReturnToTransferIDs {
+					if slices.IsInInt64Slice(returnToTransferID, closedTransferIDs) {
+						log.Debugf(c, "transfer %v is closed", returnToTransferID)
+					} else {
+						for i, outstanding := range contactTransfersInfo.OutstandingWithInterest {
+							if outstanding.TransferID == returnToTransferID {
+								if len(transfer.ReturnToTransferIDs) == 1 {
+									outstanding.Returns = append(outstanding.Returns, models.TransferReturnJson{
+										TransferID: transfer.ID,
+										Amount:     transfer.AmountInCents,
+										Time:       transfer.DtCreated,
+									})
+									contactTransfersInfo.OutstandingWithInterest[i] = outstanding
+								} else {
+									panic("Not implemented yet")
+								}
+								goto addedToReturns
+							}
+						}
+						log.Debugf(c, "transfer %v is not listed in contactTransfersInfo.OutstandingWithInterest", returnToTransferID)
+					addedToReturns:
 					}
 				}
-				contactTransfersInfo.OutstandingWithInterest = contactTransfersInfo.OutstandingWithInterest[:i]
 			}
+
 			log.Debugf(c, "transfer.HasInterest(): %v, contactTransfersInfo: %v", transfer.HasInterest(), litter.Sdump(*contactTransfersInfo))
 			if err = cp.SetTransfersInfo(*contactTransfersInfo); err != nil {
 				err = errors.WithMessage(err, "failed to call SetTransfersInfo()")
@@ -730,7 +798,7 @@ func (_ transferFacade) updateUserAndCounterpartyWithTransferInfo(
 			return
 		} else {
 			user.CountOfTransfers += 1
-			userBalance, _ := user.Balance()
+			userBalance := user.Balance()
 			log.Debugf(c, "Updated balance to %v | %v for user #%d", balance, userBalance, user.ID)
 		}
 		log.Debugf(c, "user.ContactsJsonActive (before): %v\ncp: %v", user.ContactsJsonActive, litter.Sdump(cp))
@@ -753,10 +821,24 @@ func (_ transferFacade) updateUserAndCounterpartyWithTransferInfo(
 	case models.TransferDirectionCounterparty2User:
 		amountValue = amount.Value * USER_BALANCE_DECREASED
 	default:
-		panic("Unknown direciton: " + string(direction))
+		panic("Unknown direction: " + string(direction))
 	}
 	if err = updateBalanceAndContactTransfersInfo(amount.Currency, amountValue, user, counterparty); err != nil {
 		return
 	}
 	return
+}
+
+func removeClosedTransfersFromOutstandingWithInterest(
+	transfersWithInterest []models.TransferWithInterestJson,
+	closedTransferIDs []int64,
+) []models.TransferWithInterestJson {
+	var i int
+	for _, outstanding := range transfersWithInterest {
+		if !slices.IsInInt64Slice(outstanding.TransferID, closedTransferIDs) {
+			transfersWithInterest[i] = outstanding
+			i += 1
+		}
+	}
+	return transfersWithInterest[:i]
 }

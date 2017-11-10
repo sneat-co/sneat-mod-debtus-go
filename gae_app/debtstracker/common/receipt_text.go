@@ -11,6 +11,7 @@ import (
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"html"
 	"html/template"
+	"time"
 )
 
 type ShowReceiptTo int8
@@ -222,7 +223,7 @@ func (r receiptTextBuilder) WriteReceiptText(buffer *bytes.Buffer, utmParams Utm
 		buffer.WriteString("\n" + r.translateAndFormatMessage(trans.MESSAGE_TEXT_RECEIPT_ALREADY_RETURNED_AMOUNT, r.transfer.GetReturnedAmount(), utmParams))
 	}
 
-	if outstandingAmount := r.transfer.GetOutstandingAmount(); outstandingAmount.Value > 0 && outstandingAmount.Value != r.transfer.AmountInCents {
+	if outstandingAmount := r.transfer.GetOutstandingAmount(time.Now()); outstandingAmount.Value > 0 && outstandingAmount.Value != r.transfer.AmountInCents {
 		buffer.WriteString("\n" + r.translateAndFormatMessage(trans.MESSAGE_TEXT_RECEIPT_OUTSTANDING_AMOUNT, outstandingAmount, utmParams))
 	}
 }

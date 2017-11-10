@@ -10,39 +10,66 @@ import (
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
 	"net/http"
-	"strings"
+	"strconv"
+	"google.golang.org/appengine"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bytes"
+	"fmt"
 )
 
 type verifyUsers struct {
+	asyncMapper
 	entity *models.AppUserEntity
 }
 
-func (m *verifyUsers) Query(r *http.Request) (*mapper.Query, error) {
-	return mapper.NewQuery(models.AppUserKind), nil
+func (m *verifyUsers) Make() interface{} {
+	m.entity = new(models.AppUserEntity)
+	return m.entity
+}
+
+func (m *verifyUsers) Query(r *http.Request) (query *mapper.Query, err error) {
+	var userID int64
+	if userID, err = strconv.ParseInt(r.URL.Query().Get("user"), 10, 64); err != nil {
+		return
+	}
+	if userID == 0 {
+		query = mapper.NewQuery(models.AppUserKind)
+	} else {
+		query = query.Filter("__key__", datastore.NewKey(appengine.NewContext(r), models.AppUserKind, "", userID, nil))
+	}
+	return query, nil
 }
 
 func (m *verifyUsers) Next(c context.Context, counters mapper.Counters, key *datastore.Key) (err error) {
-	if err = m.verifyUserBalanceAndContacts(c, counters, key); err != nil {
-		return
-	}
-	return nil
+	return m.startProcess(c, func() func(){
+		userEntity := *m.entity
+		user := models.AppUser{ID: key.IntID(), AppUserEntity: &userEntity}
+		return func() { m.processUser(c, user, counters) }
+	})
 }
 
-func (m *verifyUsers) verifyUserBalanceAndContacts(c context.Context, counters mapper.Counters, key *datastore.Key) (err error) {
-	if m.entity.BalanceCount > 0 {
-		balance, err := m.entity.Balance()
-		if err != nil {
-			return err
-		}
+func (m *verifyUsers) processUser(c context.Context, user models.AppUser, counters mapper.Counters) {
+	buf := new(bytes.Buffer)
+	if err := m.verifyUserBalanceAndContacts(c, buf, counters, user); err != nil {
+		return
+	}
+	if buf.Len() > 0 {
+		log.Infof(c, buf.String())
+	}
+}
 
-		if fixedContactsBalances, err := FixUserContactsBalances(m.entity); err != nil {
+func (m *verifyUsers) verifyUserBalanceAndContacts(c context.Context, buf *bytes.Buffer, counters mapper.Counters, user models.AppUser) (err error) {
+	if user.BalanceCount > 0 {
+		balance := user.Balance()
+
+		if fixedContactsBalances, err := fixUserContactsBalances(m.entity); err != nil {
 			return err
 		} else if fixedContactsBalances || FixBalanceCurrencies(balance) {
 			if err = nds.RunInTransaction(c, func(c context.Context) error {
-				if err = nds.Get(c, key, m.entity); err != nil {
+				if user, err = dal.User.GetUserByID(c, user.ID); err != nil {
 					return err
 				}
-				balance, err = m.entity.Balance()
+				balance = m.entity.Balance()
 				if err != nil {
 					return err
 				}
@@ -51,16 +78,16 @@ func (m *verifyUsers) verifyUserBalanceAndContacts(c context.Context, counters m
 					m.entity.SetBalance(balance)
 					changed = true
 				}
-				if fixedContactsBalances, err = FixUserContactsBalances(m.entity); err != nil {
+				if fixedContactsBalances, err = fixUserContactsBalances(m.entity); err != nil {
 					return err
 				} else if fixedContactsBalances {
 					changed = true
 				}
 				if changed {
-					if _, err = nds.Put(c, key, m.entity); err != nil {
+					if err = dal.User.SaveUser(c, user); err != nil {
 						return err
 					}
-					log.Infof(c, "User fixed: %d ", key.IntID())
+					fmt.Fprintf(buf, "User fixed: %d ", user.ID)
 				}
 				return nil
 			}, nil); err != nil {
@@ -71,14 +98,10 @@ func (m *verifyUsers) verifyUserBalanceAndContacts(c context.Context, counters m
 	return
 }
 
-func FixUserContactsBalances(u *models.AppUserEntity) (changed bool, err error) {
+func fixUserContactsBalances(u *models.AppUserEntity) (changed bool, err error) {
 	contacts := u.Contacts()
 	for i, contact := range contacts {
-		var balance models.Balance
-		if balance, err = contact.Balance(); err != nil {
-			return
-		}
-		if FixBalanceCurrencies(balance) {
+		if balance := contact.Balance(); FixBalanceCurrencies(balance) {
 			balanceJsonBytes, err := ffjson.Marshal(balance)
 			if err != nil {
 				return changed, err
@@ -95,36 +118,3 @@ func FixUserContactsBalances(u *models.AppUserEntity) (changed bool, err error) 
 	return
 }
 
-func FixBalanceCurrencies(balance models.Balance) (changed bool) {
-	euro := models.Currency("euro")
-	for c, v := range balance {
-		if c == euro {
-			c = models.CURRENCY_EUR
-		} else if len(c) == 3 {
-			cc := strings.ToUpper(string(c))
-			if cc != string(c) {
-				if cu := models.Currency(cc); cu.IsMoney() {
-					balance[cu] += v
-					delete(balance, c)
-					changed = true
-				}
-			}
-		}
-	}
-	return
-}
-
-func (m *verifyUsers) Make() interface{} {
-	m.entity = new(models.AppUserEntity)
-	return m.entity
-}
-
-// JobStarted is called when a mapper job is started
-func (m *verifyUsers) JobStarted(c context.Context, id string) {
-	log.Debugf(c, "Job started: %v", id)
-}
-
-// JobStarted is called when a mapper job is completed
-func (m *verifyUsers) JobCompleted(c context.Context, id string) {
-	logJobCompletion(c, id)
-}

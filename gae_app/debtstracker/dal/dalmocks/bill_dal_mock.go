@@ -39,6 +39,10 @@ func (billDalMock *BillDalMock) GetBillByID(c context.Context, billID string) (b
 	return
 }
 
+func (billDalMoc *BillDalMock) GetBillsByIDs(c context.Context, billIDs []string) (bills []models.Bill, err error) {
+	panic("not implemented yet")
+}
+
 func (billDalMock *BillDalMock) UpdateBillsHolder(c context.Context, billID string, getBillsHolder dal.BillsHolderGetter) (err error) {
 	panic(NOT_IMPLEMENTED_YET)
 }

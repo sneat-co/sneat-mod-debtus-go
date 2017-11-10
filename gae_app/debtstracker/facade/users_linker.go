@@ -149,8 +149,10 @@ func (_ UsersLinker) getOrCreateInvitedContactByInviterUserAndInviterContact(
 		invitedContact.LastTransferID = inviterContact.LastTransferID
 		invitedContact.LastTransferAt = inviterContact.LastTransferAt
 		var creatorCounterpartyBalance models.Balance
-		creatorCounterpartyBalance, err = inviterContact.Balance()
-		invitedContact.SetBalance(creatorCounterpartyBalance)
+		creatorCounterpartyBalance = inviterContact.Balance()
+		if err = invitedContact.SetBalance(creatorCounterpartyBalance); err != nil {
+			return
+		}
 		invitedContactChanged = true
 	}
 	return
@@ -161,11 +163,8 @@ func (_ UsersLinker) updateInvitedUser(invitedUser models.AppUser, inviterUserID
 		invitedUser.InvitedByUserID = inviterUserID
 		invitedUserChanged = true
 	}
-	var inviterContactBalance models.Balance
-	if inviterContactBalance, err = inviterContact.Balance(); err != nil {
-		err = errors.Wrap(err, "Failed to get inviterContact.Balance()")
-		return
-	} else if len(inviterContactBalance) > 0 {
+
+	if inviterContactBalance := inviterContact.Balance(); len(inviterContactBalance) > 0 {
 		for currency, value := range inviterContactBalance {
 			invitedUser.Add2Balance(currency, -1*value)
 		}

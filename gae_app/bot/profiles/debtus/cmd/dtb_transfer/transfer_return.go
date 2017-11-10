@@ -14,8 +14,8 @@ import (
 	"golang.org/x/net/html"
 	"net/url"
 	"strconv"
-	"strings"
 	"time"
+	"strings"
 )
 
 //var StartReturnWizardCommand = bots.Command{
@@ -86,7 +86,7 @@ var AskReturnCounterpartyCommand = CreateAskTransferCounterpartyCommand(
 		c := whc.Context()
 
 		log.Debugf(c, "StartReturnWizardCommand.onCounterpartySelectedAction(counterparty.ID=%v)", counterparty.ID)
-		balance := counterparty.BalanceWithInterest()
+		balance := counterparty.BalanceWithInterest(time.Now())
 		//TODO: Display MESSAGE_TEXT_COUNTERPARTY_OWES_YOU_SINGLE_DEBT or MESSAGE_TEXT_YOU_OWE_TO_COUNTERPARTY_SINGLE_DEBT
 		switch len(balance) {
 		case 1:
@@ -170,10 +170,11 @@ func processReturnCommand(whc bots.WebhookContext, returnValue decimal.Decimal64
 	if counterpartyID, transferID, err = getReturnWizardParams(whc); err != nil {
 		return m, err
 	}
-	_, balance, err := getCounterpartyAndBalance(whc, counterpartyID)
+	counterparty, err := getCounterparty(whc, counterpartyID)
 	if err != nil {
 		return m, err
 	}
+	counterpartyBalanceWithInterest := counterparty.BalanceWithInterest(time.Now())
 	awaitingUrl, err := url.Parse(chatEntity.GetAwaitingReplyTo())
 	if err != nil {
 		return m, err
@@ -187,13 +188,13 @@ func processReturnCommand(whc bots.WebhookContext, returnValue decimal.Decimal64
 		}
 
 		returnAmount := models.NewAmount(currency, returnValue)
-		if outstandingAmount := transfer.GetOutstandingAmount(); outstandingAmount.Value < returnValue {
+		if outstandingAmount := transfer.GetOutstandingAmount(time.Now()); outstandingAmount.Value < returnValue {
 			m.Text = whc.Translate(trans.MESSAGE_TEXT_RETURN_IS_TOO_BIG, returnAmount, outstandingAmount, outstandingAmount.Value)
 			return
 		}
 	}
 
-	if previousBalance, ok := balance[currency]; ok {
+	if previousBalance, ok := counterpartyBalanceWithInterest[currency]; ok {
 		if returnValue == 0 {
 			returnValue = previousBalance.Abs()
 		}
@@ -250,8 +251,10 @@ var AskToChooseDebtToReturnCommand = bots.Command{
 	},
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		counterpartyID, _, _ := getReturnWizardParams(whc)
-		var theCounterparty models.Contact
-		var balance models.Balance
+		var (
+			theCounterparty models.Contact
+			balance models.Balance
+		)
 		if counterpartyID == 0 {
 			// Let's try to get counterpartyEntity from message text
 			mt := whc.Input().(bots.WebhookTextMessage).Text()
@@ -269,10 +272,11 @@ var AskToChooseDebtToReturnCommand = bots.Command{
 				return m, err
 			}
 			var counterpartyFound bool
+			now := time.Now()
 			for _, counterpartyItem := range counterparties {
 				counterpartyItemTitle := counterpartyItem.FullName()
 				if counterpartyItemTitle == counterpartyTitle {
-					balance = counterpartyItem.BalanceWithInterest()
+					balance = counterpartyItem.BalanceWithInterest(now)
 					theCounterparty = counterpartyItem
 					counterpartyFound = true
 					chatEntity.AddWizardParam(WIZARD_PARAM_COUNTERPARTY, strconv.FormatInt(counterpartyItem.ID, 10))
@@ -285,7 +289,8 @@ var AskToChooseDebtToReturnCommand = bots.Command{
 			}
 		} else {
 			var counterparty models.Contact
-			counterparty, balance, err = getCounterpartyAndBalance(whc, counterpartyID)
+			counterparty, err = getCounterparty(whc, counterpartyID)
+			balance = counterparty.BalanceWithInterest(time.Now())
 			theCounterparty = counterparty
 		}
 
@@ -346,11 +351,10 @@ func getReturnWizardParams(whc bots.WebhookContext) (counterpartyID, transferID 
 	return
 }
 
-func getCounterpartyAndBalance(whc bots.WebhookContext, counterpartyID int64) (counterparty models.Contact, counterpartyBalance models.Balance, err error) {
+func getCounterparty(whc bots.WebhookContext, counterpartyID int64) (counterparty models.Contact, err error) {
 	//counterparty = new(models.Contact)
 	if counterparty, err = dal.Contact.GetContactByID(whc.Context(), counterpartyID); err != nil {
 		return
 	}
-	counterpartyBalance = counterparty.BalanceWithInterest()
 	return
 }

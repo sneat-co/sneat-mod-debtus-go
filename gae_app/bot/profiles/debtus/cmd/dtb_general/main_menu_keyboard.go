@@ -43,9 +43,7 @@ func getMainMenuParams(whc bots.WebhookContext, onReceiptAck bool) (params mainM
 		log.Errorf(c, "Failed to get user: %v", err)
 	} else if user, isAppUser = userEntity.(*models.AppUserEntity); !isAppUser {
 		log.Errorf(c, "Failed to caset user to *models.AppUser: %T", userEntity)
-	} else if balance, err := user.Balance(); err != nil {
-		log.Errorf(c, "Failed to get user balance: %v", err)
-	} else if onReceiptAck || !balance.IsZero() {
+	} else if onReceiptAck || !user.Balance().IsZero() {
 		params.showReturn = true
 	}
 	params.showBalanceAndHistory = onReceiptAck || (user != nil && user.CountOfTransfers > 0)

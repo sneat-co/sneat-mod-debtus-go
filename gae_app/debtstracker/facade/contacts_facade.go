@@ -177,14 +177,8 @@ func DeleteContact(c context.Context, contactID int64) (user models.AppUser, err
 		if err != nil {
 			return err
 		}
-		userContactBalance, err := userContact.Balance()
-		if err != nil {
-			return err
-		}
-		contactBalance, err := contact.Balance()
-		if err != nil {
-			return err
-		}
+		userContactBalance := userContact.Balance()
+		contactBalance := contact.Balance()
 		if !reflect.DeepEqual(userContactBalance, contactBalance) {
 			return errors.New(fmt.Sprintf("Data integrity issue: userContactBalance != contactBalance\n\tuserContactBalance: %v\n\tcontactBalance: %v", userContactBalance, contactBalance))
 		}
@@ -192,10 +186,7 @@ func DeleteContact(c context.Context, contactID int64) (user models.AppUser, err
 			return errors.New("Implementation error - user not changed on removing contact")
 		}
 		if contact.BalanceCount > 0 {
-			userBalance, err := user.Balance()
-			if err != nil {
-				return errors.Wrap(err, "Failed to unmarshal user balance")
-			}
+			userBalance := user.Balance()
 			for k, v := range contactBalance {
 				userBalance[k] -= v
 			}

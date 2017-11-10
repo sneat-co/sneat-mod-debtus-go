@@ -738,23 +738,17 @@ func (u *AppUserEntity) Save() (properties []datastore.Property, err error) {
 	return properties, err
 }
 
-func (u *AppUserEntity) BalanceWithInterest() (balance Balance) {
+func (u *AppUserEntity) BalanceWithInterest(periodEnds time.Time) (balance Balance) {
 	if u.TransfersWithInterestCount == 0 {
-		var err error
-		if balance, err = u.Balance(); err != nil {
-			panic(err)
-		}
+		balance = u.Balance()
 	} else if u.TransfersWithInterestCount > 0 {
 		var (
 			userBalance Balance
-			err error
 		)
-		if userBalance, err = u.Balance(); err != nil {
-			panic(errors.WithMessage(err, "failed to get user total balance"))
-		}
+		userBalance = u.Balance()
 		balance = make(Balance, u.BalanceCount)
 		for _, contact := range u.Contacts() {
-			for currency, value := range contact.BalanceWithInterest(nil) {
+			for currency, value := range contact.BalanceWithInterest(nil, periodEnds) {
 				balance[currency] += value
 			}
 		}

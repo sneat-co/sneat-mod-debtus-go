@@ -5,6 +5,7 @@ import (
 	"github.com/strongo/app/db"
 	"golang.org/x/net/context"
 	"time"
+	"strconv"
 )
 
 type UserDalMock struct {
@@ -27,6 +28,14 @@ func (mock *UserDalMock) GetUserByID(c context.Context, userID int64) (models.Ap
 		return models.AppUser{ID: userID, AppUserEntity: entity}, nil
 	}
 	return models.AppUser{ID: userID}, db.NewErrNotFoundByIntID(models.AppUserKind, userID, nil)
+}
+
+
+func (mock *UserDalMock) GetUserByStrID(c context.Context, userID string) (user models.AppUser, err error) {
+	if user.ID, err = strconv.ParseInt(userID, 10, 64); err != nil {
+		return
+	}
+	return mock.GetUserByID(c, user.ID)
 }
 
 func (mock *UserDalMock) GetUsersByIDs(c context.Context, userIDs []int64) (users []models.AppUser, err error) {

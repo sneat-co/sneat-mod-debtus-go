@@ -103,11 +103,7 @@ type Balanced struct {
 }
 
 func ReverseBalance(from Balanced) (reversed Balance, err error) {
-	var fromBalance Balance
-	if fromBalance, err = from.Balance(); err != nil {
-		err = errors.Wrap(err, "Failed to get creatorCounterparty.Balance()")
-		return
-	}
+	fromBalance := from.Balance()
 	reversed = make(Balance, len(fromBalance))
 	for currency, value := range fromBalance {
 		reversed[currency] = -1 * value
@@ -115,42 +111,41 @@ func ReverseBalance(from Balanced) (reversed Balance, err error) {
 	return
 }
 
-func (b *Balanced) Balance() (balance Balance, err error) {
-	if b.BalanceJson != "" && b.BalanceJson != "null" {
-		balance = make(Balance, b.BalanceCount)
-		err = ffjson.Unmarshal([]byte(b.BalanceJson), &balance)
-	} else {
-		balance = make(Balance, 0)
+func (b *Balanced) Balance() (balance Balance) {
+	if b.BalanceJson == "" || b.BalanceJson == "null" || b.BalanceJson == "nil" || b.BalanceJson == "{}"{
+		balance = make(Balance, 1)
+		return
 	}
-	return balance, err
+	balance = make(Balance, b.BalanceCount)
+	if err := ffjson.Unmarshal([]byte(b.BalanceJson), &balance); err != nil {
+		panic(err)
+	}
+	return
 }
 
 func (b *Balanced) SetBalance(balance Balance) error {
 	if balance == nil || len(balance) == 0 {
 		b.BalanceJson = ""
 		b.BalanceCount = 0
+		return nil
+	}
+	for currency, val := range balance {
+		if val == 0 {
+			return errors.New("balance currency has 0 value: " + string(currency))
+		}
+	}
+	if v, err := ffjson.Marshal(balance); err != nil {
+		return err
 	} else {
-		for currency, val := range balance {
-			if val == 0 {
-				return errors.New("balance currency has 0 value: " + string(currency))
-			}
-		}
-		if v, err := ffjson.Marshal(balance); err != nil {
-			return err
-		} else {
-			b.BalanceJson = string(v)
-			b.BalanceCount = len(balance)
-		}
+		b.BalanceJson = string(v)
+		b.BalanceCount = len(balance)
 	}
 	return nil
 }
 
 func (balanced *Balanced) Add2Balance(currency Currency, value decimal.Decimal64p2) (Balance, error) {
-	if oldBalance, err := balanced.Balance(); err != nil {
-		return oldBalance, err
-	} else {
-		newBalance := oldBalance.Add(Amount{Currency: currency, Value: value})
-		//log.Debugf(c, "Add2Balance(): oldBalance: %v, newBalance: %v", oldBalance, newBalance)
-		return newBalance, balanced.SetBalance(newBalance)
-	}
+	oldBalance := balanced.Balance()
+	newBalance := oldBalance.Add(Amount{Currency: currency, Value: value})
+	//log.Debugf(c, "Add2Balance(): oldBalance: %v, newBalance: %v", oldBalance, newBalance)
+	return newBalance, balanced.SetBalance(newBalance)
 }

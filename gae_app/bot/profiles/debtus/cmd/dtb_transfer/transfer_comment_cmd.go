@@ -11,6 +11,7 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/html"
+	"strings"
 )
 
 const (
@@ -103,14 +104,14 @@ func createTransferAskNoteOrCommentCommand(code string, nextCommand bots.Command
 			addCommentCommand,
 		},
 		Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
-			if m, err = interestAction(whc, nextCommand.Action); err != nil || m.Text != "" {
-				return
-			}
 			c := whc.Context()
 			log.Infof(c, "createTransferAskNoteOrCommentCommand().Action()")
 			chatEntity := whc.ChatEntity()
 			//noOptionSelected := false
 			if chatEntity.IsAwaitingReplyTo(code) {
+				if m, err = interestAction(whc, nextCommand.Action); err != nil || m.Text != "" {
+					return
+				}
 				mt := whc.Input().(bots.WebhookTextMessage).Text()
 				switch mt {
 				//case whc.Translate(trans.COMMAND_TEXT_ADD_NOTE_TO_TRANSFER):
@@ -121,8 +122,8 @@ func createTransferAskNoteOrCommentCommand(code string, nextCommand bots.Command
 				//	return nextCommand.Action(whc)
 				case whc.Translate(trans.COMMAND_TEXT_NO_COMMENT_FOR_TRANSFER):
 					return nextCommand.Action(whc)
-				//case whc.Translate(trans.COMMAND_TEXT_NO_NOTE_FOR_TRANSFER):
-				//	return nextCommand.Action(whc)
+					//case whc.Translate(trans.COMMAND_TEXT_NO_NOTE_FOR_TRANSFER):
+					//	return nextCommand.Action(whc)
 				default:
 					chatEntity.AddWizardParam(TRANSFER_WIZARD_PARAM_COMMENT, mt)
 					return nextCommand.Action(whc)
@@ -142,7 +143,11 @@ func createTransferAskNoteOrCommentCommand(code string, nextCommand bots.Command
 				return m, errors.New("transferWizard.CounterpartyID() == 0")
 			}
 			counterparty, err := dal.Contact.GetContactByID(whc.Context(), counterpartyID)
-			mt := fmt.Sprintf("%v\n(<i>%v</i>)", whc.Translate(trans.MESSAGE_TEXT_TRANSFER_ASK_FOR_COMMENT_ONLY), whc.Translate(trans.MESSAGE_TEXT_VISIBLE_TO_YOU_AND_COUNTERPARTY, html.EscapeString(counterparty.FullName())))
+			mt := strings.TrimLeft(fmt.Sprintf("%v\n\n%v\n(<i>%v</i>)",
+				whc.Translate(trans.MESSAGE_TEXT_TRANSFER_ASK_FOR_INTEREST),
+				whc.Translate(trans.MESSAGE_TEXT_TRANSFER_ASK_FOR_COMMENT_ONLY),
+				whc.Translate(trans.MESSAGE_TEXT_VISIBLE_TO_YOU_AND_COUNTERPARTY, html.EscapeString(counterparty.FullName())),
+			), "\n")
 			//if noOptionSelected {
 			//	mt = whc.Translate(trans.MESSAGE_TEXT_PLEASE_CHOOSE_FROM_OPTIONS_PROVIDED)
 			//}
