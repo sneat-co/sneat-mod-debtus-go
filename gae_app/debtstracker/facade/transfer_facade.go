@@ -283,6 +283,8 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 	}
 
 	output.Validate()
+
+
 	return
 }
 

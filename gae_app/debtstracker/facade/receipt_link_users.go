@@ -36,6 +36,11 @@ func (linker ReceiptUsersLinker) linkUsersByReceiptWithinTransaction(
 		"ReceiptUsersLinker.linkUsersByReceiptWithinTransaction(receipt.ID=%d, transfer.ID=%d, inviterUser.ID=%d, invitedUser.ID=%d)",
 		receipt.ID, transfer.ID, inviterUser.ID, invitedUser.ID)
 
+	if !dal.DB.IsInTransaction(tc) {
+		err = errors.New("linkUsersByReceiptWithinTransaction is called outside of transaction")
+		return
+	}
+
 	if err = linker.validateInput(receipt, transfer, inviterUser, invitedUser); err != nil {
 		return
 	}

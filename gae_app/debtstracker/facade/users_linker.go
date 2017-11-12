@@ -29,6 +29,11 @@ func (l UsersLinker) LinkUsersWithinTransaction(
 		return
 	}
 
+	if !dal.DB.IsInTransaction(tc) {
+		err = errors.New("UsersLinker.LinkUsersWithinTransaction is called outside of transaction")
+		return
+	}
+
 	// Update entities
 	{
 		var inviterContactChanged, invitedUserChanged bool
@@ -119,16 +124,6 @@ func (_ UsersLinker) getOrCreateInvitedContactByInviterUserAndInviterContact(
 
 	if invitedContact.ID == 0 {
 		log.Debugf(c, "getOrCreateInvitedContactByInviterUserAndInviterContact(): creating new contact for invited user")
-		var invitedCounterpartyBalance models.Balance
-		if invitedCounterpartyBalance, err = models.ReverseBalance(inviterContact.Balanced); err != nil {
-			return
-		}
-		balanced := models.Balanced{
-			CountOfTransfers: inviterContact.CountOfTransfers,
-			LastTransferID:   inviterContact.LastTransferID,
-			LastTransferAt:   inviterContact.LastTransferAt,
-		}
-		balanced.SetBalance(invitedCounterpartyBalance)
 		invitedContacts := models.ContactDetails{
 			FirstName:  inviterUser.FirstName,
 			LastName:   inviterUser.LastName,
@@ -136,12 +131,10 @@ func (_ UsersLinker) getOrCreateInvitedContactByInviterUserAndInviterContact(
 			ScreenName: inviterUser.ScreenName,
 			Username:   inviterUser.Username,
 		}
-		if invitedContact, err = CreateContactWithinTransaction(
-			tc, invitedUser, inviterUser.ID, inviterContact.ID, invitedContacts, balanced,
-		); err != nil {
+		if invitedContact, inviterContact, err = CreateContactWithinTransaction(
+			tc, invitedUser, inviterUser.ID, inviterContact, invitedContacts); err != nil {
 			return
 		}
-		log.Debugf(c, "getOrCreateInvitedContactByInviterUserAndInviterContact(): created contact: %v", invitedContact)
 	} else {
 		log.Debugf(c, "getOrCreateInvitedContactByInviterUserAndInviterContact(): linking existing contact: %v", invitedContact)
 		// TODO: How do we merge existing contacts?

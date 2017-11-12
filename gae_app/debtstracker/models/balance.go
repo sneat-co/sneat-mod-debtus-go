@@ -119,11 +119,10 @@ type Balanced struct {
 	BalanceCount     int       `datastore:",noindex,omitempty" json:"-"`
 }
 
-func ReverseBalance(from Balanced) (reversed Balance, err error) {
-	fromBalance := from.Balance()
-	reversed = make(Balance, len(fromBalance))
-	for currency, value := range fromBalance {
-		reversed[currency] = -1 * value
+func ReverseBalance(balance Balance) (reversed Balance) {
+	reversed = make(Balance, len(balance))
+	for currency, value := range balance {
+		reversed[currency] = -value
 	}
 	return
 }

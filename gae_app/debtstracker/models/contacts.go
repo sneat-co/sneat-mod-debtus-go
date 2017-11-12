@@ -9,9 +9,9 @@ import (
 type PhoneContact struct {
 	// Part of ContactDetails => Part of User|Contact
 	// Contact details
-	PhoneNumber            int64
+	PhoneNumber            int64 `datastore:",omitempty"`
 	PhoneNumberConfirmed   bool
-	PhoneNumberIsConfirmed bool `datastore:",noindex"` // Deprecated
+	PhoneNumberIsConfirmed bool  `datastore:",noindex"` // Deprecated
 	//+9223372036854775807
 	//+353857403948
 	//+79169743259
@@ -22,9 +22,9 @@ func (p PhoneContact) PhoneNumberAsString() string {
 }
 
 type EmailContact struct {
-	EmailAddress         string
-	EmailAddressOriginal string `datastore:",noindex"`
-	EmailConfirmed       bool   `datastore:",noindex"`
+	EmailAddress         string `datastore:",omitempty"`
+	EmailAddressOriginal string `datastore:",noindex,omitempty"`
+	EmailConfirmed       bool   `datastore:",noindex,omitempty"`
 }
 
 func (ec *EmailContact) SetEmail(email string, confirmed bool) EmailContact {
@@ -42,12 +42,12 @@ type ContactDetails struct {
 	// Helper struct, not stored as independent entity
 	PhoneContact
 	EmailContact
-	FirstName      string `datastore:",noindex"`
-	LastName       string `datastore:",noindex"`
-	ScreenName     string `datastore:",noindex"`
-	Nickname       string `datastore:",noindex"`
-	Username       string `datastore:",noindex"` //TODO: Should it be "Name"?
-	TelegramUserID int64  // When user ads Telegram contact we store Telegram user_id so we can link users later.
+	FirstName      string `datastore:",noindex,omitempty"`
+	LastName       string `datastore:",noindex,omitempty"`
+	ScreenName     string `datastore:",noindex,omitempty"`
+	Nickname       string `datastore:",noindex,omitempty"`
+	Username       string `datastore:",noindex,omitempty"` //TODO: Should it be "Name"?
+	TelegramUserID int64                                   // When user ads Telegram contact we store Telegram user_id so we can link users later.
 }
 
 func (contact *ContactDetails) FullName() string {

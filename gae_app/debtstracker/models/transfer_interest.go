@@ -7,6 +7,7 @@ import (
 	//"github.com/strongo/app/gaedb"
 	"github.com/pkg/errors"
 	"time"
+	"github.com/sanity-io/litter"
 )
 
 type InterestRatePeriod int
@@ -122,8 +123,8 @@ func (t *TransferEntity) GetOutstandingValue(periodEnds time.Time) (outstandingV
 	}
 	interestValue := t.GetInterestValue(periodEnds)
 	outstandingValue = t.AmountInCents + interestValue - t.AmountInCentsReturned
-	if outstandingValue < 0 {
-		panic(fmt.Sprintf("outstandingValue < 0: %v, IsReturn: %v, Amount: %v, Returned: %v, Interest: %v", outstandingValue, t.IsReturn, t.AmountInCents, t.AmountInCentsReturned, t.GetInterestValue(periodEnds)))
+	if outstandingValue < 0 && interestValue != 0 {
+		panic(fmt.Sprintf("outstandingValue < 0: %v, IsReturn: %v, Amount: %v, Returned: %v, Interest: %v\n%v", outstandingValue, t.IsReturn, t.AmountInCents, t.AmountInCentsReturned, interestValue, litter.Sdump(t)))
 	}
 	return
 }

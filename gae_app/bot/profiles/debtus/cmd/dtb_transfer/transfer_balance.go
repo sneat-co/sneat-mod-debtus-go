@@ -10,7 +10,6 @@ import (
 	"golang.org/x/net/context"
 	"golang.org/x/net/html"
 	"strconv"
-	"github.com/strongo/app/log"
 	"time"
 )
 
@@ -46,8 +45,8 @@ func (m BalanceMessageBuilder) ByCounterparty(c context.Context, linker common.L
 
 	for _, counterparty := range counterparties {
 		counterpartyBalanceWithInterest := counterparty.BalanceWithInterest(c, now)
-		counterpartyBalance := counterparty.Balance()
-		log.Debugf(c, "counterpartyBalanceWithInterest: %v\ncounterpartyBalance: %v", counterpartyBalanceWithInterest, counterpartyBalance)
+		//counterpartyBalance := counterparty.Balance()
+		//log.Debugf(c, "counterpartyBalanceWithInterest: %v\ncounterpartyBalance: %v", counterpartyBalanceWithInterest, counterpartyBalance)
 		if counterpartyBalanceWithInterest.IsZero() {
 			counterpartiesWithZeroBalanceCount += 1
 			counterpartiesWithZeroBalance.WriteString(strconv.FormatInt(counterparty.ID, 10))

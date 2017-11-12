@@ -26,6 +26,7 @@ func RegisterMappers() {
 	registerAsyncJob(&verifyTransfers{})
 	registerAsyncJob(&migrateTransfers{})
 	registerAsyncJob(&verifyContactTransfers{})
+	registerAsyncJob(&transfersRecreateContacts{})
 }
 
 func filterByUserParam(r *http.Request, query *mapper.Query, prop string) (*mapper.Query, error) {

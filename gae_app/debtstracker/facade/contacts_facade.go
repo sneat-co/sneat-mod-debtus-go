@@ -37,14 +37,19 @@ func ChangeContactStatus(c context.Context, contactID int64, newStatus string) (
 func CreateContactWithinTransaction(
 	tc context.Context,
 	appUser models.AppUser,
-	counterpartyUserID, counterpartyContactID int64,
+	counterpartyUserID int64,
+	counterpartyContact models.Contact,
 	contactDetails models.ContactDetails,
-	balanced models.Balanced,
 ) (
 	contact models.Contact,
+	counterpartyContactOutput models.Contact,
 	err error,
 ) {
 	log.Debugf(tc, "CreateContactWithinTransaction(appUser.ID=%v, counterpartyDetails=%v)", appUser.ID, contactDetails)
+	if !dal.DB.IsInTransaction(tc) {
+		err = errors.New("CreateContactWithinTransaction is called outside of transaction")
+		return
+	}
 	if appUser.ID == 0 {
 		err = errors.New("appUser.ID == 0")
 		return
@@ -54,10 +59,43 @@ func CreateContactWithinTransaction(
 		return
 	}
 
-	contact, err = dal.Contact.InsertContact(tc, appUser.ID, counterpartyUserID, counterpartyContactID, contactDetails, balanced)
+	var balanced models.Balanced
+	if counterpartyContact.ID != 0 && counterpartyContact.ContactEntity == nil {
+		if counterpartyContact, err = dal.Contact.GetContactByID(tc, counterpartyContact.ID); err != nil {
+			return
+		}
+		counterpartyContactOutput = counterpartyContact
+		balanced = models.Balanced{
+			CountOfTransfers: counterpartyContact.CountOfTransfers,
+			LastTransferID:   counterpartyContact.LastTransferID,
+			LastTransferAt:   counterpartyContact.LastTransferAt,
+		}
+		invitedCounterpartyBalance := models.ReverseBalance(counterpartyContact.Balance())
+		balanced.SetBalance(invitedCounterpartyBalance)
+	}
+
+	contact, err = dal.Contact.InsertContact(tc, appUser.ID, counterpartyUserID, counterpartyContact.ID, contactDetails, balanced)
 	if err != nil {
 		log.Errorf(tc, "Failed to put contact to datastore: %v", err)
 		return
+	}
+
+	if counterpartyContact.ID != 0 {
+		if counterpartyContact.CounterpartyCounterpartyID == 0 {
+			counterpartyContact.CounterpartyCounterpartyID = contact.ID
+			if counterpartyContact.CounterpartyUserID == 0 {
+				counterpartyContact.UserID = contact.UserID
+			} else {
+				err = fmt.Errorf("inviter contact %v already has CounterpartyUserID=%v", counterpartyContact.ID, counterpartyContact.CounterpartyUserID)
+				return
+			}
+			if err = dal.Contact.SaveContact(tc, counterpartyContact); err != nil {
+				return
+			}
+		} else if counterpartyContact.CounterpartyCounterpartyID != contact.ID {
+			err = fmt.Errorf("inviter contact %v already has CounterpartyCounterpartyID=%v", counterpartyContact.ID, counterpartyContact.CounterpartyCounterpartyID)
+			return
+		}
 	}
 
 	appUser.AddOrUpdateContact(contact)
@@ -75,7 +113,7 @@ func CreateContact(c context.Context, userID int64, contactDetails models.Contac
 			if user, err = dal.User.GetUserByID(tc, userID); err != nil {
 				return
 			}
-			if counterparty, err = CreateContactWithinTransaction(tc, user, 0, 0, contactDetails, models.Balanced{}); err != nil {
+			if counterparty, _, err = CreateContactWithinTransaction(tc, user, 0, models.Contact{}, contactDetails); err != nil {
 				err = errors.Wrap(err, "Failed to create counterparty within transaction")
 				return
 			}
