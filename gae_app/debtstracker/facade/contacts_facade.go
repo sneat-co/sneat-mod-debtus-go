@@ -250,41 +250,39 @@ func UpdateContact(c context.Context, contactID int64, values map[string]string)
 var ErrContactNotDeletable = errors.New("Contact is not deletable")
 
 func DeleteContact(c context.Context, contactID int64) (user models.AppUser, err error) {
-	log.Debugf(c, "ContactDalGae.DeleteContact(%d)", contactID)
+	log.Warningf(c, "ContactDalGae.DeleteContact(%d)", contactID)
 	var contact models.Contact
 	err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil {
+		if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil && !db.IsNotFound(err) {
 			return
 		}
-		if contact.CounterpartyUserID != 0 {
+		if contact.ContactEntity != nil && contact.CounterpartyUserID != 0 {
 			return ErrContactNotDeletable
 		}
 		if user, err = dal.User.GetUserByID(c, contact.UserID); err != nil {
 			return
 		}
-		userContact, err := user.GetContactInfoByID(contactID)
-		if err != nil {
-			return err
-		}
-		userContactBalance := userContact.Balance()
-		contactBalance := contact.Balance()
-		if !reflect.DeepEqual(userContactBalance, contactBalance) {
-			return errors.New(fmt.Sprintf("Data integrity issue: userContactBalance != contactBalance\n\tuserContactBalance: %v\n\tcontactBalance: %v", userContactBalance, contactBalance))
-		}
-		if !user.RemoveContact(contactID) {
-			return errors.New("Implementation error - user not changed on removing contact")
-		}
-		if contact.BalanceCount > 0 {
-			userBalance := user.Balance()
-			for k, v := range contactBalance {
-				userBalance[k] -= v
+		if userContact := user.ContactByID(contactID); userContact != nil {
+			userContactBalance := userContact.Balance()
+			contactBalance := contact.Balance()
+			if !reflect.DeepEqual(userContactBalance, contactBalance) {
+				return errors.New(fmt.Sprintf("Data integrity issue: userContactBalance != contactBalance\n\tuserContactBalance: %v\n\tcontactBalance: %v", userContactBalance, contactBalance))
 			}
-			if err = user.SetBalance(userBalance); err != nil {
+			if !user.RemoveContact(contactID) {
+				return errors.New("Implementation error - user not changed on removing contact")
+			}
+			if contact.BalanceCount > 0 {
+				userBalance := user.Balance()
+				for k, v := range contactBalance {
+					userBalance[k] -= v
+				}
+				if err = user.SetBalance(userBalance); err != nil {
+					return err
+				}
+			}
+			if err = dal.User.SaveUser(c, user); err != nil {
 				return err
 			}
-		}
-		if err = dal.User.SaveUser(c, user); err != nil {
-			return err
 		}
 		if err = dal.Contact.DeleteContact(c, contactID); err != nil {
 			return err

@@ -380,15 +380,6 @@ func (u *AppUserEntity) ArchivedContacts() (contacts []UserContactJson) {
 	return
 }
 
-func (u *AppUserEntity) GetContactInfoByID(contactID int64) (UserContactJson, error) {
-	for _, c := range u.Contacts() {
-		if c.ID == contactID {
-			return c, nil
-		}
-	}
-	return UserContactJson{}, errors.New(fmt.Sprintf("Contact not found in user.ContactsJson by ID=%d", contactID))
-}
-
 func (u *AppUserEntity) LatestCounterparties(limit int) (contacts []UserContactJson) { //TODO: Need implement sorting
 	allCounterparties := u.Contacts()
 	if len(allCounterparties) > limit {

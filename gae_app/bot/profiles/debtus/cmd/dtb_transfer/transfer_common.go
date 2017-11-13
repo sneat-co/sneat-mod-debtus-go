@@ -604,6 +604,10 @@ func CreateTransferFromBot(
 
 	if err != nil {
 		log.Errorf(c, "Failed to create transfer: %v", err)
+		if errors.Cause(err) == facade.ErrNotImplemented {
+			m.Text = whc.Translate(trans.MESSAGE_TEXT_NOT_IMPLEMENTED_YET) + "\n\n" + err.Error()
+			err = nil
+		}
 		return m, err
 	}
 

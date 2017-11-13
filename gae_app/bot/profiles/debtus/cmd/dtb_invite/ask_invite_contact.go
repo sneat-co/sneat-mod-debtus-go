@@ -93,8 +93,12 @@ var AskInviteAddressCallbackCommand = bots.Command{
 				return
 			}
 			return AskInviteAddressSmsCommand.Action(whc)
+		case "":
+			log.Errorf(whc.Context(), "AskInviteAddressCallbackCommand: got request to create invite without specifying a channel - not implemented yet. Need to ask a channel first. Check how it works if message forwarded to secret chat.")
+			m.Text = whc.Translate(trans.MESSAGE_TEXT_NOT_IMPLEMENTED_YET)
+			return
 		default:
-			err = errors.New(fmt.Sprintf("Unknown invite channel: %v", q.Get("by")))
+			err = fmt.Errorf("unknown invite channel: %v", q.Get("by"))
 			return
 		}
 	},

@@ -21,6 +21,7 @@ const (
 )
 
 var (
+	ErrNotImplemented                      = errors.New("not implemented yet")
 	ErrDebtAlreadyReturned                 = errors.New("This debt already has been returned")
 	ErrPartialReturnGreaterThenOutstanding = errors.New("An attempt to do partial return for amount greater then outstanding")
 )
@@ -220,7 +221,7 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 		contacts := input.CreatorUser.Contacts()
 		creatorContactID := input.CreatorContactID()
 		if creatorContactID == 0 {
-			panic("3d party transfers are not implemented yet")
+			panic(errors.WithMessage(err, "3d party transfers are not implemented yet"))
 		}
 		log.Debugf(c, "creatorContactID=%v, contacts: %+v", creatorContactID, contacts)
 		for _, contact := range contacts {
@@ -283,7 +284,6 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 	}
 
 	output.Validate()
-
 
 	return
 }
@@ -809,7 +809,8 @@ func (_ transferFacade) updateUserAndCounterpartyWithTransferInfo(
 									})
 									contactTransfersInfo.OutstandingWithInterest[i] = outstanding
 								} else {
-									panic("Not implemented yet")
+									err = errors.WithMessage(ErrNotImplemented, "Return to multiple debts if at least one of them have interest is not implemented yet, please return debts with interest one by one.")
+									return
 								}
 								goto addedToReturns
 							}
