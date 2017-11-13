@@ -48,7 +48,7 @@ func (receiptDalGae ReceiptDalGae) GetReceiptByID(c context.Context, id int64) (
 	return models.Receipt{ID: id, ReceiptEntity: receiptEntity}, err
 }
 
-func (receiptDalGae ReceiptDalGae) CreateReceipt(c context.Context, receipt *models.ReceiptEntity) (id int64, err error) {
+func (receiptDalGae ReceiptDalGae) CreateReceipt(c context.Context, receipt *models.ReceiptEntity) (id int64, err error) { // TODO: Move to facade
 	err = dal.DB.RunInTransaction(c, func(c context.Context) error {
 		receiptKey := NewReceiptIncompleteKey(c)
 		user, err := dal.User.GetUserByID(c, receipt.CreatorUserID)

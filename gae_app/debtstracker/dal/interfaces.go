@@ -145,8 +145,7 @@ type ContactDal interface {
 	GetContactByID(c context.Context, contactID int64) (contact models.Contact, err error)
 	GetContactsByIDs(c context.Context, contactsIDs []int64) (contacts []models.Contact, err error)
 	GetLatestContacts(whc bots.WebhookContext, limit, totalCount int) (contacts []models.Contact, err error)
-	// TODO: Change InsertContact() to accept entity?
-	InsertContact(c context.Context, userID, counterpartyUserID, counterpartyContactID int64, contactDetails models.ContactDetails, balanced models.Balanced) (contact models.Contact, err error)
+	InsertContact(c context.Context, contactEntity *models.ContactEntity) (contact models.Contact, err error)
 	//CreateContact(c context.Context, userID int64, contactDetails models.ContactDetails) (contact models.Contact, user models.AppUser, err error)
 	//CreateContactWithinTransaction(c context.Context, user models.AppUser, contactUserID, counterpartyCounterpartyID int64, contactDetails models.ContactDetails, balanced models.Balanced) (contact models.Contact, err error)
 	//UpdateContact(c context.Context, contactID int64, values map[string]string) (contactEntity *models.ContactEntity, err error)

@@ -99,13 +99,8 @@ func (transferDalGae TransferDalGae) GetTransfersByID(c context.Context, transfe
 }
 
 func (transferDalGae TransferDalGae) InsertTransfer(c context.Context, transferEntity *models.TransferEntity) (transfer models.Transfer, err error) {
-	log.Debugf(c, "TransferDalGae.InsertTransfer(%v)", *transferEntity)
-	key := NewTransferIncompleteKey(c)
-	if key, err = gaedb.Put(c, key, transferEntity); err != nil {
-		err = errors.Wrap(err, "Failed to insert transfer")
-		return
-	}
-	transfer = models.NewTransfer(key.IntID(), transferEntity)
+	transfer.TransferEntity = transferEntity
+	err = dal.DB.InsertWithRandomIntID(c, &transfer)
 	return
 }
 

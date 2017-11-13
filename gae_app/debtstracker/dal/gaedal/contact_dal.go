@@ -236,23 +236,10 @@ func zipCounterparty(keys []*datastore.Key, entities []*models.ContactEntity) (c
 	return
 }
 
-func (contactDalGae ContactDalGae) InsertContact(
-	c context.Context,
-	userID, counterpartyUserID, counterpartyContactID int64,
-	contactDetails models.ContactDetails,
-	balanced models.Balanced,
-) (
+func (contactDalGae ContactDalGae) InsertContact(c context.Context, contactEntity *models.ContactEntity) (
 	contact models.Contact, err error,
 ) {
-	contactEntity := models.NewContactEntity(userID, contactDetails)
-	contactEntity.CounterpartyUserID = counterpartyUserID
-	contactEntity.CounterpartyCounterpartyID = counterpartyContactID
-	contactEntity.Balanced = balanced
-	key := NewContactIncompleteKey(c)
-	if key, err = gaedb.Put(c, key, contactEntity); err != nil {
-		return
-	}
-	contact.ID = key.IntID()
 	contact.ContactEntity = contactEntity
+	err = dal.DB.InsertWithRandomIntID(c, &contact)
 	return
 }

@@ -373,58 +373,90 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		err = errors.Wrap(err, "Failed to get user & counterparty entities from datastore by keys")
 		return
 	}
-	fromCounterparty, toCounterparty := output.From.Contact, output.To.Contact
+	fromContact, toContact := output.From.Contact, output.To.Contact
 	fromUser, toUser := output.From.User, output.To.User
 
 	if from.ContactID != 0 && output.From.Contact.UserID == 0 {
 		err = errors.New(fmt.Sprintf("Got bad counterparty entity from DB by id=%d, fromCounterparty.UserID == 0", from.ContactID))
 		return
 	}
+
 	if to.ContactID != 0 && output.To.Contact.UserID == 0 {
 		err = errors.New(fmt.Sprintf("Got bad counterparty entity from DB by id=%d, toCounterparty.UserID == 0", to.ContactID))
 		return
 	}
 
 	if to.ContactID != 0 && from.ContactID != 0 {
-		if fromCounterparty.CounterpartyUserID != toCounterparty.UserID {
+		if fromContact.CounterpartyUserID != toContact.UserID {
 			err = errors.New(fmt.Sprintf("fromCounterparty.CounterpartyUserID != toCounterparty.UserID (%d != %d)",
-				fromCounterparty.CounterpartyUserID, toCounterparty.UserID))
+				fromContact.CounterpartyUserID, toContact.UserID))
 		}
-		if toCounterparty.CounterpartyUserID != fromCounterparty.UserID {
+		if toContact.CounterpartyUserID != fromContact.UserID {
 			err = errors.New(fmt.Sprintf("toCounterparty.CounterpartyUserID != fromCounterparty.UserID (%d != %d)",
-				toCounterparty.CounterpartyUserID, fromCounterparty.UserID))
+				toContact.CounterpartyUserID, fromContact.UserID))
 		}
 		return
 	}
 
 	// Check if counterparties are linked and if yes load the missing Contact
 	{
-		// When: toCounterparty == nil, fromUser == nil,
-		if from.ContactID != 0 && fromCounterparty.CounterpartyCounterpartyID != 0 && to.ContactID == 0 {
-			// Get toCounterparty and fill to.Contact* fields
-			if toCounterparty, err = dal.Contact.GetContactByID(c, fromCounterparty.CounterpartyCounterpartyID); err != nil {
-				err = errors.Wrap(err, "Failed to get 'To' counterparty by 'fromCounterparty.CounterpartyCounterpartyID'")
-				return
+		link := func(sideName, countersideName string, side, counterside *models.TransferCounterpartyInfo, sideContact models.Contact) (countersideContact models.Contact, err error) {
+			log.Debugf(c, "link(%v=%v, %v=%v, %vContact=%v)", sideName, side, countersideName, counterside, sideName, sideContact)
+			if side.ContactID != 0 && sideContact.CounterpartyCounterpartyID != 0 && counterside.ContactID == 0 {
+				if countersideContact, err = dal.Contact.GetContactByID(c, sideContact.CounterpartyCounterpartyID); err != nil {
+					err = errors.WithMessage(err, "Failed to get counterparty by 'fromCounterparty.CounterpartyCounterpartyID'")
+					return
+				}
+				counterside.ContactID = countersideContact.ID
+				counterside.ContactName = countersideContact.FullName()
+				side.UserID = countersideContact.UserID
+				entities = append(entities, &countersideContact)
 			}
-			output.To.Contact = toCounterparty
-			log.Debugf(c, "Got toCounterparty id=%d: %v", toCounterparty.ID, toCounterparty.ContactEntity)
-			to.ContactID = toCounterparty.ID
-			to.ContactName = toCounterparty.FullName()
-			from.UserID = toCounterparty.UserID
-			entities = append(entities, &toCounterparty)
+			return
 		}
-		if to.ContactID != 0 && toCounterparty.CounterpartyCounterpartyID != 0 && from.ContactID == 0 {
-			if fromCounterparty, err = dal.Contact.GetContactByID(c, toCounterparty.CounterpartyCounterpartyID); err != nil {
-				err = errors.Wrapf(err, "Failed to get 'From' counterparty by 'toCounterparty.CounterpartyCounterpartyID' == %d", fromCounterparty.CounterpartyCounterpartyID)
-				return
-			}
-			output.From.Contact = fromCounterparty
-			log.Debugf(c, "Got fromCounterparty id=%d: %v", fromCounterparty.ID, fromCounterparty.ContactEntity)
-			from.ContactID = fromCounterparty.ID
-			from.ContactName = fromCounterparty.FullName()
-			to.UserID = fromCounterparty.UserID
-			entities = append(entities, &fromCounterparty)
+
+		var linkedContact models.Contact // TODO: This smells
+		if linkedContact, err = link("from", "to", from, to, fromContact); err != nil {
+			return
+		} else if linkedContact.ContactEntity != nil {
+			toContact = linkedContact
+			output.To.Contact = linkedContact
 		}
+
+		log.Debugf(c, "toContact: %v", toContact.ContactEntity == nil)
+		if linkedContact, err = link("to", "from", to, from, toContact); err != nil {
+			return
+		} else if linkedContact.ContactEntity != nil {
+			fromContact = linkedContact
+			output.From.Contact = fromContact
+		}
+
+		////// When: toCounterparty == nil, fromUser == nil,
+		//if from.ContactID != 0 && fromContact.CounterpartyCounterpartyID != 0 && to.ContactID == 0 {
+		//	// Get toCounterparty and fill to.Contact* fields
+		//	if toContact, err = dal.Contact.GetContactByID(c, fromContact.CounterpartyCounterpartyID); err != nil {
+		//		err = errors.WithMessage(err, "Failed to get 'To' counterparty by 'fromCounterparty.CounterpartyCounterpartyID'")
+		//		return
+		//	}
+		//	output.To.Contact = toContact
+		//	log.Debugf(c, "Got toContact id=%d: %v", toContact.ID, toContact.ContactEntity)
+		//	to.ContactID = toContact.ID
+		//	to.ContactName = toContact.FullName()
+		//	from.UserID = toContact.UserID
+		//	entities = append(entities, &toContact)
+		//}
+		//if to.ContactID != 0 && toCounterparty.CounterpartyCounterpartyID != 0 && from.ContactID == 0 {
+		//	if fromCounterparty, err = dal.Contact.GetContactByID(c, toCounterparty.CounterpartyCounterpartyID); err != nil {
+		//		err = errors.WithMessage(err, fmt.Sprintf("Failed to get 'From' counterparty by 'toCounterparty.CounterpartyCounterpartyID' == %d", fromCounterparty.CounterpartyCounterpartyID))
+		//		return
+		//	}
+		//	output.From.Contact = fromCounterparty
+		//	log.Debugf(c, "Got fromCounterparty id=%d: %v", fromCounterparty.ID, fromCounterparty.ContactEntity)
+		//	from.ContactID = fromCounterparty.ID
+		//	from.ContactName = fromCounterparty.FullName()
+		//	to.UserID = fromCounterparty.UserID
+		//	entities = append(entities, &fromCounterparty)
+		//}
 	}
 
 	// In case if we just loaded above missing counterparty we need to check for missing user

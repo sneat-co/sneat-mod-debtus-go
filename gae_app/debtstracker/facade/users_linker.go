@@ -23,7 +23,7 @@ func (l UsersLinker) LinkUsersWithinTransaction(
 	invitedContact models.Contact,
 	err error,
 ) {
-	log.Debugf(c, "UsersLinker.LinkUsersWithinTransaction(inviterUser.ID=%d, invitedUser.ID=%d, inviterContact=%d)", inviterUser.ID, invitedUser.ID, inviterContact.ID)
+	log.Debugf(c, "UsersLinker.LinkUsersWithinTransaction(inviterUser.ID=%d, invitedUser.ID=%d, inviterContact=%d, inviterContact.UserID=%v)", inviterUser.ID, invitedUser.ID, inviterContact.ID, inviterContact.UserID)
 	// First of all lets validate input
 	if err = l.validateInput(inviterUser, invitedUser, inviterContact); err != nil {
 		return
@@ -41,13 +41,14 @@ func (l UsersLinker) LinkUsersWithinTransaction(
 			return
 		}
 		if invitedContact.ContactEntity == nil {
-			err = errors.New(
-				fmt.Sprintf(
+			err = fmt.Errorf(
 					"getOrCreateInvitedContactByInviterUserAndInviterContact() returned invitedContact.ContactEntity == nil, invitedContact.ID: %d",
-					invitedContact.ID,
-				))
+					invitedContact.ID)
 			return
+		} else if invitedContact.UserID != invitedUser.ID {
+			panic(fmt.Sprintf("invitedContact.UserID != invitedUser.ID: %v != %v", invitedContact.UserID, invitedUser.ID))
 		}
+
 		if invitedUserChanged, err = l.updateInvitedUser(invitedUser, inviterUser.ID, inviterContact); err != nil {
 			return
 		} else if invitedUserChanged {
@@ -79,7 +80,12 @@ func (l UsersLinker) validateInput(
 	if inviterContact.ID == 0 {
 		panic("inviterContact.ID == 0")
 	}
-
+	if inviterUser.ID == invitedUser.ID {
+		panic(fmt.Sprintf("inviterUser.ID == invitedUser.ID: %v", inviterUser.ID))
+	}
+	if inviterContact.UserID != inviterUser.ID {
+		panic(fmt.Sprintf("UsersLinker.validateInput(): inviterContact.UserID != inviterUser.ID: %v != %v", inviterContact.UserID, inviterUser.ID))
+	}
 	return nil
 }
 
@@ -95,6 +101,9 @@ func (_ UsersLinker) getOrCreateInvitedContactByInviterUserAndInviterContact(
 	err error,
 ) { // TODO: Can this be re-used for invites as well?
 	log.Debugf(c, "getOrCreateInvitedContactByInviterUserAndInviterContact()")
+	if inviterUser.ID == invitedUser.ID {
+		panic(fmt.Sprintf("inviterUser.ID == invitedUser.ID: %v", inviterUser.ID))
+	}
 	if invitedUser.ContactsCount > 0 {
 		var invitedUserContacts []models.Contact
 		// Use non transaction context
@@ -187,7 +196,18 @@ func (_ UsersLinker) updateInviterContact(
 		panic("invitedUser.ID == 0")
 	}
 	if inviterContact.UserID != inviterUser.ID {
-		panic("inviterContact.UserID != inviterUser.ID")
+		panic(fmt.Sprintf("UsersLinker.updateInviterContact(): inviterContact.UserID != inviterUser.ID: %v != %v\ninvitedContact.UserID: %v, invitedUser.ID: %v",
+			inviterContact.UserID, inviterUser.ID, invitedContact.UserID, invitedUser.ID))
+	}
+	if invitedContact.UserID != invitedUser.ID {
+		panic(fmt.Sprintf("invitedContact.UserID != invitedUser.ID: %v != %v\ninviterContact.UserID: %v, inviterUser.ID: %v",
+			invitedContact.UserID, invitedContact.ID, inviterContact.UserID, inviterUser.ID))
+	}
+	if invitedContact.ID == inviterContact.ID {
+		panic(fmt.Sprintf("invitedContact.ID == inviterContact.ID: %v", invitedContact.ID))
+	}
+	if invitedUser.ID == inviterUser.ID {
+		panic(fmt.Sprintf("invitedUser.ID == inviterUser.ID: %v", invitedUser.ID))
 	}
 
 	if inviterContact.FirstName == "" {

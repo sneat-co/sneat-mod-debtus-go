@@ -10,6 +10,7 @@ import (
 	"golang.org/x/net/context"
 	"reflect"
 	"strconv"
+	"github.com/sanity-io/litter"
 )
 
 func ChangeContactStatus(c context.Context, contactID int64, newStatus string) (contact models.Contact, err error) {
@@ -58,25 +59,45 @@ func CreateContactWithinTransaction(
 		err = errors.New("appUser.AppUserEntity == nil")
 		return
 	}
+	if appUser.ID == counterpartyUserID {
+		panic(fmt.Sprintf("appUser.ID == counterpartyUserID: %v", counterpartyUserID))
+	}
+	if counterpartyContact.ContactEntity != nil && counterpartyContact.ID == 0 {
+		panic(fmt.Sprintf("counterpartyContact.ContactEntity != nil && counterpartyContact.ID == 0: %v", litter.Sdump(counterpartyContact)))
+	}
 
-	var balanced models.Balanced
-	if counterpartyContact.ID != 0 && counterpartyContact.ContactEntity == nil {
-		if counterpartyContact, err = dal.Contact.GetContactByID(tc, counterpartyContact.ID); err != nil {
-			return
+	contact.ContactEntity = models.NewContactEntity(appUser.ID, contactDetails)
+	if counterpartyContact.ID != 0 {
+		if counterpartyContact.ContactEntity == nil {
+			if counterpartyContact, err = dal.Contact.GetContactByID(tc, counterpartyContact.ID); err != nil {
+				return
+			}
 		}
+		if counterpartyContact.UserID != counterpartyUserID {
+			if counterpartyUserID == 0 {
+				counterpartyUserID = counterpartyContact.UserID
+			} else {
+				panic(fmt.Sprintf("counterpartyContact.UserID != counterpartyUserID: %v != %v", counterpartyContact.UserID, counterpartyUserID))
+			}
+		}
+		contact.ContactEntity.CounterpartyUserID = counterpartyUserID
+		contact.ContactEntity.CounterpartyCounterpartyID = counterpartyContact.ID
+		contact.ContactEntity.TransfersJson = counterpartyContact.TransfersJson
 		counterpartyContactOutput = counterpartyContact
-		balanced = models.Balanced{
+		contact.ContactEntity.Balanced = models.Balanced{
 			CountOfTransfers: counterpartyContact.CountOfTransfers,
 			LastTransferID:   counterpartyContact.LastTransferID,
 			LastTransferAt:   counterpartyContact.LastTransferAt,
 		}
 		invitedCounterpartyBalance := models.ReverseBalance(counterpartyContact.Balance())
-		balanced.SetBalance(invitedCounterpartyBalance)
+		log.Debugf(tc, "invitedCounterpartyBalance: %v", invitedCounterpartyBalance)
+		contact.SetBalance(invitedCounterpartyBalance)
+		if contact.BalanceCount != counterpartyContact.BalanceCount {
+			panic(fmt.Sprintf("contact.BalanceCount != counterpartyContact.BalanceCount:  %v != %v", contact.BalanceCount, counterpartyContact.BalanceCount))
+		}
 	}
 
-	contact, err = dal.Contact.InsertContact(tc, appUser.ID, counterpartyUserID, counterpartyContact.ID, contactDetails, balanced)
-	if err != nil {
-		log.Errorf(tc, "Failed to put contact to datastore: %v", err)
+	if contact, err = dal.Contact.InsertContact(tc, contact.ContactEntity); err != nil {
 		return
 	}
 
@@ -84,7 +105,7 @@ func CreateContactWithinTransaction(
 		if counterpartyContact.CounterpartyCounterpartyID == 0 {
 			counterpartyContact.CounterpartyCounterpartyID = contact.ID
 			if counterpartyContact.CounterpartyUserID == 0 {
-				counterpartyContact.UserID = contact.UserID
+				counterpartyContact.CounterpartyUserID = contact.UserID
 			} else {
 				err = fmt.Errorf("inviter contact %v already has CounterpartyUserID=%v", counterpartyContact.ID, counterpartyContact.CounterpartyUserID)
 				return
@@ -99,6 +120,36 @@ func CreateContactWithinTransaction(
 	}
 
 	appUser.AddOrUpdateContact(contact)
+
+	{ // Verifications for data integrity
+		if contact.UserID != appUser.ID {
+			panic(fmt.Sprintf("contact.UserID != appUser.ID: %v != %v", contact.UserID, appUser.ID))
+		}
+		if counterpartyContact.ContactEntity != nil {
+			if counterpartyContact.UserID != counterpartyUserID {
+				panic(fmt.Sprintf("counterpartyContact.UserID != counterpartyUserID: %v != %v", counterpartyContact.UserID, counterpartyUserID))
+			}
+			if contact.ID == counterpartyContact.ID {
+				panic(fmt.Sprintf("contact.ID == counterpartyContact.ID: %v", contact.ID))
+			}
+			if contact.UserID == counterpartyContact.UserID {
+				panic(fmt.Sprintf("contact.UserID == counterpartyContact.UserID: %v", contact.UserID))
+			}
+			if contact.TransfersJson != counterpartyContact.TransfersJson {
+				log.Errorf(tc, "contact.TransfersJson != counterpartyContact.TransfersJson\n contact: %v\n counterpartyContact: %v", contact.TransfersJson, counterpartyContact.TransfersJson)
+			}
+			if contact.BalanceCount != counterpartyContact.BalanceCount {
+				panic(fmt.Sprintf("contact.BalanceCount != counterpartyContact.BalanceCount: %v != %v", contact.BalanceCount, counterpartyContact.BalanceCount))
+			}
+			if cBalance, cpBalance := contact.Balance(), counterpartyContact.Balance(); !cBalance.Equal(models.ReverseBalance(cpBalance)) {
+				panic(fmt.Sprintf("!contact.Balance().Equal(counterpartyContact.Balance())\ncontact.Balance(): %v\n counterpartyContact.Balance(): %v", cBalance, cpBalance))
+			}
+		}
+		appUserContactJson := appUser.ContactByID(contact.ID)
+		if ucBalance, cBalance := appUserContactJson.Balance(), contact.Balance(); !ucBalance.Equal(cBalance) {
+			panic(fmt.Sprintf("appUserContactJson.Balance().Equal(contact.Balance())\nappUser.ContactByID(contact.ID).Balance(): %v\ncontact.Balance(): %v", ucBalance, cBalance))
+		}
+	}
 	return
 }
 

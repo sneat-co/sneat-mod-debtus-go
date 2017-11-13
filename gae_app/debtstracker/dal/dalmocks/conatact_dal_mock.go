@@ -6,6 +6,7 @@ import (
 	"github.com/strongo/app/db"
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
+	"github.com/pkg/errors"
 )
 
 var _ dal.ContactDal = (*ContactDalMock)(nil)
@@ -47,13 +48,14 @@ func (mock *ContactDalMock) GetContactsByIDs(c context.Context, contactsIDs []in
 func (mock *ContactDalMock) GetLatestContacts(whc bots.WebhookContext, limit, totalCount int) (contacts []models.Contact, err error) {
 	return
 }
-func (mock *ContactDalMock) InsertContact(c context.Context, userID, counterpartyUserID, counterpartyContactID int64, contactDetails models.ContactDetails, balanced models.Balanced) (contact models.Contact, err error) {
+
+func (mock *ContactDalMock) InsertContact(c context.Context, contactEntity *models.ContactEntity) (contact models.Contact, err error) {
+	if contactEntity == nil {
+		panic("contactEntity == nil")
+	}
 	mock.LastContactID += 1
 	contact.ID = mock.LastContactID
-	contact.ContactEntity = models.NewContactEntity(userID, contactDetails)
-	contact.CounterpartyUserID = counterpartyUserID
-	contact.CounterpartyCounterpartyID = counterpartyContactID
-	contact.ContactEntity.Balanced = balanced
+	contact.ContactEntity = contactEntity
 	mock.Contacts[mock.LastContactID] = contact.ContactEntity
 	return
 }
