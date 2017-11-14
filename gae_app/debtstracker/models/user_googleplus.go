@@ -24,7 +24,21 @@ type UserGooglePlusEntity struct {
 }
 
 type UserGooglePlus struct {
-	db.NoIntID
-	ID string
+	db.StringID
 	*UserGooglePlusEntity
 }
+
+func (UserGooglePlus) Kind() string {
+	return UserGooglePlusKind
+}
+
+func (userGooglePlus UserGooglePlus) Entity() interface{} {
+	return userGooglePlus.UserGooglePlusEntity
+}
+
+func (userGooglePlus *UserGooglePlus) SetEntity(entity interface{}) {
+	userGooglePlus.UserGooglePlusEntity = entity.(*UserGooglePlusEntity)
+}
+
+
+var _ db.EntityHolder = (*UserGooglePlus)(nil)

@@ -27,6 +27,7 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
+	"github.com/strongo/app/db"
 )
 
 var transferRegex = regexp.MustCompile(`(?i)((?P<verb>\w+) )?(?P<amount>\d+)\s*(?P<currency>\w{3})?\s*(?P<direction>from|to)\s+(?P<contact>.+)[\s\.]*`)
@@ -585,7 +586,7 @@ func CreateTransferFromBot(
 		return m, err
 	}
 	appUser := models.AppUser{
-		ID:            whc.AppUserIntID(),
+		IntegerID:     db.NewIntID(whc.AppUserIntID()),
 		AppUserEntity: appUserEntity.(*models.AppUserEntity),
 	}
 	newTransfer := facade.NewTransferInput(whc.Environment(),

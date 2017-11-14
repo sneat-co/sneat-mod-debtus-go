@@ -10,6 +10,7 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"strconv"
 	"strings"
+	"github.com/strongo/app/db"
 )
 
 const ASK_EMAIL_FOR_RECEIPT_COMMAND = "ask-email-for-receipt"
@@ -51,7 +52,7 @@ func sendReceiptByEmail(whc bots.WebhookContext, toEmail, toName string, transfe
 	emailID := ""
 	if emailID, err = invites.SendReceiptByEmail(
 		whc.ExecutionContext(),
-		models.Receipt{ID: receiptID, ReceiptEntity: &receiptEntity},
+		models.Receipt{IntegerID: db.NewIntID(receiptID), ReceiptEntity: &receiptEntity},
 		whc.GetSender().GetFirstName(),
 		toName,
 		toEmail,

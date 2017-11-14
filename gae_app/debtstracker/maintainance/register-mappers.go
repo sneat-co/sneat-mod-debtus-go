@@ -30,19 +30,23 @@ func RegisterMappers() {
 }
 
 func filterByUserParam(r *http.Request, query *mapper.Query, prop string) (*mapper.Query, error) {
-	return filterByParam(r, query, "user", prop)
+	if query, err := filterByIntParam(r, query, "user", prop); err != nil {
+		return query, err
+	} else {
+		return query, err
+	}
 }
 
-func filterByContactParam(r *http.Request, query *mapper.Query, prop string) (*mapper.Query, error) {
-	return filterByParam(r, query, "contact", prop)
-}
+//func filterByContactParam(r *http.Request, query *mapper.Query, prop string) (*mapper.Query, error) {
+//	return filterByIntParam(r, query, "contact", prop)
+//}
 
-func filterByParam(r *http.Request, query *mapper.Query, param, prop string) (*mapper.Query, error) {
+func filterByIntParam(r *http.Request, query *mapper.Query, param, prop string) (*mapper.Query, error) {
 	if pv := r.URL.Query().Get(param); pv != "" {
-		if userID, err := strconv.ParseInt(pv, 10, 64); err != nil {
+		if v, err := strconv.ParseInt(pv, 10, 64); err != nil {
 			return query, err
-		} else if userID != 0 {
-			query = query.Filter(prop + " =", userID)
+		} else if v != 0 {
+			query = query.Filter(prop + " =", v)
 		}
 	}
 	return query, nil

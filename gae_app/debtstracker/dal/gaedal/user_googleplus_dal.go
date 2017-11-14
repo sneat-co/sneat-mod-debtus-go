@@ -27,7 +27,7 @@ func (_ UserGooglePlusDalGae) GetUserGooglePlusByID(c context.Context, id string
 		}
 		return
 	}
-	userGooglePlus = models.UserGooglePlus{ID: id, UserGooglePlusEntity: &userGooglePlusEntity}
+	userGooglePlus = models.UserGooglePlus{StringID: db.StringID{ID: id}, UserGooglePlusEntity: &userGooglePlusEntity}
 	return
 }
 

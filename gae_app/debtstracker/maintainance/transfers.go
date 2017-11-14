@@ -6,8 +6,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"strconv"
-	"google.golang.org/appengine"
+	"github.com/strongo/app/db"
 )
 
 type transfersAsyncJob struct {
@@ -20,24 +19,20 @@ func (m *transfersAsyncJob) Make() interface{} {
 	return m.entity
 }
 
-
-func (m *transfersAsyncJob) Query(r *http.Request) (query  *mapper.Query, err error) {
-	query, err = filterByUserParam(r, mapper.NewQuery(models.TransferKind), "BothUserIDs")
-	if id := r.URL.Query().Get("id"); id != "" {
-		var transferID int64
-		if transferID, err = strconv.ParseInt(id, 10, 64); err != nil {
-			return
-		}
-		query = query.Filter("__key__ =", datastore.NewKey(appengine.NewContext(r), models.TransferKind, "", transferID, nil))
+func (m *transfersAsyncJob) Query(r *http.Request) (query *mapper.Query, err error) {
+	if query, err = filterByIntID(r, models.TransferKind, "transfer"); err != nil {
+		return
+	}
+	if query, err = filterByUserParam(r, query, "BothUserIDs"); err != nil {
+		return
 	}
 	return
 }
 
 func (m *transfersAsyncJob) Transfer(key *datastore.Key) models.Transfer {
 	entity := *m.entity
-	return models.Transfer{ID: key.IntID(), TransferEntity: &entity}
+	return models.Transfer{IntegerID: db.IntegerID{ID: key.IntID()}, TransferEntity: &entity}
 }
-
 
 type TransferWorker func(c context.Context, counters *asyncCounters, transfer models.Transfer) error
 

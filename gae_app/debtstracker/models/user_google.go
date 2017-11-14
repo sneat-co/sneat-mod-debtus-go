@@ -77,8 +77,7 @@ func (entity *UserGoogleEntity) Save() (properties []datastore.Property, err err
 }
 
 type UserGoogle struct {
-	db.NoIntID
-	ID string
+	db.StringID
 	*UserGoogleEntity
 }
 
@@ -86,14 +85,6 @@ var _ db.EntityHolder = (*UserGoogle)(nil)
 
 func (userGoogle UserGoogle) UserAccount() user.Account {
 	return user.Account{Provider: "google", ID: userGoogle.ID}
-}
-
-func (userGoogle UserGoogle) StrID() string {
-	return userGoogle.ID
-}
-
-func (userGoogle *UserGoogle) SetStrID(id string) {
-	userGoogle.ID = id
 }
 
 func (userGoogle UserGoogle) Kind() string {

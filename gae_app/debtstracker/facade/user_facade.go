@@ -123,7 +123,7 @@ func (uf userFacade) GetOrCreateUserGoogleOnSignIn(
 			return nil, errors.New("Not implemented yet: Google did not provided appUser email")
 		}
 		userGoogle = models.UserGoogle{
-			ID: googleUser.ID,
+			StringID: db.StringID{ID: googleUser.ID},
 			UserGoogleEntity: &models.UserGoogleEntity{
 				User: *googleUser,
 				OwnedByUser: user.OwnedByUser{

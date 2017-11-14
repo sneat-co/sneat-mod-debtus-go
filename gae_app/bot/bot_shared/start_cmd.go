@@ -18,8 +18,7 @@ import (
 	"bytes"
 )
 
-
-func StartBotLink(botID, command string, params... string) string {
+func StartBotLink(botID, command string, params ... string) string {
 	var buf bytes.Buffer
 	fmt.Fprintf(&buf, "https://t.me/%v?start=%v", botID, command)
 	for _, p := range params {
@@ -183,7 +182,7 @@ func createGroupFromTelegram(whc bots.WebhookContext, chatEntity *models.DtTeleg
 		log.Debugf(c, "afterGroupInsert()")
 		if !hasTgGroupEntity {
 			if err = dal.TgGroup.SaveTgGroup(c, models.TgGroup{
-				ID: tgChat.ID,
+				IntegerID: db.NewIntID(tgChat.ID),
 				TgGroupEntity: &models.TgGroupEntity{
 					UserGroupID: group.ID,
 				},
@@ -193,7 +192,7 @@ func createGroupFromTelegram(whc bots.WebhookContext, chatEntity *models.DtTeleg
 		}
 
 		_ = user.AddGroup(group, whc.GetBotCode())
-		chatEntity.UserGroupID = group.ID  // TODO: !!! has to be updated in transaction!!!
+		chatEntity.UserGroupID = group.ID // TODO: !!! has to be updated in transaction!!!
 		if err = whc.SaveBotChat(c, whc.GetBotCode(), whc.MustBotChatID(), chatEntity); err != nil {
 			return
 		}

@@ -18,6 +18,7 @@ import (
 	"google.golang.org/appengine/taskqueue"
 	"strings"
 	"time"
+	"github.com/strongo/app/db"
 )
 
 type AdminDalGae struct {
@@ -38,7 +39,7 @@ func (_ AdminDalGae) LatestUsers(c context.Context) (users []models.AppUser, err
 	}
 	users = make([]models.AppUser, len(userKeys))
 	for i, userEntity := range userEntities {
-		users[i] = models.AppUser{ID: userKeys[i].IntID(), AppUserEntity: userEntity}
+		users[i] = models.AppUser{IntegerID: db.NewIntID(userKeys[i].IntID()), AppUserEntity: userEntity}
 	}
 	return
 }

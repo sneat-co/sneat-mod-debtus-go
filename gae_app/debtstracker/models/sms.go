@@ -23,17 +23,12 @@ type Sms struct {
 const TwilioSmsKind = "TwilioSms"
 
 type TwilioSms struct {
-	db.NoIntID
-	ID string
+	db.StringID
 	*TwilioSmsEntity
 }
 
 func (TwilioSms) Kind() string {
 	return AppUserKind
-}
-
-func (u TwilioSms) StrID() string {
-	return u.ID
 }
 
 func (u *TwilioSms) Entity() interface{} {

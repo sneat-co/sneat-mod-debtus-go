@@ -21,17 +21,12 @@ func NewContactEntity(userID int64, details ContactDetails) *ContactEntity {
 const ContactKind = "Counterparty" // TODO: Change value to Contact & migrated DB records
 
 type Contact struct {
-	db.NoStrID
-	ID int64
+	db.IntegerID
 	*ContactEntity
 }
 
 func (Contact) Kind() string {
 	return ContactKind
-}
-
-func (c Contact) IntID() int64 {
-	return c.ID
 }
 
 func (c *Contact) Entity() interface{} {
@@ -46,12 +41,8 @@ func (c *Contact) SetEntity(entity interface{}) {
 	c.ContactEntity = ce
 }
 
-func (c *Contact) SetIntID(id int64) {
-	c.ID = id
-}
-
 func NewContact(id int64, entity *ContactEntity) Contact {
-	return Contact{ID: id, ContactEntity: entity}
+	return Contact{IntegerID: db.IntegerID{ID: id}, ContactEntity: entity}
 }
 
 type ContactEntity struct {

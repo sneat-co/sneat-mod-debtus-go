@@ -18,17 +18,12 @@ import (
 const AppUserKind = "User"
 
 type AppUser struct {
-	db.NoStrID
-	ID int64
+	db.IntegerID
 	*AppUserEntity
 }
 
 func (_ *AppUser) Kind() string {
 	return AppUserKind
-}
-
-func (u *AppUser) IntID() int64 {
-	return u.ID
 }
 
 func (u *AppUser) Entity() interface{} {
@@ -40,10 +35,6 @@ func (u *AppUser) Entity() interface{} {
 
 func (u *AppUser) SetEntity(entity interface{}) {
 	u.AppUserEntity = entity.(*AppUserEntity)
-}
-
-func (u *AppUser) SetIntID(id int64) {
-	u.ID = id
 }
 
 func IsKnownUserAccountProvider(p string) bool {

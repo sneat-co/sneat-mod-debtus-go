@@ -75,7 +75,6 @@ func NewBillEntity(data BillCommon) *BillEntity {
 
 type Bill struct {
 	db.StringID
-	db.NoIntID
 	*BillEntity
 }
 

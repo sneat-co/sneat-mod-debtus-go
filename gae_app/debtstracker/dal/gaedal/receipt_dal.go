@@ -45,7 +45,7 @@ func (receiptDalGae ReceiptDalGae) GetReceiptByID(c context.Context, id int64) (
 	} else if err != nil {
 		err = errors.Wrapf(err, "Failed to get receipt by id=%v", id)
 	}
-	return models.Receipt{ID: id, ReceiptEntity: receiptEntity}, err
+	return models.Receipt{IntegerID: db.NewIntID(id), ReceiptEntity: receiptEntity}, err
 }
 
 func (receiptDalGae ReceiptDalGae) CreateReceipt(c context.Context, receipt *models.ReceiptEntity) (id int64, err error) { // TODO: Move to facade

@@ -153,7 +153,7 @@ func (contactDalGae ContactDalGae) GetContactsByIDs(c context.Context, contactsI
 	}
 	contacts := make([]models.Contact, len(contactEntities))
 	for i, contactEntity := range contactEntities {
-		contacts[i] = models.Contact{ID: contactsIDs[i], ContactEntity: contactEntity}
+		contacts[i] = models.NewContact(contactsIDs[i], contactEntity)
 	}
 	return contacts, err
 }

@@ -7,6 +7,10 @@ import (
 	"runtime/debug"
 	"github.com/strongo/app/log"
 	"sync"
+	"strconv"
+	"net/http"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine"
 )
 
 type asyncMapper struct {
@@ -63,5 +67,19 @@ func (m *asyncMapper) SliceCompleted(c context.Context, id string, namespace str
 	m.Wait()
 	log.Debugf(c, "Processing completed.")
 	gaedb.LoggingEnabled = true
+}
+
+func filterByIntID(r *http.Request, kind, paramName string) (query *mapper.Query, err error) {
+	query = mapper.NewQuery(kind)
+	paramVal := r.URL.Query().Get(paramName)
+	if paramVal == "" {
+		return
+	}
+	var id int64
+	if id, err = strconv.ParseInt(paramVal, 10, 64); err != nil {
+		return
+	}
+	query = query.Filter("__key__", datastore.NewKey(appengine.NewContext(r), kind, "", id, nil))
+	return query, nil
 }
 

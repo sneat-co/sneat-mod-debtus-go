@@ -20,6 +20,7 @@ import (
 	"sort"
 	"strconv"
 	"time"
+	"github.com/strongo/app/db"
 )
 
 func InitSupportHandlers(router *httprouter.Router) {
@@ -179,7 +180,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 					counterpartyEntity.LastTransferAt = time.Time{}
 					counterpartyEntity.LastTransferID = 0
 				}
-				models.AppUser{ID: userID, AppUserEntity: &txUser}.AddOrUpdateContact(models.Contact{ID: counterpartyID, ContactEntity: counterpartyEntity})
+				models.AppUser{IntegerID: db.NewIntID(userID), AppUserEntity: &txUser}.AddOrUpdateContact(models.NewContact(counterpartyID, counterpartyEntity))
 			}
 			if _, err = nds.Put(c, userKey, &txUser); err != nil {
 				return errors.Wrap(err, "Failed to save fixed user")

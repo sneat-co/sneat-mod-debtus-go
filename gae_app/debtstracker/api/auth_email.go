@@ -158,11 +158,11 @@ func handleChangePasswordAndSignIn(c context.Context, w http.ResponseWriter, r *
 
 		now := time.Now()
 		user := models.AppUser{
-			ID:            passwordReset.AppUserIntID,
+			IntegerID:           db.NewIntID(passwordReset.AppUserIntID),
 			AppUserEntity: new(models.AppUserEntity),
 		}
 		userEmail := models.UserEmail{
-			ID:              models.GetEmailID(passwordReset.Email),
+			StringID:             db.StringID{ID: models.GetEmailID(passwordReset.Email)},
 			UserEmailEntity: new(models.UserEmailEntity),
 		}
 

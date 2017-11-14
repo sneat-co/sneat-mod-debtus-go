@@ -509,7 +509,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		transferEntity.ReturnToTransferIDs = returnToTransferIDs
 		returnToTransfers := make([]db.EntityHolder, len(returnToTransferIDs))
 		for i, returnToTransferID := range returnToTransferIDs {
-			returnToTransfers[i] = &models.Transfer{ID: returnToTransferID, TransferEntity: new(models.TransferEntity)}
+			returnToTransfers[i] = &models.Transfer{IntegerID: db.NewIntID(returnToTransferID), TransferEntity: new(models.TransferEntity)}
 		}
 		if err = dal.DB.GetMulti(c, returnToTransfers); err != nil { // TODO: This can exceed limit on TX entity groups
 			err = errors.WithMessage(err, fmt.Sprintf("failed to load returnToTransfers by keys (%v)", returnToTransferIDs))

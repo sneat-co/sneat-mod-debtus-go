@@ -10,8 +10,7 @@ import (
 const PasswordResetKind = "PwdRst"
 
 type PasswordReset struct {
-	ID int64
-	db.NoStrID
+	db.IntegerID
 	*PasswordResetEntity
 }
 

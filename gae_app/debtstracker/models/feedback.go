@@ -16,18 +16,15 @@ type FeedbackEntity struct {
 	Text    string `datastore:",noindex"`
 }
 
+var _ db.EntityHolder = (*Feedback)(nil)
+
 type Feedback struct {
-	db.NoStrID
-	ID int64
+	db.IntegerID
 	*FeedbackEntity
 }
 
 func (o *Feedback) Kind() string {
 	return FeedbackKind
-}
-
-func (o *Feedback) IntID() int64 {
-	return o.ID
 }
 
 func (o *Feedback) Entity() interface{} {
@@ -36,8 +33,4 @@ func (o *Feedback) Entity() interface{} {
 
 func (o *Feedback) SetEntity(entity interface{}) {
 	o.FeedbackEntity = entity.(*FeedbackEntity)
-}
-
-func (o *Feedback) SetIntID(id int64) {
-	o.ID = id
 }

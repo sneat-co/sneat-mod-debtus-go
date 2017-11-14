@@ -10,11 +10,10 @@ import (
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
 	"net/http"
-	"strconv"
-	"google.golang.org/appengine"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bytes"
 	"fmt"
+	"github.com/strongo/app/db"
 )
 
 type verifyUsers struct {
@@ -28,21 +27,12 @@ func (m *verifyUsers) Make() interface{} {
 }
 
 func (m *verifyUsers) Query(r *http.Request) (query *mapper.Query, err error) {
-	var userID int64
-	if userID, err = strconv.ParseInt(r.URL.Query().Get("user"), 10, 64); err != nil {
-		return
-	}
-	if userID == 0 {
-		query = mapper.NewQuery(models.AppUserKind)
-	} else {
-		query = query.Filter("__key__", datastore.NewKey(appengine.NewContext(r), models.AppUserKind, "", userID, nil))
-	}
-	return query, nil
+	return filterByIntID(r, models.AppUserKind,"user")
 }
 
 func (m *verifyUsers) Next(c context.Context, counters mapper.Counters, key *datastore.Key) (err error) {
 	userEntity := *m.entity
-	user := models.AppUser{ID: key.IntID(), AppUserEntity: &userEntity}
+	user := models.AppUser{IntegerID: db.NewIntID(key.IntID()), AppUserEntity: &userEntity}
 	return m.startWorker(c, counters, func() Worker {
 		return func(counters *asyncCounters) error {
 			return m.processUser(c, user, counters)

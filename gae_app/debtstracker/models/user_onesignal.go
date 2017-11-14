@@ -2,8 +2,6 @@ package models
 
 import (
 	"github.com/strongo/app/db"
-	"golang.org/x/net/context"
-	"google.golang.org/appengine/datastore"
 	"time"
 )
 
@@ -15,11 +13,20 @@ type UserOneSignalEntity struct {
 }
 
 type UserOneSignal struct {
-	db.NoIntID
-	ID string
-	UserOneSignalEntity
+	db.StringID
+	*UserOneSignalEntity
 }
 
-func NewUserOneSignalKey(c context.Context, oneSignalUserID string) *datastore.Key {
-	return datastore.NewKey(c, UserOneSignalKind, oneSignalUserID, 0, nil)
+var _ db.EntityHolder = (*UserOneSignal)(nil)
+
+func (UserOneSignal) Kind() string {
+	return UserOneSignalKind
+}
+
+func (userOneSignal UserOneSignal) Entity() interface{} {
+	return userOneSignal.UserOneSignalEntity
+}
+
+func (userOneSignal *UserOneSignal) SetEntity(entity interface{}) {
+	userOneSignal.UserOneSignalEntity = entity.(*UserOneSignalEntity)
 }

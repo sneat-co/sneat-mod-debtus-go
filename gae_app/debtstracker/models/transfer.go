@@ -48,14 +48,14 @@ func NewTransfer(id int64, entity *TransferEntity) Transfer {
 		panic("entity == nil")
 	}
 	return Transfer{
-		ID:             id,
+		IntegerID:      db.IntegerID{ID: id},
 		TransferEntity: entity,
 	}
 }
 
 type Transfer struct {
 	db.NoStrID
-	ID int64
+	db.IntegerID
 	*TransferEntity
 }
 

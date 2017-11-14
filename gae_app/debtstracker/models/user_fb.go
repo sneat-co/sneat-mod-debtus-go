@@ -31,6 +31,10 @@ func (UserFacebook) Kind() string {
 	return UserFacebookKind
 }
 
+func (UserFacebook) TypeOfID() db.TypeOfID {
+	return db.IsStringID
+}
+
 func (u UserFacebook) StrID() string {
 	return UserFacebookID(u.FbAppOrPageID, u.FbUserOrPageScopeID)
 }

@@ -11,6 +11,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
+	"github.com/strongo/app/db"
 )
 
 type TwilioDalGae struct {
@@ -32,7 +33,7 @@ func (_ TwilioDalGae) GetLastTwilioSmsesForUser(c context.Context, userID int64,
 	}
 	result = make([]models.TwilioSms, len(keys))
 	for i, entity := range entities {
-		result[i] = models.TwilioSms{ID: keys[i].StringID(), TwilioSmsEntity: entity}
+		result[i] = models.TwilioSms{StringID: db.StringID{ID: keys[i].StringID()}, TwilioSmsEntity: entity}
 	}
 	return
 }
@@ -108,6 +109,6 @@ func (_ TwilioDalGae) SaveTwilioSms(
 		err = errors.Wrap(err, "Failed to save Twilio response to DB")
 		return
 	}
-	twilioSms = models.TwilioSms{ID: smsResponse.Sid, TwilioSmsEntity: &twilioSmsEntity}
+	twilioSms = models.TwilioSms{StringID: db.StringID{ID: smsResponse.Sid}, TwilioSmsEntity: &twilioSmsEntity}
 	return
 }

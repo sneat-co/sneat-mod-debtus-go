@@ -26,17 +26,14 @@ var ReceiptStatuses = [4]string{
 }
 
 type Receipt struct {
-	db.NoStrID
-	ID int64
+	db.IntegerID
 	*ReceiptEntity
 }
 
+var _ db.EntityHolder = (*Receipt)(nil)
+
 func (_ *Receipt) Kind() string {
 	return ReceiptKind
-}
-
-func (r *Receipt) IntID() int64 {
-	return r.ID
 }
 
 func (r *Receipt) Entity() interface{} {
@@ -50,12 +47,8 @@ func (r *Receipt) SetEntity(entity interface{}) {
 	r.ReceiptEntity = entity.(*ReceiptEntity)
 }
 
-func (r *Receipt) SetIntID(id int64) {
-	r.ID = id
-}
-
 func NewReceipt(id int64, entity *ReceiptEntity) Receipt {
-	return Receipt{ID: id, ReceiptEntity: entity}
+	return Receipt{IntegerID: db.NewIntID(id), ReceiptEntity: entity}
 }
 
 const (

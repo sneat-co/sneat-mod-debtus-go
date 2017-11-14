@@ -85,7 +85,7 @@ func (userDal UserDalGae) GetUserByID(c context.Context, userID int64) (user mod
 			return
 		}
 	}
-	user = models.AppUser{ID: userID, AppUserEntity: &userEntity}
+	user = models.AppUser{IntegerID: db.NewIntID(userID), AppUserEntity: &userEntity}
 	return
 }
 
@@ -131,7 +131,7 @@ func (userDal UserDalGae) getUserByQuery(c context.Context, query *datastore.Que
 	switch len(userKeys) {
 	case 1:
 		log.Debugf(c, "getUserByQuery(%v) => %v: %v", searchCriteria, userKeys[0].IntID(), userEntities[0])
-		return models.AppUser{ID: userKeys[0].IntID(), AppUserEntity: userEntities[0]}, nil
+		return models.AppUser{IntegerID: db.NewIntID(userKeys[0].IntID()), AppUserEntity: userEntities[0]}, nil
 	case 0:
 		err = db.ErrRecordNotFound
 		log.Debugf(c, "getUserByQuery(%v) => %v", searchCriteria, err)
@@ -160,7 +160,7 @@ func (userDal UserDalGae) CreateAnonymousUser(c context.Context) (models.AppUser
 		return models.AppUser{}, err
 	} else {
 		return models.AppUser{
-			ID:            userKey.IntID(),
+			IntegerID:     db.NewIntID(userKey.IntID()),
 			AppUserEntity: &userEntity,
 		}, nil
 	}
@@ -172,7 +172,7 @@ func (userDal UserDalGae) CreateUser(c context.Context, userEntity *models.AppUs
 		return
 	}
 	user = models.AppUser{
-		ID:            key.IntID(),
+		IntegerID:     db.NewIntID(key.IntID()),
 		AppUserEntity: userEntity,
 	}
 	return

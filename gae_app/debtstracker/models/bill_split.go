@@ -9,7 +9,6 @@ const SplitKind = "Split"
 
 type Split struct {
 	db.IntegerID
-	db.NoStrID
 	*SplitEntity
 }
 

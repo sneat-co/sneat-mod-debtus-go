@@ -19,12 +19,15 @@ func (m *contactsAsyncJob) Make() interface{} {
 }
 
 func (m *contactsAsyncJob) Query(r *http.Request) (query  *mapper.Query, err error) {
+	if query, err = filterByIntID(r, models.ContactKind, "contact"); err != nil {
+		return
+	}
 	return filterByUserParam(r, mapper.NewQuery(models.ContactKind), "UserID")
 }
 
 func (m *contactsAsyncJob) Contact(key *datastore.Key) models.Contact {
 	entity := *m.entity
-	return models.Contact{ID: key.IntID(), ContactEntity: &entity}
+	return models.NewContact(key.IntID(), &entity)
 }
 
 type ContactWorker func(c context.Context, counters *asyncCounters, contact models.Contact) error

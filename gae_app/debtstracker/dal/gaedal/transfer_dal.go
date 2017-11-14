@@ -78,7 +78,7 @@ func (transferDalGae TransferDalGae) GetTransferByID(c context.Context, id int64
 		} else {
 			err = errors.Wrapf(err, "Failed to get transfer by id=%v", id)
 		}
-		return models.Transfer{ID: id}, err
+		return models.Transfer{IntegerID: db.NewIntID(id)}, err
 	}
 	return models.NewTransfer(id, &transferEntity), nil
 }
@@ -86,7 +86,7 @@ func (transferDalGae TransferDalGae) GetTransferByID(c context.Context, id int64
 func (transferDalGae TransferDalGae) GetTransfersByID(c context.Context, transferIDs []int64) (transfers []models.Transfer, err error) {
 	entityHolders := make([]db.EntityHolder, len(transferIDs))
 	for i, transferID := range transferIDs {
-		entityHolders[i] = &models.Transfer{ID: transferID}
+		entityHolders[i] = &models.Transfer{IntegerID: db.NewIntID(transferID)}
 	}
 	if err = dal.DB.GetMulti(c, entityHolders); err != nil {
 		return
@@ -132,7 +132,7 @@ func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context,
 	transfers = make([]models.Transfer, 0, len(keys))
 	var warnings, debugs bytes.Buffer
 	for i, key := range keys {
-		transfer := models.Transfer{ID: key.IntID(), TransferEntity: transferEntities[i]}
+		transfer := models.Transfer{IntegerID: db.NewIntID(key.IntID()), TransferEntity: transferEntities[i]}
 		if contactID != 0 {
 			if cpContactID := transfer.CounterpartyInfoByUserID(userID).ContactID; cpContactID != contactID {
 				debugs.WriteString(fmt.Sprintf("Skipped outstanding Transfer(id=%v) as counterpartyContactID != contactID: %v != %v\n", transfer.ID, cpContactID, contactID))
@@ -272,7 +272,7 @@ func (transferDalGae TransferDalGae) loadTransfers(c context.Context, q *datasto
 	for i, transferKey := range transferKeys {
 		transferEntity := transferEntities[i]
 		transfers[i] = models.Transfer{
-			ID:             transferKey.IntID(),
+			IntegerID:      db.NewIntID(transferKey.IntID()),
 			TransferEntity: transferEntity,
 		}
 	}

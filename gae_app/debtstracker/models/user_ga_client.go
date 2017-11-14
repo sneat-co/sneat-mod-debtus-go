@@ -14,7 +14,21 @@ type GaClientEntity struct {
 }
 
 type GaClient struct {
-	db.NoIntID
-	ID string
+	db.StringID
 	*GaClientEntity
 }
+
+func (GaClient) Kind() string {
+	return GaClientKind
+}
+
+func (gaClient GaClient) Entity() interface{} {
+	return gaClient.GaClientEntity
+}
+
+func (gaClient *GaClient) SetEntity(entity interface{}) {
+	gaClient.GaClientEntity = entity.(*GaClientEntity)
+}
+
+
+var _ db.EntityHolder = (*GaClient)(nil)

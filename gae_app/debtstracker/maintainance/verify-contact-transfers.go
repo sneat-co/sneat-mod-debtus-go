@@ -81,7 +81,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 	}
 	transfers = make([]models.Transfer, len(transferEntities))
 	for i, transfer := range transferEntities {
-		transfers[i] = models.Transfer{ID: transferKeys[i].IntID(), TransferEntity: transfer}
+		transfers[i] = models.Transfer{IntegerID: db.NewIntID(transferKeys[i].IntID()), TransferEntity: transfer}
 	}
 	models.ReverseTransfers(transfers)
 
@@ -222,7 +222,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 			m.logTransfers(transfers, 1, true)
 			entitiesToSave := make([]db.EntityHolder, 0, len(transfersToSave))
 			for id, transfer := range transfersToSave {
-				entitiesToSave = append(entitiesToSave, &models.Transfer{ID: id, TransferEntity: transfer})
+				entitiesToSave = append(entitiesToSave, &models.Transfer{IntegerID: db.NewIntID(id), TransferEntity: transfer})
 			}
 			gaedb.LoggingEnabled = true
 			if err = dal.DB.UpdateMulti(c, entitiesToSave); err != nil {

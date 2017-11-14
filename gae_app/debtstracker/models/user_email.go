@@ -33,9 +33,8 @@ func (entity UserEmailEntity) ConfirmationPin() string {
 }
 
 type UserEmail struct {
-	ID string
+	db.StringID
 	user.Names
-	db.NoIntID
 	*UserEmailEntity
 }
 
@@ -43,14 +42,6 @@ var _ user.AccountRecord = (*UserEmail)(nil)
 
 func (userEmail UserEmail) UserAccount() user.Account {
 	return user.Account{Provider: "email", ID: userEmail.ID}
-}
-
-func (userEmail UserEmail) StrID() string {
-	return userEmail.ID
-}
-
-func (userEmail UserEmail) SetStrID(id string) {
-	userEmail.ID = id
 }
 
 func (userEmail UserEmail) Kind() string {
@@ -75,7 +66,7 @@ func GetEmailID(email string) string {
 
 func NewUserEmail(email string, isConfirmed bool, provider string) UserEmail {
 	return UserEmail{
-		ID:              GetEmailID(email),
+		StringID:        db.StringID{ID: GetEmailID(email)},
 		UserEmailEntity: NewUserEmailEntity(0, isConfirmed, provider),
 	}
 }

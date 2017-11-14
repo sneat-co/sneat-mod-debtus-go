@@ -13,6 +13,7 @@ import (
 	"github.com/strongo/decimal"
 	"strings"
 	"time"
+	"github.com/strongo/app/db"
 )
 
 var ParseTransferCommand = bots.Command{
@@ -91,7 +92,7 @@ var ParseTransferCommand = bots.Command{
 		var botUserEntity bots.BotAppUser
 		botUserEntity, err = whc.GetAppUser()
 		creatorUser := models.AppUser{
-			ID: whc.AppUserIntID(),
+			IntegerID:     db.NewIntID(whc.AppUserIntID()),
 			AppUserEntity: botUserEntity.(*models.AppUserEntity),
 		}
 
@@ -105,7 +106,7 @@ var ParseTransferCommand = bots.Command{
 			models.Amount{Currency: currency, Value: value},
 			time.Time{},
 			models.TransferInterest{},
-			)
+		)
 
 		output, err := facade.Transfers.CreateTransfer(c, newTransfer)
 

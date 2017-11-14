@@ -15,7 +15,6 @@ const GroupKind = "Group"
 
 type Group struct {
 	db.StringID
-	db.NoIntID
 	*GroupEntity
 }
 

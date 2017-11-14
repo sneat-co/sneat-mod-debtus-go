@@ -17,7 +17,6 @@ const (
 
 type BillsHistory struct {
 	db.StringID
-	db.NoIntID
 	*BillsHistoryEntity
 }
 
