@@ -1,26 +1,26 @@
 package dtb_transfer
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
-	"github.com/strongo/app"
-	"github.com/strongo/app/gae"
 	"github.com/strongo/app/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"golang.org/x/net/context"
-	"google.golang.org/appengine/delay"
-	"google.golang.org/appengine/urlfetch"
-	"net/http"
+	//"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
+	//"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	//"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
+	//"github.com/strongo/app"
+	//"github.com/strongo/app/gae"
+	//"golang.org/x/net/context"
+	//"google.golang.org/appengine/delay"
+	//"google.golang.org/appengine/urlfetch"
+	//"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -110,63 +110,63 @@ func rescheduleReminder(whc bots.WebhookContext, reminderID int64, remindInDurat
 		)
 	}
 
-	go func() {
-		chatID := whc.MustBotChatID()
-		intChatID, err := strconv.ParseInt(chatID, 10, 64)
-		if err != nil {
-			log.Errorf(c, "Failed to parse BotChatID to int: %v\nwhc.BotChatID(): %v", err, chatID)
-			return
-		}
-		if err = delayAskForFeedback(c, whc.GetBotCode(), intChatID, whc.AppUserIntID()); err != nil {
-			log.Errorf(c, "Failed to create task for asking feedback: %v", err)
-		}
-	}()
+	//go func() {
+	//	chatID := whc.MustBotChatID()
+	//	intChatID, err := strconv.ParseInt(chatID, 10, 64)
+	//	if err != nil {
+	//		log.Errorf(c, "Failed to parse BotChatID to int: %v\nwhc.BotChatID(): %v", err, chatID)
+	//		return
+	//	}
+	//	if err = delayAskForFeedback(c, whc.GetBotCode(), intChatID, whc.AppUserIntID()); err != nil {
+	//		log.Errorf(c, "Failed to create task for asking feedback: %v", err)
+	//	}
+	//}()
 
 	return
 }
 
-const ASK_FOR_FEEDBACK_TASK = "ask-for-feedback"
-
-func delayAskForFeedback(c context.Context, botCode string, chatID int64, userID int64) error {
-	task, err := gae.CreateDelayTask(common.QUEUE_CHATS, ASK_FOR_FEEDBACK_TASK, delayedAskForFeedback, botCode, chatID, userID)
-	if err != nil {
-		return err
-	}
-	task.Delay = time.Second / 2
-	task, err = gae.AddTaskToQueue(c, task, common.QUEUE_CHATS)
-	return err
-}
-
-var delayedAskForFeedback = delay.Func(ASK_FOR_FEEDBACK_TASK,
-	func(c context.Context, botID string, chatID, userID int64) error {
-		log.Debugf(c, "delayedAskForFeedback(botID=%v, chatID=%d, userID=%d)", botID, chatID, userID)
-		if botSettings, ok := telegram.Bots(gaestandard.GetEnvironment(c), nil).ByCode[botID]; !ok {
-			log.Errorf(c, "Bot settings not found by ID: "+botID)
-			return nil
-		} else {
-			locale, err := facade.GetLocale(c, botID, chatID, userID)
-			if err != nil {
-				return err
-			}
-			translator := strongo.NewSingleMapTranslator(locale, strongo.NewMapTranslator(c, trans.TRANS))
-			text := translator.Translate(trans.MESSAGE_TEXT_ASK_FOR_FEEDBAСK)
-			messageConfig := tgbotapi.NewMessage(chatID, text)
-			messageConfig.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
-				[]tgbotapi.InlineKeyboardButton{
-					{Text: translator.Translate(trans.COMMAND_TEXT_GIVE_FEEDBACK), CallbackData: "feedback"},
-				},
-			)
-			messageConfig.ParseMode = "HTML"
-			tgBotApi := tgbotapi.NewBotAPIWithClient(botSettings.Token, &http.Client{Transport: &urlfetch.Transport{Context: c}})
-			if message, err := tgBotApi.Send(messageConfig); err != nil {
-				log.Debugf(c, "Faield to send message to Telegram: %v", err)
-				return nil
-			} else {
-				log.Debugf(c, "Sent to Telegram: %v", message.MessageID)
-			}
-		}
-		return nil
-	})
+//const ASK_FOR_FEEDBACK_TASK = "ask-for-feedback"
+//
+//func delayAskForFeedback(c context.Context, botCode string, chatID int64, userID int64) error {
+//	task, err := gae.CreateDelayTask(common.QUEUE_CHATS, ASK_FOR_FEEDBACK_TASK, delayedAskForFeedback, botCode, chatID, userID)
+//	if err != nil {
+//		return err
+//	}
+//	task.Delay = time.Second / 2
+//	task, err = gae.AddTaskToQueue(c, task, common.QUEUE_CHATS)
+//	return err
+//}
+//
+//var delayedAskForFeedback = delay.Func(ASK_FOR_FEEDBACK_TASK,
+//	func(c context.Context, botID string, chatID, userID int64) error {
+//		log.Debugf(c, "delayedAskForFeedback(botID=%v, chatID=%d, userID=%d)", botID, chatID, userID)
+//		if botSettings, ok := telegram.Bots(gaestandard.GetEnvironment(c), nil).ByCode[botID]; !ok {
+//			log.Errorf(c, "Bot settings not found by ID: "+botID)
+//			return nil
+//		} else {
+//			locale, err := facade.GetLocale(c, botID, chatID, userID)
+//			if err != nil {
+//				return err
+//			}
+//			translator := strongo.NewSingleMapTranslator(locale, strongo.NewMapTranslator(c, trans.TRANS))
+//			text := translator.Translate(trans.MESSAGE_TEXT_ASK_FOR_FEEDBAСK)
+//			messageConfig := tgbotapi.NewMessage(chatID, text)
+//			messageConfig.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
+//				[]tgbotapi.InlineKeyboardButton{
+//					{Text: translator.Translate(trans.COMMAND_TEXT_GIVE_FEEDBACK), CallbackData: "feedback"},
+//				},
+//			)
+//			messageConfig.ParseMode = "HTML"
+//			tgBotApi := tgbotapi.NewBotAPIWithClient(botSettings.Token, &http.Client{Transport: &urlfetch.Transport{Context: c}})
+//			if message, err := tgBotApi.Send(messageConfig); err != nil {
+//				log.Debugf(c, "Faield to send message to Telegram: %v", err)
+//				return nil
+//			} else {
+//				log.Debugf(c, "Sent to Telegram: %v", message.MessageID)
+//			}
+//		}
+//		return nil
+//	})
 
 //func disableReminders(whc bots.WebhookContext, transferID int64) (m bots.MessageFromBot, err error) {
 //	c := whc.Context()

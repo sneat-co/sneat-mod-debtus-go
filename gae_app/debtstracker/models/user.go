@@ -292,27 +292,36 @@ func (u AppUser) AddOrUpdateContact(c Contact) (changed bool) {
 }
 
 func (u *AppUserEntity) SetContacts(contacts []UserContactJson) {
-
 	active, archived := userContactsByStatus(contacts)
 
-	if u.ContactsCountActive = len(active); u.ContactsCountActive == 0 {
-		u.ContactsJsonActive = ""
-	} else if jsonBytes, err := ffjson.Marshal(active); err != nil {
-		panic(errors.Wrap(err, "Failed to marshal contacts").Error())
-	} else {
-		u.ContactsJsonActive = string(jsonBytes)
-	}
-
-	if u.ContactsCountArchived = len(archived); u.ContactsCountArchived == 0 {
-		u.ContactsJsonArchived = ""
-	} else if jsonBytes, err := ffjson.Marshal(archived); err != nil {
-		panic(errors.Wrap(err, "Failed to marshal contacts").Error())
-	} else {
-		u.ContactsJsonArchived = string(jsonBytes)
-	}
+	u.setContacts(STATUS_ACTIVE, active)
+	u.setContacts(STATUS_ARCHIVED, archived)
 
 	u.ContactsJson = ""
 	u.ContactsCount = 0
+}
+
+func (u *AppUserEntity) setContacts(status string, contacts []UserContactJson) {
+	switch status {
+	case STATUS_ACTIVE:
+		if u.ContactsCountActive = len(contacts); u.ContactsCountActive == 0 {
+			u.ContactsJsonActive = ""
+		} else if jsonBytes, err := ffjson.Marshal(contacts); err != nil {
+			panic(errors.Wrap(err, "Failed to marshal contacts").Error())
+		} else {
+			u.ContactsJsonActive = string(jsonBytes)
+		}
+	case STATUS_ARCHIVED:
+		if u.ContactsCountArchived = len(contacts); u.ContactsCountArchived == 0 {
+			u.ContactsJsonArchived = ""
+		} else if jsonBytes, err := ffjson.Marshal(contacts); err != nil {
+			panic(errors.Wrap(err, "Failed to marshal contacts").Error())
+		} else {
+			u.ContactsJsonArchived = string(jsonBytes)
+		}
+	default:
+		panic("unknown status")
+	}
 }
 
 func (u *AppUserEntity) Contacts() (contacts []UserContactJson) {

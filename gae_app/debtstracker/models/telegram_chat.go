@@ -4,7 +4,28 @@ import (
 	"github.com/strongo/app/gaedb"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"google.golang.org/appengine/datastore"
+	"github.com/strongo/app/db"
 )
+
+type TelegramChat struct {
+	db.IntegerID
+	db.NoStrID
+	*DtTelegramChatEntity
+}
+
+var _ db.EntityHolder = (*TelegramChat)(nil)
+
+func (TelegramChat) Kind() string {
+	return telegram_bot.TelegramChatKind
+}
+
+func (tgChat TelegramChat) Entity() interface{} {
+	return tgChat.DtTelegramChatEntity
+}
+
+func (tgChat *TelegramChat) SetEntity(entity interface{}) {
+	tgChat.DtTelegramChatEntity = entity.(*DtTelegramChatEntity)
+}
 
 type DtTelegramChatEntity struct {
 	UserGroupID string `datastore:",index"` // Do index

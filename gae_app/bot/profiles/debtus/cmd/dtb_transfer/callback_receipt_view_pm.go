@@ -144,7 +144,8 @@ func ShowReceipt(whc bots.WebhookContext, receiptID int64) (m bots.MessageFromBo
 
 	{
 		if m, err = whc.NewEditMessage(
-			"\xF0\x9F\x93\xA4 "+whc.Translate(trans.MESSAGE_TEXT_RECEIPT_SENT_THROW_TELEGRAM)+"\n\xF0\x9F\x91\x93 "+whc.Translate(trans.MESSAGE_TEXT_RECEIPT_VIEWED_BY_COUNTERPARTY),
+			whc.Translate(trans.MESSAGE_TEXT_RECEIPT_SENT_THROW_TELEGRAM) + "\n"+
+				whc.Translate(trans.MESSAGE_TEXT_RECEIPT_VIEWED_BY_COUNTERPARTY),
 			bots.MessageFormatHTML,
 		); err != nil {
 			return

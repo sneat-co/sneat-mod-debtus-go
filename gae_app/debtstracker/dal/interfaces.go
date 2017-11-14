@@ -285,6 +285,7 @@ type UserGaClientDal interface {
 }
 
 type TgChatDal interface {
+	GetTgChatByID(c context.Context, tgChatID int64) (tgChat models.TelegramChat, err error)
 	DoSomething(c context.Context, userTask *sync.WaitGroup, currency string, tgChatID int64, authInfo auth.AuthInfo, user models.AppUser, sendToTelegram func(tgChat telegram_bot.TelegramChatEntityBase) error) (err error)
 }
 

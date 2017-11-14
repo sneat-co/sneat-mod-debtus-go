@@ -10,6 +10,7 @@ import (
 	"golang.org/x/net/context"
 	"strings"
 	"sync"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 )
 
 type TgChatDalGae struct {
@@ -19,7 +20,13 @@ func NewTgChatDalGae() TgChatDalGae {
 	return TgChatDalGae{}
 }
 
-func (_ TgChatDalGae) DoSomething(c context.Context, userTask *sync.WaitGroup, currency string, tgChatID int64, authInfo auth.AuthInfo, user models.AppUser, sendToTelegram func(tgChat telegram_bot.TelegramChatEntityBase) error) (err error) {
+func (TgChatDalGae) GetTgChatByID(c context.Context, tgChatID int64) (tgChat models.TelegramChat, err error) {
+	tgChat.ID = tgChatID
+	err = dal.DB.Get(c, &tgChat)
+	return
+}
+
+func (TgChatDalGae) DoSomething(c context.Context, userTask *sync.WaitGroup, currency string, tgChatID int64, authInfo auth.AuthInfo, user models.AppUser, sendToTelegram func(tgChat telegram_bot.TelegramChatEntityBase) error) (err error) {
 	var isSentToTelegram bool // Needed in case of failed to save to DB and is auto-retry
 	tgChatKey := gaedb.NewKey(c, telegram_bot.TelegramChatKind, "", tgChatID, nil)
 	if err = gaedb.RunInTransaction(c, func(tc context.Context) (err error) {

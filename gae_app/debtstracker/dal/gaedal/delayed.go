@@ -26,6 +26,7 @@ import (
 	"google.golang.org/appengine/urlfetch"
 	"strconv"
 	"time"
+	"github.com/strongo/bots-framework/core"
 )
 
 func (_ UserDalGae) DelaySetUserPreferredLocale(c context.Context, delay time.Duration, userID int64, localeCode5 string) error {
@@ -135,30 +136,30 @@ func GetTelegramChatByUserID(c context.Context, userID int64) (entityID string, 
 	return
 }
 
-func DelayOnReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transferID, tgChatID int64, tgBotID string) error {
+func DelayOnReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transferID, tgChatID int64, tgMsgID int, tgBotID, locale string) error {
 	if receiptID == 0 {
 		return errors.New("receiptID == 0")
 	}
 	if transferID == 0 {
 		return errors.New("transferID == 0")
 	}
-	if err := gae.CallDelayFunc(c, common.QUEUE_RECEIPTS, "on-receipt-sent-success", delayedOnReceiptSentSuccess, sentAt, receiptID, transferID, tgChatID, tgBotID); err != nil {
+	if err := gae.CallDelayFunc(c, common.QUEUE_RECEIPTS, "on-receipt-sent-success", delayedOnReceiptSentSuccess, sentAt, receiptID, transferID, tgChatID, tgMsgID, tgBotID, locale); err != nil {
 		log.Errorf(c, err.Error())
-		return onReceiptSentSuccess(c, sentAt, receiptID, transferID, tgChatID, tgBotID)
+		return onReceiptSentSuccess(c, sentAt, receiptID, transferID, tgChatID, tgMsgID, tgBotID, locale)
 	}
 	return nil
 }
 
-func DelayOnReceiptSendFail(c context.Context, receiptID int64, failedAt time.Time, details string) error {
+func DelayOnReceiptSendFail(c context.Context, receiptID, tgChatID int64, tgMsgID int, failedAt time.Time, locale, details string) error {
 	if receiptID == 0 {
 		return errors.New("receiptID == 0")
 	}
 	if failedAt.IsZero() {
 		return errors.New("failedAt.IsZero()")
 	}
-	if err := gae.CallDelayFunc(c, common.QUEUE_RECEIPTS, "on-receipt-send-fail", delayedOnReceiptSendFail, receiptID, failedAt, details); err != nil {
+	if err := gae.CallDelayFunc(c, common.QUEUE_RECEIPTS, "on-receipt-send-fail", delayedOnReceiptSendFail, receiptID, tgChatID, tgMsgID, failedAt, locale, details); err != nil {
 		log.Errorf(c, err.Error())
-		return onReceiptSendFail(c, receiptID, failedAt, details)
+		return onReceiptSendFail(c, receiptID, tgChatID, tgMsgID, failedAt, locale, details)
 	}
 	return nil
 }
@@ -166,8 +167,8 @@ func DelayOnReceiptSendFail(c context.Context, receiptID int64, failedAt time.Ti
 var delayedOnReceiptSentSuccess = delay.Func("onReceiptSentSuccess", onReceiptSentSuccess)
 var delayedOnReceiptSendFail = delay.Func("onReceiptSendFail", onReceiptSendFail)
 
-func onReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transferID, tgChatID int64, tgBotID string) error {
-	log.Debugf(c, "onReceiptSentSuccess(sentAt=%v, receiptID=%v, transferID=%v, tgBotID=%v)", sentAt, receiptID, transferID, tgBotID)
+func onReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transferID, tgChatID int64, tgMsgID int, tgBotID, locale string) (err error) {
+	log.Debugf(c, "onReceiptSentSuccess(sentAt=%v, receiptID=%v, transferID=%v, tgChatID=%v, tgMsgID=%v tgBotID=%v, locale=%v)", sentAt, receiptID, transferID, tgChatID, tgMsgID, tgBotID, locale)
 	if receiptID == 0 {
 		return errors.New("receiptID == 0")
 
@@ -175,7 +176,8 @@ func onReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transf
 	if transferID == 0 {
 		return errors.New("transferID == 0")
 	}
-	return dal.DB.RunInTransaction(c, func(c context.Context) error {
+	var mt string
+	if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
 		receiptKey := NewReceiptKey(c, receiptID)
 		transferKey := NewTransferKey(c, transferID)
 		var (
@@ -203,18 +205,32 @@ func onReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transf
 			}
 		}
 		return nil
-	}, dal.CrossGroupTransaction)
+	}, dal.CrossGroupTransaction); err != nil {
+		mt = err.Error()
+	} else {
+		var translator strongo.SingleLocaleTranslator
+		if translator, err = getTranslator(c, locale); err != nil {
+			return
+		}
+		mt = translator.Translate(trans.MESSAGE_TEXT_RECEIPT_SENT_THROW_TELEGRAM)
+	}
+
+	if err = editTgMessageText(c, tgBotID, tgChatID, tgMsgID, mt); err != nil {
+		return
+	}
+	return
 }
 
-func onReceiptSendFail(c context.Context, receiptID int64, failedAt time.Time, details string) error {
+func onReceiptSendFail(c context.Context, receiptID, tgChatID int64, tgMsgID int, failedAt time.Time, locale, details string) (err error) {
 	log.Debugf(c, "onReceiptSendFail(receiptID=%v, failedAt=%v)", receiptID, failedAt)
 	if receiptID == 0 {
 		return errors.New("receiptID == 0")
 	}
-	return dal.DB.RunInTransaction(c, func(c context.Context) error {
-		if receipt, err := dal.Receipt.GetReceiptByID(c, receiptID); err != nil {
+	var receipt models.Receipt
+	if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
+		if receipt, err = dal.Receipt.GetReceiptByID(c, receiptID); err != nil {
 			return err
-		} else {
+		} else if receipt.DtFailed.IsZero() {
 			receipt.DtFailed = failedAt
 			receipt.Error = details
 			if _, ndsErr := gaedb.Put(c, NewReceiptKey(c, receiptID), receipt); ndsErr != nil {
@@ -222,7 +238,75 @@ func onReceiptSendFail(c context.Context, receiptID int64, failedAt time.Time, d
 			}
 			return err
 		}
-	}, nil)
+		return nil
+	}, nil); err != nil {
+		return
+	}
+
+	if err = editTgMessageText(c, receipt.CreatedOnID, tgChatID, tgMsgID, emoji.ERROR_ICON+" Failed to send receipt: "+details); err != nil {
+		log.Errorf(c, err.Error())
+		err = nil
+	}
+	return
+}
+
+func getTranslatorAndTgChatID(c context.Context, userID int64) (translator strongo.SingleLocaleTranslator, tgChatID int64, err error) {
+	var (
+		//transfer models.Transfer
+		user models.AppUser
+	)
+	if user, err = dal.User.GetUserByID(c, userID); err != nil {
+		return
+	}
+	if user.TelegramUserID == 0 {
+		err = errors.New("user.TelegramUserID == 0")
+		return
+	}
+	var tgChat models.TelegramChat
+	if tgChat, err = dal.TgChat.GetTgChatByID(c, user.TelegramUserID); err != nil {
+		return
+	}
+	localeCode := tgChat.PreferredLanguage
+	if localeCode == "" {
+		localeCode = user.PreferredLocale()
+	}
+	if translator, err = getTranslator(c, localeCode); err != nil {
+		return
+	}
+	return
+}
+
+func getTranslator(c context.Context, localeCode string) (translator strongo.SingleLocaleTranslator, err error) {
+	var locale strongo.Locale
+	if locale, err = common.TheAppContext.SupportedLocales().GetLocaleByCode5(localeCode); errors.Cause(err) == trans.ErrUnsupportedLocale {
+		localeCode = strongo.LOCALE_EN_US
+	}
+	if locale, err = common.TheAppContext.SupportedLocales().GetLocaleByCode5(localeCode); err != nil {
+		return
+	}
+	translator = strongo.NewSingleMapTranslator(locale, common.TheAppContext.GetTranslator(c))
+	return
+}
+
+func editTgMessageText(c context.Context, tgBotID string, tgChatID int64, tgMsgID int, text string) (err error) {
+	msg := tgbotapi.NewEditMessageText(tgChatID, tgMsgID, "", text)
+	telegramBots := telegram.Bots(gaestandard.GetEnvironment(c), nil)
+	botSettings, ok := telegramBots.ByCode[tgBotID]
+	if !ok {
+		return errors.New(fmt.Sprintf("Bot settings not found by tgChat.BotID=%v, out of %v items", tgBotID, len(telegramBots.ByCode)))
+	}
+	if err = sendToTelegram(c, msg, botSettings); err != nil {
+		return
+	}
+	return
+}
+
+func sendToTelegram(c context.Context, msg tgbotapi.Chattable, botSettings bots.BotSettings) (err error) { // TODO: Merge with same in API package
+	tgApi := tgbotapi.NewBotAPIWithClient(botSettings.Token, urlfetch.Client(c))
+	if _, err = tgApi.Send(msg); err != nil {
+		return
+	}
+	return
 }
 
 var delayedSendReceiptToCounterpartyByTelegram = delay.Func("sendReceiptToCounterparty", func(c context.Context, env strongo.Environment, transferID, toUserID int64) error {
@@ -271,12 +355,12 @@ var delayedSendReceiptToCounterpartyByTelegram = delay.Func("sendReceiptToCounte
 		panic(errors.Wrap(err, "Bot settings not found by locale").Error())
 	}
 
-	translator := common.TheAppContext.GetTranslator(c)
-
-	locale, err := common.TheAppContext.SupportedLocales().GetLocaleByCode5(localeCode)
-	if err != nil {
-		return errors.Wrapf(err, "Failed to get locale by code5 (%v)", localeCode)
+	var translator strongo.SingleLocaleTranslator
+	if translator, err = getTranslator(c, localeCode); err != nil {
+		return err
 	}
+	locale := translator.Locale()
+
 	//contactDalGae, transfer, err := GetTransferByID(c, transferID)
 	//if err != nil {
 	//	log.Errorf(c, "Failed to get transfer (%v): %v", transferID, err)
@@ -338,24 +422,17 @@ var delayedSendReceiptToCounterpartyByTelegram = delay.Func("sendReceiptToCounte
 			TransferCurrency: string(transfer.Currency),
 		}
 
-		messageText, err := common.TextTemplates.RenderTemplate(c, strongo.NewSingleMapTranslator(locale, translator), messageToTranslate, templateData)
+		messageText, err := common.TextTemplates.RenderTemplate(c, translator, messageToTranslate, templateData)
 		if err != nil {
 			return err
 		}
 		messageText = emoji.INCOMING_ENVELOP_ICON + " " + messageText
 
-		//utmParams := UtmParams{
-		//	Source: "telegram",
-		//	Medium: "bot",
-		//	Campaign: UTM_CAMPAIGN_RECEIPT,
-		//}
-		//receiptUrl :=  GetReceiptUrl(locale, transferID, utmParams), translator.Translate(trans.COMMAND_TEXT_SEE_RECEIPT_DETAILS, locale.Code5)
-
 		log.Debugf(c, "Message: %v", messageText)
 
 		tgChatID := (int64)(tgChat.TelegramUserID)
 
-		btnViewReceiptText := emoji.CLIPBOARD_ICON + " " + translator.Translate(trans.BUTTON_TEXT_SEE_RECEIPT_DETAILS, locale.Code5)
+		btnViewReceiptText := emoji.CLIPBOARD_ICON + " " + translator.Translate(trans.BUTTON_TEXT_SEE_RECEIPT_DETAILS)
 		btnViewReceiptData := fmt.Sprintf("view-receipt?id=%v", common.EncodeID(receiptID))
 		tgMessage := tgbotapi.MessageConfig{
 			BaseChat: tgbotapi.BaseChat{
@@ -368,100 +445,35 @@ var delayedSendReceiptToCounterpartyByTelegram = delay.Func("sendReceiptToCounte
 			},
 			ParseMode:             "HTML",
 			DisableWebPagePreview: true,
-			Text: messageText,
+			Text:                  messageText,
 		}
-		tgApi := tgbotapi.NewBotAPIWithClient(toUserBotSettings.Token, urlfetch.Client(c))
-		if _, err := tgApi.Send(tgMessage); err != nil {
+		creatorTgChatID, creatorTgMsgID := transfer.Creator().TgChatID, int(transfer.CreatorTgReceiptByTgMsgID)
+		if err = sendToTelegram(c, tgMessage, toUserBotSettings); err != nil {
 			if _, forbidden := err.(tgbotapi.ErrAPIForbidden); forbidden {
-				log.Infof(c, "Failed to send notification to user by Telegram: %v", err)
-				editMessageConfig := tgbotapi.NewEditMessageText( // TODO: Add option buttons to send receipt
-					transfer.Creator().TgChatID,
-					int(transfer.CreatorTgReceiptByTgMsgID),
-					"",
-					emoji.ERROR_ICON+translator.Translate(trans.MESSAGE_TEXT_RECEIPT_NOT_SENT_AS_COUNTERPARTY_HAS_DISABLED_TG_BOT, locale.Code5, transfer.Counterparty().ContactName),
-				)
-				if _, err2 := tgApi.Send(editMessageConfig); err2 != nil {
-					log.Errorf(c, "Failed to update creator's receipt message: %v", err2)
+				err = nil
+				msgTextToCreator := emoji.ERROR_ICON+translator.Translate(trans.MESSAGE_TEXT_RECEIPT_NOT_SENT_AS_COUNTERPARTY_HAS_DISABLED_TG_BOT, locale.Code5, transfer.Counterparty().ContactName)
+				if err2 := DelayOnReceiptSendFail(c, receiptID, creatorTgChatID, creatorTgMsgID, time.Now(), localeCode, msgTextToCreator); err2 != nil {
+					log.Errorf(c, errors.Wrap(err2, "Failed to update receipt entity with error info").Error())
 				}
+				log.Infof(c, "Failed to send notification to user by Telegram: %v", err)
 				if err2 := gae_host.MarkTelegramChatAsForbidden(c, toUserBotSettings.Code, tgChatID, time.Now()); err2 != nil {
 					log.Errorf(c, "Failed to call MarkTelegramChatAsStopped(): %v", err2.Error())
 				}
+				return nil
 			} else {
 				log.Errorf(c, "Failed to send notification to user by Telegram: %v", err)
-				editMessageConfig := tgbotapi.NewEditMessageText(
-					transfer.Creator().TgChatID,
-					int(transfer.CreatorTgReceiptByTgMsgID),
-					"",
-					emoji.ERROR_ICON+" "+err.Error(),
-				)
-				if _, err2 := tgApi.Send(editMessageConfig); err2 != nil {
-					log.Errorf(c, "Failed to update creator's receipt message: %v", err2)
+				msgTextToCreator := emoji.ERROR_ICON + " " + err.Error()
+				if err2 := DelayOnReceiptSendFail(c, receiptID, creatorTgChatID, creatorTgMsgID, time.Now(), localeCode, msgTextToCreator); err2 != nil {
+					log.Errorf(c, errors.Wrap(err2, "Failed to update receipt entity with error info").Error())
 				}
 			}
-			if err2 := DelayOnReceiptSendFail(c, receiptID, time.Now(), err.Error()); err2 != nil {
-				log.Errorf(c, errors.Wrap(err2, "Failed to update receipt entity with error info").Error())
-			}
-			return nil
+			return err
 		} else {
 			log.Infof(c, "Notification sent to user by Telegram. Bot=%v, NotificationID=%v", toUserBotSettings.Code, receiptID)
-			if err = DelayOnReceiptSentSuccess(c, time.Now(), receiptID, transferID, tgChatID, toUserBotSettings.Code); err != nil {
+			if err = DelayOnReceiptSentSuccess(c, time.Now(), receiptID, transferID, creatorTgChatID, creatorTgMsgID, toUserBotSettings.Code, localeCode); err != nil {
 				log.Errorf(c, errors.Wrap(err, "Failed to call DelayOnReceiptSentSuccess()").Error())
 			}
 		}
-	}
-
-	{
-		//var fromUserBotSettings bots.BotSettings
-		//var ok bool
-		//if transfer.Creator().TgBotID != "" {
-		//	fromUserBotSettings, ok = telegram.BotsBy(c).ByCode[transfer.Creator().TgBotID] // TODO: This is wrong way to choose bot!
-		//	if !ok {
-		//		log.Errorf(c, "Bot settings not found for transfer(%v).Creator().TgBotID: [%v]", transferID, transfer.Creator().TgBotID)
-		//	}
-		//} else {
-		//	log.Warningf(c, "Transfer.Creator().TgBotID is empty")
-		//}
-		//if !ok {
-		//	fromUser, err := dal.User.GetUserByID(c, transfer.CreatorUserID)
-		//	if err != nil {
-		//		return err
-		//	}
-		//	localeCode := fromUser.PreferredLocale()
-		//	fromUserBotSettings, err = telegram.GetBotSettingsByLang(c, localeCode, env)
-		//	if err != nil {
-		//		log.Warningf(c, "User has unknown locale: %v", localeCode)
-		//		localeCode = strongo.LocaleEnUS.Code5
-		//		fromUserBotSettings, err = telegram.GetBotSettingsByLang(c, localeCode, env)
-		//		if err != nil {
-		//			panic(errors.Wrap(err, "Bot settings bot found by locale").Error())
-		//		}
-		//	}
-		//}
-		//tgApi := tgbotapi.NewBotAPIWithClient(fromUserBotSettings.Token, urlfetch.Client(c))
-		//
-		//editMessageConfig := tgbotapi.NewEditMessageText( // TODO: Use creator's locale
-		//	transfer.Creator().TgChatID,
-		//	int(transfer.CreatorTgReceiptByTgMsgID),
-		//	"",
-		//	"\xF0\x9F\x93\xA4 "+
-		//		translator.Translate(trans.MESSAGE_TEXT_RECEIPT_SENT_THROW_TELEGRAM, locale.Code5)+
-		//		"\n\n"+ translator.Translate(trans.MESSAGE_TEXT_ASK_FOR_FEEDBAСK, locale.Code5),
-		//)
-		//keyboard := tgbotapi.NewInlineKeyboardMarkup(
-		//	[]tgbotapi.InlineKeyboardButton{
-		//		{Text: translator.Translate(trans.COMMAND_TEXT_GIVE_FEEDBACK, locale.Code5), CallbackData: "feedback"},
-		//	},
-		//)
-		//editMessageConfig.ReplyMarkup = keyboard
-		//if _, err = tgApi.Send(editMessageConfig); err != nil {
-		//	if err.Error() == "Bad Request: message to edit not found" {
-		//		log.Warningf(c, "Creator's receipt message is no longer exists: %v", err) // TODO: Handle gracefully or change to log.Info()
-		//	} else {
-		//		log.Errorf(c, "Failed to update creator's receipt message: %v", err)
-		//		// TODO: Queue resending the message?
-		//	}
-		//	return nil
-		//}
 	}
 	return err
 })

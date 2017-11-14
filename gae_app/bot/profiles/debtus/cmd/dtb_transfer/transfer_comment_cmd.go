@@ -12,6 +12,7 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/html"
 	"strings"
+	"net/url"
 )
 
 const (
@@ -133,35 +134,49 @@ func createTransferAskNoteOrCommentCommand(code string, nextCommand bots.Command
 				chatEntity.PushStepToAwaitingReplyTo(code)
 			}
 
-			//mt := whc.Translate(trans.MESSAGE_TEXT_TRANSFER_ASK_FOR_NOTE_OR_COMMENT, addNoteCommand.Icon, addCommentCommand.Icon)
-			transferWizard, err := NewTransferWizard(whc)
-			if err != nil {
-				return m, err
+			m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_TRANSFER_ASK_FOR_INTEREST_SHORT))
+			m.Format = bots.MessageFormatHTML
+			m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
+				[]tgbotapi.InlineKeyboardButton{
+					tgbotapi.NewInlineKeyboardButtonData(whc.Translate(trans.COMMAND_TEXT_MORE_ABOUT_INTEREST_COMMAND), ASK_FOR_INTEREST_AND_COMMENT_COMMAND),
+				},
+			)
+			if _, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
+				return
+			}
+
+			var transferWizard TransferWizard
+			if transferWizard, err = NewTransferWizard(whc); err != nil {
+				return
 			}
 			counterpartyID := transferWizard.CounterpartyID(c)
 			if counterpartyID == 0 {
 				return m, errors.New("transferWizard.CounterpartyID() == 0")
 			}
 			counterparty, err := dal.Contact.GetContactByID(whc.Context(), counterpartyID)
-			mt := strings.TrimLeft(fmt.Sprintf("%v\n\n%v\n(<i>%v</i>)",
-				whc.Translate(trans.MESSAGE_TEXT_TRANSFER_ASK_FOR_INTEREST),
+			m.Text = strings.TrimLeft(fmt.Sprintf("%v\n(<i>%v</i>)",
 				whc.Translate(trans.MESSAGE_TEXT_TRANSFER_ASK_FOR_COMMENT_ONLY),
-				whc.Translate(trans.MESSAGE_TEXT_VISIBLE_TO_YOU_AND_COUNTERPARTY, html.EscapeString(counterparty.FullName())),
-			), "\n")
-			//if noOptionSelected {
-			//	mt = whc.Translate(trans.MESSAGE_TEXT_PLEASE_CHOOSE_FROM_OPTIONS_PROVIDED)
-			//}
-			m = whc.NewMessage(mt)
-			//m.Keyboard = tgbotapi.NewReplyKeyboard(
-			//	[]tgbotapi.KeyboardButton{tgbotapi.NewKeyboardButton(addNoteCommand.DefaultTitle(whc))},
-			//	[]tgbotapi.KeyboardButton{tgbotapi.NewKeyboardButton(addCommentCommand.DefaultTitle(whc))},
-			//	[]tgbotapi.KeyboardButton{tgbotapi.NewKeyboardButton(whc.Translate(trans.COMMAND_TEXT_NO_COMMENT_OR_NOTE_FOR_TRANSFER))},
-			//)
+				whc.Translate(trans.MESSAGE_TEXT_VISIBLE_TO_YOU_AND_COUNTERPARTY, html.EscapeString(counterparty.FullName()))),
+				"\n ",
+			)
+
 			m.Keyboard = tgbotapi.NewReplyKeyboard([]tgbotapi.KeyboardButton{{Text: whc.Translate(trans.COMMAND_TEXT_NO_COMMENT_FOR_TRANSFER)}})
 			m.Format = bots.MessageFormatHTML
-			return m, err
+			return
 		},
 	}
+}
+
+const ASK_FOR_INTEREST_AND_COMMENT_COMMAND = "ask-for-interest-and-comment-long"
+
+var AskForInterestAndCommentCallbackCommand = bots.Command{
+	Code: ASK_FOR_INTEREST_AND_COMMENT_COMMAND,
+	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+		m.Text = whc.Translate(trans.MESSAGE_TEXT_TRANSFER_ASK_FOR_INTEREST_LONG)
+		m.Format = bots.MessageFormatHTML
+		m.IsEdit = true
+		return
+	},
 }
 
 const ASK_NOTE_OR_COMMENT_FOR_TRANSFER_COMMAND = "ask-note-or-comment"

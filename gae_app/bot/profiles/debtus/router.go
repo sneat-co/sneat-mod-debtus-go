@@ -87,6 +87,7 @@ var callbackCommands = []bots.Command{
 	dtb_transfer.ViewReceiptCallbackCommand,
 	dtb_transfer.AcknowledgeReceiptCallbackCommand,
 	dtb_transfer.TransferHistoryCallbackCommand,
+	dtb_transfer.AskForInterestAndCommentCallbackCommand,
 	dtb_transfer.BalanceCallbackCommand,
 	dtb_transfer.DueReturnsCallbackCommand,
 	dtb_transfer.ReturnCallbackCommand,
