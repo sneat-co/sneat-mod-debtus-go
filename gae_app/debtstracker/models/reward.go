@@ -11,7 +11,6 @@ const RewardKind = "Reward"
 
 type Reward struct {
 	db.IntegerID
-	db.NoStrID
 	*RewardEntity
 }
 

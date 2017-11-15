@@ -5,6 +5,7 @@ import (
 	"github.com/strongo/app/gaedb"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
+	"github.com/strongo/app/db"
 )
 
 //var _ dal.GroupMemberDal = (*GroupMemberDalGae)(nil)
@@ -30,13 +31,13 @@ func NewGroupMemberDalGae() GroupMemberDalGae {
 func (_ GroupMemberDalGae) CreateGroupMember(c context.Context, groupMemberEntity *models.GroupMemberEntity) (groupMember models.GroupMember, err error) {
 	key := NewGroupMemberIncompleteKey(c)
 	key, err = gaedb.Put(c, key, groupMemberEntity)
-	groupMember = models.GroupMember{ID: key.IntID(), GroupMemberEntity: groupMemberEntity}
+	groupMember = models.GroupMember{IntegerID: db.NewIntID(key.IntID()), GroupMemberEntity: groupMemberEntity}
 	return
 }
 
 func (_ GroupMemberDalGae) GetGroupMemberByID(c context.Context, groupMemberID int64) (groupMember models.GroupMember, err error) {
 	groupMemberEntity := new(models.GroupMemberEntity)
 	err = gaedb.Get(c, NewGroupMemberKey(c, groupMemberID), groupMemberEntity)
-	groupMember = models.GroupMember{ID: groupMemberID, GroupMemberEntity: groupMemberEntity}
+	groupMember = models.GroupMember{IntegerID: db.NewIntID(groupMemberID), GroupMemberEntity: groupMemberEntity}
 	return
 }

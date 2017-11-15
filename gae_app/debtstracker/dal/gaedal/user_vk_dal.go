@@ -28,7 +28,7 @@ func (_ UserVkDalGae) GetUserVkByID(c context.Context, vkUserID int64) (vkUser m
 		}
 		return
 	}
-	vkUser = models.UserVk{ID: vkUserID, UserVkEntity: &vkUserEntity}
+	vkUser = models.UserVk{IntegerID: db.NewIntID(vkUserID), UserVkEntity: &vkUserEntity}
 	return
 }
 

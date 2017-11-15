@@ -8,10 +8,24 @@ import (
 const LoginPinKind = "LoginPin"
 
 type LoginPin struct {
-	ID int64
-	db.NoStrID
+	db.IntegerID
 	*LoginPinEntity
 }
+
+var _ db.EntityHolder = (*LoginPin)(nil)
+
+func (LoginPin) Kind() string {
+	return LoginPinKind
+}
+
+func (loginPin LoginPin) Entity() interface{} {
+	return loginPin.LoginPinEntity
+}
+
+func (loginPin *LoginPin) SetEntity(entity interface{}) {
+	loginPin.LoginPinEntity = entity.(*LoginPinEntity)
+}
+
 
 type LoginPinEntity struct {
 	Channel    string `datastore:",noindex"`

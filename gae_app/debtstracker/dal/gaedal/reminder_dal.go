@@ -41,7 +41,7 @@ func (reminderDalGae ReminderDalGae) GetReminderByID(c context.Context, id int64
 	} else if err != nil {
 		err = errors.Wrapf(err, "Failed to get reminder by id=%v", id)
 	}
-	return models.Reminder{ID: id, ReminderEntity: &reminderEntity}, err
+	return models.NewReminder(id, &reminderEntity), err
 }
 
 func (reminderDalGae ReminderDalGae) SaveReminder(c context.Context, reminder models.Reminder) (err error) {
@@ -86,7 +86,7 @@ func (reminderDalGae ReminderDalGae) SetReminderIsSent(c context.Context, remind
 	if err := _validateSetReminderIsSentMessageIDs(messageIntID, messageStrID, sentAt); err != nil {
 		return err
 	}
-	reminder := models.Reminder{ID: reminderID, ReminderEntity: nil}
+	reminder := models.NewReminder(reminderID, nil)
 	return dal.DB.RunInTransaction(c, func(c context.Context) error {
 		return reminderDalGae.SetReminderIsSentInTransaction(c, reminder, sentAt, messageIntID, messageStrID, locale, errDetails)
 	}, nil)
@@ -164,7 +164,7 @@ func (reminderDalGae ReminderDalGae) RescheduleReminder(c context.Context, remin
 	}
 	if newReminderKey != nil && newReminderEntity != nil {
 		newReminder = models.Reminder{
-			ID:             newReminderKey.IntID(),
+			IntegerID:             db.NewIntID(newReminderKey.IntID()),
 			ReminderEntity: newReminderEntity,
 		}
 	}

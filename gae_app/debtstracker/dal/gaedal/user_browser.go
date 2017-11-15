@@ -10,6 +10,7 @@ import (
 	"google.golang.org/appengine/datastore"
 	"strings"
 	"time"
+	"github.com/strongo/app/db"
 )
 
 func newUserBrowserIncompleteKey(c context.Context) *datastore.Key {
@@ -28,7 +29,7 @@ func (_ UserBrowserDalGae) insertUserBrowser(c context.Context, entity *models.U
 	if key, err = gaedb.Put(c, newUserBrowserIncompleteKey(c), &entity); err != nil {
 		return
 	}
-	userBrowser = models.UserBrowser{ID: key.IntID(), UserBrowserEntity: entity}
+	userBrowser = models.UserBrowser{IntegerID: db.NewIntID(key.IntID()), UserBrowserEntity: entity}
 	return
 }
 

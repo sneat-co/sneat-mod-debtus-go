@@ -38,9 +38,25 @@ const ReminderKind = "Reminder"
 var _ datastore.PropertyLoadSaver = (*ReminderEntity)(nil)
 
 type Reminder struct {
-	db.NoStrID
-	ID int64
+	db.IntegerID
 	*ReminderEntity
+}
+
+var _ db.EntityHolder = (*Reminder)(nil)
+
+func NewReminder(id int64, entity *ReminderEntity) Reminder {
+	return Reminder{IntegerID: db.NewIntID(id), ReminderEntity: entity}
+}
+
+func (Reminder) Kind() string {
+	return ReminderKind
+}
+
+func (r Reminder) Entity() interface{} {
+	return r.ReminderEntity
+}
+func (r *Reminder) SetEntity(entity interface{}) {
+	r.ReminderEntity = entity.(*ReminderEntity)
 }
 
 func (r *Reminder) Load(ps []datastore.Property) error {

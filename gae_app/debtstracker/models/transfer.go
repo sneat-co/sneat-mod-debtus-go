@@ -54,7 +54,6 @@ func NewTransfer(id int64, entity *TransferEntity) Transfer {
 }
 
 type Transfer struct {
-	db.NoStrID
 	db.IntegerID
 	*TransferEntity
 }

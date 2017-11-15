@@ -19,7 +19,21 @@ type UserVkEntity struct {
 }
 
 type UserVk struct {
-	db.NoStrID
-	ID int64
+	db.IntegerID
 	*UserVkEntity
 }
+
+var _ db.EntityHolder = (*UserVk)(nil)
+
+func (UserVk) Kind() string {
+	return  UserVkKind
+}
+
+func (u UserVk) Entity() interface{} {
+	return u.UserVkEntity
+}
+
+func (u *UserVk) SetEntity(entity interface{}) {
+	u.UserVkEntity = entity.(*UserVkEntity)
+}
+

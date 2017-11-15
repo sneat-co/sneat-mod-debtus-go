@@ -211,7 +211,7 @@ func discardReminder(c context.Context, reminderID, transferID, returnTransferID
 
 	var (
 		transferEntity models.TransferEntity
-		reminder       = models.Reminder{ID: reminderID, ReminderEntity: new(models.ReminderEntity)}
+		reminder       = models.NewReminder(reminderID, new(models.ReminderEntity))
 	)
 
 	if returnTransferID > 0 {

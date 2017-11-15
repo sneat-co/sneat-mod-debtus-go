@@ -9,7 +9,6 @@ import (
 
 type TelegramChat struct {
 	db.IntegerID
-	db.NoStrID
 	*DtTelegramChatEntity
 }
 

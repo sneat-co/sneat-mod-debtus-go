@@ -14,7 +14,22 @@ type UserBrowserEntity struct {
 }
 
 type UserBrowser struct {
-	db.NoStrID
-	ID int64
+	db.IntegerID
 	*UserBrowserEntity
 }
+
+var _ db.EntityHolder = (*UserBrowser)(nil)
+
+
+func (UserBrowser) Kind() string {
+	return UserBrowserKind
+}
+
+func (ub UserBrowser) Entity() interface{} {
+	return ub.UserBrowserEntity
+}
+
+func (ub *UserBrowser) SetEntity(entity interface{}) {
+	ub.UserBrowserEntity = entity.(*UserBrowserEntity)
+}
+
