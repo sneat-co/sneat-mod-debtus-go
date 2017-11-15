@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine"
+	"github.com/pkg/errors"
 )
 
 type asyncMapper struct {
@@ -69,7 +70,7 @@ func (m *asyncMapper) SliceCompleted(c context.Context, id string, namespace str
 	gaedb.LoggingEnabled = true
 }
 
-func filterByIntID(r *http.Request, kind, paramName string) (query *mapper.Query, err error) {
+func filterByIntID(r *http.Request, kind, paramName string) (query *mapper.Query, filtered bool, err error) {
 	query = mapper.NewQuery(kind)
 	paramVal := r.URL.Query().Get(paramName)
 	if paramVal == "" {
@@ -77,9 +78,13 @@ func filterByIntID(r *http.Request, kind, paramName string) (query *mapper.Query
 	}
 	var id int64
 	if id, err = strconv.ParseInt(paramVal, 10, 64); err != nil {
+		err = errors.WithMessage(err, "failed to filter by ID")
 		return
 	}
-	query = query.Filter("__key__", datastore.NewKey(appengine.NewContext(r), kind, "", id, nil))
-	return query, nil
+	c := appengine.NewContext(r)
+	query = query.Filter("__key__ =", datastore.NewKey(c, kind, "", id, nil))
+	log.Debugf(c, "Filtered by %v(IntID=%v)", kind, id)
+	filtered = true
+	return
 }
 

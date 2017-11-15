@@ -15,7 +15,6 @@ import (
 	"github.com/strongo/app/db"
 	"time"
 	"github.com/strongo/app/gaedb"
-	"encoding/json"
 )
 
 type verifyContactTransfers struct {
@@ -27,6 +26,7 @@ func (m *verifyContactTransfers) Next(c context.Context, counters mapper.Counter
 }
 
 func (m *verifyContactTransfers) processContact(c context.Context, counters *asyncCounters, contact models.Contact) (err error) {
+	log.Debugf(c, "processContact(contact.ID=%v)", contact.ID)
 	buf := new(bytes.Buffer)
 	now := time.Now()
 	hasError := false
@@ -34,8 +34,8 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 		user           models.AppUser
 		warningsCount  int
 		transfers      []models.Transfer
-		contactBalance models.Balance
 	)
+	contactBalance := contact.Balance()
 
 	defer func() {
 		if hasError || warningsCount > 0 {
@@ -54,17 +54,16 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 			}
 			logFunc(c,
 				fmt.Sprintf(
-					`Contact(id=%v, name=%v): has %v warning, %v transfers
-	User(%v): %v
-	balance: %v
-	`,
+					"Contact(id=%v, name=%v): has %v warning, %v transfers\n"+
+						"\tcontact.Balance: %v\n"+
+						"\tUser(id=%v, name=%v)",
 					contact.ID,
 					contactName,
 					warningsCount,
 					len(transfers),
-					user.ID,
-					userName,
 					litter.Sdump(contactBalance),
+					contact.UserID,
+					userName,
 				)+ buf.String(),
 			)
 		}
@@ -162,6 +161,11 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 			fmt.Fprintf(buf, p+"\tIsReturn: %v\n", transfer.IsReturn)
 			fmt.Fprintf(buf, p+"\tReturnTransferIDs: %v\n", transfer.ReturnTransferIDs)
 			fmt.Fprintf(buf, p+"\tReturnToTransferIDs: %v\n", transfer.ReturnToTransferIDs)
+			if transfer.HasInterest() {
+				fmt.Fprintf(buf, p+"\tInterest: %v @ %v%%/%v_days, min=%v, grace=%v",
+					transfer.InterestType, transfer.InterestPercent, transfer.InterestPeriod,
+					transfer.InterestMinimumPeriod, transfer.InterestGracePeriod)
+			}
 			loggedTransfers[transfer.ID] = true
 		}
 	}
@@ -174,23 +178,21 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 		for _, transfer := range transfersByID {
 			for i, returnTransferID := range transfer.ReturnTransferIDs {
 				if _, ok := transfersByID[returnTransferID]; ok {
-					counters.Increment( "good_ReturnTransferID", 1)
+					counters.Increment("good_ReturnTransferID", 1)
 				} else {
 					valid = false
-					logTransfer(transfer, 2)
 					fmt.Fprintf(buf, "\t\tReturnTransferIDs[%d]: %v\n", i, returnTransferID)
-					counters.Increment( "wrong_ReturnTransferID", 1)
+					counters.Increment("wrong_ReturnTransferID", 1)
 					warningsCount += 1
 				}
 			}
 			for i, returnToTransferID := range transfer.ReturnToTransferIDs {
 				if _, ok := transfersByID[returnToTransferID]; ok {
-					counters.Increment( "good_ReturnToTransferID", 1)
+					counters.Increment("good_ReturnToTransferID", 1)
 				} else {
 					valid = false
-					logTransfer(transfer, 2)
 					fmt.Fprintf(buf, "\t\tReturnToTransferIDs[%d]: %v\n", i, returnToTransferID)
-					counters.Increment( "wrong_ReturnToTransferID", 1)
+					counters.Increment("wrong_ReturnToTransferID", 1)
 					warningsCount += 1
 				}
 			}
@@ -199,9 +201,22 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 		return
 	}
 
-	m.verifyTotals(buf, counters, contact, transfersBalance)
+	var lastTransfer models.Transfer
 
-	outstandingIsValid, outstandingWarningsCount := m.verifyOutstanding(c, 1, buf, contact, transfers)
+	if len(transfers) > 0 {
+		lastTransfer = transfers[len(transfers)-1]
+	}
+
+	var needsFixingContactOrUser bool
+
+	if valid, warnsCount := m.assertTotals(buf, counters, contact, transfersBalance); !valid {
+		needsFixingContactOrUser = true
+		warningsCount += warnsCount
+	} else {
+		warningsCount += warnsCount
+	}
+
+	outstandingIsValid, outstandingWarningsCount := m.verifyOutstanding(c, 1, buf, contactBalance, transfersBalance)
 	warningsCount += outstandingWarningsCount
 	if !outstandingIsValid {
 		//rollingBalance := make(models.Balance, len(transfersBalance)+1)
@@ -211,15 +226,15 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 			fmt.Fprintf(buf, "\tcurrency: %v - %d transfers\n", currency, len(currencyTransfers))
 		}
 
-		if valid, _ := m.verifyOutstanding(c, 2, buf, contact, transfers); !valid {
-			fmt.Fprint(buf, "Outstandings are invalid after fix")
-		} else if valid, _ = m.verifyTotals(buf, counters, contact, transfersBalance); !valid {
-			fmt.Fprint(buf, "Totals are invalid after fix")
+		if valid, _ := m.verifyOutstanding(c, 2, buf, contactBalance, transfersBalance); !valid {
+			fmt.Fprint(buf, "Outstandings are invalid after fix!\n")
+			needsFixingContactOrUser = true
+		} else if valid, _ = m.assertTotals(buf, counters, contact, transfersBalance); !valid {
+			fmt.Fprint(buf, "Totals are invalid after fix!\n")
 		} else if valid = verifyReturnIDs(); !valid {
-			fmt.Fprint(buf, "Return IDs are invalid after fix")
+			fmt.Fprint(buf, "Return IDs are invalid after fix!\n")
 		} else {
 			fmt.Fprintf(buf, "%v transfers to save!\n", len(transfersToSave))
-			m.logTransfers(transfers, 1, true)
 			entitiesToSave := make([]db.EntityHolder, 0, len(transfersToSave))
 			for id, transfer := range transfersToSave {
 				entitiesToSave = append(entitiesToSave, &models.Transfer{IntegerID: db.NewIntID(id), TransferEntity: transfer})
@@ -227,7 +242,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 			gaedb.LoggingEnabled = true
 			if err = dal.DB.UpdateMulti(c, entitiesToSave); err != nil {
 				gaedb.LoggingEnabled = false
-				fmt.Fprintf(buf, "ERROR: failed to save transfers: "+err.Error())
+				fmt.Fprintf(buf, "ERROR: failed to save transfers: %v\n", err)
 				hasError = true
 				return
 			}
@@ -243,14 +258,22 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 		}
 	}
 
-	if !outstandingIsValid || !contact.Balance().Equal(user.ContactByID(contact.ID).Balance()) {
-		if contact, user, err = m.updateContactAndUser(c, buf, contact.ID, transfers); err != nil {
+
+	if !outstandingIsValid || !contactBalance.Equal(user.ContactByID(contact.ID).Balance()) || !contactBalance.Equal(transfersBalance) {
+		needsFixingContactOrUser = true
+	}
+
+	if needsFixingContactOrUser {
+		for _, transfer := range transfers {
+			logTransfer(transfer, 1)
+		}
+		if contact, user, err = m.fixContactAndUser(c, buf, counters, contact.ID, transfersBalance, transfers, lastTransfer); err != nil {
 			return
 		}
 	}
 
 	if warningsCount == 0 {
-		counters.Increment( "good_contacts", 1)
+		counters.Increment("good_contacts", 1)
 		//log.Infof(c, contactPrefix + "is OK, %v transfers", len(transfers))
 	} else {
 		counters.Lock()
@@ -267,88 +290,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 	return nil
 }
 
-func (m *verifyContactTransfers) updateContactAndUser(c context.Context, buf *bytes.Buffer, contactID int64, transfers []models.Transfer) (contact models.Contact, user models.AppUser, err error) {
-	if contactID == 0 {
-		err = errors.New("*verifyContactTransfers.updateContactAndUser(): contactID == 0")
-		return
-	}
-	transfersBalance := m.getTransfersBalance(transfers, contactID)
-	err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil {
-			return
-		}
-		if contactBalance := contact.Balance(); !contactBalance.Equal(transfersBalance) {
-			if err = contact.SetBalance(transfersBalance); err != nil {
-				return
-			}
-			fmt.Fprintf(buf, "contact balance update from transfers\nwas: %v\nnew: %v", contactBalance, transfersBalance)
-			if err = dal.Contact.SaveContact(c, contact); err != nil {
-				return
-			}
-		}
-		if user, err = dal.User.GetUserByID(c, contact.UserID); err != nil {
-			return
-		}
-		userChanged := user.AddOrUpdateContact(contact)
-		userContacts := user.Contacts()
-		for i, uc := range userContacts {
-			if uc.ID == contact.ID {
-				ucChanged := false
-				if (uc.BalanceJson == nil && contact.BalanceJson != "") || (uc.BalanceJson != nil && string(*uc.BalanceJson) != contact.BalanceJson) {
-					balanceJson := json.RawMessage(contact.BalanceJson)
-					uc.BalanceJson = &balanceJson
-					ucChanged = true
-				}
-				if len(transfers) > 0 {
-					lastTransfer := transfers[len(transfers)-1]
-					if uc.Transfers == nil {
-						uc.Transfers = &models.UserContactTransfersInfo{}
-						ucChanged = true
-					}
-					if uc.Transfers.Last.ID != lastTransfer.ID {
-						uc.Transfers.Last.ID = lastTransfer.ID
-						ucChanged = true
-					}
-					if !uc.Transfers.Last.At.Equal(lastTransfer.DtCreated) {
-						uc.Transfers.Last.At = lastTransfer.DtCreated
-						ucChanged = true
-					}
-					if uc.Transfers.Count != len(transfers) {
-						uc.Transfers.Count = len(transfers)
-						ucChanged = true
-					}
-					// TODO: check outstanding without interest
-				}
-				if ucChanged {
-					userContacts[i] = uc
-					user.SetContacts(userContacts)
-					userChanged = true
-				}
-				break
-			}
-		}
-		userTotalBalance := user.Balance()
-		if userContactsBalance := user.TotalBalanceFromContacts(); !userContactsBalance.Equal(userTotalBalance) {
-			if err = user.SetBalance(userContactsBalance); err != nil {
-				return
-			}
-			fmt.Fprintln(buf, "user total balance update from contacts\nwas: %v\nnew: %v", userTotalBalance, userContactsBalance)
-		}
-		if userChanged {
-			if err = dal.User.SaveUser(c, user); err != nil {
-				return
-			}
-		}
-		return
-	}, db.CrossGroupTransaction)
-	if err != nil {
-		log.Errorf(c, "failed to updated contact & user: %v", err)
-		return
-	}
-	return
-}
-
-func (m *verifyContactTransfers) verifyTotals(buf *bytes.Buffer, counters *asyncCounters, contact models.Contact, transfersBalance models.Balance) (valid bool, warningsCount int) {
+func (m *verifyContactTransfers) assertTotals(buf *bytes.Buffer, counters *asyncCounters, contact models.Contact, transfersBalance models.Balance) (valid bool, warningsCount int) {
 	valid = true
 	contactBalance := contact.Balance()
 	for currency, transfersTotal := range transfersBalance {
@@ -361,14 +303,93 @@ func (m *verifyContactTransfers) verifyTotals(buf *bytes.Buffer, counters *async
 	}
 	for currency, contactTotal := range contactBalance {
 		if contactTotal == 0 {
-			counters.Increment( "zero_balance", 1)
+			counters.Increment("zero_balance", 1)
 			fmt.Fprintf(buf, "\t0 value for currency %v\n", currency)
 			warningsCount += 1
 		} else {
-			counters.Increment( "no_transfers_for_non_zero_balance", 1)
+			counters.Increment("no_transfers_for_non_zero_balance", 1)
 			fmt.Fprintf(buf, "\tno transfers found for %v=%v\n", currency, contactTotal)
 			warningsCount += 1
 		}
+	}
+	return
+}
+
+func (m *verifyContactTransfers) fixContactAndUser(c context.Context, buf *bytes.Buffer, counters *asyncCounters, contactID int64, transfersBalance models.Balance, transfers []models.Transfer, lastTransfer models.Transfer) (contact models.Contact, user models.AppUser, err error) {
+
+	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+		if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil {
+			return
+		}
+		changed := false
+		if lastTransfer.TransferEntity != nil && lastTransfer.ID != 0 {
+			if contact.LastTransferAt.Before(lastTransfer.DtCreated) {
+				fmt.Fprintf(buf, "\tcontact.LastTransferAt changed from %v to %v\n", contact.LastTransferID, lastTransfer.DtCreated)
+				contact.LastTransferAt = lastTransfer.DtCreated
+
+				if contact.LastTransferID != lastTransfer.ID {
+					fmt.Fprintf(buf, "\tcontact.LastTransferID changed from %v to %v\n", contact.LastTransferID, lastTransfer.ID)
+					contact.LastTransferID = lastTransfer.ID
+				}
+				changed = true
+			}
+		}
+		if contact.CountOfTransfers < len(transfers) {
+			fmt.Fprintf(buf, "\tcontact.CountOfTransfers changed from %v to %v\n", contact.CountOfTransfers, len(transfers))
+			contact.CountOfTransfers = len(transfers)
+			changed = true
+		}
+		if !contact.Balance().Equal(transfersBalance) {
+			if err = contact.SetBalance(transfersBalance); err != nil {
+				return
+			}
+			changed = true
+		}
+		if changed {
+			if err = dal.Contact.SaveContact(c, contact); err != nil {
+				return
+			}
+			var user models.AppUser
+			if user, err = dal.User.GetUserByID(c, contact.UserID); err != nil {
+				return
+			}
+			userContacts := user.Contacts()
+			userChanged := false
+			for i := range userContacts {
+				if userContacts[i].ID == contact.ID {
+					if !userContacts[i].Balance().Equal(transfersBalance) {
+						userContacts[i].SetBalance(transfersBalance)
+						user.SetContacts(userContacts)
+						userChanged = true
+					}
+					userTransferInfo, contactTransferInfo := userContacts[i].Transfers, contact.GetTransfersInfo()
+					if !userTransferInfo.Equal(contactTransferInfo) {
+						userContacts[i].Transfers = contactTransferInfo
+						userChanged = true
+					}
+					goto contactFound
+				}
+			}
+			// Contact not found
+			userChanged = user.AddOrUpdateContact(contact) || userChanged
+		contactFound:
+			userTotalBalance := user.Balance()
+			if userContactsBalance := user.TotalBalanceFromContacts(); !userContactsBalance.Equal(userTotalBalance) {
+				if err = user.SetBalance(userContactsBalance); err != nil {
+					return
+				}
+				userChanged = true
+				fmt.Fprintln(buf, "user total balance update from contacts\nwas: %v\nnew: %v", userTotalBalance, userContactsBalance)
+			}
+			if userChanged {
+				if err = dal.User.SaveUser(c, user); err != nil {
+					return
+				}
+			}
+		}
+		return
+	}, db.CrossGroupTransaction); err != nil {
+		return
 	}
 	return
 }
@@ -394,62 +415,30 @@ func (verifyContactTransfers) getTransfersBalance(transfers []models.Transfer, c
 	return
 }
 
-func (verifyContactTransfers) getTransfersOutstanding(transfers []models.Transfer, contactID int64, retortTime time.Time) (outstandingBalance models.Balance) {
-	outstandingBalance = make(models.Balance)
-
-	for _, transfer := range transfers {
-		//logTransfer(transfer, 1)
-		direction := transfer.DirectionForContact(contactID)
-		switch direction {
-		case models.TransferDirectionUser2Counterparty:
-			outstandingBalance[transfer.Currency] += transfer.GetOutstandingValue(retortTime)
-		case models.TransferDirectionCounterparty2User:
-			outstandingBalance[transfer.Currency] -= transfer.GetOutstandingValue(retortTime)
-		default:
-			panic(fmt.Sprintf("transfer.DirectionForContact(%v): %v", contactID, direction))
-		}
-	}
-	for c, v := range outstandingBalance {
-		if v == 0 {
-			delete(outstandingBalance, c)
-		}
-	}
-	return
-}
-
-func (m *verifyContactTransfers) verifyOutstanding(c context.Context, iteration int, buf *bytes.Buffer, contact models.Contact, transfers []models.Transfer) (valid bool, warningsCount int) {
+func (m *verifyContactTransfers) verifyOutstanding(c context.Context, iteration int, buf *bytes.Buffer, contactBalance models.Balance, transfersBalance models.Balance) (valid bool, warningsCount int) {
+	fmt.Fprintf(buf, "\tverifyOutstanding(iteration=%v):\n", iteration)
 	valid = true
-	transfersOutstanding := m.getTransfersOutstanding(transfers, contact.ID, time.Now())
-	transfersBalance := m.getTransfersBalance(transfers, contact.ID)
-	for currency, balanceTotal := range transfersBalance {
-		if outstandingTotal := transfersOutstanding[currency]; outstandingTotal == balanceTotal {
-			fmt.Fprintf(buf, "\t%v: balanceTotal == outstandingTotal: %v\n", currency, balanceTotal)
+
+	for currency, contactTotal := range contactBalance {
+		if transfersTotal := transfersBalance[currency]; transfersTotal == contactTotal {
+			fmt.Fprintf(buf, "\t\tcurrency %v: contactBalance == transfersTotal: %v\n", currency, contactTotal)
 		} else {
 			valid = false
-			fmt.Fprintf(buf, "\tcurrency %v: balanceTotal != outstandingTotal: %v != %v\n", currency, balanceTotal, outstandingTotal)
+			fmt.Fprintf(buf, "\t\tcurrency %v: contactBalance != transfersTotal: %v != %v\n", currency, contactTotal, transfersTotal)
 			warningsCount += 1
 		}
-		delete(transfersOutstanding, currency)
+		//delete(transfersOutstanding, currency)
 	}
-	fmt.Fprintf(buf, "\tverifyOutstanding(iteration=%v): valid=%v\n", iteration, valid)
-	return
-}
+	fmt.Fprintf(buf, "\tverifyOutstanding(iteration=%v) => valid=%v\n", iteration, valid)
 
-func (m *verifyContactTransfers) logTransfers(transfers []models.Transfer, padding int, reset bool) {
-	//if reset {
-	//	loggedTransfers = make(map[int64]bool, len(transfers))
-	//}
-	//for _, transfer := range transfers {
-	//	logTransfer(transfer, 1)
-	//}
+	return
 }
 
 func (m *verifyContactTransfers) fixTransfers(c context.Context, now time.Time, buf *bytes.Buffer, contact models.Contact, transfers []models.Transfer) (
 	transfersByCurrency map[models.Currency][]models.Transfer,
 	transfersToSave map[int64]*models.TransferEntity,
 ) {
-	fmt.Fprintf(buf, "Will try to fix %d transfers:\n", len(transfers))
-	m.logTransfers(transfers, 1, true)
+	fmt.Fprintf(buf, "fixTransfers()\n")
 
 	transfersByCurrency = make(map[models.Currency][]models.Transfer)
 

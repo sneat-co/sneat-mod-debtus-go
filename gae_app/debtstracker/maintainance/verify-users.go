@@ -14,6 +14,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/strongo/app/db"
+	"github.com/pkg/errors"
 )
 
 type verifyUsers struct {
@@ -27,7 +28,16 @@ func (m *verifyUsers) Make() interface{} {
 }
 
 func (m *verifyUsers) Query(r *http.Request) (query *mapper.Query, err error) {
-	return filterByIntID(r, models.AppUserKind,"user")
+	var filtered bool
+	if query, filtered, err = filterByIntID(r, models.AppUserKind,"user"); err != nil {
+		return
+	} else if filtered {
+		if len(r.URL.Query()) != 1 {
+			err = errors.New("unexpected params: " + r.URL.RawQuery)
+		}
+		return
+	}
+	return
 }
 
 func (m *verifyUsers) Next(c context.Context, counters mapper.Counters, key *datastore.Key) (err error) {

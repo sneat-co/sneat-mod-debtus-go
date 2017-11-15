@@ -73,8 +73,10 @@ func updateTransferOnReturn(c context.Context, returnTransferID, transferID int6
 		return
 	}
 
+	if transfer, err = dal.Transfer.GetTransferByID(c, transferID); err != nil {
+		return
+	}
 	var txOptions db.RunOptions
-
 	if transfer.HasInterest() {
 		txOptions = db.CrossGroupTransaction
 	} else {

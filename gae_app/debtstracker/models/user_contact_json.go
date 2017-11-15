@@ -9,6 +9,7 @@ import (
 	"time"
 	"github.com/strongo/decimal"
 	"golang.org/x/net/context"
+	"github.com/pkg/errors"
 )
 
 type LastTransfer struct {
@@ -101,6 +102,21 @@ func (o UserContactJson) Balance() (balance Balance) {
 	}
 	if err := ffjson.Unmarshal(*o.BalanceJson, &balance); err != nil { // TODO: Migrate to ffjson.UnmarshalFast() ?
 		panic(err)
+	}
+	return
+}
+
+func (o *UserContactJson) SetBalance(balance Balance) (err error) {
+	for c, v := range balance {
+		if v == 0 {
+			return errors.New("balance is zero for currency: " + string(c))
+		}
+	}
+	if data, err := ffjson.Marshal(balance); err != nil {
+		return err
+	} else {
+		rawJson := json.RawMessage(data)
+		o.BalanceJson = &rawJson
 	}
 	return
 }

@@ -13,6 +13,7 @@ import (
 	"time"
 	"github.com/sanity-io/litter"
 	"github.com/strongo/app/slices"
+	"bytes"
 )
 
 const (
@@ -24,6 +25,8 @@ var (
 	ErrNotImplemented                      = errors.New("not implemented yet")
 	ErrDebtAlreadyReturned                 = errors.New("This debt already has been returned")
 	ErrPartialReturnGreaterThenOutstanding = errors.New("An attempt to do partial return for amount greater then outstanding")
+	//
+	ErrAttemptToCreateDebtWithInterestAffectingOutstandingTransfers = errors.New("You are trying to create a debt with interest that will affect outstanding transfers. Please close them first.")
 )
 
 func TransferCounterparties(direction models.TransferDirection, creatorInfo models.TransferCounterpartyInfo) (from, to *models.TransferCounterpartyInfo) {
@@ -229,8 +232,16 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 				contactBalance := contact.Balance()
 				if v, ok := contactBalance[input.Amount.Currency]; !ok || v == 0 {
 					log.Debugf(c, "No need to check for outstanding transfers as contacts balance is 0")
-				} else if returnToTransferIDs, err = transferFacade.checkOutstandingTransfersForReturns(c, now, input); err != nil {
-					return
+				} else {
+					if input.Interest.HasInterest() {
+						if d := input.Direction(); d == models.TransferDirectionUser2Counterparty && v < 0 || d == models.TransferDirectionCounterparty2User && v > 0 {
+							err = ErrAttemptToCreateDebtWithInterestAffectingOutstandingTransfers
+							return
+						}
+					}
+					if returnToTransferIDs, err = transferFacade.checkOutstandingTransfersForReturns(c, now, input); err != nil {
+						return
+					}
 				}
 				goto contactFound
 			}
@@ -304,17 +315,19 @@ func (transferFacade transferFacade) checkOutstandingTransfersForReturns(c conte
 
 	log.Debugf(c, "facade.checkOutstandingTransfersForReturns() => dal.Transfer.LoadOutstandingTransfers(userID=%v, currency=%v) => %d transfers", input.CreatorUser.ID, input.Amount.Currency, len(outstandingTransfers))
 
-	{ // Assign the return to specific transfers
+	if outstandingTransfersCount := len(outstandingTransfers); outstandingTransfersCount > 0 { // Assign the return to specific transfers
 		var (
 			assignedValue             decimal.Decimal64p2
 			outstandingRightDirection int
 		)
+		buf := new(bytes.Buffer)
+		fmt.Fprintf(buf, "%v outstanding transfers\n", outstandingTransfersCount)
 		for i, outstandingTransfer := range outstandingTransfers {
-			log.Debugf(c, "outstanding transfer: %+v", outstandingTransfer)
+			fmt.Fprintf(buf, "\t[%v]: %v", i, litter.Sdump(outstandingTransfer))
 			outstandingTransferID := outstandingTransfers[i].ID
 			outstandingValue := outstandingTransfer.GetOutstandingValue(now)
 			if outstandingValue == input.Amount.Value { // A check for exact match that has higher priority then earlie transfers
-				log.Infof(c, "Found outstanding transfer with exact amount match: %v", outstandingTransferID)
+				log.Infof(c, " - found outstanding transfer %v with exact amount match: %v", outstandingTransfer.ID, outstandingValue)
 				assignedValue = input.Amount.Value
 				returnToTransferIDs = []int64{outstandingTransferID}
 				break
@@ -324,10 +337,12 @@ func (transferFacade transferFacade) checkOutstandingTransfersForReturns(c conte
 				assignedValue += outstandingValue
 			}
 			outstandingRightDirection += 1
+			buf.WriteString("\n")
 		}
+		log.Debugf(c, buf.String())
 		if input.IsReturn && assignedValue < input.Amount.Value {
 			log.Warningf(c,
-				"There are not enough outstanding transfers to return %v. All outstading count: %v, Right direction: %v, Assigned amount: %v. Could be data integrity issue.",
+				"There are not enough outstanding transfers to return %v. All outstanding count: %v, Right direction: %v, Assigned amount: %v. Could be data integrity issue.",
 				input.Amount, len(outstandingTransfers), outstandingRightDirection, assignedValue,
 			)
 		}

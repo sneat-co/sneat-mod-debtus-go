@@ -28,6 +28,7 @@ import (
 	"time"
 	"unicode/utf8"
 	"github.com/strongo/app/db"
+	"bytes"
 )
 
 var transferRegex = regexp.MustCompile(`(?i)((?P<verb>\w+) )?(?P<amount>\d+)\s*(?P<currency>\w{3})?\s*(?P<direction>from|to)\s+(?P<contact>.+)[\s\.]*`)
@@ -166,6 +167,7 @@ func AskTransferAmountCommand(code, messageTextFormat string, nextCommand bots.C
 					mt = strings.Replace(mt, ",", "", -1)
 				}
 				if _, err := strconv.ParseFloat(mt, 64); err != nil {
+					err = nil
 					m = whc.NewMessage(emoji.NO_ENTRY_SIGN_ICON +
 						" " + whc.Translate(trans.MESSAGE_TEXT_INVALID_FLOAT) +
 						"\n\n" + whc.Translate(messageTextFormat, html.EscapeString(chatEntity.GetWizardParam("currency"))))
@@ -604,6 +606,24 @@ func CreateTransferFromBot(
 	output, err := facade.Transfers.CreateTransfer(whc.Context(), newTransfer)
 
 	if err != nil {
+		if err == facade.ErrAttemptToCreateDebtWithInterestAffectingOutstandingTransfers {
+			err = nil
+			buf := new(bytes.Buffer)
+			buf.WriteString(whc.Translate(trans.MT_ATTEMPT_TO_CREATE_DEBT_WITH_INTEREST_AFFECTING_OUTSTANDING)+"\n")
+
+			now := time.Now()
+			if outstandingTransfer, err := dal.Transfer.LoadOutstandingTransfers(c, now, appUser.ID, creatorInfo.ContactID, amount.Currency, newTransfer.Direction().Reverse()); err != nil {
+				buf.WriteString(errors.WithMessage(err, "failed to load outstanding transfers").Error()+"\n")
+			} else if len(outstandingTransfer) == 0 {
+				return m, errors.WithMessage(err, "got facade.ErrAttemptToCreateDebtWithInterestAffectingOutstandingTransfers but no outstanding transfers found")
+			} else {
+				for _, ot := range outstandingTransfer {
+					fmt.Fprintf(buf, "\tDebt #%v for %v => outstanding: %v\n", ot.ID, ot.GetAmount(), ot.GetOutstandingAmount(now))
+				}
+			}
+			m.Text = buf.String()
+			return m, err
+		}
 		log.Errorf(c, "Failed to create transfer: %v", err)
 		if errors.Cause(err) == facade.ErrNotImplemented {
 			m.Text = whc.Translate(trans.MESSAGE_TEXT_NOT_IMPLEMENTED_YET) + "\n\n" + err.Error()

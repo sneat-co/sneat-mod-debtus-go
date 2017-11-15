@@ -283,13 +283,28 @@ func (u AppUser) AddOrUpdateContact(c Contact) (changed bool) {
 }
 
 func (u *AppUserEntity) SetContacts(contacts []UserContactJson) {
-	active, archived := userContactsByStatus(contacts)
+	{ // store to internal properties
+		active, archived := userContactsByStatus(contacts)
+		u.setContacts(STATUS_ACTIVE, active)
+		u.setContacts(STATUS_ARCHIVED, archived)
+	}
 
-	u.setContacts(STATUS_ACTIVE, active)
-	u.setContacts(STATUS_ARCHIVED, archived)
+	{ // update balance
+		balance := make(Balance)
+		for _, contact := range contacts {
+			for c, v := range contact.Balance() {
+				if newVal := balance[c] + v; newVal == 0 {
+					delete(balance, c)
+				} else {
+					balance[c] = newVal
+				}
+			}
+		}
+		u.SetBalance(balance)
+	}
 
-	u.ContactsJson = ""
-	u.ContactsCount = 0
+	u.ContactsJson = "" // TODO: Clean obsolete - remove later
+	u.ContactsCount = 0 // TODO: Clean obsolete - remove later
 }
 
 func (u *AppUserEntity) setContacts(status string, contacts []UserContactJson) {

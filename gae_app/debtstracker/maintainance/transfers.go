@@ -7,6 +7,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"github.com/strongo/app/db"
+	"github.com/pkg/errors"
 )
 
 type transfersAsyncJob struct {
@@ -20,10 +21,20 @@ func (m *transfersAsyncJob) Make() interface{} {
 }
 
 func (m *transfersAsyncJob) Query(r *http.Request) (query *mapper.Query, err error) {
-	if query, err = filterByIntID(r, models.TransferKind, "transfer"); err != nil {
+	var filtered bool
+	if query, filtered, err = filterByIntID(r, models.TransferKind, "transfer"); err != nil || filtered {
 		return
 	}
-	if query, err = filterByUserParam(r, query, "BothUserIDs"); err != nil {
+	paramsCount := len(r.URL.Query())
+	if query, filtered, err = filterByUserParam(r, query, "BothUserIDs"); err != nil {
+		return
+	} else {
+		if filtered {
+			paramsCount -= 1
+		}
+	}
+	if paramsCount != 0 {
+		err = errors.New("Some unknown parameters: " + r.URL.RawQuery)
 		return
 	}
 	return
