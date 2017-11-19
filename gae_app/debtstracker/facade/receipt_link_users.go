@@ -5,44 +5,109 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/db"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
 	"time"
+	"github.com/strongo/app/slices"
 )
 
-type ReceiptUsersLinker struct {
+type receiptUsersLinker struct {
+	changes *receiptDbChanges
 }
 
-func (linker ReceiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID, counterpartyUserID int64) error {
-	return dal.DB.RunInTransaction(c, func(tc context.Context) error {
-		receipt, transfer, creatorUser, counterpartyUser, err := getReceiptTransferAndUsers(tc, receiptID, counterpartyUserID)
+func NewReceiptUsersLinker(changes *receiptDbChanges) receiptUsersLinker {
+	if changes == nil {
+		changes = newReceiptDbChanges()
+	}
+	return receiptUsersLinker{
+		changes: changes,
+	}
+}
 
-		_, err = linker.linkUsersByReceiptWithinTransaction(c, tc, receipt, transfer, creatorUser, counterpartyUser)
-		return err
+func (linker *receiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID, counterpartyUserID int64) (isJustLinked bool, err error) {
+	log.Debugf(c, "receiptUsersLinker.LinkReceiptUsers(receiptID=%v, counterpartyUserID=%v)", receiptID, counterpartyUserID)
+	var invitedContact models.Contact
+	err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
+		changes := linker.changes
+		var (
+			receipt models.Receipt
+			transfer models.Transfer
+			creatorUser models.AppUser
+			counterpartyUser models.AppUser
+		)
+		if receipt, transfer, creatorUser, counterpartyUser, err = getReceiptTransferAndUsers(tc, receiptID, counterpartyUserID); err != nil {
+			return
+		}
+		changes.receipt = &receipt
+		changes.transfer = &transfer
+		changes.inviterUser = &creatorUser
+		changes.invitedUser = &counterpartyUser
+
+		if isJustLinked, err = linker.linkUsersByReceiptWithinTransaction(c, tc); err != nil {
+			return
+		}
+		invitedContact = *changes.invitedContact
+
+		if entitiesToSave := changes.EntityHolders(); len(entitiesToSave) > 0 {
+			if err = dal.DB.UpdateMulti(c, entitiesToSave); err != nil {
+				return
+			}
+		} else {
+			log.Debugf(c, "Receipt and transfer has not changed")
+		}
+		return
 	}, dal.CrossGroupTransaction)
+	if err != nil {
+		return
+	}
+	log.Debugf(c, "receiptUsersLinker.LinkReceiptUsers() => invitedContact: %+v", invitedContact)
+	if invitedContact, err = dal.Contact.GetContactByID(c, invitedContact.ID); err != nil {
+		return
+	}
+	log.Debugf(c, "receiptUsersLinker.LinkReceiptUsers() => invitedContact from DB: %+v", invitedContact)
+	return
 }
 
-func (linker ReceiptUsersLinker) linkUsersByReceiptWithinTransaction(
+func (linker receiptUsersLinker) linkUsersByReceiptWithinTransaction(
 	c, tc context.Context, // 'tc' is transactional context, 'c' is not
-	receipt models.Receipt,
-	transfer models.Transfer,
-	inviterUser, invitedUser models.AppUser,
 ) (
 	isCounterpartiesJustConnected bool,
 	err error,
 ) {
-	log.Debugf(c,
-		"ReceiptUsersLinker.linkUsersByReceiptWithinTransaction(receipt.ID=%d, transfer.ID=%d, inviterUser.ID=%d, invitedUser.ID=%d)",
-		receipt.ID, transfer.ID, inviterUser.ID, invitedUser.ID)
-
 	if !dal.DB.IsInTransaction(tc) {
-		err = errors.New("linkUsersByReceiptWithinTransaction is called outside of transaction")
-		return
+		panic("linkUsersByReceiptWithinTransaction is called outside of transaction")
 	}
 
-	if err = linker.validateInput(receipt, transfer, inviterUser, invitedUser); err != nil {
-		return
+	changes := linker.changes
+	receipt := changes.receipt
+	transfer := changes.transfer
+	inviterUser, invitedUser := *changes.inviterUser, *changes.invitedUser
+	var invitedContact, inviterContact models.Contact
+	if changes.inviterContact != nil {
+		inviterContact = *changes.inviterContact
+	}
+	if changes.invitedContact != nil {
+		invitedContact = *changes.invitedContact
+	}
+
+	log.Debugf(c,
+		"receiptUsersLinker.linkUsersByReceiptWithinTransaction(receipt.ID=%d, transfer.ID=%d, inviterUser.ID=%d, invitedUser.ID=%d, inviterContact.ID=%v, invitedContact.ID=%v)",
+		receipt.ID, transfer.ID, inviterUser.ID, invitedUser.ID, inviterContact.ID, invitedContact.ID)
+
+	{ // validate inputs
+		if err = linker.validateInput(changes); err != nil {
+			return
+		}
+		if receipt.TransferID != transfer.ID {
+			panic(fmt.Sprintf("receipt.TransferID != transfer.ID: %v != %v", receipt.TransferID, transfer.ID))
+		}
+		if transferCreatorUserID := transfer.Creator().UserID; transferCreatorUserID == 0 {
+			panic("transfer.Creator().UserID is zero")
+		} else if transferCreatorUserID != inviterUser.ID {
+			panic(fmt.Sprintf("transfer.Creator().UserID != inviterUser.ID:  %v != %v", transferCreatorUserID, inviterUser.ID))
+		} else if transferCreatorUserID == invitedUser.ID {
+			panic(fmt.Sprintf("transfer.Creator().UserID == invitedUser.ID:  %v != %v", transferCreatorUserID, invitedUser.ID))
+		}
 	}
 
 	log.Debugf(c, "transferEntity: %v", transfer.TransferEntity)
@@ -51,46 +116,40 @@ func (linker ReceiptUsersLinker) linkUsersByReceiptWithinTransaction(
 	fromOriginal := *transfer.From()
 	toOriginal := *transfer.To()
 
-	if transfer.Creator().UserID != inviterUser.ID {
-		panic("transfer.Creator().UserID != inviterUser.ID - invalid logic?")
-	}
-
 	transferCreatorCounterparty := transfer.Counterparty()
 
-	usersLinker := UsersLinker{}
-
-	var (
-		inviterContact, invitedContact models.Contact
-	)
-	inviterContact, err = dal.Contact.GetContactByID(tc, transferCreatorCounterparty.ContactID)
-	if err != nil {
-		err = errors.Wrapf(err, "Failed to call dal.Contact.GetContactByID(%d)", transfer.Counterparty().ContactID)
+	if inviterContact, err = dal.Contact.GetContactByID(tc, transferCreatorCounterparty.ContactID); err != nil {
 		return
+	} else if inviterContact.UserID !=  inviterUser.ID {
+		panic(fmt.Sprintf("inviterContact.UserID !=  inviterUser.ID: %v != %v", inviterContact.UserID, inviterUser.ID))
+	} else {
+		changes.inviterContact = &inviterContact
 	}
 
-	var entitiesToSave []db.EntityHolder
-
-	entitiesToSave, invitedContact, err = usersLinker.LinkUsersWithinTransaction(c, tc, inviterUser, invitedUser, inviterContact)
-	if err != nil {
-		err = errors.Wrapf(err, "Failed to link users")
+	if err = newUsersLinker(changes.usersLinkingDbChanges).linkUsersWithinTransaction(c, tc); err != nil {
+		err = errors.WithMessage(err, "Failed to link users")
 		return
+	} else {
+		invitedContact = *changes.invitedContact // as was updated
 	}
+	{ // Update invited user's last currency
+		var invitedUserChanged bool
+		if invitedUser.LastCurrencies, invitedUserChanged = slices.MergeStrings(invitedUser.LastCurrencies, []string{string(transfer.Currency)}); invitedUserChanged {
+			changes.FlagAsChanged(changes.invitedUser)
+		}
+	}
+
+	log.Debugf(c, "linkUsersWithinTransaction() => invitedContact.ID: %v, inviterContact.ID: %v", invitedContact.ID, inviterContact.ID)
 
 	// Update entities
 	{
-		var receiptChanged, transferChanged bool
-
-		if receiptChanged, err = linker.updateReceipt(receipt, invitedUser); err != nil {
+		if err = linker.updateReceipt(); err != nil {
 			return
-		} else if receiptChanged {
-			entitiesToSave = append(entitiesToSave, &receipt)
-		}
-		if transferChanged, err = linker.updateTransfer(transfer, inviterUser, invitedUser, inviterContact, invitedContact); err != nil {
+		} else
+		if err = linker.updateTransfer(); err != nil {
 			return
-		} else if transferChanged {
-			entitiesToSave = append(entitiesToSave, &transfer)
-			log.Debugf(c, "transfer.From(): %v", transfer.From())
-			log.Debugf(c, "transfer.To(): %v", transfer.To())
+		} else if linker.changes.IsChanged(linker.changes.transfer) {
+			log.Debugf(c, "transfer changed:\n\tFrom(): %v\n\tTo(): %v", transfer.From(), transfer.To())
 			// Just double check we did not screw up
 			{
 				if fromOriginal.UserID != 0 && fromOriginal.UserID != transfer.From().UserID {
@@ -113,43 +172,35 @@ func (linker ReceiptUsersLinker) linkUsersByReceiptWithinTransaction(
 		}
 	}
 
-	if len(entitiesToSave) > 0 {
-		if err = dal.DB.UpdateMulti(tc, entitiesToSave); err != nil {
-			return
-		}
-	}
-
 	if transfer.DtDueOn.After(time.Now()) {
-		if err := dal.Reminder.DelayCreateReminderForTransferUser(tc, receipt.TransferID, transfer.Counterparty().UserID); err != nil {
-			return isCounterpartiesJustConnected, errors.Wrap(err, "Failed to delay creation of reminder for transfer coutnerparty")
+		if err = dal.Reminder.DelayCreateReminderForTransferUser(tc, receipt.TransferID, transfer.Counterparty().UserID); err != nil {
+			err = errors.WithMessage(err, "Failed to delay creation of reminder for transfer coutnerparty")
+			return
 		}
 	} else {
 		if transfer.DtDueOn.IsZero() {
-			log.Debugf(tc, "No neeed to create reminder for counterparty as no due date")
+			log.Debugf(tc, "No need to create reminder for counterparty as no due date")
 		} else {
-			log.Debugf(tc, "No neeed to create reminder for counterparty as due date in past")
+			log.Debugf(tc, "No need to create reminder for counterparty as due date in past")
 		}
 	}
-	return isCounterpartiesJustConnected, err
+	return
 }
 
-func (linker ReceiptUsersLinker) validateInput(
-	receipt models.Receipt,
-	transfer models.Transfer,
-	creatorUser, counterpartyUser models.AppUser,
-) error {
-	if receipt.CounterpartyUserID != 0 {
-		if receipt.CounterpartyUserID != counterpartyUser.ID { // Already linked
+func (linker receiptUsersLinker) validateInput(changes *receiptDbChanges) error {
+
+	if changes.receipt.CounterpartyUserID != 0 {
+		if changes.receipt.CounterpartyUserID != changes.invitedUser.ID { // Already linked
 			return errors.New("An attempt to link 3d user to a receipt")
 		}
 
-		transferCounterparty := transfer.Counterparty()
+		transferCounterparty := changes.transfer.Counterparty()
 
-		if transferCounterparty.UserID != 0 && transferCounterparty.UserID != counterpartyUser.ID {
+		if transferCounterparty.UserID != 0 && transferCounterparty.UserID != changes.invitedUser.ID {
 			return errors.New(
 				fmt.Sprintf(
-					"transferCounterparty.UserID != counterpartyUser.ID : %d != %d",
-					transferCounterparty.UserID, counterpartyUser.ID,
+					"transferCounterparty.UserID != invitedUser.ID : %d != %d",
+					transferCounterparty.UserID, changes.invitedUser.ID,
 				),
 			)
 		}
@@ -157,37 +208,40 @@ func (linker ReceiptUsersLinker) validateInput(
 	return nil
 }
 
-func (linker ReceiptUsersLinker) updateReceipt(receipt models.Receipt, counterpartyUser models.AppUser) (receiptChanged bool, err error) {
+func (linker receiptUsersLinker) updateReceipt() (err error) {
+	receipt := *linker.changes.receipt
+	counterpartyUser := *linker.changes.invitedUser
 	if receipt.CounterpartyUserID != counterpartyUser.ID {
 		receipt.CounterpartyUserID = counterpartyUser.ID
-		receiptChanged = true
+		linker.changes.FlagAsChanged(linker.changes.receipt)
 	}
 	return
 }
 
-func (linker ReceiptUsersLinker) updateTransfer(
-	transfer models.Transfer,
-	inviterUser, invitedUser models.AppUser,
-	inviterContact, invitedContact models.Contact,
-) (
-	transferChanged bool, err error,
-) {
-	// Validate input parameters
-	{
+func (linker receiptUsersLinker) updateTransfer() (err error) {
+	changes := linker.changes
+
+	transfer := changes.transfer
+	inviterUser, invitedUser := *changes.inviterUser, *changes.invitedUser
+	inviterContact, invitedContact := *changes.inviterContact, *changes.invitedContact
+	{ // Validate input parameters
 		if transfer.ID == 0 || transfer.TransferEntity == nil {
 			panic(fmt.Sprintf("Invalid parameter: transfer: %v", transfer))
 		}
-		if inviterUser.ID == 0 || inviterUser.AppUserEntity == nil {
-			panic(fmt.Sprintf("Invalid parameter: inviterUser: %v", inviterUser))
+		validateSide := func(side string, user models.AppUser, contact models.Contact) {
+			if user.ID == 0 || user.AppUserEntity == nil {
+				panic(fmt.Sprintf("receiptUsersLinker.updateTransfer() => %vUser: %v", side, user))
+			}
+			if contact.ID == 0 || contact.ContactEntity == nil {
+				panic(fmt.Sprintf("receiptUsersLinker.updateTransfer() => %vContact: %v", side, contact))
+			} else if contact.UserID != user.ID {
+				panic(fmt.Sprintf("receiptUsersLinker.updateTransfer() => %vContact.UserID != %vUser.ID: %v != %v", side, side, contact.UserID, invitedUser.ID))
+			}
 		}
-		if invitedUser.ID == 0 || invitedUser.AppUserEntity == nil {
-			panic(fmt.Sprintf("Invalid parameter: invitedUser: %v", invitedUser))
-		}
-		if inviterContact.ID == 0 || inviterContact.ContactEntity == nil {
-			panic(fmt.Sprintf("Invalid parameter: inviterContact: %v", inviterContact))
-		}
-		if invitedContact.ID == 0 || invitedContact.ContactEntity == nil {
-			panic(fmt.Sprintf("Invalid parameter: invitedContact: %v", invitedContact))
+		validateSide("inviter", inviterUser, inviterContact)
+		validateSide("invited", invitedUser, invitedContact)
+		if transfer.CreatorUserID != inviterUser.ID {
+			panic(fmt.Sprintf("receiptUsersLinker.updateTransfer() => transfer.CreatorUserID != inviterUser.ID: %v != %v", transfer.CreatorUserID, invitedUser.ID))
 		}
 	}
 
@@ -200,42 +254,40 @@ func (linker ReceiptUsersLinker) updateTransfer(
 			return
 		}
 		transfer.Counterparty().UserID = invitedUser.ID
-		transferChanged = true
+		linker.changes.FlagAsChanged(linker.changes.transfer)
 	}
 
-	updateTransferCounterparty := func(
+	updateTransferCounterpartyInfo := func(
+		side string,
 		counterparty *models.TransferCounterpartyInfo,
 		user models.AppUser,
 		contact models.Contact,
 	) {
+		if contact.UserID == user.ID {
+			panic(fmt.Sprintf(
+				"updateTransferCounterpartyInfo() => %vContact.UserID == %vUser.ID : %d, counterparty.UserID: %v",
+				side, side, contact.UserID, counterparty.UserID))
+		}
 		if counterparty.UserID == 0 {
 			counterparty.UserID = user.ID
 		} else if counterparty.UserID != user.ID {
-			panic(fmt.Sprintf("counterparty.UserID != user.ID : %d != %d", counterparty.UserID, user.ID))
+			panic(fmt.Sprintf("updateTransferCounterpartyInfo() => counterparty.UserID != %vUser.ID : %d != %d, %vContact.UserID: %v", side, counterparty.UserID, user.ID, side, contact.UserID))
 		}
 		counterparty.UserName = user.FullName()
 
 		if counterparty.ContactID == 0 {
 			counterparty.ContactID = contact.ID
 		} else if counterparty.ContactID != contact.ID {
-			panic(fmt.Sprintf("counterparty.ContactID != contact.ID : %d != %d", counterparty.UserID, user.ID))
+			panic(fmt.Sprintf(
+				"receiptUsersLinker.updateTransfer() => counterparty.ContactID != %vContact.ID : %d != %d",
+				side, counterparty.ContactID, contact.ID))
 		}
 		counterparty.ContactName = contact.FullName()
 	}
 
-	from := transfer.From()
-	to := transfer.To()
-	switch transfer.Direction() {
-	case models.TransferDirectionUser2Counterparty:
-		updateTransferCounterparty(from, inviterUser, invitedContact)
-		updateTransferCounterparty(to, invitedUser, inviterContact)
-	case models.TransferDirectionCounterparty2User:
-		updateTransferCounterparty(from, invitedUser, inviterContact)
-		updateTransferCounterparty(to, inviterUser, invitedContact)
-	default:
-		err = errors.New(fmt.Sprintf("Unknown transfer.Direction(): %v", transfer.Direction()))
-		return
-	}
+	updateTransferCounterpartyInfo("inviter", transfer.Creator(), inviterUser, invitedContact)
+	updateTransferCounterpartyInfo("invited", transfer.Counterparty(), invitedUser, inviterContact)
+
 	//if inlineMessageID != "" {
 	//	transfer.CounterpartyTgReceiptInlineMessageID = inlineMessageID
 	//}

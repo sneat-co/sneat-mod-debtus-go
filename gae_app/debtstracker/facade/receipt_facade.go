@@ -11,7 +11,35 @@ import (
 	"time"
 )
 
-func AcknowledgeReceipt(c context.Context, receiptID, currentUserID int64, operation string) (receipt models.Receipt, transfer models.Transfer, isCounterpartiesJustConnected bool, err error) {
+type usersLinkingDbChanges struct {
+	// use pointer as we pass it to FlagAsChanged() and IsChanged()
+	db.Changes
+	inviterUser, invitedUser       *models.AppUser
+	inviterContact, invitedContact *models.Contact
+}
+
+func newUsersLinkingDbChanges() *usersLinkingDbChanges {
+	return &usersLinkingDbChanges{}
+}
+
+type receiptDbChanges struct {
+	// use pointer as we pass it to FlagAsChanged() and IsChanged()
+	*usersLinkingDbChanges
+	receipt  *models.Receipt
+	transfer *models.Transfer
+}
+
+func newReceiptDbChanges() *receiptDbChanges {
+	return &receiptDbChanges{
+		usersLinkingDbChanges: newUsersLinkingDbChanges(),
+	}
+}
+
+func AcknowledgeReceipt(
+	c context.Context, receiptID, currentUserID int64, operation string,
+) (
+	receipt models.Receipt, transfer models.Transfer, isCounterpartiesJustConnected bool, err error,
+) {
 	log.Debugf(c, "AcknowledgeReceipt(receiptID=%d, currentUserID=%d, operation=%v)", receiptID, currentUserID, operation)
 	var transferAckStatus string
 	switch operation {
@@ -24,10 +52,13 @@ func AcknowledgeReceipt(c context.Context, receiptID, currentUserID int64, opera
 		return
 	}
 
-	var creatorUser, counterpartyUser models.AppUser
+	var invitedContact models.Contact
 
 	err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
-		receipt, transfer, creatorUser, counterpartyUser, err = getReceiptTransferAndUsers(tc, receiptID, currentUserID)
+		var inviterUser, invitedUser models.AppUser
+		var inviterContact models.Contact
+
+		receipt, transfer, inviterUser, invitedUser, err = getReceiptTransferAndUsers(tc, receiptID, currentUserID)
 		if err != nil {
 			return
 		}
@@ -38,47 +69,122 @@ func AcknowledgeReceipt(c context.Context, receiptID, currentUserID int64, opera
 			return
 		}
 
-		if receipt.Status == models.ReceiptStatusAcknowledged {
-			if receipt.AcknowledgedByUserID != currentUserID {
-				err = errors.New(fmt.Sprintf("receipt.AcknowledgedByUserID != currentUserID (%d != %d)", receipt.AcknowledgedByUserID, currentUserID))
-				return
-			}
-			return
+		changes := &receiptDbChanges{
+			receipt:  &receipt,
+			transfer: &transfer,
+			usersLinkingDbChanges: &usersLinkingDbChanges{
+				inviterUser: &inviterUser,
+				invitedUser: &invitedUser,
+			},
 		}
 
-		for _, counterpartyUserID := range counterpartyUser.GetTelegramUserIDs() {
-			for _, creatorUserID := range creatorUser.GetTelegramUserIDs() {
-				if counterpartyUserID == creatorUserID {
-					return errors.New(fmt.Sprintf("Data integrity issue: counterpartyUserID == creatorUserID (%v)", counterpartyUserID))
+		if invitedContact.ID != 0 { // This means we are attempting to retry failed transaction
+			if _, err = dal.Contact.GetContactByID(tc, invitedContact.ID); err != nil {
+				if db.IsNotFound(err) {
+					err = nil
+					if receipt.Status == models.ReceiptStatusAcknowledged {
+						if invitedContactInfo := invitedUser.ContactByID(invitedContact.ID); invitedContactInfo != nil {
+							log.Warningf(c, "Transactional retry, contact was not created in DB but invitedUser already has the contact info & receipt is acknowledged")
+							changes.invitedContact = &invitedContact
+						} else {
+							log.Warningf(c, "Transactional retry, contact was not created in DB but receipt is acknowledged & invitedUser has not contact info in JSON")
+						}
+					}
+					changes.FlagAsChanged(changes.invitedContact)
+				} else {
+					return
 				}
 			}
 		}
 
-		receipt.DtAcknowledged = time.Now()
-		receipt.Status = models.ReceiptStatusAcknowledged
-		receipt.AcknowledgedByUserID = currentUserID
-		markReceiptAsViewed(receipt.ReceiptEntity, currentUserID)
-
-		transfer.AcknowledgeStatus = transferAckStatus
-		transfer.AcknowledgeTime = receipt.DtAcknowledged
-
-		if transfer.Counterparty().UserID == 0 {
-			isCounterpartiesJustConnected, err = ReceiptUsersLinker{}.linkUsersByReceiptWithinTransaction(c, tc, receipt, transfer, creatorUser, counterpartyUser)
-			if err != nil {
-				return
+		{ // data integrity checks
+			for _, counterpartyTgUserID := range invitedUser.GetTelegramUserIDs() {
+				for _, creatorTgUserID := range inviterUser.GetTelegramUserIDs() {
+					if counterpartyTgUserID == creatorTgUserID {
+						return fmt.Errorf("data integrity issue: counterpartyTgUserID == creatorTgUserID (%v)", counterpartyTgUserID)
+					}
+				}
 			}
 		}
 
-		creatorUser.CountOfAckTransfersByCounterparties += 1
-		counterpartyUser.CountOfAckTransfersByUser += 1
+		if receipt.Status == models.ReceiptStatusAcknowledged {
+			if receipt.AcknowledgedByUserID != currentUserID {
+				err = fmt.Errorf("receipt.AcknowledgedByUserID != currentUserID (%d != %d)", receipt.AcknowledgedByUserID, currentUserID)
+				return
+			}
+			log.Debugf(c, "Receipt is already acknowledged")
+		} else {
+			receipt.DtAcknowledged = time.Now()
+			receipt.Status = models.ReceiptStatusAcknowledged
+			receipt.AcknowledgedByUserID = currentUserID
+			markReceiptAsViewed(receipt.ReceiptEntity, currentUserID)
+			changes.FlagAsChanged(changes.receipt)
 
-		return dal.DB.UpdateMulti(c, []db.EntityHolder{&receipt, &transfer, &creatorUser, &counterpartyUser})
+			transfer.AcknowledgeStatus = transferAckStatus
+			transfer.AcknowledgeTime = receipt.DtAcknowledged
+			changes.FlagAsChanged(changes.transfer)
+		}
+
+		if transfer.Counterparty().UserID == 0 {
+			if isCounterpartiesJustConnected, err = NewReceiptUsersLinker(changes).linkUsersByReceiptWithinTransaction(c, tc); err != nil {
+				return
+			}
+			invitedContact = *changes.invitedContact
+			inviterContact = *changes.inviterContact
+			log.Debugf(c, "linkUsersByReceiptWithinTransaction() =>\n\tinvitedContact %v: %+v\n\tinviterContact %v: %v",
+				invitedContact.ID, invitedContact.ContactEntity, inviterContact.ID, inviterContact.ContactEntity)
+		} else {
+			log.Debugf(c, "No need to link users as already linked")
+			inviterContact.ID = transfer.CounterpartyInfoByUserID(inviterUser.ID).ContactID
+			invitedContact.ID = transfer.CounterpartyInfoByUserID(invitedUser.ID).ContactID
+		}
+
+		inviterUser.CountOfAckTransfersByCounterparties += 1
+		invitedUser.CountOfAckTransfersByUser += 1
+
+		if entitiesToSave := changes.EntityHolders(); len(entitiesToSave) > 0 {
+			log.Debugf(c, "%v entities to save: %+v", len(entitiesToSave), entitiesToSave)
+			if err = dal.DB.UpdateMulti(c, entitiesToSave); err != nil {
+				return
+			}
+		} else {
+			log.Debugf(c, "Nothing to save")
+		}
+
+		//if _, err = dal.Contact.GetContactByID(c, invitedContact.ID); err != nil {
+		//	if db.IsNotFound(err) {
+		//		log.Errorf(c, "Invited contact is not found by ID, let's try to re-insert.")
+		//		if err = dal.Contact.SaveContact(c, invitedContact); err != nil {
+		//			return
+		//		}
+		//	} else {
+		//		return
+		//	}
+		//}
+		return
 	}, dal.CrossGroupTransaction)
 
 	if err != nil {
-		err = errors.Wrap(err, "Failed to acknowledge receipt")
+		if err == ErrSelfAcknowledgement {
+			err = nil
+			return
+		}
+		err = errors.WithMessage(err, "failed to acknowledge receipt")
+		return
 	}
+	log.Infof(c, "Receipt successfully acknowledged")
 
+	{ // verify invitedContact
+		if invitedContact, err = dal.Contact.GetContactByID(c, invitedContact.ID); err != nil {
+			err = errors.WithMessage(err, "failed to load invited contact outside of transaction")
+			if db.IsNotFound(err) {
+				return
+			}
+			log.Errorf(c, err.Error())
+			err = nil // We are OK to ignore technical issues here
+			return
+		}
+	}
 	return
 }
 
@@ -117,77 +223,50 @@ func markReceiptAsViewed(receipt *models.ReceiptEntity, userID int64) (changed b
 	return
 }
 
-func getReceiptTransferAndUsers(c context.Context, receiptID, userID int64) (receipt models.Receipt, transfer models.Transfer, creatorUser, counterpartyUser models.AppUser, err error) {
+func getReceiptTransferAndUsers(c context.Context, receiptID, userID int64) (
+	receipt models.Receipt,
+	transfer models.Transfer,
+	creatorUser models.AppUser,
+	counterpartyUser models.AppUser,
+	err error,
+) {
+	log.Debugf(c, "getReceiptTransferAndUsers(receiptID=%v, userID=%v)", receiptID, userID)
 
-	errCapacity := 4 // For getting currentUser, receipt, transfer entities in parallel.
-	errs := make(chan error, errCapacity)
+	if receipt, err = dal.Receipt.GetReceiptByID(c, receiptID); err != nil {
+		return
+	}
 
-	var user, anotherUser models.AppUser
+	if transfer, err = dal.Transfer.GetTransferByID(c, receipt.TransferID); err != nil {
+		return
+	}
 
-	go func() { // We load current user anyway - it can be a creator, counterparty, or non-authorized person
-		var err error
-		user, err = dal.User.GetUserByID(c, userID)
-		errs <- err
-	}()
-	go func() {
-		var (
-			err error
-		)
-		receipt, err = dal.Receipt.GetReceiptByID(c, receiptID)
-		if errs <- err; err != nil {
-			return
-		}
+	if receipt.CreatorUserID != transfer.CreatorUserID {
+		err = errors.New("Data integrity issue: receipt.CreatorUserID != transfer.CreatorUserID")
+		return
+	}
 
-		transfer, err = dal.Transfer.GetTransferByID(c, receipt.TransferID)
-		if errs <- err; err != nil {
-			return
-		}
+	if creatorUser, err = dal.User.GetUserByID(c, transfer.CreatorUserID); err != nil {
+		return
+	}
 
-		if receipt.CreatorUserID != transfer.CreatorUserID {
-			errs <- errors.New("Data integrity issue: receipt.CreatorUserID != transfer.CreatorUserID")
-			return
-		}
+	if counterpartyUser.ID = transfer.Counterparty().UserID; counterpartyUser.ID == 0 && userID != creatorUser.ID {
+		counterpartyUser.ID = userID
+	}
 
-		if userID == transfer.CreatorUserID {
-			// If current user is creator of transfer the counterparty user can be loaded just if we know ID
-			if transfer.Counterparty().UserID != 0 {
-				anotherUser, err = dal.User.GetUserByID(c, transfer.Counterparty().UserID)
-			}
-		} else { // If current user is not creator
-			if transfer.Counterparty().UserID != 0 && transfer.Counterparty().UserID != userID {
-				err = errors.New(fmt.Sprintf("Attempt to access receipt(id=%v) & transfer(id=%v) by non related user(id=%v)\n\tCreatorUserID: %v, CounterpartUserID: %v",
-					receiptID, receipt.TransferID, userID, transfer.CreatorUserID, transfer.Counterparty().UserID))
-			} else {
-				anotherUser, err = dal.User.GetUserByID(c, transfer.CreatorUserID)
-			}
-		}
-		if errs <- err; err != nil {
-			return
-		}
-	}()
-	for i := 0; i < errCapacity; i++ {
-		if err = <-errs; err != nil {
+	if counterpartyUser.ID != 0 {
+		if counterpartyUser, err = dal.User.GetUserByID(c, counterpartyUser.ID); err != nil {
 			return
 		}
 	}
-	if transfer.CreatorUserID == userID {
-		log.Debugf(c, "transfer.CreatorUserID == userID")
-		creatorUser = user
-		counterpartyUser = anotherUser
-	} else {
-		log.Debugf(c, "transfer.CreatorUserID != userID")
-		creatorUser = anotherUser
-		counterpartyUser = user
-	}
 
-	log.Debugf(c, "getReceiptTransferAndUsers(receiptID=%v, userID=%v):\n\tcreatorUser(%v): %v\n\tcounterpartyUser(%v): %v",
+	log.Debugf(c, "getReceiptTransferAndUsers(receiptID=%v, userID=%v) =>\n\tcreatorUser(id=%v): %+v\n\tcounterpartyUser(id=%v): %+v",
 		receiptID, userID,
-		receipt.CreatorUserID, creatorUser,
-		transfer.Counterparty().UserID, counterpartyUser,
+		creatorUser.ID, creatorUser.AppUserEntity,
+		counterpartyUser.ID, counterpartyUser.AppUserEntity,
 	)
 
 	if creatorUser.AppUserEntity == nil {
-		err = errors.New(fmt.Sprintf("creatorUser(id=%v) == nil - data integrity or app logic issue", transfer.CreatorUserID))
+		err = fmt.Errorf("creatorUser(id=%v) == nil - data integrity or app logic issue", transfer.CreatorUserID)
 		return
 	}
 	return

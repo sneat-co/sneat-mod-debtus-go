@@ -127,14 +127,15 @@ func (r receiptTextBuilder) receiptCommonFooter(buffer *bytes.Buffer) {
 }
 
 func TextReceiptForTransfer(ec strongo.ExecutionContext, transfer models.Transfer, showToUserID int64, showReceiptTo ShowReceiptTo, utmParams UtmParams) string {
+	c := ec.Context()
+	log.Debugf(c, "TextReceiptForTransfer(transferID=%v, showToUserID=%v, showReceiptTo=%v)", transfer.ID, showToUserID, showReceiptTo)
+
 	if transfer.ID == 0 {
 		panic("transferID == 0")
 	}
 	if transfer.TransferEntity == nil {
 		panic("transferID == 0")
 	}
-	c := ec.Context()
-	log.Debugf(c, "TextReceiptForTransfer(transferID=%v)", transfer.ID)
 
 	//transferEntity := transfer.TransferEntity
 

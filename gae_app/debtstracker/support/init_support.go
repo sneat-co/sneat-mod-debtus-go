@@ -113,13 +113,13 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userCounterpartyIDs := make(int64sortable, len(user.CounterpartiesIDs()))
-	for i, v := range user.CounterpartiesIDs() {
+	userCounterpartyIDs := make(int64sortable, len(user.ContactIDs()))
+	for i, v := range user.ContactIDs() {
 		userCounterpartyIDs[i] = v
 	}
 
 	if user.TotalContactsCount() != len(userCounterpartyIDs) {
-		log.Warningf(c, "user.TotalContactsCount() != len(user.CounterpartiesIDs()) => %v != %v", user.TotalContactsCount(), len(userCounterpartyIDs))
+		log.Warningf(c, "user.TotalContactsCount() != len(user.ContactIDs()) => %v != %v", user.TotalContactsCount(), len(userCounterpartyIDs))
 	}
 
 	sort.Sort(userCounterpartyIDs)

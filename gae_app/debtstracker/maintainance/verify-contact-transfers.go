@@ -263,11 +263,25 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 		needsFixingContactOrUser = true
 	}
 
+	if !needsFixingContactOrUser && contact.CounterpartyCounterpartyID != 0 {
+		var counterpartyContact models.Contact
+		if counterpartyContact, err = dal.Contact.GetContactByID(c, contact.CounterpartyCounterpartyID); err != nil {
+			return
+		}
+		fmt.Fprintf(buf,"contact.Balance(): %v\n", contact.Balance())
+		fmt.Fprintf(buf,"counterpartyContact.Balance(): %v\n", contact.Balance())
+		if !counterpartyContact.GetTransfersInfo().Equal(contact.GetTransfersInfo()) || !counterpartyContact.Balance().Equal(models.ReverseBalance(transfersBalance)) {
+			needsFixingContactOrUser = true
+		}
+	} else {
+		fmt.Fprintf(buf, "needsFixingContactOrUser: %v, contact.CounterpartyCounterpartyID: %v", needsFixingContactOrUser, contact.CounterpartyCounterpartyID)
+	}
+
 	if needsFixingContactOrUser {
 		for _, transfer := range transfers {
 			logTransfer(transfer, 1)
 		}
-		if contact, user, err = m.fixContactAndUser(c, buf, counters, contact.ID, transfersBalance, transfers, lastTransfer); err != nil {
+		if contact, user, err = m.fixContactAndUser(c, buf, counters, contact.ID, transfersBalance, len(transfers), lastTransfer); err != nil {
 			return
 		}
 	}
@@ -315,81 +329,93 @@ func (m *verifyContactTransfers) assertTotals(buf *bytes.Buffer, counters *async
 	return
 }
 
-func (m *verifyContactTransfers) fixContactAndUser(c context.Context, buf *bytes.Buffer, counters *asyncCounters, contactID int64, transfersBalance models.Balance, transfers []models.Transfer, lastTransfer models.Transfer) (contact models.Contact, user models.AppUser, err error) {
-
+func (m *verifyContactTransfers) fixContactAndUser(c context.Context, buf *bytes.Buffer, counters *asyncCounters, contactID int64, transfersBalance models.Balance, transfersCount int, lastTransfer models.Transfer) (contact models.Contact, user models.AppUser, err error) {
 	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil {
+		if contact, user, err = m.fixContactAndUserWithinTransaction(c, buf, counters, contactID, transfersBalance, transfersCount, lastTransfer); err != nil {
 			return
 		}
-		changed := false
-		if lastTransfer.TransferEntity != nil && lastTransfer.ID != 0 {
-			if contact.LastTransferAt.Before(lastTransfer.DtCreated) {
-				fmt.Fprintf(buf, "\tcontact.LastTransferAt changed from %v to %v\n", contact.LastTransferID, lastTransfer.DtCreated)
-				contact.LastTransferAt = lastTransfer.DtCreated
-
-				if contact.LastTransferID != lastTransfer.ID {
-					fmt.Fprintf(buf, "\tcontact.LastTransferID changed from %v to %v\n", contact.LastTransferID, lastTransfer.ID)
-					contact.LastTransferID = lastTransfer.ID
-				}
-				changed = true
-			}
-		}
-		if contact.CountOfTransfers < len(transfers) {
-			fmt.Fprintf(buf, "\tcontact.CountOfTransfers changed from %v to %v\n", contact.CountOfTransfers, len(transfers))
-			contact.CountOfTransfers = len(transfers)
-			changed = true
-		}
-		if !contact.Balance().Equal(transfersBalance) {
-			if err = contact.SetBalance(transfersBalance); err != nil {
+		if contact.CounterpartyCounterpartyID != 0 {
+			if _, _, err = m.fixContactAndUserWithinTransaction(c, buf, counters, contact.CounterpartyCounterpartyID, models.ReverseBalance(transfersBalance), transfersCount, lastTransfer); err != nil {
 				return
-			}
-			changed = true
-		}
-		if changed {
-			if err = dal.Contact.SaveContact(c, contact); err != nil {
-				return
-			}
-			var user models.AppUser
-			if user, err = dal.User.GetUserByID(c, contact.UserID); err != nil {
-				return
-			}
-			userContacts := user.Contacts()
-			userChanged := false
-			for i := range userContacts {
-				if userContacts[i].ID == contact.ID {
-					if !userContacts[i].Balance().Equal(transfersBalance) {
-						userContacts[i].SetBalance(transfersBalance)
-						user.SetContacts(userContacts)
-						userChanged = true
-					}
-					userTransferInfo, contactTransferInfo := userContacts[i].Transfers, contact.GetTransfersInfo()
-					if !userTransferInfo.Equal(contactTransferInfo) {
-						userContacts[i].Transfers = contactTransferInfo
-						userChanged = true
-					}
-					goto contactFound
-				}
-			}
-			// Contact not found
-			userChanged = user.AddOrUpdateContact(contact) || userChanged
-		contactFound:
-			userTotalBalance := user.Balance()
-			if userContactsBalance := user.TotalBalanceFromContacts(); !userContactsBalance.Equal(userTotalBalance) {
-				if err = user.SetBalance(userContactsBalance); err != nil {
-					return
-				}
-				userChanged = true
-				fmt.Fprintln(buf, "user total balance update from contacts\nwas: %v\nnew: %v", userTotalBalance, userContactsBalance)
-			}
-			if userChanged {
-				if err = dal.User.SaveUser(c, user); err != nil {
-					return
-				}
 			}
 		}
 		return
 	}, db.CrossGroupTransaction); err != nil {
 		return
+	}
+	return
+}
+
+func (m *verifyContactTransfers) fixContactAndUserWithinTransaction(c context.Context, buf *bytes.Buffer, counters *asyncCounters, contactID int64, transfersBalance models.Balance, transfersCount int, lastTransfer models.Transfer) (contact models.Contact, user models.AppUser, err error) {
+	fmt.Fprintf(buf,"Fixing contact %v...\n", contactID)
+	if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil {
+		return
+	}
+	changed := false
+	if lastTransfer.TransferEntity != nil && lastTransfer.ID != 0 {
+		if contact.LastTransferAt.Before(lastTransfer.DtCreated) {
+			fmt.Fprintf(buf, "\tcontact.LastTransferAt changed from %v to %v\n", contact.LastTransferID, lastTransfer.DtCreated)
+			contact.LastTransferAt = lastTransfer.DtCreated
+
+			if contact.LastTransferID != lastTransfer.ID {
+				fmt.Fprintf(buf, "\tcontact.LastTransferID changed from %v to %v\n", contact.LastTransferID, lastTransfer.ID)
+				contact.LastTransferID = lastTransfer.ID
+			}
+			changed = true
+		}
+	}
+	if contact.CountOfTransfers < transfersCount {
+		fmt.Fprintf(buf, "\tcontact.CountOfTransfers changed from %v to %v\n", contact.CountOfTransfers, transfersCount)
+		contact.CountOfTransfers = transfersCount
+		changed = true
+	}
+	if !contact.Balance().Equal(transfersBalance) {
+		if err = contact.SetBalance(transfersBalance); err != nil {
+			return
+		}
+		changed = true
+	}
+	if changed {
+		if err = dal.Contact.SaveContact(c, contact); err != nil {
+			return
+		}
+		//var user models.AppUser
+		if user, err = dal.User.GetUserByID(c, contact.UserID); err != nil {
+			return
+		}
+		userContacts := user.Contacts()
+		userChanged := false
+		for i := range userContacts {
+			if userContacts[i].ID == contact.ID {
+				if !userContacts[i].Balance().Equal(transfersBalance) {
+					userContacts[i].SetBalance(transfersBalance)
+					user.SetContacts(userContacts)
+					userChanged = true
+				}
+				userTransferInfo, contactTransferInfo := userContacts[i].Transfers, contact.GetTransfersInfo()
+				if !userTransferInfo.Equal(contactTransferInfo) {
+					userContacts[i].Transfers = contactTransferInfo
+					userChanged = true
+				}
+				goto contactFound
+			}
+		}
+		// Contact not found
+		userChanged = user.AddOrUpdateContact(contact) || userChanged
+	contactFound:
+		userTotalBalance := user.Balance()
+		if userContactsBalance := user.TotalBalanceFromContacts(); !userContactsBalance.Equal(userTotalBalance) {
+			if err = user.SetBalance(userContactsBalance); err != nil {
+				return
+			}
+			userChanged = true
+			fmt.Fprintln(buf, "user total balance update from contacts\nwas: %v\nnew: %v", userTotalBalance, userContactsBalance)
+		}
+		if userChanged {
+			if err = dal.User.SaveUser(c, user); err != nil {
+				return
+			}
+		}
 	}
 	return
 }

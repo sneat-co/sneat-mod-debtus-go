@@ -229,10 +229,10 @@ func (u *AppUserEntity) FixObsolete() error {
 	return fixContactsJson()
 }
 
-func (u *AppUserEntity) CounterpartiesIDs() (ids []int64) {
-	counterparties := u.Contacts()
-	ids = make([]int64, len(counterparties))
-	for i, c := range counterparties {
+func (u *AppUserEntity) ContactIDs() (ids []int64) {
+	contacts := u.Contacts()
+	ids = make([]int64, len(contacts))
+	for i, c := range contacts {
 		ids[i] = c.ID
 	}
 	return ids

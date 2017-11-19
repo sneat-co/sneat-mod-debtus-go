@@ -36,7 +36,7 @@ func handleAdminLatestUsers(c context.Context, w http.ResponseWriter, r *http.Re
 			balance := json.RawMessage(user.BalanceJson)
 			records[i].Balance = &balance
 		}
-		userCounterpartiesIDs := user.CounterpartiesIDs()
+		userCounterpartiesIDs := user.ContactIDs()
 		if len(userCounterpartiesIDs) > 0 {
 			wg.Add(1)
 			go func(i int, userCounterpartiesIDs []int64) {

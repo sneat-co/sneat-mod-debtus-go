@@ -227,24 +227,43 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 			panic(errors.WithMessage(err, "3d party transfers are not implemented yet"))
 		}
 		log.Debugf(c, "creatorContactID=%v, contacts: %+v", creatorContactID, contacts)
-		for _, contact := range contacts {
-			if contact.ID == creatorContactID {
-				contactBalance := contact.Balance()
-				if v, ok := contactBalance[input.Amount.Currency]; !ok || v == 0 {
-					log.Debugf(c, "No need to check for outstanding transfers as contacts balance is 0")
-				} else {
-					if input.Interest.HasInterest() {
-						if d := input.Direction(); d == models.TransferDirectionUser2Counterparty && v < 0 || d == models.TransferDirectionCounterparty2User && v > 0 {
-							err = ErrAttemptToCreateDebtWithInterestAffectingOutstandingTransfers
+		var creatorContact models.Contact
+		verifyUserContactJson := func() (contactJsonFound bool) {
+			for _, contact := range contacts {
+				if contact.ID == creatorContactID {
+					contactBalance := contact.Balance()
+					if v, ok := contactBalance[input.Amount.Currency]; !ok || v == 0 {
+						log.Debugf(c, "No need to check for outstanding transfers as contacts balance is 0")
+					} else {
+						if input.Interest.HasInterest() {
+							if d := input.Direction(); d == models.TransferDirectionUser2Counterparty && v < 0 || d == models.TransferDirectionCounterparty2User && v > 0 {
+								err = ErrAttemptToCreateDebtWithInterestAffectingOutstandingTransfers
+								return
+							}
+						}
+						if returnToTransferIDs, err = transferFacade.checkOutstandingTransfersForReturns(c, now, input); err != nil {
 							return
 						}
 					}
-					if returnToTransferIDs, err = transferFacade.checkOutstandingTransfersForReturns(c, now, input); err != nil {
-						return
-					}
+					contactJsonFound = true
+					return
 				}
-				goto contactFound
 			}
+			return
+		}
+		if contactJsonFound := verifyUserContactJson(); contactJsonFound {
+			goto contactFound
+		}
+		// If contact not found in user's JSON try to recover from DB record
+		if creatorContact, err = dal.Contact.GetContactByID(c, creatorContactID); err != nil {
+			return
+		}
+		log.Errorf(c, "data integrity issue: contact found by ID in database but is missing in user's JSON: creatorContactID=%v, user.ContactsJsonActive: %v", creatorContactID, input.CreatorUser.ContactsJsonActive)
+		if changed := input.CreatorUser.AddOrUpdateContact(creatorContact); changed {
+			contacts = input.CreatorUser.Contacts()
+		}
+		if contactJsonFound := verifyUserContactJson(); contactJsonFound {
+			goto contactFound
 		}
 		err = fmt.Errorf("user contact not found by ID=%v, contacts: %v", creatorContactID, litter.Sdump(contacts))
 		return
@@ -723,7 +742,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 			fromBalance := output.From.Contact.Balance()[currency]
 			toBalance := output.To.Contact.Balance()[currency]
 			if fromBalance != -toBalance {
-				panic(fmt.Sprintf("fromBalance != -1*toBalance => %v != -1*%v", fromBalance, -toBalance))
+				panic(fmt.Sprintf("from.Contact.Balance != -1*to.Contact.Balance => %v != -1*%v", fromBalance, -toBalance))
 			}
 		}
 	}

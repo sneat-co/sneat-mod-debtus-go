@@ -181,10 +181,12 @@ func handleDeleteContact(c context.Context, w http.ResponseWriter, r *http.Reque
 		BadRequestError(c, w, err)
 		return
 	}
+	log.Debugf(c, "contactID: %v", contactID)
 	if _, err := facade.DeleteContact(c, contactID); err != nil {
 		InternalError(c, w, err)
 		return
 	}
+	log.Infof(c, "Contact deleted: %v", contactID)
 }
 
 func handleArchiveCounterparty(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {

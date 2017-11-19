@@ -5,41 +5,54 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/db"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
 )
 
-type UsersLinker struct {
+type usersLinker struct {
 	// Groups methods for linking 2 users via Contact
+	changes *usersLinkingDbChanges
 }
 
-func (l UsersLinker) LinkUsersWithinTransaction(
+func newUsersLinker(changes *usersLinkingDbChanges) usersLinker {
+	return usersLinker{
+		changes: changes,
+	}
+}
+
+func (linker usersLinker) linkUsersWithinTransaction(
 	c, tc context.Context, // 'tc' is transactional context, 'c' is not
-	inviterUser, invitedUser models.AppUser,
-	inviterContact models.Contact,
 ) (
-	entitiesToSave []db.EntityHolder,
-	invitedContact models.Contact,
 	err error,
 ) {
-	log.Debugf(c, "UsersLinker.LinkUsersWithinTransaction(inviterUser.ID=%d, invitedUser.ID=%d, inviterContact=%d, inviterContact.UserID=%v)", inviterUser.ID, invitedUser.ID, inviterContact.ID, inviterContact.UserID)
+	changes := linker.changes
+	inviterUser, invitedUser := changes.inviterUser, changes.invitedUser
+	inviterContact, invitedContact := changes.inviterContact, changes.invitedContact
+	if invitedContact == nil {
+		invitedContact = new(models.Contact)
+		changes.invitedContact = invitedContact
+	}
+
+	log.Debugf(c, "usersLinker.linkUsersWithinTransaction(inviterUser.ID=%d, invitedUser.ID=%d, inviterContact=%d, inviterContact.UserID=%v)", inviterUser.ID, invitedUser.ID, inviterContact.ID, inviterContact.UserID)
+
 	// First of all lets validate input
-	if err = l.validateInput(inviterUser, invitedUser, inviterContact); err != nil {
+	if err = linker.validateInput(inviterUser, invitedUser, inviterContact); err != nil {
 		return
 	}
 
 	if !dal.DB.IsInTransaction(tc) {
-		err = errors.New("UsersLinker.LinkUsersWithinTransaction is called outside of transaction")
+		err = errors.New("usersLinker.linkUsersWithinTransaction is called outside of transaction")
 		return
 	}
 
 	// Update entities
 	{
-		var inviterContactChanged, invitedUserChanged bool
-		if invitedContact, inviterContactChanged, err = l.getOrCreateInvitedContactByInviterUserAndInviterContact(c, tc, invitedUser, inviterUser, inviterContact); err != nil {
+		if err = linker.getOrCreateInvitedContactByInviterUserAndInviterContact(c, tc, changes); err != nil {
 			return
+		} else {
+			invitedContact = changes.invitedContact
 		}
+
 		if invitedContact.ContactEntity == nil {
 			err = fmt.Errorf(
 					"getOrCreateInvitedContactByInviterUserAndInviterContact() returned invitedContact.ContactEntity == nil, invitedContact.ID: %d",
@@ -49,27 +62,22 @@ func (l UsersLinker) LinkUsersWithinTransaction(
 			panic(fmt.Sprintf("invitedContact.UserID != invitedUser.ID: %v != %v", invitedContact.UserID, invitedUser.ID))
 		}
 
-		if invitedUserChanged, err = l.updateInvitedUser(invitedUser, inviterUser.ID, inviterContact); err != nil {
+		log.Debugf(c, "getOrCreateInvitedContactByInviterUserAndInviterContact() => invitedContact.ID: %v", invitedContact.ID)
+
+		if err = linker.updateInvitedUser(*invitedUser, inviterUser.ID, *inviterContact); err != nil {
 			return
-		} else if invitedUserChanged {
-			entitiesToSave = toSave(entitiesToSave, &invitedUser)
 		}
 
-		var isJustConnected bool
-		if isJustConnected, inviterContactChanged, err = l.updateInviterContact(tc, inviterUser, invitedUser, &inviterContact, &invitedContact); err != nil {
+		if _, err = linker.updateInviterContact(tc, *inviterUser, *invitedUser, inviterContact, invitedContact); err != nil {
 			return
-		}
-		if inviterContactChanged {
-			log.Debugf(tc, "isJustConnected: %v", isJustConnected)
-			entitiesToSave = toSave(entitiesToSave, &inviterContact)
 		}
 	}
 	return
 }
 
-func (l UsersLinker) validateInput(
-	inviterUser, invitedUser models.AppUser,
-	inviterContact models.Contact,
+func (linker usersLinker) validateInput(
+	inviterUser, invitedUser *models.AppUser,
+	inviterContact *models.Contact,
 ) error {
 	if inviterUser.ID == 0 {
 		panic("inviterUser.ID == 0")
@@ -84,30 +92,25 @@ func (l UsersLinker) validateInput(
 		panic(fmt.Sprintf("inviterUser.ID == invitedUser.ID: %v", inviterUser.ID))
 	}
 	if inviterContact.UserID != inviterUser.ID {
-		panic(fmt.Sprintf("UsersLinker.validateInput(): inviterContact.UserID != inviterUser.ID: %v != %v", inviterContact.UserID, inviterUser.ID))
+		panic(fmt.Sprintf("usersLinker.validateInput(): inviterContact.UserID != inviterUser.ID: %v != %v", inviterContact.UserID, inviterUser.ID))
 	}
 	return nil
 }
 
 // Purpose of the function is an attempt to link existing counterparties
-func (_ UsersLinker) getOrCreateInvitedContactByInviterUserAndInviterContact(
-	c, tc context.Context,
-	invitedUser models.AppUser,
-	inviterUser models.AppUser,
-	inviterContact models.Contact,
-) (
-	invitedContact models.Contact,
-	invitedContactChanged bool,
-	err error,
-) { // TODO: Can this be re-used for invites as well?
-	log.Debugf(c, "getOrCreateInvitedContactByInviterUserAndInviterContact()")
+func (linker usersLinker) getOrCreateInvitedContactByInviterUserAndInviterContact(
+	c, tc context.Context, changes *usersLinkingDbChanges,
+) (err error) {
+	inviterUser, invitedUser := *changes.inviterUser, *changes.invitedUser
+	inviterContact, invitedContact := *changes.inviterContact, *changes.invitedContact
+	log.Debugf(c, "getOrCreateInvitedContactByInviterUserAndInviterContact()\n\tinviterContact.ID: %v", inviterContact.ID)
 	if inviterUser.ID == invitedUser.ID {
 		panic(fmt.Sprintf("inviterUser.ID == invitedUser.ID: %v", inviterUser.ID))
 	}
 	if invitedUser.ContactsCount > 0 {
 		var invitedUserContacts []models.Contact
 		// Use non transaction context
-		invitedUserContacts, err = dal.Contact.GetContactsByIDs(c, invitedUser.CounterpartiesIDs())
+		invitedUserContacts, err = dal.Contact.GetContactsByIDs(c, invitedUser.ContactIDs())
 		if err != nil {
 			err = errors.Wrap(err, "Failed to call dal.Contact.GetContactsByIDs()")
 			return
@@ -133,7 +136,7 @@ func (_ UsersLinker) getOrCreateInvitedContactByInviterUserAndInviterContact(
 
 	if invitedContact.ID == 0 {
 		log.Debugf(c, "getOrCreateInvitedContactByInviterUserAndInviterContact(): creating new contact for invited user")
-		invitedContacts := models.ContactDetails{
+		invitedContactDetails := models.ContactDetails{
 			FirstName:  inviterUser.FirstName,
 			LastName:   inviterUser.LastName,
 			Nickname:   inviterUser.Nickname,
@@ -141,8 +144,19 @@ func (_ UsersLinker) getOrCreateInvitedContactByInviterUserAndInviterContact(
 			Username:   inviterUser.Username,
 		}
 		if invitedContact, inviterContact, err = CreateContactWithinTransaction(
-			tc, invitedUser, inviterUser.ID, inviterContact, invitedContacts); err != nil {
+			tc, invitedUser, inviterUser.ID, inviterContact, invitedContactDetails); err != nil {
 			return
+		} else {
+			changes.invitedContact = &invitedContact
+			if changes.inviterContact == nil {
+				changes.inviterContact = &inviterContact
+				changes.FlagAsChanged(changes.inviterContact)
+			}
+			if invitedUser.LastTransferAt.Before(inviterContact.LastTransferAt) {
+				invitedUser.LastTransferID = inviterContact.LastTransferID
+				invitedUser.LastTransferAt = inviterContact.LastTransferAt
+				changes.FlagAsChanged(changes.invitedUser)
+			}
 		}
 	} else {
 		log.Debugf(c, "getOrCreateInvitedContactByInviterUserAndInviterContact(): linking existing contact: %v", invitedContact)
@@ -155,12 +169,13 @@ func (_ UsersLinker) getOrCreateInvitedContactByInviterUserAndInviterContact(
 		if err = invitedContact.SetBalance(creatorCounterpartyBalance); err != nil {
 			return
 		}
-		invitedContactChanged = true
+		changes.FlagAsChanged(changes.invitedContact)
 	}
 	return
 }
 
-func (_ UsersLinker) updateInvitedUser(invitedUser models.AppUser, inviterUserID int64, inviterContact models.Contact) (invitedUserChanged bool, err error) {
+func (linker usersLinker) updateInvitedUser(invitedUser models.AppUser, inviterUserID int64, inviterContact models.Contact) (err error) {
+	var invitedUserChanged bool
 	if invitedUser.InvitedByUserID == 0 {
 		invitedUser.InvitedByUserID = inviterUserID
 		invitedUserChanged = true
@@ -177,55 +192,70 @@ func (_ UsersLinker) updateInvitedUser(invitedUser models.AppUser, inviterUserID
 		invitedUser.LastTransferAt = inviterContact.LastTransferAt
 		invitedUserChanged = true
 	}
+	if invitedUserChanged {
+		linker.changes.FlagAsChanged(linker.changes.invitedUser)
+	}
 	return
 }
 
 // Updates counterparty entity that belongs to inviter user (inviterContact.UserID == inviterUser.ID)
-func (_ UsersLinker) updateInviterContact(
+func (linker usersLinker) updateInviterContact(
 	tc context.Context,
 	inviterUser, invitedUser models.AppUser,
 	inviterContact, invitedContact *models.Contact,
 ) (
-	isJustConnected, inviterContactChange bool, err error,
+	isJustConnected bool, err error,
 ) {
-	log.Debugf(tc, "UsersLinker.updateInviterContact(), inviterContact.CounterpartyUserID: %d, inviterContact.CountOfTransfers: %d", inviterContact.CounterpartyUserID, inviterContact.CountOfTransfers)
-	if inviterUser.ID == 0 {
-		panic("inviterUser.ID == 0")
+	log.Debugf(tc, "usersLinker.updateInviterContact(), inviterContact.CounterpartyUserID: %d, inviterContact.CountOfTransfers: %d", inviterContact.CounterpartyUserID, inviterContact.CountOfTransfers)
+	// validate input
+	{
+		if inviterUser.ID == 0 {
+			panic("inviterUser.ID == 0")
+		}
+		if invitedUser.ID == 0 {
+			panic("invitedUser.ID == 0")
+		}
+		if inviterContact.UserID != inviterUser.ID {
+			panic(fmt.Sprintf("usersLinker.updateInviterContact(): inviterContact.UserID != inviterUser.ID: %v != %v\ninvitedContact.UserID: %v, invitedUser.ID: %v",
+				inviterContact.UserID, inviterUser.ID, invitedContact.UserID, invitedUser.ID))
+		}
+		if invitedContact.UserID != invitedUser.ID {
+			panic(fmt.Sprintf("invitedContact.UserID != invitedUser.ID: %v != %v\ninviterContact.UserID: %v, inviterUser.ID: %v",
+				invitedContact.UserID, invitedContact.ID, inviterContact.UserID, inviterUser.ID))
+		}
+		if invitedContact.ID == inviterContact.ID {
+			panic(fmt.Sprintf("invitedContact.ID == inviterContact.ID: %v", invitedContact.ID))
+		}
+		if invitedUser.ID == inviterUser.ID {
+			panic(fmt.Sprintf("invitedUser.ID == inviterUser.ID: %v", invitedUser.ID))
+		}
 	}
-	if invitedUser.ID == 0 {
-		panic("invitedUser.ID == 0")
-	}
-	if inviterContact.UserID != inviterUser.ID {
-		panic(fmt.Sprintf("UsersLinker.updateInviterContact(): inviterContact.UserID != inviterUser.ID: %v != %v\ninvitedContact.UserID: %v, invitedUser.ID: %v",
-			inviterContact.UserID, inviterUser.ID, invitedContact.UserID, invitedUser.ID))
-	}
-	if invitedContact.UserID != invitedUser.ID {
-		panic(fmt.Sprintf("invitedContact.UserID != invitedUser.ID: %v != %v\ninviterContact.UserID: %v, inviterUser.ID: %v",
-			invitedContact.UserID, invitedContact.ID, inviterContact.UserID, inviterUser.ID))
-	}
-	if invitedContact.ID == inviterContact.ID {
-		panic(fmt.Sprintf("invitedContact.ID == inviterContact.ID: %v", invitedContact.ID))
-	}
-	if invitedUser.ID == inviterUser.ID {
-		panic(fmt.Sprintf("invitedUser.ID == inviterUser.ID: %v", invitedUser.ID))
-	}
-
+	var inviterContactChanged bool
 	if inviterContact.FirstName == "" {
 		inviterContact.FirstName = invitedUser.FirstName
-		inviterContactChange = true
+		inviterContactChanged = true
 	}
 	if inviterContact.LastName == "" {
 		inviterContact.LastName = invitedUser.LastName
-		inviterContactChange = true
+		inviterContactChanged = true
 	}
-	//if inviterContactChange {
+	//if inviterContactChanged {
 	//	inviterContact.UpdateSearchName()
 	//}
+	if inviterContactChanged {
+		linker.changes.FlagAsChanged(linker.changes.inviterContact)
+	} else {
+		defer func() {
+			if inviterContactChanged {
+				linker.changes.FlagAsChanged(linker.changes.inviterContact)
+			}
+		}()
+	}
 	switch inviterContact.CounterpartyUserID {
 	case 0:
 		log.Debugf(tc, "Updating inviterUser.Contact* fields...")
 		isJustConnected = true
-		inviterContactChange = true
+		inviterContactChanged = true
 		inviterContact.CounterpartyUserID = invitedUser.ID
 		inviterContact.CounterpartyCounterpartyID = invitedContact.ID
 		// Queue task to update all existing transfers
@@ -235,14 +265,14 @@ func (_ UsersLinker) updateInviterContact(
 				invitedContact.ID,
 				inviterContact.ID,
 			); err != nil {
-				err = errors.Wrap(err, "Failed to enqueue delayUpdateTransfersWithCounterparty()")
+				err = errors.WithMessage(err, "Failed to enqueue delayUpdateTransfersWithCounterparty()")
 				return
 			}
 		} else {
 			log.Debugf(tc, "No need to update transfers of inviter as inviterContact.CountOfTransfers == 0")
 		}
 	case invitedUser.ID:
-		log.Infof(tc, "inviterContact.CounterpartyUserID already set")
+		log.Infof(tc, "inviterContact.CounterpartyUserID is already set, updateInviterContact() did nothing")
 	default:
 		err = fmt.Errorf("inviterContact.CounterpartyUserID is different from current user. inviterContact.CounterpartyUserID: %v, currentUserID: %v", inviterContact.CounterpartyUserID, invitedUser.ID)
 		return

@@ -17,6 +17,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"strconv"
+	"github.com/strongo/app/db"
 )
 
 /*
@@ -134,7 +136,20 @@ func startInvite(whc bots.WebhookContext, inviteCode, operation, localeCode5 str
 }
 
 func startReceipt(whc bots.WebhookContext, receiptCode, operation, localeCode5 string) (m bots.MessageFromBot, err error) {
-	receiptID, err := common.DecodeID(receiptCode)
+	c := whc.Context()
+	receiptID, err := strconv.ParseInt(receiptCode, 10, 64)
+	if err != nil {
+		receiptID, err = common.DecodeID(receiptCode) // TODO: remove obsolete in a while. 2017/11/19
+	} else if _, err = dal.Receipt.GetReceiptByID(c, receiptID); err != nil {
+		if db.IsNotFound(err) {
+			err = nil
+			if receiptID, err = common.DecodeID(receiptCode); err != nil {
+				return
+			}
+		} else {
+			return
+		}
+	}
 	if err != nil {
 		return m, errors.Wrap(err, "Failed to decode receipt ID")
 	}

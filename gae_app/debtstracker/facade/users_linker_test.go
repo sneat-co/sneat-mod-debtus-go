@@ -14,7 +14,7 @@ func TestUsersLinker_LinkUsersWithinTransaction(t *testing.T) {
 	gaedb.SetupNdsMock()
 	mockDB := SetupMocks(c)
 
-	usersLinker := UsersLinker{}
+	usersLinker := usersLinker{}
 
 	var (
 		err                            error
@@ -47,7 +47,8 @@ func TestUsersLinker_LinkUsersWithinTransaction(t *testing.T) {
 	}
 
 	err = mockDB.RunInTransaction(c, func(tc context.Context) (err error) {
-		if entitiesToSave, invitedContact, err = usersLinker.LinkUsersWithinTransaction(c, tc, inviterUser, invitedUser, inviterContact); err != nil {
+		changes := new(usersLinkingDbChanges)
+		if err = usersLinker.linkUsersWithinTransaction(c, tc, changes); err != nil {
 			return err
 		}
 		return nil
