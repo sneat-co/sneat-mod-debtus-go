@@ -41,9 +41,9 @@ func askIfReturnedInFull(whc bots.WebhookContext, counterparty models.Contact, c
 	amount := models.Amount{Currency: models.Currency(currency), Value: value}
 	var mt string
 	switch {
-	case value > 0:
-		mt = trans.MESSAGE_TEXT_COUNTERPARTY_OWES_YOU_SINGLE_DEBT
 	case value < 0:
+		mt = trans.MESSAGE_TEXT_COUNTERPARTY_OWES_YOU_SINGLE_DEBT
+	case value > 0:
 		mt = trans.MESSAGE_TEXT_YOU_OWE_TO_COUNTERPARTY_SINGLE_DEBT
 	case value == 0:
 		errorMessage := fmt.Sprintf("ERROR: Balance for currency [%v] is: %v", currency, value)
@@ -205,7 +205,7 @@ func processReturnCommand(whc bots.WebhookContext, returnValue decimal.Decimal64
 		}
 		return CreateReturnAndShowReceipt(whc, transferID, counterpartyID, direction, models.NewAmount(currency, returnValue))
 	} else {
-		return m, errors.New(fmt.Sprintf("Contact has no currency in balance. counterpartyID=%v,  currency='%v'", counterpartyID, currency))
+		return m, fmt.Errorf("Contact has no currency in balance. counterpartyID=%v,  currency='%v'", counterpartyID, currency)
 	}
 }
 
@@ -335,7 +335,7 @@ func getReturnDirectionFromDebtValue(currentDebt models.Amount) (models.Transfer
 	case currentDebt.Value > 0:
 		return models.TransferDirectionCounterparty2User, nil
 	}
-	return models.TransferDirection(""), errors.New(fmt.Sprintf("Zero value for currency: [%v]", currentDebt.Currency))
+	return models.TransferDirection(""), fmt.Errorf("Zero value for currency: [%v]", currentDebt.Currency)
 }
 
 func getReturnWizardParams(whc bots.WebhookContext) (counterpartyID, transferID int64, err error) {

@@ -105,7 +105,7 @@ func sendToTelegram(c context.Context, user models.AppUser, tgChatID int64, tgCh
 	telegramBots := telegram.Bots(gaestandard.GetEnvironment(c), nil)
 	botSettings, ok := telegramBots.ByCode[tgChat.BotID]
 	if !ok {
-		return errors.New(fmt.Sprintf("Bot settings not found by tgChat.BotID=%v, out of %v items", tgChat.BotID, len(telegramBots.ByCode)))
+		return fmt.Errorf("Bot settings not found by tgChat.BotID=%v, out of %v items", tgChat.BotID, len(telegramBots.ByCode))
 	}
 
 	log.Debugf(c, "botSettings(%v : %v)", botSettings.Code, botSettings.Token)
@@ -130,7 +130,7 @@ func sendToTelegram(c context.Context, user models.AppUser, tgChatID int64, tgCh
 	case strings.Contains(tgChat.AwaitingReplyTo, "borrowing"):
 		messageFromBot, err = dtb_transfer.AskBorrowingAmountCommand.Action(whc)
 	default:
-		return errors.New(fmt.Sprintf("tgChat.AwaitingReplyTo has unexpected value: %v", tgChat.AwaitingReplyTo))
+		return fmt.Errorf("tgChat.AwaitingReplyTo has unexpected value: %v", tgChat.AwaitingReplyTo)
 	}
 	if err != nil {
 		return errors.Wrap(err, "Failed to create message from bot")

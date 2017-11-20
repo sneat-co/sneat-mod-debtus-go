@@ -98,12 +98,17 @@ func onStartCallbackCommand(params BotParams) bots.Command {
 
 			whc.ChatEntity().SetPreferredLanguage(lang)
 
-			if user, err := whc.GetAppUser(); err != nil {
-				return m, err
-			} else if err = user.SetPreferredLocale(lang); err != nil {
-				return m, err
-			} else if err = whc.SaveAppUser(whc.AppUserIntID(), user); err != nil {
-				return m, err
+			if err = dal.DB.RunInTransaction(c, func(c context.Context) (error) {
+				if user, err := dal.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+					return err
+				} else if err = user.SetPreferredLocale(lang); err != nil {
+					return err
+				} else if err = dal.User.SaveUser(c, user); err != nil {
+					return err
+				}
+				return nil
+			}, nil); err != nil {
+				return
 			}
 
 			if err = whc.SetLocale(lang); err != nil {

@@ -146,7 +146,7 @@ func (_ UserGoogleDalGae) SaveUserGoogle(c context.Context, userGoogle models.Us
 //				case 1:
 //					panic("TODO: We need to handle situation when user changed email and that email was linked to another google account")
 //				case 2:
-//					err = errors.New(fmt.Sprintf("Found > 1 google users for email=%v, %v", user.Email, googleUserKeys))
+//					err = fmt.Errorf("Found > 1 google users for email=%v, %v", user.Email, googleUserKeys)
 //					return
 //				}
 //
@@ -174,7 +174,7 @@ func (_ UserGoogleDalGae) SaveUserGoogle(c context.Context, userGoogle models.Us
 //				}
 //				entity.AppUserIntID = appUserKey.IntegerID()
 //			default: // len(appUserKeys) > 1
-//				err = errors.New(fmt.Sprintf("Found > 1 users for email=%v, %v", emailLowCase, appUserKeys))
+//				err = fmt.Errorf("Found > 1 users for email=%v, %v", emailLowCase, appUserKeys)
 //				return
 //			}
 //		}

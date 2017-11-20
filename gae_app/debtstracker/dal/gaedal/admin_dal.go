@@ -119,13 +119,13 @@ func (_ AdminDalGae) DeleteAll(c context.Context, botCode, botChatID string) err
 	}
 
 	if len(errs) > 0 {
-		return errors.New(fmt.Sprintf("There were %v errors: %v", len(errs), strings.Join(errs, "\n")))
+		return fmt.Errorf("There were %v errors: %v", len(errs), strings.Join(errs, "\n"))
 	}
 
 	// We need to delay deletion of chat entity as it will be put by bot framework on reply.
 	chatKey := gae_host.NewGaeTelegramChatStore(common.TheAppContext.GetBotChatEntityFactory("telegram")).NewBotChatKey(c, botCode, botChatID)
 	if t, err := delayTgChatDeletion.Task(chatKey.StringID()); err != nil {
-		err = errors.Wrap(err, "Failed to create delay task")
+		err = errors.WithMessage(err, "failed to create delay task for Telegram chat deletion")
 		return err
 	} else {
 		t.Delay = time.Second

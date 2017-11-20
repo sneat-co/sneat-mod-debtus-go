@@ -113,14 +113,14 @@ func ProcessFullReturn(whc bots.WebhookContext, transfer models.Transfer) (m bot
 		case models.TransferDirectionUser2Counterparty:
 			direction = models.TransferDirectionCounterparty2User
 		default:
-			return m, errors.New(fmt.Sprintf("Transfer %v has unknown direction '%v'.", transfer.ID, transfer.Direction()))
+			return m, fmt.Errorf("Transfer %v has unknown direction '%v'.", transfer.ID, transfer.Direction())
 		}
 	} else if transfer.Counterparty().UserID == userID {
 		switch transfer.Direction() {
 		case models.TransferDirectionCounterparty2User:
 		case models.TransferDirectionUser2Counterparty:
 		default:
-			return m, errors.New(fmt.Sprintf("Transfer %v has unknown direction '%v'.", transfer.ID, transfer.Direction()))
+			return m, fmt.Errorf("Transfer %v has unknown direction '%v'.", transfer.ID, transfer.Direction())
 		}
 		counterpartyID = transfer.Creator().ContactID
 		direction = transfer.Direction()

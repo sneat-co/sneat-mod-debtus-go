@@ -137,7 +137,7 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 
 	members := billEntity.GetBillMembers()
 	//if len(members) == 0 {
-	//	return bill, errors.New(fmt.Sprintf("len(members) == 0, MembersJson: %v", billEntity.MembersJson))
+	//	return bill, fmt.Errorf("len(members) == 0, MembersJson: %v", billEntity.MembersJson)
 	//}
 
 	if len(members) == 0 {
@@ -207,7 +207,7 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 				}
 				if member.UserID != billEntity.CreatorUserID {
 					if len(member.ContactByUser) == 0 {
-						err = errors.New(fmt.Sprintf("len(members[i].ContactByUser) == 0: i==%v", i))
+						err = fmt.Errorf("len(members[i].ContactByUser) == 0: i==%v", i)
 						return
 					}
 					if member.UserID == "" {
@@ -492,7 +492,7 @@ func (billFacade) GetBillMembersUserInfo(c context.Context, bill models.Bill, fo
 			ok                    bool
 		)
 		if billMemberContactJson, ok = member.ContactByUser[sUserID]; !ok {
-			err = errors.New(fmt.Sprintf("Member  #%d does not have information for %v", i, sUserID))
+			err = fmt.Errorf("Member  #%d does not have information for %v", i, sUserID)
 			return
 		}
 		billMembersUserInfo[i] = BillMemberUserInfo{

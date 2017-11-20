@@ -267,7 +267,7 @@ func askContactDetailsCommand(cmd ContactsChannelCommand, invalidMessageCode str
 					case SmsChannelCommand.code:
 						return OnboardingTellAboutInviteCodeAction(whc)
 					default:
-						return m, errors.New(fmt.Sprintf("Unhandled Contact message by %v command", cmd.code))
+						return m, fmt.Errorf("Unhandled Contact message by %v command", cmd.code)
 					}
 
 				case strings.HasSuffix(awaitingReplyTo, cmd.code) && !altOption:

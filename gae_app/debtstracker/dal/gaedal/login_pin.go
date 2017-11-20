@@ -40,7 +40,7 @@ func (loginPinDalGae LoginPinDalGae) CreateLoginPin(c context.Context, channel, 
 	case "telegram":
 	case "viber":
 	default:
-		return 0, errors.New(fmt.Sprintf("Unknown channel: %v", channel))
+		return 0, fmt.Errorf("Unknown channel: %v", channel)
 	}
 	if createdUserID != 0 {
 		if _, err := dal.User.GetUserByID(c, createdUserID); err != nil {

@@ -7,6 +7,8 @@ import (
 	"github.com/strongo/app/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"golang.org/x/net/context"
 )
 
 const ASK_CURRENCY_SETTING_COMMAND = "ask-currency-settings"
@@ -38,19 +40,20 @@ const SET_PRIMARY_CURRENCY_COMMAND = "set-primary-currency"
 
 var SetPrimaryCurrency = bots.Command{
 	Code: SET_PRIMARY_CURRENCY_COMMAND,
-	Action: func(whc bots.WebhookContext) (bots.MessageFromBot, error) {
-
+	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+		c := whc.Context()
+		log.Debugf(c, "SetPrimaryCurrency.Action()")
 		whc.ChatEntity().SetAwaitingReplyTo("")
-		userEntity, err := whc.GetAppUser()
-		if err == nil {
-			user, _ := userEntity.(*models.AppUserEntity)
-			user.PrimaryCurrency = whc.Input().(bots.WebhookTextMessage).Text()
-			err = whc.SaveAppUser(whc.AppUserIntID(), userEntity)
-			if err != nil {
-				log.Errorf(whc.Context(), "Failed to update user: %v", err)
+		primaryCurrency := whc.Input().(bots.WebhookTextMessage).Text()
+		if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+			var user models.AppUser
+			if user, err = dal.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+				return
 			}
-		} else {
-			log.Errorf(whc.Context(), "Failed to get user: %v", err)
+			user.PrimaryCurrency = primaryCurrency
+			return dal.User.SaveUser(c, user)
+		}, nil); err != nil {
+			return
 		}
 		return whc.NewMessageByCode(trans.MESSAGE_TEXT_PRIMARY_CURRENCY_IS_SET_TO, whc.Input().(bots.WebhookTextMessage).Text()), nil
 	},

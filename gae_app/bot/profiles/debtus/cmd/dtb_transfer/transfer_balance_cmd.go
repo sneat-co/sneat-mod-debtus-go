@@ -4,7 +4,6 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
-	"errors"
 	"fmt"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
@@ -14,6 +13,7 @@ import (
 	"net/url"
 	"strings"
 	"time"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 )
 
 const BALANCE_COMMAND = "balance"
@@ -36,13 +36,12 @@ func balanceAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
 
 	log.Debugf(c, "BalanceCommand.Action()")
-	userEntity, err := whc.GetAppUser()
-	if err != nil {
-		log.Errorf(c, "Failed to get app user: %v", err)
+
+	var user models.AppUser
+
+	if user, err = dal.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
 		return
 	}
-
-	user := userEntity.(*models.AppUserEntity)
 
 	var buffer bytes.Buffer
 	if user.BalanceCount == 0 {
@@ -53,7 +52,7 @@ func balanceAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		balanceMessageBuilder := NewBalanceMessageBuilder(whc)
 		contacts := user.Contacts()
 		if len(contacts) == 0 {
-			return m, errors.New(fmt.Sprintf("Integrity issue: User{ID=%v} has non zero balance and no contacts.", whc.AppUserIntID()))
+			return m, fmt.Errorf("Integrity issue: User{ID=%v} has non zero balance and no contacts.", whc.AppUserIntID())
 		}
 		buffer.WriteString(fmt.Sprintf("<b>%v</b>", whc.Translate(trans.MESSAGE_TEXT_BALANCE_HEADER)) + common.HORIZONTAL_LINE)
 		linker := common.NewLinkerFromWhc(whc)

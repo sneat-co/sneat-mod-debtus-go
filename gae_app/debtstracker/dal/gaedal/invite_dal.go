@@ -92,7 +92,7 @@ func (_ InviteDalGae) CreateMassInvite(ec strongo.ExecutionContext, userID int64
 
 func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, userID int64, inviteBy models.InviteBy, inviteToAddress, createdOnPlatform, createdOnID string, inviteCodeLen uint8, inviteCode, related string, maxClaimsCount int32) (invite models.Invite, err error) {
 	if inviteCode != AUTO_GENERATE_INVITE_CODE && !dal.InviteCodeRegex.Match([]byte(inviteCode)) {
-		err = errors.New(fmt.Sprintf("Invalid invite code: %v", inviteCode))
+		err = fmt.Errorf("Invalid invite code: %v", inviteCode)
 		return
 	}
 	if related != "" && len(strings.Split(related, "=")) != 2 {
@@ -175,12 +175,12 @@ func (_ InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, inviteE
 		userKey := NewAppUserKey(tc, claimedByUserID)
 		var user models.AppUserEntity
 		if err = gaedb.GetMulti(tc, []*datastore.Key{inviteKey, userKey}, []interface{}{inviteEntity, &user}); err != nil {
-			return errors.Wrapf(err, "Failed to get entities by keys (%v)", []*datastore.Key{inviteKey, userKey})
+			return errors.WithMessage(err, fmt.Sprintf("Failed to get entities by keys (%v)", []*datastore.Key{inviteKey, userKey}))
 		}
 
 		inviteEntity.ClaimedCount += 1
 		if inviteEntity.MaxClaimsCount > 0 && inviteEntity.ClaimedCount > inviteEntity.MaxClaimsCount {
-			return errors.New(fmt.Sprintf("invite.ClaimedCount > invite.MaxClaimsCount: %v > %v", inviteEntity.ClaimedCount, inviteEntity.MaxClaimsCount))
+			return fmt.Errorf("invite.ClaimedCount > invite.MaxClaimsCount: %v > %v", inviteEntity.ClaimedCount, inviteEntity.MaxClaimsCount)
 		}
 		inviteClaimKey = NewInviteClaimIncompleteKey(c)
 		inviteClaim := NewInviteClaim(inviteCode, claimedByUserID, claimedOn, claimedVia)

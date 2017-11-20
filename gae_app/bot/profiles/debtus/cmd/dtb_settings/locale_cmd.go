@@ -13,6 +13,8 @@ import (
 	"github.com/strongo/measurement-protocol"
 	"net/url"
 	"strings"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -108,14 +110,14 @@ var SetLocaleCallbackCommand = bots.Command{
 func setPreferredLanguageCommand(whc bots.WebhookContext, code5, mode string) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
 	log.Debugf(c, "setPreferredLanguageCommand(code5=%v, mode=%v)", code5, mode)
-	userEntity, err := whc.GetAppUser()
+	appUser, err := whc.GetAppUser()
 	if err != nil {
 		log.Errorf(c, ": %v", err)
-		return m, errors.Wrap(err, "Failed to load user")
+		return m, errors.Wrap(err, "Failed to load userEntity")
 	}
-	user, ok := userEntity.(*models.AppUserEntity)
+	userEntity, ok := appUser.(*models.AppUserEntity)
 	if !ok {
-		return m, errors.New(fmt.Sprintf("Expected *models.AppUser, got: %T", userEntity))
+		return m, fmt.Errorf("Expected *models.AppUser, got: %T", appUser)
 	}
 
 	var (
@@ -124,26 +126,29 @@ func setPreferredLanguageCommand(whc bots.WebhookContext, code5, mode string) (m
 	)
 
 	chatEntity := whc.ChatEntity()
-	log.Debugf(c, "user.PreferredLanguage: %v, chatEntity.GetPreferredLanguage(): %v, code5: %v", user.PreferredLanguage, chatEntity.GetPreferredLanguage(), code5)
-	if user.PreferredLanguage != code5 || chatEntity.GetPreferredLanguage() != code5 {
-		log.Debugf(c, "PreferredLanguage will be updated for user & chat entities.")
+	log.Debugf(c, "userEntity.PreferredLanguage: %v, chatEntity.GetPreferredLanguage(): %v, code5: %v", userEntity.PreferredLanguage, chatEntity.GetPreferredLanguage(), code5)
+	if userEntity.PreferredLanguage != code5 || chatEntity.GetPreferredLanguage() != code5 {
+		log.Debugf(c, "PreferredLanguage will be updated for userEntity & chat entities.")
 		for _, locale := range trans.SupportedLocalesByCode5 {
 			if locale.Code5 == code5 {
 				whc.SetLocale(locale.Code5)
-				err := user.SetPreferredLocale(locale.Code5)
-				if err != nil {
-					return m, errors.Wrap(err, "Failed to set preferred locale for user")
+
+				if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+					var user models.AppUser
+					if user, err = dal.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+						return
+					}
+					if err = user.SetPreferredLocale(locale.Code5); err != nil {
+						err = errors.WithMessage(err, "Failed to set preferred locale for user")
+					}
+					return dal.User.SaveUser(c, user)
+				}, nil); err != nil {
+					return
 				}
 				chatEntity.SetPreferredLanguage(locale.Code5)
-				//err = whc.SaveBotChat(whc.BotChatID(), chatEntity) // TODO: Should be run in transaction
-				if err != nil {
-					return m, errors.Wrap(err, "Failed to save chat entity to datastore")
-				}
-
-				err = whc.SaveAppUser(whc.AppUserIntID(), user)
-				if err != nil {
-					return m, errors.Wrap(err, "Failed to save user to datastore")
-				}
+				//if err = whc.SaveBotChat(whc.BotChatID(), chatEntity); err != nil { // TODO: Should be run in transaction
+				//	return m, errors.Wrap(err, "Failed to save chat entity to datastore")
+				//}
 				localeChanged = true
 				selectedLocale = locale
 				if whc.GetBotSettings().Env == strongo.EnvProduction {
@@ -170,7 +175,7 @@ func setPreferredLanguageCommand(whc bots.WebhookContext, code5, mode string) (m
 		log.Debugf(c, "whc.Locale().Code5: %v", whc.Locale().Code5)
 		m = whc.NewMessageByCode(trans.MESSAGE_TEXT_YOUR_SELECTED_PREFERRED_LANGUAGE, selectedLocale.NativeTitle)
 		if _, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
-			log.Errorf(c, "Failed to notify user about selected language: %v", err)
+			log.Errorf(c, "Failed to notify userEntity about selected language: %v", err)
 			// Not critical, lets continue
 		}
 		isAccessGranted := true //bots.IsAccessGranted(whc)

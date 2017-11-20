@@ -119,7 +119,7 @@ type TransferEntity struct {
 	CreatorNote             string `datastore:",noindex,omitempty"` //TODO: Replace with <From|To>Note
 	CreatorComment          string `datastore:",noindex,omitempty"` //TODO: Replace with <From|To>Comment
 
-	CreatorTgReceiptByTgMsgID int64 `datastore:",noindex,omitempty"`
+	CreatorTgReceiptByTgMsgID int64 `datastore:",noindex,omitempty"` // TODO: Move to Receipt ?
 	//
 	//CreatorTgBotID       string `datastore:",noindex"` // TODO: Migrated to TransferCounterpartyInfo
 	//CreatorTgChatID      int64  `datastore:",noindex"` // TODO: Migrated to TransferCounterpartyInfo

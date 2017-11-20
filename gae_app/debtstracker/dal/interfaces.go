@@ -68,7 +68,7 @@ type ReceiptDal interface {
 	MarkReceiptAsSent(c context.Context, receiptID, transferID int64, sentTime time.Time) error
 	CreateReceipt(c context.Context, receipt *models.ReceiptEntity) (id int64, err error)
 	DelayedMarkReceiptAsSent(c context.Context, receiptID, transferID int64, sentTime time.Time) error
-	DelaySendReceiptToCounterpartyByTelegram(c context.Context, env strongo.Environment, transferID, userID int64) error
+	DelayCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongo.Environment, transferID, userID int64) error
 }
 
 var ErrReminderAlreadyRescheduled = errors.New("Reminder already rescheduled")
@@ -123,6 +123,7 @@ type UserDal interface {
 	DelayUpdateUserHasDueTransfers(c context.Context, userID int64) error
 	SetLastCurrency(c context.Context, userID int64, currency models.Currency) error
 	DelayUpdateUserWithBill(c context.Context, userID, billID string) error
+	DelayUpdateUserWithContact(c context.Context, userID, contactID int64) error
 }
 
 type PasswordResetDal interface {

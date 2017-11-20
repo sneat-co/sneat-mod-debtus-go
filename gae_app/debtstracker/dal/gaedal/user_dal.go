@@ -14,6 +14,7 @@ import (
 	"google.golang.org/appengine/delay"
 	"strings"
 	"strconv"
+	"time"
 )
 
 func NewAppUserKey(c context.Context, appUserId int64) *datastore.Key {
@@ -194,3 +195,42 @@ var delayedUpdateUserWithBill = delay.Func("delayedUpdateWithBill", func(c conte
 	log.Debugf(c, "User: %v", user)
 	return
 })
+
+func (UserDalGae) DelayUpdateUserWithContact(c context.Context, userID, billID int64) (err error) {
+	if err = gae.CallDelayFuncWithDelay(c, time.Second / 10, common.QUEUE_USERS, "updateUserWithContact", delayedUpdateUserWithContact, userID, billID); err != nil {
+		return
+	}
+	return
+}
+
+var delayedUpdateUserWithContact = delay.Func("updateUserWithContact", updateUserWithContact)
+
+func updateUserWithContact(c context.Context, userID, contactID int64) (err error) {
+	log.Debugf(c, "updateUserWithContact(userID=%v, contactID=%v)", userID, contactID)
+	var contact models.Contact
+	if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil {
+		err = nil
+		log.Errorf(c, err.Error())
+		return
+	}
+	return dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+		var user models.AppUser
+
+		if user, err = dal.User.GetUserByID(c, userID); err != nil {
+			return
+		}
+		if db.IsNotFound(err) {
+			log.Errorf(c, err.Error())
+			err = nil
+		}
+
+		if user.AddOrUpdateContact(contact) {
+			if err = dal.User.SaveUser(c, user); err != nil {
+				return
+			}
+		} else {
+			log.Debugf(c, "user not changed")
+		}
+		return
+	}, nil)
+}

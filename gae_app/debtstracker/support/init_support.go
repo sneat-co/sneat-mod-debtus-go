@@ -166,7 +166,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 				return errors.Wrap(err, "Failed to get user by key")
 			}
 			if txUser.SavedCounter != user.SavedCounter {
-				return errors.New(fmt.Sprintf("User changed since last load: txUser.SavedCounter:%v != user.SavedCounter:%v", txUser.SavedCounter, user.SavedCounter))
+				return fmt.Errorf("User changed since last load: txUser.SavedCounter:%v != user.SavedCounter:%v", txUser.SavedCounter, user.SavedCounter)
 			}
 			txUser.ContactsJson = ""
 			for i, counterpartyEntity := range userCounterparties {

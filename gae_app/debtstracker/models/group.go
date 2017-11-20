@@ -325,7 +325,7 @@ func (entity *GroupEntity) SetGroupMembers(members []GroupMemberJson) (changed b
 
 func (entity *GroupEntity) validateMembers(members []GroupMemberJson, membersCount int) error {
 	if membersCount != len(members) {
-		return errors.New(fmt.Sprintf("entity.MembersCount != len(members), %d != %d", entity.MembersCount, len(members)))
+		return fmt.Errorf("entity.MembersCount != len(members), %d != %d", entity.MembersCount, len(members))
 	}
 
 	type Empty struct {

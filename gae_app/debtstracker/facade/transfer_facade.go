@@ -258,7 +258,15 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 		if creatorContact, err = dal.Contact.GetContactByID(c, creatorContactID); err != nil {
 			return
 		}
-		log.Errorf(c, "data integrity issue: contact found by ID in database but is missing in user's JSON: creatorContactID=%v, user.ContactsJsonActive: %v", creatorContactID, input.CreatorUser.ContactsJsonActive)
+
+		log.Errorf(c, "data integrity issue: contact found by ID in database but is missing in user's JSON: creatorContactID=%v, creatorContact.UserID=%v, user.ID=%v, user.ContactsJsonActive: %v",
+			creatorContactID, creatorContact.UserID, input.CreatorUser.ID, input.CreatorUser.ContactsJsonActive)
+
+		if creatorContact.UserID != input.CreatorUser.ID {
+			err = fmt.Errorf("creatorContact.UserID != input.CreatorUser.ID: %v != %v", creatorContact.UserID, input.CreatorUser.ID)
+			return
+		}
+
 		if changed := input.CreatorUser.AddOrUpdateContact(creatorContact); changed {
 			contacts = input.CreatorUser.Contacts()
 		}
@@ -411,23 +419,23 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 	fromUser, toUser := output.From.User, output.To.User
 
 	if from.ContactID != 0 && output.From.Contact.UserID == 0 {
-		err = errors.New(fmt.Sprintf("Got bad counterparty entity from DB by id=%d, fromCounterparty.UserID == 0", from.ContactID))
+		err = fmt.Errorf("Got bad counterparty entity from DB by id=%d, fromCounterparty.UserID == 0", from.ContactID)
 		return
 	}
 
 	if to.ContactID != 0 && output.To.Contact.UserID == 0 {
-		err = errors.New(fmt.Sprintf("Got bad counterparty entity from DB by id=%d, toCounterparty.UserID == 0", to.ContactID))
+		err = fmt.Errorf("Got bad counterparty entity from DB by id=%d, toCounterparty.UserID == 0", to.ContactID)
 		return
 	}
 
 	if to.ContactID != 0 && from.ContactID != 0 {
 		if fromContact.CounterpartyUserID != toContact.UserID {
-			err = errors.New(fmt.Sprintf("fromCounterparty.CounterpartyUserID != toCounterparty.UserID (%d != %d)",
-				fromContact.CounterpartyUserID, toContact.UserID))
+			err = fmt.Errorf("fromCounterparty.CounterpartyUserID != toCounterparty.UserID (%d != %d)",
+				fromContact.CounterpartyUserID, toContact.UserID)
 		}
 		if toContact.CounterpartyUserID != fromContact.UserID {
-			err = errors.New(fmt.Sprintf("toCounterparty.CounterpartyUserID != fromCounterparty.UserID (%d != %d)",
-				toContact.CounterpartyUserID, fromContact.UserID))
+			err = fmt.Errorf("toCounterparty.CounterpartyUserID != fromCounterparty.UserID (%d != %d)",
+				toContact.CounterpartyUserID, fromContact.UserID)
 		}
 		return
 	}
@@ -660,7 +668,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 
 	//log.Debugf(c, "transferEntity before insert: %v", litter.Sdump(transferEntity))
 	if output.Transfer, err = dal.Transfer.InsertTransfer(c, transferEntity); err != nil {
-		err = errors.Wrap(err, "Failed to save transfer entity")
+		err = errors.WithMessage(err, "failed to save transfer entity")
 		return
 	}
 
@@ -702,11 +710,22 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 
 		log.Debugf(c, "closedTransferIDs: %v", closedTransferIDs)
 
+		if output.From.User.ID == output.To.User.ID {
+			panic(fmt.Sprintf("output.From.User.ID == output.To.User.ID: %v", output.From.User.ID))
+		}
+		if output.From.Contact.ID == output.To.Contact.ID {
+			panic(fmt.Sprintf("output.From.Contact.ID == output.To.Contact.ID: %v", output.From.Contact.ID))
+		}
+
 		if output.From.User.ID != 0 {
-			transferFacade.updateUserAndCounterpartyWithTransferInfo(c, amountWithoutInterest, output.Transfer, output.From.User, output.To.Contact, models.TransferDirectionUser2Counterparty, closedTransferIDs)
+			if err = transferFacade.updateUserAndCounterpartyWithTransferInfo(c, amountWithoutInterest, output.Transfer, output.From.User, output.To.Contact, closedTransferIDs); err != nil {
+				return
+			}
 		}
 		if output.To.User.ID != 0 {
-			transferFacade.updateUserAndCounterpartyWithTransferInfo(c, amountWithoutInterest, output.Transfer, output.To.User, output.From.Contact, models.TransferDirectionCounterparty2User, closedTransferIDs)
+			if err = transferFacade.updateUserAndCounterpartyWithTransferInfo(c, amountWithoutInterest, output.Transfer, output.To.User, output.From.Contact, closedTransferIDs); err != nil {
+				return
+			}
 		}
 	}
 
@@ -753,7 +772,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 	}
 
 	if output.Transfer.Counterparty().UserID != 0 {
-		if err = dal.Receipt.DelaySendReceiptToCounterpartyByTelegram(c, input.Env, createdTransfer.ID, createdTransfer.Counterparty().UserID); err != nil {
+		if err = dal.Receipt.DelayCreateAndSendReceiptToCounterpartyByTelegram(c, input.Env, createdTransfer.ID, createdTransfer.Counterparty().UserID); err != nil {
 			// TODO: Send by any available channel
 			err = errors.WithMessage(err, "failed to delay sending receipt to counterpartyEntity by Telegram")
 			return
@@ -778,123 +797,111 @@ func (_ transferFacade) updateUserAndCounterpartyWithTransferInfo(
 	amount models.Amount,
 	transfer models.Transfer,
 	user models.AppUser,
-	counterparty models.Contact,
-	direction models.TransferDirection,
+	contact models.Contact,
 	closedTransferIDs []int64,
 ) (err error) {
-	log.Debugf(c, "updateUserAndCounterpartyWithTransferInfo(user=%v, counterparty=%v)", user, counterparty)
-	if user.ID != counterparty.UserID {
-		panic(fmt.Sprintf("user.ID != counterparty.UserID (%d != %d)", user.ID, counterparty.UserID))
+	log.Debugf(c, "updateUserAndCounterpartyWithTransferInfo(user=%v, contact=%v)", user, contact)
+	if user.ID != contact.UserID {
+		panic(fmt.Sprintf("user.ID != contact.UserID (%d != %d)", user.ID, contact.UserID))
 	}
-	//userBalanceBefore := user.Balance()[amount.Currency]
-	//defer func() {
-	//	userBalanceAfter := user.Balance()[amount.Currency]
-	//	if userBalanceAfter != (userBalanceBefore+amount.Value) && userBalanceAfter != (userBalanceBefore-amount.Value) {
-	//		log.Warningf(c, "New balance does not match SUM(old_balance + transfer): amount: %v, userBalanceBefore: %v, userBalanceAfter: %v", amount.Value, userBalanceBefore, userBalanceAfter)
-	//	}
-	//}()
-
-	var updateBalanceAndContactTransfersInfo = func(curr models.Currency, val decimal.Decimal64p2, user models.AppUser, cp models.Contact) (err error) {
-		log.Debugf(c, "Updating balance with [%v %v] for user #%d, counterparty #%d", val, curr, user.ID, cp.ID)
-		if user.ID != cp.UserID {
-			panic("user.ID != cp.UserID")
-		}
-		var balance models.Balance
-		if balance, err = cp.Add2Balance(curr, val); err != nil {
-			err = errors.Wrapf(err, "Failed to add (%v %v) to balance for counterparty #%d", curr, val, cp.ID)
-			return
-		} else {
-			cp.CountOfTransfers += 1
-			cpBalance := cp.Balance()
-			log.Debugf(c, "Updated balance to %v | %v for counterparty #%d", balance, cpBalance, cp.ID)
-		}
-
-		if contactTransfersInfo := cp.GetTransfersInfo(); contactTransfersInfo.Last.ID != transfer.ID {
-			contactTransfersInfo.Count += 1
-			contactTransfersInfo.Last.ID = transfer.ID
-			contactTransfersInfo.Last.At = transfer.DtCreated
-			if transfer.HasInterest() {
-				contactTransfersInfo.OutstandingWithInterest = append(contactTransfersInfo.OutstandingWithInterest, models.TransferWithInterestJson{
-					TransferID:       transfer.ID,
-					Amount:           transfer.AmountInCents,
-					Currency:         transfer.Currency,
-					Starts:           transfer.DtCreated,
-					TransferInterest: transfer.TransferInterest,
-				})
-			}
-			log.Debugf(c, "len(contactTransfersInfo.OutstandingWithInterest): %v", len(contactTransfersInfo.OutstandingWithInterest))
-			if len(contactTransfersInfo.OutstandingWithInterest) > 0 {
-				if len(closedTransferIDs) > 0 {
-					log.Debugf(c, "removeClosedTransfersFromOutstandingWithInterest(closedTransferIDs: %v)", closedTransferIDs)
-					contactTransfersInfo.OutstandingWithInterest = removeClosedTransfersFromOutstandingWithInterest(contactTransfersInfo.OutstandingWithInterest, closedTransferIDs)
-				}
-				log.Debugf(c, "transfer.ReturnToTransferIDs: %v", transfer.ReturnToTransferIDs)
-				for _, returnToTransferID := range transfer.ReturnToTransferIDs {
-					if slices.IsInInt64Slice(returnToTransferID, closedTransferIDs) {
-						log.Debugf(c, "transfer %v is closed", returnToTransferID)
-					} else {
-						for i, outstanding := range contactTransfersInfo.OutstandingWithInterest {
-							if outstanding.TransferID == returnToTransferID {
-								if len(transfer.ReturnToTransferIDs) == 1 {
-									outstanding.Returns = append(outstanding.Returns, models.TransferReturnJson{
-										TransferID: transfer.ID,
-										Amount:     transfer.AmountInCents,
-										Time:       transfer.DtCreated,
-									})
-									contactTransfersInfo.OutstandingWithInterest[i] = outstanding
-								} else {
-									err = errors.WithMessage(ErrNotImplemented, "Return to multiple debts if at least one of them have interest is not implemented yet, please return debts with interest one by one.")
-									return
-								}
-								goto addedToReturns
-							}
-						}
-						log.Debugf(c, "transfer %v is not listed in contactTransfersInfo.OutstandingWithInterest", returnToTransferID)
-					addedToReturns:
-					}
-				}
-			}
-
-			log.Debugf(c, "transfer.HasInterest(): %v, contactTransfersInfo: %v", transfer.HasInterest(), litter.Sdump(*contactTransfersInfo))
-			if err = cp.SetTransfersInfo(*contactTransfersInfo); err != nil {
-				err = errors.WithMessage(err, "failed to call SetTransfersInfo()")
-				return
-			}
-		}
-
-		if balance, err = user.Add2Balance(curr, val); err != nil {
-			err = errors.WithMessage(err, fmt.Sprintf("failed to add %v=%v to balance for user %v", curr, val, user.ID))
-			return
-		} else {
-			user.CountOfTransfers += 1
-			userBalance := user.Balance()
-			log.Debugf(c, "Updated balance to %v | %v for user #%d", balance, userBalance, user.ID)
-		}
-		log.Debugf(c, "user.ContactsJsonActive (before): %v\ncp: %v", user.ContactsJsonActive, litter.Sdump(cp))
-		userContactsChanged := user.AddOrUpdateContact(cp)
-		log.Debugf(c, "user.ContactsJson (changed=%v): %v", userContactsChanged, user.ContactsJsonActive)
-		return
+	var val decimal.Decimal64p2
+	switch user.ID {
+	case transfer.From().UserID:
+		val = amount.Value * USER_BALANCE_INCREASED
+	case transfer.To().UserID:
+		val = amount.Value * USER_BALANCE_DECREASED
+	default:
+		panic(fmt.Sprintf("user is not related to transfer: %v", user.ID))
 	}
+	curr := amount.Currency
 
-	counterparty.LastTransferID = transfer.ID
-	counterparty.LastTransferAt = transfer.DtCreated
+	contact.LastTransferID = transfer.ID
+	contact.LastTransferAt = transfer.DtCreated
 
 	user.LastTransferID = transfer.ID
 	user.LastTransferAt = transfer.DtCreated
 	user.SetLastCurrency(string(transfer.Currency))
 
-	var amountValue decimal.Decimal64p2
-	switch direction {
-	case models.TransferDirectionUser2Counterparty:
-		amountValue = amount.Value * USER_BALANCE_INCREASED
-	case models.TransferDirectionCounterparty2User:
-		amountValue = amount.Value * USER_BALANCE_DECREASED
-	default:
-		panic("Unknown direction: " + string(direction))
+
+	//var updateBalanceAndContactTransfersInfo = func(curr models.Currency, val decimal.Decimal64p2, user models.AppUser, contact models.Contact) (err error) {
+	log.Debugf(c, "Updating balance with [%v %v] for user #%d, contact #%d", val, curr, user.ID, contact.ID)
+	if user.ID != contact.UserID {
+		panic("user.ID != contact.UserID")
 	}
-	if err = updateBalanceAndContactTransfersInfo(amount.Currency, amountValue, user, counterparty); err != nil {
+	var balance models.Balance
+	if balance, err = contact.AddToBalance(curr, val); err != nil {
+		err = errors.Wrapf(err, "Failed to add (%v %v) to balance for contact #%d", curr, val, contact.ID)
 		return
+	} else {
+		contact.CountOfTransfers += 1
+		cpBalance := contact.Balance()
+		log.Debugf(c, "Updated balance to %v | %v for contact #%d", balance, cpBalance, contact.ID)
 	}
+
+	if contactTransfersInfo := contact.GetTransfersInfo(); contactTransfersInfo.Last.ID != transfer.ID {
+		contactTransfersInfo.Count += 1
+		contactTransfersInfo.Last.ID = transfer.ID
+		contactTransfersInfo.Last.At = transfer.DtCreated
+		if transfer.HasInterest() {
+			contactTransfersInfo.OutstandingWithInterest = append(contactTransfersInfo.OutstandingWithInterest, models.TransferWithInterestJson{
+				TransferID:       transfer.ID,
+				Amount:           transfer.AmountInCents,
+				Currency:         transfer.Currency,
+				Starts:           transfer.DtCreated,
+				TransferInterest: transfer.TransferInterest,
+			})
+		}
+		log.Debugf(c, "len(contactTransfersInfo.OutstandingWithInterest): %v", len(contactTransfersInfo.OutstandingWithInterest))
+		if len(contactTransfersInfo.OutstandingWithInterest) > 0 {
+			if len(closedTransferIDs) > 0 {
+				log.Debugf(c, "removeClosedTransfersFromOutstandingWithInterest(closedTransferIDs: %v)", closedTransferIDs)
+				contactTransfersInfo.OutstandingWithInterest = removeClosedTransfersFromOutstandingWithInterest(contactTransfersInfo.OutstandingWithInterest, closedTransferIDs)
+			}
+			log.Debugf(c, "transfer.ReturnToTransferIDs: %v", transfer.ReturnToTransferIDs)
+			for _, returnToTransferID := range transfer.ReturnToTransferIDs {
+				if slices.IsInInt64Slice(returnToTransferID, closedTransferIDs) {
+					log.Debugf(c, "transfer %v is closed", returnToTransferID)
+				} else {
+					for i, outstanding := range contactTransfersInfo.OutstandingWithInterest {
+						if outstanding.TransferID == returnToTransferID {
+							if len(transfer.ReturnToTransferIDs) == 1 {
+								outstanding.Returns = append(outstanding.Returns, models.TransferReturnJson{
+									TransferID: transfer.ID,
+									Amount:     transfer.AmountInCents,
+									Time:       transfer.DtCreated,
+								})
+								contactTransfersInfo.OutstandingWithInterest[i] = outstanding
+							} else {
+								err = errors.WithMessage(ErrNotImplemented, "Return to multiple debts if at least one of them have interest is not implemented yet, please return debts with interest one by one.")
+								return
+							}
+							goto addedToReturns
+						}
+					}
+					log.Debugf(c, "transfer %v is not listed in contactTransfersInfo.OutstandingWithInterest", returnToTransferID)
+				addedToReturns:
+				}
+			}
+		}
+
+		log.Debugf(c, "transfer.HasInterest(): %v, contactTransfersInfo: %v", transfer.HasInterest(), litter.Sdump(*contactTransfersInfo))
+		if err = contact.SetTransfersInfo(*contactTransfersInfo); err != nil {
+			err = errors.WithMessage(err, "failed to call SetTransfersInfo()")
+			return
+		}
+	}
+
+	if balance, err = user.AddToBalance(curr, val); err != nil {
+		err = errors.WithMessage(err, fmt.Sprintf("failed to add %v=%v to balance for user %v", curr, val, user.ID))
+		return
+	} else {
+		user.CountOfTransfers += 1
+		userBalance := user.Balance()
+		log.Debugf(c, "Updated balance to %v | %v for user #%d", balance, userBalance, user.ID)
+	}
+	log.Debugf(c, "user.ContactsJsonActive (before): %v\ncontact: %v", user.ContactsJsonActive, litter.Sdump(contact))
+	userContactsChanged := user.AddOrUpdateContact(contact)
+	log.Debugf(c, "user.ContactsJson (changed=%v): %v", userContactsChanged, user.ContactsJsonActive)
 	return
 }
 

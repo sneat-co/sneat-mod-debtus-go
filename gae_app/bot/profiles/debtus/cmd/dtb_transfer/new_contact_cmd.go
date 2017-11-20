@@ -52,7 +52,7 @@ func NewCounterpartyCommand(nextCommand bots.Command) bots.Command {
 						return dtb_general.MainMenuAction(whc, "", false)
 					}
 					if mt == "" {
-						return m, errors.New("Failed to get userContactJson details: mt is empty && inputMessage == nil")
+						return m, errors.New("failed to get userContactJson details: mt is empty && inputMessage == nil")
 					}
 					if _, err = strconv.ParseFloat(mt, 64); err == nil {
 						// User entered a number
@@ -64,7 +64,7 @@ func NewCounterpartyCommand(nextCommand bots.Command) bots.Command {
 				case bots.WebhookContactMessage:
 					contactMessage := input.(bots.WebhookContactMessage)
 					if contactMessage == nil {
-						return m, errors.New("Failed to get userContactJson details: mt is empty && userContactJson == nil")
+						return m, errors.New("failed to get WebhookContactMessage: contactMessage == nil")
 					}
 
 					contactDetails = models.ContactDetails{
@@ -96,13 +96,12 @@ func NewCounterpartyCommand(nextCommand bots.Command) bots.Command {
 						}
 					}
 				default:
-					err = fmt.Errorf("Unknown input, expected text or contact message, got: %T", input)
+					err = fmt.Errorf("unknown input, expected text or contact message, got: %T", input)
 					return
 				}
 
 				if !existingContact {
-					contact, _, err = facade.CreateContact(whc.Context(), whc.AppUserIntID(), contactDetails)
-					if err != nil {
+					if contact, user, err = facade.CreateContact(c, whc.AppUserIntID(), contactDetails); err != nil {
 						return m, err
 					}
 					whc.GaMeasurement().Queue(measurement.NewEventWithLabel(

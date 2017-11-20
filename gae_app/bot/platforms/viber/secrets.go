@@ -41,7 +41,7 @@ func Bots(c context.Context) bots.SettingsBy { //TODO: Consider to do pre-deploy
 //	if langLen == 2 {
 //		lang = fmt.Sprintf("%v-%v", strings.ToLower(lang), strings.ToUpper(lang))
 //	} else if langLen != 5 {
-//		return bots.BotSettings{}, errors.New(fmt.Sprintf("Invalid length of lang parameter: %v, %v", langLen, lang))
+//		return bots.BotSettings{}, fmt.Errorf("Invalid length of lang parameter: %v, %v", langLen, lang)
 //	}
 //	if botSettings, ok := botSettingsBy.Locale[lang]; ok {
 //		return botSettings, nil
@@ -50,5 +50,5 @@ func Bots(c context.Context) bots.SettingsBy { //TODO: Consider to do pre-deploy
 //			return botSettings, nil
 //		}
 //	}
-//	return bots.BotSettings{}, errors.New(fmt.Sprintf("No bot setting for both %v & %v locales.", lang, DEFAULT_LOCALE))
+//	return bots.BotSettings{}, fmt.Errorf("No bot setting for both %v & %v locales.", lang, DEFAULT_LOCALE)
 //}

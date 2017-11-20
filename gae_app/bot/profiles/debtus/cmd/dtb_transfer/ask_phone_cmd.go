@@ -248,7 +248,7 @@ func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact,
 		smsRecord := lastTwilioSmsese[0]
 		if smsRecord.To == phoneContact.PhoneNumberAsString() && (smsRecord.Status == "delivered" || smsRecord.Status == "queued") {
 			// TODO: Do smarter check for limit
-			err = errors.New(fmt.Sprintf("Exceeded limit for sending SMS to same number: %v", phoneContact.PhoneNumberAsString()))
+			err = fmt.Errorf("Exceeded limit for sending SMS to same number: %v", phoneContact.PhoneNumberAsString())
 			return m, err
 		}
 	}

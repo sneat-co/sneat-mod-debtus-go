@@ -187,7 +187,7 @@ func viewReceiptCallbackAction(whc bots.WebhookContext, callbackUrl *url.URL) (m
 //		return
 //	} else {
 //		if invite == nil {
-//			err = errors.New(fmt.Sprintf("Invite not found by code: %v", inviteCode))
+//			err = fmt.Errorf("Invite not found by code: %v", inviteCode)
 //			return
 //		}
 //		if invite.CreatedByUserID == whc.AppUserIntID() {

@@ -35,6 +35,27 @@ func newReceiptDbChanges() *receiptDbChanges {
 	}
 }
 
+func workaroundReinsertContact(c context.Context, receipt models.Receipt, invitedContact models.Contact, changes *receiptDbChanges) (err error) {
+	if _, err = dal.Contact.GetContactByID(c, invitedContact.ID); err != nil {
+		log.Debugf(c, "workaroundReinsertContact(invitedContact.ID=%v) => %v",  invitedContact.ID, err.Error())
+		if db.IsNotFound(err) {
+			err = nil
+			if receipt.Status == models.ReceiptStatusAcknowledged {
+				if invitedContactInfo := changes.invitedUser.ContactByID(invitedContact.ID); invitedContactInfo != nil {
+					log.Warningf(c, "Transactional retry, contact was not created in DB but invitedUser already has the contact info & receipt is acknowledged")
+					changes.invitedContact = &invitedContact
+				} else {
+					log.Warningf(c, "Transactional retry, contact was not created in DB but receipt is acknowledged & invitedUser has not contact info in JSON")
+				}
+			}
+			changes.FlagAsChanged(changes.invitedContact)
+		}
+	} else {
+		log.Warningf(c, "workaroundReinsertContact(%v) => contact found by ID!", invitedContact.ID)
+	}
+	return
+}
+
 func AcknowledgeReceipt(
 	c context.Context, receiptID, currentUserID int64, operation string,
 ) (
@@ -79,21 +100,8 @@ func AcknowledgeReceipt(
 		}
 
 		if invitedContact.ID != 0 { // This means we are attempting to retry failed transaction
-			if _, err = dal.Contact.GetContactByID(tc, invitedContact.ID); err != nil {
-				if db.IsNotFound(err) {
-					err = nil
-					if receipt.Status == models.ReceiptStatusAcknowledged {
-						if invitedContactInfo := invitedUser.ContactByID(invitedContact.ID); invitedContactInfo != nil {
-							log.Warningf(c, "Transactional retry, contact was not created in DB but invitedUser already has the contact info & receipt is acknowledged")
-							changes.invitedContact = &invitedContact
-						} else {
-							log.Warningf(c, "Transactional retry, contact was not created in DB but receipt is acknowledged & invitedUser has not contact info in JSON")
-						}
-					}
-					changes.FlagAsChanged(changes.invitedContact)
-				} else {
-					return
-				}
+			if err = workaroundReinsertContact(tc, receipt, invitedContact, changes); err != nil {
+				return
 			}
 		}
 

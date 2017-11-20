@@ -31,7 +31,7 @@ var LoginPinCommand = bots.Command{
 			lang string
 		)
 		if len(contextParams) < 2 || len(contextParams) > 3 {
-			return m, errors.New(fmt.Sprintf("len(contextParams): %v", len(contextParams)))
+			return m, fmt.Errorf("len(contextParams): %v", len(contextParams))
 		}
 		for _, p := range contextParams {
 			switch {

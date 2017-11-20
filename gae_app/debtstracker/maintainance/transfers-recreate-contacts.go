@@ -110,7 +110,7 @@ func verifyAndFixMissingTransferContacts(c context.Context, transfer models.Tran
 			if contact.Nickname != contactUserContactJson.Name && contact.FirstName != contactUserContactJson.Name && contact.LastName != contactUserContactJson.Name && contact.ScreenName != contactUserContactJson.Name {
 				contact.Nickname = contactUserContactJson.Name
 			}
-			if err = contact.SetBalance(models.ReverseBalance(counterpartyContact.Balance())); err != nil {
+			if err = contact.SetBalance(counterpartyContact.Balance().Reversed()); err != nil {
 				return
 			}
 			if !contact.Balance().Equal(contactUserContactJson.Balance())  {

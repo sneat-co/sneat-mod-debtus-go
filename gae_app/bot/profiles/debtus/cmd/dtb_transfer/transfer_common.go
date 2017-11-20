@@ -185,7 +185,7 @@ func AskTransferAmountCommand(code, messageTextFormat string, nextCommand bots.C
 				//	amount := models.AmountTotal{Currency: models.Currency(params.Get("currency")), Value: amountValue}
 				//	messageText = fmt.Sprintf(messageText, amount)
 				//}
-				return m, errors.New(fmt.Sprintf("Command %v is incorrectly matched, whc.AwaitingReplyToPath(): %v", code, awaitingReplyToPath))
+				return m, fmt.Errorf("Command %v is incorrectly matched, whc.AwaitingReplyToPath(): %v", code, awaitingReplyToPath)
 			default:
 				chatEntity.PushStepToAwaitingReplyTo(code)
 				currencyText := chatEntity.GetWizardParam("currency")
@@ -218,17 +218,17 @@ func AskTransferAmountCommand(code, messageTextFormat string, nextCommand bots.C
 	}
 }
 
-type _onCounterpartySelectedAction func(whc bots.WebhookContext, counterparty models.Contact) (m bots.MessageFromBot, err error)
+type _onContactSelectedAction func(whc bots.WebhookContext, counterparty models.Contact) (m bots.MessageFromBot, err error)
 
 func CreateAskTransferCounterpartyCommand(
 	isReturn bool,
 	code, title, icon, messageText string,
 	replies []bots.Command,
-	newCounterpartyCommand bots.Command,
-	onCounterpartySelectedAction _onCounterpartySelectedAction,
+	newContactCommand bots.Command,
+	onContactSelectedAction _onContactSelectedAction,
 ) bots.Command {
-	if newCounterpartyCommand.Code != "" {
-		replies = append(replies, newCounterpartyCommand)
+	if newContactCommand.Code != "" {
+		replies = append(replies, newContactCommand)
 	}
 	return bots.Command{
 		Code:    code,
@@ -250,8 +250,8 @@ func CreateAskTransferCounterpartyCommand(
 				input := whc.Input()
 				switch input.(type) {
 				case bots.WebhookContactMessage:
-					chatEntity.PushStepToAwaitingReplyTo(newCounterpartyCommand.Code)
-					return newCounterpartyCommand.Action(whc)
+					chatEntity.PushStepToAwaitingReplyTo(newContactCommand.Code)
+					return newContactCommand.Action(whc)
 				case bots.WebhookTextMessage:
 					mt := whc.Input().(bots.WebhookTextMessage).Text()
 					if mt == "." {
@@ -263,7 +263,7 @@ func CreateAskTransferCounterpartyCommand(
 					}
 					if mt == whc.Translate(trans.COMMAND_TEXT_SHOW_ALL_CONTACTS) {
 						log.Debugf(c, "mt == whc.Translate(trans.COMMAND_TEXT_SHOW_ALL_CONTACTS)")
-						m, err = listCounterpartiesAsButtons(whc, isReturn, messageText, newCounterpartyCommand)
+						m, err = listCounterpartiesAsButtons(whc, models.AppUser{}, isReturn, messageText, newContactCommand)
 					} else {
 						log.Debugf(c, "mt != whc.Translate(trans.COMMAND_TEXT_SHOW_ALL_CONTACTS), len(contactIDs): %v", len(contactIDs))
 						switch len(contactIDs) {
@@ -274,7 +274,7 @@ func CreateAskTransferCounterpartyCommand(
 							if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil {
 								return
 							}
-							m, err = onCounterpartySelectedAction(whc, contact)
+							m, err = onContactSelectedAction(whc, contact)
 						case 0:
 							m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_UNKNOWN_COUNTERPARTY))
 						default:
@@ -288,20 +288,16 @@ func CreateAskTransferCounterpartyCommand(
 				return m, err
 			case strings.Contains(awaitingReplyToPath, code):
 				log.Debugf(c, "strings.Contains(awaitingReplyToPath, code)")
-				return m, errors.New(fmt.Sprintf("Command %v is incorrectly matched, whc.AwaitingReplyToPath(): %v", code, awaitingReplyToPath))
+				return m, fmt.Errorf("Command %v is incorrectly matched, whc.AwaitingReplyToPath(): %v", code, awaitingReplyToPath)
 			default:
 				log.Debugf(c, "default:")
-				user, err := whc.GetAppUser()
-				if err != nil {
-					return m, err
+				var user models.AppUser
+				if user, err = dal.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+					return
 				}
-				appUser, converted := user.(*models.AppUserEntity)
-				if !converted {
-					panic("Can not convert user to AppUser")
-				}
-				if isReturn && appUser.BalanceCount <= 3 && appUser.TotalContactsCount() <= 3 {
+				if isReturn && user.BalanceCount <= 3 && user.TotalContactsCount() <= 3 {
 					// If there is little debts in total show selection of debts immediately
-					counterparties, err := dal.Contact.GetLatestContacts(whc, 0, appUser.TotalContactsCount())
+					counterparties, err := dal.Contact.GetLatestContacts(whc, 0, user.TotalContactsCount())
 					if err != nil {
 						return m, err
 					}
@@ -327,7 +323,7 @@ func CreateAskTransferCounterpartyCommand(
 				}
 
 				chatEntity.PushStepToAwaitingReplyTo(code)
-				m, err = listCounterpartiesAsButtons(whc, isReturn, messageText, newCounterpartyCommand)
+				m, err = listCounterpartiesAsButtons(whc, user, isReturn, messageText, newContactCommand)
 				return m, err
 			}
 		},
@@ -336,7 +332,8 @@ func CreateAskTransferCounterpartyCommand(
 
 const COUNTERPARTY_BUTTONS_LIMIT = 4
 
-func listCounterpartiesAsButtons(whc bots.WebhookContext, isReturn bool, messageText string, newCounterpartyCommand bots.Command) (m bots.MessageFromBot, err error) {
+func listCounterpartiesAsButtons(whc bots.WebhookContext, user models.AppUser, isReturn bool, messageText string, newCounterpartyCommand bots.Command,
+	) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
 
 	log.Debugf(c, "listCounterpartiesAsButtons")
@@ -357,15 +354,11 @@ func listCounterpartiesAsButtons(whc bots.WebhookContext, isReturn bool, message
 		m = whc.NewMessage(whc.Translate(messageText))
 	}
 	m.Format = bots.MessageFormatHTML
-	user, err := whc.GetAppUser()
-	if err != nil {
-		return m, err
+	if user.AppUserEntity == nil {
+		if user, err = dal.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+			return
+		}
 	}
-	appUser, converted := user.(*models.AppUserEntity)
-	if !converted {
-		panic("Can not convert user to AppUser")
-	}
-
 	var showAllContactsText = whc.Translate(trans.COMMAND_TEXT_SHOW_ALL_CONTACTS)
 
 	buttons := [][]string{}
@@ -374,7 +367,7 @@ func listCounterpartiesAsButtons(whc bots.WebhookContext, isReturn bool, message
 			buttons = append(buttons, []string{counterparty.Name})
 		}
 		var controlButtons []string
-		if !isShowingAll && len(counterparties) < appUser.TotalContactsCount() {
+		if !isShowingAll && len(counterparties) < user.TotalContactsCount() {
 			controlButtons = append(controlButtons, showAllContactsText)
 		}
 		if newCounterpartyCommand.Code != "" {
@@ -385,21 +378,21 @@ func listCounterpartiesAsButtons(whc bots.WebhookContext, isReturn bool, message
 		}
 	}
 	if webhookMessage, ok := whc.Input().(bots.WebhookTextMessage); ok && webhookMessage.Text() == showAllContactsText {
-		counterparties2buttons(appUser.Contacts(), true)
+		counterparties2buttons(user.Contacts(), true)
 	} else {
-		switch appUser.BalanceCount {
+		switch user.BalanceCount {
 		case 0: // User have no active debts
-			if appUser.TotalContactsCount() > 0 {
-				counterparties := appUser.LatestCounterparties(COUNTERPARTY_BUTTONS_LIMIT)
+			if user.TotalContactsCount() > 0 {
+				counterparties := user.LatestCounterparties(COUNTERPARTY_BUTTONS_LIMIT)
 				counterparties2buttons(counterparties, false)
 			} else {
 				return newCounterpartyCommand.Action(whc)
 			}
 		default: // User have active debts (balance is not 0.
 
-			counterpartiesToShow := appUser.ActiveContactsWithBalance()
+			counterpartiesToShow := user.ActiveContactsWithBalance()
 			if len(counterpartiesToShow) <= COUNTERPARTY_BUTTONS_LIMIT {
-				latestCounterparties := appUser.LatestCounterparties(COUNTERPARTY_BUTTONS_LIMIT)
+				latestCounterparties := user.LatestCounterparties(COUNTERPARTY_BUTTONS_LIMIT)
 				for _, latestCounterparty := range latestCounterparties {
 					var isInWithDebts bool
 					for _, counterpartyToShow := range counterpartiesToShow {
@@ -476,7 +469,7 @@ func TransferWizardCompletedCommand(code string) bots.Command {
 			case strings.HasPrefix(code, "transfer-to-"):
 				direction = models.TransferDirectionCounterparty2User
 			default:
-				return m, errors.New(fmt.Sprintf("Can not decide direction due to unknown code: %v", code))
+				return m, fmt.Errorf("Can not decide direction due to unknown code: %v", code)
 			}
 
 			counterpartyId := transferWizard.CounterpartyID(c)

@@ -68,7 +68,7 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 			return err
 		}
 		if len(contacts) < 2 {
-			return errors.New(fmt.Sprintf("len(contacts):%d < 2", len(contacts)))
+			return fmt.Errorf("len(contacts):%d < 2", len(contacts))
 		}
 		contactToKeep := contacts[0]
 		contactToDelete := contacts[1]

@@ -24,7 +24,7 @@ func showReceiptAnnouncement(whc bots.WebhookContext, receiptID int64, creatorNa
 	case bots.WebhookCallbackQuery:
 		inlineMessageID = input.(bots.WebhookCallbackQuery).GetInlineMessageID()
 	default:
-		return m, errors.New(fmt.Sprintf("showReceiptAnnouncement: Unsupported InputType=%T", input))
+		return m, fmt.Errorf("showReceiptAnnouncement: Unsupported InputType=%T", input)
 	}
 
 	c := whc.Context()

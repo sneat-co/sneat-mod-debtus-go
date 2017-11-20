@@ -270,7 +270,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 		}
 		fmt.Fprintf(buf,"contact.Balance(): %v\n", contact.Balance())
 		fmt.Fprintf(buf,"counterpartyContact.Balance(): %v\n", contact.Balance())
-		if !counterpartyContact.GetTransfersInfo().Equal(contact.GetTransfersInfo()) || !counterpartyContact.Balance().Equal(models.ReverseBalance(transfersBalance)) {
+		if !counterpartyContact.GetTransfersInfo().Equal(contact.GetTransfersInfo()) || !counterpartyContact.Balance().Equal(transfersBalance.Reversed()) {
 			needsFixingContactOrUser = true
 		}
 	} else {
@@ -335,7 +335,7 @@ func (m *verifyContactTransfers) fixContactAndUser(c context.Context, buf *bytes
 			return
 		}
 		if contact.CounterpartyCounterpartyID != 0 {
-			if _, _, err = m.fixContactAndUserWithinTransaction(c, buf, counters, contact.CounterpartyCounterpartyID, models.ReverseBalance(transfersBalance), transfersCount, lastTransfer); err != nil {
+			if _, _, err = m.fixContactAndUserWithinTransaction(c, buf, counters, contact.CounterpartyCounterpartyID, transfersBalance.Reversed(), transfersCount, lastTransfer); err != nil {
 				return
 			}
 		}

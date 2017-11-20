@@ -3,7 +3,6 @@ package gaedal
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
-	"github.com/pkg/errors"
 	"github.com/strongo/app/gaedb"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
@@ -44,7 +43,7 @@ func (userBrowserDalGae UserBrowserDalGae) SaveUserBrowser(c context.Context, us
 	userBrowsers := make([]models.UserBrowserEntity, 0, limit)
 	var keys []*datastore.Key
 	if keys, err = query.GetAll(c, &userBrowsers); err != nil {
-		err = errors.New(fmt.Sprintf("Failed to query UserBrowser: %v", err))
+		err = fmt.Errorf("Failed to query UserBrowser: %v", err)
 		return
 	} else {
 		switch len(keys) {

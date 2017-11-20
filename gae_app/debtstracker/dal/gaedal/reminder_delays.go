@@ -245,7 +245,7 @@ func discardReminder(c context.Context, reminderID, transferID, returnTransferID
 		log.Infof(c, "Will try to update a reminder message as it was already sent to user, reminder.MessageIntID: %v", reminder.MessageIntID)
 		tgBotApi := telegram.GetTelegramBotApiByBotCode(c, reminder.BotID)
 		if tgBotApi == nil {
-			return errors.New(fmt.Sprintf("Not able to create API client as there no settings for telegram bot with id '%v'", reminder.BotID))
+			return fmt.Errorf("Not able to create API client as there no settings for telegram bot with id '%v'", reminder.BotID)
 		}
 
 		if reminder.Locale == "" {

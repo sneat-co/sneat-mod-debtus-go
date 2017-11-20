@@ -43,10 +43,23 @@ func (linker *receiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID,
 		changes.inviterUser = &creatorUser
 		changes.invitedUser = &counterpartyUser
 
+		log.Debugf(c, "invitedContact.ID: %v", invitedContact.ID)
+		if invitedContact.ID != 0 { // This means we are attempting to retry failed transaction
+			if err = workaroundReinsertContact(tc, receipt, invitedContact, changes); err != nil {
+				return
+			}
+		}
+
 		if isJustLinked, err = linker.linkUsersByReceiptWithinTransaction(c, tc); err != nil {
 			return
+		} else {
+			invitedContact = *changes.invitedContact
 		}
-		invitedContact = *changes.invitedContact
+
+		// Integrity checks
+		{
+			invitedContact.MustMatchCounterparty(*changes.inviterContact)
+		}
 
 		if entitiesToSave := changes.EntityHolders(); len(entitiesToSave) > 0 {
 			if err = dal.DB.UpdateMulti(c, entitiesToSave); err != nil {
@@ -126,7 +139,7 @@ func (linker receiptUsersLinker) linkUsersByReceiptWithinTransaction(
 		changes.inviterContact = &inviterContact
 	}
 
-	if err = newUsersLinker(changes.usersLinkingDbChanges).linkUsersWithinTransaction(c, tc); err != nil {
+	if err = newUsersLinker(changes.usersLinkingDbChanges).linkUsersWithinTransaction(tc); err != nil {
 		err = errors.WithMessage(err, "Failed to link users")
 		return
 	} else {
@@ -249,8 +262,8 @@ func (linker receiptUsersLinker) updateTransfer() (err error) {
 
 	if transferCounterparty.UserID != invitedUser.ID {
 		if transferCounterparty.UserID != 0 {
-			err = errors.New(fmt.Sprintf("transfer.Contact().UserID != counterpartyUserID : %d != %d",
-				transfer.Counterparty().UserID, invitedUser.ID))
+			err = fmt.Errorf("transfer.Contact().UserID != counterpartyUserID : %d != %d",
+				transfer.Counterparty().UserID, invitedUser.ID)
 			return
 		}
 		transfer.Counterparty().UserID = invitedUser.ID

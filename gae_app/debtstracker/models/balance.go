@@ -26,6 +26,14 @@ func (b Balance) IsZero() bool {
 	return true
 }
 
+func (b Balance) Reversed() (reversed Balance) {
+	reversed = make(Balance, len(b))
+	for currency, value := range b {
+		reversed[currency] = -value
+	}
+	return
+}
+
 func (b Balance) Equal(b2 Balance) bool {
 	if len(b) != len(b2) {
 		return false
@@ -119,14 +127,6 @@ type Balanced struct {
 	BalanceCount     int       `datastore:",noindex,omitempty" json:"-"`
 }
 
-func ReverseBalance(balance Balance) (reversed Balance) {
-	reversed = make(Balance, len(balance))
-	for currency, value := range balance {
-		reversed[currency] = -value
-	}
-	return
-}
-
 func (b *Balanced) Balance() (balance Balance) {
 	if b.BalanceJson == "" || b.BalanceJson == "null" || b.BalanceJson == "nil" || b.BalanceJson == "{}"{
 		balance = make(Balance, 1)
@@ -159,9 +159,9 @@ func (b *Balanced) SetBalance(balance Balance) error {
 	return nil
 }
 
-func (balanced *Balanced) Add2Balance(currency Currency, value decimal.Decimal64p2) (Balance, error) {
+func (balanced *Balanced) AddToBalance(currency Currency, value decimal.Decimal64p2) (Balance, error) {
 	oldBalance := balanced.Balance()
 	newBalance := oldBalance.Add(Amount{Currency: currency, Value: value})
-	//log.Debugf(c, "Add2Balance(): oldBalance: %v, newBalance: %v", oldBalance, newBalance)
+	//log.Debugf(c, "AddToBalance(): oldBalance: %v, newBalance: %v", oldBalance, newBalance)
 	return newBalance, balanced.SetBalance(newBalance)
 }

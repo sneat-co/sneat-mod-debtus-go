@@ -41,6 +41,15 @@ func (c *Contact) SetEntity(entity interface{}) {
 	c.ContactEntity = ce
 }
 
+func (c Contact) MustMatchCounterparty(counterparty Contact) {
+	if !c.Balance().Equal(counterparty.Balance().Reversed()) {
+		panic(fmt.Sprintf("contact[%d].Balance() != counterpartyContact[%d].Balance(): %v != %v", c.ID, counterparty.ID, c.Balance(), counterparty.Balance()))
+	}
+	if c.BalanceCount != counterparty.BalanceCount {
+		panic(fmt.Sprintf("contact.BalanceCount != counterpartyContact.BalanceCount:  %v != %v", c.BalanceCount, counterparty.BalanceCount))
+	}
+}
+
 func NewContact(id int64, entity *ContactEntity) Contact {
 	return Contact{IntegerID: db.IntegerID{ID: id}, ContactEntity: entity}
 }

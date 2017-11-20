@@ -13,6 +13,7 @@ const (
 	ReceiptKind = "Receipt"
 
 	ReceiptStatusCreated      = "created"
+	ReceiptStatusSending         = "sending"
 	ReceiptStatusSent         = "sent"
 	ReceiptStatusViewed       = "viewed"
 	ReceiptStatusAcknowledged = "acknowledged"

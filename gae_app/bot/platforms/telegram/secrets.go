@@ -4,7 +4,6 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/secret"
 	"fmt"
-	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
@@ -67,7 +66,7 @@ func GetBotSettingsByLang(environment strongo.Environment, profile, lang string)
 	if langLen == 2 {
 		lang = fmt.Sprintf("%v-%v", strings.ToLower(lang), strings.ToUpper(lang))
 	} else if langLen != 5 {
-		return bots.BotSettings{}, errors.New(fmt.Sprintf("Invalid length of lang parameter: %v, %v", langLen, lang))
+		return bots.BotSettings{}, fmt.Errorf("Invalid length of lang parameter: %v, %v", langLen, lang)
 	}
 	findByProfile := func(botSettings []bots.BotSettings) (bots.BotSettings, error) {
 		for _, bs := range botSettings {
@@ -75,7 +74,7 @@ func GetBotSettingsByLang(environment strongo.Environment, profile, lang string)
 				return bs, nil
 			}
 		}
-		return bots.BotSettings{}, errors.New(fmt.Sprintf("Not found by locale=%v + profile=%v", lang, profile))
+		return bots.BotSettings{}, fmt.Errorf("Not found by locale=%v + profile=%v", lang, profile)
 	}
 	if botSettings, ok := botSettingsBy.ByLocale[lang]; ok {
 		return findByProfile(botSettings)
@@ -84,5 +83,5 @@ func GetBotSettingsByLang(environment strongo.Environment, profile, lang string)
 			return findByProfile(botSettings)
 		}
 	}
-	return bots.BotSettings{}, errors.New(fmt.Sprintf("No bot setting for both %v & %v locales.", lang, DEFAULT_LOCALE))
+	return bots.BotSettings{}, fmt.Errorf("No bot setting for both %v & %v locales.", lang, DEFAULT_LOCALE)
 }

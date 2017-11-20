@@ -9,7 +9,6 @@ import (
 	"crypto/md5"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
@@ -88,7 +87,7 @@ func getLocale(c context.Context, w http.ResponseWriter, r *http.Request) (local
 		} else {
 			nextSlashIndex := strings.Index(path[1:], "/")
 			if nextSlashIndex == -1 {
-				err = errors.New(fmt.Sprintf("Unsupported path: %v", path))
+				err = fmt.Errorf("Unsupported path: %v", path)
 				w.WriteHeader(http.StatusNotFound)
 				w.Header().Set("Content-Type", "text/plain")
 				w.Write(([]byte)(err.Error()))

@@ -136,7 +136,7 @@ var delayedUpdateTransferWithCounterparty = delay.Func(DELAY_UPDATE_1_TRANSFER_W
 					transferCreator.ContactID = counterpartyCounterparty.ID
 					changed = true
 				} else if transferCreator.ContactID != counterpartyCounterparty.ID {
-					err = errors.New(fmt.Sprintf("transferCounterparty.ContactID != counterpartyCounterparty.ID: %d != %d", transferCreator.ContactID, counterpartyCounterparty.ID))
+					err = fmt.Errorf("transferCounterparty.ContactID != counterpartyCounterparty.ID: %d != %d", transferCreator.ContactID, counterpartyCounterparty.ID)
 					return err
 				} else {
 					log.Debugf(c, "transferCounterparty.ContactID == counterpartyCounterparty.ID: %d", transferCreator.ContactID)
@@ -157,7 +157,7 @@ var delayedUpdateTransferWithCounterparty = delay.Func(DELAY_UPDATE_1_TRANSFER_W
 					transferCounterparty.UserID = counterpartyCounterparty.UserID
 					changed = true
 				} else if transferCounterparty.UserID != counterpartyCounterparty.UserID {
-					err = errors.New(fmt.Sprintf("transferCounterparty.UserID != counterpartyCounterparty.UserID: %d != %d", transferCounterparty.UserID, counterpartyCounterparty.UserID))
+					err = fmt.Errorf("transferCounterparty.UserID != counterpartyCounterparty.UserID: %d != %d", transferCounterparty.UserID, counterpartyCounterparty.UserID)
 					return err
 				} else {
 					log.Debugf(c, "transferCounterparty.UserID == counterpartyCounterparty.UserID: %d", transferCounterparty.UserID)

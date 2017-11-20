@@ -28,7 +28,7 @@ func optionsHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	default:
 		if !(strings.HasPrefix(origin, "http://") && strings.HasSuffix(origin, ":8100")) {
-			err := errors.New(fmt.Sprintf("Unknown origin: %v", origin))
+			err := fmt.Errorf("Unknown origin: %v", origin)
 			log.Debugf(c, err.Error())
 			BadRequestError(c, w, err)
 			return

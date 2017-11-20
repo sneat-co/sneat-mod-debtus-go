@@ -17,7 +17,7 @@ package dtb_transfer
 //	c := ec.Context()
 //
 //	//if transferID, err = invite.RelatedIntID(); err != nil {
-//	//	err = errors.New(fmt.Sprintf("Transfer ID in invite.Related is not an int64: [%v]", invite.Related))
+//	//	err = fmt.Errorf("Transfer ID in invite.Related is not an int64: [%v]", invite.Related)
 //	//	return
 //	//}
 //

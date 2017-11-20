@@ -21,7 +21,7 @@ func newUsersLinker(changes *usersLinkingDbChanges) usersLinker {
 }
 
 func (linker usersLinker) linkUsersWithinTransaction(
-	c, tc context.Context, // 'tc' is transactional context, 'c' is not
+	tc context.Context, // 'tc' is transactional context, 'c' is not
 ) (
 	err error,
 ) {
@@ -33,7 +33,7 @@ func (linker usersLinker) linkUsersWithinTransaction(
 		changes.invitedContact = invitedContact
 	}
 
-	log.Debugf(c, "usersLinker.linkUsersWithinTransaction(inviterUser.ID=%d, invitedUser.ID=%d, inviterContact=%d, inviterContact.UserID=%v)", inviterUser.ID, invitedUser.ID, inviterContact.ID, inviterContact.UserID)
+	log.Debugf(tc, "usersLinker.linkUsersWithinTransaction(inviterUser.ID=%d, invitedUser.ID=%d, inviterContact=%d, inviterContact.UserID=%v)", inviterUser.ID, invitedUser.ID, inviterContact.ID, inviterContact.UserID)
 
 	// First of all lets validate input
 	if err = linker.validateInput(inviterUser, invitedUser, inviterContact); err != nil {
@@ -47,7 +47,7 @@ func (linker usersLinker) linkUsersWithinTransaction(
 
 	// Update entities
 	{
-		if err = linker.getOrCreateInvitedContactByInviterUserAndInviterContact(c, tc, changes); err != nil {
+		if err = linker.getOrCreateInvitedContactByInviterUserAndInviterContact(tc, changes); err != nil {
 			return
 		} else {
 			invitedContact = changes.invitedContact
@@ -55,21 +55,32 @@ func (linker usersLinker) linkUsersWithinTransaction(
 
 		if invitedContact.ContactEntity == nil {
 			err = fmt.Errorf(
-					"getOrCreateInvitedContactByInviterUserAndInviterContact() returned invitedContact.ContactEntity == nil, invitedContact.ID: %d",
-					invitedContact.ID)
+				"getOrCreateInvitedContactByInviterUserAndInviterContact() returned invitedContact.ContactEntity == nil, invitedContact.ID: %d",
+				invitedContact.ID)
 			return
 		} else if invitedContact.UserID != invitedUser.ID {
 			panic(fmt.Sprintf("invitedContact.UserID != invitedUser.ID: %v != %v", invitedContact.UserID, invitedUser.ID))
 		}
 
-		log.Debugf(c, "getOrCreateInvitedContactByInviterUserAndInviterContact() => invitedContact.ID: %v", invitedContact.ID)
+		log.Debugf(tc, "getOrCreateInvitedContactByInviterUserAndInviterContact() => invitedContact.ID: %v", invitedContact.ID)
 
-		if err = linker.updateInvitedUser(*invitedUser, inviterUser.ID, *inviterContact); err != nil {
+		if err = linker.updateInvitedUser(tc, *invitedUser, inviterUser.ID, *inviterContact); err != nil {
 			return
 		}
 
 		if _, err = linker.updateInviterContact(tc, *inviterUser, *invitedUser, inviterContact, invitedContact); err != nil {
 			return
+		}
+	}
+
+	// verify
+	{
+		invitedContact.MustMatchCounterparty(*inviterContact)
+		if !invitedUser.ContactByID(invitedContact.ID).Balance().Equal(inviterUser.ContactByID(inviterContact.ID).Balance().Reversed()) {
+			panic(fmt.Sprintf("users contacts json balances are not equal (invited vs inviter): %v != %v",
+				invitedUser.ContactByID(invitedContact.ID).Balance(),
+				inviterUser.ContactByID(inviterContact.ID).Balance(),
+			))
 		}
 	}
 	return
@@ -99,18 +110,26 @@ func (linker usersLinker) validateInput(
 
 // Purpose of the function is an attempt to link existing counterparties
 func (linker usersLinker) getOrCreateInvitedContactByInviterUserAndInviterContact(
-	c, tc context.Context, changes *usersLinkingDbChanges,
+	tc context.Context, changes *usersLinkingDbChanges,
 ) (err error) {
 	inviterUser, invitedUser := *changes.inviterUser, *changes.invitedUser
-	inviterContact, invitedContact := *changes.inviterContact, *changes.invitedContact
-	log.Debugf(c, "getOrCreateInvitedContactByInviterUserAndInviterContact()\n\tinviterContact.ID: %v", inviterContact.ID)
+	inviterContact := *changes.inviterContact
+	log.Debugf(tc, "getOrCreateInvitedContactByInviterUserAndInviterContact()\n\tinviterContact.ID: %v", inviterContact.ID)
 	if inviterUser.ID == invitedUser.ID {
 		panic(fmt.Sprintf("inviterUser.ID == invitedUser.ID: %v", inviterUser.ID))
 	}
+
+	var invitedContact models.Contact
+	if changes.invitedContact != nil && changes.invitedContact.ID != 0 {
+		invitedContact = *changes.invitedContact
+	} else {
+		changes.invitedContact = &invitedContact
+	}
+
 	if invitedUser.ContactsCount > 0 {
 		var invitedUserContacts []models.Contact
 		// Use non transaction context
-		invitedUserContacts, err = dal.Contact.GetContactsByIDs(c, invitedUser.ContactIDs())
+		invitedUserContacts, err = dal.Contact.GetContactsByIDs(tc, invitedUser.ContactIDs())
 		if err != nil {
 			err = errors.Wrap(err, "Failed to call dal.Contact.GetContactsByIDs()")
 			return
@@ -135,7 +154,7 @@ func (linker usersLinker) getOrCreateInvitedContactByInviterUserAndInviterContac
 	}
 
 	if invitedContact.ID == 0 {
-		log.Debugf(c, "getOrCreateInvitedContactByInviterUserAndInviterContact(): creating new contact for invited user")
+		log.Debugf(tc, "getOrCreateInvitedContactByInviterUserAndInviterContact(): creating new contact for invited user")
 		invitedContactDetails := models.ContactDetails{
 			FirstName:  inviterUser.FirstName,
 			LastName:   inviterUser.LastName,
@@ -143,55 +162,52 @@ func (linker usersLinker) getOrCreateInvitedContactByInviterUserAndInviterContac
 			ScreenName: inviterUser.ScreenName,
 			Username:   inviterUser.Username,
 		}
-		if invitedContact, inviterContact, err = CreateContactWithinTransaction(
-			tc, invitedUser, inviterUser.ID, inviterContact, invitedContactDetails); err != nil {
+		createContactDbChanges := &createContactDbChanges{
+			user:                changes.invitedUser,
+			counterpartyContact: changes.inviterContact,
+		}
+		if invitedContact, inviterContact, err = createContactWithinTransaction(tc, createContactDbChanges, inviterUser.ID, invitedContactDetails); err != nil {
 			return
-		} else {
-			changes.invitedContact = &invitedContact
-			if changes.inviterContact == nil {
-				changes.inviterContact = &inviterContact
-				changes.FlagAsChanged(changes.inviterContact)
-			}
-			if invitedUser.LastTransferAt.Before(inviterContact.LastTransferAt) {
-				invitedUser.LastTransferID = inviterContact.LastTransferID
-				invitedUser.LastTransferAt = inviterContact.LastTransferAt
-				changes.FlagAsChanged(changes.invitedUser)
-			}
+		}
+		if changes.inviterContact == nil {
+			changes.inviterContact = &inviterContact
+			changes.FlagAsChanged(changes.inviterContact)
+		}
+		if invitedUser.LastTransferAt.Before(inviterContact.LastTransferAt) {
+			invitedUser.LastTransferID = inviterContact.LastTransferID
+			invitedUser.LastTransferAt = inviterContact.LastTransferAt
+			changes.FlagAsChanged(changes.invitedUser)
 		}
 	} else {
-		log.Debugf(c, "getOrCreateInvitedContactByInviterUserAndInviterContact(): linking existing contact: %v", invitedContact)
+		log.Debugf(tc, "getOrCreateInvitedContactByInviterUserAndInviterContact(): linking existing contact: %v", invitedContact)
 		// TODO: How do we merge existing contacts?
 		invitedContact.CountOfTransfers = inviterContact.CountOfTransfers
 		invitedContact.LastTransferID = inviterContact.LastTransferID
 		invitedContact.LastTransferAt = inviterContact.LastTransferAt
-		var creatorCounterpartyBalance models.Balance
-		creatorCounterpartyBalance = inviterContact.Balance()
-		if err = invitedContact.SetBalance(creatorCounterpartyBalance); err != nil {
+		if err = invitedContact.SetBalance(inviterContact.Balance().Reversed()); err != nil {
 			return
 		}
 		changes.FlagAsChanged(changes.invitedContact)
 	}
+	invitedContact.MustMatchCounterparty(inviterContact)
 	return
 }
 
-func (linker usersLinker) updateInvitedUser(invitedUser models.AppUser, inviterUserID int64, inviterContact models.Contact) (err error) {
+func (linker usersLinker) updateInvitedUser(c context.Context, invitedUser models.AppUser, inviterUserID int64, inviterContact models.Contact) (err error) {
+	log.Debugf(c, "usersLinker.updateInvitedUser()")
 	var invitedUserChanged bool
+
 	if invitedUser.InvitedByUserID == 0 {
 		invitedUser.InvitedByUserID = inviterUserID
 		invitedUserChanged = true
 	}
 
-	if inviterContactBalance := inviterContact.Balance(); len(inviterContactBalance) > 0 {
-		for currency, value := range inviterContactBalance {
-			invitedUser.Add2Balance(currency, -1*value)
-		}
-		invitedUserChanged = true
-	}
 	if inviterContact.LastTransferAt.After(invitedUser.LastTransferAt) {
 		invitedUser.LastTransferID = inviterContact.LastTransferID
 		invitedUser.LastTransferAt = inviterContact.LastTransferAt
 		invitedUserChanged = true
 	}
+
 	if invitedUserChanged {
 		linker.changes.FlagAsChanged(linker.changes.invitedUser)
 	}
