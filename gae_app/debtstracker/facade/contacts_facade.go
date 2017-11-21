@@ -202,6 +202,10 @@ func CreateContact(c context.Context, userID int64, contactDetails models.Contac
 			}
 			return
 		}, dal.CrossGroupTransaction)
+		if err != nil {
+			dal.User.DelayUpdateUserWithContact(c, contact.UserID, contact.ID)
+			return
+		}
 		return
 	case 1:
 		if contact, err = dal.Contact.GetContactByID(c, contactIDs[0]); err != nil {

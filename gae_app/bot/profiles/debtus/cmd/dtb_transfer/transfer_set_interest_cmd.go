@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 	"github.com/pkg/errors"
+	"github.com/DebtsTracker/translations/trans"
 )
 
 var reInterest = regexp.MustCompile(`^\s*(?P<percent>\d+(?:[\.,]\d+)?)%?(?:/(?P<period>\d+|w(?:eek)?|y(?:ear)?|m(?:onth)?))?(?:/(?P<minimum>\d+))?(?:/(?P<grace>\d+))?(?::\s*(?P<comment>.+?))?\s*$`)
@@ -30,6 +31,10 @@ func interestAction(whc bots.WebhookContext, nextAction bots.CommandAction) (m b
 					return
 				}
 			case "period":
+				if v == "" {
+					m.Text = whc.Translate(trans.MESSAGE_TEXT_INTEREST_PLEASE_SPECIFY_PERIOD)
+					return
+				}
 				switch v[0] {
 				case "w"[0]:
 					data.InterestPeriod = models.InterestRatePeriodWeekly

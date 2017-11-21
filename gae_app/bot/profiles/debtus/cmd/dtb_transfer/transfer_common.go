@@ -27,7 +27,6 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
-	"github.com/strongo/app/db"
 	"bytes"
 )
 
@@ -576,13 +575,9 @@ func CreateTransferFromBot(
 
 	from, to := facade.TransferCounterparties(direction, creatorInfo)
 
-	var appUserEntity bots.BotAppUser
-	if appUserEntity, err = whc.GetAppUser(); err != nil {
-		return m, err
-	}
-	appUser := models.AppUser{
-		IntegerID:     db.NewIntID(whc.AppUserIntID()),
-		AppUserEntity: appUserEntity.(*models.AppUserEntity),
+	var appUser models.AppUser
+	if appUser, err = dal.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+		return
 	}
 	newTransfer := facade.NewTransferInput(whc.Environment(),
 		GetTransferSource(whc),

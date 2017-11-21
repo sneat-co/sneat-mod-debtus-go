@@ -183,6 +183,7 @@ func onReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transf
 			receipt        models.ReceiptEntity
 			transferEntity models.TransferEntity
 		)
+		// TODO: Replace with DAL call?
 		if err := gaedb.GetMulti(c, []*datastore.Key{receiptKey, transferKey}, []interface{}{&receipt, &transferEntity}); err != nil {
 			return err
 		}
@@ -240,7 +241,7 @@ func onReceiptSendFail(c context.Context, receiptID, tgChatID int64, tgMsgID int
 		} else if receipt.DtFailed.IsZero() {
 			receipt.DtFailed = failedAt
 			receipt.Error = details
-			if _, ndsErr := gaedb.Put(c, NewReceiptKey(c, receiptID), receipt); ndsErr != nil {
+			if ndsErr := dal.Receipt.UpdateReceipt(c, receipt); ndsErr != nil {
 				log.Errorf(c, "Failed to update Receipt with error information: %v", ndsErr) // Discard error
 			}
 			return err
@@ -430,7 +431,6 @@ var delayedSendReceiptToCounterpartyByTelegram = delay.Func("dalayedSendReceiptT
 		creatorTgChatID, creatorTgMsgID := transfer.Creator().TgChatID, int(transfer.CreatorTgReceiptByTgMsgID)
 		if err = sendToTelegram(c, tgMessage, toUserBotSettings); err != nil {
 			if _, forbidden := err.(tgbotapi.ErrAPIForbidden); forbidden || strings.Contains(err.Error(), "Bad Request: chat not found") {
-				err = nil
 				log.Infof(c, "Telegram chat not found or disabled (creatorTgChatID=%v, creatorTgMsgID=%v): %v", creatorTgChatID, creatorTgMsgID, err)
 				if err2 := gae_host.MarkTelegramChatAsForbidden(c, toUserBotSettings.Code, tgChatID, time.Now()); err2 != nil {
 					log.Errorf(c, "Failed to call MarkTelegramChatAsStopped(): %v", err2.Error())
@@ -447,6 +447,7 @@ var delayedSendReceiptToCounterpartyByTelegram = delay.Func("dalayedSendReceiptT
 				if err2 := DelayOnReceiptSendFail(c, receiptID, creatorTgChatID, creatorTgMsgID, time.Now(), localeCode, msgTextToCreator); err2 != nil {
 					log.Errorf(c, errors.Wrap(err2, "Failed to update receipt entity with error info").Error())
 				}
+				err = nil
 				return nil
 			}
 			return err

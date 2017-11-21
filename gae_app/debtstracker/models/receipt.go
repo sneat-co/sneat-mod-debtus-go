@@ -45,6 +45,9 @@ func (r *Receipt) Entity() interface{} {
 }
 
 func (r *Receipt) SetEntity(entity interface{}) {
+	if entity == nil {
+		r.ReceiptEntity = nil
+	}
 	r.ReceiptEntity = entity.(*ReceiptEntity)
 }
 
