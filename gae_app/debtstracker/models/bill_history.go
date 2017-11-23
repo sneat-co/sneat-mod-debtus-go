@@ -3,9 +3,9 @@ package models
 import (
 	"github.com/strongo/decimal"
 	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 	"google.golang.org/appengine/datastore"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db/gaedb"
 	"github.com/pkg/errors"
 	"fmt"
 	"time"
@@ -28,12 +28,16 @@ func (record BillsHistory) Entity() interface{} {
 	return record.BillsHistoryEntity
 }
 
+func (BillsHistory) NewEntity() interface{} {
+	return new(BillsHistoryEntity)
+}
+
 func (record *BillsHistory) SetEntity(entity interface{}) {
 	if entity == nil {
 		record.BillsHistoryEntity = nil
-		return
+	} else {
+		record.BillsHistoryEntity = entity.(*BillsHistoryEntity)
 	}
-	record.BillsHistoryEntity = entity.(*BillsHistoryEntity)
 }
 
 var _ db.EntityHolder = (*BillsHistory)(nil)

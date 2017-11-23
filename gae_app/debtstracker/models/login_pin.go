@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 	"time"
 )
 
@@ -22,8 +22,17 @@ func (loginPin LoginPin) Entity() interface{} {
 	return loginPin.LoginPinEntity
 }
 
+func (LoginPin) NewEntity() interface{} {
+	return new(LoginPinEntity)
+}
+
 func (loginPin *LoginPin) SetEntity(entity interface{}) {
-	loginPin.LoginPinEntity = entity.(*LoginPinEntity)
+	if entity == nil {
+		loginPin.LoginPinEntity = nil
+	} else {
+		loginPin.LoginPinEntity = entity.(*LoginPinEntity)
+	}
+
 }
 
 

@@ -14,7 +14,7 @@ import (
 	//"github.com/strongo/app"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/maintainance"
 	"github.com/julienschmidt/httprouter"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/bots-framework/core"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"

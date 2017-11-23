@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/app/db"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db"
+	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
 	"strings"
 	"github.com/strongo/decimal"
@@ -24,6 +24,10 @@ func (Group) Kind() string {
 
 func (group Group) Entity() interface{} {
 	return group.GroupEntity
+}
+
+func (Group) NewEntity() interface{} {
+	return new(GroupEntity)
 }
 
 func (group Group) SetEntity(entity interface{}) {

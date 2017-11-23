@@ -1,7 +1,7 @@
 package bot_shared
 
 import (
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"net/url"

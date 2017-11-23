@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"google.golang.org/appengine"
 	"net/http"
 	"strconv"

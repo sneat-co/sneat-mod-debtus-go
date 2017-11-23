@@ -4,7 +4,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_inline"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_invite"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/bots-framework/core"
 	"strings"
 )

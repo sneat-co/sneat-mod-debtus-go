@@ -4,7 +4,7 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"net/url"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"bytes"
 	"github.com/strongo/bots-api-telegram"
 	"fmt"

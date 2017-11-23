@@ -5,8 +5,8 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/db"
-	"github.com/strongo/app/log"
+	"github.com/strongo/db"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"reflect"
 	"strconv"
@@ -85,10 +85,10 @@ func createContactWithinTransaction(
 				panic(fmt.Sprintf("counterpartyContact.UserID != counterpartyUserID: %v != %v", counterpartyContact.UserID, counterpartyUserID))
 			}
 		}
-		contact.ContactEntity.CounterpartyUserID = counterpartyUserID
-		contact.ContactEntity.CounterpartyCounterpartyID = counterpartyContact.ID
-		contact.ContactEntity.TransfersJson = counterpartyContact.TransfersJson
-		contact.ContactEntity.Balanced = models.Balanced{
+		contact.CounterpartyUserID = counterpartyUserID
+		contact.CounterpartyCounterpartyID = counterpartyContact.ID
+		contact.TransfersJson = counterpartyContact.TransfersJson
+		contact.Balanced = models.Balanced{
 			CountOfTransfers: counterpartyContact.CountOfTransfers,
 			LastTransferID:   counterpartyContact.LastTransferID,
 			LastTransferAt:   counterpartyContact.LastTransferAt,

@@ -5,7 +5,7 @@ import (
 	"github.com/SermoDigital/jose/jws"
 	"github.com/SermoDigital/jose/jwt"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"google.golang.org/appengine"
 	"net/http"
 	"strconv"

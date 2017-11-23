@@ -6,7 +6,7 @@ import (
 //"golang.org/x/net/context"
 //"testing"
 //"time"
-//"github.com/strongo/app/gaedb"
+//"github.com/strongo/db/gaedb"
 )
 
 //func TestNewContactIncompleteKey(t *testing.T) {

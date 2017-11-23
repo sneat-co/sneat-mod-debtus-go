@@ -1,7 +1,7 @@
 package appengine
 
 import (
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"testing"
 )
 

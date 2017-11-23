@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 	"time"
 )
 
@@ -25,6 +25,10 @@ func (UserOneSignal) Kind() string {
 
 func (userOneSignal UserOneSignal) Entity() interface{} {
 	return userOneSignal.UserOneSignalEntity
+}
+
+func (UserOneSignal) NewEntity() interface{} {
+	return new(UserOneSignalEntity)
 }
 
 func (userOneSignal *UserOneSignal) SetEntity(entity interface{}) {

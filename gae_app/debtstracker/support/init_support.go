@@ -9,7 +9,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 	"github.com/strongo/nds"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
@@ -20,7 +20,7 @@ import (
 	"sort"
 	"strconv"
 	"time"
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 )
 
 func InitSupportHandlers(router *httprouter.Router) {

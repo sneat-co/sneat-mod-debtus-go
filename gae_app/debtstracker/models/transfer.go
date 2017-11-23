@@ -4,8 +4,8 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/db"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db"
+	"github.com/strongo/db/gaedb"
 	"github.com/strongo/decimal"
 	"google.golang.org/appengine/datastore"
 	"time"
@@ -69,14 +69,19 @@ func (t Transfer) IntID() int64 {
 }
 
 func (t *Transfer) Entity() interface{} {
-	if t.TransferEntity == nil {
-		t.TransferEntity = new(TransferEntity)
-	}
 	return t.TransferEntity
 }
 
+func (Transfer) NewEntity() interface{} {
+	return new(TransferEntity)
+}
+
 func (t *Transfer) SetEntity(entity interface{}) {
-	t.TransferEntity = entity.(*TransferEntity)
+	if entity == nil {
+		t.TransferEntity = nil
+	} else {
+		t.TransferEntity = entity.(*TransferEntity)
+	}
 }
 
 func (t *Transfer) SetIntID(id int64) {

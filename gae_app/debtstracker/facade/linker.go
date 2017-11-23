@@ -1,7 +1,7 @@
 package facade
 
 import (
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 )
 
 func toSave(entitiesToSave []db.EntityHolder, entityHolder db.EntityHolder) []db.EntityHolder {

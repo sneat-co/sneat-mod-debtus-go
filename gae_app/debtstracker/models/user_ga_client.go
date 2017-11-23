@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 	"time"
 )
 
@@ -26,8 +26,18 @@ func (gaClient GaClient) Entity() interface{} {
 	return gaClient.GaClientEntity
 }
 
+func (GaClient) NewEntity() interface{} {
+	return new(GaClientEntity)
+}
+
 func (gaClient *GaClient) SetEntity(entity interface{}) {
-	gaClient.GaClientEntity = entity.(*GaClientEntity)
+	if entity == nil {
+		gaClient.GaClientEntity = nil
+
+	} else {
+		gaClient.GaClientEntity = entity.(*GaClientEntity)
+
+	}
 }
 
 

@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
 	"testing"
 	"time"

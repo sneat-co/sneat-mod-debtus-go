@@ -2,7 +2,7 @@ package common
 
 import (
 	"github.com/gorilla/sessions"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"google.golang.org/appengine"
 	"net/http"
 	//"fmt"

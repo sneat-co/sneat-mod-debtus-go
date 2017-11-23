@@ -1,7 +1,7 @@
 package gaedal
 
 import (
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db/gaedb"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"testing"

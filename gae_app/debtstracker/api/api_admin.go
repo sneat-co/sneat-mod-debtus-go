@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/strongo/app/gae"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/delay"

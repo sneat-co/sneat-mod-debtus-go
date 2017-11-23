@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/captaincodeman/datastore-mapper"
 	"github.com/strongo/nds"
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"

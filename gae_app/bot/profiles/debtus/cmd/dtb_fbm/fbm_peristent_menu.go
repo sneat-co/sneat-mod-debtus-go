@@ -3,7 +3,7 @@ package dtb_fbm
 import (
 	"fmt"
 	"github.com/DebtsTracker/translations/emoji"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/bots-api-fbm"
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"

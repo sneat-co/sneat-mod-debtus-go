@@ -1,8 +1,8 @@
 package models
 
 import (
-	"github.com/strongo/app/db"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db"
+	"github.com/strongo/db/gaedb"
 	"github.com/strongo/app/user"
 	"google.golang.org/appengine/datastore"
 )
@@ -34,8 +34,16 @@ func (record PasswordReset) Entity() interface{} {
 	return record.PasswordResetEntity
 }
 
+func (PasswordReset) NewEntity() interface{} {
+	return new(PasswordResetEntity)
+}
+
 func (record *PasswordReset) SetEntity(entity interface{}) {
-	record.PasswordResetEntity = entity.(*PasswordResetEntity)
+	if entity == nil {
+		record.PasswordResetEntity = nil
+	} else {
+		record.PasswordResetEntity = entity.(*PasswordResetEntity)
+	}
 }
 
 func (record *PasswordReset) SetIntID(id int64) {

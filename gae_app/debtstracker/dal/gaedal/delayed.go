@@ -12,12 +12,11 @@ import (
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gae"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
-	"github.com/strongo/app/db"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db"
+	"github.com/strongo/db/gaedb"
 	"github.com/strongo/bots-framework/hosts/appengine"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"golang.org/x/net/context"
@@ -258,31 +257,31 @@ func onReceiptSendFail(c context.Context, receiptID, tgChatID int64, tgMsgID int
 	return
 }
 
-func getTranslatorAndTgChatID(c context.Context, userID int64) (translator strongo.SingleLocaleTranslator, tgChatID int64, err error) {
-	var (
-		//transfer models.Transfer
-		user models.AppUser
-	)
-	if user, err = dal.User.GetUserByID(c, userID); err != nil {
-		return
-	}
-	if user.TelegramUserID == 0 {
-		err = errors.New("user.TelegramUserID == 0")
-		return
-	}
-	var tgChat models.TelegramChat
-	if tgChat, err = dal.TgChat.GetTgChatByID(c, user.TelegramUserID); err != nil {
-		return
-	}
-	localeCode := tgChat.PreferredLanguage
-	if localeCode == "" {
-		localeCode = user.PreferredLocale()
-	}
-	if translator, err = getTranslator(c, localeCode); err != nil {
-		return
-	}
-	return
-}
+//func getTranslatorAndTgChatID(c context.Context, userID int64) (translator strongo.SingleLocaleTranslator, tgChatID int64, err error) {
+//	var (
+//		//transfer models.Transfer
+//		user models.AppUser
+//	)
+//	if user, err = dal.User.GetUserByID(c, userID); err != nil {
+//		return
+//	}
+//	if user.TelegramUserID == 0 {
+//		err = errors.New("user.TelegramUserID == 0")
+//		return
+//	}
+//	var tgChat models.TelegramChat
+//	if tgChat, err = dal.TgChat.GetTgChatByID(c, user.TelegramUserID); err != nil {
+//		return
+//	}
+//	localeCode := tgChat.PreferredLanguage
+//	if localeCode == "" {
+//		localeCode = user.PreferredLocale()
+//	}
+//	if translator, err = getTranslator(c, localeCode); err != nil {
+//		return
+//	}
+//	return
+//}
 
 func getTranslator(c context.Context, localeCode string) (translator strongo.SingleLocaleTranslator, err error) {
 	log.Debugf(c, "getTranslator(localeCode=%v)", localeCode)
@@ -332,140 +331,187 @@ func delaySendReceiptToCounterpartyByTelegram(c context.Context, receiptID, tgCh
 	return nil
 }
 
-var delayedSendReceiptToCounterpartyByTelegram = delay.Func("dalayedSendReceiptToCounterpartyByTelegram",
-	func(c context.Context, receiptID, tgChatID int64, localeCode string,
-	) (err error) {
-		log.Debugf(c, "delayedSendReceiptToCounterpartyByTelegram(receiptID=%v, tgChatID=%v, localeCode=%v)", receiptID, tgChatID, localeCode)
+var delayedSendReceiptToCounterpartyByTelegram = delay.Func("dalayedSendReceiptToCounterpartyByTelegram", sendReceiptToCounterpartyByTelegram)
 
-		var receipt models.Receipt
-
-		updateReceiptStatus := func(expectedCurrentStatus, newStatus string) (err error) {
-			if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-				if receipt, err = dal.Receipt.GetReceiptByID(c, receiptID); err != nil {
-					return
-				}
-				if receipt.Status != expectedCurrentStatus {
-					return errReceiptStatusIsNotCreated
-				}
-				receipt.Status = newStatus
-				if err = dal.DB.Update(c, &receipt); err != nil {
-					return
-				}
-				return
-			}, nil); err != nil {
-				err = errors.WithMessage(err, fmt.Sprintf("failed to update receipt statis from %v to %v", expectedCurrentStatus, newStatus))
-			}
+func 	updateReceiptStatus(c context.Context, receiptID int64, expectedCurrentStatus, newStatus string) (receipt models.Receipt, err error) {
+	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+		if receipt, err = dal.Receipt.GetReceiptByID(c, receiptID); err != nil {
 			return
 		}
+		if receipt.Status != expectedCurrentStatus {
+			return errReceiptStatusIsNotCreated
+		}
+		receipt.Status = newStatus
+		if err = dal.DB.Update(c, &receipt); err != nil {
+			return
+		}
+		return
+	}, nil); err != nil {
+		err = errors.WithMessage(err, fmt.Sprintf("failed to update receipt statis from %v to %v", expectedCurrentStatus, newStatus))
+	}
+	return
+}
 
-		if err = updateReceiptStatus(models.ReceiptStatusCreated, models.ReceiptStatusSending); err != nil {
-			log.Errorf(c, err.Error())
+func sendReceiptToCounterpartyByTelegram(c context.Context, receiptID, tgChatID int64, localeCode string) (err error) {
+	log.Debugf(c, "delayedSendReceiptToCounterpartyByTelegram(receiptID=%v, tgChatID=%v, localeCode=%v)", receiptID, tgChatID, localeCode)
+
+	var receipt models.Receipt
+
+	if receipt, err = updateReceiptStatus(c, receiptID, models.ReceiptStatusCreated, models.ReceiptStatusSending); err != nil {
+		log.Errorf(c, err.Error())
+		err = nil // Always stop!
+		return
+	}
+
+	var transfer models.Transfer
+	if transfer, err = dal.Transfer.GetTransferByID(c, receipt.TransferID); err != nil {
+		log.Errorf(c, err.Error())
+		if db.IsNotFound(err) {
 			err = nil
 			return
 		}
+		return
+	}
 
-		var transfer models.Transfer
-		if transfer, err = dal.Transfer.GetTransferByID(c, receipt.TransferID); err != nil {
-			if db.IsNotFound(err) {
-				log.Errorf(c, err.Error())
-				err = nil
+
+	var counterpartyUser models.AppUser
+
+	if counterpartyUser, err = dal.User.GetUserByID(c, receipt.CounterpartyUserID); err != nil {
+		return
+	}
+
+	var (
+		tgChat models.TelegramChat
+		failedToSend bool
+		chatsForbidden bool
+	)
+
+	creatorTgChatID, creatorTgMsgID := transfer.Creator().TgChatID, int(transfer.CreatorTgReceiptByTgMsgID)
+
+	for _, telegramAccount := range counterpartyUser.GetTelegramAccounts() {
+		if telegramAccount.App == "" {
+			log.Warningf(c, "User %v has account with missing bot id => %v", counterpartyUser.ID, telegramAccount.String())
+			continue
+		}
+		var tgChatID int64
+		if tgChatID, err = strconv.ParseInt(telegramAccount.ID, 10, 64); err != nil {
+			log.Errorf(c, "invalid Telegram chat ID - not an integer: %v", telegramAccount.String())
+			continue
+		}
+		if tgChat, err = dal.TgChat.GetTgChatByID(c, telegramAccount.App, tgChatID); err != nil {
+			log.Errorf(c, "failed to load user's Telegram chat entity: %v", err)
+			continue
+		}
+		if tgChat.DtForbiddenLast.IsZero() {
+			if err = sendReceiptToTelegramChat(c, receipt, transfer, tgChat); err != nil {
+				failedToSend = true
+				if _, forbidden := err.(tgbotapi.ErrAPIForbidden); forbidden || strings.Contains(err.Error(), "Bad Request: chat not found") {
+					chatsForbidden = true
+					log.Infof(c, "Telegram chat not found or disabled (%v): %v", tgChat.ID, err)
+					if err2 := gae_host.MarkTelegramChatAsForbidden(c, tgChat.BotID, tgChat.TelegramUserID, time.Now()); err2 != nil {
+						log.Errorf(c, "Failed to call MarkTelegramChatAsStopped(): %v", err2.Error())
+					}
+					return nil
+				}
 				return
 			}
+			if err = DelayOnReceiptSentSuccess(c, time.Now(), receipt.ID, transfer.ID, creatorTgChatID, creatorTgMsgID, tgChat.BotID, localeCode); err != nil {
+				log.Errorf(c, errors.Wrap(err, "Failed to call DelayOnReceiptSentSuccess()").Error())
+			}
 			return
+		} else {
+			log.Debugf(c, "tgChat is forbidden: %v", telegramAccount.String())
 		}
+		break
+	}
 
-		var messageToTranslate string
-		switch transfer.Direction() {
-		case models.TransferDirectionUser2Counterparty:
-			messageToTranslate = trans.TELEGRAM_RECEIPT
-		case models.TransferDirectionCounterparty2User:
-			messageToTranslate = trans.TELEGRAM_RECEIPT
-		default:
-			panic(fmt.Sprintf("Unknown direction: %v", transfer.Direction()))
-		}
-
-		templateData := struct {
-			FromName         string
-			TransferCurrency string
-		}{
-			FromName:         transfer.Creator().ContactName,
-			TransferCurrency: string(transfer.Currency),
-		}
-
-		toUserBotSettings, err := telegram.GetBotSettingsByLang(gaestandard.GetEnvironment(c), bot.ProfileDebtus, localeCode)
-		if err != nil {
-			panic(errors.Wrap(err, "Bot settings not found by locale").Error())
-		}
-		log.Debugf(c, "toUserBotSettings.ID: %v", toUserBotSettings.ID)
-
+	if failedToSend { // Notify creator that receipt has not been sent
 		var translator strongo.SingleLocaleTranslator
 		if translator, err = getTranslator(c, localeCode); err != nil {
 			return err
 		}
+
 		locale := translator.Locale()
-
-		messageText, err := common.TextTemplates.RenderTemplate(c, translator, messageToTranslate, templateData)
-		if err != nil {
-			return err
+		if chatsForbidden {
+			msgTextToCreator := emoji.ERROR_ICON + translator.Translate(trans.MESSAGE_TEXT_RECEIPT_NOT_SENT_AS_COUNTERPARTY_HAS_DISABLED_TG_BOT, transfer.Counterparty().ContactName)
+			if err2 := DelayOnReceiptSendFail(c, receipt.ID, creatorTgChatID, creatorTgMsgID, time.Now(), translator.Locale().Code5, msgTextToCreator); err2 != nil {
+				log.Errorf(c, errors.Wrap(err2, "Failed to update receipt entity with error info").Error())
+			}
 		}
-		messageText = emoji.INCOMING_ENVELOP_ICON + " " + messageText
+		log.Errorf(c, "Failed to send notification to creator by Telegram (creatorTgChatID=%v, creatorTgMsgID=%v): %v", creatorTgChatID, creatorTgMsgID, err)
+		msgTextToCreator := emoji.ERROR_ICON + " " + err.Error()
+		if err2 := DelayOnReceiptSendFail(c, receipt.ID, creatorTgChatID, creatorTgMsgID, time.Now(), locale.Code5, msgTextToCreator); err2 != nil {
+			log.Errorf(c, errors.Wrap(err2, "Failed to update receipt entity with error info").Error())
+		}
+		err = nil
+	}
 
-		log.Debugf(c, "Message: %v", messageText)
+	return
+}
 
-		btnViewReceiptText := emoji.CLIPBOARD_ICON + " " + translator.Translate(trans.BUTTON_TEXT_SEE_RECEIPT_DETAILS)
-		btnViewReceiptData := fmt.Sprintf("view-receipt?id=%v", common.EncodeID(receiptID))
-		tgMessage := tgbotapi.MessageConfig{
-			BaseChat: tgbotapi.BaseChat{
-				ChatID: tgChatID,
-				ReplyMarkup: tgbotapi.InlineKeyboardMarkup{
-					InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{
-						tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(btnViewReceiptText, btnViewReceiptData)),
-					},
+func sendReceiptToTelegramChat(c context.Context, receipt models.Receipt, transfer models.Transfer, tgChat models.TelegramChat) (err error) {
+	var messageToTranslate string
+	switch transfer.Direction() {
+	case models.TransferDirectionUser2Counterparty:
+		messageToTranslate = trans.TELEGRAM_RECEIPT
+	case models.TransferDirectionCounterparty2User:
+		messageToTranslate = trans.TELEGRAM_RECEIPT
+	default:
+		panic(fmt.Sprintf("Unknown direction: %v", transfer.Direction()))
+	}
+
+	templateData := struct {
+		FromName         string
+		TransferCurrency string
+	}{
+		FromName:         transfer.Creator().ContactName,
+		TransferCurrency: string(transfer.Currency),
+	}
+
+	var translator strongo.SingleLocaleTranslator
+	if translator, err = getTranslator(c, tgChat.GetPreferredLanguage()); err != nil {
+		return err
+	}
+
+	messageText, err := common.TextTemplates.RenderTemplate(c, translator, messageToTranslate, templateData)
+	if err != nil {
+		return err
+	}
+	messageText = emoji.INCOMING_ENVELOP_ICON + " " + messageText
+
+	log.Debugf(c, "Message: %v", messageText)
+
+	btnViewReceiptText := emoji.CLIPBOARD_ICON + " " + translator.Translate(trans.BUTTON_TEXT_SEE_RECEIPT_DETAILS)
+	btnViewReceiptData := fmt.Sprintf("view-receipt?id=%v", common.EncodeID(receipt.ID)) // TODO: Pass simple digits!
+	tgMessage := tgbotapi.MessageConfig{
+		BaseChat: tgbotapi.BaseChat{
+			ChatID: tgChat.TelegramUserID,
+			ReplyMarkup: tgbotapi.InlineKeyboardMarkup{
+				InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{
+					tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(btnViewReceiptText, btnViewReceiptData)),
 				},
 			},
-			ParseMode:             "HTML",
-			DisableWebPagePreview: true,
-			Text:                  messageText,
-		}
+		},
+		ParseMode:             "HTML",
+		DisableWebPagePreview: true,
+		Text:                  messageText,
+	}
 
-		creatorTgChatID, creatorTgMsgID := transfer.Creator().TgChatID, int(transfer.CreatorTgReceiptByTgMsgID)
-		if err = sendToTelegram(c, tgMessage, toUserBotSettings); err != nil {
-			if _, forbidden := err.(tgbotapi.ErrAPIForbidden); forbidden || strings.Contains(err.Error(), "Bad Request: chat not found") {
-				log.Infof(c, "Telegram chat not found or disabled (creatorTgChatID=%v, creatorTgMsgID=%v): %v", creatorTgChatID, creatorTgMsgID, err)
-				if err2 := gae_host.MarkTelegramChatAsForbidden(c, toUserBotSettings.Code, tgChatID, time.Now()); err2 != nil {
-					log.Errorf(c, "Failed to call MarkTelegramChatAsStopped(): %v", err2.Error())
-				}
-				// Notify creator that receipt has not been sent
-				{
-					msgTextToCreator := emoji.ERROR_ICON + translator.Translate(trans.MESSAGE_TEXT_RECEIPT_NOT_SENT_AS_COUNTERPARTY_HAS_DISABLED_TG_BOT, locale.Code5, transfer.Counterparty().ContactName)
-					if err2 := DelayOnReceiptSendFail(c, receiptID, creatorTgChatID, creatorTgMsgID, time.Now(), localeCode, msgTextToCreator); err2 != nil {
-						log.Errorf(c, errors.Wrap(err2, "Failed to update receipt entity with error info").Error())
-					}
-				}
-				log.Errorf(c, "Failed to send notification to creator by Telegram (creatorTgChatID=%v, creatorTgMsgID=%v): %v", creatorTgChatID, creatorTgMsgID, err)
-				msgTextToCreator := emoji.ERROR_ICON + " " + err.Error()
-				if err2 := DelayOnReceiptSendFail(c, receiptID, creatorTgChatID, creatorTgMsgID, time.Now(), localeCode, msgTextToCreator); err2 != nil {
-					log.Errorf(c, errors.Wrap(err2, "Failed to update receipt entity with error info").Error())
-				}
-				err = nil
-				return nil
-			}
-			return err
-		} else {
-			log.Infof(c, "Notification sent to user by Telegram. Bot=%v, receiptID=%v", toUserBotSettings.Code, receiptID)
-			if err = DelayOnReceiptSentSuccess(c, time.Now(), receiptID, transfer.ID, creatorTgChatID, creatorTgMsgID, toUserBotSettings.Code, localeCode); err != nil {
-				log.Errorf(c, errors.Wrap(err, "Failed to call DelayOnReceiptSentSuccess()").Error())
-			}
-		}
+	tgBotApi := telegram.GetTelegramBotApiByBotCode(c, tgChat.BotID)
 
-		if err = updateReceiptStatus(models.ReceiptStatusSending, models.ReceiptStatusSent); err != nil {
-			log.Errorf(c, err.Error())
-			err = nil
-			return
-		}
-
+	if _, err = tgBotApi.Send(tgMessage); err != nil {
 		return
-	})
+	} else {
+		log.Infof(c, "Receipt %v sent to user by Telegram bot @%v", receipt.ID, tgChat.BotID)
+	}
+
+	if receipt, err = updateReceiptStatus(c, receipt.ID, models.ReceiptStatusSending, models.ReceiptStatusSent); err != nil {
+		log.Errorf(c, err.Error())
+		err = nil
+		return
+	}
+	return
+}
 
 var delayedCreateAndSendReceiptToCounterpartyByTelegram = delay.Func("delayedCreateAndSendReceiptToCounterpartyByTelegram", func(c context.Context, env strongo.Environment, transferID, toUserID int64) error {
 	log.Debugf(c, "delayedCreateAndSendReceiptToCounterpartyByTelegram(transferID=%v, toUserID=%v)", transferID, toUserID)
@@ -516,7 +562,7 @@ var delayedCreateAndSendReceiptToCounterpartyByTelegram = delay.Func("delayedCre
 
 	var receiptID int64
 	err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-		receipt := models.NewReceiptEntity(transfer.CreatorUserID, transferID, transfer.Counterparty().UserID, locale.Code5, telegram_bot.TelegramPlatformID, strconv.Itoa(tgChat.TelegramUserID), general.CreatedOn{
+		receipt := models.NewReceiptEntity(transfer.CreatorUserID, transferID, transfer.Counterparty().UserID, locale.Code5, telegram_bot.TelegramPlatformID, strconv.FormatInt(tgChat.TelegramUserID, 10), general.CreatedOn{
 			CreatedOnID:       transfer.Creator().TgBotID, // TODO: Replace with method call.
 			CreatedOnPlatform: transfer.CreatedOnPlatform,
 		})

@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/urlfetch"
 	"net/http"

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
-	"github.com/strongo/app/db"
-	"github.com/strongo/app/log"
+	"github.com/strongo/db"
+	"github.com/strongo/log"
 	"github.com/strongo/decimal"
 	"golang.org/x/net/context"
 	"time"
@@ -412,19 +412,19 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 	}
 
 	if err = dal.DB.GetMulti(c, entities); err != nil {
-		err = errors.Wrap(err, "Failed to get user & counterparty entities from datastore by keys")
+		err = errors.WithMessage(err, "failed to get user & counterparty entities from datastore by keys")
 		return
 	}
 	fromContact, toContact := output.From.Contact, output.To.Contact
 	fromUser, toUser := output.From.User, output.To.User
 
 	if from.ContactID != 0 && output.From.Contact.UserID == 0 {
-		err = fmt.Errorf("Got bad counterparty entity from DB by id=%d, fromCounterparty.UserID == 0", from.ContactID)
+		err = fmt.Errorf("got bad counterparty entity from DB by id=%d, fromCounterparty.UserID == 0", from.ContactID)
 		return
 	}
 
 	if to.ContactID != 0 && output.To.Contact.UserID == 0 {
-		err = fmt.Errorf("Got bad counterparty entity from DB by id=%d, toCounterparty.UserID == 0", to.ContactID)
+		err = fmt.Errorf("got bad counterparty entity from DB by id=%d, toCounterparty.UserID == 0", to.ContactID)
 		return
 	}
 

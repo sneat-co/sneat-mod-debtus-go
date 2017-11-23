@@ -6,11 +6,11 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/invites"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/bots-framework/core"
 	"strconv"
 	"strings"
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 )
 
 const ASK_EMAIL_FOR_RECEIPT_COMMAND = "ask-email-for-receipt"

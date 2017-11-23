@@ -2,8 +2,8 @@ package models
 
 import (
 	"github.com/pkg/errors"
-	"github.com/strongo/app/db"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db"
+	"github.com/strongo/db/gaedb"
 	"github.com/strongo/app/user"
 	"google.golang.org/appengine/datastore"
 )
@@ -18,6 +18,8 @@ type UserFacebook struct {
 }
 
 var _ user.AccountRecord = (*UserFacebook)(nil)
+
+var _ db.EntityHolder = (*UserFacebook)(nil)
 
 func (u UserFacebook) UserAccount() user.Account {
 	return user.Account{Provider: "fb", App: u.FbAppOrPageID, ID: u.FbUserOrPageScopeID}
@@ -53,10 +55,11 @@ func (u *UserFacebook) SetStrID(id string) {
 //}
 
 func (u *UserFacebook) Entity() interface{} {
-	if u.UserFacebookEntity == nil {
-		u.UserFacebookEntity = new(UserFacebookEntity)
-	}
 	return u.UserFacebookEntity
+}
+
+func (UserFacebook) NewEntity() interface{} {
+	return new(UserFacebookEntity)
 }
 
 func (u *UserFacebook) SetEntity(entity interface{}) {

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
@@ -15,7 +15,7 @@ import (
 	"time"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"github.com/strongo/decimal"
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 	"strconv"
 )
 

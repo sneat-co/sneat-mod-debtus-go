@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 	"github.com/strongo/app/user"
 )
 
@@ -33,7 +33,15 @@ func (u UserVk) Entity() interface{} {
 	return u.UserVkEntity
 }
 
+func (UserVk) NewEntity() interface{} {
+	return new(UserVkEntity)
+}
+
 func (u *UserVk) SetEntity(entity interface{}) {
-	u.UserVkEntity = entity.(*UserVkEntity)
+	if entity == nil {
+		u.UserVkEntity = nil
+	} else {
+		u.UserVkEntity = entity.(*UserVkEntity)
+	}
 }
 

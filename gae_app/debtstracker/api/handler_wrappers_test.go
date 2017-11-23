@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"net/http/httptest"
 	"strings"
 	"testing"

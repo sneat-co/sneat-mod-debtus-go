@@ -1,6 +1,6 @@
 package models
 
-import "github.com/strongo/app/db"
+import "github.com/strongo/db"
 
 const GroupMemberKind = "GroupMember"
 
@@ -19,8 +19,16 @@ func (gm GroupMember) Entity() interface{} {
 	return gm.GroupMemberEntity
 }
 
+func (GroupMember) NewEntity() interface{} {
+	return new(GroupMemberEntity)
+}
+
 func (gm *GroupMember) SetEntity(entity interface{}) {
-	gm.GroupMemberEntity = entity.(*GroupMemberEntity)
+	if entity == nil {
+		gm.GroupMemberEntity = nil
+	} else {
+		gm.GroupMemberEntity = entity.(*GroupMemberEntity)
+	}
 }
 
 type GroupMemberEntity struct {

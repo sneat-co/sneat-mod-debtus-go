@@ -3,7 +3,7 @@ package common
 import (
 	"bytes"
 	"github.com/strongo/app"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	html "html/template"
 	"sync"

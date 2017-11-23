@@ -4,7 +4,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bytes"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/measurement-protocol"
 	"golang.org/x/net/context"

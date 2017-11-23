@@ -5,7 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/strongo/nds"
 	"github.com/strongo/app"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"golang.org/x/net/context"

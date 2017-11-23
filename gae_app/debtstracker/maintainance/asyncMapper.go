@@ -2,10 +2,10 @@ package maintainance
 
 import (
 	"github.com/captaincodeman/datastore-mapper"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db/gaedb"
 	"golang.org/x/net/context"
 	"runtime/debug"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"sync"
 	"strconv"
 	"net/http"
@@ -84,6 +84,19 @@ func filterByIntID(r *http.Request, kind, paramName string) (query *mapper.Query
 	c := appengine.NewContext(r)
 	query = query.Filter("__key__ =", datastore.NewKey(c, kind, "", id, nil))
 	log.Debugf(c, "Filtered by %v(IntID=%v)", kind, id)
+	filtered = true
+	return
+}
+
+func filterByStrID(r *http.Request, kind, paramName string) (query *mapper.Query, filtered bool, err error) {
+	query = mapper.NewQuery(kind)
+	paramVal := r.URL.Query().Get(paramName)
+	if paramVal == "" {
+		return
+	}
+	c := appengine.NewContext(r)
+	query = query.Filter("__key__ =", datastore.NewKey(c, kind, paramVal, 0, nil))
+	log.Debugf(c, "Filtered by %v(StrID=%v)", kind, paramVal)
 	filtered = true
 	return
 }

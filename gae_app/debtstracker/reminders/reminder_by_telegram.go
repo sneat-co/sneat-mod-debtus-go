@@ -14,7 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gae"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/hosts/appengine"
 	"github.com/strongo/bots-framework/platforms/telegram"

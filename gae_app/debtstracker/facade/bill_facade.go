@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	//"github.com/strongo/app"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/decimal"
 	"golang.org/x/net/context"
 	"math"

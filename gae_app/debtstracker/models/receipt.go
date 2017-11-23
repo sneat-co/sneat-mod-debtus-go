@@ -3,8 +3,8 @@ package models
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/db"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db"
+	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
 	"time"
 )
@@ -38,17 +38,19 @@ func (_ *Receipt) Kind() string {
 }
 
 func (r *Receipt) Entity() interface{} {
-	if r.ReceiptEntity == nil {
-		r.ReceiptEntity = new(ReceiptEntity)
-	}
 	return r.ReceiptEntity
+}
+
+func (Receipt) NewEntity() interface{} {
+	return new(ReceiptEntity)
 }
 
 func (r *Receipt) SetEntity(entity interface{}) {
 	if entity == nil {
 		r.ReceiptEntity = nil
+	} else {
+		r.ReceiptEntity = entity.(*ReceiptEntity)
 	}
-	r.ReceiptEntity = entity.(*ReceiptEntity)
 }
 
 func NewReceipt(id int64, entity *ReceiptEntity) Receipt {

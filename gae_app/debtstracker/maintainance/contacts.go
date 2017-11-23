@@ -7,7 +7,7 @@ import (
 	"google.golang.org/appengine/datastore"
 	"golang.org/x/net/context"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"google.golang.org/appengine"
 )
 

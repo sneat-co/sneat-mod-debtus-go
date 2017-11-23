@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/gotwilio"
@@ -16,7 +16,7 @@ import (
 	"regexp"
 	"sync"
 	"time"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/decimal"
 )
 
@@ -286,7 +286,7 @@ type UserGaClientDal interface {
 }
 
 type TgChatDal interface {
-	GetTgChatByID(c context.Context, tgChatID int64) (tgChat models.TelegramChat, err error)
+	GetTgChatByID(c context.Context, tgBotID string, tgChatID int64) (tgChat models.TelegramChat, err error)
 	DoSomething(c context.Context, userTask *sync.WaitGroup, currency string, tgChatID int64, authInfo auth.AuthInfo, user models.AppUser, sendToTelegram func(tgChat telegram_bot.TelegramChatEntityBase) error) (err error)
 }
 

@@ -27,6 +27,9 @@ func RegisterMappers() {
 	registerAsyncJob(&migrateTransfers{})
 	registerAsyncJob(&verifyContactTransfers{})
 	registerAsyncJob(&transfersRecreateContacts{})
+	registerAsyncJob(&verifyTelegramUserAccounts{})
+
+	http.HandleFunc("/_ah/merge-contacts", mergeContactsHandler)
 }
 
 func filterByUserParam(r *http.Request, query *mapper.Query, prop string) (q *mapper.Query, filtered bool, err error) {

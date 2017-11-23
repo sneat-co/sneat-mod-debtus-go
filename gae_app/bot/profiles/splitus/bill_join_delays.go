@@ -11,7 +11,7 @@ import (
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gae"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/delay"

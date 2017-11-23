@@ -2,7 +2,7 @@ package models
 
 import (
 	"github.com/pkg/errors"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
 	"time"
 )

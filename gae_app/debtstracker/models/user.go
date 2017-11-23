@@ -5,8 +5,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/app"
-	"github.com/strongo/app/db"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db"
+	"github.com/strongo/db/gaedb"
 	"github.com/strongo/app/user"
 	"github.com/strongo/bots-framework/core"
 	"google.golang.org/appengine/datastore"
@@ -22,19 +22,26 @@ type AppUser struct {
 	*AppUserEntity
 }
 
-func (_ *AppUser) Kind() string {
+var _ db.EntityHolder = (*AppUser)(nil)
+
+func (AppUser) Kind() string {
 	return AppUserKind
 }
 
 func (u *AppUser) Entity() interface{} {
-	if u.AppUserEntity == nil {
-		u.AppUserEntity = new(AppUserEntity)
-	}
 	return u.AppUserEntity
 }
 
+func (AppUser) NewEntity() interface{} {
+	return new(AppUserEntity)
+}
+
 func (u *AppUser) SetEntity(entity interface{}) {
-	u.AppUserEntity = entity.(*AppUserEntity)
+	if entity == nil {
+		u.AppUserEntity = nil
+	} else {
+		u.AppUserEntity = entity.(*AppUserEntity)
+	}
 }
 
 func IsKnownUserAccountProvider(p string) bool {
@@ -94,7 +101,7 @@ type AppUserEntity struct {
 
 	HasDueTransfers bool `datastore:",noindex"` // TODO: Check if we really need this prop and if yes document why
 
-	InvitedByUserID int64 `datastore:",omitempty"`
+	InvitedByUserID int64 `datastore:",omitempty"` // TODO: Prevent circular references! see users 6032980589936640 & 5998019824582656
 
 	user.Accounts
 
@@ -103,8 +110,8 @@ type AppUserEntity struct {
 	ViberUserID        string `datastore:",noindex,omitempty"` // TODO: Obsolete
 	VkUserID           int64  `datastore:",noindex,omitempty"` // TODO: Obsolete
 	GoogleUniqueUserID string `datastore:",noindex,omitempty"` // TODO: Obsolete
-	//FbUserID           string `datastore:",noindex"` // TODO: Obsolete Facebook assigns different IDs to same FB user for FB app & Messenger app.
-	//FbmUserID          string `datastore:",noindex"` // TODO: Obsolete So we would want to keep both IDs?
+	//FbUserID           string `datastore:",noindex,omitempty"` // TODO: Obsolete Facebook assigns different IDs to same FB user for FB app & Messenger app.
+	//FbmUserID          string `datastore:",noindex,omitempty"` // TODO: Obsolete So we would want to keep both IDs?
 	// TODO: How do we support multiple FBM bots? They will have different PSID (PageScopeID)
 
 	OBSOLETE_CounterpartyIDs []int64 `datastore:"CounterpartyIDs,noindex,omitempty"` // TODO: Remove obsolete
@@ -538,8 +545,28 @@ func (u *AppUserEntity) Load(ps []datastore.Property) (err error) {
 		case "ContactsCount":
 			continue // Ignore legacy
 		case "FbUserID":
+			if v, ok := p.Value.(string); ok && v != "" {
+				u.AddAccount(user.Account{
+					Provider: "fb",
+					ID:       v,
+				})
+			}
+			continue
+		case "FmbUserID":
+			if v, ok := p.Value.(string); ok && v != "" {
+				u.AddAccount(user.Account{
+					Provider: "fbm",
+					ID:       v,
+				})
+			}
 			continue
 		case "FbmUserID":
+			if v, ok := p.Value.(string); ok && v != "" {
+				u.AddAccount(user.Account{
+					Provider: "fbm",
+					ID:       v,
+				})
+			}
 			continue
 		case "ViberUserID":
 			continue
@@ -547,32 +574,20 @@ func (u *AppUserEntity) Load(ps []datastore.Property) (err error) {
 			continue
 		case "TelegramUserID":
 			if telegramUserID, ok := p.Value.(int64); ok && telegramUserID != 0 {
-				u.AddAccount(user.Account{
-					Provider: "telegram",
-					ID:       strconv.FormatInt(telegramUserID, 10),
-				})
+				u.Accounts.Accounts = append(u.Accounts.Accounts, "telegram::"+strconv.FormatInt(telegramUserID, 10))
 			}
+			continue
 		case "TelegramUserIDs":
 			switch p.Value.(type) {
 			case int64:
 				if id := p.Value.(int64); id != 0 {
-					u.AddAccount(user.Account{
-						Provider: "telegram",
-						ID:       strconv.FormatInt(id, 10),
-					})
-				}
-			case []int64:
-				for _, id := range p.Value.([]int64) {
-					if id != 0 {
-						u.AddAccount(user.Account{
-							Provider: "telegram",
-							ID:       strconv.FormatInt(id, 10),
-						})
-					}
+					u.Accounts.Accounts = append(u.Accounts.Accounts, "telegram::"+strconv.FormatInt(id, 10))
 				}
 			default:
-				err = fmt.Errorf("Unknown type of TelegramUserIDs value: %T", p.Value)
+				err = fmt.Errorf("unknown type of TelegramUserIDs value: %T", p.Value)
+				return
 			}
+			continue
 		case "GoogleUniqueUserID":
 			if v, ok := p.Value.(string); ok && v != "" {
 				u.AddAccount(user.Account{

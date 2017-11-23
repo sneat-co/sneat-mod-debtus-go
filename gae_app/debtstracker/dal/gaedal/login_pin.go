@@ -5,7 +5,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db/gaedb"
 	"golang.org/x/net/context"
 	"strings"
 	"time"

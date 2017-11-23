@@ -1,8 +1,8 @@
 package models
 
 import (
-	"github.com/strongo/app/db"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db"
+	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
 	"time"
 	"fmt"
@@ -85,10 +85,11 @@ func (Bill) Kind() string {
 }
 
 func (bill *Bill) Entity() interface{} {
-	if bill.BillEntity == nil {
-		bill.BillEntity = new(BillEntity)
-	}
 	return bill.BillEntity
+}
+
+func (Bill) NewEntity() interface{} {
+	return new(BillEntity)
 }
 
 func (bill *Bill) SetEntity(entity interface{}) {

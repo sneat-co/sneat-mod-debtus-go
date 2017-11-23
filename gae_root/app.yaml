@@ -11,7 +11,7 @@ threadsafe: yes
 
 handlers:
 
-- url: /((wp|wordpress|blog|member/|data/).*|.+\.php(\..+)?)
+- url: /((wp|wordpress|blog|member/|data/).*|.+\.(aspx?|php)(\..+)?)
   static_files: static/no-robots.txt
   upload: static/no-robots.txt
   expiration: "1d"
@@ -127,18 +127,13 @@ handlers:
   upload: 5F4BAA801B97B9A93D1F038177783A83.txt
   expiration: "1m"
 
-- url: /((admin|cron|task-?queue?|support)/.*|_ah/queue/go/delay)
+- url: /((admin|cron|task-?queue?|support)/.*)
   login: admin
   script: _go_app
 
-- url: /_ah/mapper/.*
+- url: /_ah/.*
   login: admin
   script: _go_app
-
-- url: /_ah/login
-  script: _go_app
-  secure: always
-  redirect_http_response_code: 301
 
 - url: /apps/vk/iframe$
   script: _go_app

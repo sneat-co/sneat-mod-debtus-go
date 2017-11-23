@@ -7,7 +7,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/measurement-protocol"
 	"html"

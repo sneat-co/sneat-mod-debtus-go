@@ -3,7 +3,7 @@ package models
 import (
 	"fmt"
 	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db/gaedb"
 	"github.com/strongo/decimal"
 	"google.golang.org/appengine/datastore"
 	"time"

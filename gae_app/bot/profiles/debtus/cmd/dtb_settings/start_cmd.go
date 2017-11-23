@@ -11,14 +11,14 @@ import (
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"regexp"
 	"strings"
 	"time"
 	"strconv"
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 )
 
 /*

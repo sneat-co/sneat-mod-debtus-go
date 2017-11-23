@@ -12,9 +12,9 @@ import (
 	"bytes"
 	"github.com/sanity-io/litter"
 	"strings"
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 	"time"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db/gaedb"
 )
 
 type verifyContactTransfers struct {
@@ -110,6 +110,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 				} else {
 					counterparty.UserName = user.FullName()
 				}
+				changed = true
 			}
 
 			if contact.CounterpartyCounterpartyID != 0 && self.ContactID == 0 {
@@ -124,6 +125,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 				} else {
 					self.ContactName = counterpartyContact.FullName()
 				}
+				changed = true
 			}
 
 			if self.UserID != 0 && self.UserName == "" {

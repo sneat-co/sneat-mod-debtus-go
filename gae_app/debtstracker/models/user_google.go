@@ -2,8 +2,8 @@ package models
 
 import (
 	"github.com/pkg/errors"
-	"github.com/strongo/app/db"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db"
+	"github.com/strongo/db/gaedb"
 	"github.com/strongo/app/user"
 	"google.golang.org/appengine/datastore"
 	gaeuser "google.golang.org/appengine/user" // TODO: Get rid of dependency to GAE?
@@ -91,12 +91,20 @@ func (userGoogle UserGoogle) Kind() string {
 	return UserGoogleKind
 }
 
-func (userGoogle *UserGoogle) SetEntity(v interface{}) {
-	userGoogle.UserGoogleEntity = v.(*UserGoogleEntity)
+func (userGoogle *UserGoogle) SetEntity(entity interface{}) {
+	if entity == nil {
+		userGoogle.UserGoogleEntity = nil
+	} else {
+		userGoogle.UserGoogleEntity = entity.(*UserGoogleEntity)
+	}
 }
 
 func (userGoogle UserGoogle) Entity() interface{} {
 	return userGoogle.UserGoogleEntity
+}
+
+func (UserGoogle) NewEntity() interface{} {
+	return new(UserGoogleEntity)
 }
 
 //func (userGoogle *UserGoogle) SetStrID(id string) {

@@ -7,7 +7,7 @@ import (
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/decimal"
@@ -42,9 +42,9 @@ func askIfReturnedInFull(whc bots.WebhookContext, counterparty models.Contact, c
 	var mt string
 	switch {
 	case value < 0:
-		mt = trans.MESSAGE_TEXT_COUNTERPARTY_OWES_YOU_SINGLE_DEBT
-	case value > 0:
 		mt = trans.MESSAGE_TEXT_YOU_OWE_TO_COUNTERPARTY_SINGLE_DEBT
+	case value > 0:
+		mt = trans.MESSAGE_TEXT_COUNTERPARTY_OWES_YOU_SINGLE_DEBT
 	case value == 0:
 		errorMessage := fmt.Sprintf("ERROR: Balance for currency [%v] is: %v", currency, value)
 		log.Warningf(whc.Context(), errorMessage)

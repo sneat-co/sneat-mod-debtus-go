@@ -7,7 +7,7 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"net/url"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 )
 
 const SET_BILL_CURRENCY_COMMAND = "set-bill-currency"

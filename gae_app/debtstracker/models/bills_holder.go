@@ -3,7 +3,7 @@ package models
 import (
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db/gaedb"
 )
 
 type billsHolder struct {

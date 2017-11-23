@@ -5,7 +5,7 @@ import (
 	"github.com/captaincodeman/datastore-mapper"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 )
 

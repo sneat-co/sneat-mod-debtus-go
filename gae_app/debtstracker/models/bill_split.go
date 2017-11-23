@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 	"github.com/strongo/app/user"
 )
 
@@ -27,6 +27,15 @@ func (record Split) Entity() interface{} {
 	return record.SplitEntity
 }
 
+func (Split) NewEntity() interface{} {
+	return new(SplitEntity)
+}
+
 func (record *Split) SetEntity(entity interface{}) {
-	record.SplitEntity = entity.(*SplitEntity)
+	if entity == nil {
+		record.SplitEntity = nil
+	} else {
+		record.SplitEntity = entity.(*SplitEntity)
+	}
+
 }

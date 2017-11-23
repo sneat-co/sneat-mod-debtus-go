@@ -4,7 +4,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbm"
 	"bytes"
 	"fmt"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/bots-api-fbm"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"

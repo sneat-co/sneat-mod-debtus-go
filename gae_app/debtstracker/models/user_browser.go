@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 	"time"
 )
 
@@ -29,7 +29,15 @@ func (ub UserBrowser) Entity() interface{} {
 	return ub.UserBrowserEntity
 }
 
+func (UserBrowser) NewEntity() interface{} {
+	return new(UserBrowserEntity)
+}
+
 func (ub *UserBrowser) SetEntity(entity interface{}) {
-	ub.UserBrowserEntity = entity.(*UserBrowserEntity)
+	if entity == nil {
+		ub.UserBrowserEntity = nil
+	} else {
+		ub.UserBrowserEntity = entity.(*UserBrowserEntity)
+	}
 }
 

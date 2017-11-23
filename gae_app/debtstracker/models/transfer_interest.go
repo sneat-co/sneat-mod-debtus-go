@@ -4,7 +4,7 @@ import (
 	"github.com/strongo/decimal"
 	"fmt"
 	//"google.golang.org/appengine/datastore"
-	//"github.com/strongo/app/gaedb"
+	//"github.com/strongo/db/gaedb"
 	"github.com/pkg/errors"
 	"time"
 	"github.com/sanity-io/litter"

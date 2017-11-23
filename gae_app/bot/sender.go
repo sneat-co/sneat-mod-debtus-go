@@ -2,7 +2,7 @@ package bot
 
 import (
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"

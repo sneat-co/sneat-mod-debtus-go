@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 	"github.com/strongo/decimal"
 	"github.com/strongo/gotwilio"
 	"time"

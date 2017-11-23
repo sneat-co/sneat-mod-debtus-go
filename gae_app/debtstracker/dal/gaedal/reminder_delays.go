@@ -11,8 +11,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gae"
-	"github.com/strongo/app/gaedb"
-	"github.com/strongo/app/log"
+	"github.com/strongo/db/gaedb"
+	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"golang.org/x/net/context"
@@ -21,7 +21,7 @@ import (
 	"google.golang.org/appengine/taskqueue"
 	"strings"
 	"time"
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 )
 
 func (_ ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, transferID, userID int64) (err error) {

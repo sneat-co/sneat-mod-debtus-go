@@ -6,7 +6,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 	"github.com/pkg/errors"
 )
 

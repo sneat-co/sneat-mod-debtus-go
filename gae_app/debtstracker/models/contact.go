@@ -2,8 +2,8 @@ package models
 
 import (
 	"fmt"
-	"github.com/strongo/app/db"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db"
+	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
 	"strings"
 	"github.com/pquerna/ffjson/ffjson"
@@ -25,20 +25,26 @@ type Contact struct {
 	*ContactEntity
 }
 
+var _ db.EntityHolder = (*Contact)(nil)
+
 func (Contact) Kind() string {
 	return ContactKind
 }
 
 func (c *Contact) Entity() interface{} {
-	if c.ContactEntity == nil {
-		c.ContactEntity = new(ContactEntity)
-	}
 	return c.ContactEntity
 }
 
+func (Contact) NewEntity() interface{} {
+	return new(ContactEntity)
+}
+
 func (c *Contact) SetEntity(entity interface{}) {
-	ce := entity.(*ContactEntity)
-	c.ContactEntity = ce
+	if entity == nil {
+		c.ContactEntity = nil
+	} else {
+		c.ContactEntity = entity.(*ContactEntity)
+	}
 }
 
 func (c Contact) MustMatchCounterparty(counterparty Contact) {

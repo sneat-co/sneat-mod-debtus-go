@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	//"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"

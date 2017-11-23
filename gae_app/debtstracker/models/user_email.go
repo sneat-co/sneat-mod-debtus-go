@@ -2,8 +2,8 @@ package models
 
 import (
 	"encoding/base64"
-	"github.com/strongo/app/db"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db"
+	"github.com/strongo/db/gaedb"
 	"github.com/strongo/app/user"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/appengine/datastore"
@@ -48,12 +48,20 @@ func (userEmail UserEmail) Kind() string {
 	return UserEmailKind
 }
 
-func (userEmail *UserEmail) SetEntity(v interface{}) {
-	userEmail.UserEmailEntity = v.(*UserEmailEntity)
+func (userEmail *UserEmail) SetEntity(entity interface{}) {
+	if entity == nil {
+		userEmail.UserEmailEntity = entity.(*UserEmailEntity)
+	} else {
+		userEmail.UserEmailEntity = entity.(*UserEmailEntity)
+	}
 }
 
 func (userEmail UserEmail) Entity() interface{} {
 	return userEmail.UserEmailEntity
+}
+
+func (UserEmail) NewEntity() interface{} {
+	return new(UserEmailEntity)
 }
 
 //func (userEmail *UserEmail) SetStrID(id string) {

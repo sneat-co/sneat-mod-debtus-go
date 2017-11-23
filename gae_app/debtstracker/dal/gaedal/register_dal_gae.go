@@ -2,8 +2,8 @@ package gaedal
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/strongo/app/db"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db"
+	"github.com/strongo/db/gaedb"
 	"github.com/strongo/bots-framework/core"
 	telegram_bot "github.com/strongo/bots-framework/platforms/telegram"
 	"golang.org/x/net/context"

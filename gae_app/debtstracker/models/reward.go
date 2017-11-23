@@ -1,10 +1,10 @@
 package models
 
 import (
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 	"time"
 	"google.golang.org/appengine/datastore"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db/gaedb"
 )
 
 const RewardKind = "Reward"
@@ -19,14 +19,19 @@ func (_ Reward) Kind() string {
 }
 
 func (reward Reward) Entity() interface{} {
-	if reward.RewardEntity == nil {
-		reward.RewardEntity = &RewardEntity{}
-	}
 	return reward.RewardEntity
 }
 
+func (Reward) NewEntity() interface{} {
+	return new(RewardEntity)
+}
+
 func (reward *Reward) SetEntity(entity interface{}) {
-	reward.RewardEntity = entity.(*RewardEntity)
+	if entity == nil {
+		reward.RewardEntity = nil
+	} else {
+		reward.RewardEntity = entity.(*RewardEntity)
+	}
 }
 
 var _ db.EntityHolder = (*Reward)(nil)

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/fbm"
 	"net/url"

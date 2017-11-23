@@ -7,13 +7,13 @@ import (
 	"fmt"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/decimal"
 	"strings"
 	"time"
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 )
 
 var ParseTransferCommand = bots.Command{

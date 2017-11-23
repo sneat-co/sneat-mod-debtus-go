@@ -2,8 +2,8 @@ package models
 
 import (
 	"github.com/pkg/errors"
-	"github.com/strongo/app/db"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db"
+	"github.com/strongo/db/gaedb"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"google.golang.org/appengine/datastore"
 	"time"
@@ -54,6 +54,9 @@ func (Reminder) Kind() string {
 
 func (r Reminder) Entity() interface{} {
 	return r.ReminderEntity
+}
+func (Reminder) NewEntity() interface{} {
+	return new(ReminderEntity)
 }
 func (r *Reminder) SetEntity(entity interface{}) {
 	r.ReminderEntity = entity.(*ReminderEntity)

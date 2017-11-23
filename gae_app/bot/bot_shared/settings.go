@@ -7,7 +7,7 @@ import (
 	"github.com/DebtsTracker/translations/trans"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"fmt"
 	"github.com/DebtsTracker/translations/emoji"

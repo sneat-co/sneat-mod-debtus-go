@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 	"github.com/strongo/app/user"
 )
 
@@ -36,8 +36,16 @@ func (userGooglePlus UserGooglePlus) Entity() interface{} {
 	return userGooglePlus.UserGooglePlusEntity
 }
 
+func (UserGooglePlus) NewEntity() interface{} {
+	return new(UserGooglePlusEntity)
+}
+
 func (userGooglePlus *UserGooglePlus) SetEntity(entity interface{}) {
-	userGooglePlus.UserGooglePlusEntity = entity.(*UserGooglePlusEntity)
+	if entity == nil {
+		userGooglePlus.UserGooglePlusEntity = nil
+	} else {
+		userGooglePlus.UserGooglePlusEntity = entity.(*UserGooglePlusEntity)
+	}
 }
 
 

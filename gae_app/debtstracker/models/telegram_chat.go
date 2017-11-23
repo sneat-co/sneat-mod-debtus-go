@@ -1,14 +1,14 @@
 package models
 
 import (
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db/gaedb"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"google.golang.org/appengine/datastore"
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 )
 
 type TelegramChat struct {
-	db.IntegerID
+	telegram_bot.TelegramChatBase
 	*DtTelegramChatEntity
 }
 
@@ -22,8 +22,16 @@ func (tgChat TelegramChat) Entity() interface{} {
 	return tgChat.DtTelegramChatEntity
 }
 
+func (TelegramChat) NewEntity() interface{} {
+	return new(DtTelegramChatEntity)
+}
+
 func (tgChat *TelegramChat) SetEntity(entity interface{}) {
-	tgChat.DtTelegramChatEntity = entity.(*DtTelegramChatEntity)
+	if entity == nil {
+		tgChat.DtTelegramChatEntity = nil
+	} else {
+		tgChat.DtTelegramChatEntity = entity.(*DtTelegramChatEntity)
+	}
 }
 
 type DtTelegramChatEntity struct {

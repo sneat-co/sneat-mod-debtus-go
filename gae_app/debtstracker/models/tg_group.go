@@ -1,6 +1,6 @@
 package models
 
-import "github.com/strongo/app/db"
+import "github.com/strongo/db"
 
 const TgGroupKind = "TgGroup"
 
@@ -23,6 +23,14 @@ func (tgGroup TgGroup) Entity() interface{} {
 	return tgGroup.TgGroupEntity
 }
 
+func (tgGroup TgGroup) NewEntity() interface{} {
+	return new(TgGroupEntity)
+}
+
 func (tgGroup *TgGroup) SetEntity(entity interface{}) {
-	tgGroup.TgGroupEntity, _ = entity.(*TgGroupEntity)
+	if entity == nil {
+		tgGroup.TgGroupEntity = nil
+	} else {
+		tgGroup.TgGroupEntity = entity.(*TgGroupEntity)
+	}
 }

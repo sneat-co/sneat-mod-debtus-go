@@ -5,7 +5,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
 )
 
@@ -274,6 +274,29 @@ func (linker usersLinker) updateInviterContact(
 		inviterContactChanged = true
 		inviterContact.CounterpartyUserID = invitedUser.ID
 		inviterContact.CounterpartyCounterpartyID = invitedContact.ID
+		inviterUserContacts := inviterUser.Contacts()
+		for i, inviterUserContact := range inviterUserContacts {
+			if inviterUserContact.ID == inviterContact.ID {
+				if inviterUserContact.UserID == 0 {
+					inviterUserContact.UserID = inviterContact.CounterpartyUserID
+					inviterUserContacts[i] = inviterUserContact
+					inviterUser.SetContacts(inviterUserContacts)
+					linker.changes.FlagAsChanged(linker.changes.inviterUser)
+				} else if inviterUserContact.UserID == inviterContact.CounterpartyUserID {
+					// do nothing
+				} else {
+					err = fmt.Errorf(
+						"data integrity issue for contact %v: inviterUserContact.UserID != inviterContact.CounterpartyUserID: %v != %v",
+						inviterContact.ID, inviterUserContact.UserID, inviterContact.CounterpartyUserID)
+					return
+				}
+				goto inviterUserContactFound
+			}
+		}
+		if inviterUser.AddOrUpdateContact(*inviterContact) {
+			linker.changes.FlagAsChanged(linker.changes.inviterUser)
+		}
+		inviterUserContactFound:
 		// Queue task to update all existing transfers
 		if inviterContact.CountOfTransfers > 0 {
 			if err = dal.Transfer.DelayUpdateTransfersWithCounterparty(
