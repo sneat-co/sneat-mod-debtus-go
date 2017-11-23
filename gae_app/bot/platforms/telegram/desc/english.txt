@@ -19,6 +19,7 @@ Click the "Start" button at bottom to begin using it for free.
 ------------
 menu - Main menu
 balance - display current balance
+return - return previously recorded debt
 got - record money you received from others
 gave - record money you gave to others
 start - a starting point

@@ -54,7 +54,7 @@ func ParseStartCommand(whc bots.WebhookContext) (startParam string, startParams 
 				log.Debugf(whc.Context(), "TODO: utm_medium=%v, utm_source=%v", utm_medium, utm_source)
 			}
 		} else {
-			log.Errorf(whc.Context(), "reTelegramStartCommandPrefix did not match")
+			log.Debugf(whc.Context(), "reTelegramStartCommandPrefix did not match - no start parameters")
 		}
 		return
 	}

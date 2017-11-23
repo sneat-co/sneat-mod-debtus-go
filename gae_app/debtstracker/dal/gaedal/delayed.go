@@ -219,7 +219,9 @@ func onReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transf
 
 	if err = editTgMessageText(c, tgBotID, tgChatID, tgMsgID, mt); err != nil {
 		if strings.Contains(err.Error(), "Bad Request: message to edit not found") {
-			log.Errorf(c, errors.WithMessage(err, "failed to update Telegram message (tgBotID=%v, tgChatID=%v, tgMsgID=%v)").Error())
+			log.Errorf(c, errors.WithMessage(err, fmt.Sprintf("failed to update Telegram message (tgBotID=%v, tgChatID=%v, tgMsgID=%v)",
+				tgBotID, tgChatID, tgMsgID,
+			)).Error())
 			err = nil
 		}
 		return
@@ -333,7 +335,7 @@ func delaySendReceiptToCounterpartyByTelegram(c context.Context, receiptID, tgCh
 
 var delayedSendReceiptToCounterpartyByTelegram = delay.Func("dalayedSendReceiptToCounterpartyByTelegram", sendReceiptToCounterpartyByTelegram)
 
-func 	updateReceiptStatus(c context.Context, receiptID int64, expectedCurrentStatus, newStatus string) (receipt models.Receipt, err error) {
+func updateReceiptStatus(c context.Context, receiptID int64, expectedCurrentStatus, newStatus string) (receipt models.Receipt, err error) {
 	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 		if receipt, err = dal.Receipt.GetReceiptByID(c, receiptID); err != nil {
 			return
@@ -373,7 +375,6 @@ func sendReceiptToCounterpartyByTelegram(c context.Context, receiptID, tgChatID 
 		return
 	}
 
-
 	var counterpartyUser models.AppUser
 
 	if counterpartyUser, err = dal.User.GetUserByID(c, receipt.CounterpartyUserID); err != nil {
@@ -381,8 +382,8 @@ func sendReceiptToCounterpartyByTelegram(c context.Context, receiptID, tgChatID 
 	}
 
 	var (
-		tgChat models.TelegramChat
-		failedToSend bool
+		tgChat         models.TelegramChat
+		failedToSend   bool
 		chatsForbidden bool
 	)
 

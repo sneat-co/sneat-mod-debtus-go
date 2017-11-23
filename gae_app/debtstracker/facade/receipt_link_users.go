@@ -27,7 +27,13 @@ func NewReceiptUsersLinker(changes *receiptDbChanges) receiptUsersLinker {
 func (linker *receiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID, counterpartyUserID int64) (isJustLinked bool, err error) {
 	log.Debugf(c, "receiptUsersLinker.LinkReceiptUsers(receiptID=%v, counterpartyUserID=%v)", receiptID, counterpartyUserID)
 	var invitedContact models.Contact
+	attempt := 0
 	err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
+		if attempt += 1; attempt > 1 {
+			sleepPeriod := time.Duration(attempt) * time.Second
+			log.Warningf(c, "Transaction retry will sleep for %v, invitedContact.ID: %v", attempt, invitedContact.ID)
+			time.Sleep(sleepPeriod)
+		}
 		changes := linker.changes
 		var (
 			receipt models.Receipt
@@ -42,8 +48,6 @@ func (linker *receiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID,
 		changes.transfer = &transfer
 		changes.inviterUser = &creatorUser
 		changes.invitedUser = &counterpartyUser
-
-		log.Debugf(c, "invitedContact.ID: %v", invitedContact.ID)
 		if invitedContact.ID != 0 { // This means we are attempting to retry failed transaction
 			if err = workaroundReinsertContact(tc, receipt, invitedContact, changes); err != nil {
 				return

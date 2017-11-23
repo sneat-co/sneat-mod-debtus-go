@@ -94,7 +94,7 @@ var AskInviteAddressCallbackCommand = bots.Command{
 			}
 			return AskInviteAddressSmsCommand.Action(whc)
 		case "":
-			log.Errorf(whc.Context(), "AskInviteAddressCallbackCommand: got request to create invite without specifying a channel - not implemented yet. Need to ask a channel first. Check how it works if message forwarded to secret chat.")
+			log.Warningf(whc.Context(), "AskInviteAddressCallbackCommand: got request to create invite without specifying a channel - not implemented yet. Need to ask a channel first. Check how it works if message forwarded to secret chat.")
 			m.Text = whc.Translate(trans.MESSAGE_TEXT_NOT_IMPLEMENTED_YET)
 			return
 		default:

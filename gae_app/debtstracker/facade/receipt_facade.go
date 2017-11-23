@@ -37,8 +37,8 @@ func newReceiptDbChanges() *receiptDbChanges {
 
 func workaroundReinsertContact(c context.Context, receipt models.Receipt, invitedContact models.Contact, changes *receiptDbChanges) (err error) {
 	if _, err = dal.Contact.GetContactByID(c, invitedContact.ID); err != nil {
-		log.Debugf(c, "workaroundReinsertContact(invitedContact.ID=%v) => %v",  invitedContact.ID, err.Error())
 		if db.IsNotFound(err) {
+			log.Warningf(c, "workaroundReinsertContact(invitedContact.ID=%v) => %v",  invitedContact.ID, err.Error())
 			err = nil
 			if receipt.Status == models.ReceiptStatusAcknowledged {
 				if invitedContactInfo := changes.invitedUser.ContactByID(invitedContact.ID); invitedContactInfo != nil {
@@ -49,9 +49,11 @@ func workaroundReinsertContact(c context.Context, receipt models.Receipt, invite
 				}
 			}
 			changes.FlagAsChanged(changes.invitedContact)
+		} else {
+			log.Errorf(c, "workaroundReinsertContact(invitedContact.ID=%v) => %v",  invitedContact.ID, err.Error())
 		}
 	} else {
-		log.Warningf(c, "workaroundReinsertContact(%v) => contact found by ID!", invitedContact.ID)
+		log.Debugf(c, "workaroundReinsertContact(%v) => contact found by ID!", invitedContact.ID)
 	}
 	return
 }
