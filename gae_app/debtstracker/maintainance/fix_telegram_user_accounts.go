@@ -13,6 +13,8 @@ import (
 	"github.com/strongo/log"
 	users "github.com/strongo/app/user"
 	"strconv"
+	"strings"
+	"fmt"
 )
 
 type verifyTelegramUserAccounts struct {
@@ -111,8 +113,36 @@ func (m *verifyTelegramUserAccounts) processTelegramChat(c context.Context, tgCh
 		user        models.AppUser
 		userChanged bool
 	)
-	if tgChat.BotID == "" {
-		log.Warningf(c, "TgChat(%v).BotID is empty", tgChat.ID)
+	if tgChat.BotID == "" || tgChat.TelegramUserID == 0 {
+		log.Warningf(c, "TgChat(%v) => BotID=%v, TelegramUserID=%v", tgChat.ID, tgChat.TelegramUserID)
+		if strings.Contains(tgChat.ID, ":") {
+			botID := strings.Split(tgChat.ID, ":")[0]
+			tgUserID := tgChat.TelegramUserID
+			if tgUserID == 0 {
+				if tgUserID, err = strconv.ParseInt(strings.Split(tgChat.ID, ":")[1], 10, 64); err != nil {
+					return
+				}
+			}
+			if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+				if tgChat, err = dal.TgChat.GetTgChatByID(c, botID, tgUserID); err != nil {
+					return
+				}
+				tgChat.TelegramUserID = tgUserID
+				tgChat.BotID = botID
+				return dal.DB.Update(c, &tgChat)
+			}, db.CrossGroupTransaction); err != nil {
+				log.Errorf(c, "Failed to fix TgChat(%v): %v", tgChat.ID, err)
+				err = nil
+				return
+			}
+			log.Infof(c, "Fixed TgChat(%v)", tgChat.ID)
+		} else {
+			return
+		}
+	}
+	if tgChat.AppUserIntID == 0 {
+		log.Warningf(c, "TgChat(%v).AppUserIntID == 0", tgChat.ID)
+		return
 	}
 	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 		if user, err = dal.User.GetUserByID(c, tgChat.AppUserIntID); err != nil {
@@ -123,31 +153,34 @@ func (m *verifyTelegramUserAccounts) processTelegramChat(c context.Context, tgCh
 			return
 		}
 		telegramAccounts := user.GetTelegramAccounts()
-		log.Debugf(c, "telegramAccounts: %+v", telegramAccounts)
 		tgChatStrID := strconv.FormatInt(tgChat.TelegramUserID, 10)
 		for _, ua := range telegramAccounts {
 			if ua.ID == tgChatStrID {
 				if ua.App == tgChat.BotID {
-					//log.Debugf(c, "Account is OK")
+					goto userAccountFound
 				} else if ua.App == "" {
 					//log.Debugf(c, "will be fixed")
 					user.RemoveAccount(ua)
 					ua.App = tgChat.BotID
-					user.AddAccount(ua)
-					userChanged = true
+					userChanged = user.AddAccount(ua) || userChanged
 					goto userAccountFound
 				}
 			}
 		}
-		user.AddAccount(users.Account{
+		userChanged = user.AddAccount(users.Account{
 			ID:       strconv.FormatInt(tgChat.TelegramUserID, 10),
 			App:      tgChat.BotID,
 			Provider: telegram_bot.TelegramPlatformID,
-		})
-		userChanged = true
+		}) || userChanged
 	userAccountFound:
 		if userChanged {
 			//log.Debugf(c, "user changed %v", user.ID)
+			defer func() {
+				if r := recover(); r != nil {
+					log.Errorf(c, "panic on saving user %v: %v", user.ID, r)
+					err = fmt.Errorf("panic on saving user %v: %v", user.ID, r)
+				}
+			}()
 			if err = dal.User.SaveUser(c, user); err != nil {
 				return
 			}
