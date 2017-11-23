@@ -26,6 +26,13 @@ func NewReceiptUsersLinker(changes *receiptDbChanges) receiptUsersLinker {
 
 func (linker *receiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID, counterpartyUserID int64) (isJustLinked bool, err error) {
 	log.Debugf(c, "receiptUsersLinker.LinkReceiptUsers(receiptID=%v, counterpartyUserID=%v)", receiptID, counterpartyUserID)
+	if currentUser, err := dal.User.GetUserByID(c, counterpartyUserID); err != nil {
+		// TODO: Instead pass user as a parameter? Even better if the user entity was created within following transaction.
+		return isJustLinked, err
+	} else if currentUser.DtCreated.After(time.Now().Add(-time.Second/2)) {
+		log.Debugf(c, "A new user, will wait for half a seconds to cleanup previous transaction")
+		time.Sleep(time.Second/2)
+	}
 	var invitedContact models.Contact
 	attempt := 0
 	err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
