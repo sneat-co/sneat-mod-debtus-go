@@ -1,24 +1,25 @@
 package bot_shared
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"net/url"
 	"bytes"
-	"github.com/DebtsTracker/translations/trans"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/db"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"fmt"
+	"net/url"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/emoji"
+	"github.com/DebtsTracker/translations/trans"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/db"
 )
 
 const SETTINGS_COMMAND = "settings"
 
 var settingsCommand = bots.Command{
 	Code:     SETTINGS_COMMAND,
-	Commands: []string{"/" + SETTINGS_COMMAND},
-	Action:   NewGroupAction(func(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error) {
+	Commands: trans.Commands(trans.COMMAND_SETTINGS, emoji.SETTINGS_ICON),
+	Action: NewGroupAction(func(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error) {
 		return GroupSettingsAction(whc, group, false)
 	}),
 	CallbackAction: NewGroupCallbackAction(func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
@@ -77,13 +78,13 @@ var groupSettingsChooseCurrencyCommand = GroupCallbackCommand(GROUP_SETTINGS_CHO
 		m.IsEdit = true
 		m.Text = whc.Translate(trans.MESSAGE_TEXT_ASK_PRIMARY_CURRENCY)
 		m.Keyboard = CurrenciesInlineKeyboard(
-			GROUP_SETTINGS_SET_CURRENCY_COMMAD + "?group=" + group.ID,
-				[]tgbotapi.InlineKeyboardButton{
-					{
-						Text: whc.Translate(trans.BT_OTHER_CURRENCY),
-						URL: fmt.Sprintf("https://t.me/%v?start=", whc.GetBotCode()) + GROUP_SETTINGS_CHOOSE_CURRENCY_COMMAND,
-					},
+			GROUP_SETTINGS_SET_CURRENCY_COMMAD+"?group="+group.ID,
+			[]tgbotapi.InlineKeyboardButton{
+				{
+					Text: whc.Translate(trans.BT_OTHER_CURRENCY),
+					URL:  fmt.Sprintf("https://t.me/%v?start=", whc.GetBotCode()) + GROUP_SETTINGS_CHOOSE_CURRENCY_COMMAND,
 				},
+			},
 		)
 		return
 	},

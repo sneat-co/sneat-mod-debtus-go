@@ -1,9 +1,10 @@
 package dtb_general
 
 import (
+	"fmt"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"fmt"
 	"github.com/strongo/bots-framework/core"
 )
 

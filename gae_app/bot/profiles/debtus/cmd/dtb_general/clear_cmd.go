@@ -2,8 +2,8 @@ package dtb_general
 
 import (
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
 )
 
 const CLEAR_COMMAND = "clear"

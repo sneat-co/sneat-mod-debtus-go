@@ -1,8 +1,8 @@
 package facade
 
 import (
-	"github.com/strongo/decimal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/strongo/decimal"
 )
 
 type SplitMemberTotal struct {
@@ -21,7 +21,7 @@ func (billFacade) getBalances(splitID int64, bills []models.Bill) (balanceByCurr
 	for _, bill := range bills {
 		var (
 			balanceByMember SplitBalanceByMember
-			ok bool
+			ok              bool
 		)
 		if balanceByMember, ok = balanceByCurrency[bill.Currency]; !ok {
 			balanceByMember = make(SplitBalanceByMember)
@@ -40,4 +40,3 @@ func (billFacade) getBalances(splitID int64, bills []models.Bill) (balanceByCurr
 func (billFacade) cleanupBalances(balanceByCurrency SplitBalanceByCurrencyAndMember) SplitBalanceByCurrencyAndMember {
 	return balanceByCurrency
 }
-

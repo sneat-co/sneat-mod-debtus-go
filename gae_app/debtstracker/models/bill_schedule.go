@@ -1,9 +1,10 @@
 package models
 
 import (
+	"time"
+
 	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
-	"time"
 )
 
 type BillScheduleStatus string

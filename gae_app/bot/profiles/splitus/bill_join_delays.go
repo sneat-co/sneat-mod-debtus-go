@@ -1,22 +1,23 @@
 package splitus
 
 import (
+	"fmt"
+	"strings"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
-	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gae"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/urlfetch"
-	"strings"
 )
 
 var (

@@ -1,14 +1,15 @@
 package maintainance
 
 import (
-	"github.com/captaincodeman/datastore-mapper"
 	"net/http"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"google.golang.org/appengine/datastore"
-	"golang.org/x/net/context"
+	"github.com/captaincodeman/datastore-mapper"
 	"github.com/pkg/errors"
 	"github.com/strongo/log"
+	"golang.org/x/net/context"
 	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
 )
 
 type contactsAsyncJob struct {
@@ -23,9 +24,9 @@ func (m *contactsAsyncJob) Make() interface{} {
 	return m.entity
 }
 
-func (m *contactsAsyncJob) Query(r *http.Request) (query  *mapper.Query, err error) {
+func (m *contactsAsyncJob) Query(r *http.Request) (query *mapper.Query, err error) {
 	c := appengine.NewContext(r)
-	log.Debugf(c, "Query(): r.RawQuery: " + r.URL.RawQuery)
+	log.Debugf(c, "Query(): r.RawQuery: "+r.URL.RawQuery)
 	var filtered bool
 	if query, filtered, err = filterByIntID(r, models.ContactKind, "contact"); err != nil {
 		log.Errorf(c, err.Error())

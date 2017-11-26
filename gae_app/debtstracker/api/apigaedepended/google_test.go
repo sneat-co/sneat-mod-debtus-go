@@ -1,9 +1,10 @@
 package apigaedepended
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"net/http"
 	"testing"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 )
 
 func TestInitApiGaeDepended(t *testing.T) {

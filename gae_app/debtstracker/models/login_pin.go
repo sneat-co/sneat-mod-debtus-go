@@ -1,8 +1,9 @@
 package models
 
 import (
-	"github.com/strongo/db"
 	"time"
+
+	"github.com/strongo/db"
 )
 
 const LoginPinKind = "LoginPin"
@@ -34,7 +35,6 @@ func (loginPin *LoginPin) SetEntity(entity interface{}) {
 	}
 
 }
-
 
 type LoginPinEntity struct {
 	Channel    string `datastore:",noindex"`

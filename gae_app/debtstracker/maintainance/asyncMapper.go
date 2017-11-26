@@ -1,33 +1,34 @@
 package maintainance
 
 import (
-	"github.com/captaincodeman/datastore-mapper"
-	"github.com/strongo/db/gaedb"
-	"golang.org/x/net/context"
-	"runtime/debug"
-	"github.com/strongo/log"
-	"sync"
-	"strconv"
 	"net/http"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine"
+	"runtime/debug"
+	"strconv"
+	"sync"
+
+	"github.com/captaincodeman/datastore-mapper"
 	"github.com/pkg/errors"
+	"github.com/strongo/db/gaedb"
+	"github.com/strongo/log"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
 )
 
 type asyncMapper struct {
 	panicked bool
-	sync.WaitGroup
+	*sync.WaitGroup
 }
-
 
 type Worker func(counters *asyncCounters) error
 type WorkerFactory func() Worker
 
 func (m *asyncMapper) startWorker(c context.Context, counters mapper.Counters, createWorker WorkerFactory) error {
+	m.WaitGroup = new(sync.WaitGroup)
 	m.panicked = true
 	m.Add(1)
 	executeWorker := createWorker()
-	go func(){
+	go func() {
 		counters := NewAsynCounters(counters)
 		defer func() {
 			m.Done()
@@ -55,7 +56,6 @@ func (asyncMapper) JobStarted(c context.Context, id string) {
 func (asyncMapper) JobCompleted(c context.Context, id string) {
 	logJobCompletion(c, id)
 }
-
 
 func (asyncMapper) SliceStarted(c context.Context, id string, namespace string, shard, slice int) {
 	gaedb.LoggingEnabled = false
@@ -100,4 +100,3 @@ func filterByStrID(r *http.Request, kind, paramName string) (query *mapper.Query
 	filtered = true
 	return
 }
-

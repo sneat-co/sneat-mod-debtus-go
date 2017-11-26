@@ -1,0 +1,51 @@
+<%!
+import (
+"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+)
+%>
+
+
+<%: func heroContactCard(now time.Time, contact contactWithBalances, buffer *bytes.Buffer) %>
+<div class="card mr-2 mb-2">
+    <div class=card-body>
+        <h4 class=card-title><a href="contact?id=<%=i contact.ID %>"><%= contact.FullName() %></a></h4>
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">Status</th>
+                <th scope="col">Telegram #</th>
+                <th scope="col" class=center>Linked</th>
+                <th scope="col" class="d">Transfers</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td><%= contact.Status %></td>
+
+                <% if contact.TelegramUserID == 0 { %>
+                <td>no</td>
+                <% } else { %>
+                <td>yes</td>
+                <% } %>
+
+                <% if contact.CounterpartyCounterpartyID == 0 { %>
+                <td class=center>no</td>
+                <% } else { %>
+                <td class=center><a href=contact?id=<%=i contact.CounterpartyCounterpartyID %>yes</a></td>
+                <% } %>
+                <td class="d"><%=i contact.transfersCount %></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="container-fluid">
+        <div class="row">
+            <%
+            renderContactBalance(contact.ID, "Balance (no interest)", contact.balances.withoutInterest, true,
+            buffer)
+            renderContactBalance(contact.ID, "Balance with interest", contact.balances.withInterest, false,
+            buffer)
+            %>
+        </div>
+    </div>
+</div>

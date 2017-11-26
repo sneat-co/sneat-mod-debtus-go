@@ -1,6 +1,10 @@
 package gaedal
 
 import (
+	"net/url"
+	"strconv"
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/pkg/errors"
@@ -8,9 +12,6 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/taskqueue"
-	"net/url"
-	"strconv"
-	"time"
 )
 
 func _validateSetReminderIsSentMessageIDs(messageIntID int64, messageStrID string, sentAt time.Time) error {

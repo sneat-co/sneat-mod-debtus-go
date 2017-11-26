@@ -2,8 +2,9 @@ package gaedal
 
 import (
 	"fmt"
-	"golang.org/x/net/context"
 	"testing"
+
+	"golang.org/x/net/context"
 )
 
 func TestNewUserFacebookKey(t *testing.T) {

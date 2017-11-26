@@ -1,14 +1,15 @@
 package models
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"fmt"
+	"time"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"github.com/pkg/errors"
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/decimal"
 	"google.golang.org/appengine/datastore"
-	"time"
 )
 
 type TransferDirection string
@@ -103,8 +104,8 @@ func (t *TransferEntity) GetLendingValue() decimal.Decimal64p2 {
 type TransferEntity struct {
 	hasObsoleteProps bool
 	general.CreatedOn
-	from             *TransferCounterpartyInfo
-	to               *TransferCounterpartyInfo
+	from *TransferCounterpartyInfo
+	to   *TransferCounterpartyInfo
 
 	BillIDs []string
 
@@ -114,9 +115,9 @@ type TransferEntity struct {
 	ReturnToTransferIDs   []int64 `datastore:",noindex"`           // List of transfer to which this debt is a return. Should be populated only if IsReturn=True
 	//
 	returns           []TransferReturnJson // Deserialized cache
-	ReturnsJson       string  `datastore:",noindex,omitempty"`
-	ReturnsCount      int     `datastore:",noindex,omitempty"`
-	ReturnTransferIDs []int64 `datastore:",noindex"` // TODO: Obsolete - replace with ReturnsJson List of transfers that return money to this debts
+	ReturnsJson       string               `datastore:",noindex,omitempty"`
+	ReturnsCount      int                  `datastore:",noindex,omitempty"`
+	ReturnTransferIDs []int64              `datastore:",noindex"` // TODO: Obsolete - replace with ReturnsJson List of transfers that return money to this debts
 	//
 	CreatorUserID           int64  `datastore:",noindex"`           // Do not delete
 	CreatorCounterpartyID   int64  `datastore:",noindex,omitempty"` //TODO: Replace with <From|To>ContactID

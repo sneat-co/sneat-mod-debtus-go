@@ -1,12 +1,13 @@
 package gaedal
 
 import (
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"time"
-	"github.com/strongo/db"
 )
 
 type UserOneSignalDalGae struct {

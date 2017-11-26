@@ -1,8 +1,9 @@
 package appengine
 
 import (
-	"github.com/strongo/log"
 	"testing"
+
+	"github.com/strongo/log"
 )
 
 func TestInit(t *testing.T) {

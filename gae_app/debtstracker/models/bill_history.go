@@ -1,18 +1,19 @@
 package models
 
 import (
-	"github.com/strongo/decimal"
-	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/db"
-	"google.golang.org/appengine/datastore"
-	"github.com/strongo/db/gaedb"
-	"github.com/pkg/errors"
 	"fmt"
 	"time"
+
+	"github.com/pkg/errors"
+	"github.com/pquerna/ffjson/ffjson"
+	"github.com/strongo/db"
+	"github.com/strongo/db/gaedb"
+	"github.com/strongo/decimal"
+	"google.golang.org/appengine/datastore"
 )
 
 const (
-	BillsHistoryKind  = "BillH"
+	BillsHistoryKind = "BillH"
 )
 
 type BillsHistory struct {
@@ -52,10 +53,10 @@ type BillsHistoryEntity struct {
 	TotalAmountAfter       decimal.Decimal64p2 `datastore:",noindex"`
 	GroupIDs               []string
 	BillIDs                []string
-	BillsSettlementCount   int                 `datastore:",noindex"`
-	BillsSettlementJson    string              `datastore:",noindex"`
-	GroupMembersJsonBefore string              `datastore:",noindex"`
-	GroupMembersJsonAfter  string              `datastore:",noindex"`
+	BillsSettlementCount   int    `datastore:",noindex"`
+	BillsSettlementJson    string `datastore:",noindex"`
+	GroupMembersJsonBefore string `datastore:",noindex"`
+	GroupMembersJsonAfter  string `datastore:",noindex"`
 }
 
 func (entity *BillsHistoryEntity) BillSettlements() (billSettlements []BillSettlementJson) {

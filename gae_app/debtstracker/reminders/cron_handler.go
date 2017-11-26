@@ -1,16 +1,17 @@
 package reminders
 
 import (
+	"fmt"
+	"net/http"
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"net/http"
-	"time"
 )
 
 func CronSendReminders(c context.Context, w http.ResponseWriter, r *http.Request) {

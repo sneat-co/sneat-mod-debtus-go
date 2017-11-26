@@ -1,10 +1,11 @@
 package models
 
 import (
-	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/datastore"
 	"testing"
 	"time"
+
+	"github.com/strongo/db/gaedb"
+	"google.golang.org/appengine/datastore"
 )
 
 func TestRemoveDefaults(t *testing.T) {

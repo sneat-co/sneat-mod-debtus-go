@@ -1,9 +1,10 @@
 package models
 
 import (
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"github.com/strongo/db"
-	"time"
 )
 
 type InviteBy string

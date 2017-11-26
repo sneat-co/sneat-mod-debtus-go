@@ -2,13 +2,14 @@ package models
 
 import (
 	"encoding/base64"
-	"github.com/strongo/db"
-	"github.com/strongo/db/gaedb"
-	"github.com/strongo/app/user"
-	"golang.org/x/crypto/bcrypt"
-	"google.golang.org/appengine/datastore"
 	"strings"
 	"time"
+
+	"github.com/strongo/app/user"
+	"github.com/strongo/db"
+	"github.com/strongo/db/gaedb"
+	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/appengine/datastore"
 )
 
 const UserEmailKind = "UserEmail"

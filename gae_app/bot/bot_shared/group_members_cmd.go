@@ -1,23 +1,23 @@
 package bot_shared
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"fmt"
+	"net/url"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/decimal"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
-	"net/url"
 )
 
 const GROUP_SPLIT_COMMAND = "group-split"
-
 
 const GROUP_MEMBERS_COMMAND = "group-members"
 
@@ -72,7 +72,7 @@ func groupMembersCard(
 			if member.TgUserID == "" {
 				fmt.Fprintf(&buffer, `  %d. %v`, i+1, member.Name) // TODO: Do a proper padding with 0 on left of #
 			} else {
-				fmt.Fprintf(&buffer, `  %d. <a href="tg://user?id=%d">%v</a>`, i+1, member.TgUserID, member.Name)
+				fmt.Fprintf(&buffer, `  %d. <a href="tg://user?id=%v">%v</a>`, i+1, member.TgUserID, member.Name)
 			}
 			if splitMode != models.SplitModeEqually {
 				fmt.Fprintf(&buffer, " (%d%%)", decimal.Decimal64p2(member.Shares*100/totalShares))

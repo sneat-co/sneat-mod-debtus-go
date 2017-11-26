@@ -1,10 +1,14 @@
 package gaedal
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
-	"fmt"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/db"
@@ -12,9 +16,6 @@ import (
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"strconv"
-	"strings"
-	"time"
 )
 
 func NewInviteKey(c context.Context, inviteCode string) *datastore.Key {

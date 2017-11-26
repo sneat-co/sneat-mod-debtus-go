@@ -2,13 +2,14 @@ package dtb_fbm
 
 import (
 	"fmt"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/strongo/log"
-	"github.com/strongo/bots-api-fbm"
-	"github.com/strongo/bots-framework/core"
-	"golang.org/x/net/context"
 	"net/http"
 	"strings"
+
+	"github.com/DebtsTracker/translations/emoji"
+	"github.com/strongo/bots-api-fbm"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
+	"golang.org/x/net/context"
 )
 
 var EM_SPACE = strings.Repeat("\u00A0", 2)

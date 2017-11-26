@@ -1,8 +1,9 @@
 package models
 
 import (
-	"github.com/strongo/db"
 	"time"
+
+	"github.com/strongo/db"
 )
 
 const GaClientKind = "UserGaClient"
@@ -39,6 +40,5 @@ func (gaClient *GaClient) SetEntity(entity interface{}) {
 
 	}
 }
-
 
 var _ db.EntityHolder = (*GaClient)(nil)

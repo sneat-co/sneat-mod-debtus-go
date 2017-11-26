@@ -1,11 +1,14 @@
 package reminders
 
 import (
+	"bytes"
+	"fmt"
+	"net/http"
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"bytes"
-	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/pkg/errors"
@@ -13,8 +16,6 @@ import (
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/urlfetch"
-	"net/http"
-	"time"
 )
 
 func sendReminderByEmail(c context.Context, reminder models.Reminder, emailTo string, transfer models.Transfer, user models.AppUserEntity) error {

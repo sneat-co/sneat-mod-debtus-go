@@ -1,6 +1,9 @@
 package api
 
 import (
+	"net/http"
+	"strconv"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
@@ -9,8 +12,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
-	"net/http"
-	"strconv"
 )
 
 // TODO: Obsolete - migrate to handleSignInWithPin

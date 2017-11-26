@@ -1,14 +1,15 @@
 package pages
 
 import (
+	"html/template"
+	"net/http"
+	"strings"
+
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
-	"html/template"
-	"net/http"
-	"strings"
 )
 
 const TEMPLATES_PATH = "templates/" //"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/pages/templates/"
@@ -99,7 +100,7 @@ func IndexPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if !strings.HasSuffix(r.URL.Path, "/") {
 		w.WriteHeader(http.StatusPermanentRedirect)
 		path := r.URL.Path
-		w.Header().Add("Location", strings.Replace(r.URL.RequestURI(), path, path + "/", 1))
+		w.Header().Add("Location", strings.Replace(r.URL.RequestURI(), path, path+"/", 1))
 		return
 	}
 	indexPage(appengine.NewContext(r), w, r)

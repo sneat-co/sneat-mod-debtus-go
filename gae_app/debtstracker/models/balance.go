@@ -2,12 +2,13 @@ package models
 
 import (
 	"bytes"
+	"sort"
+	"time"
+
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/app"
 	"github.com/strongo/decimal"
-	"sort"
-	"time"
 )
 
 type TestStruct struct {
@@ -128,7 +129,7 @@ type Balanced struct {
 }
 
 func (b *Balanced) Balance() (balance Balance) {
-	if b.BalanceJson == "" || b.BalanceJson == "null" || b.BalanceJson == "nil" || b.BalanceJson == "{}"{
+	if b.BalanceJson == "" || b.BalanceJson == "null" || b.BalanceJson == "nil" || b.BalanceJson == "{}" {
 		balance = make(Balance, 1)
 		return
 	}

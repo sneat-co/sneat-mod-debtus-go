@@ -2,11 +2,12 @@ package dtb_fbm
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-fbm"
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
-	"net/http"
 )
 
 func SetWhitelistedDomains(c context.Context, r *http.Request, bot bots.BotSettings, api fbm_api.GraphAPI) (err error) {

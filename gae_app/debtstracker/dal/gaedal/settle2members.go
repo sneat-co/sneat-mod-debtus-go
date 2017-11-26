@@ -1,15 +1,16 @@
 package gaedal
 
 import (
+	"fmt"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/pkg/errors"
+	"github.com/strongo/db"
+	"github.com/strongo/decimal"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/decimal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/strongo/db"
-	"github.com/strongo/log"
-	"github.com/pkg/errors"
-	"fmt"
 )
 
 func Settle2members(c context.Context, groupID, debtorID, sponsorID string, currency models.Currency, amount decimal.Decimal64p2) (err error) {
@@ -33,7 +34,7 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 
 	err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 		var (
-			group models.Group
+			group                     models.Group
 			groupDebtor, groupSponsor models.GroupMemberJson
 		)
 		if group, err = dal.Group.GetGroupByID(c, groupID); err != nil {
@@ -42,8 +43,8 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 
 		billsSettlement := models.BillsHistory{
 			BillsHistoryEntity: &models.BillsHistoryEntity{
-				Action: models.BillHistoryActionSettled,
-				Currency: currency,
+				Action:                 models.BillHistoryActionSettled,
+				Currency:               currency,
 				GroupMembersJsonBefore: group.MembersJson,
 			},
 		}
@@ -126,7 +127,7 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 
 			log.Debugf(c, "diff: %v", diff)
 			amount -= diff
-			billsSettlement.TotalAmountDiff  += diff
+			billsSettlement.TotalAmountDiff += diff
 
 			debtor.Paid += diff
 			sponsor.Paid -= diff
@@ -149,14 +150,14 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 
 			billsToSave = append(billsToSave, bill)
 			settlementBills = append(settlementBills, models.BillSettlementJson{
-				BillID: bill.ID,
-				GroupID: groupID,
-				DebtorID: debtorID,
+				BillID:    bill.ID,
+				GroupID:   groupID,
+				DebtorID:  debtorID,
 				SponsorID: sponsorID,
-				Amount: diff,
+				Amount:    diff,
 			})
 
-			nextBill:
+		nextBill:
 		}
 
 		if len(billsToSave) > 0 {
@@ -164,7 +165,7 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 			if err = dal.InsertWithRandomStringID(c, &billsSettlement, 6); err != nil {
 				return
 			}
-			toSave := make([]db.EntityHolder, len(billsToSave) + 1)
+			toSave := make([]db.EntityHolder, len(billsToSave)+1)
 			toSave[0] = &group
 			for i, bill := range billsToSave {
 				bill.SettlementIDs = append(bill.SettlementIDs, billsSettlement.ID)

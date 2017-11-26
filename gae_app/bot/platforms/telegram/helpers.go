@@ -1,13 +1,14 @@
 package telegram
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/strongo/log"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"golang.org/x/net/context"
 	"regexp"
 	"strings"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
+	"golang.org/x/net/context"
 )
 
 func GetTelegramBotApiByBotCode(c context.Context, code string) *tgbotapi.BotAPI {

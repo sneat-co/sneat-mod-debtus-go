@@ -1,24 +1,25 @@
 package bot_shared
 
 import (
+	"bytes"
+	"fmt"
+	"net/url"
+	"strconv"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/strongo/app"
-	"github.com/strongo/db"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/db"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
-	"net/url"
-	"strconv"
-	"fmt"
-	"bytes"
 )
 
-func StartBotLink(botID, command string, params ... string) string {
+func StartBotLink(botID, command string, params ...string) string {
 	var buf bytes.Buffer
 	fmt.Fprintf(&buf, "https://t.me/%v?start=%v", botID, command)
 	for _, p := range params {
@@ -98,7 +99,7 @@ func onStartCallbackCommand(params BotParams) bots.Command {
 
 			whc.ChatEntity().SetPreferredLanguage(lang)
 
-			if err = dal.DB.RunInTransaction(c, func(c context.Context) (error) {
+			if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
 				if user, err := dal.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
 					return err
 				} else if err = user.SetPreferredLocale(lang); err != nil {

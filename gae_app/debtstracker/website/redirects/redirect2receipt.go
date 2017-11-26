@@ -1,18 +1,19 @@
 package redirects
 
 import (
+	"fmt"
+	"html/template"
+	"net/http"
+	"strings"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/website/pages"
-	"fmt"
+	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
-	"html/template"
-	"net/http"
-	"strings"
-	"github.com/julienschmidt/httprouter"
 )
 
 var receiptOpenGraphPageTmpl *template.Template

@@ -5,10 +5,11 @@ package models
 import (
 	"bytes"
 	"fmt"
-	"github.com/pkg/errors"
-	"github.com/pquerna/ffjson/ffjson"
 	"strconv"
 	"strings"
+
+	"github.com/pkg/errors"
+	"github.com/pquerna/ffjson/ffjson"
 )
 
 type TransferCounterpartyInfo struct {
@@ -45,7 +46,7 @@ func fixContactName(contactName string) (isFixed bool, s string) {
 		if end := strings.Index(contactName, ")"); end > start {
 			if l := len(contactName); end == l-1 {
 				if (end-start-1)*2 == len(contactName)-3 {
-					if s = contactName[start+1: end]; s == contactName[:start-1] {
+					if s = contactName[start+1 : end]; s == contactName[:start-1] {
 						isFixed = true
 						return
 					}

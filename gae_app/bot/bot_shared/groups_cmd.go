@@ -1,17 +1,18 @@
 package bot_shared
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"fmt"
+	"net/url"
+	"strconv"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"net/url"
-	"strconv"
+	"github.com/strongo/log"
 )
 
 const GROUPS_COMMAND = "groups"

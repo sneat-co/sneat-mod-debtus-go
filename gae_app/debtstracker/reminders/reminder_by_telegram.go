@@ -1,6 +1,10 @@
 package reminders
 
 import (
+	"fmt"
+	"net/http"
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/analytics"
@@ -9,21 +13,18 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
-	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gae"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/hosts/appengine"
 	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/urlfetch"
-	"net/http"
-	"time"
 )
 
 func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminder models.Reminder, tgChatID int64, tgBot string) (sent, channelDisabledByUser bool, err error) {

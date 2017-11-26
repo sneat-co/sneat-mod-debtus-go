@@ -1,20 +1,21 @@
 package maintainance
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bytes"
 	"fmt"
+	"strings"
+	"time"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/captaincodeman/datastore-mapper"
+	"github.com/pkg/errors"
+	"github.com/sanity-io/litter"
+	"github.com/strongo/db"
+	"github.com/strongo/db/gaedb"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/pkg/errors"
-	"bytes"
-	"github.com/sanity-io/litter"
-	"strings"
-	"github.com/strongo/db"
-	"time"
-	"github.com/strongo/db/gaedb"
 )
 
 type verifyContactTransfers struct {
@@ -31,9 +32,9 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 	now := time.Now()
 	hasError := false
 	var (
-		user           models.AppUser
-		warningsCount  int
-		transfers      []models.Transfer
+		user          models.AppUser
+		warningsCount int
+		transfers     []models.Transfer
 	)
 	contactBalance := contact.Balance()
 
@@ -64,7 +65,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 					litter.Sdump(contactBalance),
 					contact.UserID,
 					userName,
-				)+ buf.String(),
+				)+buf.String(),
 			)
 		}
 	}()
@@ -260,7 +261,6 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 		}
 	}
 
-
 	if !outstandingIsValid || !contactBalance.Equal(user.ContactByID(contact.ID).Balance()) || !contactBalance.Equal(transfersBalance) {
 		needsFixingContactOrUser = true
 	}
@@ -270,8 +270,8 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 		if counterpartyContact, err = dal.Contact.GetContactByID(c, contact.CounterpartyCounterpartyID); err != nil {
 			return
 		}
-		fmt.Fprintf(buf,"contact.Balance(): %v\n", contact.Balance())
-		fmt.Fprintf(buf,"counterpartyContact.Balance(): %v\n", contact.Balance())
+		fmt.Fprintf(buf, "contact.Balance(): %v\n", contact.Balance())
+		fmt.Fprintf(buf, "counterpartyContact.Balance(): %v\n", contact.Balance())
 		if !counterpartyContact.GetTransfersInfo().Equal(contact.GetTransfersInfo()) || !counterpartyContact.Balance().Equal(transfersBalance.Reversed()) {
 			needsFixingContactOrUser = true
 		}
@@ -349,7 +349,7 @@ func (m *verifyContactTransfers) fixContactAndUser(c context.Context, buf *bytes
 }
 
 func (m *verifyContactTransfers) fixContactAndUserWithinTransaction(c context.Context, buf *bytes.Buffer, counters *asyncCounters, contactID int64, transfersBalance models.Balance, transfersCount int, lastTransfer models.Transfer) (contact models.Contact, user models.AppUser, err error) {
-	fmt.Fprintf(buf,"Fixing contact %v...\n", contactID)
+	fmt.Fprintf(buf, "Fixing contact %v...\n", contactID)
 	if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil {
 		return
 	}
@@ -411,7 +411,7 @@ func (m *verifyContactTransfers) fixContactAndUserWithinTransaction(c context.Co
 				return
 			}
 			userChanged = true
-			fmt.Fprintln(buf, "user total balance update from contacts\nwas: %v\nnew: %v", userTotalBalance, userContactsBalance)
+			fmt.Fprintf(buf, "user total balance update from contacts\nwas: %v\nnew: %v\n", userTotalBalance, userContactsBalance)
 		}
 		if userChanged {
 			if err = dal.User.SaveUser(c, user); err != nil {

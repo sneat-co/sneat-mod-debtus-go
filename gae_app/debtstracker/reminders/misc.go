@@ -2,13 +2,14 @@ package reminders
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
-	"net/http"
 )
 
 type TransferReminderTo int

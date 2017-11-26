@@ -1,8 +1,8 @@
 package models
 
 import (
-	"github.com/strongo/db"
 	"github.com/strongo/app/user"
+	"github.com/strongo/db"
 )
 
 const (
@@ -26,7 +26,7 @@ type UserVk struct {
 var _ db.EntityHolder = (*UserVk)(nil)
 
 func (UserVk) Kind() string {
-	return  UserVkKind
+	return UserVkKind
 }
 
 func (u UserVk) Entity() interface{} {
@@ -44,4 +44,3 @@ func (u *UserVk) SetEntity(entity interface{}) {
 		u.UserVkEntity = entity.(*UserVkEntity)
 	}
 }
-

@@ -2,13 +2,14 @@ package models
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/datastore"
-	"strings"
 	"github.com/strongo/decimal"
+	"google.golang.org/appengine/datastore"
 )
 
 const GroupKind = "Group"
@@ -47,11 +48,11 @@ type GroupEntity struct {
 	Note                string   `datastore:",noindex,omitempty"`
 	DefaultCurrency     Currency `datastore:",noindex,omitempty"`
 	members             []GroupMemberJson
-	MembersCount        int      `datastore:",noindex,omitempty"`
-	MembersJson         string   `datastore:",noindex,omitempty"`
+	MembersCount        int    `datastore:",noindex,omitempty"`
+	MembersJson         string `datastore:",noindex,omitempty"`
 	telegramGroups      []GroupTgChatJson
-	TelegramGroupsCount int      `datastore:"TgGroupsCount,noindex,omitempty"`
-	TelegramGroupsJson  string   `datastore:"TgGroupsJson,noindex,omitempty"`
+	TelegramGroupsCount int    `datastore:"TgGroupsCount,noindex,omitempty"`
+	TelegramGroupsJson  string `datastore:"TgGroupsJson,noindex,omitempty"`
 	billsHolder
 }
 
@@ -349,7 +350,7 @@ func (entity *GroupEntity) validateMembers(members []GroupMemberJson, membersCou
 			return fmt.Errorf("members[%d].ID is empty string", i)
 		}
 		if _, ok := memberIDs[m.ID]; ok {
-			return fmt.Errorf("members[%d]: Duplicate ID: %d", i, m.ID)
+			return fmt.Errorf("members[%d]: Duplicate ID: %v", i, m.ID)
 		}
 		memberIDs[m.ID] = EMPTY
 		if m.UserID == "" && len(m.ContactIDs) == 0 {
@@ -357,13 +358,13 @@ func (entity *GroupEntity) validateMembers(members []GroupMemberJson, membersCou
 		}
 		if m.UserID != "" {
 			if _, ok := userIDs[m.UserID]; ok {
-				return fmt.Errorf("members[%d]: Duplicate UserID: %d", i, m.UserID)
+				return fmt.Errorf("members[%d]: Duplicate UserID: %v", i, m.UserID)
 			}
 			userIDs[m.UserID] = EMPTY
 		} else if len(m.ContactIDs) > 0 {
 			for _, contactID := range m.ContactIDs {
 				if _, ok := contactIDs[contactID]; ok {
-					return fmt.Errorf("members[%d]: Duplicate ContactID: %d", i, contactID)
+					return fmt.Errorf("members[%d]: Duplicate ContactID: %v", i, contactID)
 				}
 				contactIDs[contactID] = EMPTY
 			}

@@ -1,9 +1,10 @@
 package vkapp
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/website/pages"
 	"html/template"
 	"net/http"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/website/pages"
 	//"github.com/strongo/app"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/vk"
 	"github.com/julienschmidt/httprouter"

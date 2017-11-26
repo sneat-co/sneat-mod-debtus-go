@@ -1,9 +1,10 @@
 package models
 
 import (
+	"testing"
+
 	"github.com/strongo/decimal"
 	"google.golang.org/appengine/datastore"
-	"testing"
 )
 
 func TestTransfer_Save(t *testing.T) {

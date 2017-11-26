@@ -1,19 +1,20 @@
 package api
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"encoding/json"
-	"github.com/strongo/decimal"
-	"golang.org/x/net/context"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/strongo/decimal"
+	"golang.org/x/net/context"
 )
 
 const (

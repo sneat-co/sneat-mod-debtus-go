@@ -1,10 +1,11 @@
 package models
 
 import (
+	"time"
+
 	"github.com/strongo/db"
 	"github.com/strongo/decimal"
 	"github.com/strongo/gotwilio"
-	"time"
 )
 
 const SmsKind = "Sms"

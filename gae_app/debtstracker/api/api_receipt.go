@@ -1,6 +1,12 @@
 package api
 
 import (
+	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/analytics"
@@ -13,17 +19,12 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/invites"
-	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
 )
 
 func NewReceiptTransferDto(c context.Context, transfer models.Transfer) dto.ApiReceiptTransferDto {
@@ -320,7 +321,7 @@ func getReceiptChannel(r *http.Request) (channel string, err error) {
 
 func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
 	if err := r.ParseForm(); err != nil {
-		log.Debugf(c, "handleCreateReceipt() => Invalid form data: " + err.Error())
+		log.Debugf(c, "handleCreateReceipt() => Invalid form data: "+err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Invalid form data"))
 		return
@@ -380,7 +381,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 					}
 				}
 			}
-			langSet:
+		langSet:
 		}
 	}
 	if lang == "" {

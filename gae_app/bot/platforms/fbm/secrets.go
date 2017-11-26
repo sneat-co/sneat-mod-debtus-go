@@ -1,18 +1,19 @@
 package fbm
 
 import (
+	"net/http"
+	"strings"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/fbm"
 	fb "github.com/strongo/facebook"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
-	"net/http"
-	"strings"
 )
 
 const (

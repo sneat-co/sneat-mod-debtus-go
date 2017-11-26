@@ -1,12 +1,13 @@
 package maintainance
 
 import (
+	"fmt"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/captaincodeman/datastore-mapper"
-	"github.com/strongo/nds"
 	"github.com/strongo/db"
+	"github.com/strongo/nds"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
@@ -52,4 +53,3 @@ func (m *verifyContacts) processContact(c context.Context, counters *asyncCounte
 	}
 	return
 }
-

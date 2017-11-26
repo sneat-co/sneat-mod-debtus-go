@@ -1,13 +1,14 @@
 package telegram
 
 import (
+	"fmt"
+	"strings"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/secret"
-	"fmt"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"strings"
 )
 
 var _bots bots.SettingsBy

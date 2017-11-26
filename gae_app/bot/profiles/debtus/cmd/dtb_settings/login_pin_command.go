@@ -1,14 +1,15 @@
 package dtb_settings
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"fmt"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/viber"
-	"strconv"
-	"strings"
 )
 
 var LoginPinCommand = bots.Command{

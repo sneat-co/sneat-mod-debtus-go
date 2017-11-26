@@ -1,11 +1,12 @@
 package pages
 
 import (
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/app"
 	"html/template"
 	"net/http"
+
+	"github.com/DebtsTracker/translations/trans"
 	"github.com/julienschmidt/httprouter"
+	"github.com/strongo/app"
 )
 
 var iouADanceTmpl *template.Template

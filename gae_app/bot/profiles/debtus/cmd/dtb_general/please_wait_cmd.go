@@ -1,9 +1,10 @@
 package dtb_general
 
 import (
+	"net/url"
+
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-framework/core"
-	"net/url"
 )
 
 const PLEASE_WAIT_COMMAND = "please-wait"

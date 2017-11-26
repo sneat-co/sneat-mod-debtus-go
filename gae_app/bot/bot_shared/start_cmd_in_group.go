@@ -1,14 +1,15 @@
 package bot_shared
 
 import (
+	"fmt"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/log"
+	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/bots-api-telegram"
-	"fmt"
+	"github.com/strongo/log"
 )
 
 func startInGroupAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
@@ -47,11 +48,11 @@ func startInGroupAction(whc bots.WebhookContext) (m bots.MessageFromBot, err err
 
 	m.Format = bots.MessageFormatHTML
 	m.Keyboard = CurrenciesInlineKeyboard(
-		GROUP_SETTINGS_SET_CURRENCY_COMMAD + "?start=y&group=" + group.ID,
+		GROUP_SETTINGS_SET_CURRENCY_COMMAD+"?start=y&group="+group.ID,
 		[]tgbotapi.InlineKeyboardButton{
 			{
 				Text: whc.Translate(trans.BT_OTHER_CURRENCY),
-				URL: fmt.Sprintf("https://t.me/%v?start=%v__group=%v", whc.GetBotCode(), GROUP_SETTINGS_CHOOSE_CURRENCY_COMMAND, group.ID),
+				URL:  fmt.Sprintf("https://t.me/%v?start=%v__group=%v", whc.GetBotCode(), GROUP_SETTINGS_CHOOSE_CURRENCY_COMMAND, group.ID),
 			},
 		},
 	)

@@ -1,10 +1,11 @@
 package dtb_transfer
 
 import (
-	"github.com/strongo/bots-framework/core"
 	"net/url"
-	"github.com/pkg/errors"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"github.com/pkg/errors"
+	"github.com/strongo/bots-framework/core"
 )
 
 const CHANGE_RECEIPT_LANG_COMMAND = "change-lang-receipt"
@@ -25,5 +26,3 @@ var ChangeReceiptAnnouncementLangCommand = bots.NewCallbackCommand(
 		return showReceiptAnnouncement(whc, receiptID, "")
 	},
 )
-
-

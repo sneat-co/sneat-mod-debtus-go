@@ -1,14 +1,15 @@
 package gaedal
 
 import (
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gae"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/delay"
-	"strings"
-	"testing"
-	"time"
 )
 
 func Test__validateSetReminderIsSentMessageIDs(t *testing.T) {

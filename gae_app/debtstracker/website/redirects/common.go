@@ -1,18 +1,19 @@
 package redirects
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bytes"
 	"fmt"
-	"github.com/strongo/log"
-	"google.golang.org/appengine"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"github.com/strongo/log"
+	"google.golang.org/appengine"
 )
 
 func redirectToWebApp(w http.ResponseWriter, r *http.Request, authRequired bool, path string, p2p map[string]string, optionalParams []string) {

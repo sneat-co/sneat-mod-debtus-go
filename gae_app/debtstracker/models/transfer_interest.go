@@ -1,12 +1,14 @@
 package models
 
 import (
-	"github.com/strongo/decimal"
 	"fmt"
+
+	"github.com/strongo/decimal"
 	//"google.golang.org/appengine/datastore"
 	//"github.com/strongo/db/gaedb"
-	"github.com/pkg/errors"
 	"time"
+
+	"github.com/pkg/errors"
 	"github.com/sanity-io/litter"
 )
 
@@ -212,6 +214,9 @@ func updateBalanceWithInterest(b Balance, outstandingWithInterest []TransferWith
 		balanceValue, ok := b[outstandingTransferWithInterest.Currency]
 		if ok {
 			interestValue := CalculateInterestValue(outstandingTransferWithInterest, periodEnds)
+			if balanceValue < 0 {
+				interestValue = -interestValue
+			}
 			b[outstandingTransferWithInterest.Currency] = balanceValue + interestValue
 		} else {
 			panic(fmt.Errorf("outstanding transfer %v with currency %v is not presented in balance", outstandingTransferWithInterest.TransferID, outstandingTransferWithInterest.Currency))
@@ -225,4 +230,4 @@ Example:
 7% per week min 3 days
 1.5% в неделю мин 3 дня
 
- */
+*/

@@ -1,25 +1,27 @@
 package dtb_general
 
 import (
+	"fmt"
+	"net/url"
+	"strings"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"net/url"
-	"strings"
+	"github.com/strongo/log"
 	//"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
+	"strconv"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/admin"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"golang.org/x/net/context"
-	"strconv"
 )
 
 const (
@@ -176,8 +178,8 @@ func feedbackCommandAction(whc bots.WebhookContext) (m bots.MessageFromBot, err 
 var FeedbackCommand = bots.Command{
 	Code:     FEEDBACK_COMMAND,
 	Title:    trans.COMMAND_TEXT_FEEDBACK,
-	Commands: trans.Commands(trans.COMMAND_TEXT_FEEDBACK, FEEDBACK_COMMAND),
-	Icon:     emoji.BULB_ICON,
+	Commands: trans.Commands(trans.COMMAND_TEXT_FEEDBACK, FEEDBACK_COMMAND, emoji.STAR_ICON),
+	Icon:     emoji.STAR_ICON,
 	Action:   feedbackCommandAction,
 	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		like := callbackUrl.Query().Get("like")

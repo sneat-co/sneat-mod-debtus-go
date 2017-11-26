@@ -2,12 +2,13 @@ package models
 
 import (
 	"fmt"
+	"time"
+
+	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/decimal"
 	"google.golang.org/appengine/datastore"
-	"time"
-	"github.com/pkg/errors"
 )
 
 type SplitMode string
@@ -31,10 +32,10 @@ const (
 
 type BillCommon struct {
 	PayMode            PayMode
-	CreatorUserID      string              `datastore:",noindex"`
-	userGroupID        string              `datastore:"UserGroupID"`
-	TgInlineMessageIDs []string            `datastore:",noindex"`
-	SplitMode          SplitMode           `datastore:",noindex"`
+	CreatorUserID      string    `datastore:",noindex"`
+	userGroupID        string    `datastore:"UserGroupID"`
+	TgInlineMessageIDs []string  `datastore:",noindex"`
+	SplitMode          SplitMode `datastore:",noindex"`
 	Status             string
 	DtCreated          time.Time
 	Name               string              `datastore:",noindex"`
@@ -42,10 +43,10 @@ type BillCommon struct {
 	Currency           Currency
 	UserIDs            []string
 	members            []BillMemberJson
-	MembersJson        string              `datastore:",noindex"`
-	MembersCount       int                 `datastore:",noindex"`
+	MembersJson        string   `datastore:",noindex"`
+	MembersCount       int      `datastore:",noindex"`
 	ContactIDs         []string // Holds contact IDs so we can update names in MembersJson on contact changed
-	Shares             int                 `datastore:",noindex"`
+	Shares             int      `datastore:",noindex"`
 }
 
 func (entity BillCommon) UserGroupID() string {
@@ -135,7 +136,7 @@ func (entity *BillCommon) GetMembers() (members []MemberJson) {
 	return
 }
 
-func (entity *BillCommon) validateMembersForDuplicatesAndBasicChecks(members []BillMemberJson) (error) {
+func (entity *BillCommon) validateMembersForDuplicatesAndBasicChecks(members []BillMemberJson) error {
 	isEquallySplit := true
 	//maxShares := 0
 
@@ -179,7 +180,7 @@ func (entity *BillCommon) validateMembersForDuplicatesAndBasicChecks(members []B
 	return nil
 }
 
-func (entity *BillCommon) marshalMembersToJsonAndSetMembersCount(members []BillMemberJson) (error) {
+func (entity *BillCommon) marshalMembersToJsonAndSetMembersCount(members []BillMemberJson) error {
 	if json, err := ffjson.Marshal(members); err != nil {
 		return err
 	} else {

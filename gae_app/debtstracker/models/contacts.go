@@ -11,7 +11,7 @@ type PhoneContact struct {
 	// Contact details
 	PhoneNumber            int64 `datastore:",omitempty"`
 	PhoneNumberConfirmed   bool
-	PhoneNumberIsConfirmed bool  `datastore:",noindex"` // Deprecated
+	PhoneNumberIsConfirmed bool `datastore:",noindex"` // Deprecated
 	//+9223372036854775807
 	//+353857403948
 	//+79169743259
@@ -47,7 +47,7 @@ type ContactDetails struct {
 	ScreenName     string `datastore:",noindex,omitempty"`
 	Nickname       string `datastore:",noindex,omitempty"`
 	Username       string `datastore:",noindex,omitempty"` //TODO: Should it be "Name"?
-	TelegramUserID int64                                   // When user ads Telegram contact we store Telegram user_id so we can link users later.
+	TelegramUserID int64  // When user ads Telegram contact we store Telegram user_id so we can link users later.
 }
 
 func (contact *ContactDetails) FullName() string {

@@ -1,13 +1,14 @@
 package facade
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
-	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 	"math/rand"
 	"time"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/pkg/errors"
+	"golang.org/x/net/context"
 )
 
 type authFacade struct {

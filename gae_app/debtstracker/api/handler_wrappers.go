@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"crypto/md5"
 	"fmt"
-	"github.com/pkg/errors"
-	"github.com/strongo/log"
-	"golang.org/x/net/context"
 	"hash"
 	"net/http"
 	"strings"
+
+	"github.com/pkg/errors"
+	"github.com/strongo/log"
+	"golang.org/x/net/context"
 )
 
 func optionsHandler(c context.Context, w http.ResponseWriter, r *http.Request) {

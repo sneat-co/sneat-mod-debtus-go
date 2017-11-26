@@ -1,16 +1,17 @@
 package analytics
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bytes"
+	"net/http"
+	"strconv"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"github.com/pkg/errors"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
 	"github.com/strongo/measurement-protocol"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/urlfetch"
-	"net/http"
-	"strconv"
 )
 
 const (

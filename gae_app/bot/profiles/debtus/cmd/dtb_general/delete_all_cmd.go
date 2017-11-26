@@ -1,8 +1,9 @@
 package dtb_general
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"fmt"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"

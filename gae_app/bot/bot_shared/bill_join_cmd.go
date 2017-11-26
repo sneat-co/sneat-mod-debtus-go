@@ -1,22 +1,23 @@
 package bot_shared
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
+	"net/url"
+	"strconv"
+	"strings"
+	"time"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"net/url"
-	"strings"
-	"time"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"github.com/strongo/decimal"
 	"github.com/strongo/db"
-	"strconv"
+	"github.com/strongo/decimal"
+	"github.com/strongo/log"
 )
 
 const JOIN_BILL_COMMAND = "join_bill"

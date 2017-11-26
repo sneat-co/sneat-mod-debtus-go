@@ -1,17 +1,18 @@
 package dtb_fbm
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbm"
 	"bytes"
 	"fmt"
-	"github.com/strongo/log"
+	"net/http"
+	"time"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbm"
+	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/bots-api-fbm"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
-	"net/http"
-	"time"
-	"github.com/julienschmidt/httprouter"
 )
 
 func SetupFbm(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

@@ -1,8 +1,9 @@
 package models
 
 import (
-	"github.com/strongo/decimal"
 	"testing"
+
+	"github.com/strongo/decimal"
 )
 
 func TestNewAmount(t *testing.T) {

@@ -2,9 +2,10 @@ package common
 
 import (
 	"fmt"
+	"time"
+
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
-	"time"
 )
 
 func SignInt64WithExpiry(c context.Context, v int64, expires time.Time) string {

@@ -1,10 +1,11 @@
 package models
 
 import (
-	"github.com/strongo/db"
 	"time"
-	"google.golang.org/appengine/datastore"
+
+	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
+	"google.golang.org/appengine/datastore"
 )
 
 const RewardKind = "Reward"
@@ -59,7 +60,7 @@ type UserRewardBalance struct {
 
 func (_ UserRewardBalance) cleanProperties(properties []datastore.Property) ([]datastore.Property, error) {
 	return gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"RewardPoints": gaedb.IsZeroInt,
+		"RewardPoints":   gaedb.IsZeroInt,
 		"RewardOptedOut": gaedb.IsZeroTime,
 	})
 }
@@ -74,4 +75,3 @@ func (rewardBalance UserRewardBalance) AddRewardPoints(rewardID int64, rewardPoi
 	rewardBalance.RewardIDs = append([]int64{rewardID}, rewardBalance.RewardIDs...)
 	return true
 }
-

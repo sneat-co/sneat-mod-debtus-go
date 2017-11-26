@@ -1,9 +1,10 @@
 package gaedal
 
 import (
+	"testing"
+
 	isLib "github.com/matryer/is"
 	"golang.org/x/net/context"
-	"testing"
 )
 
 func TestNewContactIncompleteKey(t *testing.T) {

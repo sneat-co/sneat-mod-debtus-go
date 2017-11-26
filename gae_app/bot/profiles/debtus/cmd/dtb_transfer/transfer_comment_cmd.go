@@ -3,16 +3,17 @@ package dtb_transfer
 import (
 	//"github.com/DebtsTracker/translations/emoji"
 	//"fmt"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"fmt"
+	"net/url"
+	"strings"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
 	"golang.org/x/net/html"
-	"strings"
-	"net/url"
 )
 
 const (

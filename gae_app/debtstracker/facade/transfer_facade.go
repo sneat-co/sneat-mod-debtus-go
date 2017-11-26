@@ -1,19 +1,20 @@
 package facade
 
 import (
+	"bytes"
+	"fmt"
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/pkg/errors"
-	"github.com/strongo/app"
-	"github.com/strongo/db"
-	"github.com/strongo/log"
-	"github.com/strongo/decimal"
-	"golang.org/x/net/context"
-	"time"
 	"github.com/sanity-io/litter"
+	"github.com/strongo/app"
 	"github.com/strongo/app/slices"
-	"bytes"
+	"github.com/strongo/db"
+	"github.com/strongo/decimal"
+	"github.com/strongo/log"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -26,6 +27,7 @@ var (
 	ErrDebtAlreadyReturned                 = errors.New("This debt already has been returned")
 	ErrPartialReturnGreaterThenOutstanding = errors.New("An attempt to do partial return for amount greater then outstanding")
 	//
+	ErrNoOutstandingTransfers                                       = errors.New("no outstanding transfers")
 	ErrAttemptToCreateDebtWithInterestAffectingOutstandingTransfers = errors.New("You are trying to create a debt with interest that will affect outstanding transfers. Please close them first.")
 )
 
@@ -278,7 +280,8 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 	contactFound:
 	} else if !input.IsReturn {
 		panic("ReturnToTransferID != 0 && !IsReturn")
-	} else {
+	}
+	if input.ReturnToTransferID != 0 {
 		var transferToReturn models.Transfer
 		if transferToReturn, err = dal.Transfer.GetTransferByID(c, input.ReturnToTransferID); err != nil {
 			err = errors.Wrapf(err, "Failed to get returnToTransferID=%v", input.ReturnToTransferID)
@@ -337,6 +340,10 @@ func (transferFacade transferFacade) checkOutstandingTransfersForReturns(c conte
 	outstandingTransfers, err = dal.Transfer.LoadOutstandingTransfers(c, time.Now(), input.CreatorUser.ID, creatorContactID, input.Amount.Currency, input.Direction().Reverse())
 	if err != nil {
 		err = errors.WithMessage(err, "failed to load outstanding transfers")
+		return
+	}
+	if input.IsReturn && len(outstandingTransfers) == 0 {
+		err = ErrNoOutstandingTransfers
 		return
 	}
 
@@ -821,7 +828,6 @@ func (_ transferFacade) updateUserAndCounterpartyWithTransferInfo(
 	user.LastTransferID = transfer.ID
 	user.LastTransferAt = transfer.DtCreated
 	user.SetLastCurrency(string(transfer.Currency))
-
 
 	//var updateBalanceAndContactTransfersInfo = func(curr models.Currency, val decimal.Decimal64p2, user models.AppUser, contact models.Contact) (err error) {
 	log.Debugf(c, "Updating balance with [%v %v] for user #%d, contact #%d", val, curr, user.ID, contact.ID)

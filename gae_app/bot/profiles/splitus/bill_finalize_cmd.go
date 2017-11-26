@@ -1,12 +1,13 @@
 package splitus
 
 import (
+	"net/url"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"net/url"
 )
 
 const FINALIZE_BILL_COMMAND = "finalize_bill"

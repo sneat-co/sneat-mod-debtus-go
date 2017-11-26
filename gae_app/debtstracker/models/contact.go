@@ -2,12 +2,13 @@ package models
 
 import (
 	"fmt"
+	"strings"
+	"time"
+
+	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
-	"strings"
-	"github.com/pquerna/ffjson/ffjson"
-	"time"
 )
 
 func NewContactEntity(userID int64, details ContactDetails) *ContactEntity {
@@ -65,7 +66,7 @@ type ContactEntity struct {
 	CounterpartyUserID         int64 // The counterparty user ID if registered
 	CounterpartyCounterpartyID int64
 	//
-	Status        string
+	Status string
 	ContactDetails
 	Balanced
 	TransfersJson string `datastore:",noindex"`
@@ -198,6 +199,14 @@ func (entity *ContactEntity) BalanceWithInterest(periodEnds time.Time) (balance 
 		//log.Debugf(c, "transferInfo: %+v", transferInfo)
 		updateBalanceWithInterest(balance, transferInfo.OutstandingWithInterest, periodEnds)
 		//log.Debugf(c, "BalanceWithInterest(): %+v", balance)
+	}
+	return
+}
+
+func ContactsByID(contacts []Contact) (contactsByID map[int64]*ContactEntity) {
+	contactsByID = make(map[int64]*ContactEntity, len(contacts))
+	for _, contact := range contacts {
+		contactsByID[contact.ID] = contact.ContactEntity
 	}
 	return
 }

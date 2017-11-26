@@ -1,17 +1,19 @@
 package facade
 
 import (
+	"fmt"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/pkg/errors"
 	//"github.com/strongo/app"
-	"github.com/strongo/log"
-	"github.com/strongo/decimal"
-	"golang.org/x/net/context"
 	"math"
 	"strconv"
 	"time"
+
+	"github.com/strongo/decimal"
+	"github.com/strongo/log"
+	"golang.org/x/net/context"
 )
 
 type billFacade struct {
@@ -25,7 +27,7 @@ func (billFacade) AssignBillToGroup(c context.Context, inBill models.Bill, group
 		return
 	}
 	if bill.MembersCount == 0 {
-		{  // Get group,
+		{ // Get group,
 			var gc context.Context
 			if bill.Currency == models.Currency("") {
 				// we don't need to get it in transaction if no currency as balance will not be changed
@@ -73,7 +75,7 @@ func (billFacade) AssignBillToGroup(c context.Context, inBill models.Bill, group
 
 					billMembers = append(billMembers, models.BillMemberJson{
 						MemberJson: groupMember.MemberJson,
-						Paid: bill.AmountTotal,
+						Paid:       bill.AmountTotal,
 					})
 				}
 			}
@@ -121,7 +123,7 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 		return
 	}
 	if billEntity.AmountTotal < 0 {
-		err = errors.WithMessage(ErrBadInput, fmt.Sprintf("billEntity.AmountTotal < 0", billEntity.AmountTotal))
+		err = errors.WithMessage(ErrBadInput, fmt.Sprintf("billEntity.AmountTotal < 0: %v", billEntity.AmountTotal))
 		return
 	}
 	if billEntity.Status == "" {
@@ -260,9 +262,9 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 			}
 
 			ensureMemberAmountDeviateWithin1cent := func() error {
-				if totalOwedByMembers == 0 && totalOwedByMembers == 0 {
-					return nil
-				}
+				//if totalOwedByMembers == 0 && totalOwedByMembers == 0 {
+				//	return nil
+				//}
 				switch billEntity.SplitMode {
 				case models.SplitModeShare:
 					expectedAmount := int64(shareAmount) * int64(member.Shares)
@@ -522,12 +524,12 @@ func (billFacade) AddBillMember(c context.Context, userID string, inBill models.
 
 	var (
 		//isNew bool
-		index        int
-		groupChanged bool
-		groupMember  models.GroupMemberJson
-		billMember   models.BillMemberJson
-		billMembers  []models.BillMemberJson
-		groupMembers []models.GroupMemberJson
+		index                  int
+		groupChanged           bool
+		groupMember            models.GroupMemberJson
+		billMember             models.BillMemberJson
+		billMembers            []models.BillMemberJson
+		groupMembers           []models.GroupMemberJson
 		groupMembersJsonBefore string
 	)
 
@@ -543,13 +545,13 @@ func (billFacade) AddBillMember(c context.Context, userID string, inBill models.
 		if _, groupChanged, _, groupMember, groupMembers = group.AddOrGetMember(memberUserID, "", billMember.Name); groupChanged {
 			group.SetGroupMembers(groupMembers)
 		} else {
-			log.Debugf(c, "Group billMembers not changed, groupMember.ID: " + groupMember.ID)
+			log.Debugf(c, "Group billMembers not changed, groupMember.ID: "+groupMember.ID)
 		}
 	}
 
-	_, changed, index, billMember, billMembers = bill.AddOrGetMember(groupMember.ID, memberUserID, "", memberUserName);
+	_, changed, index, billMember, billMembers = bill.AddOrGetMember(groupMember.ID, memberUserID, "", memberUserName)
 
-	log.Debugf(c, "billMember.ID: " + billMember.ID)
+	log.Debugf(c, "billMember.ID: "+billMember.ID)
 
 	if paid > 0 {
 		if billMember.Paid == paid {

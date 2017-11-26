@@ -1,15 +1,16 @@
 package api
 
 import (
+	"net/http"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pkg/errors"
+	"github.com/strongo/app/user"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"github.com/strongo/app/user"
 	"golang.org/x/net/context"
-	"net/http"
 )
 
 func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {

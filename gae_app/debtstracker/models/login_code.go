@@ -2,9 +2,10 @@ package models
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"strconv"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 const LoginCodeKind = "LoginCode"

@@ -1,20 +1,22 @@
 package website
 
 import (
+	"fmt"
+	"net/http"
+	"strconv"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/website/admin"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/website/pages"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/website/redirects"
-	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
-	"net/http"
-	"strconv"
 	//"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	//"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/website/pages/inspector"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -37,6 +39,7 @@ func InitWebsite(router *httprouter.Router) {
 	router.GET("/en/songs/iou-by-dappy", pages.IOWDappyPage)
 
 	admin.InitAdmin(router)
+	inspector.InitInspector(router)
 }
 
 func CreateInvitePage(w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {

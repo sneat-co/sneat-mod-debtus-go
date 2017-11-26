@@ -1,14 +1,15 @@
 package facade
 
 import (
+	"fmt"
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/pkg/errors"
+	"github.com/strongo/app/slices"
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
-	"time"
-	"github.com/strongo/app/slices"
 )
 
 type receiptUsersLinker struct {
@@ -29,9 +30,9 @@ func (linker *receiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID,
 	if currentUser, err := dal.User.GetUserByID(c, counterpartyUserID); err != nil {
 		// TODO: Instead pass user as a parameter? Even better if the user entity was created within following transaction.
 		return isJustLinked, err
-	} else if currentUser.DtCreated.After(time.Now().Add(-time.Second/2)) {
+	} else if currentUser.DtCreated.After(time.Now().Add(-time.Second / 2)) {
 		log.Debugf(c, "A new user, will wait for half a seconds to cleanup previous transaction")
-		time.Sleep(time.Second/2)
+		time.Sleep(time.Second / 2)
 	}
 	var invitedContact models.Contact
 	attempt := 0
@@ -43,9 +44,9 @@ func (linker *receiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID,
 		}
 		changes := linker.changes
 		var (
-			receipt models.Receipt
-			transfer models.Transfer
-			creatorUser models.AppUser
+			receipt          models.Receipt
+			transfer         models.Transfer
+			creatorUser      models.AppUser
 			counterpartyUser models.AppUser
 		)
 		if receipt, transfer, creatorUser, counterpartyUser, err = getReceiptTransferAndUsers(tc, receiptID, counterpartyUserID); err != nil {
@@ -144,7 +145,7 @@ func (linker receiptUsersLinker) linkUsersByReceiptWithinTransaction(
 
 	if inviterContact, err = dal.Contact.GetContactByID(tc, transferCreatorCounterparty.ContactID); err != nil {
 		return
-	} else if inviterContact.UserID !=  inviterUser.ID {
+	} else if inviterContact.UserID != inviterUser.ID {
 		panic(fmt.Sprintf("inviterContact.UserID !=  inviterUser.ID: %v != %v", inviterContact.UserID, inviterUser.ID))
 	} else {
 		changes.inviterContact = &inviterContact
@@ -169,8 +170,7 @@ func (linker receiptUsersLinker) linkUsersByReceiptWithinTransaction(
 	{
 		if err = linker.updateReceipt(); err != nil {
 			return
-		} else
-		if err = linker.updateTransfer(); err != nil {
+		} else if err = linker.updateTransfer(); err != nil {
 			return
 		} else if linker.changes.IsChanged(linker.changes.transfer) {
 			log.Debugf(c, "transfer changed:\n\tFrom(): %v\n\tTo(): %v", transfer.From(), transfer.To())

@@ -1,21 +1,22 @@
 package gaedal
 
 import (
+	"fmt"
+	"strings"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/pkg/errors"
-	"github.com/strongo/db"
 	"github.com/strongo/app/gae"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
-	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/delay"
-	"strings"
 )
 
 type ContactDalGae struct {

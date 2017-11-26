@@ -1,18 +1,19 @@
 package api
 
 import (
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"strings"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/pkg/errors"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
-	"io/ioutil"
-	"net/http"
-	"strings"
 )
 
 type AuthHandler func(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo)

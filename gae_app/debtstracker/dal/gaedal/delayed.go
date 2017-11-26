@@ -1,32 +1,33 @@
 package gaedal
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
-	"fmt"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gae"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
-	"github.com/strongo/db"
-	"github.com/strongo/db/gaedb"
+	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/hosts/appengine"
 	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/db"
+	"github.com/strongo/db/gaedb"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/urlfetch"
-	"strconv"
-	"time"
-	"github.com/strongo/bots-framework/core"
-	"strings"
 )
 
 func (_ UserDalGae) DelaySetUserPreferredLocale(c context.Context, delay time.Duration, userID int64, localeCode5 string) error {
@@ -495,7 +496,7 @@ func sendReceiptToTelegramChat(c context.Context, receipt models.Receipt, transf
 		},
 		ParseMode:             "HTML",
 		DisableWebPagePreview: true,
-		Text:                  messageText,
+		Text: messageText,
 	}
 
 	tgBotApi := telegram.GetTelegramBotApiByBotCode(c, tgChat.BotID)
@@ -568,10 +569,9 @@ var delayedCreateAndSendReceiptToCounterpartyByTelegram = delay.Func("delayedCre
 			CreatedOnPlatform: transfer.CreatedOnPlatform,
 		})
 		if receiptKey, err := gaedb.Put(c, NewReceiptIncompleteKey(c), &receipt); err != nil {
-			return errors.Wrap(err, "Failed to save receipt to DB")
+			err = errors.WithMessage(err, "failed to save receipt to DB")
 		} else {
 			receiptID = receiptKey.IntID()
-			return nil
 		}
 		return err
 	}, nil)

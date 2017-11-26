@@ -1,18 +1,19 @@
 package dtb_transfer
 
 import (
+	"fmt"
+	"html"
+	"net/url"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"html"
-	"net/url"
+	"github.com/strongo/log"
 )
 
 //func CancelReceiptAction(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
@@ -144,7 +145,7 @@ func ShowReceipt(whc bots.WebhookContext, receiptID int64) (m bots.MessageFromBo
 
 	{
 		if m, err = whc.NewEditMessage(
-			whc.Translate(trans.MESSAGE_TEXT_RECEIPT_SENT_THROW_TELEGRAM) + "\n"+
+			whc.Translate(trans.MESSAGE_TEXT_RECEIPT_SENT_THROW_TELEGRAM)+"\n"+
 				whc.Translate(trans.MESSAGE_TEXT_RECEIPT_VIEWED_BY_COUNTERPARTY),
 			bots.MessageFormatHTML,
 		); err != nil {

@@ -1,20 +1,21 @@
 package api
 
 import (
+	"fmt"
+	"net/http"
+	"strconv"
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbm"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/pkg/errors"
 	"github.com/strongo/db"
-	"github.com/strongo/log"
 	fb "github.com/strongo/facebook"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 var ErrUnauthorized = errors.New("Unauthorized")
@@ -27,11 +28,9 @@ func signInFbUser(c context.Context, fbAppID, fbUserID string, r *http.Request, 
 
 	if fbAppID == "" {
 		panic("fbAppID is empty string")
-		return
 	}
 	if fbUserID == "" {
 		panic("fbUserID is empty string")
-		return
 	}
 
 	signedRequest := r.PostFormValue("signed_request")
@@ -74,7 +73,7 @@ func signInFbUser(c context.Context, fbAppID, fbUserID string, r *http.Request, 
 
 				log.Debugf(c, "pageID: %v, signedData: %v", pageID, signedData)
 				if fbmBot, ok := fbm.Bots(c).ByID[pageID]; !ok {
-					err = errors.New("Bot settings not found by page ID=" + pageID)
+					err = errors.New("ReferredTo settings not found by page ID=" + pageID)
 				} else {
 					isFbm = true
 					_, fbSession, err = fbm.FbAppAndSessionFromAccessToken(c, r, fbmBot.Token)

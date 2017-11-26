@@ -1,16 +1,17 @@
 package gaedal
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/pkg/errors"
-	"github.com/strongo/db/gaedb"
-	"github.com/strongo/log"
-	"github.com/strongo/bots-framework/platforms/telegram"
-	"golang.org/x/net/context"
 	"strings"
 	"sync"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/pkg/errors"
+	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/db/gaedb"
+	"github.com/strongo/log"
+	"golang.org/x/net/context"
 )
 
 type TgChatDalGae struct {

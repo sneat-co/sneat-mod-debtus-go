@@ -1,8 +1,9 @@
 package models
 
 import (
-	"github.com/strongo/db"
 	"time"
+
+	"github.com/strongo/db"
 )
 
 const UserBrowserKind = "UserBrowser"
@@ -19,7 +20,6 @@ type UserBrowser struct {
 }
 
 var _ db.EntityHolder = (*UserBrowser)(nil)
-
 
 func (UserBrowser) Kind() string {
 	return UserBrowserKind
@@ -40,4 +40,3 @@ func (ub *UserBrowser) SetEntity(entity interface{}) {
 		ub.UserBrowserEntity = entity.(*UserBrowserEntity)
 	}
 }
-

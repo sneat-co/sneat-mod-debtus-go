@@ -1,14 +1,15 @@
 package splitus
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
-	"github.com/DebtsTracker/translations/trans"
 	"fmt"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 	"net/url"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
 )
 
 const GROUP_BALANCE_COMMAND = "group-balance"
@@ -60,15 +61,15 @@ func groupBalanceAction(whc bots.WebhookContext, group models.Group) (m bots.Mes
 	m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{
 			{
-				Text:         "Settle up",
-				URL: bot_shared.StartBotLink(whc.GetBotCode(), bot_shared.SETTLE_GROUP_ASK_FOR_COUNTERPARTY_COMMAND, "group=" + group.ID),
+				Text: "Settle up",
+				URL:  bot_shared.StartBotLink(whc.GetBotCode(), bot_shared.SETTLE_GROUP_ASK_FOR_COUNTERPARTY_COMMAND, "group="+group.ID),
 			},
 		},
 	)
 	return
 }
 
-func getGroupSponsorsAndDebtors(members []models.GroupMemberJson, excludeMemberIDs ... string) (sponsors, debtors []models.GroupMemberJson) {
+func getGroupSponsorsAndDebtors(members []models.GroupMemberJson, excludeMemberIDs ...string) (sponsors, debtors []models.GroupMemberJson) {
 	sponsors = make([]models.GroupMemberJson, 0, len(members))
 	debtors = make([]models.GroupMemberJson, 0, len(members))
 

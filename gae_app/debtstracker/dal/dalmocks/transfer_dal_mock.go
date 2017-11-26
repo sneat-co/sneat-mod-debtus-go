@@ -1,12 +1,13 @@
 package dalmocks
 
 import (
+	"time"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/strongo/db"
-	"golang.org/x/net/context"
-	"time"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/strongo/decimal"
+	"golang.org/x/net/context"
 )
 
 type TransferDalMock struct {
@@ -19,7 +20,7 @@ func NewTransferDalMock() *TransferDalMock {
 	}
 }
 
-func (mock *TransferDalMock) DelayUpdateTransfersOnReturn (c context.Context, returnTransferID int64, transferReturnUpdates []dal.TransferReturnUpdate) (err error) {
+func (mock *TransferDalMock) DelayUpdateTransfersOnReturn(c context.Context, returnTransferID int64, transferReturnUpdates []dal.TransferReturnUpdate) (err error) {
 	panic("not implemented yet")
 }
 

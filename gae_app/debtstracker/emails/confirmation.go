@@ -1,8 +1,9 @@
 package emails
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"golang.org/x/net/context"
 )
 

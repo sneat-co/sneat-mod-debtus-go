@@ -2,11 +2,12 @@ package api
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
-	"github.com/strongo/log"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/pkg/errors"
+	"github.com/strongo/log"
 )
 
 func TestBadRequest(t *testing.T) {

@@ -1,13 +1,14 @@
 package splitus
 
 import (
+	"net/url"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"net/url"
+	"github.com/strongo/log"
 )
 
 const CHANGE_BILL_PAYER_COMMAND = "change-bill-payer"

@@ -1,20 +1,21 @@
 package dtb_invite
 
 import (
+	"fmt"
+	"net/url"
+	"strings"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/invites"
-	"fmt"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"net/url"
-	"strings"
+	"github.com/strongo/log"
 )
 
 var AskInviteAddressTelegramCommand = AskInviteAddress(string(models.InviteByTelegram), emoji.ROCKET_ICON, trans.COMMAND_TEXT_INVITE_BY_TELEGRAM, trans.MESSAGE_TEXT_INVITE_BY_TELEGRAM, trans.MESSAGE_TEXT_NO_CONTACT_RECEIVED)

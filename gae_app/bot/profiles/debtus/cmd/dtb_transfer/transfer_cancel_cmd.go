@@ -2,6 +2,7 @@ package dtb_transfer
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
+	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-framework/core"
 )
@@ -10,7 +11,7 @@ const CANCEL_TRANSFER_WIZARD_COMMAND = "cancel-transfer-wizard"
 
 var CancelTransferWizardCommand = bots.Command{
 	Code:     CANCEL_TRANSFER_WIZARD_COMMAND,
-	Commands: trans.Commands(trans.COMMAND_CANCEL),
+	Commands: trans.Commands(trans.COMMAND_TEXT_CANCEL, "/cancel", emoji.NO_ENTRY_SIGN_ICON),
 	Action:   cancelTransferWizardCommandAction,
 }
 

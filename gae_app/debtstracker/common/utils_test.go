@@ -1,8 +1,9 @@
 package common
 
 import (
-	isLib "github.com/matryer/is"
 	"testing"
+
+	isLib "github.com/matryer/is"
 )
 
 func TestDecodeID(t *testing.T) {

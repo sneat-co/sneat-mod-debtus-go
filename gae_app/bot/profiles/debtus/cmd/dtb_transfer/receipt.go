@@ -1,23 +1,24 @@
 package dtb_transfer
 
 import (
+	"bytes"
+	"fmt"
+	"html/template"
+	"net/url"
+	"strings"
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/analytics"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"html/template"
-	"net/url"
-	"strings"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
-	"time"
-	"bytes"
+	"github.com/strongo/log"
 )
 
 //func InlineAcceptTransfer(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
@@ -144,7 +145,6 @@ func getInlineReceiptMessageText(t strongo.SingleLocaleTranslator, botCode, loca
 	return buf.String()
 }
 
-
 func OnInlineChoosenCreateReceipt(whc bots.WebhookContext, inlineMessageID string, queryUrl *url.URL) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
 
@@ -182,5 +182,3 @@ func OnInlineChoosenCreateReceipt(whc bots.WebhookContext, inlineMessageID strin
 	//m = whc.NewMessage("")
 	return
 }
-
-

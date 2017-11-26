@@ -1,9 +1,10 @@
 package dtb_transfer
 
 import (
+	"net/url"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"github.com/strongo/bots-framework/core"
-	"net/url"
 )
 
 const ACKNOWLEDGE_RECEIPT_CALLBACK_COMMAND = "ack-receipt"

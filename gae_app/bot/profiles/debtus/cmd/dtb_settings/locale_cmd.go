@@ -1,19 +1,20 @@
 package dtb_settings
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
+	"net/url"
+	"strings"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
 	"github.com/strongo/measurement-protocol"
-	"net/url"
-	"strings"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"golang.org/x/net/context"
 )
 

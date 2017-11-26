@@ -1,13 +1,14 @@
 package models
 
 import (
+	"fmt"
+	"time"
+
+	"github.com/pkg/errors"
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/datastore"
-	"time"
-	"fmt"
 	"github.com/strongo/decimal"
-	"github.com/pkg/errors"
+	"google.golang.org/appengine/datastore"
 )
 
 const (

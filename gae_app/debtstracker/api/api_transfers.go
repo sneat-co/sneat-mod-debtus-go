@@ -1,12 +1,13 @@
 package api
 
 import (
+	"net/http"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"golang.org/x/net/context"
-	"net/http"
 )
 
 func handleAdminLatestTransfers(c context.Context, w http.ResponseWriter, r *http.Request, _ auth.AuthInfo) {

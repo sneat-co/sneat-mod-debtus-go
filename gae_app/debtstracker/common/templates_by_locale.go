@@ -2,12 +2,13 @@ package common
 
 import (
 	"bytes"
-	"github.com/strongo/app"
-	"github.com/strongo/log"
-	"golang.org/x/net/context"
 	html "html/template"
 	"sync"
 	text "text/template"
+
+	"github.com/strongo/app"
+	"github.com/strongo/log"
+	"golang.org/x/net/context"
 )
 
 type TextTemplateProvider struct {

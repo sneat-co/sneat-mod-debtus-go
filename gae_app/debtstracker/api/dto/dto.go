@@ -3,12 +3,13 @@ package dto
 //go:generate ffjson $GOFILE
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"encoding/json"
+	"strconv"
+	"time"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
-	"time"
-	"strconv"
 )
 
 type UserMeDto struct {
@@ -40,7 +41,7 @@ type ApiUserDto struct {
 
 type ApiReceiptTransferDto struct {
 	// TODO: We are not replacing with TransferDto as it has From/To => Creator optimisation. Think if we can reuse.
-	ID             string             `json:"Id"`
+	ID             string `json:"Id"`
 	Amount         models.Amount
 	From           ContactDto
 	DtCreated      time.Time
@@ -81,8 +82,8 @@ type BillDto struct {
 }
 
 type BillMemberDto struct {
-	UserID     string              `json:",omitempty"`
-	ContactID  string              `json:",omitempty"`
+	UserID     string `json:",omitempty"`
+	ContactID  string `json:",omitempty"`
 	Amount     decimal.Decimal64p2
 	Paid       decimal.Decimal64p2 `json:",omitempty"`
 	Share      int                 `json:",omitempty"`
@@ -107,8 +108,8 @@ type PhoneInfo struct {
 
 type ContactDetailsDto struct {
 	ContactListDto
-	Email  *EmailInfo        `json:",omitempty"`
-	Phone  *PhoneInfo        `json:",omitempty"`
+	Email *EmailInfo `json:",omitempty"`
+	Phone *PhoneInfo `json:",omitempty"`
 	TransfersResultDto
 	Groups []ContactGroupDto `json:",omitempty"`
 }
@@ -192,8 +193,8 @@ type GroupDto struct {
 
 type GroupMemberDto struct {
 	ID        string
-	UserID    string  `json:",omitempty"`
-	ContactID string  `json:",omitempty"`
+	UserID    string `json:",omitempty"`
+	ContactID string `json:",omitempty"`
 	Name      string `json:",omitempty"`
 }
 
@@ -206,7 +207,7 @@ type ContactGroupDto struct {
 
 type CounterpartyDto struct {
 	Id      int64
-	UserID  int64            `json:",omitempty"`
+	UserID  int64 `json:",omitempty"`
 	Name    string
 	Balance *json.RawMessage `json:",omitempty"`
 }
@@ -216,7 +217,7 @@ type Record struct {
 	Counterparties         []CounterpartyDto
 	Transfers              int
 	CountOfReceiptsCreated int
-	InvitedByUser *struct {
+	InvitedByUser          *struct {
 		Id   int64
 		Name string
 	} `json:",omitempty"`

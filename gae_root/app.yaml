@@ -148,6 +148,11 @@ handlers:
 - url: /Users/astec/.* # To clear logs from JS maps files like: /Users/astec/debtstracker/ionic-apps/public/www/build/3.main.js.map
   script: _go_app
 
+- url: /inspector/.*
+  script: _go_app
+  secure: always
+  redirect_http_response_code: 301
+
 - url: /(receipt|transfer|confirm|contact|open/new-debt|test-pointer)?$|/(api|webhooks/(twilio)|bot/(tg|viber|fbm|skype|kik|line|wechat)|((\w{2})(-\w{2})?))/.*
   script: _go_app
   secure: always

@@ -1,0 +1,43 @@
+package models
+
+import (
+	"time"
+
+	"github.com/strongo/db"
+)
+
+const RefererKind = "Referer"
+
+type Referer struct {
+	db.IntegerID
+	*RefererEntity
+}
+
+var _ db.EntityHolder = (*Referer)(nil)
+
+func (Referer) Kind() string {
+	return RefererKind
+}
+
+func (r Referer) Entity() interface{} {
+	return r.RefererEntity
+}
+
+func (Referer) NewEntity() interface{} {
+	return new(RefererEntity)
+}
+
+func (r Referer) SetEntity(entity interface{}) {
+	if entity == nil {
+		r.RefererEntity = nil
+	} else {
+		r.RefererEntity = entity.(*RefererEntity)
+	}
+}
+
+type RefererEntity struct {
+	Platform   string    `datastore:"p"`
+	ReferredTo string    `datastore:"to"`
+	ReferredBy string    `datastore:"by"`
+	DtCreated  time.Time `datastore:"t"`
+}

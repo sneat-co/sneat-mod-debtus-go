@@ -1,12 +1,13 @@
 package pages
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
-	"github.com/DebtsTracker/translations/trans"
-	"google.golang.org/appengine"
 	"html/template"
 	"net/http"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
+	"github.com/DebtsTracker/translations/trans"
 	"github.com/julienschmidt/httprouter"
+	"google.golang.org/appengine"
 )
 
 var helpUsPageTmpl *template.Template

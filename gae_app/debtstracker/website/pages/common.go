@@ -1,21 +1,22 @@
 package pages
 
 import (
+	"bytes"
+	"crypto/md5"
+	"fmt"
+	"html/template"
+	"net/http"
+	"strings"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
-	"bytes"
-	"crypto/md5"
-	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
-	"html/template"
-	"net/http"
-	"strings"
 )
 
 func pageContext(r *http.Request, locale strongo.Locale) (translator strongo.SingleLocaleTranslator, data map[string]interface{}) {

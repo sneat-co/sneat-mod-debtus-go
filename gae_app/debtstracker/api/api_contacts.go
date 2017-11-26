@@ -1,19 +1,20 @@
 package api
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"encoding/json"
-	"fmt"
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
-	"net/http"
-	"net/url"
-	"strconv"
-	"strings"
 )
 
 func getUserID(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) (userID int64) {

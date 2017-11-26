@@ -1,19 +1,20 @@
 package dtb_transfer
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"fmt"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/log"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/decimal"
 	"strings"
 	"time"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/DebtsTracker/translations/emoji"
+	"github.com/DebtsTracker/translations/trans"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/db"
+	"github.com/strongo/decimal"
+	"github.com/strongo/log"
 )
 
 var ParseTransferCommand = bots.Command{

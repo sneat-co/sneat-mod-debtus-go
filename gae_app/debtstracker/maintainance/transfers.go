@@ -1,13 +1,14 @@
 package maintainance
 
 import (
-	"github.com/captaincodeman/datastore-mapper"
 	"net/http"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/captaincodeman/datastore-mapper"
+	"github.com/pkg/errors"
+	"github.com/strongo/db"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"github.com/strongo/db"
-	"github.com/pkg/errors"
 )
 
 type transfersAsyncJob struct {

@@ -6,13 +6,13 @@ func TestBillBalanceByMember_BillDifference(t *testing.T) {
 	previous := BillBalanceByMember{}
 	current := BillBalanceByMember{}
 
-	{  // Test empty
+	{ // Test empty
 		if diff := current.BillBalanceDifference(previous); len(diff) != 0 {
 			t.Error("Should be no difference", diff)
 		}
 	}
 
-	{  // Test non empty current and empty previous
+	{ // Test non empty current and empty previous
 		previous = BillBalanceByMember{}
 		current = BillBalanceByMember{
 			"m1": BillMemberBalance{Paid: 1200, Owes: 400},
@@ -26,7 +26,7 @@ func TestBillBalanceByMember_BillDifference(t *testing.T) {
 		}
 	}
 
-	{  // Test increase in Paid
+	{ // Test increase in Paid
 		previous = BillBalanceByMember{
 			"m1": BillMemberBalance{Paid: 10, Owes: 4},
 		}
@@ -42,7 +42,7 @@ func TestBillBalanceByMember_BillDifference(t *testing.T) {
 		}
 	}
 
-	{  // Test increase in Owes
+	{ // Test increase in Owes
 		previous = BillBalanceByMember{
 			"m1": BillMemberBalance{Paid: 12, Owes: 1},
 		}
@@ -58,7 +58,7 @@ func TestBillBalanceByMember_BillDifference(t *testing.T) {
 		}
 	}
 
-	{  // Test decrease in Paid & Owes
+	{ // Test decrease in Paid & Owes
 		previous = BillBalanceByMember{
 			"m1": BillMemberBalance{Paid: 1500, Owes: 900},
 		}
@@ -74,7 +74,7 @@ func TestBillBalanceByMember_BillDifference(t *testing.T) {
 		}
 	}
 
-	{  // Test in member added
+	{ // Test in member added
 		previous = BillBalanceByMember{
 			"m1": BillMemberBalance{Paid: 1200, Owes: 1200},
 		}
@@ -95,7 +95,7 @@ func TestBillBalanceByMember_BillDifference(t *testing.T) {
 		}
 	}
 
-	{  // Test in member swapped
+	{ // Test in member swapped
 		previous = BillBalanceByMember{
 			"m1": BillMemberBalance{Paid: 1200, Owes: 600},
 			"m2": BillMemberBalance{Paid: 0, Owes: 600},
@@ -118,18 +118,17 @@ func TestBillBalanceByMember_BillDifference(t *testing.T) {
 	}
 }
 
-
 func TestBillBalanceDifference_IsAffectingGroupBalance(t *testing.T) {
 	var diff BillBalanceDifference
 
-	{	// verify empty
+	{ // verify empty
 		diff = BillBalanceDifference{}
 		if diff.IsNoDifference() {
 			t.Fatal("should be false for empty map")
 		}
 	}
 
-	{	// verify paid=owes for single member
+	{ // verify paid=owes for single member
 		diff = BillBalanceDifference{
 			"m1": 0,
 		}
@@ -138,7 +137,7 @@ func TestBillBalanceDifference_IsAffectingGroupBalance(t *testing.T) {
 		}
 	}
 
-	{	// verify paid=owes for 2 members
+	{ // verify paid=owes for 2 members
 		diff = BillBalanceDifference{
 			"m1": 0,
 			"m2": 0,

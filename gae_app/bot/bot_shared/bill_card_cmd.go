@@ -1,21 +1,22 @@
 package bot_shared
 
 import (
+	"bytes"
+	"fmt"
+	"net/url"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"bytes"
-	"fmt"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/decimal"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
-	"net/url"
 )
 
 const BILL_CARD_COMMAND = "bill"

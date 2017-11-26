@@ -1,11 +1,12 @@
 package gaedal
 
 import (
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/strongo/db/gaedb"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"time"
 )
 
 func NewInviteClaimIncompleteKey(c context.Context) *datastore.Key {

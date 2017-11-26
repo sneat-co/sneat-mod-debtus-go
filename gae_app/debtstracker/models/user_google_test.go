@@ -1,8 +1,9 @@
 package models
 
 import (
-	isLib "github.com/matryer/is"
 	"testing"
+
+	isLib "github.com/matryer/is"
 )
 
 func TestUserGoogleEntity_GetEmail(t *testing.T) {

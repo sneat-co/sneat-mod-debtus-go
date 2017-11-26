@@ -1,6 +1,9 @@
 package facade
 
 import (
+	"testing"
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	is2 "github.com/matryer/is"
@@ -9,8 +12,6 @@ import (
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/decimal"
 	"golang.org/x/net/context"
-	"testing"
-	"time"
 )
 
 type assertHelper struct {
@@ -71,7 +72,7 @@ func TestCreateTransfer(t *testing.T) {
 		}
 
 		creatorUser := models.AppUser{
-			ID: userID,
+			ID:            userID,
 			AppUserEntity: &models.AppUserEntity{},
 		}
 		newTransfer := NewTransferInput(strongo.EnvLocal,
@@ -164,7 +165,7 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 		err        error
 	)
 	creatorUser := models.AppUser{
-		ID: userID,
+		ID:            userID,
 		AppUserEntity: &models.AppUserEntity{},
 	}
 
@@ -283,7 +284,6 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 	println("t3", t3.String())
 }
 
-
 func Test_removeClosedTransfersFromOutstandingWithInterest(t *testing.T) {
 	transfersWithInterest := []models.TransferWithInterestJson{
 		{TransferID: 1},
@@ -292,13 +292,13 @@ func Test_removeClosedTransfersFromOutstandingWithInterest(t *testing.T) {
 		{TransferID: 4},
 		{TransferID: 5},
 	}
-	transfersWithInterest = removeClosedTransfersFromOutstandingWithInterest(transfersWithInterest, []int64{2,3})
+	transfersWithInterest = removeClosedTransfersFromOutstandingWithInterest(transfersWithInterest, []int64{2, 3})
 	if len(transfersWithInterest) != 3 {
 		t.Fatalf("len(transfersWithInterest) != 3: %v", transfersWithInterest)
 	}
-	for i, transferID := range []int64{1,4,5} {
+	for i, transferID := range []int64{1, 4, 5} {
 		if transfersWithInterest[i].TransferID != transferID {
-			t.Fatalf("transfersWithInterest[%d].TransferID: %v != %v", transfersWithInterest[i].TransferID, transferID)
+			t.Fatalf("transfersWithInterest[%v].TransferID: %v != %v", i, transfersWithInterest[i].TransferID, transferID)
 		}
 	}
 }

@@ -1,23 +1,24 @@
 package api
 
 import (
+	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+	"sync"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
-	"fmt"
 	"github.com/pkg/errors"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
-	"net/http"
-	"strconv"
-	"strings"
-	"sync"
 )
 
 func handleTgHelperCurrencySelected(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
@@ -105,7 +106,7 @@ func sendToTelegram(c context.Context, user models.AppUser, tgChatID int64, tgCh
 	telegramBots := telegram.Bots(gaestandard.GetEnvironment(c), nil)
 	botSettings, ok := telegramBots.ByCode[tgChat.BotID]
 	if !ok {
-		return fmt.Errorf("Bot settings not found by tgChat.BotID=%v, out of %v items", tgChat.BotID, len(telegramBots.ByCode))
+		return fmt.Errorf("ReferredTo settings not found by tgChat.BotID=%v, out of %v items", tgChat.BotID, len(telegramBots.ByCode))
 	}
 
 	log.Debugf(c, "botSettings(%v : %v)", botSettings.Code, botSettings.Token)

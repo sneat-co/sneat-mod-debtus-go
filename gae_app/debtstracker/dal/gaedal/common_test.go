@@ -1,8 +1,9 @@
 package gaedal
 
 import (
-	"google.golang.org/appengine/datastore"
 	"testing"
+
+	"google.golang.org/appengine/datastore"
 )
 
 func testDatastoreIntKey(t *testing.T, expectedID int64, key *datastore.Key) {

@@ -1,14 +1,15 @@
 package splitus
 
 import (
+	"fmt"
+	"net/url"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
-	"net/url"
 )
 
 var groupSplitCommand = bot_shared.GroupCallbackCommand(bot_shared.GROUP_SPLIT_COMMAND,
@@ -49,7 +50,7 @@ var groupSplitCommand = bot_shared.GroupCallbackCommand(bot_shared.GROUP_SPLIT_C
 							return err
 						}
 					}
-					return fmt.Errorf("member not found by ID: %d", member.ID)
+					return fmt.Errorf("member not found by ID: %v", member.ID)
 				}, dal.CrossGroupTransaction)
 				return
 			},

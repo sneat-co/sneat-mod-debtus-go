@@ -1,16 +1,17 @@
 package gaedal
 
 import (
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pkg/errors"
+	"github.com/strongo/bots-framework/hosts/appengine"
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
-	"github.com/strongo/bots-framework/hosts/appengine"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"time"
 )
 
 func NewReminderIncompleteKey(c context.Context) *datastore.Key {
@@ -164,7 +165,7 @@ func (reminderDalGae ReminderDalGae) RescheduleReminder(c context.Context, remin
 	}
 	if newReminderKey != nil && newReminderEntity != nil {
 		newReminder = models.Reminder{
-			IntegerID:             db.NewIntID(newReminderKey.IntID()),
+			IntegerID:      db.NewIntID(newReminderKey.IntID()),
 			ReminderEntity: newReminderEntity,
 		}
 	}

@@ -1,15 +1,16 @@
 package bot_shared
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bytes"
 	"fmt"
+	"net/url"
+	"strings"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"net/url"
-	"strings"
 )
 
 const HELP_COMMAND = "help"

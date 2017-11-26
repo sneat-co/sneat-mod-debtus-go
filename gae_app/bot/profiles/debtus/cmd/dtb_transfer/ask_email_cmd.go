@@ -1,16 +1,17 @@
 package dtb_transfer
 
 import (
+	"strconv"
+	"strings"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/invites"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-framework/core"
-	"strconv"
-	"strings"
 	"github.com/strongo/db"
+	"github.com/strongo/log"
 )
 
 const ASK_EMAIL_FOR_RECEIPT_COMMAND = "ask-email-for-receipt"

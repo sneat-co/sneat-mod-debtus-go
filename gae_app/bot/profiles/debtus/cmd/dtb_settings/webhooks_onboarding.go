@@ -1,24 +1,25 @@
 package dtb_settings
 
 import (
+	"fmt"
+	"regexp"
+	"strings"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/sms"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/invites"
-	"fmt"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
-	"github.com/strongo/db"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"regexp"
-	"strings"
+	"github.com/strongo/db"
+	"github.com/strongo/log"
 )
 
 var reEmail = regexp.MustCompile("^.+@.+\\.\\w+$")

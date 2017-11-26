@@ -1,19 +1,20 @@
 package models
 
 import (
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"github.com/pkg/errors"
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
-	"time"
 )
 
 const (
 	ReceiptKind = "Receipt"
 
 	ReceiptStatusCreated      = "created"
-	ReceiptStatusSending         = "sending"
+	ReceiptStatusSending      = "sending"
 	ReceiptStatusSent         = "sent"
 	ReceiptStatusViewed       = "viewed"
 	ReceiptStatusAcknowledged = "acknowledged"
@@ -67,22 +68,22 @@ type ReceiptFor string
 type ReceiptEntity struct {
 	Status               string
 	TransferID           int64
-	CreatorUserID        int64                             // IMPORTANT: Can be different from transfer.CreatorUserID (usually same). Think of 3d party bills
+	CreatorUserID        int64      // IMPORTANT: Can be different from transfer.CreatorUserID (usually same). Think of 3d party bills
 	For                  ReceiptFor `datastore:",noindex"` // TODO: always fill. If receipt.CreatorUserID != transfer.CreatorUserID then receipt.For must be set to either "from" or "to"
 	ViewedByUserIDs      []int64
 	CounterpartyUserID   int64 // TODO: Is it always equal to AcknowledgedByUserID?
 	AcknowledgedByUserID int64 // TODO: Is it always equal to CounterpartyUserID?
 	general.CreatedOn
-	TgInlineMsgID        string     `datastore:",noindex"`
-	DtCreated            time.Time
-	DtSent               time.Time
-	DtFailed             time.Time
-	DtViewed             time.Time
-	DtAcknowledged       time.Time
-	SentVia              string
-	SentTo               string
-	Lang                 string     `datastore:",noindex"`
-	Error                string     `datastore:",noindex"` //TODO: Need a comment on when it is used
+	TgInlineMsgID  string `datastore:",noindex"`
+	DtCreated      time.Time
+	DtSent         time.Time
+	DtFailed       time.Time
+	DtViewed       time.Time
+	DtAcknowledged time.Time
+	SentVia        string
+	SentTo         string
+	Lang           string `datastore:",noindex"`
+	Error          string `datastore:",noindex"` //TODO: Need a comment on when it is used
 }
 
 func (receiptEntity ReceiptEntity) Validate() (err error) {

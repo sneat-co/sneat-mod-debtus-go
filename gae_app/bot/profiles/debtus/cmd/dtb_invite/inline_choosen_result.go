@@ -1,10 +1,11 @@
 package dtb_invite
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
-	"github.com/strongo/log"
-	"github.com/strongo/bots-framework/core"
 	"net/url"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
 )
 
 var ChosenInlineResultCommand = bots.Command{

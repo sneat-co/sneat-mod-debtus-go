@@ -1,15 +1,16 @@
 package maintainance
 
 import (
+	"fmt"
+	"runtime/debug"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/captaincodeman/datastore-mapper"
+	"github.com/strongo/db"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"github.com/strongo/log"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/strongo/db"
-	"runtime/debug"
-	"fmt"
 )
 
 type transfersRecreateContacts struct {
@@ -23,7 +24,7 @@ func (m *transfersRecreateContacts) Next(c context.Context, counters mapper.Coun
 func (m *transfersRecreateContacts) verifyAndFix(c context.Context, counters *asyncCounters, transfer models.Transfer) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Errorf(c, "*transfersRecreateContacts.verifyAndFix() => panic: %v\n\v", r, string(debug.Stack()))
+			log.Errorf(c, "*transfersRecreateContacts.verifyAndFix() => panic: %v\n\n%v", r, string(debug.Stack()))
 		}
 	}()
 	var fixed bool
@@ -34,9 +35,9 @@ func (m *transfersRecreateContacts) verifyAndFix(c context.Context, counters *as
 	return
 }
 
-func verifyAndFixMissingTransferContacts(c context.Context, transfer models.Transfer) (fixed bool, err error){
+func verifyAndFixMissingTransferContacts(c context.Context, transfer models.Transfer) (fixed bool, err error) {
 	isMissingAndCanBeFixed := func(contactID, contactUserID, counterpartyContactID int64) (bool, error) {
-		if contactID != 0 && contactUserID != 0  && counterpartyContactID != 0 {
+		if contactID != 0 && contactUserID != 0 && counterpartyContactID != 0 {
 			if _, err := dal.Contact.GetContactByID(c, contactID); err != nil {
 				if db.IsNotFound(err) {
 					if user, err := dal.User.GetUserByID(c, contactUserID); err != nil {
@@ -56,7 +57,7 @@ func verifyAndFixMissingTransferContacts(c context.Context, transfer models.Tran
 		return false, nil
 	}
 
-	doFix := func (contactInfo *models.TransferCounterpartyInfo, counterpartyInfo *models.TransferCounterpartyInfo) (err error) {
+	doFix := func(contactInfo *models.TransferCounterpartyInfo, counterpartyInfo *models.TransferCounterpartyInfo) (err error) {
 		err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
 			log.Debugf(c, "Recreating contact # %v", contactInfo.ContactID)
 			var counterpartyContact models.Contact
@@ -101,11 +102,11 @@ func verifyAndFixMissingTransferContacts(c context.Context, transfer models.Tran
 			}
 
 			contact := models.NewContact(contactInfo.ContactID, &models.ContactEntity{
-				UserID: counterpartyInfo.UserID,
-				Status: models.STATUS_ACTIVE,
-				TransfersJson: counterpartyContact.TransfersJson,
-				ContactDetails:  counterpartyUser.ContactDetails,
-				Balanced: counterpartyContact.Balanced,
+				UserID:         counterpartyInfo.UserID,
+				Status:         models.STATUS_ACTIVE,
+				TransfersJson:  counterpartyContact.TransfersJson,
+				ContactDetails: counterpartyUser.ContactDetails,
+				Balanced:       counterpartyContact.Balanced,
 			})
 			if contact.Nickname != contactUserContactJson.Name && contact.FirstName != contactUserContactJson.Name && contact.LastName != contactUserContactJson.Name && contact.ScreenName != contactUserContactJson.Name {
 				contact.Nickname = contactUserContactJson.Name
@@ -113,7 +114,7 @@ func verifyAndFixMissingTransferContacts(c context.Context, transfer models.Tran
 			if err = contact.SetBalance(counterpartyContact.Balance().Reversed()); err != nil {
 				return
 			}
-			if !contact.Balance().Equal(contactUserContactJson.Balance())  {
+			if !contact.Balance().Equal(contactUserContactJson.Balance()) {
 				err = fmt.Errorf("contact(%v).Balance != contactUserContactJson.Balance(): %v != %v", contact.ID, contact.Balance(), contactUserContactJson.Balance())
 				return
 			}

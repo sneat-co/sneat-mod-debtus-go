@@ -1,20 +1,21 @@
 package maintainance
 
 import (
-	"github.com/captaincodeman/datastore-mapper"
-	"github.com/strongo/db"
+	"fmt"
 	"net/http"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/pkg/errors"
-	"golang.org/x/net/context"
-	"google.golang.org/appengine/datastore"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/strongo/log"
-	users "github.com/strongo/app/user"
 	"strconv"
 	"strings"
-	"fmt"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/captaincodeman/datastore-mapper"
+	"github.com/pkg/errors"
+	users "github.com/strongo/app/user"
+	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/db"
+	"github.com/strongo/log"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/datastore"
 )
 
 type verifyTelegramUserAccounts struct {
@@ -53,7 +54,6 @@ func (m *verifyTelegramUserAccounts) Next(c context.Context, counters mapper.Cou
 					return m.dealWithIntKey(c, counters, key, &entity)
 				}
 			})
-			return
 		}
 	} else {
 		tgChat := models.TelegramChat{DtTelegramChatEntity: &entity}
@@ -184,8 +184,8 @@ func (m *verifyTelegramUserAccounts) processTelegramChat(c context.Context, tgCh
 			if err = dal.User.SaveUser(c, user); err != nil {
 				return
 			}
-		//} else {
-		//	log.Debugf(c, "user NOT changed %v", user.ID)
+			//} else {
+			//	log.Debugf(c, "user NOT changed %v", user.ID)
 		}
 		return
 	}, db.CrossGroupTransaction); err != nil {

@@ -1,22 +1,23 @@
 package dtb_transfer
 
 import (
+	"fmt"
+	"net/url"
+	"strconv"
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"net/url"
-	"strconv"
-	"time"
+	"github.com/strongo/log"
 )
 
 var ReturnCallbackCommand = bots.NewCallbackCommand(dtb_common.CALLBACK_DEBT_RETURNED_PATH, ProcessReturnAnswer)

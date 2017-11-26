@@ -1,13 +1,14 @@
 package api
 
 import (
+	"net/http"
+	"strconv"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/pkg/errors"
 	"github.com/strongo/db"
 	"golang.org/x/net/context"
-	"net/http"
-	"strconv"
 )
 
 func handleSignUpAnonymously(c context.Context, w http.ResponseWriter, r *http.Request) {

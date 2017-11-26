@@ -1,20 +1,21 @@
 package gaedal
 
 import (
+	"strconv"
+	"strings"
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pkg/errors"
-	"github.com/strongo/db"
 	"github.com/strongo/app/gae"
+	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/delay"
-	"strings"
-	"strconv"
-	"time"
 )
 
 func NewAppUserKey(c context.Context, appUserId int64) *datastore.Key {
@@ -197,7 +198,7 @@ var delayedUpdateUserWithBill = delay.Func("delayedUpdateWithBill", func(c conte
 })
 
 func (UserDalGae) DelayUpdateUserWithContact(c context.Context, userID, billID int64) (err error) {
-	if err = gae.CallDelayFuncWithDelay(c, time.Second / 10, common.QUEUE_USERS, "updateUserWithContact", delayedUpdateUserWithContact, userID, billID); err != nil {
+	if err = gae.CallDelayFuncWithDelay(c, time.Second/10, common.QUEUE_USERS, "updateUserWithContact", delayedUpdateUserWithContact, userID, billID); err != nil {
 		return
 	}
 	return

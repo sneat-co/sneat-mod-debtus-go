@@ -1,17 +1,18 @@
 package dtb_transfer
 
 import (
+	"fmt"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
 	//"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	//"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	//"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"

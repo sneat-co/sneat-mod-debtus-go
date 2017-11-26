@@ -1,20 +1,21 @@
 package maintainance
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"net/http"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/captaincodeman/datastore-mapper"
+	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
+	"github.com/strongo/db"
 	"github.com/strongo/nds"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
-	"net/http"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bytes"
-	"fmt"
-	"github.com/strongo/db"
-	"github.com/pkg/errors"
 )
 
 type verifyUsers struct {

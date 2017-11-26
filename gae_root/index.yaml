@@ -85,6 +85,15 @@ indexes:
   - name: DtCreated
     direction: desc
 
+# For troubleshooting & fixes
+- kind: Transfer
+  ancestor: no
+  properties:
+  - name: BothCounterpartyIDs
+  - name: Currency
+  - name: DtCreated
+
+
 # This is needed to update old transfers with CounterpartyUserID & CounterpartyCounterpartyID
 # when linking 2 users and also to show transfers between them
 #- kind: Transfer
@@ -112,4 +121,11 @@ indexes:
   - name: UserID
   - name: To
   - name: DtCreated
+    direction: desc
+
+- kind: Referer
+  properties:
+  - name: p
+  - name: to
+  - name: t
     direction: desc

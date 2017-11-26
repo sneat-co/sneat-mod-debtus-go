@@ -1,15 +1,16 @@
 package dtb_transfer
 
 import (
-	"regexp"
-	"github.com/strongo/bots-framework/core"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/decimal"
-	"strconv"
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
-	"github.com/pkg/errors"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
+	"github.com/pkg/errors"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/decimal"
 )
 
 var reInterest = regexp.MustCompile(`^\s*(?P<percent>\d+(?:[\.,]\d+)?)%?(?:/(?P<period>\d+|w(?:eek)?|y(?:ear)?|m(?:onth)?))?(?:/(?P<minimum>\d+))?(?:/(?P<grace>\d+))?(?::\s*(?P<comment>.+?))?\s*$`)

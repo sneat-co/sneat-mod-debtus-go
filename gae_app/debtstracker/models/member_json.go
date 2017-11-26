@@ -3,14 +3,14 @@ package models
 //go:generate ffjson $GOFILE
 
 import (
-	"github.com/strongo/decimal"
 	"github.com/pquerna/ffjson/ffjson"
+	"github.com/strongo/decimal"
 )
 
 type MemberJson struct {
 	// We use string IDs as it's faster to marshal and will be more compact in future
-	ID            string // required
-	Name          string // required
+	ID            string                   // required
+	Name          string                   // required
 	AddedByUserID string                   `json:",omitempty"`
 	UserID        string                   `json:",omitempty"`
 	TgUserID      string                   `json:",omitempty"`

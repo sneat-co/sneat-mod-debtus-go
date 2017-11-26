@@ -2,12 +2,13 @@ package maintainance
 
 import (
 	"sync"
+
 	"github.com/captaincodeman/datastore-mapper"
 )
 
 type asyncCounters struct {
 	sync.Mutex
-	locked bool
+	locked   bool
 	counters mapper.Counters
 }
 
@@ -16,7 +17,7 @@ func NewAsynCounters(counters mapper.Counters) *asyncCounters {
 }
 
 func (ac *asyncCounters) Increment(name string, delta int64) {
-	wasLocked := ac.locked;
+	wasLocked := ac.locked
 	if !wasLocked {
 		ac.Lock()
 	}
@@ -37,4 +38,3 @@ func (ac *asyncCounters) Unlock() {
 		ac.locked = false
 	}
 }
-

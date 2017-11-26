@@ -1,16 +1,17 @@
 package auth
 
 import (
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/SermoDigital/jose/crypto"
 	"github.com/SermoDigital/jose/jws"
 	"github.com/SermoDigital/jose/jwt"
 	"github.com/pkg/errors"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
 )
 
 var secret = []byte("very-secret-abc")

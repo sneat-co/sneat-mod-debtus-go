@@ -1,16 +1,17 @@
 package dtb_transfer
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"fmt"
+	"strconv"
+	"time"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
 	"golang.org/x/net/context"
 	"golang.org/x/net/html"
-	"strconv"
-	"time"
 )
 
 type BalanceMessageBuilder struct {

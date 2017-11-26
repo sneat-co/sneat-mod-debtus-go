@@ -1,8 +1,9 @@
 package bot_shared
 
 import (
-	"github.com/strongo/bots-framework/core"
 	"testing"
+
+	"github.com/strongo/bots-framework/core"
 )
 
 func TestAddSharedRoutes(t *testing.T) {

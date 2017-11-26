@@ -1,11 +1,12 @@
 package bot_shared
 
 import (
+	"net/url"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"net/url"
+	"github.com/strongo/log"
 )
 
 const CHANGE_BILL_TOTAL_COMMAND = "bill_total"

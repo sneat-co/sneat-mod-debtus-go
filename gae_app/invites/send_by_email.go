@@ -1,14 +1,15 @@
 package invites
 
 import (
+	"bytes"
+	"fmt"
+	"html/template"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/emails"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"bytes"
-	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
-	"html/template"
 )
 
 type InviteTemplateParams struct {

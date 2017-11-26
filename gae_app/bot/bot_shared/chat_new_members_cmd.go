@@ -1,9 +1,10 @@
 package bot_shared
 
 import (
+	"fmt"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"
@@ -76,7 +77,7 @@ var newChatMembersCommand = bots.Command{
 				[]tgbotapi.InlineKeyboardButton{
 					{
 						Text: whc.CommandText(trans.COMMAND_TEXT_SETTING, emoji.SETTINGS_ICON),
-						URL:  fmt.Sprintf("https:/t.me/%v?start=group-%d", whc.GetBotCode(), group.ID),
+						URL:  fmt.Sprintf("https:/t.me/%v?start=group-%v", whc.GetBotCode(), group.ID),
 					},
 				},
 			)

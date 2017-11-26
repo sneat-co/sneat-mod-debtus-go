@@ -1,15 +1,16 @@
 package splitus
 
 import (
+	"bytes"
+	"fmt"
+	"net/url"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"bytes"
-	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
-	"net/url"
 )
 
 const BILL_SHARES_COMMAND = "bill_shares"
@@ -52,7 +53,7 @@ var billSharesCommand = bot_shared.BillCallbackCommand(BILL_SHARES_COMMAND,
 							return err
 						}
 					}
-					return fmt.Errorf("member not found by ID: %d", member.ID)
+					return fmt.Errorf("member not found by ID: %v", member.ID)
 				}, dal.CrossGroupTransaction)
 				return
 			},

@@ -1,18 +1,19 @@
 package splitus
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/strongo/app"
-	"github.com/strongo/log"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/decimal"
 	"html"
 	"net/url"
 	"strconv"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/strongo/app"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/decimal"
+	"github.com/strongo/log"
 )
 
 func editSplitCallbackAction(
@@ -136,7 +137,7 @@ func writeSplitInstructions(buffer *bytes.Buffer, tgUserID, memberName string) {
 	if tgUserID == "" {
 		buffer.WriteString(fmt.Sprintf("<b>Selected:</b> %v", memberName))
 	} else {
-		buffer.WriteString(fmt.Sprintf(`<b>Selected:</b> <a href="tg://user?id=%d">%v</a>`, tgUserID, memberName))
+		buffer.WriteString(fmt.Sprintf(`<b>Selected:</b> <a href="tg://user?id=%v">%v</a>`, tgUserID, memberName))
 	}
 }
 

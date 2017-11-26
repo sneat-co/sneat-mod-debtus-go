@@ -2,12 +2,13 @@ package dtb_general
 
 import (
 	"fmt"
+	"net/url"
+
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/fbm"
-	"net/url"
+	"github.com/strongo/log"
 )
 
 const MAIN_MENU_COMMAND = "main-menu"
@@ -29,7 +30,7 @@ func MainMenuAction(whc bots.WebhookContext, messageText string, showHint bool) 
 	if messageText == "" {
 		if whc.BotPlatform().Id() != fbm_bot.FbmPlatformID {
 			if showHint {
-				messageText = fmt.Sprintf("%v\n%v", whc.Translate(trans.MESSAGE_TEXT_WHATS_NEXT), whc.Translate(trans.MESSAGE_TEXT_WHATS_NEXT_HINT))
+				messageText = fmt.Sprintf("%v\n\n%v", whc.Translate(trans.MESSAGE_TEXT_WHATS_NEXT), whc.Translate(trans.MESSAGE_TEXT_COMMANDS))
 			} else {
 				messageText = whc.Translate(trans.MESSAGE_TEXT_WHATS_NEXT)
 			}

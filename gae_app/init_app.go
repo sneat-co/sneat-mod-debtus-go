@@ -12,13 +12,14 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/webhooks"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/website"
 	//"github.com/strongo/app"
+	"net/http"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/maintainance"
 	"github.com/julienschmidt/httprouter"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
-	"net/http"
 )
 
 func Init(botHost bots.BotHost) {
@@ -43,7 +44,7 @@ func Init(botHost bots.BotHost) {
 	InitBots(httpRouter, botHost, common.TheAppContext)
 
 	httpRouter.GET("/test-pointer", TestModelPointer)
-	httpRouter.GET( "/Users/astec/", NotFoundSilent)
+	httpRouter.GET("/Users/astec/", NotFoundSilent)
 
 	maintainance.RegisterMappers()
 }

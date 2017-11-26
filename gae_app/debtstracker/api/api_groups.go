@@ -1,22 +1,23 @@
 package api
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
-	"github.com/pkg/errors"
-	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/db"
-	"github.com/strongo/log"
-	"golang.org/x/net/context"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
 	"sync"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/pkg/errors"
+	"github.com/pquerna/ffjson/ffjson"
+	"github.com/strongo/db"
+	"github.com/strongo/log"
+	"golang.org/x/net/context"
 )
 
 func handlerCreateGroup(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo, user models.AppUser) {
@@ -104,7 +105,7 @@ func groupsToJson(groups []models.Group, user models.AppUser) (result [][]byte, 
 					memberDto.Name = ""
 					memberDto.UserID = member.UserID
 				} else if member.Name == "" {
-					err = fmt.Errorf("Group(%d) has member(id=%d) without UserID and without Name", group.ID, member.ID)
+					err = fmt.Errorf("group(%v) has member(id=%v) without UserID and without Name", group.ID, member.ID)
 					return
 				}
 				for _, contactID := range member.ContactIDs {
@@ -149,7 +150,7 @@ func handleJoinGroups(c context.Context, w http.ResponseWriter, r *http.Request,
 
 		errs := make([]error, len(groupIDs))
 		for i, groupID := range groupIDs {
-			go func(i int) {
+			go func(i int, groupID string) {
 				var group models.Group
 				if group, errs[i] = dal.Group.GetGroupByID(c, groupID); errs[i] != nil {
 					waitGroup.Done()
@@ -172,7 +173,7 @@ func handleJoinGroups(c context.Context, w http.ResponseWriter, r *http.Request,
 					return
 				}
 				waitGroup.Done()
-			}(i)
+			}(i, groupID)
 		}
 		waitGroup.Wait()
 		for _, err = range errs {

@@ -2,7 +2,7 @@ package models
 
 import "testing"
 
-func TestContactDetailsFullname(t *testing.T){
+func TestContactDetailsFullname(t *testing.T) {
 	lastName := "Smith"
 	contactDetails := &ContactDetails{
 		LastName: lastName,

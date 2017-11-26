@@ -6,7 +6,6 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-fbm"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-api-viber/viberinterface"
@@ -14,6 +13,7 @@ import (
 	"github.com/strongo/bots-framework/platforms/fbm"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/bots-framework/platforms/viber"
+	"github.com/strongo/log"
 )
 
 const INVITES_SHOT_COMMAND = emoji.PRESENT_ICON
@@ -66,14 +66,20 @@ func mainMenuTelegramKeyboard(whc bots.WebhookContext, params mainMenuParams) *t
 	if params.showBalanceAndHistory {
 		buttonRows = append(buttonRows, []string{
 			whc.CommandText(trans.COMMAND_TEXT_BALANCE, emoji.BALANCE_ICON),
+			//whc.CommandText(trans.COMMAND_TEXT_CONTACTS, emoji.MAN_AND_WOMAN),
 			whc.CommandText(trans.COMMAND_TEXT_HISTORY, emoji.HISTORY_ICON),
 		})
 	}
 
 	buttonRows = append(buttonRows, []string{
-		whc.CommandText(trans.COMMAND_TEXT_SETTING, emoji.SETTINGS_ICON),
-		whc.CommandText(trans.COMMAND_TEXT_FEEDBACK, emoji.BULB_ICON),
-		whc.CommandText(trans.COMMAND_TEXT_HELP, emoji.HELP_ICON),
+		//whc.CommandText(trans.COMMAND_TEXT_SETTING, emoji.SETTINGS_ICON),
+		//whc.CommandText(trans.COMMAND_TEXT_HIGH_FIVE, emoji.BULB_ICON),
+		//whc.CommandText(trans.COMMAND_TEXT_HELP, emoji.HELP_ICON),
+		emoji.SETTINGS_ICON,
+		emoji.MAN_AND_WOMAN,
+		emoji.PUBLIC_LOUDSPEAKER,
+		emoji.STAR_ICON,
+		emoji.HELP_ICON,
 	})
 
 	return tgbotapi.NewReplyKeyboardUsingStrings(buttonRows)

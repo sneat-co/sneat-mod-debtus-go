@@ -11,6 +11,7 @@ func AddSharedRoutes(router bots.WebhooksRouter, botParams BotParams) {
 		setBillDueDateCommand,
 		groupsCommand,
 		settingsCommand,
+		ReferrersCommand,
 	})
 	router.AddCommands(bots.WebhookInputCallbackQuery, []bots.Command{
 		onStartCallbackCommand(botParams),

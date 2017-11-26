@@ -2,6 +2,7 @@ package models
 
 import (
 	"testing"
+
 	"github.com/strongo/decimal"
 )
 
@@ -25,7 +26,6 @@ func validateTotal(t *testing.T, members []BillMemberJson, expectedTotal decimal
 
 func TestUpdateMemberOwesForSplitByShares(t *testing.T) {
 	var members []BillMemberJson
-
 
 	members = []BillMemberJson{{}, {}, {}, {}}
 	updateMemberOwesForSplitByShares(1000, "", members)

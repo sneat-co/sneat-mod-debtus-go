@@ -1,31 +1,32 @@
 package dtb_transfer
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"fmt"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/log"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"net/url"
 	"strings"
 	"time"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/DebtsTracker/translations/emoji"
+	"github.com/DebtsTracker/translations/trans"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
 )
 
 const BALANCE_COMMAND = "balance"
 
 var BalanceCallbackCommand = bots.NewCallbackCommand(BALANCE_COMMAND, balanceCallbackAction)
 
-var BalanceCommand = bots.Command{//TODO: Write unit tests!
-	Code: BALANCE_COMMAND,
-	Title: trans.COMMAND_TEXT_BALANCE,
-	Icon: emoji.BALANCE_ICON,
+var BalanceCommand = bots.Command{ //TODO: Write unit tests!
+	Code:     BALANCE_COMMAND,
+	Title:    trans.COMMAND_TEXT_BALANCE,
+	Icon:     emoji.BALANCE_ICON,
 	Commands: trans.Commands(trans.COMMAND_BALANCE),
-	Action: balanceAction,
+	Action:   balanceAction,
 }
 
 func balanceCallbackAction(whc bots.WebhookContext, _ *url.URL) (m bots.MessageFromBot, err error) {

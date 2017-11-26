@@ -1,18 +1,19 @@
 package dtb_inline
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/log"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/decimal"
 	"html"
 	"net/url"
 	"regexp"
 	"strings"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/DebtsTracker/translations/trans"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/decimal"
+	"github.com/strongo/log"
 )
 
 var ReInlineQueryAmount = regexp.MustCompile(`^\s*(\d+(?:\.\d*)?)\s*((?:\b|\B).+?)?\s*$`)

@@ -1,8 +1,9 @@
 package gaedal
 
 import (
-	"golang.org/x/net/context"
 	"testing"
+
+	"golang.org/x/net/context"
 )
 
 func TestNewGroupKey(t *testing.T) {

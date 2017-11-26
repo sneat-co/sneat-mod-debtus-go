@@ -2,17 +2,18 @@ package models
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
-	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/app"
-	"github.com/strongo/db"
-	"github.com/strongo/db/gaedb"
-	"github.com/strongo/app/user"
-	"github.com/strongo/bots-framework/core"
-	"google.golang.org/appengine/datastore"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/pkg/errors"
+	"github.com/pquerna/ffjson/ffjson"
+	"github.com/strongo/app"
+	"github.com/strongo/app/user"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/db"
+	"github.com/strongo/db/gaedb"
+	"google.golang.org/appengine/datastore"
 )
 
 const AppUserKind = "User"
@@ -91,9 +92,9 @@ type AppUserEntity struct {
 
 	ContactDetails
 
-	DtAccessGranted            time.Time `datastore:",noindex,omitempty"`
+	DtAccessGranted time.Time `datastore:",noindex,omitempty"`
 	Balanced
-	TransfersWithInterestCount int       `datastore:",noindex"`
+	TransfersWithInterestCount int `datastore:",noindex"`
 
 	SmsStats
 	DtCreated time.Time
@@ -101,15 +102,16 @@ type AppUserEntity struct {
 
 	HasDueTransfers bool `datastore:",noindex"` // TODO: Check if we really need this prop and if yes document why
 
-	InvitedByUserID int64 `datastore:",omitempty"` // TODO: Prevent circular references! see users 6032980589936640 & 5998019824582656
+	InvitedByUserID int64  `datastore:",omitempty"` // TODO: Prevent circular references! see users 6032980589936640 & 5998019824582656
+	ReferredBy      string `datastore:",omitempty"`
 
 	user.Accounts
 
-	TelegramUserIDs    []int64                                 // TODO: Obsolete
-	ViberBotID         string `datastore:",noindex,omitempty"` // TODO: Obsolete
-	ViberUserID        string `datastore:",noindex,omitempty"` // TODO: Obsolete
-	VkUserID           int64  `datastore:",noindex,omitempty"` // TODO: Obsolete
-	GoogleUniqueUserID string `datastore:",noindex,omitempty"` // TODO: Obsolete
+	TelegramUserIDs    []int64 // TODO: Obsolete
+	ViberBotID         string  `datastore:",noindex,omitempty"` // TODO: Obsolete
+	ViberUserID        string  `datastore:",noindex,omitempty"` // TODO: Obsolete
+	VkUserID           int64   `datastore:",noindex,omitempty"` // TODO: Obsolete
+	GoogleUniqueUserID string  `datastore:",noindex,omitempty"` // TODO: Obsolete
 	//FbUserID           string `datastore:",noindex,omitempty"` // TODO: Obsolete Facebook assigns different IDs to same FB user for FB app & Messenger app.
 	//FbmUserID          string `datastore:",noindex,omitempty"` // TODO: Obsolete So we would want to keep both IDs?
 	// TODO: How do we support multiple FBM bots? They will have different PSID (PageScopeID)
@@ -725,7 +727,7 @@ func (u *AppUserEntity) TotalBalanceFromContacts() (balance Balance) {
 
 	for _, contact := range u.Contacts() {
 		for currency, cv := range contact.Balance() {
-			if v := balance[currency] + cv; v ==  0 {
+			if v := balance[currency] + cv; v == 0 {
 				delete(balance, currency)
 			} else {
 				balance[currency] = v
@@ -796,24 +798,24 @@ func (u *AppUserEntity) BalanceWithInterest(periodEnds time.Time) (balance Balan
 	if u.TransfersWithInterestCount == 0 {
 		balance = u.Balance()
 	} else if u.TransfersWithInterestCount > 0 {
-		var (
-			userBalance Balance
-		)
-		userBalance = u.Balance()
+		//var (
+		//	userBalance Balance
+		//)
+		//userBalance = u.Balance()
 		balance = make(Balance, u.BalanceCount)
 		for _, contact := range u.Contacts() {
 			for currency, value := range contact.BalanceWithInterest(nil, periodEnds) {
 				balance[currency] += value
 			}
 		}
-		if len(balance) != u.BalanceCount {
-			panic(fmt.Sprintf("len(balance) != u.BalanceCount: %v != %v", len(balance), u.BalanceCount))
-		}
-		for c, v := range balance {
-			if tv := userBalance[c]; v < tv {
-				panic(fmt.Sprintf("For currency %v balance with interest is less then total balance: %v < %v", c, v, tv))
-			}
-		}
+		//if len(balance) != u.BalanceCount { // Theoretically can be eliminated by interest
+		//	panic(fmt.Sprintf("len(balance) != u.BalanceCount: %v != %v", len(balance), u.BalanceCount))
+		//}
+		//for c, v := range balance { // It can be less if we have different interest condition for 2 contacts different direction!!!
+		//	if tv := userBalance[c]; v < tv {
+		//		panic(fmt.Sprintf("For currency %v balance with interest is less then total balance: %v < %v", c, v, tv))
+		//	}
+		//}
 	} else {
 		panic(fmt.Sprintf("TransfersWithInterestCount > 0: %v", u.TransfersWithInterestCount))
 	}

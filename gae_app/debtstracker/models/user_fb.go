@@ -2,9 +2,9 @@ package models
 
 import (
 	"github.com/pkg/errors"
+	"github.com/strongo/app/user"
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
-	"github.com/strongo/app/user"
 	"google.golang.org/appengine/datastore"
 )
 

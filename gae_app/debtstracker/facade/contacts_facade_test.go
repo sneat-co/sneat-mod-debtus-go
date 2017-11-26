@@ -1,13 +1,11 @@
 package facade
 
-import (
 //"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 //"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 //"golang.org/x/net/context"
 //"testing"
 //"time"
 //"github.com/strongo/db/gaedb"
-)
 
 //func TestNewContactIncompleteKey(t *testing.T) {
 //	testDatastoreIncompleteKey(t, NewContactIncompleteKey(context.Background()))

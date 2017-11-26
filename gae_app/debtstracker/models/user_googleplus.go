@@ -1,8 +1,8 @@
 package models
 
 import (
-	"github.com/strongo/db"
 	"github.com/strongo/app/user"
+	"github.com/strongo/db"
 )
 
 const UserGooglePlusKind = "UserGooglePlus"
@@ -47,6 +47,5 @@ func (userGooglePlus *UserGooglePlus) SetEntity(entity interface{}) {
 		userGooglePlus.UserGooglePlusEntity = entity.(*UserGooglePlusEntity)
 	}
 }
-
 
 var _ db.EntityHolder = (*UserGooglePlus)(nil)

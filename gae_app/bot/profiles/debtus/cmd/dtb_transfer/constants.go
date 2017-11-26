@@ -1,8 +1,9 @@
 package dtb_transfer
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"fmt"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 )
 
 const (

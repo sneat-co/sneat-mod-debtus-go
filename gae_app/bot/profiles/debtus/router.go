@@ -1,6 +1,7 @@
 package debtus
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_admin"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_fbm"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
@@ -58,6 +59,7 @@ var textAndContactCommands = []bots.Command{ // TODO: Check for Action || Callba
 	dtb_transfer.AskPhoneNumberForReceiptCommand, // TODO: Should it be in dtb_transfer?
 	dtb_invite.CreateMassInviteCommand,
 	//
+	bot_shared.ReferrersCommand,
 }
 
 var callbackCommands = []bots.Command{
@@ -99,6 +101,7 @@ var callbackCommands = []bots.Command{
 	dtb_general.FeedbackCommand,
 	dtb_general.CanYouRateCommand,
 	dtb_general.FeedbackTextCommand,
+	bot_shared.AddReferrerCommand,
 }
 
 var Router bots.WebhooksRouter = bots.NewWebhookRouter(

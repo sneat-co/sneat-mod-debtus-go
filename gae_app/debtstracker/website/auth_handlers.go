@@ -1,19 +1,20 @@
 package website
 
 import (
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/user"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
-	"github.com/julienschmidt/httprouter"
 )
 
 func LoginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

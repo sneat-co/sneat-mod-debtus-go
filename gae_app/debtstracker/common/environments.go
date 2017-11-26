@@ -1,8 +1,9 @@
 package common
 
 import (
-	"github.com/strongo/app"
 	"strings"
+
+	"github.com/strongo/app"
 )
 
 func GetEnvironmentFromHost(host string) strongo.Environment {

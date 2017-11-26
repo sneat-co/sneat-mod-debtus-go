@@ -1,20 +1,21 @@
 package dtb_transfer
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	dtb_common "bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/log"
 	"github.com/strongo/measurement-protocol"
-	"strconv"
-	"strings"
 )
 
 const NEW_COUNTERPARTY_COMMAND = "new-counterparty"

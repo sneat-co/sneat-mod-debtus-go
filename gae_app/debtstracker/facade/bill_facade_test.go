@@ -5,10 +5,11 @@ import (
 	//"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/dalmocks"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	//"github.com/pkg/errors"
-	"github.com/strongo/decimal"
-	"golang.org/x/net/context"
 	"strings"
 	"testing"
+
+	"github.com/strongo/decimal"
+	"golang.org/x/net/context"
 )
 
 func TestCreateBillPanicOnNilContext(t *testing.T) {

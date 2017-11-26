@@ -1,27 +1,28 @@
 package gaedal
 
 import (
+	"fmt"
+	"strings"
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
-	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gae"
-	"github.com/strongo/db/gaedb"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/db"
+	"github.com/strongo/db/gaedb"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/taskqueue"
-	"strings"
-	"time"
-	"github.com/strongo/db"
 )
 
 func (_ ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, transferID, userID int64) (err error) {

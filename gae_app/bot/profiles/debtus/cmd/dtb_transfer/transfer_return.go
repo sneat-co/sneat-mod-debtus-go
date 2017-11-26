@@ -1,21 +1,22 @@
 package dtb_transfer
 
 import (
+	"fmt"
+	"net/url"
+	"strconv"
+	"strings"
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/decimal"
+	"github.com/strongo/log"
 	"golang.org/x/net/html"
-	"net/url"
-	"strconv"
-	"time"
-	"strings"
 )
 
 //var StartReturnWizardCommand = bots.Command{
@@ -253,7 +254,7 @@ var AskToChooseDebtToReturnCommand = bots.Command{
 		counterpartyID, _, _ := getReturnWizardParams(whc)
 		var (
 			theCounterparty models.Contact
-			balance models.Balance
+			balance         models.Balance
 		)
 		if counterpartyID == 0 {
 			// Let's try to get counterpartyEntity from message text

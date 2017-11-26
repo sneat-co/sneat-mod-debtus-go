@@ -1,8 +1,8 @@
 package dtb_transfer
 
 import (
-	"github.com/strongo/log"
 	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
 	"github.com/strongo/measurement-protocol"
 )
 

@@ -1,9 +1,10 @@
 package collectus
 
 import (
+	"bytes"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"bytes"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
@@ -56,8 +57,7 @@ var botParams = bot_shared.BotParams{
 }
 
 var Router bots.WebhooksRouter = bots.NewWebhookRouter(
-	map[bots.WebhookInputType][]bots.Command{
-	},
+	map[bots.WebhookInputType][]bots.Command{},
 	func() string { return "Please report any errors to @CollectusGroup" },
 )
 

@@ -1,18 +1,19 @@
 package dtb_transfer
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/log"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/DebtsTracker/translations/emoji"
+	"github.com/DebtsTracker/translations/trans"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
 )
 
 var BorrowingWizardCompletedCommand = TransferWizardCompletedCommand("transfer-to-completed")
@@ -30,6 +31,8 @@ func CreateStartTransferWizardCommand(code, messageText string, commands []strin
 			return false
 		},
 		Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+			c := whc.Context()
+			log.Debugf(c, "CreateStartTransferWizardCommand(code=%v).Action()", code)
 			mt := strings.TrimSpace(whc.Input().(bots.WebhookTextMessage).Text())
 			chatEntity := whc.ChatEntity()
 			switch {
@@ -42,7 +45,17 @@ func CreateStartTransferWizardCommand(code, messageText string, commands []strin
 			case mt == whc.Translate(trans.COMMAND_TEXT_CANCEL):
 				return cancelTransferWizardCommandAction(whc)
 			default:
-				if strings.HasPrefix(mt, "/") {
+				isMainMenuCommand := strings.HasPrefix(mt, "/")
+				if !isMainMenuCommand { // TODO: This sucks, do we need to move the asking for amount in dedicated command?
+					mtLower := strings.ToLower(mt)
+					for _, command := range commands {
+						if strings.HasPrefix(mtLower, command) {
+							isMainMenuCommand = true
+							break
+						}
+					}
+				}
+				if isMainMenuCommand {
 					whc.ChatEntity().SetAwaitingReplyTo(code)
 					m = whc.NewMessageByCode(messageText)
 					m.Text += "\n\n" + strings.Replace(whc.Translate(trans.MESSAGE_TEXT_CHOOSE_CURRENCY), "<a>", fmt.Sprintf(
@@ -57,7 +70,7 @@ func CreateStartTransferWizardCommand(code, messageText string, commands []strin
 				} else if _, err = strconv.ParseFloat(mt, 64); err == nil {
 					return whc.NewMessageByCode(trans.MESSAGE_TEXT_CURRENCY_NAME_IS_NUMBER), nil
 					// User entered a number
-				} else {
+				} else { // TODO: Document why we allow this!?
 					err = nil // Ignore error from strconv.ParseFloat()
 					if strings.ToLower(mt) == "euro" {
 						mt = "EUR"
@@ -88,7 +101,7 @@ var AskLendingAmountCommand = AskTransferAmountCommand("ask-lending-amount", tra
 var StartLendingWizardCommand = CreateStartTransferWizardCommand(
 	"start-lending-wizard",
 	trans.MESSAGE_TEXT_ASK_LENDING_TYPE,
-	trans.Commands(trans.COMMAND_GAVE),
+	trans.Commands(trans.COMMAND_TEXT_GAVE, trans.COMMAND_GAVE, emoji.GIVE_ICON),
 	AskLendingAmountCommand,
 )
 
@@ -103,7 +116,7 @@ var AskBorrowingAmountCommand = AskTransferAmountCommand("ask-borrowing-amount",
 var StartBorrowingWizardCommand = CreateStartTransferWizardCommand(
 	"start-borrowing-wizard",
 	trans.MESSAGE_TEXT_ASK_BORROWING_TYPE,
-	trans.Commands(trans.COMMAND_GOT),
+	trans.Commands(trans.COMMAND_TEXT_GOT, trans.COMMAND_GOT, emoji.TAKE_ICON),
 	AskBorrowingAmountCommand,
 )
 

@@ -1,19 +1,20 @@
 package maintainance
 
 import (
+	"bytes"
+	"fmt"
+	"strconv"
+	"strings"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/captaincodeman/datastore-mapper"
-	"github.com/strongo/nds"
+	"github.com/pkg/errors"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
+	"github.com/strongo/nds"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"strings"
-	"strconv"
-	"bytes"
-	"github.com/pkg/errors"
 )
 
 type verifyTransfers struct {
@@ -103,8 +104,8 @@ func (m *verifyTransfers) verifyTransferContacts(c context.Context, transfer mod
 				if contact.CounterpartyUserID == toFix.UserID {
 					toFix.ContactID = contact.ID
 					changed = true
-					break
 					fmt.Fprintf(buf, "will assign ContactID=%v, ContactName=%v for UserID=%v, UserName=%v", contact.ID, contact.FullName(), from.UserID, from.UserName)
+					break
 				}
 			}
 			return changed, nil
@@ -141,7 +142,7 @@ func (_ *verifyTransfers) verifyTransferCurrency(c context.Context, transfer mod
 	if currency != "" {
 		if err = nds.RunInTransaction(c, func(c context.Context) error {
 			if transfer, err = dal.Transfer.GetTransferByID(c, transfer.ID); err != nil {
-				return errors.WithMessage(err, "failed to get transfer by ID" + strconv.FormatInt(transfer.ID, 10))
+				return errors.WithMessage(err, "failed to get transfer by ID"+strconv.FormatInt(transfer.ID, 10))
 			}
 			if transfer.Currency != currency {
 				transfer.Currency = currency

@@ -1,6 +1,8 @@
 package dtb_settings
 
 import (
+	"net/url"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/emoji"
@@ -8,7 +10,6 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
-	"net/url"
 )
 
 const SETTINGS_CALLBACK_PATH = "settings"
@@ -41,21 +42,14 @@ func BackToSettingsAction(whc bots.WebhookContext, messageText string) (m bots.M
 	m.IsEdit = whc.InputType() == bots.WebhookInputCallbackQuery
 	m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{
-			//{AskCurrencySettingsCommand.DefaultTitle(whc)},
 			{
 				Text:         whc.CommandText(trans.COMMAND_TEXT_LANGUAGE, emoji.EARTH_ICON),
 				CallbackData: SETTINGS_LOCALE_LIST_CALLBACK_PATH,
 			},
-			{
-				Text:         whc.CommandText(trans.COMMAND_TEXT_CONTACTS, ""),
-				CallbackData: CONTACTS_LIST_COMMAND,
-			},
-			//{
-			//	emoji.NO_ENTRY_SIGN_ICON + " Мои данные",
-			//	emoji.NO_ENTRY_SIGN_ICON + " Мой аккаунт",
-			//},
-			//{Text: dtb_general.MainMenuCommand.DefaultTitle(whc), CallbackData: "main-menu"},
 		},
+		//[]tgbotapi.InlineKeyboardButton{
+		//	{AskCurrencySettingsCommand.DefaultTitle(whc)},
+		//},
 	)
 	return m, err
 }

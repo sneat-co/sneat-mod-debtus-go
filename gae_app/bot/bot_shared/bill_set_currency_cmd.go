@@ -1,12 +1,13 @@
 package bot_shared
 
 import (
+	"net/url"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"net/url"
 	"github.com/strongo/log"
 )
 
@@ -31,7 +32,7 @@ func setBillCurrencyCommand(params BotParams) bots.Command {
 					if group, err = dal.Group.GetGroupByID(c, bill.UserGroupID()); err != nil {
 						return
 					}
-					diff := bill.GetBalance().BillBalanceDifference(make(models.BillBalanceByMember,0))
+					diff := bill.GetBalance().BillBalanceDifference(make(models.BillBalanceByMember, 0))
 					if _, err = group.ApplyBillBalanceDifference(bill.Currency, diff); err != nil {
 						return
 					}
@@ -59,7 +60,7 @@ func setBillCurrencyCommand(params BotParams) bots.Command {
 
 const CURRENCY_PARAM_NAME = "currency"
 
-func CurrenciesInlineKeyboard(callbackDataPrefix string, more... []tgbotapi.InlineKeyboardButton) *tgbotapi.InlineKeyboardMarkup {
+func CurrenciesInlineKeyboard(callbackDataPrefix string, more ...[]tgbotapi.InlineKeyboardButton) *tgbotapi.InlineKeyboardMarkup {
 	currencyButton := func(code, flag string) tgbotapi.InlineKeyboardButton {
 		btn := tgbotapi.InlineKeyboardButton{CallbackData: callbackDataPrefix + "&" + CURRENCY_PARAM_NAME + "=" + code}
 		if flag == "" {

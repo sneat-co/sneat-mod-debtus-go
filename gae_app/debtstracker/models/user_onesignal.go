@@ -1,8 +1,9 @@
 package models
 
 import (
-	"github.com/strongo/db"
 	"time"
+
+	"github.com/strongo/db"
 )
 
 const UserOneSignalKind = "UserOneSignal"

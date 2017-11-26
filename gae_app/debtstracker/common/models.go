@@ -1,11 +1,12 @@
 package common
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bytes"
 	"fmt"
-	"github.com/strongo/app"
 	"io"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"github.com/strongo/app"
 )
 
 func GetCounterpartyUrl(counterpartyID, currentUserID int64, locale strongo.Locale, utmParams UtmParams) string {

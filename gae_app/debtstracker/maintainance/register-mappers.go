@@ -1,10 +1,11 @@
 package maintainance
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"github.com/captaincodeman/datastore-mapper"
 	"net/http"
 	"strconv"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"github.com/captaincodeman/datastore-mapper"
 )
 
 func RegisterMappers() {
@@ -47,7 +48,7 @@ func filterByIntParam(r *http.Request, query *mapper.Query, param, prop string) 
 		if v, err = strconv.ParseInt(pv, 10, 64); err != nil {
 			return
 		} else if v != 0 {
-			return query.Filter(prop + " =", v), true, nil
+			return query.Filter(prop+" =", v), true, nil
 		}
 	}
 	return

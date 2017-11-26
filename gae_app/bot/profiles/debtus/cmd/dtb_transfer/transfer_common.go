@@ -1,25 +1,8 @@
 package dtb_transfer
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/analytics"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bytes"
 	"fmt"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
-	"github.com/strongo/app"
-	"github.com/strongo/log"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/bots-framework/platforms/viber"
-	"github.com/strongo/decimal"
-	"golang.org/x/net/context"
-	"golang.org/x/net/html"
 	"math"
 	"net/url"
 	"regexp"
@@ -27,7 +10,25 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
-	"bytes"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/analytics"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/DebtsTracker/translations/emoji"
+	"github.com/DebtsTracker/translations/trans"
+	"github.com/pkg/errors"
+	"github.com/strongo/app"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/bots-framework/platforms/viber"
+	"github.com/strongo/decimal"
+	"github.com/strongo/log"
+	"golang.org/x/net/context"
+	"golang.org/x/net/html"
 )
 
 var transferRegex = regexp.MustCompile(`(?i)((?P<verb>\w+) )?(?P<amount>\d+)\s*(?P<currency>\w{3})?\s*(?P<direction>from|to)\s+(?P<contact>.+)[\s\.]*`)
@@ -332,7 +333,7 @@ func CreateAskTransferCounterpartyCommand(
 const COUNTERPARTY_BUTTONS_LIMIT = 4
 
 func listCounterpartiesAsButtons(whc bots.WebhookContext, user models.AppUser, isReturn bool, messageText string, newCounterpartyCommand bots.Command,
-	) (m bots.MessageFromBot, err error) {
+) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
 
 	log.Debugf(c, "listCounterpartiesAsButtons")
@@ -594,14 +595,18 @@ func CreateTransferFromBot(
 	output, err := facade.Transfers.CreateTransfer(whc.Context(), newTransfer)
 
 	if err != nil {
-		if err == facade.ErrAttemptToCreateDebtWithInterestAffectingOutstandingTransfers {
+		switch err {
+		case facade.ErrNoOutstandingTransfers:
+			m.Text = whc.Translate(trans.MT_NO_OUTSTANDING_TRANSFERS)
+			log.Warningf(c, "Attempt to create return but no outstanding debts: %v", err)
+			return
+		case facade.ErrAttemptToCreateDebtWithInterestAffectingOutstandingTransfers:
 			err = nil
 			buf := new(bytes.Buffer)
-			buf.WriteString(whc.Translate(trans.MT_ATTEMPT_TO_CREATE_DEBT_WITH_INTEREST_AFFECTING_OUTSTANDING)+"\n")
-
+			buf.WriteString(whc.Translate(trans.MT_ATTEMPT_TO_CREATE_DEBT_WITH_INTEREST_AFFECTING_OUTSTANDING) + "\n")
 			now := time.Now()
 			if outstandingTransfer, err := dal.Transfer.LoadOutstandingTransfers(c, now, appUser.ID, creatorInfo.ContactID, amount.Currency, newTransfer.Direction().Reverse()); err != nil {
-				buf.WriteString(errors.WithMessage(err, "failed to load outstanding transfers").Error()+"\n")
+				buf.WriteString(errors.WithMessage(err, "failed to load outstanding transfers").Error() + "\n")
 			} else if len(outstandingTransfer) == 0 {
 				return m, errors.WithMessage(err, "got facade.ErrAttemptToCreateDebtWithInterestAffectingOutstandingTransfers but no outstanding transfers found")
 			} else {

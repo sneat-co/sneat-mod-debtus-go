@@ -1,9 +1,10 @@
 package bot_shared
 
 import (
+	"net/url"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/strongo/bots-framework/core"
-	"net/url"
 )
 
 func GroupCallbackCommandData(command string, groupID string) string {
@@ -26,7 +27,7 @@ func GroupCallbackCommand(code string, f GroupCallbackAction) bots.Command {
 }
 
 func NewGroupAction(f GroupAction) bots.CommandAction {
-	return func (whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	return func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		var group models.Group
 		if group, err = GetGroup(whc, nil); err != nil {
 			return
@@ -36,7 +37,7 @@ func NewGroupAction(f GroupAction) bots.CommandAction {
 }
 
 func NewGroupCallbackAction(f GroupCallbackAction) bots.CallbackAction {
-	return func (whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	return func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		var group models.Group
 		if group, err = GetGroup(whc, nil); err != nil {
 			return

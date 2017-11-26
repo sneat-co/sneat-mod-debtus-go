@@ -1,16 +1,17 @@
 package api
 
 import (
+	"bytes"
+	"encoding/json"
+	"net/http"
+	"sync"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bytes"
-	"encoding/json"
 	"github.com/pkg/errors"
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
-	"net/http"
-	"sync"
 )
 
 func handleAdminLatestUsers(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {

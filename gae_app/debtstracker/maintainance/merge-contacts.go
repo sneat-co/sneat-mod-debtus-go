@@ -1,19 +1,20 @@
 package maintainance
 
 import (
-	"golang.org/x/net/context"
-	"google.golang.org/appengine/datastore"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/log"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"sync"
-	"github.com/strongo/db"
-	"github.com/pkg/errors"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/pkg/errors"
+	"github.com/strongo/db"
+	"github.com/strongo/log"
+	"golang.org/x/net/context"
 	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
 )
 
 func mergeContactsHandler(w http.ResponseWriter, r *http.Request) {
@@ -66,7 +67,6 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 		return
 	}
 
-
 	for _, sourceContactID := range sourceContactIDs {
 		if sourceContactID == targetContactID {
 			err = fmt.Errorf("sourceContactID == targetContactID: %v", sourceContactID)
@@ -89,14 +89,14 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 	wg.Add(len(sourceContactIDs))
 
 	for _, sourceContactID := range sourceContactIDs {
-		go func() {
+		go func(sourceContactID int64) {
 			if err2 := mergeContactTransfers(c, wg, targetContactID, sourceContactID); err2 != nil {
 				log.Errorf(c, "failed to merge transfers for contact %v: %v", sourceContactID, err2)
 				if err == nil {
 					err = err2
 				}
 			}
-		}()
+		}(sourceContactID)
 	}
 	wg.Wait()
 

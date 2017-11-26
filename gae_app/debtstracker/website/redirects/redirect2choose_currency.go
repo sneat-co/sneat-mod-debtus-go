@@ -2,6 +2,7 @@ package redirects
 
 import (
 	"net/http"
+
 	"github.com/julienschmidt/httprouter"
 )
 

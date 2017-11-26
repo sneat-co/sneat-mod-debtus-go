@@ -1,12 +1,13 @@
 package models
 
 import (
+	"time"
+
 	"github.com/pkg/errors"
+	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"google.golang.org/appengine/datastore"
-	"time"
 )
 
 const (

@@ -5,16 +5,17 @@ package models
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pquerna/ffjson/ffjson"
 	"time"
+
+	"github.com/pkg/errors"
+	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
 	"golang.org/x/net/context"
-	"github.com/pkg/errors"
 )
 
 type LastTransfer struct {
-	ID int64     `datastore:"LastTransferID,noindex""`
-	At time.Time `datastore:"LastTransferAt,noindex""`
+	ID int64     `datastore:"LastTransferID,noindex"`
+	At time.Time `datastore:"LastTransferAt,noindex"`
 }
 
 type TransferWithInterestJson struct {
@@ -128,7 +129,6 @@ func (o UserContactJson) BalanceWithInterest(c context.Context, periodEnds time.
 	}
 	return
 }
-
 
 func NewUserContactJson(counterpartyID int64, status, name string, balanced Balanced) UserContactJson {
 	result := UserContactJson{

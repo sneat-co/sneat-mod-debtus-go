@@ -1,8 +1,9 @@
 package webhooks
 
 import (
-	"github.com/julienschmidt/httprouter"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 func InitWebhooks(router *httprouter.Router) {

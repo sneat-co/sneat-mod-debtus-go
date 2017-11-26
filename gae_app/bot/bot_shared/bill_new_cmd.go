@@ -1,14 +1,15 @@
 package bot_shared
 
 import (
+	"fmt"
+	"net/url"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/pkg/errors"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/decimal"
-	"net/url"
+	"github.com/strongo/log"
 )
 
 const (

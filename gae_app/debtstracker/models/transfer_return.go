@@ -1,18 +1,19 @@
 package models
 
 import (
-	"time"
-	"github.com/strongo/decimal"
-	"github.com/pquerna/ffjson/ffjson"
 	"fmt"
+	"time"
+
+	"github.com/pquerna/ffjson/ffjson"
+	"github.com/strongo/decimal"
 )
 
 //go:generate ffjson $GOFILE
 
 type TransferReturnJson struct {
 	TransferID int64
-	Time time.Time
-	Amount decimal.Decimal64p2 `json:",omitempty"` // TODO: For legacy records, consider removing later
+	Time       time.Time
+	Amount     decimal.Decimal64p2 `json:",omitempty"` // TODO: For legacy records, consider removing later
 }
 
 func (t *TransferEntity) GetReturns() (returns []TransferReturnJson) {
@@ -72,4 +73,3 @@ func (t *TransferEntity) SetReturns(returns []TransferReturnJson) {
 	copy(t.returns, returns)
 	return
 }
-

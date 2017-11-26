@@ -1,18 +1,19 @@
 package api
 
 import (
+	"fmt"
+	"net/http"
+	"strconv"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
 	"golang.org/x/net/context"
-	"net/http"
-	"strconv"
 )
 
 func handleGetBill(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
@@ -134,7 +135,7 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 					goto contactFound
 				}
 			}
-			panic(fmt.Sprintf("Contact not found by ID=%d", member.ContactID))
+			panic(fmt.Sprintf("Contact not found by ID=%v", member.ContactID))
 		contactFound:
 		}
 		if member.UserID != "" {
@@ -156,7 +157,6 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 	if err = billEntity.SetBillMembers(billMembers); err != nil {
 		return
 	}
-
 
 	var bill models.Bill
 	err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {

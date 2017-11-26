@@ -1,9 +1,10 @@
 package api
 
 import (
+	"net/http"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"golang.org/x/net/context"
-	"net/http"
 	//"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
 	//"google.golang.org/appengine/datastore"
 	//"github.com/pkg/errors"

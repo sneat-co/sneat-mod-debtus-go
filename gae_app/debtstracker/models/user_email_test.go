@@ -1,8 +1,9 @@
 package models
 
 import (
-	"github.com/strongo/app/user"
 	"testing"
+
+	"github.com/strongo/app/user"
 )
 
 func TestUserEmail(t *testing.T) {

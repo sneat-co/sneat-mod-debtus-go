@@ -1,11 +1,12 @@
 package models
 
 import (
-	"testing"
-	"github.com/strongo/decimal"
-	"time"
 	"encoding/json"
+	"testing"
+	"time"
+
 	"github.com/pquerna/ffjson/ffjson"
+	"github.com/strongo/decimal"
 )
 
 var simpleFor7daysAt7percent = TransferInterest{
@@ -29,12 +30,12 @@ func assertOutstandingValue(t *testing.T, transfer *TransferEntity, expected dec
 func TestTransferEntity_GetInterestValue(t *testing.T) {
 	now := time.Now()
 	transfer := &TransferEntity{
-		DtCreated:        now,
-		AmountInCents:    decimal.NewDecimal64p2(10, 0),
+		DtCreated:     now,
+		AmountInCents: decimal.NewDecimal64p2(10, 0),
 		TransferInterest: TransferInterest{
-			InterestType:    InterestPercentSimple,
-			InterestPeriod:  3,
-			InterestPercent: decimal.NewDecimal64p2(3, 0),
+			InterestType:          InterestPercentSimple,
+			InterestPeriod:        3,
+			InterestPercent:       decimal.NewDecimal64p2(3, 0),
 			InterestMinimumPeriod: 3,
 		},
 	}
@@ -109,7 +110,7 @@ func TestUserContactJson_BalanceWithInterest(t *testing.T) {
 	if len(balanceWithInterest) != 1 {
 		t.Fatalf("len(balanceWithInterest) != 1: %v", len(balanceWithInterest))
 	}
-	if expected := decimal.NewDecimal64p2(100 + 4, 0); balanceWithInterest["EUR"] != expected {
+	if expected := decimal.NewDecimal64p2(100+4, 0); balanceWithInterest["EUR"] != expected {
 		t.Errorf("Expected %v, got %v", expected, balanceWithInterest["EUR"])
 	}
 }
@@ -122,17 +123,17 @@ func Test_updateBalanceWithInterest(t *testing.T) {
 	outstandingWithInterest := []TransferWithInterestJson{
 		{
 			TransferInterest: TransferInterest{
-				InterestType: InterestPercentSimple,
-				InterestPercent: decimal.NewDecimal64p2FromFloat64(2.00),
-				InterestPeriod: 1,
+				InterestType:          InterestPercentSimple,
+				InterestPercent:       decimal.NewDecimal64p2FromFloat64(2.00),
+				InterestPeriod:        1,
 				InterestMinimumPeriod: 1,
 			},
-			Starts: now,
+			Starts:   now,
 			Currency: CURRENCY_EUR,
-			Amount: decimal.NewDecimal64p2FromFloat64(100.00),
-			Returns: []TransferReturnJson {
+			Amount:   decimal.NewDecimal64p2FromFloat64(100.00),
+			Returns: []TransferReturnJson{
 				{
-					Time: now.Add(time.Minute),
+					Time:   now.Add(time.Minute),
 					Amount: decimal.NewDecimal64p2FromFloat64(50.00),
 				},
 			},

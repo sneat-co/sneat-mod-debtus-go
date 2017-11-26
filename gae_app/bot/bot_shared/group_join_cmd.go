@@ -1,18 +1,19 @@
 package bot_shared
 
 import (
+	"fmt"
+	"net/url"
+	"strconv"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
-	"net/url"
-	"strconv"
 )
 
 const JOIN_GROUP_COMMAND = "join-group"
@@ -48,7 +49,7 @@ func joinGroupCommand(params BotParams) bots.Command {
 						changed = true
 					} else {
 						if tgUserID != member.TgUserID {
-							log.Errorf(c, "tgUserID:%d != member.TgUserID:%d", tgUserID, member.TgUserID)
+							log.Errorf(c, "tgUserID:%v != member.TgUserID:%v", tgUserID, member.TgUserID)
 						}
 					}
 					switch group.GetSplitMode() {

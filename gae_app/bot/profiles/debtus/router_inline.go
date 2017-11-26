@@ -1,16 +1,17 @@
 package debtus
 
 import (
+	"strings"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_inline"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_invite"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-framework/core"
-	"strings"
+	"github.com/strongo/log"
 )
 
 var InlineQueryCommand = bots.Command{
-	Code:       "inline-query",
+	Code: "inline-query",
 	//InputTypes: []bots.WebhookInputType{bots.WebhookInputInlineQuery},
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		c := whc.Context()

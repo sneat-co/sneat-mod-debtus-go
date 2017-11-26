@@ -1,14 +1,15 @@
 package sms
 
 import (
+	"strings"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
-	"github.com/strongo/log"
 	"github.com/strongo/gotwilio"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/urlfetch"
-	"strings"
 )
 
 func SendSms(c context.Context, isLive bool, toPhoneNumber, smsText string) (isTestSender bool, smsResponse *gotwilio.SmsResponse, twilioException *gotwilio.Exception, err error) {

@@ -1,14 +1,15 @@
 package pages
 
 import (
+	"fmt"
+	"net/http"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"fmt"
+	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/log"
 	"golang.org/x/net/html"
 	"google.golang.org/appengine"
-	"net/http"
-	"github.com/julienschmidt/httprouter"
 )
 
 func CounterpartyPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

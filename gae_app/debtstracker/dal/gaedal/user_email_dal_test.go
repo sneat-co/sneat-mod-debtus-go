@@ -1,10 +1,11 @@
 package gaedal
 
 import (
+	"testing"
+
 	"github.com/strongo/db/gaedb"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"testing"
 )
 
 func TestNewUserEmailKey(t *testing.T) {

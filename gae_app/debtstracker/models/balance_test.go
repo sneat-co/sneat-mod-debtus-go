@@ -1,10 +1,11 @@
 package models
 
 import (
-	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/decimal"
 	"strings"
 	"testing"
+
+	"github.com/pquerna/ffjson/ffjson"
+	"github.com/strongo/decimal"
 )
 
 func TestBalance_Add(t *testing.T) {

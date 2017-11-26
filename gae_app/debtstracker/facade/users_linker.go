@@ -1,9 +1,10 @@
 package facade
 
 import (
+	"fmt"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/pkg/errors"
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
@@ -296,7 +297,7 @@ func (linker usersLinker) updateInviterContact(
 		if inviterUser.AddOrUpdateContact(*inviterContact) {
 			linker.changes.FlagAsChanged(linker.changes.inviterUser)
 		}
-		inviterUserContactFound:
+	inviterUserContactFound:
 		// Queue task to update all existing transfers
 		if inviterContact.CountOfTransfers > 0 {
 			if err = dal.Transfer.DelayUpdateTransfersWithCounterparty(

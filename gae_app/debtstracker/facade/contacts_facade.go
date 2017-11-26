@@ -1,16 +1,17 @@
 package facade
 
 import (
+	"fmt"
+	"reflect"
+	"strconv"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/pkg/errors"
+	"github.com/sanity-io/litter"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
-	"reflect"
-	"strconv"
-	"github.com/sanity-io/litter"
 )
 
 func ChangeContactStatus(c context.Context, contactID int64, newStatus string) (contact models.Contact, err error) {
@@ -160,7 +161,7 @@ func createContactWithinTransaction(
 
 type createContactDbChanges struct {
 	db.Changes
-	user *models.AppUser
+	user                *models.AppUser
 	counterpartyContact *models.Contact
 }
 
@@ -176,7 +177,7 @@ func CreateContact(c context.Context, userID int64, contactDetails models.Contac
 				return
 			}
 			changes := &createContactDbChanges{
-				user: &user,
+				user:                &user,
 				counterpartyContact: new(models.Contact),
 			}
 			if contact, _, err = createContactWithinTransaction(tc, changes, 0, contactDetails); err != nil {

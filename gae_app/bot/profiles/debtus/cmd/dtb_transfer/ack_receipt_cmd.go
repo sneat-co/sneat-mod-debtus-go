@@ -1,16 +1,17 @@
 package dtb_transfer
 
 import (
+	"html"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
 	"github.com/strongo/measurement-protocol"
-	"html"
 )
 
 func AcknowledgeReceipt(whc bots.WebhookContext, receiptID int64, operation string) (m bots.MessageFromBot, err error) {

@@ -1,10 +1,11 @@
 package dtb_fbm
 
 import (
-	"github.com/strongo/log"
+	"net/url"
+
 	"github.com/strongo/bots-api-fbm"
 	"github.com/strongo/bots-framework/core"
-	"net/url"
+	"github.com/strongo/log"
 )
 
 var FbmGetStartedCommand = bots.Command{ // TODO: Move command to other package?

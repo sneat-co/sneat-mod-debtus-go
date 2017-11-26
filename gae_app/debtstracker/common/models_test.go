@@ -1,9 +1,10 @@
 package common
 
 import (
-	"github.com/strongo/app"
 	"regexp"
 	"testing"
+
+	"github.com/strongo/app"
 )
 
 func TestGetCounterpartyUrl(t *testing.T) {

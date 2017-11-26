@@ -2,8 +2,9 @@ package common
 
 import (
 	"fmt"
-	"github.com/strongo/bots-framework/core"
 	"net/url"
+
+	"github.com/strongo/bots-framework/core"
 )
 
 const (

@@ -1,22 +1,23 @@
 package dtb_transfer
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
-	"github.com/strongo/log"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"html"
 	"net/url"
 	"strconv"
 	"strings"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
+	"github.com/DebtsTracker/translations/emoji"
+	"github.com/DebtsTracker/translations/trans"
+	"github.com/pkg/errors"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/log"
 )
 
 var SendReceiptCallbackCommand = bots.NewCallbackCommand(SEND_RECEIPT_CALLBACK_PATH, CallbackSendReceipt)
@@ -140,7 +141,7 @@ func showLinkForReceiptInTelegram(whc bots.WebhookContext, transfer models.Trans
 	}
 	receiptUrl := GetUrlForReceiptInTelegram(whc.GetBotCode(), receiptID, whc.Locale().Code5)
 	m.Text = "Send this link to counterparty:\n\n" + fmt.Sprintf(`<a href="%v">%v</a>`, receiptUrl, receiptUrl) + "\n\nPlease be aware that the first person opening this link will be treated as counterparty for this debt."
-	m.Format  = bots.MessageFormatHTML
+	m.Format = bots.MessageFormatHTML
 	m.IsEdit = true
 	return
 }

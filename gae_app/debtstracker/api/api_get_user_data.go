@@ -1,14 +1,15 @@
 package api
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
-	"github.com/strongo/log"
-	"golang.org/x/net/context"
 	"io"
 	"net/http"
 	"strings"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/strongo/log"
+	"golang.org/x/net/context"
 )
 
 func panicUnknownStatus(status string) {

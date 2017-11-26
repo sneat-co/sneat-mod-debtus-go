@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+
 	"github.com/pkg/errors"
 	"google.golang.org/appengine/datastore"
 )

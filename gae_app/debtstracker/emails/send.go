@@ -1,10 +1,13 @@
 package emails
 
 import (
+	"bytes"
+	"net/http"
+	"strings"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"bytes"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/pkg/errors"
@@ -12,8 +15,6 @@ import (
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/urlfetch"
-	"net/http"
-	"strings"
 )
 
 func CreateEmailRecordAndQueueForSending(c context.Context, emailEntity *models.EmailEntity) (id int64, err error) {

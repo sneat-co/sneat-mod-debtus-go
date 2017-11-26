@@ -1,19 +1,20 @@
 package gaedal
 
 import (
-	"golang.org/x/net/context"
-	"github.com/strongo/decimal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/strongo/db"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"google.golang.org/appengine/delay"
-	"github.com/strongo/app/gae"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"github.com/strongo/log"
 	"fmt"
+	"time"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pkg/errors"
 	"github.com/sanity-io/litter"
-	"time"
+	"github.com/strongo/app/gae"
+	"github.com/strongo/db"
+	"github.com/strongo/decimal"
+	"github.com/strongo/log"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/delay"
 )
 
 func (_ TransferDalGae) DelayUpdateTransfersOnReturn(c context.Context, returnTransferID int64, transferReturnsUpdate []dal.TransferReturnUpdate) (err error) {
@@ -52,7 +53,6 @@ func updateTransfersOnReturn(c context.Context, returnTransferID int64, transfer
 	}
 	return
 }
-
 
 func DelayUpdateTransferOnReturn(c context.Context, returnTransferID, transferID int64, returnedAmount decimal.Decimal64p2) error {
 	return gae.CallDelayFunc(c, common.QUEUE_TRANSFERS, "update-transfer-on-return", delayUpdateTransferOnReturn, returnTransferID, transferID, returnedAmount)
@@ -227,8 +227,8 @@ func (_ TransferDalGae) UpdateTransferOnReturn(c context.Context, returnTransfer
 		for i, rt := range returnTransfers {
 			returns[i] = models.TransferReturnJson{
 				TransferID: rt.ID,
-				Time: rt.DtCreated, // TODO: Replace with DtActual?
-				Amount: rt.AmountInCents,
+				Time:       rt.DtCreated, // TODO: Replace with DtActual?
+				Amount:     rt.AmountInCents,
 			}
 			returnedVal += rt.AmountInCents
 		}
@@ -241,8 +241,8 @@ func (_ TransferDalGae) UpdateTransferOnReturn(c context.Context, returnTransfer
 	}
 	returns = append(returns, models.TransferReturnJson{
 		TransferID: returnTransfer.ID,
-		Time: returnTransfer.DtCreated, // TODO: Replace with DtActual?
-		Amount: returnedAmount,
+		Time:       returnTransfer.DtCreated, // TODO: Replace with DtActual?
+		Amount:     returnedAmount,
 	})
 	transfer.SetReturns(returns)
 

@@ -5,7 +5,7 @@ import "testing"
 func TestGroupEntity_ApplyBillBalanceDifference(t *testing.T) {
 	groupEntity := GroupEntity{}
 
-	{  // Try to apply empty difference
+	{ // Try to apply empty difference
 		if changed, err := groupEntity.ApplyBillBalanceDifference("EUR", BillBalanceDifference{}); err != nil {
 			t.Error(err)
 		} else if changed {
@@ -18,7 +18,7 @@ func TestGroupEntity_ApplyBillBalanceDifference(t *testing.T) {
 		//{MemberJson: MemberJson{ID: "m2", UserID: "2"}},
 	})
 
-	{  // Try to apply difference to empty balance
+	{ // Try to apply difference to empty balance
 		if _, err := groupEntity.ApplyBillBalanceDifference("EUR", BillBalanceDifference{"m1": 100}); err == nil {
 			t.Error("Shod return error")
 		}
@@ -31,9 +31,9 @@ func TestGroupEntity_ApplyBillBalanceDifference(t *testing.T) {
 
 	//t.Log(groupEntity.GetGroupMembers())
 
-	{  // Try to add another member
+	{ // Try to add another member
 		changed, err := groupEntity.ApplyBillBalanceDifference("EUR", BillBalanceDifference{
-			"m1":  -400,
+			"m1": -400,
 			"m2": 400,
 		})
 		if err != nil {
@@ -43,7 +43,7 @@ func TestGroupEntity_ApplyBillBalanceDifference(t *testing.T) {
 		}
 	}
 
-	{	// test splti first + paid then
+	{ // test splti first + paid then
 		groupEntity = GroupEntity{}
 	}
 }

@@ -1,18 +1,19 @@
 package dtb_transfer
 
 import (
+	"fmt"
+	"net/url"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_inline"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
-	"github.com/strongo/log"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"net/url"
+	"github.com/strongo/log"
 )
 
 func showReceiptAnnouncement(whc bots.WebhookContext, receiptID int64, creatorName string) (m bots.MessageFromBot, err error) {

@@ -1,12 +1,13 @@
 package bot_shared
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/log"
-	"github.com/strongo/bots-framework/core"
 	"strings"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/DebtsTracker/translations/trans"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
 )
 
 func startInBotAction(whc bots.WebhookContext, startParams []string, botParams BotParams) (m bots.MessageFromBot, err error) {
@@ -57,5 +58,3 @@ func onStartCallbackInBot(whc bots.WebhookContext, params BotParams) (m bots.Mes
 
 	return
 }
-
-

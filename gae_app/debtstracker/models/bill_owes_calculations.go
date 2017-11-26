@@ -1,8 +1,9 @@
 package models
 
 import (
-	"github.com/strongo/decimal"
 	"fmt"
+
+	"github.com/strongo/decimal"
 )
 
 func (entity *BillCommon) updateMemberOwes(members []BillMemberJson) (err error) {
@@ -25,7 +26,7 @@ func updateMemberOwesForEqualSplit(amountTotal decimal.Decimal64p2, creatorUserI
 	}
 	perMember := decimal.Decimal64p2(int64(amountTotal) / membersCount)
 
-	getRemainder := func() decimal.Decimal64p2 { return amountTotal - decimal.Decimal64p2(int64(perMember) * membersCount) }
+	getRemainder := func() decimal.Decimal64p2 { return amountTotal - decimal.Decimal64p2(int64(perMember)*membersCount) }
 
 	remainder := getRemainder()
 
@@ -80,7 +81,9 @@ func updateMemberOwesForSplitByShares(amountTotal decimal.Decimal64p2, creatorUs
 
 	perShareBy100 := float64(amountTotal) / float64(totalShares) * 100
 
-	getRemainder := func() decimal.Decimal64p2 { return amountTotal - decimal.Decimal64p2(int64(perShareBy100) * int64(totalShares) / 100) }
+	getRemainder := func() decimal.Decimal64p2 {
+		return amountTotal - decimal.Decimal64p2(int64(perShareBy100)*int64(totalShares)/100)
+	}
 
 	remainder := getRemainder()
 
@@ -111,7 +114,6 @@ func updateMemberOwesForSplitByShares(amountTotal decimal.Decimal64p2, creatorUs
 	fixTotal(amountTotal, members)
 }
 
-
 func fixTotal(amountTotal decimal.Decimal64p2, members []BillMemberJson) {
 	var total decimal.Decimal64p2
 	for _, member := range members {
@@ -122,7 +124,7 @@ func fixTotal(amountTotal decimal.Decimal64p2, members []BillMemberJson) {
 	case 1:
 		// Let's ad remainder to a members with smallest amount
 		var (
-			idx = -1
+			idx                     = -1
 			min decimal.Decimal64p2 = 1<<63 - 1
 		)
 		for i, m := range members {
@@ -144,6 +146,6 @@ func fixTotal(amountTotal decimal.Decimal64p2, members []BillMemberJson) {
 		}
 		members[idx].Owes += 1
 	default:
-		panic(fmt.Sprintf("Remainder is too big: %v", amountTotal - total))
+		panic(fmt.Sprintf("Remainder is too big: %v", amountTotal-total))
 	}
 }

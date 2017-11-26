@@ -1,18 +1,19 @@
 package bot_shared
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"net/url"
-	"github.com/strongo/log"
 	"bytes"
-	"github.com/strongo/bots-api-telegram"
 	"fmt"
+	"net/url"
 	"strings"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/DebtsTracker/translations/trans"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
 )
 
 const (
@@ -99,12 +100,12 @@ userMemberFound:
 		//case 1:
 		//	return settleGroupCounterpartyChoosenAction(whc, group, userMember.ID)
 	default:
-		membersToKeyboard := func() (bots.Keyboard) {
+		membersToKeyboard := func() bots.Keyboard {
 			keyboard := make([][]tgbotapi.InlineKeyboardButton, len(groupMembers))
 			for i, m := range groupMembers {
 				keyboard[i] = []tgbotapi.InlineKeyboardButton{
 					{
-						Text: m.Name,
+						Text:         m.Name,
 						CallbackData: fmt.Sprintf("%v?group=%v&member=%v", SETTLE_GROUP_COUNTERPARTY_CHOOSEN, group.ID, m.ID),
 					},
 				}
@@ -179,13 +180,13 @@ func settleGroupCounterpartyChoosenAction(whc bots.WebhookContext, group models.
 	m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{
 			{
-				Text: "I have returned this debt",
+				Text:         "I have returned this debt",
 				CallbackData: fmt.Sprintf("%v?debt=returned&group=%v&member=%v", SETTLE_GROUP_COUNTERPARTY_CONFIRMED, group.ID, memberID),
 			},
 		},
 		[]tgbotapi.InlineKeyboardButton{
 			{
-				Text: "I will returned this debt",
+				Text:         "I will returned this debt",
 				CallbackData: fmt.Sprintf("%v?debt=will-return&group=%v&member=%v", SETTLE_GROUP_COUNTERPARTY_CONFIRMED, group.ID, memberID),
 			},
 		},
@@ -246,7 +247,7 @@ func settleGroupCounterpartyConfirmedAction(whc bots.WebhookContext, group model
 	return
 }
 
-func filterGroupMembersByBalance(members []models.GroupMemberJson, positive bool, currencies ... models.Currency) (result []models.GroupMemberJson) {
+func filterGroupMembersByBalance(members []models.GroupMemberJson, positive bool, currencies ...models.Currency) (result []models.GroupMemberJson) {
 	result = make([]models.GroupMemberJson, 0, len(members))
 	for _, m := range members {
 		for c, v := range m.Balance {
@@ -262,4 +263,3 @@ func filterGroupMembersByBalance(members []models.GroupMemberJson, positive bool
 	}
 	return
 }
-

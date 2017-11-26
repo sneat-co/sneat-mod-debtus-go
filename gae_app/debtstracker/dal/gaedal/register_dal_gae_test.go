@@ -1,8 +1,9 @@
 package gaedal
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"testing"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 )
 
 func TestRegisterDal(t *testing.T) {

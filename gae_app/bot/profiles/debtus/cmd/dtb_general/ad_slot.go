@@ -1,11 +1,12 @@
 package dtb_general
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"fmt"
+	"strings"
+
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-framework/core"
-	"strings"
 )
 
 func AdSlot(whc bots.WebhookContext, place string) string {

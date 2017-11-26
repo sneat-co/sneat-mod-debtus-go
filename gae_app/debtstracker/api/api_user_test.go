@@ -1,8 +1,9 @@
 package api
 
 import (
-	"golang.org/x/net/context"
 	"testing"
+
+	"golang.org/x/net/context"
 )
 
 func TestApiUserInfo(t *testing.T) {

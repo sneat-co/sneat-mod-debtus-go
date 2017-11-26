@@ -2,6 +2,7 @@ package dtb_inline
 
 import (
 	"fmt"
+
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"
 )

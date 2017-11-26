@@ -1,19 +1,20 @@
 package reminders
 
 import (
+	"fmt"
+	"net/http"
+	"strconv"
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pkg/errors"
-	"github.com/strongo/nds"
+	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/nds"
 	"golang.org/x/net/context"
-	"net/http"
-	"strconv"
-	"time"
-	"fmt"
 )
 
 func SendReminderHandler(c context.Context, w http.ResponseWriter, r *http.Request) {

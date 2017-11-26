@@ -1,20 +1,21 @@
 package api
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"strconv"
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"encoding/json"
-	"fmt"
 	"github.com/strongo/db"
-	"github.com/strongo/log"
 	"github.com/strongo/decimal"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 func handleGetTransfer(c context.Context, w http.ResponseWriter, r *http.Request) {

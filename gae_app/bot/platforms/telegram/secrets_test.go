@@ -1,9 +1,10 @@
 package telegram
 
 import (
+	"testing"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 	"github.com/strongo/app"
-	"testing"
 )
 
 func TestGetBotSettingsByLang(t *testing.T) {

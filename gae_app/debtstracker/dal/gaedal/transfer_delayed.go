@@ -1,19 +1,20 @@
 package gaedal
 
 import (
+	"fmt"
+	"sync"
+	"time"
+
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"fmt"
 	"github.com/pkg/errors"
-	"github.com/strongo/db"
 	"github.com/strongo/app/gae"
+	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/delay"
-	"sync"
-	"time"
 )
 
 func (_ TransferDalGae) DelayUpdateTransfersWithCounterparty(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) error {
@@ -228,6 +229,7 @@ var delayedUpdateTransfersWithCreatorName = delay.Func(UPDATE_TRANSFERS_WITH_CRE
 
 	t := query.Run(c)
 	var wg sync.WaitGroup
+	defer wg.Wait()
 	for {
 		var transferEntity models.TransferEntity
 		key, err := t.Next(&transferEntity)
@@ -240,6 +242,7 @@ var delayedUpdateTransfersWithCreatorName = delay.Func(UPDATE_TRANSFERS_WITH_CRE
 		}
 		wg.Add(1)
 		go func(transferID int64) {
+			defer wg.Done()
 			err := dal.DB.RunInTransaction(c, func(c context.Context) error {
 				transfer, err := dal.Transfer.GetTransferByID(c, transferID)
 				if err != nil {
@@ -270,10 +273,7 @@ var delayedUpdateTransfersWithCreatorName = delay.Func(UPDATE_TRANSFERS_WITH_CRE
 			if err != nil {
 				log.Errorf(c, err.Error())
 			}
-			wg.Done()
 			return
 		}(key.IntID())
 	}
-	wg.Wait()
-	return nil
 })
