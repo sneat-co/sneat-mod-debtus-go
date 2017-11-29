@@ -161,7 +161,11 @@ func createTransferAskNoteOrCommentCommand(code string, nextCommand bots.Command
 				"\n ",
 			)
 
-			m.Keyboard = tgbotapi.NewReplyKeyboard([]tgbotapi.KeyboardButton{{Text: whc.Translate(trans.COMMAND_TEXT_NO_COMMENT_FOR_TRANSFER)}})
+			replyKeyboard := tgbotapi.NewReplyKeyboard([]tgbotapi.KeyboardButton{
+				{Text: whc.Translate(trans.COMMAND_TEXT_NO_COMMENT_FOR_TRANSFER)},
+			})
+			replyKeyboard.OneTimeKeyboard = true
+			m.Keyboard = replyKeyboard
 			m.Format = bots.MessageFormatHTML
 			return
 		},

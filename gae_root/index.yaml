@@ -27,6 +27,12 @@ indexes:
   - name: LastTransferAt
     direction: desc
 
+# For contacts linking data integrity check & fixing. (probably can be deleted and zig-zag used)
+#- kind: Counterparty
+#  properties:
+#  - name: UserID
+#  - name: CounterpartyUserID
+
 ## For cron to schedule reminders
 - kind: Reminder
   properties:

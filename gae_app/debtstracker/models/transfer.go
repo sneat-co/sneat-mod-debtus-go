@@ -557,9 +557,30 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 		return
 	}
 
+	if t.AmountInCentsReturned < 0 {
+		err = fmt.Errorf("*TransferEntity.AmountInCentsReturned:%v < 0", t.AmountInCentsReturned)
+		return
+	}
+
 	if err = t.validateTransferInterestAndReturns(); err != nil {
 		return
 	}
+
+	if t.IsOutstanding {
+		switch t.HasInterest() {
+		case true:
+			// Can we simply check for zero outstanding value?
+			// What if there is complex interest rule that allocate interest after grace period?
+			if t.GetOutstandingValue(time.Now()) == 0 {
+				t.IsOutstanding = false
+			}
+		case false:
+			if t.AmountInCents == t.AmountInCentsReturned {
+				t.IsOutstanding = false
+			}
+		}
+	}
+
 	//t.onSaveMigrateUserProps()
 
 	//switch t.Direction() { // TODO: Delete later!
@@ -574,11 +595,6 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 	//	err = errors.New("Unknown direction: " + t.DirectionObsoleteProp)
 	//	return
 	//}
-
-	if t.AmountInCentsReturned < 0 {
-		err = fmt.Errorf("*TransferEntity.AmountInCentsReturned:%v < 0", t.AmountInCentsReturned)
-		return
-	}
 
 	//if t.AmountInCentsOutstanding < 0 {
 	//	err = fmt.Errorf("*TransferEntity.AmountInCentsOutstanding:%v < 0", t.AmountInCentsOutstanding)

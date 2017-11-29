@@ -50,6 +50,7 @@ var textAndContactCommands = []bots.Command{ // TODO: Check for Action || Callba
 	dtb_settings.SettingsCommand,
 	dtb_settings.FixBalanceCommand,
 	dtb_settings.ContactsListCommand,
+	dtb_settings.AboutDrawCommand,
 	//dtb_settings.AskCurrencySettingsCommand,
 	//
 	dtb_retention.DeleteUserCommand,
@@ -71,6 +72,8 @@ var callbackCommands = []bots.Command{
 	dtb_settings.SetLocaleCallbackCommand,
 	dtb_settings.BackToSettingsCallbackCommand,
 	dtb_settings.ContactsListCommand,
+	dtb_settings.AboutDrawCommand,
+	dtb_settings.JoinDrawCommand,
 	//
 	dtb_fbm.FbmGetStartedCommand, // TODO: Move command to other package?
 	dtb_fbm.FbmMainMenuCommand,

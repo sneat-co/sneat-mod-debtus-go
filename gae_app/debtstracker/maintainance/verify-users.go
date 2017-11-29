@@ -16,6 +16,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
+	"time"
 )
 
 type verifyUsers struct {
@@ -121,6 +122,7 @@ func (m *verifyUsers) createContact(c context.Context, buf *bytes.Buffer, counte
 			if db.IsNotFound(err) {
 				contact = models.NewContact(userContact.ID, &models.ContactEntity{
 					UserID: user.ID,
+					DtCreated: time.Now(),
 					Status: models.STATUS_ACTIVE,
 					ContactDetails: models.ContactDetails{
 						Nickname:       userContact.Name,

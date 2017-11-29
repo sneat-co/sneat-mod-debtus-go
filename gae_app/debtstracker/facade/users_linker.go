@@ -23,6 +23,7 @@ func newUsersLinker(changes *usersLinkingDbChanges) usersLinker {
 
 func (linker usersLinker) linkUsersWithinTransaction(
 	tc context.Context, // 'tc' is transactional context, 'c' is not
+	linkedBy string,
 ) (
 	err error,
 ) {
@@ -69,7 +70,7 @@ func (linker usersLinker) linkUsersWithinTransaction(
 			return
 		}
 
-		if _, err = linker.updateInviterContact(tc, *inviterUser, *invitedUser, inviterContact, invitedContact); err != nil {
+		if _, err = linker.updateInviterContact(tc, *inviterUser, *invitedUser, inviterContact, invitedContact, linkedBy); err != nil {
 			return
 		}
 	}
@@ -194,7 +195,10 @@ func (linker usersLinker) getOrCreateInvitedContactByInviterUserAndInviterContac
 	return
 }
 
-func (linker usersLinker) updateInvitedUser(c context.Context, invitedUser models.AppUser, inviterUserID int64, inviterContact models.Contact) (err error) {
+func (linker usersLinker) updateInvitedUser(c context.Context,
+	invitedUser models.AppUser,
+	inviterUserID int64, inviterContact models.Contact,
+) (err error) {
 	log.Debugf(c, "usersLinker.updateInvitedUser()")
 	var invitedUserChanged bool
 
@@ -220,6 +224,7 @@ func (linker usersLinker) updateInviterContact(
 	tc context.Context,
 	inviterUser, invitedUser models.AppUser,
 	inviterContact, invitedContact *models.Contact,
+	linkedBy string,
 ) (
 	isJustConnected bool, err error,
 ) {
@@ -275,6 +280,7 @@ func (linker usersLinker) updateInviterContact(
 		inviterContactChanged = true
 		inviterContact.CounterpartyUserID = invitedUser.ID
 		inviterContact.CounterpartyCounterpartyID = invitedContact.ID
+		inviterContact.LinkedBy = linkedBy
 		inviterUserContacts := inviterUser.Contacts()
 		for i, inviterUserContact := range inviterUserContacts {
 			if inviterUserContact.ID == inviterContact.ID {
@@ -298,7 +304,7 @@ func (linker usersLinker) updateInviterContact(
 			linker.changes.FlagAsChanged(linker.changes.inviterUser)
 		}
 	inviterUserContactFound:
-		// Queue task to update all existing transfers
+	// Queue task to update all existing transfers
 		if inviterContact.CountOfTransfers > 0 {
 			if err = dal.Transfer.DelayUpdateTransfersWithCounterparty(
 				tc,

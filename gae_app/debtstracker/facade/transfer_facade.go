@@ -877,9 +877,9 @@ func (_ transferFacade) updateUserAndCounterpartyWithTransferInfo(
 									Time:       transfer.DtCreated,
 								})
 								contactTransfersInfo.OutstandingWithInterest[i] = outstanding
-							} else {
-								err = errors.WithMessage(ErrNotImplemented, "Return to multiple debts if at least one of them have interest is not implemented yet, please return debts with interest one by one.")
-								return
+							//} else {
+							//	err = errors.WithMessage(ErrNotImplemented, "Return to multiple debts if at least one of them have interest is not implemented yet, please return debts with interest one by one.")
+							//	return
 							}
 							goto addedToReturns
 						}

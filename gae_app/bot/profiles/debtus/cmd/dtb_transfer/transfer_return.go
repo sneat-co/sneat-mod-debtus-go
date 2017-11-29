@@ -87,7 +87,7 @@ var AskReturnCounterpartyCommand = CreateAskTransferCounterpartyCommand(
 		c := whc.Context()
 
 		log.Debugf(c, "StartReturnWizardCommand.onCounterpartySelectedAction(counterparty.ID=%v)", counterparty.ID)
-		balance := counterparty.BalanceWithInterest(time.Now())
+		balance := counterparty.BalanceWithInterest(c, time.Now())
 		//TODO: Display MESSAGE_TEXT_COUNTERPARTY_OWES_YOU_SINGLE_DEBT or MESSAGE_TEXT_YOU_OWE_TO_COUNTERPARTY_SINGLE_DEBT
 		switch len(balance) {
 		case 1:
@@ -163,6 +163,7 @@ func processReturnCommand(whc bots.WebhookContext, returnValue decimal.Decimal64
 	if returnValue < 0 {
 		panic(fmt.Sprintf("returnValue < 0: %v", returnValue))
 	}
+	c := whc.Context()
 	chatEntity := whc.ChatEntity()
 	var (
 		counterpartyID int64
@@ -175,7 +176,7 @@ func processReturnCommand(whc bots.WebhookContext, returnValue decimal.Decimal64
 	if err != nil {
 		return m, err
 	}
-	counterpartyBalanceWithInterest := counterparty.BalanceWithInterest(time.Now())
+	counterpartyBalanceWithInterest := counterparty.BalanceWithInterest(c, time.Now())
 	awaitingUrl, err := url.Parse(chatEntity.GetAwaitingReplyTo())
 	if err != nil {
 		return m, err
@@ -251,6 +252,7 @@ var AskToChooseDebtToReturnCommand = bots.Command{
 		AskIfReturnedInFullCommand,
 	},
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+		c := whc.Context()
 		counterpartyID, _, _ := getReturnWizardParams(whc)
 		var (
 			theCounterparty models.Contact
@@ -277,7 +279,7 @@ var AskToChooseDebtToReturnCommand = bots.Command{
 			for _, counterpartyItem := range counterparties {
 				counterpartyItemTitle := counterpartyItem.FullName()
 				if counterpartyItemTitle == counterpartyTitle {
-					balance = counterpartyItem.BalanceWithInterest(now)
+					balance = counterpartyItem.BalanceWithInterest(c, now)
 					theCounterparty = counterpartyItem
 					counterpartyFound = true
 					chatEntity.AddWizardParam(WIZARD_PARAM_COUNTERPARTY, strconv.FormatInt(counterpartyItem.ID, 10))
@@ -291,7 +293,7 @@ var AskToChooseDebtToReturnCommand = bots.Command{
 		} else {
 			var counterparty models.Contact
 			counterparty, err = getCounterparty(whc, counterpartyID)
-			balance = counterparty.BalanceWithInterest(time.Now())
+			balance = counterparty.BalanceWithInterest(c, time.Now())
 			theCounterparty = counterparty
 		}
 

@@ -14,6 +14,7 @@ import (
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
+	"golang.org/x/net/context"
 )
 
 const AppUserKind = "User"
@@ -594,6 +595,7 @@ func (u *AppUserEntity) Load(ps []datastore.Property) (err error) {
 			if v, ok := p.Value.(string); ok && v != "" {
 				u.AddAccount(user.Account{
 					Provider: "google",
+					App: "debtstracker",
 					ID:       v,
 				})
 			}
@@ -738,6 +740,10 @@ func (u *AppUserEntity) TotalBalanceFromContacts() (balance Balance) {
 	return
 }
 
+var ErrDuplicateContactName = errors.New("user has at least 2 contacts with same name")
+var ErrDuplicateTgUserID = errors.New("user has at least 2 contacts with same TgUserID")
+
+
 func (u *AppUserEntity) Save() (properties []datastore.Property, err error) {
 	if u.GroupsJsonActive != "" && u.GroupsCountActive == 0 {
 		return nil, errors.New(`u.GroupsJsonActive != "" && u.GroupsCountActive == 0`)
@@ -767,13 +773,15 @@ func (u *AppUserEntity) Save() (properties []datastore.Property, err error) {
 		}
 		{
 			if duplicateOf, isDuplicate := contactsByName[contact.Name]; isDuplicate {
-				panic(fmt.Sprintf("User has at least 2 contacts with same name: `%d` and `%d`.", contacts[duplicateOf].ID, contact.ID))
+				err = errors.WithMessage(ErrDuplicateContactName, fmt.Sprintf(": id1=%d, id2=%d => %v", contacts[duplicateOf].ID, contact.ID, contact.Name))
+				return
 			}
 			contactsByName[contact.Name] = i
 		}
 		if contact.TgUserID != 0 {
 			if duplicateOf, isDuplicate := contactsByTgUserID[contact.TgUserID]; isDuplicate {
-				panic(fmt.Sprintf("User has at least 2 contacts with same TgUserID=%d: %d and %d", contact.TgUserID, contacts[duplicateOf].ID, contact.ID))
+				err = errors.WithMessage(ErrDuplicateTgUserID, fmt.Sprintf("%d for contacts %d & %d", contact.TgUserID, contacts[duplicateOf].ID, contact.ID))
+				return
 			}
 			contactsByTgUserID[contact.TgUserID] = i
 		}
@@ -794,7 +802,7 @@ func (u *AppUserEntity) Save() (properties []datastore.Property, err error) {
 	return properties, err
 }
 
-func (u *AppUserEntity) BalanceWithInterest(periodEnds time.Time) (balance Balance) {
+func (u *AppUserEntity) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance Balance) {
 	if u.TransfersWithInterestCount == 0 {
 		balance = u.Balance()
 	} else if u.TransfersWithInterestCount > 0 {
@@ -804,7 +812,7 @@ func (u *AppUserEntity) BalanceWithInterest(periodEnds time.Time) (balance Balan
 		//userBalance = u.Balance()
 		balance = make(Balance, u.BalanceCount)
 		for _, contact := range u.Contacts() {
-			for currency, value := range contact.BalanceWithInterest(nil, periodEnds) {
+			for currency, value := range contact.BalanceWithInterest(c, periodEnds) {
 				balance[currency] += value
 			}
 		}

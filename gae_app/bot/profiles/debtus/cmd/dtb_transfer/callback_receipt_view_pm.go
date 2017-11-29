@@ -14,6 +14,7 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/log"
+	"strings"
 )
 
 //func CancelReceiptAction(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
@@ -140,10 +141,12 @@ func ShowReceipt(whc bots.WebhookContext, receiptID int64) (m bots.MessageFromBo
 	}
 
 	if _, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
-		return m, err
-	}
-
-	{
+		if strings.Contains(err.Error(), "message is not modified") { // TODO: Can fail on different receipts for same amount
+			log.Warningf(c, fmt.Sprintf("Failed to send receipt to counterparty: %v", err))
+		} else {
+			return m, err
+		}
+	} else {
 		if m, err = whc.NewEditMessage(
 			whc.Translate(trans.MESSAGE_TEXT_RECEIPT_SENT_THROW_TELEGRAM)+"\n"+
 				whc.Translate(trans.MESSAGE_TEXT_RECEIPT_VIEWED_BY_COUNTERPARTY),

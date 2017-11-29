@@ -73,14 +73,24 @@ func handleTgHelperCurrencySelected(c context.Context, w http.ResponseWriter, r 
 
 	userTask.Add(1)
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Errorf(c, "panic in handleTgHelperCurrencySelected() => dal.User.SetLastCurrency(): %v", r)
+			}
+		}()
 		if err := dal.User.SetLastCurrency(c, authInfo.UserID, models.Currency(selectedCurrency)); err != nil {
-			err = errors.WithMessage(err, "Failed to save user last currency")
+			log.Errorf(c, "Failed to save user last currency: %v", err)
 		}
 		userTask.Done()
 		errs <- nil
 	}()
 
 	go func(currency string) {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Errorf(c, "panic in handleTgHelperCurrencySelected() => dal.TgChat.DoSomething() => sendToTelegram(): %v", r)
+			}
+		}()
 		errs <- dal.TgChat.DoSomething(c, &userTask, currency, tgChatID, authInfo, user,
 			func(tgChat telegram_bot.TelegramChatEntityBase) error {
 				// TODO: This is some serious architecture sheet. Too sleepy to make it right, just make it working.

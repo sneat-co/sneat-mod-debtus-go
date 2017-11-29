@@ -9,12 +9,14 @@ import (
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
+	"golang.org/x/net/context"
 )
 
 func NewContactEntity(userID int64, details ContactDetails) *ContactEntity {
 	return &ContactEntity{
 		Status:         STATUS_ACTIVE,
 		UserID:         userID,
+		DtCreated:      time.Now(), // TODO: Should we pass from outside as parameter?
 		ContactDetails: details,
 	}
 }
@@ -62,11 +64,13 @@ func NewContact(id int64, entity *ContactEntity) Contact {
 }
 
 type ContactEntity struct {
+	DtCreated                  time.Time `datastore:",omitempty"`
 	UserID                     int64 // owner can not be in parent key as we have problem with filtering transfers then
 	CounterpartyUserID         int64 // The counterparty user ID if registered
 	CounterpartyCounterpartyID int64
+	LinkedBy                   string    `datastore:",noindex"`
 	//
-	Status string
+	Status        string
 	ContactDetails
 	Balanced
 	TransfersJson string `datastore:",noindex"`
@@ -193,11 +197,11 @@ func (entity *ContactEntity) Save() (properties []datastore.Property, err error)
 	return
 }
 
-func (entity *ContactEntity) BalanceWithInterest(periodEnds time.Time) (balance Balance) {
+func (entity *ContactEntity) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance Balance) {
 	balance = entity.Balance()
 	if transferInfo := entity.GetTransfersInfo(); transferInfo != nil {
 		//log.Debugf(c, "transferInfo: %+v", transferInfo)
-		updateBalanceWithInterest(balance, transferInfo.OutstandingWithInterest, periodEnds)
+		updateBalanceWithInterest(c, balance, transferInfo.OutstandingWithInterest, periodEnds)
 		//log.Debugf(c, "BalanceWithInterest(): %+v", balance)
 	}
 	return

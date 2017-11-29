@@ -306,7 +306,7 @@ func CreateAskTransferCounterpartyCommand(
 					var isTooManyRows bool
 					now := time.Now()
 					for _, counterparty := range counterparties {
-						balance := counterparty.BalanceWithInterest(now)
+						balance := counterparty.BalanceWithInterest(c, now)
 						if (len(buttons) + len(balance)) > 4 {
 							isTooManyRows = true
 							log.Warningf(c, "Condider performance optimization - dublicate queries to get counterparties")
@@ -413,7 +413,9 @@ func listCounterpartiesAsButtons(whc bots.WebhookContext, user models.AppUser, i
 		}
 	}
 	if len(buttons) > 0 {
-		m.Keyboard = tgbotapi.NewReplyKeyboardUsingStrings(buttons)
+		keyboard := tgbotapi.NewReplyKeyboardUsingStrings(buttons)
+		keyboard.OneTimeKeyboard = true
+		m.Keyboard = keyboard
 	}
 	return m, nil
 }

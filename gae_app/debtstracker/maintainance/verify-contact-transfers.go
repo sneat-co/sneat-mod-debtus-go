@@ -12,10 +12,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sanity-io/litter"
 	"github.com/strongo/db"
-	"github.com/strongo/db/gaedb"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/log"
+	"github.com/strongo/log"
 )
 
 type verifyContactTransfers struct {
@@ -27,7 +26,7 @@ func (m *verifyContactTransfers) Next(c context.Context, counters mapper.Counter
 }
 
 func (m *verifyContactTransfers) processContact(c context.Context, counters *asyncCounters, contact models.Contact) (err error) {
-	log.Debugf(c, "processContact(contact.ID=%v)", contact.ID)
+	//log.Debugf(c, "processContact(contact.ID=%v)", contact.ID)
 	buf := new(bytes.Buffer)
 	now := time.Now()
 	hasError := false
@@ -242,14 +241,12 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 			for id, transfer := range transfersToSave {
 				entitiesToSave = append(entitiesToSave, &models.Transfer{IntegerID: db.NewIntID(id), TransferEntity: transfer})
 			}
-			gaedb.LoggingEnabled = true
-			if err = dal.DB.UpdateMulti(c, entitiesToSave); err != nil {
-				gaedb.LoggingEnabled = false
+			//gaedb.LoggingEnabled = true
+			if err = dal.DB.UpdateMulti(log.NewContextWithLoggingEnabled(c), entitiesToSave); err != nil {
 				fmt.Fprintf(buf, "ERROR: failed to save transfers: %v\n", err)
 				hasError = true
 				return
 			}
-			gaedb.LoggingEnabled = false
 			fmt.Fprintf(buf, "SAVED %v transfers!\n", len(entitiesToSave))
 		}
 	}
@@ -466,7 +463,7 @@ func (m *verifyContactTransfers) fixTransfers(c context.Context, now time.Time, 
 	transfersByCurrency map[models.Currency][]models.Transfer,
 	transfersToSave map[int64]*models.TransferEntity,
 ) {
-	fmt.Fprintf(buf, "fixTransfers()\n")
+	fmt.Fprintln(buf, "fixTransfers()")
 
 	transfersByCurrency = make(map[models.Currency][]models.Transfer)
 

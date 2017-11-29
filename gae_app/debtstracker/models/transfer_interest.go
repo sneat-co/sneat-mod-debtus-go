@@ -10,6 +10,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sanity-io/litter"
+	"github.com/strongo/log"
+	"golang.org/x/net/context"
 )
 
 type InterestRatePeriod int
@@ -209,7 +211,7 @@ func (t *TransferEntity) AgeInDays() int {
 	return ageInDays(time.Now(), t.DtCreated)
 }
 
-func updateBalanceWithInterest(b Balance, outstandingWithInterest []TransferWithInterestJson, periodEnds time.Time) {
+func updateBalanceWithInterest(c context.Context, b Balance, outstandingWithInterest []TransferWithInterestJson, periodEnds time.Time) {
 	for _, outstandingTransferWithInterest := range outstandingWithInterest {
 		balanceValue, ok := b[outstandingTransferWithInterest.Currency]
 		if ok {
@@ -219,7 +221,12 @@ func updateBalanceWithInterest(b Balance, outstandingWithInterest []TransferWith
 			}
 			b[outstandingTransferWithInterest.Currency] = balanceValue + interestValue
 		} else {
-			panic(fmt.Errorf("outstanding transfer %v with currency %v is not presented in balance", outstandingTransferWithInterest.TransferID, outstandingTransferWithInterest.Currency))
+			m := fmt.Sprintf("outstanding transfer %v with currency %v is not presented in balance", outstandingTransferWithInterest.TransferID, outstandingTransferWithInterest.Currency)
+			if c == nil {
+				panic(m)
+			} else {
+				log.Criticalf(c, m)
+			}
 		}
 	}
 }

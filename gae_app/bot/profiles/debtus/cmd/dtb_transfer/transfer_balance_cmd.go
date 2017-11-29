@@ -81,7 +81,7 @@ func balanceAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		}
 
 		if len(contacts) > 1 && thereAreFewDebtsForSingleCurrency() {
-			userBalanceWithInterest := user.BalanceWithInterest(time.Now())
+			userBalanceWithInterest := user.BalanceWithInterest(c, time.Now())
 			buffer.WriteString("\n" + strings.Repeat("─", 16) + "\n" + balanceMessageBuilder.ByCurrency(true, userBalanceWithInterest))
 		}
 

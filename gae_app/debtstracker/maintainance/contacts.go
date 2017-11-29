@@ -50,19 +50,26 @@ func (m *contactsAsyncJob) Query(r *http.Request) (query *mapper.Query, err erro
 	return
 }
 
-func (m *contactsAsyncJob) Contact(key *datastore.Key) models.Contact {
-	entity := *m.entity
-	return models.NewContact(key.IntID(), &entity)
+func (m *contactsAsyncJob) Contact(key *datastore.Key) (contact models.Contact) {
+	contact = models.NewContact(key.IntID(), nil)
+	if m.entity != nil {
+		entity := *m.entity
+		contact.ContactEntity = &entity
+	}
+	return
 }
 
 type ContactWorker func(c context.Context, counters *asyncCounters, contact models.Contact) error
 
 func (m *contactsAsyncJob) startContactWorker(c context.Context, counters mapper.Counters, key *datastore.Key, contactWorker ContactWorker) error {
+	//log.Debugf(c, "*contactsAsyncJob.startContactWorker()")
 	contact := m.Contact(key)
-	worker := func() Worker {
+	createContactWorker := func() Worker {
+		//log.Debugf(c, "createContactWorker()")
 		return func(counters *asyncCounters) error {
+			//log.Debugf(c, "asyncContactWorker() => contact.ID: %v", contact.ID)
 			return contactWorker(c, counters, contact)
 		}
 	}
-	return m.startWorker(c, counters, worker)
+	return m.startWorker(c, counters, createContactWorker)
 }

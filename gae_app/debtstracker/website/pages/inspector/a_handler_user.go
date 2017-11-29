@@ -31,7 +31,7 @@ type transfersInfo struct {
 func newContactWithBalances(now time.Time, contact models.Contact) contactWithBalances {
 	return contactWithBalances{
 		Contact:  contact,
-		balances: newBalances("contact", contact.Balance(), contact.BalanceWithInterest(now)),
+		balances: newBalances("contact", contact.Balance(), contact.BalanceWithInterest(nil, now)),
 	}
 }
 
@@ -85,7 +85,7 @@ func userPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	now := time.Now()
 
-	userBalances := newBalances("user", user.Balance(), user.BalanceWithInterest(now))
+	userBalances := newBalances("user", user.Balance(), user.BalanceWithInterest(c, now))
 
 	wg.Add(1)
 	go func() { // TODO: Move to DAL?
@@ -189,7 +189,7 @@ func validateContacts(c context.Context, now time.Time, user models.AppUser, use
 
 	updateBalance := func(contact models.Contact) (ci contactWithBalances) {
 		contactBalanceWithoutInterest := contact.Balance()
-		contactBalanceWithInterest := contact.BalanceWithInterest(now)
+		contactBalanceWithInterest := contact.BalanceWithInterest(nil, now)
 		ci = newContactWithBalances(now, contact)
 		for currency, value := range contactBalanceWithoutInterest {
 			contactsTotalWithoutInterest[currency] += value
@@ -205,7 +205,7 @@ func validateContacts(c context.Context, now time.Time, user models.AppUser, use
 					row.user = value
 					ci.balances.withoutInterest.byCurrency[currency] = row
 				}
-				for currency, value := range userContactJson.BalanceWithInterest(c, now) {
+				for currency, value := range userContactJson.BalanceWithInterest(nil, now) {
 					row := ci.balances.withInterest.byCurrency[currency]
 					row.user = value
 					ci.balances.withInterest.byCurrency[currency] = row

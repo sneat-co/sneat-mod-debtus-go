@@ -11,6 +11,7 @@ import (
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
+	"time"
 )
 
 type transfersRecreateContacts struct {
@@ -103,6 +104,7 @@ func verifyAndFixMissingTransferContacts(c context.Context, transfer models.Tran
 
 			contact := models.NewContact(contactInfo.ContactID, &models.ContactEntity{
 				UserID:         counterpartyInfo.UserID,
+				DtCreated:      time.Now(),
 				Status:         models.STATUS_ACTIVE,
 				TransfersJson:  counterpartyContact.TransfersJson,
 				ContactDetails: counterpartyUser.ContactDetails,

@@ -88,7 +88,7 @@ func TestAppUserEntity_BalanceWithInterest(t *testing.T) {
 		},
 		ContactsJsonActive: `[{"ID":6296903092273152,"Name":"Test1","Balance":{"EUR":58},"Transfers":{"Count":1,"Last":{"ID":6156165603917824,"At":"2017-11-04T23:05:30.847526702Z"},"OutstandingWithInterest":[{"TransferID":6156165603917824,"Starts":"2017-11-04T23:05:30.847526702Z","Currency":"EUR","Amount":14,"InterestType":"simple","InterestPeriod":3,"InterestPercent":3,"InterestMinimumPeriod":3}]}}]`,
 	}
-	balanceWithInterest := user.BalanceWithInterest(time.Now())
+	balanceWithInterest := user.BalanceWithInterest(nil, time.Now())
 	if balanceWithInterest.IsZero() {
 		t.Fatal("balanceWithInterest.IsZero()")
 	}

@@ -66,7 +66,9 @@ func CreateStartTransferWizardCommand(code, messageText string, commands []strin
 						),
 					), 1)
 					buttons := AskTransferCurrencyButtons(whc)
-					m.Keyboard = tgbotapi.NewReplyKeyboardUsingStrings(buttons)
+					keyboard := tgbotapi.NewReplyKeyboardUsingStrings(buttons)
+					keyboard.OneTimeKeyboard = true
+					m.Keyboard = keyboard
 				} else if _, err = strconv.ParseFloat(mt, 64); err == nil {
 					return whc.NewMessageByCode(trans.MESSAGE_TEXT_CURRENCY_NAME_IS_NUMBER), nil
 					// User entered a number
@@ -216,7 +218,7 @@ func TransferAskDueDateCommand(code string, nextCommand bots.Command) bots.Comma
 			} else {
 				log.Debugf(c, "Chat is NOT awating reply to %v", code)
 				chatEntity.PushStepToAwaitingReplyTo(code)
-				m.Keyboard = tgbotapi.NewReplyKeyboardUsingStrings([][]string{
+				keyboard := tgbotapi.NewReplyKeyboardUsingStrings([][]string{
 					{
 						whc.Translate(trans.COMMAND_TEXT_IN_FEW_MINUTES),
 						whc.Translate(trans.COMMAND_TEXT_IT_CAN_BE_RETURNED_ANYTIME),
@@ -230,6 +232,8 @@ func TransferAskDueDateCommand(code string, nextCommand bots.Command) bots.Comma
 						emoji.CALENDAR_ICON + " " + whc.Translate(trans.COMMAND_TEXT_SET_DATE),
 					},
 				})
+				keyboard.OneTimeKeyboard = true
+				m.Keyboard = keyboard
 				return m, nil
 			}
 		},

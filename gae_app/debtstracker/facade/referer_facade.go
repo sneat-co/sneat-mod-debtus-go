@@ -60,37 +60,59 @@ func delaySetUserReferrer(c context.Context, userID int64, referredBy string) (e
 	return gae.CallDelayFuncWithDelay(c, time.Second/2, common.QUEUE_USERS, "set-user-referrer", delayedSetUserReferrer, userID, referredBy)
 }
 
+var topReferralsCacheTime = time.Hour
+
 func (f refererFacade) AddTelegramReferrer(c context.Context, userID int64, tgUsername, botID string) {
-	referer := models.Referer{
-		RefererEntity: &models.RefererEntity{
-			Platform:   "tg",
-			ReferredTo: botID,
-			DtCreated:  time.Now(),
-			ReferredBy: tgUsername,
-		},
-	}
+	tgUsername = strings.ToLower(tgUsername)
+	now := time.Now()
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Errorf(c, "panic in refererFacade.AddTelegramReferrer(): %v", r)
+			}
+		}()
 		user, err := dal.User.GetUserByID(c, userID)
 		if err != nil {
 			log.Errorf(c, err.Error())
 			return
 		}
 		if user.ReferredBy != "" {
-			log.Debugf(c, "already referred")
+			log.Debugf(c, "AddTelegramReferrer() => already referred")
 			return
 		}
-		delaySetUserReferrer(c, userID, "tg:"+tgUsername)
-		item, err := memcache.Get(c, lastTgReferrers)
+
+		referer := models.Referer{
+			RefererEntity: &models.RefererEntity{
+				Platform:   "tg",
+				ReferredTo: botID,
+				DtCreated:  now,
+				ReferredBy: tgUsername,
+			},
+		}
+
+		referredBy := "tg:" + tgUsername
+
+		if err = delaySetUserReferrer(c, userID, referredBy); err != nil {
+			log.Errorf(c, "Failed to delay set user referrer: %v", err)
+			if err = setUserReferrer(c, userID, referredBy); err != nil {
+				log.Errorf(c, "Failed to set user referrer: %v", err)
+				return
+			}
+		}
+
 		var isLocked bool
-		if err == memcache.ErrCacheMiss {
-			item = f.lockMemcacheItem(c)
-			isLocked = true
+		item, err := memcache.Get(c, lastTgReferrers)
+		if err != nil {
+			if err == memcache.ErrCacheMiss {
+				item = f.lockMemcacheItem(c)
+				isLocked = true
+				err = nil
+			} else {
+				log.Warningf(c, "failed to get last-tg-referrers from memcache: %v", err)
+			}
 		}
 		if err := dal.DB.InsertWithRandomIntID(c, &referer); err != nil {
 			log.Errorf(c, "failed to insert referer to DB: %v", err)
-		}
-		if err != nil {
-			log.Warningf(c, "failed to get last-tg-referrers from memcache")
 		}
 		if item == nil {
 			if err = memcache.Delete(c, lastTgReferrers); err != nil {
@@ -108,6 +130,7 @@ func (f refererFacade) AddTelegramReferrer(c context.Context, userID int64, tgUs
 				}
 			}
 			item.Value = []byte(strings.Join(tgUsernames, ","))
+			item.Expiration = topReferralsCacheTime
 			if err = memcache.CompareAndSwap(c, item); err != nil {
 				if err = memcache.Delete(c, lastTgReferrers); err != nil {
 					log.Warningf(c, "failed to delete '%v' from memcache", lastTgReferrers)
@@ -142,11 +165,13 @@ func (f refererFacade) TopTelegramReferrers(c context.Context, botID string, lim
 	var item *memcache.Item
 	var tgUsernames []string
 
-	if item, err = memcache.Get(c, lastTgReferrers); err == nil && item != nil && len(item.Value) > 0 && item.Value[0] != []byte("_")[0] {
+	isLockItem := func() bool {
+		return item != nil && len(item.Value) == 9 && item.Value[0] == []byte("_")[0]
+	}
+	if item, err = memcache.Get(c, lastTgReferrers); err == nil && !isLockItem() {
 		tgUsernames = strings.Split(string(item.Value), ",")
 		item = nil
 	} else {
-		item = f.lockMemcacheItem(c)
 		query := datastore.NewQuery(models.RefererKind).Filter("p =", "tg").Filter("to =", botID).Order("-t").Limit(100)
 		iterator := query.Run(c)
 		refererEntity := new(models.RefererEntity)
@@ -160,6 +185,19 @@ func (f refererFacade) TopTelegramReferrers(c context.Context, botID string, lim
 			}
 			tgUsernames = append(tgUsernames, refererEntity.ReferredBy)
 		}
+		if !isLockItem() {
+			if item, err = memcache.Get(c, lastTgReferrers); err == nil && isLockItem() {
+				item.Value = []byte(strings.Join(tgUsernames, ","))
+				item.Expiration = topReferralsCacheTime
+				if err = memcache.CompareAndSwap(c, item); err != nil {
+					log.Warningf(c, "Failed to set top referrals to memcache: %v", err)
+					err = nil
+				}
+			} else { // We don't care about error here
+				err = nil
+			}
+
+		}
 	}
 	counts := make(map[string]int, len(tgUsernames))
 	for _, tgUsername := range tgUsernames {
@@ -172,23 +210,6 @@ func (f refererFacade) TopTelegramReferrers(c context.Context, botID string, lim
 	}
 
 	topTelegramReferrers = rankByCount(counts, limit)
-	if item != nil {
-		item.Value = []byte(strings.Join(tgUsernames, ","))
-		item.Expiration = 0
-		memcache.CompareAndSwap(c, item)
-	} else {
-		v := []byte(strings.Join(tgUsernames, ","))
-		item = &memcache.Item{
-			Key:   lastTgReferrers,
-			Value: v,
-		}
-		if err = memcache.Set(c, item); err != nil {
-			if err = memcache.Delete(c, item.Key); err != nil {
-				log.Warningf(c, "Failed to clear memcache: %v", err)
-				err = nil
-			}
-		}
-	}
 
 	return
 }

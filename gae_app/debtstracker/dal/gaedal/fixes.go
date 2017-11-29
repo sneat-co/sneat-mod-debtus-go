@@ -115,6 +115,7 @@ func FixTransfers(c context.Context) (loadedCount int, fixedCount int, failedCou
 		loadedCount += 1
 		wg.Add(1)
 		go func(transferKey *datastore.Key, transfer models.TransferEntity) {
+			defer wg.Done()
 			fixter := NewTransferFixter(transferKey, &transfer)
 			err2 := fixter.FixAllIfNeeded(c)
 			if err2 != nil {
@@ -133,7 +134,6 @@ func FixTransfers(c context.Context) (loadedCount int, fixedCount int, failedCou
 					//	log.Debugf(c, "Transfer %v is OK: CounterpartyCounterpartyName: %v", transferKey.IntegerID(), fixter.transfer.Creator().ContactName)
 				}
 			}
-			wg.Done()
 		}(transferKey, transfer)
 		if err != nil {
 			break

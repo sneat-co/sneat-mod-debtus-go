@@ -151,7 +151,7 @@ func (linker receiptUsersLinker) linkUsersByReceiptWithinTransaction(
 		changes.inviterContact = &inviterContact
 	}
 
-	if err = newUsersLinker(changes.usersLinkingDbChanges).linkUsersWithinTransaction(tc); err != nil {
+	if err = newUsersLinker(changes.usersLinkingDbChanges).linkUsersWithinTransaction(tc, fmt.Sprintf("receipt:%v", receipt.ID)); err != nil {
 		err = errors.WithMessage(err, "Failed to link users")
 		return
 	} else {

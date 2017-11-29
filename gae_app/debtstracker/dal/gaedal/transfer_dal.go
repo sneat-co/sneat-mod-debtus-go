@@ -13,6 +13,9 @@ import (
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/delay"
+	"github.com/strongo/app/gae"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 )
 
 func NewTransferKey(c context.Context, transferID int64) *datastore.Key {
@@ -131,7 +134,8 @@ func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context,
 		return
 	}
 	transfers = make([]models.Transfer, 0, len(keys))
-	var warnings, debugs bytes.Buffer
+	var errorMessages, warnings, debugs bytes.Buffer
+	var transfersIDsToFixIsOutstanding []int64
 	for i, key := range keys {
 		transfer := models.Transfer{IntegerID: db.NewIntID(key.IntID()), TransferEntity: transferEntities[i]}
 		if contactID != 0 {
@@ -149,15 +153,59 @@ func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context,
 
 		if outstandingValue := transfer.GetOutstandingValue(periodEnds); outstandingValue > 0 {
 			transfers = append(transfers, transfer)
-		} else {
-			warnings.WriteString(fmt.Sprintf("Transfer(id=%v).GetOutstandingValue() == %v && IsOutstanding==true\n", transfer.ID, outstandingValue))
+		} else if outstandingValue == 0 {
+			fmt.Fprintln(&warnings, "Transfer(id=%v) => GetOutstandingValue() == 0 && IsOutstanding==true\n", transfer.ID)
+			transfersIDsToFixIsOutstanding = append(transfersIDsToFixIsOutstanding, transfer.ID)
+		} else { // outstandingValue < 0
+			fmt.Fprintf(&errorMessages, "Transfer(id=%v) => IsOutstanding==true && GetOutstandingValue() < 0: %v\n", transfer.ID, outstandingValue)
 		}
+	}
+	if len(transfersIDsToFixIsOutstanding) > 0 {
+		if err = gae.CallDelayFunc(c, common.QUEUE_TRANSFERS, "fix-transfers-is-outstanding", delayFixTransfersIsOutstanding, transfersIDsToFixIsOutstanding); err != nil {
+			log.Errorf(c, "failed to delay task to fix transfers IsOutstanding")
+			err = nil
+		}
+	}
+	if errorMessages.Len() > 0 {
+		log.Errorf(c, errorMessages.String())
 	}
 	if warnings.Len() > 0 {
 		log.Warningf(c, warnings.String())
 	}
 	if debugs.Len() > 0 {
 		log.Debugf(c, debugs.String())
+	}
+	return
+}
+
+var delayFixTransfersIsOutstanding = delay.Func("fix-transfers-is-outstanding", fixTransfersIsOutstanding)
+
+func fixTransfersIsOutstanding(c context.Context, transferIDs []int64) (err error) {
+	log.Debugf(c, "fixTransfersIsOutstanding(%v)", transferIDs)
+	for _, transferID := range transferIDs {
+		if _, transferErr := fixTransferIsOutstanding(c, transferID); transferErr != nil {
+			log.Errorf(c, "Failed to fix transfer %v: %v", transferID, err)
+			err = transferErr
+		}
+	}
+	return
+}
+
+func fixTransferIsOutstanding(c context.Context, transferID int64) (transfer models.Transfer, err error) {
+	err = dal.DB.RunInTransaction(c, func(c context.Context) error {
+		if transfer, err = dal.Transfer.GetTransferByID(c, transferID); err != nil {
+			return err
+		}
+		if transfer.GetOutstandingValue(time.Now()) == 0 {
+			transfer.IsOutstanding = true
+			return dal.Transfer.SaveTransfer(c, transfer)
+		}
+		return nil
+	}, db.SingleGroupTransaction)
+	if err == nil {
+		log.Warningf(c, "Fixed IsOutstanding (set to false) for transfer %v", transferID)
+	} else {
+		log.Errorf(c, "Failed to fix IsOutstanding for transfer %v", transferID)
 	}
 	return
 }

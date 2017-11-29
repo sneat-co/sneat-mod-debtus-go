@@ -16,6 +16,7 @@ import (
 	"github.com/strongo/log"
 	"github.com/strongo/measurement-protocol"
 	"golang.org/x/net/context"
+	"bytes"
 )
 
 const (
@@ -175,18 +176,12 @@ func setPreferredLanguageCommand(whc bots.WebhookContext, code5, mode string) (m
 	case "onboarding":
 		log.Debugf(c, "whc.Locale().Code5: %v", whc.Locale().Code5)
 		m = whc.NewMessageByCode(trans.MESSAGE_TEXT_YOUR_SELECTED_PREFERRED_LANGUAGE, selectedLocale.NativeTitle)
+		dtb_general.SetMainMenuKeyboard(whc, &m)
 		if _, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
 			log.Errorf(c, "Failed to notify userEntity about selected language: %v", err)
 			// Not critical, lets continue
 		}
-		isAccessGranted := true //bots.IsAccessGranted(whc)
-		if isAccessGranted {
-			log.Debugf(c, "IsAccessGranted(): %v", isAccessGranted)
-			// TODO: Reply to callback as well
-			return dtb_general.MainMenuAction(whc, "", false)
-		} else {
-			return OnboardingTellAboutInviteCodeAction(whc)
-		}
+		return aboutDrawAction(whc, nil)
 	case "settings":
 		if localeChanged {
 			m, err = dtb_general.MainMenuAction(whc, whc.Translate(trans.MESSAGE_TEXT_LOCALE_CHANGED, selectedLocale.TitleWithIcon()), false)
@@ -203,6 +198,81 @@ func setPreferredLanguageCommand(whc bots.WebhookContext, code5, mode string) (m
 		}
 	default:
 		panic(fmt.Sprintf("Unknown mode: %v", mode))
+	}
+}
+
+const (
+	MORE_ABOUT_DRAW_COMMAND = "more-about-draw"
+	JOIN_DRAW_COMMAND = "join-draw"
+)
+
+var AboutDrawCommand = bots.Command{
+	Commands: []string{"/draw"},
+	Code:           MORE_ABOUT_DRAW_COMMAND,
+	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+		return aboutDrawAction(whc, nil)
+	},
+	CallbackAction: aboutDrawAction,
+}
+
+var JoinDrawCommand = bots.Command{
+	Code: JOIN_DRAW_COMMAND,
+	CallbackAction: aboutDrawAction,
+}
+
+func aboutDrawAction(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	c := whc.Context()
+	buf := new(bytes.Buffer)
+	sender := whc.GetSender()
+	name := sender.GetFirstName()
+	if name == "" {
+		name = sender.GetUserName()
+		if name == "" {
+			name = sender.GetLastName()
+		}
+	}
+	buf.WriteString(whc.Translate(trans.MESSAGE_TEXT_ABOUT_DRAW_SHORT, name))
+	buf.WriteString("\n\n")
+	m.Format = bots.MessageFormatHTML
+	if callbackUrl == nil {
+		buf.WriteString(whc.Translate(trans.MESSAGE_TEXT_ABOUT_DRAW_CALL_TO_ACTION))
+		m.Text = buf.String()
+		m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
+			[]tgbotapi.InlineKeyboardButton{
+				{
+					Text: whc.Translate(trans.COMMAN_TEXT_MORE_ABOUT_DRAW),
+					CallbackData: MORE_ABOUT_DRAW_COMMAND,
+				},
+			},
+		)
+		return
+	} else {
+		m.IsEdit = true
+		buf.WriteString(whc.Translate(trans.MESSAGE_TEXT_ABOUT_DRAW_MORE))
+		m.Text = buf.String()
+		switch callbackUrl.Path {
+		case MORE_ABOUT_DRAW_COMMAND:
+			m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
+				[]tgbotapi.InlineKeyboardButton{
+					{
+						Text: whc.Translate(trans.COMMAN_TEXT_I_AM_IN_DRAW),
+						CallbackData: JOIN_DRAW_COMMAND,
+					},
+				},
+			)
+			return
+		case JOIN_DRAW_COMMAND:
+			if _, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
+				log.Warningf(c, "Failed to edit message: %v", err)
+				err = nil // Not critical
+			}
+			m.IsEdit = false
+			m.Text = whc.Translate(trans.MESSAGE_TEXT_JOINED_DRAW)
+			return
+		default:
+			err = fmt.Errorf("unknown callback command: %v", callbackUrl.String())
+			return
+		}
 	}
 }
 

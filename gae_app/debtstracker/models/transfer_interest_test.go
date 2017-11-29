@@ -139,6 +139,6 @@ func Test_updateBalanceWithInterest(t *testing.T) {
 			},
 		},
 	}
-	updateBalanceWithInterest(balance, outstandingWithInterest, now.Add(time.Hour))
+	updateBalanceWithInterest(nil, balance, outstandingWithInterest, now.Add(time.Hour))
 	t.Log(balance)
 }

@@ -32,40 +32,42 @@ var StartCommand = bots.Command{
 	Code:     "start",
 	Commands: trans.Commands(trans.COMMAND_START),
 	Title:    "/start",
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
-		c := whc.Context()
+	Action: startCommandAction,
+}
 
-		log.Debugf(c, "StartCommand.Action()")
+func startCommandAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	c := whc.Context()
 
-		chatEntity := whc.ChatEntity()
-		chatEntity.SetAwaitingReplyTo("")
+	log.Debugf(c, "StartCommand.Action()")
 
-		startParam, _ := telegram.ParseStartCommand(whc)
-		switch {
-		case startParam == "help_inline":
-			return startInlineHelp(whc)
-		case strings.HasPrefix(startParam, "login-"):
-			loginID, err := common.DecodeID(startParam[len("login-"):])
-			if err != nil {
-				return m, err
-			}
-			return startLoginGac(whc, loginID)
-			//case strings.HasPrefix(textToMatchNoStart, JOIN_BILL_COMMAND):
-			//	return JoinBillCommand.Action(whc)
-		case strings.HasPrefix(startParam, "refbytguser-") && startParam != "refbytguser-YOUR_CHANNEL":
-			facade.Referer.AddTelegramReferrer(c, whc.AppUserIntID(), strings.TrimPrefix(startParam, "refbytguser-"), whc.GetBotCode())
-		default:
-			if matched := reInviteCodeFromStart.FindStringSubmatch(startParam); matched != nil {
-				return startByLinkCode(whc, matched)
-			}
+	chatEntity := whc.ChatEntity()
+	chatEntity.SetAwaitingReplyTo("")
+
+	startParam, _ := telegram.ParseStartCommand(whc)
+	switch {
+	case startParam == "help_inline":
+		return startInlineHelp(whc)
+	case strings.HasPrefix(startParam, "login-"):
+		loginID, err := common.DecodeID(startParam[len("login-"):])
+		if err != nil {
+			return m, err
 		}
-
-		if chatEntity.GetPreferredLanguage() == "" {
-			return onboardingAskLocaleAction(whc, whc.Translate(trans.MESSAGE_TEXT_HI)+"\n\n")
+		return startLoginGac(whc, loginID)
+		//case strings.HasPrefix(textToMatchNoStart, JOIN_BILL_COMMAND):
+		//	return JoinBillCommand.Action(whc)
+	case strings.HasPrefix(startParam, "refbytguser-") && startParam != "refbytguser-YOUR_CHANNEL":
+		facade.Referer.AddTelegramReferrer(c, whc.AppUserIntID(), strings.TrimPrefix(startParam, "refbytguser-"), whc.GetBotCode())
+	default:
+		if matched := reInviteCodeFromStart.FindStringSubmatch(startParam); matched != nil {
+			return startByLinkCode(whc, matched)
 		}
+	}
 
-		return dtb_general.MainMenuAction(whc, "", true)
-	},
+	if chatEntity.GetPreferredLanguage() == "" {
+		return onboardingAskLocaleAction(whc, whc.Translate(trans.MESSAGE_TEXT_HI)+"\n\n")
+	}
+
+	return dtb_general.MainMenuAction(whc, "", true)
 }
 
 func startInlineHelp(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {

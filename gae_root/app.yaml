@@ -27,6 +27,11 @@ handlers:
   upload: static/manifest.json
   expiration: "1d"
 
+- url: /.well-known/assetlinks.json
+  static_files: static/.well-known/assetlinks.json
+  upload: static/.well-known/assetlinks.json
+  expiration: "1d"
+
 - url: /OneSignalSDKUpdaterWorker.js
   static_files: static/OneSignalSDKUpdaterWorker.js
   upload: static/OneSignalSDKUpdaterWorker.js

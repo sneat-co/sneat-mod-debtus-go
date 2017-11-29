@@ -80,7 +80,7 @@ func (h transfersPage) transfersPageHandler(w http.ResponseWriter, r *http.Reque
 
 	balancesWithInterest := balanceRow{
 		user:     user.ContactByID(contactID).BalanceWithInterest(c, now)[currency],
-		contacts: contact.BalanceWithInterest(now)[currency],
+		contacts: contact.BalanceWithInterest(c, now)[currency],
 		//transfers: transfersTotalWithoutInterest,
 	}
 

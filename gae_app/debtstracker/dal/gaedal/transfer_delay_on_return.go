@@ -179,23 +179,23 @@ func removeFromOutstandingWithInterest(c context.Context, transfer models.Transf
 }
 
 func (_ TransferDalGae) UpdateTransferOnReturn(c context.Context, returnTransfer, transfer models.Transfer, returnedAmount decimal.Decimal64p2) (err error) {
-	log.Debugf(c, "UpdateTransferOnReturn(\n\treturnTransfer=%v,\n\ttransfer.ID=%v,\n\treturnedAmount=%v)", litter.Sdump(returnTransfer), litter.Sdump(transfer), returnedAmount)
+	log.Debugf(c, "UpdateTransferOnReturn(\n\treturnTransfer=%v,\n\ttransfer=%v,\n\treturnedAmount=%v)", litter.Sdump(returnTransfer), litter.Sdump(transfer), returnedAmount)
 
 	if returnTransfer.Currency != transfer.Currency {
-		panic(fmt.Sprintf("returnTransfer.Currency != transfer.Currency => %v != %v", returnTransfer.Currency, transfer.Currency))
+		panic(fmt.Sprintf("returnTransfer(id=%v).Currency != transfer.Currency => %v != %v", returnTransfer.ID, returnTransfer.Currency, transfer.Currency))
 	} else if cID := returnTransfer.From().ContactID; cID != 0 && cID != transfer.To().ContactID {
 		if transfer.To().ContactID == 0 && returnTransfer.From().UserID == transfer.To().UserID {
 			transfer.To().ContactID = cID
 			log.Warningf(c, "Fixed Transfer(%v).To().ContactID: 0 => %v", transfer.ID, cID)
 		} else {
-			panic(fmt.Sprintf("returnTransfer.From().ContactID != transfer.To().ContactID => %v != %v", cID, transfer.To().ContactID))
+			panic(fmt.Sprintf("returnTransfer(id=%v).From().ContactID != transfer.To().ContactID => %v != %v", returnTransfer.ID, cID, transfer.To().ContactID))
 		}
 	} else if cID := returnTransfer.To().ContactID; cID != 0 && cID != transfer.From().ContactID {
 		if transfer.From().ContactID == 0 && returnTransfer.To().UserID == transfer.From().UserID {
 			transfer.From().ContactID = cID
 			log.Warningf(c, "Fixed Transfer(%v).From().ContactID: 0 => %v", transfer.ID, cID)
 		} else {
-			panic(fmt.Sprintf("returnTransfer.To().ContactID != transfer.From().ContactID => %v != %v", cID, transfer.From().ContactID))
+			panic(fmt.Sprintf("returnTransfer(id=%v).To().ContactID != transfer.From().ContactID => %v != %v", returnTransfer.ID, cID, transfer.From().ContactID))
 		}
 	}
 

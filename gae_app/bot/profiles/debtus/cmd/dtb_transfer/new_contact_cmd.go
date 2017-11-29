@@ -16,6 +16,7 @@ import (
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/log"
 	"github.com/strongo/measurement-protocol"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 )
 
 const NEW_COUNTERPARTY_COMMAND = "new-counterparty"
@@ -99,6 +100,22 @@ func NewCounterpartyCommand(nextCommand bots.Command) bots.Command {
 				default:
 					err = fmt.Errorf("unknown input, expected text or contact message, got: %T", input)
 					return
+				}
+
+				if !existingContact {
+					var user models.AppUser
+					if user, err = dal.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+						return
+					}
+
+					contactFullName := contactDetails.FullName()
+
+					for _, userContact := range user.Contacts() {
+						if userContact.Name == contactFullName {
+							m.Text = whc.Translate(trans.MESSAGE_TEXT_ALREADY_HAS_CONTACT_WITH_SUCH_NAME)
+							return
+						}
+					}
 				}
 
 				if !existingContact {

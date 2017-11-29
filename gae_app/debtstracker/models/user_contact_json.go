@@ -125,7 +125,7 @@ func (o *UserContactJson) SetBalance(balance Balance) (err error) {
 func (o UserContactJson) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance Balance) {
 	balance = o.Balance()
 	if o.Transfers != nil {
-		updateBalanceWithInterest(balance, o.Transfers.OutstandingWithInterest, periodEnds)
+		updateBalanceWithInterest(c, balance, o.Transfers.OutstandingWithInterest, periodEnds)
 	}
 	return
 }

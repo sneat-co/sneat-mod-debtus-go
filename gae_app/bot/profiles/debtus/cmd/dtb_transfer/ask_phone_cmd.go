@@ -23,6 +23,7 @@ import (
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/log"
 	"golang.org/x/net/context"
+	"github.com/DebtsTracker/translations/emoji"
 )
 
 const ASK_PHONE_NUMBER_FOR_RECEIPT_COMMAND = "ask-phone-number-for-receipt"
@@ -249,7 +250,8 @@ func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact,
 		smsRecord := lastTwilioSmsese[0]
 		if smsRecord.To == phoneContact.PhoneNumberAsString() && (smsRecord.Status == "delivered" || smsRecord.Status == "queued") {
 			// TODO: Do smarter check for limit
-			err = fmt.Errorf("Exceeded limit for sending SMS to same number: %v", phoneContact.PhoneNumberAsString())
+			m.Text = emoji.ERROR_ICON + " " + fmt.Sprintf("Exceeded limit for sending SMS to same number: %v", phoneContact.PhoneNumberAsString())
+			log.Warningf(c, m.Text)
 			return m, err
 		}
 	}
