@@ -55,6 +55,8 @@ import (
         <thead>
         <tr>
             <th>#</th>
+            <th>ID</th>
+            <th>Created at</th>
             <th>Created on</th>
             <th>From</th>
             <th>To</th>
@@ -62,13 +64,16 @@ import (
             <th>IsOutstanding</th>
             <th>Interest</th>
             <th class=d>Amount</th>
+            <th class=d>Returned</th>
         </tr>
         </thead>
         <tbody>
         <% for i, transfer := range transfers { %>
         <tr>
-            <td class="d"><a href="transfer?id=<%=i transfer.ID %>"><%=i i+1 %></a></td>
-            <td title="<%=v transfer.DtCreated %>">
+            <td class="d"><%=i i+1 %></td>
+            <td class="d"><a href="transfer?id=<%=i transfer.ID %>"><%=i transfer.ID %></a></td>
+            <td><%=v transfer.DtCreated %></td>
+            <td>
                 <% if transfer.CreatedOnPlatform == "telegram" { %>
                 <a href="https://t.me/<%=s transfer.CreatedOnID %>">@<%=s transfer.CreatedOnID %></a>
                 <% } %>
@@ -90,6 +95,7 @@ import (
                 <% } %>
             </td>
             <td class=d><%=v transfer.AmountInCents %></td>
+            <td class=d><%=v transfer.AmountInCentsReturned %></td>
         </tr>
         <% } %>
         </tbody>

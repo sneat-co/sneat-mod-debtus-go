@@ -96,6 +96,8 @@ func renderTransfersPage(contact models.Contact, currency models.Currency, balan
         <thead>
         <tr>
             <th>#</th>
+            <th>ID</th>
+            <th>Created at</th>
             <th>Created on</th>
             <th>From</th>
             <th>To</th>
@@ -103,6 +105,7 @@ func renderTransfersPage(contact models.Contact, currency models.Currency, balan
             <th>IsOutstanding</th>
             <th>Interest</th>
             <th class=d>Amount</th>
+            <th class=d>Returned</th>
         </tr>
         </thead>
         <tbody>
@@ -110,14 +113,18 @@ func renderTransfersPage(contact models.Contact, currency models.Currency, balan
 	for i, transfer := range transfers {
 		_buffer.WriteString(`
         <tr>
+            <td class="d">`)
+		hero.FormatInt(int64(i+1), _buffer)
+		_buffer.WriteString(`</td>
             <td class="d"><a href="transfer?id=`)
 		hero.FormatInt(int64(transfer.ID), _buffer)
 		_buffer.WriteString(`">`)
-		hero.FormatInt(int64(i+1), _buffer)
+		hero.FormatInt(int64(transfer.ID), _buffer)
 		_buffer.WriteString(`</a></td>
-            <td title="`)
+            <td>`)
 		hero.EscapeHTML(fmt.Sprintf("%v", transfer.DtCreated), _buffer)
-		_buffer.WriteString(`">
+		_buffer.WriteString(`</td>
+            <td>
                 `)
 		if transfer.CreatedOnPlatform == "telegram" {
 			_buffer.WriteString(`
@@ -168,6 +175,9 @@ func renderTransfersPage(contact models.Contact, currency models.Currency, balan
             </td>
             <td class=d>`)
 		hero.EscapeHTML(fmt.Sprintf("%v", transfer.AmountInCents), _buffer)
+		_buffer.WriteString(`</td>
+            <td class=d>`)
+		hero.EscapeHTML(fmt.Sprintf("%v", transfer.AmountInCentsReturned), _buffer)
 		_buffer.WriteString(`</td>
         </tr>
         `)

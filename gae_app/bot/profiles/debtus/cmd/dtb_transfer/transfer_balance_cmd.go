@@ -57,7 +57,7 @@ func balanceAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		}
 		buffer.WriteString(fmt.Sprintf("<b>%v</b>", whc.Translate(trans.MESSAGE_TEXT_BALANCE_HEADER)) + common.HORIZONTAL_LINE)
 		linker := common.NewLinkerFromWhc(whc)
-		buffer.WriteString(balanceMessageBuilder.ByCounterparty(c, linker, contacts))
+		buffer.WriteString(balanceMessageBuilder.ByContact(c, linker, contacts))
 
 		var thereAreFewDebtsForSingleCurrency = func() bool {
 			//TODO: Duplicate call to Balance() - consider move inside BalanceMessageBuilder
@@ -81,8 +81,14 @@ func balanceAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		}
 
 		if len(contacts) > 1 && thereAreFewDebtsForSingleCurrency() {
-			userBalanceWithInterest := user.BalanceWithInterest(c, time.Now())
-			buffer.WriteString("\n" + strings.Repeat("─", 16) + "\n" + balanceMessageBuilder.ByCurrency(true, userBalanceWithInterest))
+			userBalanceWithInterest, err := user.BalanceWithInterest(c, time.Now())
+			if err != nil {
+				m := fmt.Sprintf("Failed to get balance with interest for user %v: %v", user.ID, err)
+				log.Errorf(c, m)
+				buffer.WriteString(m)
+			} else {
+				buffer.WriteString("\n" + strings.Repeat("─", 16) + "\n" + balanceMessageBuilder.ByCurrency(true, userBalanceWithInterest))
+			}
 		}
 
 		//if len(contacts) > 0 {

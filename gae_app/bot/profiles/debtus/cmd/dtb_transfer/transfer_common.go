@@ -306,10 +306,15 @@ func CreateAskTransferCounterpartyCommand(
 					var isTooManyRows bool
 					now := time.Now()
 					for _, counterparty := range counterparties {
-						balance := counterparty.BalanceWithInterest(c, now)
+						balance, err := counterparty.BalanceWithInterest(c, now)
+						if err != nil {
+							log.Errorf(c, "Failed to get balance with interest for contact %v: %v", counterparty.ID, err)
+							buttons = append(buttons, []string{emoji.ERROR_ICON + " ERROR: " + counterparty.FullName()})
+							continue
+						}
 						if (len(buttons) + len(balance)) > 4 {
 							isTooManyRows = true
-							log.Warningf(c, "Condider performance optimization - dublicate queries to get counterparties")
+							log.Warningf(c, "Consider performance optimization - duplicate queries to get counterparties")
 							break
 						}
 						for currency, value := range balance {

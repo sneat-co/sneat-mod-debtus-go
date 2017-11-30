@@ -87,11 +87,16 @@ var AskReturnCounterpartyCommand = CreateAskTransferCounterpartyCommand(
 		c := whc.Context()
 
 		log.Debugf(c, "StartReturnWizardCommand.onCounterpartySelectedAction(counterparty.ID=%v)", counterparty.ID)
-		balance := counterparty.BalanceWithInterest(c, time.Now())
+		var balanceWithInterest models.Balance
+		balanceWithInterest, err = counterparty.BalanceWithInterest(c, time.Now())
+		if err != nil {
+			err = errors.WithMessage(err, fmt.Sprintf("Failed to get counterparty balance with interest: %v", err))
+			return
+		}
 		//TODO: Display MESSAGE_TEXT_COUNTERPARTY_OWES_YOU_SINGLE_DEBT or MESSAGE_TEXT_YOU_OWE_TO_COUNTERPARTY_SINGLE_DEBT
-		switch len(balance) {
+		switch len(balanceWithInterest) {
 		case 1:
-			for currency, value := range balance {
+			for currency, value := range balanceWithInterest {
 				return askIfReturnedInFull(whc, counterparty, currency, value)
 			}
 		case 0:
@@ -99,10 +104,10 @@ var AskReturnCounterpartyCommand = CreateAskTransferCounterpartyCommand(
 			log.Debugf(c, "Balance is empty: "+errorMessage)
 			m = whc.NewMessage(errorMessage)
 		default:
-			buttons := make([][]string, len(balance)+1)
+			buttons := make([][]string, len(balanceWithInterest)+1)
 			var i int
 			buttons[0] = []string{whc.Translate(trans.COMMAND_TEXT_CANCEL)}
-			for currency, value := range balance {
+			for currency, value := range balanceWithInterest {
 				i += 1
 				buttons[i] = []string{_debtAmountButtonText(whc, currency, value, counterparty)}
 			}
@@ -176,7 +181,11 @@ func processReturnCommand(whc bots.WebhookContext, returnValue decimal.Decimal64
 	if err != nil {
 		return m, err
 	}
-	counterpartyBalanceWithInterest := counterparty.BalanceWithInterest(c, time.Now())
+	counterpartyBalanceWithInterest, err := counterparty.BalanceWithInterest(c, time.Now())
+	if err != nil {
+		err = errors.WithMessage(err, fmt.Sprintf("Failed to get balance with interest for contact %v: %v", counterparty.ID, err))
+		return
+	}
 	awaitingUrl, err := url.Parse(chatEntity.GetAwaitingReplyTo())
 	if err != nil {
 		return m, err
@@ -265,13 +274,14 @@ var AskToChooseDebtToReturnCommand = bots.Command{
 			counterpartyTitle := strings.Join(splittedBySeparator[:len(splittedBySeparator)-1], "|")
 			counterpartyTitle = strings.TrimSpace(counterpartyTitle)
 			chatEntity := whc.ChatEntity()
-			appUser, err := whc.GetAppUser()
+			var botAppUser bots.BotAppUser
+			botAppUser, err = whc.GetAppUser()
 			if err != nil {
 				return m, err
 			}
-			user := appUser.(*models.AppUserEntity)
-			counterparties, err := dal.Contact.GetLatestContacts(whc, 0, user.TotalContactsCount())
-			if err != nil {
+			user := botAppUser.(*models.AppUserEntity)
+			var counterparties []models.Contact
+			if counterparties, err = dal.Contact.GetLatestContacts(whc, 0, user.TotalContactsCount()); err != nil {
 				return m, err
 			}
 			var counterpartyFound bool
@@ -279,7 +289,10 @@ var AskToChooseDebtToReturnCommand = bots.Command{
 			for _, counterpartyItem := range counterparties {
 				counterpartyItemTitle := counterpartyItem.FullName()
 				if counterpartyItemTitle == counterpartyTitle {
-					balance = counterpartyItem.BalanceWithInterest(c, now)
+					if balance, err = counterpartyItem.BalanceWithInterest(c, now); err != nil {
+						err = errors.WithMessage(err, fmt.Sprintf("Failed to get balance with interest for contact %v", counterpartyItem.ID))
+						return
+					}
 					theCounterparty = counterpartyItem
 					counterpartyFound = true
 					chatEntity.AddWizardParam(WIZARD_PARAM_COUNTERPARTY, strconv.FormatInt(counterpartyItem.ID, 10))
@@ -293,7 +306,10 @@ var AskToChooseDebtToReturnCommand = bots.Command{
 		} else {
 			var counterparty models.Contact
 			counterparty, err = getCounterparty(whc, counterpartyID)
-			balance = counterparty.BalanceWithInterest(c, time.Now())
+			if balance, err = counterparty.BalanceWithInterest(c, time.Now()); err != nil {
+				err = errors.WithMessage(err, fmt.Sprintf("Failed to get balance with interest for contact %v", counterparty.ID))
+				return
+			}
 			theCounterparty = counterparty
 		}
 

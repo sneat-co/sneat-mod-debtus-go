@@ -802,7 +802,7 @@ func (u *AppUserEntity) Save() (properties []datastore.Property, err error) {
 	return properties, err
 }
 
-func (u *AppUserEntity) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance Balance) {
+func (u *AppUserEntity) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance Balance, err error) {
 	if u.TransfersWithInterestCount == 0 {
 		balance = u.Balance()
 	} else if u.TransfersWithInterestCount > 0 {
@@ -812,7 +812,12 @@ func (u *AppUserEntity) BalanceWithInterest(c context.Context, periodEnds time.T
 		//userBalance = u.Balance()
 		balance = make(Balance, u.BalanceCount)
 		for _, contact := range u.Contacts() {
-			for currency, value := range contact.BalanceWithInterest(c, periodEnds) {
+			var contactBalance Balance
+			if contactBalance, err = contact.BalanceWithInterest(c, periodEnds); err != nil {
+				err = errors.WithMessage(err, fmt.Sprintf("failed to get balance with interest for user's contact JSON %v", contact.ID))
+				return
+			}
+			for currency, value := range contactBalance {
 				balance[currency] += value
 			}
 		}

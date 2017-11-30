@@ -286,7 +286,11 @@ func DeleteContact(c context.Context, contactID int64) (user models.AppUser, err
 	log.Warningf(c, "ContactDalGae.DeleteContact(%d)", contactID)
 	var contact models.Contact
 	err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil && !db.IsNotFound(err) {
+		if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil {
+			if db.IsNotFound(err) {
+				log.Warningf(c, "Contact not found by ID: %v", contactID)
+				err = nil
+			}
 			return
 		}
 		if contact.ContactEntity != nil && contact.CounterpartyUserID != 0 {

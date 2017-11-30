@@ -20,7 +20,9 @@ import (
         </thead>
         <tbody>
         <% for currency, balance := range balances.byCurrency { %>
-        <tr>
+        <% if balance.user == balance.contacts { %>
+        <tr><% } else { %>
+        <tr class="table-danger"><% } %>
             <td><a href="transfers?contact=<%==i contactID %>&currency=<%=v currency %>"><%=v currency %></a></td>
             <td class=d><%==v balance.user %></td>
             <td class=d><%==v balance.contacts %></td>

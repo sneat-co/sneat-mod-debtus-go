@@ -106,7 +106,7 @@ func TestUserContactJson_BalanceWithInterest(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf("%+v", userContact.Transfers.OutstandingWithInterest[0])
-	balanceWithInterest := userContact.BalanceWithInterest(nil, time.Now())
+	balanceWithInterest, _ := userContact.BalanceWithInterest(nil, time.Now())
 	if len(balanceWithInterest) != 1 {
 		t.Fatalf("len(balanceWithInterest) != 1: %v", len(balanceWithInterest))
 	}
@@ -139,6 +139,8 @@ func Test_updateBalanceWithInterest(t *testing.T) {
 			},
 		},
 	}
-	updateBalanceWithInterest(nil, balance, outstandingWithInterest, now.Add(time.Hour))
+	if err := updateBalanceWithInterest(true, balance, outstandingWithInterest, now.Add(time.Hour)); err != nil {
+		t.Error(err)
+	}
 	t.Log(balance)
 }

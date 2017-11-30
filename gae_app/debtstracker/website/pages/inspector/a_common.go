@@ -9,13 +9,16 @@ import (
 
 type balanceRow struct {
 	// TODO: rename
-	user      decimal.Decimal64p2
-	contacts  decimal.Decimal64p2
-	transfers decimal.Decimal64p2
+	user                  decimal.Decimal64p2
+	contacts              decimal.Decimal64p2
+	transfers             decimal.Decimal64p2
+	userContactBalanceErr error
+	contactBalanceErr     error
 }
 
 type balancesByCurrency struct {
 	*sync.Mutex
+	err        error
 	byCurrency map[models.Currency]balanceRow
 }
 

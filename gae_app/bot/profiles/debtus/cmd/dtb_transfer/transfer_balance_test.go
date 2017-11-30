@@ -48,21 +48,21 @@ func TestBalanceMessageSingleCounterparty(t *testing.T) {
 	expectedEn := `<a href="https://debtstracker.local/contact?id=1&lang=en-US&secret=SECRET">John Doe</a>`
 	expectedRu := `<a href="https://debtstracker.local/contact?id=1&lang=ru-RU&secret=SECRET">John Doe</a>`
 
-	assert(t, strongo.LocaleEnUS, 0, fmt.Sprintf("%v - owes you 10 USD", expectedEn), enMock(t).ByCounterparty(c, enLinker, counterparties))
+	assert(t, strongo.LocaleEnUS, 0, fmt.Sprintf("%v - owes you 10 USD", expectedEn), enMock(t).ByContact(c, enLinker, counterparties))
 
-	assert(t, strongo.LocaleRuRu, 0, fmt.Sprintf("%v - долг вам 10 USD", expectedRu), ruMock(t).ByCounterparty(c, ruLinker, counterparties))
+	assert(t, strongo.LocaleRuRu, 0, fmt.Sprintf("%v - долг вам 10 USD", expectedRu), ruMock(t).ByContact(c, ruLinker, counterparties))
 
 	balanceJson = json.RawMessage(`{"USD": -10}`)
 	counterparties[0].BalanceJson = &balanceJson
-	assert(t, strongo.LocaleRuRu, 0, fmt.Sprintf("%v - вы должны 10 USD", expectedRu), ruMock(t).ByCounterparty(c, ruLinker, counterparties))
+	assert(t, strongo.LocaleRuRu, 0, fmt.Sprintf("%v - вы должны 10 USD", expectedRu), ruMock(t).ByContact(c, ruLinker, counterparties))
 
 	balanceJson = json.RawMessage(`{"USD": 10, "EUR": 20}`)
 	counterparties[0].BalanceJson = &balanceJson
-	assert(t, strongo.LocaleEnUS, 0, fmt.Sprintf("%v - owes you 20 EUR and 10 USD", expectedEn), enMock(t).ByCounterparty(c, enLinker, counterparties))
+	assert(t, strongo.LocaleEnUS, 0, fmt.Sprintf("%v - owes you 20 EUR and 10 USD", expectedEn), enMock(t).ByContact(c, enLinker, counterparties))
 
 	balanceJson = json.RawMessage(`{"USD": 10, "EUR": 20, "RUB": 15}`)
 	counterparties[0].BalanceJson = &balanceJson
-	assert(t, strongo.LocaleEnUS, 0, fmt.Sprintf("%v - owes you 20 EUR, 15 RUB and 10 USD", expectedEn), enMock(t).ByCounterparty(c, enLinker, counterparties))
+	assert(t, strongo.LocaleEnUS, 0, fmt.Sprintf("%v - owes you 20 EUR, 15 RUB and 10 USD", expectedEn), enMock(t).ByContact(c, enLinker, counterparties))
 
 }
 
@@ -87,31 +87,31 @@ func TestBalanceMessageTwoCounterparties(t *testing.T) {
 	john.BalanceJson = &johnBalance
 	jackBalance = json.RawMessage(`{"USD": 15}`)
 	jack.BalanceJson = &jackBalance
-	assert(t, strongo.LocaleEnUS, 0, fmt.Sprintf("%v - owes you 10 USD\n%v - owes you 15 USD", johnLink, jackLink), enMock(t).ByCounterparty(c, enLinker, []models.UserContactJson{john, jack}))
+	assert(t, strongo.LocaleEnUS, 0, fmt.Sprintf("%v - owes you 10 USD\n%v - owes you 15 USD", johnLink, jackLink), enMock(t).ByContact(c, enLinker, []models.UserContactJson{john, jack}))
 
 	johnBalance = json.RawMessage(`{"USD": 10, "EUR": 20}`)
 	john.BalanceJson = &johnBalance
 	jackBalance = json.RawMessage(`{"USD": 40, "EUR": 15}`)
 	jack.BalanceJson = &jackBalance
-	assert(t, strongo.LocaleEnUS, 0, fmt.Sprintf("%v - owes you 20 EUR and 10 USD\n%v - owes you 40 USD and 15 EUR", johnLink, jackLink), enMock(t).ByCounterparty(c, enLinker, []models.UserContactJson{john, jack}))
+	assert(t, strongo.LocaleEnUS, 0, fmt.Sprintf("%v - owes you 20 EUR and 10 USD\n%v - owes you 40 USD and 15 EUR", johnLink, jackLink), enMock(t).ByContact(c, enLinker, []models.UserContactJson{john, jack}))
 
 	johnBalance = json.RawMessage(`{"USD": 10, "EUR": 20, "RUB": 100}`)
 	john.BalanceJson = &johnBalance
 	jackBalance = json.RawMessage(`{"USD": 40, "EUR": 15}`)
 	jack.BalanceJson = &jackBalance
-	assert(t, strongo.LocaleEnUS, 0, fmt.Sprintf("%v - owes you 100 RUB, 20 EUR and 10 USD\n%v - owes you 40 USD and 15 EUR", johnLink, jackLink), enMock(t).ByCounterparty(c, enLinker, []models.UserContactJson{john, jack}))
+	assert(t, strongo.LocaleEnUS, 0, fmt.Sprintf("%v - owes you 100 RUB, 20 EUR and 10 USD\n%v - owes you 40 USD and 15 EUR", johnLink, jackLink), enMock(t).ByContact(c, enLinker, []models.UserContactJson{john, jack}))
 
 	johnBalance = json.RawMessage(`{"USD": -10}`)
 	john.BalanceJson = &johnBalance
 	jackBalance = json.RawMessage(`{"USD": -15}`)
 	jack.BalanceJson = &jackBalance
-	assert(t, strongo.LocaleEnUS, 0, fmt.Sprintf("%v - you owe 10 USD\n%v - you owe 15 USD", johnLink, jackLink), enMock(t).ByCounterparty(c, enLinker, []models.UserContactJson{john, jack}))
+	assert(t, strongo.LocaleEnUS, 0, fmt.Sprintf("%v - you owe 10 USD\n%v - you owe 15 USD", johnLink, jackLink), enMock(t).ByContact(c, enLinker, []models.UserContactJson{john, jack}))
 
 	johnBalance = json.RawMessage(`{"USD": -10}`)
 	john.BalanceJson = &johnBalance
 	jackBalance = json.RawMessage(`{"USD": 15}`)
 	jack.BalanceJson = &jackBalance
-	assert(t, strongo.LocaleEnUS, 0, fmt.Sprintf("%v - you owe 10 USD\n%v - owes you 15 USD", johnLink, jackLink), enMock(t).ByCounterparty(c, enLinker, []models.UserContactJson{john, jack}))
+	assert(t, strongo.LocaleEnUS, 0, fmt.Sprintf("%v - you owe 10 USD\n%v - owes you 15 USD", johnLink, jackLink), enMock(t).ByContact(c, enLinker, []models.UserContactJson{john, jack}))
 
 }
 

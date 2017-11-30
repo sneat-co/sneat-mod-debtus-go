@@ -16,6 +16,15 @@ func renderUserBalance(title string, balances balancesByCurrency, showTransfers 
     <h3>`)
 	hero.EscapeHTML(title, buf)
 	buf.WriteString(`</h3>
+    `)
+	if balances.err != nil {
+		buf.WriteString(`
+    <div style="color:red">Error: `)
+		hero.EscapeHTML(balances.err.Error(), buf)
+		buf.WriteString(`</div>
+    `)
+	}
+	buf.WriteString(`
     <table class="table table-bordered">
         <thead>
         <tr>
@@ -34,24 +43,38 @@ func renderUserBalance(title string, balances balancesByCurrency, showTransfers 
         <tbody>
         `)
 	for currency, balance := range balances.byCurrency {
-		buf.WriteString(`
-        <tr>
-            <td>`)
-		hero.EscapeHTML(fmt.Sprintf("%v", currency), buf)
-		buf.WriteString(`</td>
-            <td class=d>`)
-		hero.EscapeHTML(fmt.Sprintf("%v", balance.user), buf)
-		buf.WriteString(`</td>
-            <td class=d>`)
-		hero.EscapeHTML(fmt.Sprintf("%v", balance.contacts), buf)
-		buf.WriteString(`</td>
-            `)
-		if showTransfers {
+		if balance.user == balance.contacts {
 			buf.WriteString(`
-            <td class=d>`)
-			hero.EscapeHTML(fmt.Sprintf("%v", balance.transfers), buf)
+        <tr>`)
+		} else {
+			buf.WriteString(`
+        <tr class="table-danger">`)
+		}
+		if balance.userContactBalanceErr != nil {
+			buf.WriteString(`
+            <td colspan="4" style="color:red">`)
+			hero.EscapeHTML(balance.userContactBalanceErr.Error(), buf)
 			buf.WriteString(`</td>
             `)
+		} else {
+			buf.WriteString(`
+            <td>`)
+			hero.EscapeHTML(fmt.Sprintf("%v", currency), buf)
+			buf.WriteString(`</td>
+            <td class=d>`)
+			hero.EscapeHTML(fmt.Sprintf("%v", balance.user), buf)
+			buf.WriteString(`</td>
+            <td class=d>`)
+			hero.EscapeHTML(fmt.Sprintf("%v", balance.contacts), buf)
+			buf.WriteString(`</td>
+            `)
+			if showTransfers {
+				buf.WriteString(`
+            <td class=d>`)
+				hero.EscapeHTML(fmt.Sprintf("%v", balance.transfers), buf)
+				buf.WriteString(`</td>
+            `)
+			}
 		}
 		buf.WriteString(`
         </tr>

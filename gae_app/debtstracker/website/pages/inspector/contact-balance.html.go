@@ -34,8 +34,14 @@ func renderContactBalance(contactID int64, title string, balances balancesByCurr
         <tbody>
         `)
 	for currency, balance := range balances.byCurrency {
+		if balance.user == balance.contacts {
+			buf.WriteString(`
+        <tr>`)
+		} else {
+			buf.WriteString(`
+        <tr class="table-danger">`)
+		}
 		buf.WriteString(`
-        <tr>
             <td><a href="transfers?contact=`)
 		hero.FormatInt(int64(contactID), buf)
 		buf.WriteString(`&currency=`)

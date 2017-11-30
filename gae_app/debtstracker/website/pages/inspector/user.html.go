@@ -82,7 +82,7 @@ func renderUserPage(
 <div class="row">
     `)
 
-	renderUserBalance("Balance without interest", userBalances.withoutInterest, true, _buffer)
+	renderUserBalance("Balance (no interest)", userBalances.withoutInterest, false, _buffer)
 	renderUserBalance("Balance with interest", userBalances.withInterest, false, _buffer)
 
 	_buffer.WriteString(`

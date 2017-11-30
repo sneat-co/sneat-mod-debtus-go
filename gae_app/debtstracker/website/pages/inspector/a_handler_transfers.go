@@ -78,10 +78,16 @@ func (h transfersPage) transfersPageHandler(w http.ResponseWriter, r *http.Reque
 		transfers: transfersTotalWithoutInterest,
 	}
 
-	balancesWithInterest := balanceRow{
-		user:     user.ContactByID(contactID).BalanceWithInterest(c, now)[currency],
-		contacts: contact.BalanceWithInterest(c, now)[currency],
-		//transfers: transfersTotalWithoutInterest,
+	balancesWithInterest := balanceRow{}
+	if balance, err := user.ContactByID(contactID).BalanceWithInterest(c, now); err == nil {
+		balancesWithInterest.user = balance[currency]
+	} else {
+		balancesWithInterest.userContactBalanceErr = err
+	}
+	if balance, err := contact.BalanceWithInterest(c, now); err == nil {
+		balancesWithInterest.contacts = balance[currency]
+	} else {
+		balancesWithInterest.contactBalanceErr = err
 	}
 
 	renderTransfersPage(contact, currency, balancesWithoutInterest, balancesWithInterest, transfers, w)

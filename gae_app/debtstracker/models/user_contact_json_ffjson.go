@@ -294,6 +294,8 @@ func (j *TransferWithInterestJson) MarshalJSONBuf(buf fflib.EncodingBuffer) erro
 	_ = err
 	buf.WriteString(`{ "TransferID":`)
 	fflib.FormatBits2(buf, uint64(j.TransferID), 10, j.TransferID < 0)
+	buf.WriteString(`,"Direction":`)
+	fflib.WriteJsonString(buf, string(j.Direction))
 	buf.WriteString(`,"Starts":`)
 
 	{
@@ -380,6 +382,8 @@ const (
 
 	ffjtTransferWithInterestJsonTransferID
 
+	ffjtTransferWithInterestJsonDirection
+
 	ffjtTransferWithInterestJsonStarts
 
 	ffjtTransferWithInterestJsonCurrency
@@ -400,6 +404,8 @@ const (
 )
 
 var ffjKeyTransferWithInterestJsonTransferID = []byte("TransferID")
+
+var ffjKeyTransferWithInterestJsonDirection = []byte("Direction")
 
 var ffjKeyTransferWithInterestJsonStarts = []byte("Starts")
 
@@ -492,6 +498,14 @@ mainparse:
 
 					if bytes.Equal(ffjKeyTransferWithInterestJsonCurrency, kn) {
 						currentKey = ffjtTransferWithInterestJsonCurrency
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 'D':
+
+					if bytes.Equal(ffjKeyTransferWithInterestJsonDirection, kn) {
+						currentKey = ffjtTransferWithInterestJsonDirection
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
@@ -604,6 +618,12 @@ mainparse:
 					goto mainparse
 				}
 
+				if fflib.SimpleLetterEqualFold(ffjKeyTransferWithInterestJsonDirection, kn) {
+					currentKey = ffjtTransferWithInterestJsonDirection
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
 				if fflib.EqualFoldRight(ffjKeyTransferWithInterestJsonTransferID, kn) {
 					currentKey = ffjtTransferWithInterestJsonTransferID
 					state = fflib.FFParse_want_colon
@@ -629,6 +649,9 @@ mainparse:
 
 				case ffjtTransferWithInterestJsonTransferID:
 					goto handle_TransferID
+
+				case ffjtTransferWithInterestJsonDirection:
+					goto handle_Direction
 
 				case ffjtTransferWithInterestJsonStarts:
 					goto handle_Starts
@@ -694,6 +717,32 @@ handle_TransferID:
 			}
 
 			j.TransferID = int64(tval)
+
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_Direction:
+
+	/* handler: j.Direction type=models.TransferDirection kind=string quoted=false*/
+
+	{
+
+		{
+			if tok != fflib.FFTok_string && tok != fflib.FFTok_null {
+				return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for TransferDirection", tok))
+			}
+		}
+
+		if tok == fflib.FFTok_null {
+
+		} else {
+
+			outBuf := fs.Output.Bytes()
+
+			j.Direction = TransferDirection(string(outBuf))
 
 		}
 	}

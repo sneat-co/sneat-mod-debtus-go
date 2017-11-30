@@ -21,6 +21,7 @@ type LastTransfer struct {
 type TransferWithInterestJson struct {
 	TransferInterest
 	TransferID int64
+	Direction TransferDirection
 	Starts     time.Time
 	Currency   Currency
 	Amount     decimal.Decimal64p2
@@ -122,10 +123,12 @@ func (o *UserContactJson) SetBalance(balance Balance) (err error) {
 	return
 }
 
-func (o UserContactJson) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance Balance) {
+func (o UserContactJson) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance Balance, err error) {
 	balance = o.Balance()
 	if o.Transfers != nil {
-		updateBalanceWithInterest(c, balance, o.Transfers.OutstandingWithInterest, periodEnds)
+		if err = updateBalanceWithInterest(false, balance, o.Transfers.OutstandingWithInterest, periodEnds); err != nil {
+			return
+		}
 	}
 	return
 }

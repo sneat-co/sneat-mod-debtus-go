@@ -72,29 +72,29 @@ func (r *Reminder) Save() ([]datastore.Property, error) {
 }
 
 type ReminderEntity struct {
-	ParentReminderID    int64
-	IsAutomatic         bool `datastore:",noindex"`
-	IsRescheduled       bool `datastore:",noindex"`
+	ParentReminderID    int64 `datastore:",omitempty"`
+	IsAutomatic         bool `datastore:",noindex,omitempty"`
+	IsRescheduled       bool `datastore:",noindex,omitempty"`
 	TransferID          int64
 	DtNext              time.Time
-	DtScheduled         time.Time `datastore:",noindex"` // DtNext moves here once sent, can be used for stats & troubleshooting
+	DtScheduled         time.Time `datastore:",noindex,omitempty"` // DtNext moves here once sent, can be used for stats & troubleshooting
 	Locale              string    `datastore:",noindex"`
 	ClosedByTransferIDs []int64   `datastore:",noindex"` // TODO: Why do we need list of IDs here?
-	SentVia             string
+	SentVia             string `datastore:",omitempty"`
 	Status              string
 	UserID              int64
 	CounterpartyID      int64 // If this field != 0 then r is to a counterparty
 	DtCreated           time.Time
-	DtUpdated           time.Time `datastore:",noindex"`
-	DtSent              time.Time
-	DtUsed              time.Time `datastore:",noindex"` // When user clicks "Yes/no returned"
-	DtViewed            time.Time `datastore:",noindex"`
-	DtDiscarded         time.Time `datastore:",noindex"`
-	BotID               string    `datastore:",noindex"`
-	ChatIntID           int64     `datastore:",noindex"`
-	MessageIntID        int64     `datastore:",noindex"`
-	MessageStrID        string    `datastore:",noindex"`
-	ErrDetails          string    `datastore:",noindex"`
+	DtUpdated           time.Time `datastore:",noindex,omitempty"`
+	DtSent              time.Time `datastore:",omitempty"`
+	DtUsed              time.Time `datastore:",noindex,omitempty"` // When user clicks "Yes/no returned"
+	DtViewed            time.Time `datastore:",noindex,omitempty"`
+	DtDiscarded         time.Time `datastore:",noindex,omitempty"`
+	BotID               string    `datastore:",noindex,omitempty"`
+	ChatIntID           int64     `datastore:",noindex,omitempty"`
+	MessageIntID        int64     `datastore:",noindex,omitempty"`
+	MessageStrID        string    `datastore:",noindex,omitempty"`
+	ErrDetails          string    `datastore:",noindex,omitempty"`
 }
 
 func (r *ReminderEntity) Load(ps []datastore.Property) error {

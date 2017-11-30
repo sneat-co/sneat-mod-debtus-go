@@ -29,11 +29,16 @@ func TestTransfer_Save(t *testing.T) {
 		ContactName: "Creator 1",
 	}
 	transfer := NewTransferEntity(creator.UserID, false, NewAmount(rub, decimal.NewDecimal64p2FromFloat64(123.45)), &creator, &counterparty)
-	if _, err := transfer.Save(); err != nil {
+	if properties, err := transfer.Save(); err != nil {
 		t.Error(err)
 	} else if len(saved) == 1 {
 		if saved[0].kind != TransferKind {
 			t.Errorf("saved[0].kind:'%v' != '%v'", saved[0].kind, TransferKind)
+		}
+		for _, p := range properties{
+			if p.Name == "AcknowledgeTime" {
+				t.Error("AcknowledgeTime should not be saved")
+			}
 		}
 	} else {
 		t.Errorf("len(saved):%v != 1", len(saved))

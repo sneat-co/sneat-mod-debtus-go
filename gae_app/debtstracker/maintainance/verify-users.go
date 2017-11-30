@@ -34,7 +34,7 @@ func (m *verifyUsers) Query(r *http.Request) (query *mapper.Query, err error) {
 	if query, filtered, err = filterByIntID(r, models.AppUserKind, "user"); err != nil {
 		return
 	} else if filtered {
-		if len(r.URL.Query()) != 1 {
+		if len(r.URL.Query()) != 2 {
 			err = errors.New("unexpected params: " + r.URL.RawQuery)
 		}
 		return

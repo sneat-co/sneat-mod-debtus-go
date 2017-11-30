@@ -59,7 +59,7 @@ func TestTransferFromToUpdate(t *testing.T) {
 		return
 	}
 
-	transfer := Transfer{ID: 55, TransferEntity: &transferEntity}
+	transfer := NewTransfer(55, &transferEntity)
 
 	from = transfer.From()
 

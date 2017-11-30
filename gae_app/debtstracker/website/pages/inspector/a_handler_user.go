@@ -29,10 +29,13 @@ type transfersInfo struct {
 }
 
 func newContactWithBalances(now time.Time, contact models.Contact) contactWithBalances {
-	return contactWithBalances{
+	balanceWithInterest, err := contact.BalanceWithInterest(nil, now)
+	result := contactWithBalances{
 		Contact:  contact,
-		balances: newBalances("contact", contact.Balance(), contact.BalanceWithInterest(nil, now)),
+		balances: newBalances("contact", contact.Balance(), balanceWithInterest),
 	}
+	result.balances.withInterest.err = err
+	return result
 }
 
 func newBalanceSummary(who string, balance models.Balance) (balances balancesByCurrency) {
@@ -60,70 +63,6 @@ func (bs balancesByCurrency) SetBalance(setter func(bs balancesByCurrency)) {
 	bs.Lock()
 	setter(bs)
 	bs.Unlock()
-}
-
-func userPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	c := appengine.NewContext(r)
-
-	userID, err := strconv.ParseInt(r.URL.Query().Get("id"), 10, 64)
-	if err != nil {
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	var (
-		user                                                          models.AppUser
-		contactsMissingInJson, contactsMissedByQuery, matchedContacts []contactWithBalances
-		contactInfosNotFoundInDb                                      []models.UserContactJson
-	)
-	if user, err = dal.User.GetUserByID(c, userID); err != nil {
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	wg := new(sync.WaitGroup)
-
-	now := time.Now()
-
-	userBalances := newBalances("user", user.Balance(), user.BalanceWithInterest(c, now))
-
-	wg.Add(1)
-	go func() { // TODO: Move to DAL?
-		defer wg.Done()
-		contactsMissingInJson, contactsMissedByQuery, matchedContacts, contactInfosNotFoundInDb, err = validateContacts(c, now, user, userBalances)
-	}()
-
-	var byContactWithoutInterest map[int64]transfersInfo
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		byContactWithoutInterest, err = validateTransfers(c, userID, userBalances)
-	}()
-
-	wg.Wait()
-
-	for contactID, contactTransfersInfo := range byContactWithoutInterest {
-		for i, contactInfo := range matchedContacts {
-			if contactInfo.ID == contactID {
-				contactInfo.transfersCount = contactTransfersInfo.count
-				for currency, value := range contactTransfersInfo.balance {
-					row := contactInfo.balances.withoutInterest.byCurrency[currency]
-					row.transfers = value
-					contactInfo.balances.withoutInterest.byCurrency[currency] = row
-				}
-				matchedContacts[i] = contactInfo
-				break
-			}
-		}
-	}
-
-	log.Debugf(c, "matchedContacts: %v", matchedContacts)
-
-	renderUserPage(now,
-		user,
-		userBalances,
-		contactsMissingInJson, contactsMissedByQuery, matchedContacts, contactInfosNotFoundInDb,
-		w)
 }
 
 func validateTransfers(c context.Context, userID int64, userBalances balances) (
@@ -175,7 +114,11 @@ func validateTransfers(c context.Context, userID int64, userBalances balances) (
 	return
 }
 
-func validateContacts(c context.Context, now time.Time, user models.AppUser, userBalances balances) (
+func validateContacts(c context.Context,
+	now time.Time,
+	user models.AppUser,
+	userBalances balances,
+) (
 	contactsMissingInJson, contactsMissedByQuery, matchedContacts []contactWithBalances,
 	contactInfosNotFoundInDb []models.UserContactJson,
 	err error,
@@ -189,11 +132,13 @@ func validateContacts(c context.Context, now time.Time, user models.AppUser, use
 
 	updateBalance := func(contact models.Contact) (ci contactWithBalances) {
 		contactBalanceWithoutInterest := contact.Balance()
-		contactBalanceWithInterest := contact.BalanceWithInterest(nil, now)
+		contactBalanceWithInterest, err := contact.BalanceWithInterest(c, now)
+		if err == nil {
+
+		}
 		ci = newContactWithBalances(now, contact)
 		for currency, value := range contactBalanceWithoutInterest {
 			contactsTotalWithoutInterest[currency] += value
-
 		}
 		for currency, value := range contactBalanceWithInterest {
 			contactsTotalWithInterest[currency] += value
@@ -205,10 +150,15 @@ func validateContacts(c context.Context, now time.Time, user models.AppUser, use
 					row.user = value
 					ci.balances.withoutInterest.byCurrency[currency] = row
 				}
-				for currency, value := range userContactJson.BalanceWithInterest(nil, now) {
-					row := ci.balances.withInterest.byCurrency[currency]
-					row.user = value
-					ci.balances.withInterest.byCurrency[currency] = row
+
+				if userContactBalanceWithInterest, err := userContactJson.BalanceWithInterest(nil, now); err != nil {
+					ci.balances.withInterest.err = err
+				} else {
+					for currency, value := range userContactBalanceWithInterest {
+						row := ci.balances.withInterest.byCurrency[currency]
+						row.user = value
+						ci.balances.withInterest.byCurrency[currency] = row
+					}
 				}
 				break
 			}
@@ -289,4 +239,72 @@ func validateContacts(c context.Context, now time.Time, user models.AppUser, use
 		}
 	})
 	return
+}
+
+func userPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	c := appengine.NewContext(r)
+
+	userID, err := strconv.ParseInt(r.URL.Query().Get("id"), 10, 64)
+	if err != nil {
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	var (
+		user                                                          models.AppUser
+		contactsMissingInJson, contactsMissedByQuery, matchedContacts []contactWithBalances
+		contactInfosNotFoundInDb                                      []models.UserContactJson
+	)
+	if user, err = dal.User.GetUserByID(c, userID); err != nil {
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	wg := new(sync.WaitGroup)
+
+	now := time.Now()
+
+	userBalanceWithInterest, err := user.BalanceWithInterest(c, now)
+	userBalances := newBalances("user", user.Balance(), userBalanceWithInterest)
+	if err != nil {
+		userBalances.withInterest.err = err
+	}
+
+	wg.Add(1)
+	go func() { // TODO: Move to DAL?
+		defer wg.Done()
+		contactsMissingInJson, contactsMissedByQuery, matchedContacts, contactInfosNotFoundInDb, err = validateContacts(c, now, user, userBalances)
+	}()
+
+	var byContactWithoutInterest map[int64]transfersInfo
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		byContactWithoutInterest, err = validateTransfers(c, userID, userBalances)
+	}()
+
+	wg.Wait()
+
+	for contactID, contactTransfersInfo := range byContactWithoutInterest {
+		for i, contactInfo := range matchedContacts {
+			if contactInfo.ID == contactID {
+				contactInfo.transfersCount = contactTransfersInfo.count
+				for currency, value := range contactTransfersInfo.balance {
+					row := contactInfo.balances.withoutInterest.byCurrency[currency]
+					row.transfers = value
+					contactInfo.balances.withoutInterest.byCurrency[currency] = row
+				}
+				matchedContacts[i] = contactInfo
+				break
+			}
+		}
+	}
+
+	log.Debugf(c, "matchedContacts: %v", matchedContacts)
+
+	renderUserPage(now,
+		user,
+		userBalances,
+		contactsMissingInJson, contactsMissedByQuery, matchedContacts, contactInfosNotFoundInDb,
+		w)
 }
