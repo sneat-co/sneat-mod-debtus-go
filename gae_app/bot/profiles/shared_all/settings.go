@@ -27,3 +27,9 @@ func BackToSettingsAction(whc bots.WebhookContext, messageText string) (m bots.M
 	)
 	return m, err
 }
+
+var SettingsCommandTemplate = bots.Command{
+	Code:     SettingsCommandCode,
+	Commands: trans.Commands(trans.COMMAND_TEXT_SETTING, trans.COMMAND_SETTINGS, emoji.SETTINGS_ICON),
+	Icon:     emoji.SETTINGS_ICON,
+}

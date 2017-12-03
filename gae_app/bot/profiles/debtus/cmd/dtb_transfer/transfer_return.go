@@ -118,9 +118,13 @@ var AskReturnCounterpartyCommand = CreateAskTransferCounterpartyCommand(
 )
 
 func askToChooseDebt(whc bots.WebhookContext, buttons [][]string) (m bots.MessageFromBot) {
-	whc.ChatEntity().PushStepToAwaitingReplyTo(ASK_TO_CHOOSE_DEBT_TO_RETURN_COMMAND)
-	m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_CHOOSE_DEBT_THAT_HAS_BEEN_RETURNED))
-	m.Keyboard = tgbotapi.NewReplyKeyboardUsingStrings(buttons)
+	if len(buttons) > 0 {
+		whc.ChatEntity().PushStepToAwaitingReplyTo(ASK_TO_CHOOSE_DEBT_TO_RETURN_COMMAND)
+		m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_CHOOSE_DEBT_THAT_HAS_BEEN_RETURNED))
+		m.Keyboard = tgbotapi.NewReplyKeyboardUsingStrings(buttons)
+	} else {
+		m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_NO_DEBTS_TO_RETURN))
+	}
 	return m
 }
 

@@ -14,13 +14,13 @@ var menuCommand = bots.Command{
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		m.Text = whc.Translate(trans.SPLITUS_TG_COMMANDS)
 		m.Format = bots.MessageFormatHTML
-		m.Keyboard = telegramMainMenu(whc)
+		setMainMenu(whc, &m)
 		return
 	},
 }
 
-func telegramMainMenu(whc bots.WebhookContext) bots.Keyboard {
-	return tgbotapi.NewReplyKeyboard(
+func setMainMenu(whc bots.WebhookContext, m *bots.MessageFromBot) {
+	m.Keyboard = tgbotapi.NewReplyKeyboard(
 		[]tgbotapi.KeyboardButton{
 			{Text: whc.Translate(trans.COMMAND_TEXT_SETTING)},
 		},

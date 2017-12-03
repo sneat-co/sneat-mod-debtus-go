@@ -41,22 +41,24 @@ var localesReplyKeyboard = tgbotapi.NewReplyKeyboard(
 	},
 )
 
-var onboardingAskLocaleCommand = bots.Command{
-	Code:       onboardingAskLocaleCommandCode,
-	ExactMatch: trans.ChooseLocaleIcon,
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
-		return onboardingAskLocaleAction(whc, "")
-	},
+func createOnboardingAskLocaleCommand(botParams BotParams) bots.Command {
+	return bots.Command{
+		Code:       onboardingAskLocaleCommandCode,
+		ExactMatch: trans.ChooseLocaleIcon,
+		Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+			return onboardingAskLocaleAction(whc, "", botParams)
+		},
+	}
 }
 
-func onboardingAskLocaleAction(whc bots.WebhookContext, messagePrefix string) (m bots.MessageFromBot, err error) {
+func onboardingAskLocaleAction(whc bots.WebhookContext, messagePrefix string, botParams BotParams) (m bots.MessageFromBot, err error) {
 	chatEntity := whc.ChatEntity()
 
 	if chatEntity.IsAwaitingReplyTo(onboardingAskLocaleCommandCode) {
 		messageText := whc.Input().(bots.WebhookTextMessage).Text()
 		for _, locale := range trans.SupportedLocales {
 			if locale.TitleWithIcon() == messageText {
-				return setPreferredLanguageCommand(whc, locale.Code5, "onboarding")
+				return setPreferredLanguageAction(whc, locale.Code5, "onboarding", botParams)
 			}
 		}
 		m = whc.NewMessageByCode(trans.MESSAGE_TEXT_UNKNOWN_LANGUAGE)
@@ -102,26 +104,26 @@ var askPreferredLocaleFromSettingsCallback = bots.Command{
 	},
 }
 
-func setLocaleCallbackCommand(params BotParams) bots.Command {
+func setLocaleCallbackCommand(botParams BotParams) bots.Command {
 	return bots.Command{
 		Code: SettingsLocaleSetCallbackPath,
 		CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
-			return setPreferredLanguageCommand(whc, callbackUrl.Query().Get("code5"), callbackUrl.Query().Get("mode"))
+			return setPreferredLanguageAction(whc, callbackUrl.Query().Get("code5"), callbackUrl.Query().Get("mode"), botParams)
 		},
 	}
 }
 
-func setPreferredLanguageCommand(whc bots.WebhookContext, code5, mode string) (m bots.MessageFromBot, err error) {
+func setPreferredLanguageAction(whc bots.WebhookContext, code5, mode string, botParams BotParams) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
-	log.Debugf(c, "setPreferredLanguageCommand(code5=%v, mode=%v)", code5, mode)
+	log.Debugf(c, "setPreferredLanguageAction(code5=%v, mode=%v)", code5, mode)
 	appUser, err := whc.GetAppUser()
 	if err != nil {
 		log.Errorf(c, ": %v", err)
-		return m, errors.Wrap(err, "Failed to load userEntity")
+		return m, errors.WithMessage(err, "failed to load userEntity")
 	}
 	userEntity, ok := appUser.(*models.AppUserEntity)
 	if !ok {
-		return m, fmt.Errorf("Expected *models.AppUser, got: %T", appUser)
+		return m, fmt.Errorf("expected *models.AppUser, got: %T", appUser)
 	}
 
 	var (
@@ -143,7 +145,7 @@ func setPreferredLanguageCommand(whc bots.WebhookContext, code5, mode string) (m
 						return
 					}
 					if err = user.SetPreferredLocale(locale.Code5); err != nil {
-						err = errors.WithMessage(err, "Failed to set preferred locale for user")
+						err = errors.WithMessage(err, "failed to set preferred locale for user")
 					}
 					return dal.User.SaveUser(c, user)
 				}, nil); err != nil {
@@ -178,7 +180,7 @@ func setPreferredLanguageCommand(whc bots.WebhookContext, code5, mode string) (m
 	case "onboarding":
 		log.Debugf(c, "whc.Locale().Code5: %v", whc.Locale().Code5)
 		m = whc.NewMessageByCode(trans.MESSAGE_TEXT_YOUR_SELECTED_PREFERRED_LANGUAGE, selectedLocale.NativeTitle)
-		dtb_general.SetMainMenuKeyboard(whc, &m)
+		botParams.SetMainMenu(whc, &m)
 		if _, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
 			log.Errorf(c, "Failed to notify userEntity about selected language: %v", err)
 			// Not critical, lets continue

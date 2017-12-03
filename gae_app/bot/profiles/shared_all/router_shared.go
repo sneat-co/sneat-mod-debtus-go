@@ -11,7 +11,7 @@ func AddSharedRoutes(router bots.WebhooksRouter, botParams BotParams) {
 		startCommand,
 		helpRootCommand,
 		ReferrersCommand,
-		onboardingAskLocaleCommand,
+		createOnboardingAskLocaleCommand(botParams),
 		aboutDrawCommand,
 	})
 	router.AddCommands(bots.WebhookInputCallbackQuery, []bots.Command{

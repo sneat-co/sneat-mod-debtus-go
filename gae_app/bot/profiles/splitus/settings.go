@@ -8,7 +8,6 @@ import (
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 )
@@ -54,32 +53,25 @@ func GroupSettingsAction(whc bots.WebhookContext, group models.Group, isEdit boo
 	return
 }
 
-var settingsCommand = bots.Command{
-	Code:     shared_all.SettingsCommandCode,
-	Commands: trans.Commands(trans.COMMAND_SETTINGS, emoji.SETTINGS_ICON),
-	Icon:     emoji.SETTINGS_ICON,
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
-		switch whc.GetBotSettings().Profile {
-		case bot.ProfileDebtus:
-			return shared_all.BackToSettingsAction(whc, "")
-		default:
-			groupAction := shared_group.NewGroupAction(func(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error) {
-				return GroupSettingsAction(whc, group, false)
-			})
-			return groupAction(whc)
-		}
-	},
-	CallbackAction: shared_group.NewGroupCallbackAction(func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
-		switch whc.GetBotSettings().Profile {
-		case bot.ProfileDebtus:
-			return shared_all.BackToSettingsAction(whc, "")
-		default:
-			groupAction := shared_group.NewGroupAction(func(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error) {
-				return GroupSettingsAction(whc, group, false)
-			})
-			return groupAction(whc)
-		}
-		return GroupSettingsAction(whc, group, true)
-	}),
-}
+var settingsCommand = func() (settingsCommand bots.Command) {
+	settingsCommand = shared_all.SettingsCommandTemplate
+	settingsCommand = shared_all.SettingsCommandTemplate
+	settingsCommand.Action = settingsAction
+	settingsCommand.CallbackAction = func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+		return settingsAction(whc)
+	}
+	return
+}()
 
+
+func settingsAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	if whc.IsInGroup() {
+		groupAction := shared_group.NewGroupAction(func(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error) {
+			return GroupSettingsAction(whc, group, false)
+		})
+		return groupAction(whc)
+	} else {
+		m.Text = "not implemented yet"
+		return
+	}
+}

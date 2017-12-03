@@ -60,15 +60,8 @@ func createStartCommand(botParams BotParams) bots.Command {
 					//	return JoinBillCommand.Action(whc)
 				case strings.HasPrefix(startParam, "refbytguser-") && startParam != "refbytguser-YOUR_CHANNEL":
 					facade.Referer.AddTelegramReferrer(c, whc.AppUserIntID(), strings.TrimPrefix(startParam, "refbytguser-"), whc.GetBotCode())
-				default:
-					return startInBotAction(whc, startParams, botParams)
 				}
-
-				if chatEntity.GetPreferredLanguage() == "" {
-					return onboardingAskLocaleAction(whc, whc.Translate(trans.MESSAGE_TEXT_HI)+"\n\n")
-				}
-				m.Text = "TODO: not implemented yet"
-				return
+				return startInBotAction(whc, startParams, botParams)
 			}
 		},
 	}

@@ -44,6 +44,10 @@ var botParams = shared_all.BotParams{
 		)
 		return
 	},
+	//
+	//
+	//
+	SetMainMenu: setMainMenu,
 }
 
 var Router = bots.NewWebhookRouter(

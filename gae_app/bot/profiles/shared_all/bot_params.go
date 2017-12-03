@@ -15,4 +15,7 @@ type BotParams struct {
 	//ShowGroupMembers                 func(whc bots.WebhookContext, group models.Group, isEdit bool) (m bots.MessageFromBot, err error)
 	//InGroupWelcomeMessage func(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error)
 	InBotWelcomeMessage   func(whc bots.WebhookContext) (m bots.MessageFromBot, err error)
+
+	// Below we need for sure
+	SetMainMenu func(whc bots.WebhookContext, m *bots.MessageFromBot)
 }

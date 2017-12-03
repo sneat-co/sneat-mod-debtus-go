@@ -18,6 +18,11 @@ func startInBotAction(whc bots.WebhookContext, startParams []string, botParams B
 	if m, err = botParams.StartInBotAction(whc, startParams); err == nil || err != ErrUnknownStartParam {
 		return
 	}
+	if err == ErrUnknownStartParam {
+		if whc.ChatEntity().GetPreferredLanguage() == "" {
+			return onboardingAskLocaleAction(whc, whc.Translate(trans.MESSAGE_TEXT_HI)+"\n\n", botParams)
+		}
+	}
 	err = nil
 	if len(startParams) > 0 {
 		switch {

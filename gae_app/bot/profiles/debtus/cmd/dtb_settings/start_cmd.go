@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"strconv"
 	"time"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
@@ -13,6 +12,7 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 )
 
 /*
@@ -22,17 +22,14 @@ Examples:
 var reInviteCodeFromStart = regexp.MustCompile(`^(invite|receipt)-(\w+)(-(view|accept|decline))?(_(\w{2}(-\w{2})?))(_(.+))?$`)
 
 
-func startCommandAction(whc bots.WebhookContext, startParam string) (m bots.MessageFromBot, err error) {
-	//c := whc.Context()
-	//if matched := reInviteCodeFromStart.FindStringSubmatch(startParam); matched != nil {
-	//	return startByLinkCode(whc, matched)
-	//}
-	//
-	//if chatEntity.GetPreferredLanguage() == "" {
-	//	return shared_all.OnboardingAskLocaleAction(whc, whc.Translate(trans.MESSAGE_TEXT_HI)+"\n\n")
-	//}
-	//
-	return dtb_general.MainMenuAction(whc, "", true)
+func StartInBotAction(whc bots.WebhookContext, startParams []string) (m bots.MessageFromBot, err error) {
+	if len(startParams) == 1 {
+		if matched := reInviteCodeFromStart.FindStringSubmatch(startParams[0]); matched != nil {
+			return startByLinkCode(whc, matched)
+		}
+	}
+	err = shared_all.ErrUnknownStartParam
+	return
 }
 
 func startByLinkCode(whc bots.WebhookContext, matches []string) (m bots.MessageFromBot, err error) {
@@ -60,6 +57,8 @@ func startByLinkCode(whc bots.WebhookContext, matches []string) (m bots.MessageF
 		return startReceipt(whc, entityCode, operation, localeCode5)
 	case "invite":
 		return startInvite(whc, entityCode, operation, localeCode5)
+	default:
+		err = shared_all.ErrUnknownStartParam
 	}
 	return
 }

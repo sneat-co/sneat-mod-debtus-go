@@ -41,6 +41,11 @@ var botParams = shared_all.BotParams{
 		//m.IsEdit = true
 		return
 	},
+	//
+	//
+	//
+	StartInBotAction: dtb_settings.StartInBotAction,
+	SetMainMenu: dtb_general.SetMainMenuKeyboard,
 }
 
 func init() {
@@ -60,6 +65,7 @@ var textAndContactCommands = []bots.Command{ // TODO: Check for Action || Callba
 	//
 	dtb_admin.AdminCommand,
 	//
+	dtb_settings.SettingsCommand,
 	dtb_settings.LoginPinCommand,
 	//dtb_settings.OnboardingTellAboutInviteCodeCommand, // We need it as otherwise do not handle replies. Consider incorporate to StartCommand?
 	dtb_settings.FixBalanceCommand,
@@ -96,6 +102,7 @@ var callbackCommands = []bots.Command{
 	dtb_general.PleaseWaitCommand,
 	//dtb_invite.InviteCommand,
 	//
+	dtb_settings.SettingsCommand,
 	dtb_settings.ContactsListCommand,
 	//
 	dtb_fbm.FbmGetStartedCommand, // TODO: Move command to other package?
