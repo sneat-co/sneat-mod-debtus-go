@@ -1,58 +1,12 @@
 package dtb_settings
 
 import (
-	"net/url"
-
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
 )
 
-const SETTINGS_CALLBACK_PATH = "settings"
-
-var SettingsCommand = bots.Command{
-	Code:     "settings",
-	Title:    trans.COMMAND_TEXT_SETTING,
-	Icon:     emoji.SETTINGS_ICON,
-	Commands: trans.Commands(trans.COMMAND_SETTINGS, emoji.SETTINGS_ICON),
-	Action:   SettingsAction,
-}
-
-var BackToSettingsCallbackCommand = bots.NewCallbackCommand(SETTINGS_CALLBACK_PATH, backToSettingsCallbackAction)
-
-func backToSettingsCallbackAction(whc bots.WebhookContext, _ *url.URL) (bots.MessageFromBot, error) {
-	return BackToSettingsAction(whc, "")
-}
-
-func SettingsAction(whc bots.WebhookContext) (bots.MessageFromBot, error) {
-	return BackToSettingsAction(whc, "")
-}
-
-func BackToSettingsAction(whc bots.WebhookContext, messageText string) (m bots.MessageFromBot, err error) {
-	if messageText == "" {
-		messageText = whc.Translate(trans.MESSAGE_TEXT_SETTINGS)
-	} else {
-		messageText += "\n\n" + whc.Translate(trans.MESSAGE_TEXT_SETTINGS)
-	}
-	m = whc.NewMessage(messageText)
-	m.IsEdit = whc.InputType() == bots.WebhookInputCallbackQuery
-	m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
-		[]tgbotapi.InlineKeyboardButton{
-			{
-				Text:         whc.CommandText(trans.COMMAND_TEXT_LANGUAGE, emoji.EARTH_ICON),
-				CallbackData: SETTINGS_LOCALE_LIST_CALLBACK_PATH,
-			},
-		},
-		//[]tgbotapi.InlineKeyboardButton{
-		//	{AskCurrencySettingsCommand.DefaultTitle(whc)},
-		//},
-	)
-	return m, err
-}
 
 var FixBalanceCommand = bots.Command{
 	Code:     "fixbalance",

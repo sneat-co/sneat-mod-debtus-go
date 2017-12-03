@@ -155,26 +155,35 @@ func AskTransferAmountCommand(code, messageTextFormat string, nextCommand bots.C
 			awaitingReplyToPath := bots.AwaitingReplyToPath(awaitingReplyTo)
 			switch {
 			case chatEntity.IsAwaitingReplyTo(code):
-				mt := strings.TrimSpace(whc.Input().(bots.WebhookTextMessage).Text())
-				if mt == "." || mt == "0" || strings.Index(mt, emoji.NO_ENTRY_SIGN_ICON) >= 0 {
-					return CancelTransferWizardCommand.Action(whc)
-				}
-				if strings.Count(mt, ",") == 1 && strings.Count(mt, ".") == 0 {
-					// handles numbers like 12,34
-					mt = strings.Replace(mt, ",", ".", 1)
-				} else if strings.Count(mt, ".") == 1 && strings.Count(mt, ",") > 0 && strings.Index(mt, ",") < strings.Index(mt, ".") {
-					// handles numbers like 12,345.67
-					mt = strings.Replace(mt, ",", "", -1)
-				}
-				if _, err := strconv.ParseFloat(mt, 64); err != nil {
-					err = nil
-					m = whc.NewMessage(emoji.NO_ENTRY_SIGN_ICON +
-						" " + whc.Translate(trans.MESSAGE_TEXT_INVALID_FLOAT) +
-						"\n\n" + whc.Translate(messageTextFormat, html.EscapeString(chatEntity.GetWizardParam("currency"))))
-					m.Format = bots.MessageFormatHTML
-				} else {
-					chatEntity.AddWizardParam("value", mt)
-					return nextCommand.Action(whc)
+				switch whc.Input().(type) {
+				case bots.WebhookTextMessage:
+					mt := strings.TrimSpace(whc.Input().(bots.WebhookTextMessage).Text())
+					if mt == "." || mt == "0" || strings.Index(mt, emoji.NO_ENTRY_SIGN_ICON) >= 0 {
+						return CancelTransferWizardCommand.Action(whc)
+					}
+					if strings.Count(mt, ",") == 1 && strings.Count(mt, ".") == 0 {
+						// handles numbers like 12,34
+						mt = strings.Replace(mt, ",", ".", 1)
+					} else if strings.Count(mt, ".") == 1 && strings.Count(mt, ",") > 0 && strings.Index(mt, ",") < strings.Index(mt, ".") {
+						// handles numbers like 12,345.67
+						mt = strings.Replace(mt, ",", "", -1)
+					}
+					if _, err := strconv.ParseFloat(mt, 64); err != nil {
+						err = nil
+						m = whc.NewMessage(emoji.NO_ENTRY_SIGN_ICON +
+							" " + whc.Translate(trans.MESSAGE_TEXT_INVALID_FLOAT) +
+							"\n\n" + whc.Translate(messageTextFormat, html.EscapeString(chatEntity.GetWizardParam("currency"))))
+						m.Format = bots.MessageFormatHTML
+					} else {
+						chatEntity.AddWizardParam("value", mt)
+						return nextCommand.Action(whc)
+					}
+				case bots.WebhookContactMessage:
+					m.Text = whc.Translate("Please enter amount now, and then contact.")
+					return
+				default:
+					m.Text = whc.Translate("Please enter amount now.")
+					return
 				}
 			case strings.Contains(awaitingReplyToPath, code):
 				//if strings.Contains(messageText, "%v") {

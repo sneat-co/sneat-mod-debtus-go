@@ -2,8 +2,6 @@ package splitus
 
 import (
 	"net/url"
-
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"
@@ -13,7 +11,7 @@ import (
 
 const CHANGE_BILL_PAYER_COMMAND = "change-bill-payer"
 
-var changeBillPayerCommand = bot_shared.BillCallbackCommand(CHANGE_BILL_PAYER_COMMAND,
+var changeBillPayerCommand = billCallbackCommand(CHANGE_BILL_PAYER_COMMAND,
 	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "changeBillPayerCommand.CallbackAction()")
@@ -21,7 +19,7 @@ var changeBillPayerCommand = bot_shared.BillCallbackCommand(CHANGE_BILL_PAYER_CO
 			mt string
 			//editedMessage *tgbotapi.EditMessageTextConfig
 		)
-		if mt, err = bot_shared.GetBillCardMessageText(c, whc.GetBotCode(), whc, bill, true, whc.Translate(trans.MESSAGE_TEXT_BILL_ASK_WHO_PAID)); err != nil {
+		if mt, err = getBillCardMessageText(c, whc.GetBotCode(), whc, bill, true, whc.Translate(trans.MESSAGE_TEXT_BILL_ASK_WHO_PAID)); err != nil {
 			return
 		}
 		if m, err = whc.NewEditMessage(mt, bots.MessageFormatHTML); err != nil {
@@ -38,7 +36,7 @@ var changeBillPayerCommand = bot_shared.BillCallbackCommand(CHANGE_BILL_PAYER_CO
 			markup.InlineKeyboard = append(markup.InlineKeyboard, []tgbotapi.InlineKeyboardButton{
 				{
 					Text:         s,
-					CallbackData: bot_shared.BillCardCallbackCommandData(bill.ID),
+					CallbackData: billCardCallbackCommandData(bill.ID),
 				},
 			})
 		}
@@ -46,7 +44,7 @@ var changeBillPayerCommand = bot_shared.BillCallbackCommand(CHANGE_BILL_PAYER_CO
 		markup.InlineKeyboard = append(markup.InlineKeyboard, []tgbotapi.InlineKeyboardButton{
 			{
 				Text:         whc.Translate(trans.BUTTON_TEXT_CANCEL),
-				CallbackData: bot_shared.BillCardCallbackCommandData(bill.ID),
+				CallbackData: billCardCallbackCommandData(bill.ID),
 			},
 		})
 

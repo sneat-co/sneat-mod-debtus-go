@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"net/url"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 )
 
 const GROUP_BALANCE_COMMAND = "group-balance"
@@ -17,8 +18,8 @@ const GROUP_BALANCE_COMMAND = "group-balance"
 var groupBalanceCommand = bots.Command{
 	Code:     GROUP_BALANCE_COMMAND,
 	Commands: []string{"/balance"},
-	Action:   bot_shared.NewGroupAction(groupBalanceAction),
-	CallbackAction: bot_shared.NewGroupCallbackAction(func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
+	Action:   shared_group.NewGroupAction(groupBalanceAction),
+	CallbackAction: shared_group.NewGroupCallbackAction(func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
 		return groupBalanceAction(whc, group)
 	}),
 }
@@ -62,7 +63,7 @@ func groupBalanceAction(whc bots.WebhookContext, group models.Group) (m bots.Mes
 		[]tgbotapi.InlineKeyboardButton{
 			{
 				Text: "Settle up",
-				URL:  bot_shared.StartBotLink(whc.GetBotCode(), bot_shared.SETTLE_GROUP_ASK_FOR_COUNTERPARTY_COMMAND, "group="+group.ID),
+				URL:  shared_all.StartBotLink(whc.GetBotCode(), SettleGroupAskForCounterpartyCommandCode, "group="+group.ID),
 			},
 		},
 	)

@@ -12,7 +12,7 @@ import (
 )
 
 func CheckTransferCreatorNameAndFixIfNeeded(c context.Context, w http.ResponseWriter, transfer models.Transfer) (models.Transfer, error) {
-	if transfer.Creator().ContactName == "" {
+	if transfer.Creator().UserName == "" {
 		user, err := dal.User.GetUserByID(c, transfer.CreatorUserID)
 		if err != nil {
 			return transfer, err
@@ -20,10 +20,11 @@ func CheckTransferCreatorNameAndFixIfNeeded(c context.Context, w http.ResponseWr
 
 		creatorFullName := user.FullName()
 		if creatorFullName == "" || creatorFullName == models.NO_NAME {
+			log.Debugf(c, "Can't fix transfers creator name as user entity has no name defined.")
 			return transfer, nil
 		}
 
-		logMessage := fmt.Sprintf("Fixing transfer(%d).Creator().ContactName, created: %v", transfer.ID, transfer.DtCreated)
+		logMessage := fmt.Sprintf("Fixing transfer(%d).Creator().UserName, created: %v", transfer.ID, transfer.DtCreated)
 		if transfer.DtCreated.After(time.Date(2017, 8, 1, 0, 0, 0, 0, time.UTC)) {
 			log.Warningf(c, logMessage)
 		} else {
@@ -34,7 +35,7 @@ func CheckTransferCreatorNameAndFixIfNeeded(c context.Context, w http.ResponseWr
 			if transfer, err = dal.Transfer.GetTransferByID(c, transfer.ID); err != nil {
 				return err
 			}
-			if transfer.Creator().ContactName == "" {
+			if transfer.Creator().UserName == "" {
 				changed := false
 				switch transfer.Direction() {
 				case models.TransferDirectionUser2Counterparty:
@@ -50,10 +51,8 @@ func CheckTransferCreatorNameAndFixIfNeeded(c context.Context, w http.ResponseWr
 			}
 			return nil
 		}, nil); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			return transfer, err
 		}
-		return transfer, err
 	}
 	return transfer, nil
 }

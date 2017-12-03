@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/secret"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
@@ -15,7 +14,7 @@ var _bots bots.SettingsBy
 
 const DEFAULT_LOCALE = strongo.LOCALE_EN_US
 
-var AdminBot = telegram_bot.NewTelegramBot(strongo.EnvProduction, "admin", "DebtsTrackerAdminBot", secret.AdminBotToken, "", "", strongo.LocalesByCode5[strongo.LOCALE_EN_US])
+const DebtusBotToken = "467112035:AAG9Hij0ofnI6GGXyuc6zol0F4XGQ4OK5Tk"
 
 func Bots(environment strongo.Environment, router func(profile string) bots.WebhooksRouter) bots.SettingsBy { //TODO: Consider to do pre-deployment replace
 	if len(_bots.ByCode) == 0 || (!_bots.HasRouter && router != nil) {
@@ -24,6 +23,8 @@ func Bots(environment strongo.Environment, router func(profile string) bots.Webh
 		case strongo.EnvProduction:
 			_bots = bots.NewBotSettingsBy(router,
 				// Production bots
+				telegram_bot.NewTelegramBot(strongo.EnvProduction, bot.ProfileCollectus, "CollectusBot", "458860316:AAFk_hOXK5vFWu43jp4apWgQjmHHv87CU9E", "", "", strongo.LocaleEnUS),
+				telegram_bot.NewTelegramBot(strongo.EnvProduction, bot.ProfileSplitus, "SplitusBot", "345328965:AAHmM7rUCwiPBlVIv-IfhrWhYIUVSHerkpg", "", "", strongo.LocaleEnUS),
 				telegram_bot.NewTelegramBot(strongo.EnvProduction, bot.ProfileDebtus, "DebtsTrackerBot", "209808950:AAHEwdBVtVIhKZhieTCP6zdbVkTROoj0fyA", "284685063:TEST:Njc4MWQ2NzlmMDAx", "350862534:LIVE:ZjAzOWE3ODg5OWMy", strongo.LocaleEnUS),
 				telegram_bot.NewTelegramBot(strongo.EnvProduction, bot.ProfileDebtus, "DebtsTrackerRuBot", "218446201:AAGyvWHuodNYT8kgbR_701m6y8Xg5D9iTSA", "284685063:TEST:MDg3NzM5ZTUxMTNk	", "350862534:LIVE:MGM1ODY0N2Q2ZDM5", strongo.LocaleRuRu),
 				telegram_bot.NewTelegramBot(strongo.EnvProduction, bot.ProfileDebtus, "DebtsTrackerFaBot", "182148042:AAFHD7MfWr5CLjGczaiqsx-Oo6msoR_5JfM", "", "", strongo.LocalesByCode5[strongo.LOCALE_FA_IR]),
@@ -33,7 +34,7 @@ func Bots(environment strongo.Environment, router func(profile string) bots.Webh
 				telegram_bot.NewTelegramBot(strongo.EnvProduction, bot.ProfileDebtus, "DebtsTrackerPLbot", "254844727:AAG3a_1wgSuu77gWmKrcnUy0KN7Yrt0MhO8", "", "", strongo.LocalePlPl),
 				telegram_bot.NewTelegramBot(strongo.EnvProduction, bot.ProfileDebtus, "DebtsTrackerPtBot", "236826743:AAGx0uDsCO0RZap84IO7dzVSszfA_0HE1m4", "", "", strongo.LocalePtBr),
 				telegram_bot.NewTelegramBot(strongo.EnvProduction, bot.ProfileDebtus, "DebtsTrackerEsBot", "189365214:AAGnXfb8qqUou__-X5foSGSGfgOkXDm9wV4", "", "", strongo.LocalePtBr),
-				telegram_bot.NewTelegramBot(strongo.EnvProduction, bot.ProfileDebtus, "SplitusBot", "345328965:AAHmM7rUCwiPBlVIv-IfhrWhYIUVSHerkpg", "", "", strongo.LocaleEnUS),
+
 			)
 		case strongo.EnvDevTest:
 			_bots = bots.NewBotSettingsBy(router,

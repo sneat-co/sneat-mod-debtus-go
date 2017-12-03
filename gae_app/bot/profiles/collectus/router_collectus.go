@@ -1,37 +1,18 @@
 package collectus
 
 import (
-	"bytes"
-
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 )
 
-var botParams = bot_shared.BotParams{
-	GetGroupBillCardInlineKeyboard:   nil,
-	GetPrivateBillCardInlineKeyboard: nil,
-	DelayUpdateBillCardOnUserJoin:    nil,
-	OnAfterBillCurrencySelected:      nil,
-	//ShowGroupMembers:                 nil,
-	WelcomeText: func(translator strongo.SingleLocaleTranslator, buf *bytes.Buffer) {
-		buf.WriteString(translator.Translate(trans.COLLECTUS_TEXT_HI))
-		buf.WriteString("\n\n")
-		buf.WriteString(translator.Translate(trans.COLLECTUS_TEXT_ABOUT_ME_AND_CO))
-	},
-	InGroupWelcomeMessage: func(whc bots.WebhookContext, _ models.Group) (m bots.MessageFromBot, err error) {
-		return whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_HI)+
-			"\n\n"+whc.Translate(trans.COLLECTUS_TEXT_HI_IN_GROUP)+
-			"\n\n"+whc.Translate(trans.COLLECTUS_TEXT_ABOUT_ME_AND_CO),
-			bots.MessageFormatHTML)
-	},
+var botParams = shared_all.BotParams{
 	InBotWelcomeMessage: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		var user *models.AppUserEntity
-		if user, err = bot_shared.GetUser(whc); err != nil {
+		if user, err = shared_all.GetUser(whc); err != nil {
 			return
 		}
 		m.Text = whc.Translate(
@@ -48,9 +29,9 @@ var botParams = bot_shared.BotParams{
 					"",
 				),
 			},
-			[]tgbotapi.InlineKeyboardButton{
-				bot_shared.NewGroupTelegramInlineButton(whc, 0),
-			},
+			//[]tgbotapi.InlineKeyboardButton{
+			//	shared_all.NewGroupTelegramInlineButton(whc, 0),
+			//},
 		)
 		return
 	},
@@ -62,5 +43,5 @@ var Router bots.WebhooksRouter = bots.NewWebhookRouter(
 )
 
 func init() {
-	bot_shared.AddSharedRoutes(Router, botParams)
+	shared_all.AddSharedRoutes(Router, botParams)
 }

@@ -18,7 +18,6 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
 )
 
@@ -59,105 +58,105 @@ func handleInviteOnStart(whc bots.WebhookContext, inviteCode string, invite *mod
 	return
 }
 
-func OnboardingTellAboutInviteCodeAction(whc bots.WebhookContext) (bots.MessageFromBot, error) {
-	log.Infof(whc.Context(), "onboardingTellAboutInviteCodeAction")
-	m := whc.NewMessageByCode(trans.MESSAGE_TEXT_ONBOARDING_TELL_ABOUT_INVITES, whc.GetSender().GetFirstName())
-	keyboard := tgbotapi.NewReplyKeyboardUsingStrings([][]string{
-		{whc.CommandText(trans.COMMAND_TEXT_I_HAVE_INVITE, emoji.CLOSED_LOCK_WITH_KEY)},
-		{whc.CommandText(trans.COMMAND_TEXT_SEND_ME_NEW_INVITE, emoji.PACKAGE_ICON)},
-		{trans.ChooseLocaleIcon},
-	})
-	keyboard.ResizeKeyboard = true
-	m.Keyboard = keyboard
-	m.Format = bots.MessageFormatHTML
-	whc.ChatEntity().SetAwaitingReplyTo(TELL_ABOUT_INVITE_CODE_COMMAND)
-	return m, nil
-}
+//func OnboardingTellAboutInviteCodeAction(whc bots.WebhookContext) (bots.MessageFromBot, error) {
+//	log.Infof(whc.Context(), "onboardingTellAboutInviteCodeAction")
+//	m := whc.NewMessageByCode(trans.MESSAGE_TEXT_ONBOARDING_TELL_ABOUT_INVITES, whc.GetSender().GetFirstName())
+//	keyboard := tgbotapi.NewReplyKeyboardUsingStrings([][]string{
+//		{whc.CommandText(trans.COMMAND_TEXT_I_HAVE_INVITE, emoji.CLOSED_LOCK_WITH_KEY)},
+//		{whc.CommandText(trans.COMMAND_TEXT_SEND_ME_NEW_INVITE, emoji.PACKAGE_ICON)},
+//		{trans.ChooseLocaleIcon},
+//	})
+//	keyboard.ResizeKeyboard = true
+//	m.Keyboard = keyboard
+//	m.Format = bots.MessageFormatHTML
+//	whc.ChatEntity().SetAwaitingReplyTo(TELL_ABOUT_INVITE_CODE_COMMAND)
+//	return m, nil
+//}
 
-const TELL_ABOUT_INVITE_CODE_COMMAND = "tell-about-invite-code"
-
-var OnboardingTellAboutInviteCodeCommand = bots.Command{
-	Code: TELL_ABOUT_INVITE_CODE_COMMAND,
-	Replies: []bots.Command{
-		OnboardingAskInviteCodeCommand,
-		OnboardingAskInviteChannelCommand,
-		OnboardingAskLocaleCommand,
-	},
-	Action: OnboardingTellAboutInviteCodeAction,
-}
-
-const ASK_INVITE_CHANNEL_COMMAND = "ask-invite-channel"
-
-var OnboardingAskInviteChannelCommand = bots.Command{
-	Code:  ASK_INVITE_CHANNEL_COMMAND,
-	Title: trans.COMMAND_TEXT_SEND_ME_NEW_INVITE,
-	Icon:  emoji.PACKAGE_ICON,
-	Replies: []bots.Command{
-		OnboardingAskEmailCommand,
-		OnboardingAskPhoneCommand,
-	},
-	Action: func(whc bots.WebhookContext) (bots.MessageFromBot, error) {
-		input := whc.Input()
-		switch input.(type) {
-		case bots.WebhookContactMessage:
-			return onboardingProcessPhoneContact(whc, input.(bots.WebhookContactMessage))
-		default: //case bots.WebhookTextMessage:
-			m := whc.NewMessageByCode(trans.MESSAGE_TEXT_ASK_INVITE_CHANNEL)
-			telegramKeyboard := &tgbotapi.ReplyKeyboardMarkup{
-				ResizeKeyboard:  true,
-				OneTimeKeyboard: true,
-				Keyboard: [][]tgbotapi.KeyboardButton{
-					{
-						{
-							Text:           SmsChannelCommand.CommandText(whc),
-							RequestContact: true,
-						},
-					},
-					{
-						{
-							Text: EmailChannelCommand.CommandText(whc),
-						},
-					},
-					{
-						{
-							Text: whc.CommandText(trans.COMMAND_TEXT_I_HAVE_INVITE, emoji.CLOSED_LOCK_WITH_KEY),
-						},
-					},
-				},
-			}
-			m.Keyboard = telegramKeyboard
-			chatEntity := whc.ChatEntity()
-			chatEntity.PushStepToAwaitingReplyTo(ASK_INVITE_CHANNEL_COMMAND)
-			return m, nil
-		}
-	},
-}
-
-const ASK_INVITE_CODE_COMMAND = "ask-invite-code"
-
-var OnboardingAskInviteCodeCommand = bots.Command{
-	Code:       ASK_INVITE_CODE_COMMAND,
-	Title:      trans.COMMAND_TEXT_I_HAVE_INVITE,
-	Icon:       emoji.CLOSED_LOCK_WITH_KEY,
-	ExactMatch: trans.COMMAND_TEXT_I_HAVE_INVITE,
-	Replies: []bots.Command{
-		OnboardingCheckInviteCommand,
-	},
-	Action: func(whc bots.WebhookContext) (bots.MessageFromBot, error) {
-		if whc.Input().(bots.WebhookTextMessage).Text() == whc.CommandText(trans.COMMAND_TEXT_I_HAVE_INVITE, emoji.CLOSED_LOCK_WITH_KEY) {
-			chatEntity := whc.ChatEntity()
-			chatEntity.PopStepsFromAwaitingReplyUpToSpecificParent(TELL_ABOUT_INVITE_CODE_COMMAND)
-			chatEntity.PushStepToAwaitingReplyTo(ASK_INVITE_CODE_COMMAND)
-			m := whc.NewMessageByCode(trans.MESSAGE_TEXT_PLEASE_ENTER_INVITE_CODE)
-			m.Keyboard = &tgbotapi.ReplyKeyboardHide{HideKeyboard: true}
-			return m, nil
-		} else {
-			return OnboardingCheckInviteCommand.Action(whc)
-		}
-	},
-}
-
-const CHECK_INVITE_COMMAND = "check-invite"
+//const TELL_ABOUT_INVITE_CODE_COMMAND = "tell-about-invite-code"
+//
+//var OnboardingTellAboutInviteCodeCommand = bots.Command{
+//	Code: TELL_ABOUT_INVITE_CODE_COMMAND,
+//	Replies: []bots.Command{
+//		OnboardingAskInviteCodeCommand,
+//		OnboardingAskInviteChannelCommand,
+//		shared_all.OnboardingAskLocaleCommand,
+//	},
+//	Action: OnboardingTellAboutInviteCodeAction,
+//}
+//
+//const ASK_INVITE_CHANNEL_COMMAND = "ask-invite-channel"
+//
+//var OnboardingAskInviteChannelCommand = bots.Command{
+//	Code:  ASK_INVITE_CHANNEL_COMMAND,
+//	Title: trans.COMMAND_TEXT_SEND_ME_NEW_INVITE,
+//	Icon:  emoji.PACKAGE_ICON,
+//	Replies: []bots.Command{
+//		OnboardingAskEmailCommand,
+//		OnboardingAskPhoneCommand,
+//	},
+//	Action: func(whc bots.WebhookContext) (bots.MessageFromBot, error) {
+//		input := whc.Input()
+//		switch input.(type) {
+//		case bots.WebhookContactMessage:
+//			return onboardingProcessPhoneContact(whc, input.(bots.WebhookContactMessage))
+//		default: //case bots.WebhookTextMessage:
+//			m := whc.NewMessageByCode(trans.MESSAGE_TEXT_ASK_INVITE_CHANNEL)
+//			telegramKeyboard := &tgbotapi.ReplyKeyboardMarkup{
+//				ResizeKeyboard:  true,
+//				OneTimeKeyboard: true,
+//				Keyboard: [][]tgbotapi.KeyboardButton{
+//					{
+//						{
+//							Text:           SmsChannelCommand.CommandText(whc),
+//							RequestContact: true,
+//						},
+//					},
+//					{
+//						{
+//							Text: EmailChannelCommand.CommandText(whc),
+//						},
+//					},
+//					{
+//						{
+//							Text: whc.CommandText(trans.COMMAND_TEXT_I_HAVE_INVITE, emoji.CLOSED_LOCK_WITH_KEY),
+//						},
+//					},
+//				},
+//			}
+//			m.Keyboard = telegramKeyboard
+//			chatEntity := whc.ChatEntity()
+//			chatEntity.PushStepToAwaitingReplyTo(ASK_INVITE_CHANNEL_COMMAND)
+//			return m, nil
+//		}
+//	},
+//}
+//
+//const ASK_INVITE_CODE_COMMAND = "ask-invite-code"
+//
+//var OnboardingAskInviteCodeCommand = bots.Command{
+//	Code:       ASK_INVITE_CODE_COMMAND,
+//	Title:      trans.COMMAND_TEXT_I_HAVE_INVITE,
+//	Icon:       emoji.CLOSED_LOCK_WITH_KEY,
+//	ExactMatch: trans.COMMAND_TEXT_I_HAVE_INVITE,
+//	Replies: []bots.Command{
+//		OnboardingCheckInviteCommand,
+//	},
+//	Action: func(whc bots.WebhookContext) (bots.MessageFromBot, error) {
+//		if whc.Input().(bots.WebhookTextMessage).Text() == whc.CommandText(trans.COMMAND_TEXT_I_HAVE_INVITE, emoji.CLOSED_LOCK_WITH_KEY) {
+//			chatEntity := whc.ChatEntity()
+//			chatEntity.PopStepsFromAwaitingReplyUpToSpecificParent(TELL_ABOUT_INVITE_CODE_COMMAND)
+//			chatEntity.PushStepToAwaitingReplyTo(ASK_INVITE_CODE_COMMAND)
+//			m := whc.NewMessageByCode(trans.MESSAGE_TEXT_PLEASE_ENTER_INVITE_CODE)
+//			m.Keyboard = &tgbotapi.ReplyKeyboardHide{HideKeyboard: true}
+//			return m, nil
+//		} else {
+//			return OnboardingCheckInviteCommand.Action(whc)
+//		}
+//	},
+//}
+//
+//const CHECK_INVITE_COMMAND = "check-invite"
 
 func NewMistypedCommand(messageToAdd string) bots.Command {
 	var message []string
@@ -172,44 +171,44 @@ func NewMistypedCommand(messageToAdd string) bots.Command {
 		emoji.SORRY_ICON, emoji.THUMB_UP_ICON, true)
 }
 
-var OnboardingCheckInviteCommand = bots.Command{
-	Code: CHECK_INVITE_COMMAND,
-	Replies: []bots.Command{
-		OnboardingAskEmailCommand,
-		OnboardingAskPhoneCommand,
-		NewMistypedCommand(trans.MESSAGE_TEXT_PLEASE_ENTER_INVITE_CODE),
-	},
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
-		// Check for code
-
-		c := whc.Context()
-		chatEntity := whc.ChatEntity()
-		chatEntity.PushStepToAwaitingReplyTo(CHECK_INVITE_COMMAND)
-		inviteCode := strings.ToUpper(whc.Input().(bots.WebhookTextMessage).Text())
-		userID := whc.AppUserIntID()
-
-		if err = dal.Invite.ClaimInvite(c, userID, inviteCode, whc.BotPlatform().Id(), whc.GetBotCode()); err != nil {
-			if db.IsNotFound(err) {
-				m = whc.NewMessage(emoji.NO_ENTRY_SIGN_ICON + " " + strings.TrimSpace(fmt.Sprintf(whc.Translate(trans.MESSAGE_TEXT_WRONG_INVITE_CODE), inviteCode)))
-				m.Keyboard = tgbotapi.NewReplyKeyboardUsingStrings([][]string{
-					{NewMistypedCommand("").DefaultTitle(whc)},
-					{EmailChannelCommand.CommandText(whc)},
-					{SmsChannelCommand.CommandText(whc)},
-				})
-				return m, nil
-			}
-			return
-		}
-		if err = bots.SetAccessGranted(whc, true); err != nil {
-			err = errors.Wrap(err, "Failed to call bots.SetAccessGranted(whc, true)")
-			return
-		}
-
-		m, err = dtb_general.MainMenuCommand.Action(whc)
-
-		return
-	},
-}
+//var OnboardingCheckInviteCommand = bots.Command{
+//	Code: CHECK_INVITE_COMMAND,
+//	Replies: []bots.Command{
+//		OnboardingAskEmailCommand,
+//		OnboardingAskPhoneCommand,
+//		NewMistypedCommand(trans.MESSAGE_TEXT_PLEASE_ENTER_INVITE_CODE),
+//	},
+//	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+//		// Check for code
+//
+//		c := whc.Context()
+//		chatEntity := whc.ChatEntity()
+//		chatEntity.PushStepToAwaitingReplyTo(CHECK_INVITE_COMMAND)
+//		inviteCode := strings.ToUpper(whc.Input().(bots.WebhookTextMessage).Text())
+//		userID := whc.AppUserIntID()
+//
+//		if err = dal.Invite.ClaimInvite(c, userID, inviteCode, whc.BotPlatform().Id(), whc.GetBotCode()); err != nil {
+//			if db.IsNotFound(err) {
+//				m = whc.NewMessage(emoji.NO_ENTRY_SIGN_ICON + " " + strings.TrimSpace(fmt.Sprintf(whc.Translate(trans.MESSAGE_TEXT_WRONG_INVITE_CODE), inviteCode)))
+//				m.Keyboard = tgbotapi.NewReplyKeyboardUsingStrings([][]string{
+//					{NewMistypedCommand("").DefaultTitle(whc)},
+//					{EmailChannelCommand.CommandText(whc)},
+//					{SmsChannelCommand.CommandText(whc)},
+//				})
+//				return m, nil
+//			}
+//			return
+//		}
+//		if err = bots.SetAccessGranted(whc, true); err != nil {
+//			err = errors.Wrap(err, "Failed to call bots.SetAccessGranted(whc, true)")
+//			return
+//		}
+//
+//		m, err = dtb_general.MainMenuCommand.Action(whc)
+//
+//		return
+//	},
+//}
 
 func TextCommand(on string, message []string, icon, replyIcon string, hideKeyboard bool) bots.Command {
 	return bots.Command{
@@ -237,65 +236,65 @@ func TextCommand(on string, message []string, icon, replyIcon string, hideKeyboa
 //	TELL_ABOUT_INVITE_CODE_COMMAND: OnboardingTellAboutInviteCode,
 //}
 
-func askContactDetailsCommand(cmd ContactsChannelCommand, invalidMessageCode string, altCmd ContactsChannelCommand, telegramKeyboard func(bots.WebhookContext) bots.Keyboard) bots.Command {
-	return bots.Command{
-		Code:  cmd.code,
-		Title: cmd.title,
-		Icon:  cmd.icon,
-		//exactMatch: cmd.exactMatch, //TODO: Fix it!
-		Replies: []bots.Command{
-			NewMistypedCommand(cmd.message),
-		},
-		Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
-			c := whc.Context()
-
-			log.Infof(c, "Command(code=%v).Action()", cmd.code)
-			chatEntity := whc.ChatEntity()
-			awaitingReplyTo := chatEntity.GetAwaitingReplyTo()
-
-			input := whc.Input()
-			switch input.(type) {
-			case bots.WebhookContactMessage:
-				return onboardingProcessPhoneContact(whc, input.(bots.WebhookContactMessage))
-			default: // case bots.WebhookTextMessage:
-				message := whc.Input().(bots.WebhookTextMessage)
-				messageText := message.Text()
-				altOption := messageText == altCmd.title
-				//log.Debugf(c, "code: %v, awaitingReplyTo: %v, messageText: %v, altOption=%v, altCommand: %v", cmd.code, awaitingReplyTo, messageText, altOption, altCmd.title)
-				switch {
-				case messageText == whc.CommandText(trans.COMMAND_TEXT_TELL_ME_MORE_ABOUT_INVITES, emoji.QUESTION_ICON):
-					switch cmd.code {
-					case SmsChannelCommand.code:
-						return OnboardingTellAboutInviteCodeAction(whc)
-					default:
-						return m, fmt.Errorf("Unhandled Contact message by %v command", cmd.code)
-					}
-
-				case strings.HasSuffix(awaitingReplyTo, cmd.code) && !altOption:
-					switch cmd.code {
-					case SmsChannelCommand.code:
-						if messageText != "" {
-							panic("Not implemented yet")
-						}
-					case EmailChannelCommand.code:
-						return onboardingProcessEmail(messageText, whc, altCmd)
-					}
-				default:
-					if altOption {
-						log.Debugf(c, "Switching to alt code: %v", altCmd.code)
-						cmd.code = altCmd.code
-						cmd.message = altCmd.message
-					}
-					m = whc.NewMessage(whc.Translate(cmd.message))
-					m.Keyboard = telegramKeyboard(whc)
-					chatEntity.PopStepsFromAwaitingReplyUpToSpecificParent(ASK_INVITE_CHANNEL_COMMAND)
-					chatEntity.PushStepToAwaitingReplyTo(cmd.code)
-				}
-			}
-			return m, nil
-		},
-	}
-}
+//func askContactDetailsCommand(cmd ContactsChannelCommand, invalidMessageCode string, altCmd ContactsChannelCommand, telegramKeyboard func(bots.WebhookContext) bots.Keyboard) bots.Command {
+//	return bots.Command{
+//		Code:  cmd.code,
+//		Title: cmd.title,
+//		Icon:  cmd.icon,
+//		//exactMatch: cmd.exactMatch, //TODO: Fix it!
+//		Replies: []bots.Command{
+//			NewMistypedCommand(cmd.message),
+//		},
+//		Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+//			c := whc.Context()
+//
+//			log.Infof(c, "Command(code=%v).Action()", cmd.code)
+//			chatEntity := whc.ChatEntity()
+//			awaitingReplyTo := chatEntity.GetAwaitingReplyTo()
+//
+//			input := whc.Input()
+//			switch input.(type) {
+//			case bots.WebhookContactMessage:
+//				return onboardingProcessPhoneContact(whc, input.(bots.WebhookContactMessage))
+//			default: // case bots.WebhookTextMessage:
+//				message := whc.Input().(bots.WebhookTextMessage)
+//				messageText := message.Text()
+//				altOption := messageText == altCmd.title
+//				//log.Debugf(c, "code: %v, awaitingReplyTo: %v, messageText: %v, altOption=%v, altCommand: %v", cmd.code, awaitingReplyTo, messageText, altOption, altCmd.title)
+//				switch {
+//				case messageText == whc.CommandText(trans.COMMAND_TEXT_TELL_ME_MORE_ABOUT_INVITES, emoji.QUESTION_ICON):
+//					switch cmd.code {
+//					case SmsChannelCommand.code:
+//						return OnboardingTellAboutInviteCodeAction(whc)
+//					default:
+//						return m, fmt.Errorf("Unhandled Contact message by %v command", cmd.code)
+//					}
+//
+//				case strings.HasSuffix(awaitingReplyTo, cmd.code) && !altOption:
+//					switch cmd.code {
+//					case SmsChannelCommand.code:
+//						if messageText != "" {
+//							panic("Not implemented yet")
+//						}
+//					case EmailChannelCommand.code:
+//						return onboardingProcessEmail(messageText, whc, altCmd)
+//					}
+//				default:
+//					if altOption {
+//						log.Debugf(c, "Switching to alt code: %v", altCmd.code)
+//						cmd.code = altCmd.code
+//						cmd.message = altCmd.message
+//					}
+//					m = whc.NewMessage(whc.Translate(cmd.message))
+//					m.Keyboard = telegramKeyboard(whc)
+//					chatEntity.PopStepsFromAwaitingReplyUpToSpecificParent(ASK_INVITE_CHANNEL_COMMAND)
+//					chatEntity.PushStepToAwaitingReplyTo(cmd.code)
+//				}
+//			}
+//			return m, nil
+//		},
+//	}
+//}
 
 type ContactsChannelCommand struct {
 	code    string
@@ -308,44 +307,44 @@ func (c ContactsChannelCommand) CommandText(whc bots.WebhookContext) string {
 	return whc.CommandText(c.title, c.icon)
 }
 
-var EmailChannelCommand = ContactsChannelCommand{
-	code:    "onboarding-ask-email",
-	icon:    emoji.EMAIL_ICON,
-	title:   trans.COMMAND_TEXT_SEND_ME_NEW_INVITE_BY_EMAIL,
-	message: trans.MESSAGE_TEXT_PLEASE_PROVIDE_YOUR_EMAIL,
-}
+//var EmailChannelCommand = ContactsChannelCommand{
+//	code:    "onboarding-ask-email",
+//	icon:    emoji.EMAIL_ICON,
+//	title:   trans.COMMAND_TEXT_SEND_ME_NEW_INVITE_BY_EMAIL,
+//	message: trans.MESSAGE_TEXT_PLEASE_PROVIDE_YOUR_EMAIL,
+//}
+//
+//var SmsChannelCommand = ContactsChannelCommand{
+//	code:    "onboarding-ask-phone",
+//	icon:    emoji.PHONE_ICON,
+//	title:   trans.COMMAND_TEXT_SEND_ME_NEW_INVITE_BY_SMS,
+//	message: trans.MESSAGE_TEXT_PLEASE_PROVIDE_YOUR_PHONE_NUMBER,
+//}
 
-var SmsChannelCommand = ContactsChannelCommand{
-	code:    "onboarding-ask-phone",
-	icon:    emoji.PHONE_ICON,
-	title:   trans.COMMAND_TEXT_SEND_ME_NEW_INVITE_BY_SMS,
-	message: trans.MESSAGE_TEXT_PLEASE_PROVIDE_YOUR_PHONE_NUMBER,
-}
-
-var OnboardingAskPhoneCommand = askContactDetailsCommand(SmsChannelCommand, trans.MESSAGE_TEXT_WRONG_PHONE_NUMBER, EmailChannelCommand,
-	func(whc bots.WebhookContext) bots.Keyboard {
-		return &tgbotapi.ReplyKeyboardMarkup{
-			ResizeKeyboard:  true,
-			OneTimeKeyboard: true,
-			Keyboard: [][]tgbotapi.KeyboardButton{
-				{
-					{
-						Text:           whc.Translate(trans.COMMAND_TEXT_SEND_MY_PHONE_NUMBER),
-						RequestContact: true,
-					},
-				},
-			},
-		}
-	},
-)
-
-var OnboardingAskEmailCommand = askContactDetailsCommand(
-	EmailChannelCommand,
-	trans.MESSAGE_TEXT_WRONG_EMAIL, SmsChannelCommand,
-	func(whc bots.WebhookContext) bots.Keyboard {
-		return tgbotapi.NewHideKeyboard(false)
-	},
-)
+//var OnboardingAskPhoneCommand = askContactDetailsCommand(SmsChannelCommand, trans.MESSAGE_TEXT_WRONG_PHONE_NUMBER, EmailChannelCommand,
+//	func(whc bots.WebhookContext) bots.Keyboard {
+//		return &tgbotapi.ReplyKeyboardMarkup{
+//			ResizeKeyboard:  true,
+//			OneTimeKeyboard: true,
+//			Keyboard: [][]tgbotapi.KeyboardButton{
+//				{
+//					{
+//						Text:           whc.Translate(trans.COMMAND_TEXT_SEND_MY_PHONE_NUMBER),
+//						RequestContact: true,
+//					},
+//				},
+//			},
+//		}
+//	},
+//)
+//
+//var OnboardingAskEmailCommand = askContactDetailsCommand(
+//	EmailChannelCommand,
+//	trans.MESSAGE_TEXT_WRONG_EMAIL, SmsChannelCommand,
+//	func(whc bots.WebhookContext) bots.Keyboard {
+//		return tgbotapi.NewHideKeyboard(false)
+//	},
+//)
 
 const ON_USER_CONTACT_RECEIVED_COMMAND = "on-user-contact-received"
 

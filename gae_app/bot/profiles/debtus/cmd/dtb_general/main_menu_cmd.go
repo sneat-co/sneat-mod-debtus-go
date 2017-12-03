@@ -30,7 +30,7 @@ func MainMenuAction(whc bots.WebhookContext, messageText string, showHint bool) 
 	if messageText == "" {
 		if whc.BotPlatform().Id() != fbm_bot.FbmPlatformID {
 			if showHint {
-				messageText = fmt.Sprintf("%v\n\n%v", whc.Translate(trans.MESSAGE_TEXT_WHATS_NEXT), whc.Translate(trans.MESSAGE_TEXT_COMMANDS))
+				messageText = fmt.Sprintf("%v\n\n%v", whc.Translate(trans.MESSAGE_TEXT_WHATS_NEXT), whc.Translate(trans.MESSAGE_TEXT_DEBTUS_COMMANDS))
 			} else {
 				messageText = whc.Translate(trans.MESSAGE_TEXT_WHATS_NEXT)
 			}

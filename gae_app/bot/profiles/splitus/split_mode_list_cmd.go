@@ -3,8 +3,6 @@ package splitus
 import (
 	"fmt"
 	"net/url"
-
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"
@@ -12,12 +10,12 @@ import (
 	"github.com/strongo/log"
 )
 
-var billSplitModesListCommand = bot_shared.BillCallbackCommand("split-modes",
+var billSplitModesListCommand = billCallbackCommand("split-modes",
 	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "billSplitModesListCommand.CallbackAction()")
 		var mt string
-		if mt, err = bot_shared.GetBillCardMessageText(c, whc.GetBotCode(), whc, bill, true, ""); err != nil {
+		if mt, err = getBillCardMessageText(c, whc.GetBotCode(), whc, bill, true, ""); err != nil {
 			return
 		}
 		if m, err = whc.NewEditMessage(mt, bots.MessageFormatHTML); err != nil {
@@ -52,7 +50,7 @@ var billSplitModesListCommand = bot_shared.BillCallbackCommand("split-modes",
 			[]tgbotapi.InlineKeyboardButton{
 				{
 					Text:         whc.Translate(trans.BUTTON_TEXT_CANCEL),
-					CallbackData: bot_shared.BillCardCallbackCommandData(bill.ID),
+					CallbackData: billCardCallbackCommandData(bill.ID),
 				},
 			},
 		)

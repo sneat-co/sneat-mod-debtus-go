@@ -28,6 +28,8 @@ func handleGetTransfer(c context.Context, w http.ResponseWriter, r *http.Request
 		}
 
 		if transfer, err = facade.CheckTransferCreatorNameAndFixIfNeeded(c, w, transfer); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
 			return
 		}
 

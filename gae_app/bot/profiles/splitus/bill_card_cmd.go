@@ -2,8 +2,6 @@ package splitus
 
 import (
 	"fmt"
-
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
@@ -15,25 +13,25 @@ func getGroupBillCardInlineKeyboard(translator strongo.SingleLocaleTranslator, b
 	//	//{{Text: "I paid for the bill alone", CallbackData: joinBillCallbackPrefix + "&i=paid-alone"}},
 	//	//{{Text:"I paid part of this bill",CallbackData:  joinBillCallbackPrefix + "&i=paid-part"}},
 	//	//{{Text: "I owe for this bill", CallbackData: joinBillCallbackPrefix + "&i=owe"}},
-	//	//{{Text: "I don't share this bill", CallbackData: BillCallbackCommandData(LEAVE_BILL_COMMAND, bill.ID)}},
+	//	//{{Text: "I don't share this bill", CallbackData: billCallbackCommandData(leaceBillCommandCode, bill.ID)}},
 	return &tgbotapi.InlineKeyboardMarkup{
 		InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{
 			{
 				{
 					Text:         translator.Translate(trans.BUTTON_TEXT_MANAGE_MEMBERS),
-					CallbackData: bot_shared.GetBillMembersCallbackData(bill.ID),
+					CallbackData: GetBillMembersCallbackData(bill.ID),
 				},
 			},
 			{
 				{
 					Text:         translator.Translate(trans.BUTTON_TEXT_SPLIT_MODE, translator.Translate(string(bill.SplitMode))),
-					CallbackData: bot_shared.BillCallbackCommandData(BILL_SHARES_COMMAND, bill.ID),
+					CallbackData: billCallbackCommandData(BILL_SHARES_COMMAND, bill.ID),
 				},
 			},
 			{
 				{
 					Text:         emoji.GREEN_CHECKBOX + " Finalize bill",
-					CallbackData: bot_shared.BillCallbackCommandData(FINALIZE_BILL_COMMAND, bill.ID),
+					CallbackData: billCallbackCommandData(FINALIZE_BILL_COMMAND, bill.ID),
 				},
 			},
 		},
@@ -46,7 +44,7 @@ func getPrivateBillCardInlineKeyboard(translator strongo.SingleLocaleTranslator,
 		[]tgbotapi.InlineKeyboardButton{
 			{
 				Text:         translator.Translate(trans.BUTTON_TEXT_MANAGE_MEMBERS),
-				CallbackData: bot_shared.GetBillMembersCallbackData(bill.ID),
+				CallbackData: GetBillMembersCallbackData(bill.ID),
 			},
 		},
 		[]tgbotapi.InlineKeyboardButton{
@@ -61,7 +59,7 @@ func getPrivateBillCardInlineKeyboard(translator strongo.SingleLocaleTranslator,
 		[]tgbotapi.InlineKeyboardButton{
 			{
 				Text:         translator.Translate("💯 Change total"),
-				CallbackData: bot_shared.BillCallbackCommandData(bot_shared.CHANGE_BILL_TOTAL_COMMAND, bill.ID),
+				CallbackData: billCallbackCommandData(CHANGE_BILL_TOTAL_COMMAND, bill.ID),
 			},
 			{
 				Text:         translator.Translate("✍ Adjust per person"),
@@ -71,11 +69,11 @@ func getPrivateBillCardInlineKeyboard(translator strongo.SingleLocaleTranslator,
 		[]tgbotapi.InlineKeyboardButton{
 			{
 				Text:         translator.Translate("📝 Комментарий"),
-				CallbackData: bot_shared.BillCallbackCommandData(bot_shared.ADD_BILL_COMMENT_COMMAND, bill.ID),
+				CallbackData: billCallbackCommandData(ADD_BILL_COMMENT_COMMAND, bill.ID),
 			},
 			{
 				Text:         translator.Translate(trans.BUTTON_TEXT_FINALIZE_BILL),
-				CallbackData: bot_shared.BillCallbackCommandData(bot_shared.CLOSE_BILL_COMMAND, bill.ID),
+				CallbackData: billCallbackCommandData(CLOSE_BILL_COMMAND, bill.ID),
 			},
 		},
 	)

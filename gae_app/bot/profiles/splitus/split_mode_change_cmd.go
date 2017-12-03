@@ -2,8 +2,6 @@ package splitus
 
 import (
 	"net/url"
-
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/strongo/bots-framework/core"
@@ -17,7 +15,7 @@ var billChangeSplitModeCommand = bots.Command{
 		c := whc.Context()
 		log.Debugf(c, "billChangeSplitModeCommand.CallbackAction()")
 		var bill models.Bill
-		if bill.ID, err = bot_shared.GetBillID(callbackUrl); err != nil {
+		if bill.ID, err = GetBillID(callbackUrl); err != nil {
 			return
 		}
 		if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
@@ -35,6 +33,6 @@ var billChangeSplitModeCommand = bots.Command{
 		}, dal.SingleGroupTransaction); err != nil {
 			return
 		}
-		return bot_shared.ShowBillCard(whc, botParams, true, bill, "")
+		return ShowBillCard(whc, true, bill, "")
 	},
 }

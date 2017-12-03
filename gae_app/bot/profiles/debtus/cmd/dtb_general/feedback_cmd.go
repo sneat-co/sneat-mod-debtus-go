@@ -9,7 +9,6 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
@@ -22,6 +21,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"golang.org/x/net/context"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 )
 
 const (
@@ -163,7 +163,7 @@ var FeedbackCommand = bots.Command{
 		if _, err = whc.Responder().SendMessage(whc.Context(), m, bots.BotApiSendMessageOverHTTPS); err != nil {
 			return m, err
 		}
-		return helpCommandAction(whc, false)
+		return HelpCommandAction(whc, false)
 	},
 }
 */
@@ -365,8 +365,8 @@ var FeedbackTextCommand = bots.Command{
 			m = whc.NewMessageByCode(trans.MESSAGE_TEXT_THANKS)
 			m.Text += fmt.Sprintf(` Feedback #<a href="https://debtstracker.io/app/#/feedback/%d">%d</a>`, feedback.ID, feedback.ID)
 			SetMainMenuKeyboard(whc, &m)
-			if err2 := admin.SendFeedbackToAdmins(c, feedback); err2 != nil {
-				log.Errorf(c, errors.Wrap(err2, "Faield to notify admins").Error())
+			if err2 := admin.SendFeedbackToAdmins(c, telegram.DebtusBotToken, feedback); err2 != nil {
+				log.Errorf(c, "failed to notify admins: %v", err)
 			}
 		default:
 			m = whc.NewMessageByCode(trans.MESSAGE_TEXT_PLEASE_SEND_TEXT)

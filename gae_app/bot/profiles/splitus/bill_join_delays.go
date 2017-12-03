@@ -3,8 +3,6 @@ package splitus
 import (
 	"fmt"
 	"strings"
-
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
@@ -95,7 +93,7 @@ func updateInlineBillCardMessage(c context.Context, translator strongo.SingleLoc
 		panic("bill.BillEntity == nil")
 	}
 
-	if editedMessage.Text, err = bot_shared.GetBillCardMessageText(c, botCode, translator, bill, true, footer); err != nil {
+	if editedMessage.Text, err = getBillCardMessageText(c, botCode, translator, bill, true, footer); err != nil {
 		return
 	}
 	if isGroupChat {
@@ -115,17 +113,17 @@ func getPublicBillCardInlineKeyboard(translator strongo.SingleLocaleTranslator, 
 		[]tgbotapi.InlineKeyboardButton{
 			{
 				Text: translator.Translate(trans.BUTTON_TEXT_JOIN),
-				URL:  goToBotLink(bot_shared.JOIN_BILL_COMMAND),
+				URL:  goToBotLink(joinBillCommandCode),
 			},
 		},
 		[]tgbotapi.InlineKeyboardButton{
 			{
 				Text: translator.Translate(trans.BUTTON_TEXT_EDIT_BILL),
-				URL:  goToBotLink(bot_shared.EDIT_BILL_COMMAND),
+				URL:  goToBotLink(editBillCommandCode),
 			},
 			{
 				Text:         translator.Translate(trans.BUTTON_TEXT_DUE, translator.Translate(trans.NOT_SET)),
-				CallbackData: bot_shared.BillCallbackCommandData(bot_shared.SET_BILL_DUE_DATE_COMMAND, billID),
+				CallbackData: billCallbackCommandData(setBillDueDateCommandCode, billID),
 			},
 		},
 	)

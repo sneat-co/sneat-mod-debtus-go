@@ -76,6 +76,8 @@ func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	if transfer, err = facade.CheckTransferCreatorNameAndFixIfNeeded(c, w, transfer); hasError(c, w, err, models.TransferKind, receipt.TransferID, http.StatusInternalServerError) {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
 		return
 	}
 

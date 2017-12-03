@@ -8,20 +8,8 @@ import (
 	"github.com/strongo/bots-framework/core"
 )
 
-const HELP_COMMAND = "help"
 
-var HelpCommand = bots.Command{
-	Code:     HELP_COMMAND,
-	Icon:     emoji.HELP_ICON,
-	Commands: trans.Commands(trans.COMMAND_HELP, emoji.HELP_ICON),
-	Title:    trans.COMMAND_TEXT_HELP,
-	Titles:   map[string]string{bots.SHORT_TITLE: ""},
-	Action: func(whc bots.WebhookContext) (bots.MessageFromBot, error) {
-		return helpCommandAction(whc, true)
-	},
-}
-
-func helpCommandAction(whc bots.WebhookContext, showFeedbackButton bool) (m bots.MessageFromBot, err error) {
+func HelpCommandAction(whc bots.WebhookContext, showFeedbackButton bool) (m bots.MessageFromBot, err error) {
 	keyboardMarkup := tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{
 			{

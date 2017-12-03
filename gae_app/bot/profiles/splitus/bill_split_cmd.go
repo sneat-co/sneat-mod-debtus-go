@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"net/url"
-
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/bot_shared"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
@@ -15,20 +13,20 @@ import (
 
 const BILL_SHARES_COMMAND = "bill_shares"
 
-var billSharesCommand = bot_shared.BillCallbackCommand(BILL_SHARES_COMMAND,
+var billSharesCommand = billCallbackCommand(BILL_SHARES_COMMAND,
 	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
 		whc.LogRequest()
 		c := whc.Context()
 		members := bill.GetBillMembers()
 		return editSplitCallbackAction(
 			whc, callbackUrl,
-			bot_shared.BillCallbackCommandData(BILL_SHARES_COMMAND, bill.ID),
-			bot_shared.BillCardCallbackCommandData(bill.ID),
+			billCallbackCommandData(BILL_SHARES_COMMAND, bill.ID),
+			billCardCallbackCommandData(bill.ID),
 			trans.MESSAGE_TEXT_ASK_HOW_TO_SPLIT_IN_GROP,
 			members,
 			bill.TotalAmount(),
 			func(buffer *bytes.Buffer) error {
-				return bot_shared.WriteBillCardTitle(c, bill, whc.GetBotCode(), buffer, whc)
+				return writeBillCardTitle(c, bill, whc.GetBotCode(), buffer, whc)
 			},
 			func(memberID string, addValue int) (member models.BillMemberJson, err error) {
 				err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
