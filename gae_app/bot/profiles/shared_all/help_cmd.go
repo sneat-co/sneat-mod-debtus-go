@@ -19,7 +19,7 @@ const HELP_COMMAND = "help"
 func createHelpRootCommand(params BotParams) bots.Command {
 	return bots.Command{
 		Code:     HELP_COMMAND,
-		Commands: []string{"/help"},
+		Commands: []string{"/help", emoji.HELP_ICON},
 		Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 			switch whc.GetBotSettings().Profile {
 			case bot.ProfileDebtus:
