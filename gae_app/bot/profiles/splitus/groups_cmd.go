@@ -12,6 +12,7 @@ import (
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/log"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
+	"github.com/DebtsTracker/translations/emoji"
 )
 
 const groupsCommandCode = "groups"
@@ -19,7 +20,9 @@ const groupsCommandCode = "groups"
 var groupsCommand = bots.Command{
 	Code:       groupsCommandCode,
 	InputTypes: []bots.WebhookInputType{bots.WebhookInputText, bots.WebhookInputCallbackQuery},
-	Commands:   []string{"/groups"},
+	Commands:   trans.Commands(trans.COMMAND_TEXT_GROUPS, emoji.MAN_AND_WOMAN, "/" + groupsCommandCode),
+	Icon: emoji.MAN_AND_WOMAN,
+	Title: trans.COMMAND_TEXT_GROUPS,
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		return groupsAction(whc, false, 0)
 	},

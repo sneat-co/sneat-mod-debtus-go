@@ -19,7 +19,20 @@ import (
 	"golang.org/x/net/context"
 )
 
-const billCardCommandCode = "bill"
+const billCardCommandCode = "bill-card"
+
+var billCardCommand = bots.Command{
+	Code: billCardCommandCode,
+	CallbackAction:billCallbackAction(func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
+		c := whc.Context()
+		if m.Text, err = getBillCardMessageText(c, whc.GetBotCode(), whc, bill, false, ""); err != nil {
+			return
+		}
+		m.Format = bots.MessageFormatHTML
+		m.Keyboard = getGroupBillCardInlineKeyboard(whc, bill)
+		return
+	}),
+}
 
 func startBillAction(whc bots.WebhookContext, billParam string) (m bots.MessageFromBot, err error) {
 	var bill models.Bill
@@ -36,13 +49,13 @@ func billCardCallbackCommandData(billID string) string {
 	return billCallbackCommandData(billCardCommandCode, billID)
 }
 
-const BILL_MEMBERS_COMMAND = "bill-members"
+const billMembersCommandCode = "bill-members"
 
 func billCallbackCommandData(command string, billID string) string {
 	return command + "?bill=" + billID
 }
 
-var billMembersCommand = billCallbackCommand(BILL_MEMBERS_COMMAND,
+var billMembersCommand = billCallbackCommand(billMembersCommandCode,
 	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
 		var buffer bytes.Buffer
 		if err = writeBillCardTitle(whc.Context(), bill, whc.GetBotCode(), &buffer, whc); err != nil {
@@ -225,7 +238,7 @@ func getBillCardMessageText(c context.Context, botID string, translator strongo.
 	}
 	//buffer.WriteString("\n" + strings.Repeat("―", 15))
 
-	log.Debugf(c, "getBillCardMessageText() => showGroupMembers=%v", showMembers)
+	buffer.WriteString("\n" + translator.Translate(trans.MT_TEXT_MEMBERS_COUNT, bill.MembersCount))
 
 	if showMembers {
 		//buffer.WriteString("\n")

@@ -29,9 +29,8 @@ func validateString(errMess, s string, validValues []string) error {
 
 var ErrNoProperties = errors.New("No properties")
 
-var checkHasProperties = func(kind string, properties []datastore.Property) error {
+var checkHasProperties = func(kind string, properties []datastore.Property) {
 	if len(properties) == 0 {
-		panic(ErrNoProperties.Error())
+		panic(errors.WithMessage(ErrNoProperties, fmt.Sprintf("kind="+kind)).Error())
 	}
-	return nil
 }

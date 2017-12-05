@@ -31,7 +31,7 @@ func (Group) NewEntity() interface{} {
 	return new(GroupEntity)
 }
 
-func (group Group) SetEntity(entity interface{}) {
+func (group *Group) SetEntity(entity interface{}) {
 	if entity == nil {
 		group.GroupEntity = nil
 	} else {
@@ -409,22 +409,18 @@ var groupPropertiesToClean = map[string]gaedb.IsOkToRemove{
 
 func (entity *GroupEntity) Save() ([]datastore.Property, error) {
 	if entity.CreatorUserID == "" {
-		return nil, errors.New("CreatorUserID == 0")
+		return nil, errors.New("*GroupEntity.CreatorUserID == 0")
 	}
 	if strings.TrimSpace(entity.Name) == "" {
-		return nil, errors.New("strings.TrimSpace(entity.Name) is empty string")
+		return nil, errors.New("strings.TrimSpace(*GroupEntity.Name) is empty string")
 	}
 	if err := entity.validateMembers(entity.GetGroupMembers(), entity.MembersCount); err != nil {
 		return nil, err
 	}
 	ps, err := datastore.SaveStruct(entity)
 	if ps, err = gaedb.CleanProperties(ps, groupPropertiesToClean); err != nil {
-		return ps, err
+		return ps, errors.WithMessage(err, "failed to clean properties for *GroupEntity")
 	}
-	if err == nil {
-		if err = checkHasProperties(AppUserKind, ps); err != nil {
-			return ps, err
-		}
-	}
+	checkHasProperties(GroupKind, ps)
 	return ps, err
 }

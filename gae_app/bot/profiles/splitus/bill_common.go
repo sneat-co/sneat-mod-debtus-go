@@ -14,7 +14,7 @@ import (
 )
 
 func GetBillMembersCallbackData(billID string) string {
-	return billCallbackCommandData(BILL_MEMBERS_COMMAND, billID)
+	return billCallbackCommandData(billMembersCommandCode, billID)
 }
 
 func GetBillID(callbackUrl *url.URL) (billID string, err error) {

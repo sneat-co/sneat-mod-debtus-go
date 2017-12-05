@@ -727,9 +727,7 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 	}
 
 	// Make general application-wide checks and call hooks if any
-	if err = checkHasProperties(TransferKind, properties); err != nil {
-		return
-	}
+	checkHasProperties(TransferKind, properties)
 
 	return
 }

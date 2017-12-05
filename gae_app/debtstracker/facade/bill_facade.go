@@ -505,7 +505,11 @@ func (billFacade) GetBillMembersUserInfo(c context.Context, bill models.Bill, fo
 	return
 }
 
-func (billFacade) AddBillMember(c context.Context, userID string, inBill models.Bill, memberID, memberUserID string, memberUserName string, paid decimal.Decimal64p2) (bill models.Bill, group models.Group, changed, isJoined bool, err error) {
+func (billFacade) AddBillMember(
+	c context.Context, userID string, inBill models.Bill, memberID, memberUserID string, memberUserName string, paid decimal.Decimal64p2,
+) (
+	bill models.Bill, group models.Group, changed, isJoined bool, err error,
+) {
 	log.Debugf(c, "billFacade.AddBillMember(bill.ID=%v, memberID=%v, memberUserID=%v, paid=%v)", bill.ID, memberID, memberUserID, paid)
 	if paid < 0 {
 		panic("paid < 0")

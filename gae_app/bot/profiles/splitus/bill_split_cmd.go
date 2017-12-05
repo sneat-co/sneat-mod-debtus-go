@@ -9,18 +9,29 @@ import (
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/platforms/telegram"
 )
 
-const BILL_SHARES_COMMAND = "bill_shares"
+const billSharesCommandCode = "bill_shares"
 
-var billSharesCommand = billCallbackCommand(BILL_SHARES_COMMAND,
+var billSharesCommand = billCallbackCommand(billSharesCommandCode,
 	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
 		whc.LogRequest()
 		c := whc.Context()
 		members := bill.GetBillMembers()
+		if bill.Currency == "" {
+			m.BotMessage = telegram_bot.CallbackAnswer(tgbotapi.NewCallback("", whc.Translate(trans.MESSAGE_TEXT_ASK_BILL_CURRENCY)))
+			return
+		}
+		var billID string
+		if bill.MembersCount <= 1 {
+			billID = bill.ID
+		}
 		return editSplitCallbackAction(
 			whc, callbackUrl,
-			billCallbackCommandData(BILL_SHARES_COMMAND, bill.ID),
+			billID,
+			billCallbackCommandData(billSharesCommandCode, bill.ID),
 			billCardCallbackCommandData(bill.ID),
 			trans.MESSAGE_TEXT_ASK_HOW_TO_SPLIT_IN_GROP,
 			members,

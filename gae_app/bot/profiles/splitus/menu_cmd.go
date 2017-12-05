@@ -4,6 +4,7 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"
+	"github.com/DebtsTracker/translations/emoji"
 )
 
 const menuCommandCode = "menu"
@@ -22,10 +23,12 @@ var menuCommand = bots.Command{
 func setMainMenu(whc bots.WebhookContext, m *bots.MessageFromBot) {
 	m.Keyboard = tgbotapi.NewReplyKeyboard(
 		[]tgbotapi.KeyboardButton{
-			{Text: whc.Translate(trans.COMMAND_TEXT_SETTING)},
+			{Text: groupsCommand.TitleByKey(bots.DEFAULT_TITLE, whc)},
+			{Text: billsCommand.TitleByKey(bots.DEFAULT_TITLE, whc)},
 		},
 		[]tgbotapi.KeyboardButton{
-			{Text: whc.Translate(trans.COMMAND_TEXT_HELP)},
+			{Text: emoji.SETTINGS_ICON + " " + whc.Translate(trans.COMMAND_TEXT_SETTING)},
+			{Text: emoji.HELP_ICON + " " + whc.Translate(trans.COMMAND_TEXT_HELP)},
 		},
 	)
 }

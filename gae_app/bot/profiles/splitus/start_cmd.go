@@ -11,11 +11,12 @@ import (
 	"github.com/strongo/log"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
-	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/pkg/errors"
 )
 
 func startInGroupAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
+	log.Debugf(c, "splitus.startInGroupAction()")
 	var group models.Group
 	if group, err = shared_group.GetGroup(whc, nil); err != nil {
 		return
@@ -40,6 +41,7 @@ func startInGroupAction(whc bots.WebhookContext) (m bots.MessageFromBot, err err
 			ChatMember: whc.Input().GetSender(),
 		},
 	}); err != nil {
+		err = errors.WithMessage(err, "failed to add user to the group")
 		return
 	}
 	m.Text = whc.Translate(trans.MESSAGE_TEXT_HI) +
@@ -74,32 +76,3 @@ func startInBotAction(whc bots.WebhookContext, startParams []string) (m bots.Mes
 }
 
 
-func onStartCallbackInGroup(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error) {
-	c := whc.Context()
-	log.Debugf(c, "onStartCallbackInGroup()")
-
-	if twhc, ok := whc.(*telegram_bot.TelegramWebhookContext); ok {
-		if err = twhc.CreateOrUpdateTgChatInstance(); err != nil {
-			return
-		}
-	}
-
-	m, err = GroupSettingsAction(whc, group, false)
-	if err != nil {
-		return
-	}
-	if _, err = whc.Responder().SendMessage(whc.Context(), m, bots.BotApiSendMessageOverHTTPS); err != nil {
-		return
-	}
-
-	return whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_HI)+
-		"\n\n"+ whc.Translate(trans.SPLITUS_TEXT_HI_IN_GROUP)+
-		"\n\n"+ whc.Translate(trans.SPLITUS_TEXT_ABOUT_ME_AND_CO),
-		bots.MessageFormatHTML)
-
-	if _, err = whc.Responder().SendMessage(whc.Context(), m, bots.BotApiSendMessageOverHTTPS); err != nil {
-		return
-	}
-
-	return showGroupMembers(whc, group, false)
-}

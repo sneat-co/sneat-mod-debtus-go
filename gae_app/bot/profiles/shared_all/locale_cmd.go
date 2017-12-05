@@ -17,6 +17,7 @@ import (
 	"github.com/strongo/measurement-protocol"
 	"golang.org/x/net/context"
 	"bytes"
+	"github.com/strongo/db"
 )
 
 const (
@@ -147,14 +148,15 @@ func setPreferredLanguageAction(whc bots.WebhookContext, code5, mode string, bot
 					if err = user.SetPreferredLocale(locale.Code5); err != nil {
 						err = errors.WithMessage(err, "failed to set preferred locale for user")
 					}
+					chatEntity.SetPreferredLanguage(locale.Code5)
+					chatEntity.SetAwaitingReplyTo("")
+					if err = whc.SaveBotChat(c, whc.GetBotCode(), whc.MustBotChatID(), chatEntity); err != nil {
+						return
+					}
 					return dal.User.SaveUser(c, user)
-				}, nil); err != nil {
+				}, db.CrossGroupTransaction); err != nil {
 					return
 				}
-				chatEntity.SetPreferredLanguage(locale.Code5)
-				//if err = whc.SaveBotChat(whc.BotChatID(), chatEntity); err != nil { // TODO: Should be run in transaction
-				//	return m, errors.Wrap(err, "Failed to save chat entity to datastore")
-				//}
 				localeChanged = true
 				selectedLocale = locale
 				if whc.GetBotSettings().Env == strongo.EnvProduction {
@@ -173,6 +175,8 @@ func setPreferredLanguageAction(whc bots.WebhookContext, code5, mode string, bot
 		if !localeChanged {
 			log.Errorf(c, "Unknown locale: %v", code5)
 		}
+	} else {
+		selectedLocale = strongo.GetLocaleByCode5(chatEntity.GetPreferredLanguage())
 	}
 	//if localeChanged {
 
@@ -192,13 +196,13 @@ func setPreferredLanguageAction(whc bots.WebhookContext, code5, mode string, bot
 			if _, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
 				return m, err
 			}
-			return BackToSettingsAction(whc, "")
+			return SettingsMainAction(whc)
 			//if _, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
 			//	return m, err
 			//}
 			//return dtb_general.MainMenuAction(whc, )
 		} else {
-			return BackToSettingsAction(whc, "")
+			return SettingsMainAction(whc)
 		}
 	default:
 		panic(fmt.Sprintf("Unknown mode: %v", mode))

@@ -15,14 +15,18 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/db"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
+	"github.com/strongo/app"
+	"github.com/strongo/db"
+	//"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
+	"golang.org/x/net/context"
 )
 
 const joinBillCommandCode = "join_bill"
-const leaceBillCommandCode = "leave_bill"
+const leaveBillCommandCode = "leave_bill"
 
 var joinBillCommand = bots.Command{
 	Code: joinBillCommandCode,
@@ -33,17 +37,27 @@ var joinBillCommand = bots.Command{
 			err = errors.New("Missing bill ID")
 			return
 		}
-		if bill, err = dal.Bill.GetBillByID(whc.Context(), bill.ID); err != nil {
+		if err = dal.DB.RunInTransaction(whc.Context(), func(c context.Context) (err error) {
+			if bill, err = dal.Bill.GetBillByID(whc.Context(), bill.ID); err != nil {
+				return
+			}
+			m, err = joinBillAction(whc, bill, "", false)
+			return
+		}, db.CrossGroupTransaction); err != nil {
 			return
 		}
-		return joinBillAction(whc, bill, "", false)
+		return
 	},
-	CallbackAction: shared_all.TransactionalCallbackAction(db.CrossGroupTransaction, billCallbackAction(func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
-		c := whc.Context()
-		log.Debugf(c, "joinBillCommand.CallbackAction()")
-		memberStatus := callbackUrl.Query().Get("i")
-		return joinBillAction(whc, bill, memberStatus, true)
-	})),
+	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+		_ = whc.AppUserIntID() // Make sure we have user before transaction starts, TODO: it smells, should be refactored?
+		//
+		return shared_all.TransactionalCallbackAction(db.CrossGroupTransaction, billCallbackAction(func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
+			c := whc.Context()
+			log.Debugf(c, "joinBillCommand.CallbackAction()")
+			memberStatus := callbackUrl.Query().Get("i")
+			return joinBillAction(whc, bill, memberStatus, true)
+		}))(whc, callbackUrl)
+	},
 }
 
 func joinBillAction(whc bots.WebhookContext, bill models.Bill, memberStatus string, isEditMessage bool) (m bots.MessageFromBot, err error) {
@@ -52,7 +66,13 @@ func joinBillAction(whc bots.WebhookContext, bill models.Bill, memberStatus stri
 	}
 	c := whc.Context()
 	log.Debugf(c, "joinBillAction(bill.ID=%v)", bill.ID)
+
 	userID := strconv.FormatInt(whc.AppUserIntID(), 10)
+	var appUser bots.BotAppUser
+	if appUser, err = whc.GetAppUser(); err != nil {
+		return
+	}
+	user := appUser.(*models.AppUserEntity)
 
 	isAlreadyMember := func(members []models.BillMemberJson) (member models.BillMemberJson, isMember bool) {
 		for _, member = range bill.GetBillMembers() {
@@ -63,11 +83,7 @@ func joinBillAction(whc bots.WebhookContext, bill models.Bill, memberStatus stri
 		return
 	}
 
-	var appUser bots.BotAppUser
-	if appUser, err = whc.GetAppUser(); err != nil {
-		return
-	}
-	user := appUser.(*models.AppUserEntity)
+	_, isMember := isAlreadyMember(bill.GetBillMembers())
 
 	userName := user.FullName()
 
@@ -76,7 +92,6 @@ func joinBillAction(whc bots.WebhookContext, bill models.Bill, memberStatus stri
 		return
 	}
 
-	_, isMember := isAlreadyMember(bill.GetBillMembers())
 	if memberStatus == "" && isMember {
 		log.Infof(c, "User is already member of the bill before transaction, memberStatus: "+memberStatus)
 		callbackAnswer := tgbotapi.NewCallback("", whc.Translate(trans.MESSAGE_TEXT_ALREADY_BILL_MEMBER, userName))
@@ -85,17 +100,68 @@ func joinBillAction(whc bots.WebhookContext, bill models.Bill, memberStatus stri
 		whc.LogRequest()
 		if update := whc.Input().(telegram_bot.TelegramWebhookInput).TgUpdate(); update.CallbackQuery.Message != nil {
 			if m2, err := ShowBillCard(whc, true, bill, ""); err != nil {
-				return m, err
+				return m2, err
 			} else if m2.Text != update.CallbackQuery.Message.Text {
 				log.Debugf(c, "Need to update bill card")
 				if _, err = whc.Responder().SendMessage(c, m2, bots.BotApiSendMessageOverHTTPS); err != nil {
-					return m, err
+					return m2, err
 				}
 			} else {
 				log.Debugf(c, "m.Text: %v", m2.Text)
 			}
 		}
 		return
+	}
+
+	//if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	//if bill, err = dal.Bill.GetBillByID(c, bill.ID); err != nil {
+	//	return
+	//}
+
+	billChanged := false
+	if bill.Currency == "" {
+		guessCurrency := func() models.Currency {
+			switch whc.Locale().Code5 {
+			case strongo.LOCALE_RU_RU:
+				return models.CURRENCY_RUB
+			case strongo.LOCALE_DE_DE:
+				return models.CURRENCY_EUR
+			case strongo.LOCALE_FR_FR:
+				return models.CURRENCY_EUR
+			case strongo.LOCALE_IT_IT:
+				return models.CURRENCY_EUR
+			case strongo.LOCALE_PT_PT:
+				return models.CURRENCY_EUR
+			case strongo.LOCALE_EN_UK:
+				return models.CURRENCY_GBP
+			default:
+				return models.CURRENCY_USD
+			}
+		}
+
+		if !whc.IsInGroup() {
+			//m.Keyboard = currenciesInlineKeyboard(billCallbackCommandData(setBillCurrencyCommandCode, bill.ID))
+			if user.PrimaryCurrency != "" {
+				bill.Currency = models.Currency(user.PrimaryCurrency)
+			} else if len(user.LastCurrencies) > 0 {
+				bill.Currency = models.Currency(user.LastCurrencies[0])
+			} else {
+				bill.Currency = guessCurrency()
+				err = errors.New("at the moment bill without currency can be joined just within Telegram group")
+			}
+
+			return
+		}
+		var group models.Group
+		if group, err = shared_group.GetGroup(whc, nil); err != nil {
+			return
+		}
+		if group.DefaultCurrency != "" {
+			bill.Currency = group.DefaultCurrency
+		} else {
+			bill.Currency = guessCurrency()
+		}
+		billChanged = true
 	}
 
 	var isJoined bool
@@ -108,14 +174,20 @@ func joinBillAction(whc bots.WebhookContext, bill models.Bill, memberStatus stri
 	default:
 	}
 
-	if bill, _, _, isJoined, err = facade.Bill.AddBillMember(c, userID, bill, "", userID, userName, paid); err != nil {
+	billChanged2 := false
+	if bill, _, billChanged2, isJoined, err = facade.Bill.AddBillMember(c, userID, bill, "", userID, userName, paid); err != nil {
 		return
 	}
-
-	log.Debugf(c, "isJoined=%v", isJoined)
-	if isJoined {
-		delayUpdateBillCardOnUserJoin(c, bill.ID, whc.Translate(fmt.Sprintf("%v: ", time.Now())+trans.MESSAGE_TEXT_USER_JOINED_BILL, userName))
+	if billChanged = billChanged2 || billChanged; billChanged {
+		if err = dal.Bill.SaveBill(c, bill); err != nil {
+			return
+		}
+		if isJoined {
+			delayUpdateBillCardOnUserJoin(c, bill.ID, whc.Translate(fmt.Sprintf("%v: ", time.Now())+trans.MESSAGE_TEXT_USER_JOINED_BILL, userName))
+		}
 	}
+	//return
+	//}
 
 	return ShowBillCard(whc, isEditMessage, bill, "")
 }

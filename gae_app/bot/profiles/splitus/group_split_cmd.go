@@ -26,6 +26,7 @@ var groupSplitCommand = shared_group.GroupCallbackCommand(groupSplitCommandCode,
 		}
 		return editSplitCallbackAction(
 			whc, callbackUrl,
+			"",
 			shared_group.GroupCallbackCommandData(groupSplitCommandCode, group.ID),
 			shared_group.GroupCallbackCommandData(shared_all.SettingsCommandCode, group.ID),
 			trans.MESSAGE_TEXT_ASK_HOW_TO_SPLIT_IN_GROP,

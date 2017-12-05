@@ -27,7 +27,7 @@ func (Referer) NewEntity() interface{} {
 	return new(RefererEntity)
 }
 
-func (r Referer) SetEntity(entity interface{}) {
+func (r *Referer) SetEntity(entity interface{}) {
 	if entity == nil {
 		r.RefererEntity = nil
 	} else {

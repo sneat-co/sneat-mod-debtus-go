@@ -71,7 +71,7 @@ func settingsAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) 
 		})
 		return groupAction(whc)
 	} else {
-		m.Text = "not implemented yet"
+		m, _, err = shared_all.SettingsMainTelegram(whc)
 		return
 	}
 }

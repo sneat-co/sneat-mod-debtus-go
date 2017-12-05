@@ -186,13 +186,12 @@ func (entity *ContactEntity) Save() (properties []datastore.Property, err error)
 	if properties, err = datastore.SaveStruct(entity); err != nil {
 		return
 	}
-	if err = checkHasProperties(AppUserKind, properties); err != nil {
-		return
-	}
 
 	if properties, err = gaedb.CleanProperties(properties, contactPropertiesToClean); err != nil {
 		return
 	}
+
+	checkHasProperties(ContactKind, properties)
 
 	return
 }

@@ -5,19 +5,32 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
+	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/pkg/errors"
 )
 
 const SettingsCommandCode = "settings"
 
-func BackToSettingsAction(whc bots.WebhookContext, messageText string) (m bots.MessageFromBot, err error) {
-	if messageText == "" {
-		messageText = whc.Translate(trans.MESSAGE_TEXT_SETTINGS)
-	} else {
-		messageText += "\n\n" + whc.Translate(trans.MESSAGE_TEXT_SETTINGS)
+var SettingsCommandTemplate = bots.Command{
+	Code:     SettingsCommandCode,
+	Commands: trans.Commands(trans.COMMAND_TEXT_SETTING, trans.COMMAND_SETTINGS, emoji.SETTINGS_ICON),
+	Icon:     emoji.SETTINGS_ICON,
+}
+
+func SettingsMainAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	switch whc.BotPlatform().Id() {
+	case telegram_bot.TelegramPlatformID:
+		m, _, err = SettingsMainTelegram(whc)
+	default:
+		err = errors.New("Unsupported platform")
 	}
-	m = whc.NewMessage(messageText)
+	return
+}
+
+func SettingsMainTelegram(whc bots.WebhookContext) (m bots.MessageFromBot, keyboard *tgbotapi.InlineKeyboardMarkup, err error) {
+	m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_SETTINGS))
 	m.IsEdit = whc.InputType() == bots.WebhookInputCallbackQuery
-	m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
+	keyboard = tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{
 			{
 				Text:         whc.CommandText(trans.COMMAND_TEXT_LANGUAGE, emoji.EARTH_ICON),
@@ -25,11 +38,6 @@ func BackToSettingsAction(whc bots.WebhookContext, messageText string) (m bots.M
 			},
 		},
 	)
-	return m, err
-}
-
-var SettingsCommandTemplate = bots.Command{
-	Code:     SettingsCommandCode,
-	Commands: trans.Commands(trans.COMMAND_TEXT_SETTING, trans.COMMAND_SETTINGS, emoji.SETTINGS_ICON),
-	Icon:     emoji.SETTINGS_ICON,
+	m.Keyboard = keyboard
+	return
 }

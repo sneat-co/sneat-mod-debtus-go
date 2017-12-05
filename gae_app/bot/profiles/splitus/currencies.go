@@ -5,12 +5,15 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"net/url"
 	"fmt"
-	"github.com/strongo/db"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
+	"github.com/strongo/bots-framework/platforms/telegram"
+	"golang.org/x/net/context"
+	"github.com/strongo/db"
+	"github.com/strongo/log"
 )
 
 const CURRENCY_PARAM_NAME = "currency"
@@ -108,21 +111,57 @@ var groupSettingsChooseCurrencyCommand = shared_group.GroupCallbackCommand(Group
 func groupSettingsSetCurrencyCommand(params shared_all.BotParams) bots.Command {
 	return bots.Command{
 		Code: GroupSettingsSetCurrencyCommandCode,
-		CallbackAction: shared_all.TransactionalCallbackAction(db.CrossGroupTransaction, // TODO: Should be single group transaction, but a chat entity is loaded as well
-			shared_group.NewGroupCallbackAction(func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
-				currency := models.Currency(callbackUrl.Query().Get(CURRENCY_PARAM_NAME))
-				if group.DefaultCurrency != currency {
-					group.DefaultCurrency = currency
-					if err = dal.Group.SaveGroup(whc.Context(), group); err != nil {
+		CallbackAction: shared_group.NewGroupCallbackAction(func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
+			currency := models.Currency(callbackUrl.Query().Get(CURRENCY_PARAM_NAME))
+			if group.DefaultCurrency != currency {
+				c := whc.Context()
+				if err := dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+					if group, err = dal.Group.GetGroupByID(c, group.ID); err != nil {
 						return
 					}
-				}
-				if callbackUrl.Query().Get("start") == "y" {
-					panic(`return params.InGroupWelcomeMessage(whc, group)`)
+					if group.DefaultCurrency != currency {
+						group.DefaultCurrency = currency
+						if err = dal.Group.SaveGroup(c, group); err != nil {
+							return
+						}
+					}
+					return
+				}, db.SingleGroupTransaction); err != nil {
+					log.Errorf(whc.Context(), "failed to change group default currency: %v", err)
 				} else {
-					return GroupSettingsAction(whc, group, true)
+					log.Debugf(c, "Default currency for group %v updated to: %v", group.ID, currency)
 				}
-			})),
+			}
+			if callbackUrl.Query().Get("start") == "y" {
+				return onStartCallbackInGroup(whc, group)
+			} else {
+				return GroupSettingsAction(whc, group, true)
+			}
+		}),
 	}
 }
 
+func onStartCallbackInGroup(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error) {
+	// This links Telegram ChatID and ChatInstance
+	if twhc, ok := whc.(*telegram_bot.TelegramWebhookContext); ok {
+		if err = twhc.CreateOrUpdateTgChatInstance(); err != nil {
+			return
+		}
+	}
+	return inGroupWelcomeMessage(whc, group)
+}
+
+func inGroupWelcomeMessage(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error) {
+	m, err = GroupSettingsAction(whc, group, false)
+	if err != nil {
+		return
+	}
+	if _, err = whc.Responder().SendMessage(whc.Context(), m, bots.BotApiSendMessageOverHTTPS); err != nil {
+		return
+	}
+
+	return whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_HI)+
+		"\n\n"+ whc.Translate(trans.SPLITUS_TEXT_HI_IN_GROUP)+
+		"\n\n"+ whc.Translate(trans.SPLITUS_TEXT_ABOUT_ME_AND_CO),
+		bots.MessageFormatHTML)
+}

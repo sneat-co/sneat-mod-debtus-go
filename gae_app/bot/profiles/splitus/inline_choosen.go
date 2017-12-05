@@ -35,6 +35,7 @@ var reDecimal = regexp.MustCompile(`\d+(\.\d+)?`)
 
 func createBillFromInlineChoosenResult(whc bots.WebhookContext, choosenResult bots.WebhookChosenInlineResult) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
+	log.Debugf(c, "createBillFromInlineChoosenResult()")
 
 	resultID := choosenResult.GetResultID()
 
@@ -133,13 +134,7 @@ func createBillFromInlineChoosenResult(whc bots.WebhookContext, choosenResult bo
 
 		log.Infof(c, "createBillFromInlineChoosenResult() => suxx 0")
 
-		footer := strings.Repeat("―", 21) + "\n"
-
-		if bill.Currency == "" {
-			footer += whc.Translate(trans.MESSAGE_TEXT_ASK_BILL_CURRENCY)
-		} else {
-			footer += whc.Translate(trans.MESSAGE_TEXT_ASK_BILL_PAYER)
-		}
+		footer := strings.Repeat("―", 15) + "\n" + whc.Translate(trans.MESSAGE_TEXT_ASK_BILL_PAYER)
 
 		if m.Text, err = getBillCardMessageText(c, botCode, whc, bill, false, footer); err != nil {
 			log.Errorf(c, "Failed to create bill card")
@@ -160,11 +155,7 @@ func createBillFromInlineChoosenResult(whc bots.WebhookContext, choosenResult bo
 
 		log.Infof(c, "createBillFromInlineChoosenResult() => suxx 2")
 
-		if bill.Currency == "" {
-			m.Keyboard = currenciesInlineKeyboard(billCallbackCommandData(setBillCurrencyCommandCode, bill.ID))
-		} else {
-			m.Keyboard = getWhoPaidInlineKeyboard(whc, bill.ID)
-		}
+		m.Keyboard = getWhoPaidInlineKeyboard(whc, bill.ID)
 
 		var response bots.OnMessageSentResponse
 		log.Debugf(c, "createBillFromInlineChoosenResult() => Sending bill card: %v", m)

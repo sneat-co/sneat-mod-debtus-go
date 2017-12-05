@@ -14,11 +14,13 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
+	"github.com/DebtsTracker/translations/trans"
 )
 
 func editSplitCallbackAction(
 	whc bots.WebhookContext,
 	callbackUrl *url.URL,
+	billID string,
 	editCommandPrefix, backCommandPrefix string,
 	msgTextAskToSplit string,
 	members []models.BillMemberJson,
@@ -62,13 +64,17 @@ func editSplitCallbackAction(
 
 	writeSplitMembers(buffer, members, member.ID, totalAmount.Currency)
 
-	writeSplitInstructions(buffer, member.TgUserID, member.Name)
+	if len(members) > 1 {
+		writeSplitInstructions(buffer, member.TgUserID, member.Name)
+	}
 
 	m.Text = buffer.String()
 	m.Format = bots.MessageFormatHTML
 
 	tgKeyboard := &tgbotapi.InlineKeyboardMarkup{}
 	tgKeyboard.InlineKeyboard = addEditSplitInlineKeyboardButtons(tgKeyboard.InlineKeyboard, whc,
+		len(members),
+		billID,
 		editCommandPrefix+"&m="+member.ID+"&",
 		backCommandPrefix,
 	)
@@ -163,43 +169,55 @@ func writeSplitMembers(buffer *bytes.Buffer, members []models.BillMemberJson, cu
 	}
 }
 
-func addEditSplitInlineKeyboardButtons(kb [][]tgbotapi.InlineKeyboardButton, translator strongo.SingleLocaleTranslator, callbackDataPrefix, backCallbackData string) [][]tgbotapi.InlineKeyboardButton {
-	return append(kb, // TODO: Move to Telegram specific package
-		[]tgbotapi.InlineKeyboardButton{
-			{
-				Text:         "-10",
-				CallbackData: callbackDataPrefix + "add=-10",
+func addEditSplitInlineKeyboardButtons(kb [][]tgbotapi.InlineKeyboardButton, translator strongo.SingleLocaleTranslator, membersCount int, billID, callbackDataPrefix, backCallbackData string) [][]tgbotapi.InlineKeyboardButton {
+	var lastRow []tgbotapi.InlineKeyboardButton
+	if membersCount > 1 {
+		kb = append(kb, // TODO: Move to Telegram specific package
+			[]tgbotapi.InlineKeyboardButton{
+				{
+					Text:         "-10",
+					CallbackData: callbackDataPrefix + "add=-10",
+				},
+				{
+					Text:         "-1",
+					CallbackData: callbackDataPrefix + "add=-1",
+				},
+				{
+					Text:         "==",
+					CallbackData: callbackDataPrefix + "set=50x50",
+				},
+				{
+					Text:         "+1",
+					CallbackData: callbackDataPrefix + "add=1",
+				},
+				{
+					Text:         "+10",
+					CallbackData: callbackDataPrefix + "add=10",
+				},
 			},
-			{
-				Text:         "-1",
-				CallbackData: callbackDataPrefix + "add=-1",
-			},
-			{
-				Text:         "50/50",
-				CallbackData: callbackDataPrefix + "set=50x50",
-			},
-			{
-				Text:         "+1",
-				CallbackData: callbackDataPrefix + "add=1",
-			},
-			{
-				Text:         "+10",
-				CallbackData: callbackDataPrefix + "add=10",
-			},
-		},
-		[]tgbotapi.InlineKeyboardButton{
-			{
+		)
+		lastRow = append(lastRow,
+			tgbotapi.InlineKeyboardButton{
 				Text:         "⬆️",
 				CallbackData: callbackDataPrefix + "move=up",
 			},
-			{
+			tgbotapi.InlineKeyboardButton{
 				Text:         "⬇️",
 				CallbackData: callbackDataPrefix + "move=down",
 			},
-			{
-				Text:         translator.Translate("✅ Done"),
-				CallbackData: backCallbackData,
+		)
+	} else {
+		lastRow = append(lastRow,
+			tgbotapi.InlineKeyboardButton{
+				Text:         translator.Translate(trans.BUTTON_TEXT_JOIN),
+				CallbackData: billCallbackCommandData(joinBillCommandCode, billID),
 			},
-		},
-	)
+		)
+	}
+	lastRow = append(lastRow, tgbotapi.InlineKeyboardButton{
+		Text:         translator.Translate("✅ Done"),
+		CallbackData: backCallbackData,
+	})
+
+	return append(kb, lastRow)
 }

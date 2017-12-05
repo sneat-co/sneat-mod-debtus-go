@@ -46,11 +46,11 @@ func (GroupDalGae) GetGroupByID(c context.Context, groupID string) (group models
 	if group.ID = groupID; group.ID == "" {
 		panic("groupID is empty string")
 	}
-	group.GroupEntity = new(models.GroupEntity)
+	group.ID = groupID
 	if err = dal.DB.Get(c, &group); err != nil {
-		group.ID = ""
+		return
 	}
-	return group, err
+	return
 }
 
 func (GroupDalGae) DelayUpdateGroupWithBill(c context.Context, groupID, billID string) (err error) {

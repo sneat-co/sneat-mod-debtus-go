@@ -13,7 +13,7 @@ func getGroupBillCardInlineKeyboard(translator strongo.SingleLocaleTranslator, b
 	//	//{{Text: "I paid for the bill alone", CallbackData: joinBillCallbackPrefix + "&i=paid-alone"}},
 	//	//{{Text:"I paid part of this bill",CallbackData:  joinBillCallbackPrefix + "&i=paid-part"}},
 	//	//{{Text: "I owe for this bill", CallbackData: joinBillCallbackPrefix + "&i=owe"}},
-	//	//{{Text: "I don't share this bill", CallbackData: billCallbackCommandData(leaceBillCommandCode, bill.ID)}},
+	//	//{{Text: "I don't share this bill", CallbackData: billCallbackCommandData(leaveBillCommandCode, bill.ID)}},
 	return &tgbotapi.InlineKeyboardMarkup{
 		InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{
 			{
@@ -25,7 +25,7 @@ func getGroupBillCardInlineKeyboard(translator strongo.SingleLocaleTranslator, b
 			{
 				{
 					Text:         translator.Translate(trans.BUTTON_TEXT_SPLIT_MODE, translator.Translate(string(bill.SplitMode))),
-					CallbackData: billCallbackCommandData(BILL_SHARES_COMMAND, bill.ID),
+					CallbackData: billCallbackCommandData(billSharesCommandCode, bill.ID),
 				},
 			},
 			{

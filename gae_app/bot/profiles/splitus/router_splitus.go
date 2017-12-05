@@ -79,6 +79,7 @@ var Router = bots.NewWebhookRouter(
 			setBillCurrencyCommand,
 			groupCommand,
 			leaveGroupCommand,
+			billCardCommand,
 			billMembersCommand,
 			inviteToBillCommand,
 			setBillDueDateCommand,
@@ -116,7 +117,7 @@ func getWhoPaidInlineKeyboard(translator strongo.SingleLocaleTranslator, billID 
 		InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{
 			{{Text: "✋ " + translator.Translate(trans.BUTTON_TEXT_I_PAID_FOR_THE_BILL), CallbackData: callbackDataPrefix + "&i=paid"}},
 			{{Text: "🙏 " + translator.Translate(trans.BUTTON_TEXT_I_OWE_FOR_THE_BILL), CallbackData: callbackDataPrefix + "&i=owe"}},
-			{{Text: "🚫 " + translator.Translate(trans.BUTTON_TEXT_I_DO_NOT_SHARE_THIS_BILL), CallbackData: billCallbackCommandData(leaceBillCommandCode, billID)}},
+			{{Text: "🚫 " + translator.Translate(trans.BUTTON_TEXT_I_DO_NOT_SHARE_THIS_BILL), CallbackData: billCallbackCommandData(leaveBillCommandCode, billID)}},
 		},
 	}
 }

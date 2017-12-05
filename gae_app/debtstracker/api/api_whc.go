@@ -39,7 +39,7 @@ func NewApiWebhookContext(r *http.Request, appUser *models.AppUserEntity, userID
 			nil, // WebhookInput
 			bots.BotCoreStores{},
 			nil, // GaMeasurement
-			false,
+			func() bool { return false },
 			nil,
 		),
 	}

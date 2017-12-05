@@ -14,11 +14,13 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 )
 
-const BILLS_COMMAND = "bills"
+const billsCommandCode = "bills"
 
 var billsCommand = bots.Command{
-	Code:     BILLS_COMMAND,
-	Commands: []string{"/bills"},
+	Code:     billsCommandCode,
+	Commands: trans.Commands(trans.COMMAND_TEXT_BILLS, "/"+billsCommandCode),
+	Icon: emoji.CLIPBOARD_ICON,
+	Title: trans.COMMAND_TEXT_BILLS,
 	Action:   billsAction,
 	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		return billsAction(whc)

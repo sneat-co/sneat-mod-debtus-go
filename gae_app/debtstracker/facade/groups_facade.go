@@ -112,6 +112,7 @@ type NewUser struct {
 }
 
 func (groupFacade) AddUsersToTheGroupAndOutstandingBills(c context.Context, groupID string, newUsers []NewUser) (models.Group, []NewUser, error) {
+	log.Debugf(c, "groupFacade.AddUsersToTheGroupAndOutstandingBills(groupID=%v, newUsers=%v)", groupID, newUsers)
 	if groupID == "" {
 		panic("groupID is empty string")
 	}
@@ -124,6 +125,7 @@ func (groupFacade) AddUsersToTheGroupAndOutstandingBills(c context.Context, grou
 		if group, err = dal.Group.GetGroupByID(c, groupID); err != nil {
 			return
 		}
+		log.Debugf(c, "group: %+v", group.GroupEntity)
 		j := 0
 		for _, newUser := range newUsers {
 			_, isChanged, _, _, groupMembers := group.AddOrGetMember(strconv.FormatInt(newUser.GetAppUserIntID(), 10), "", newUser.Name)
@@ -136,6 +138,7 @@ func (groupFacade) AddUsersToTheGroupAndOutstandingBills(c context.Context, grou
 		}
 		newUsers = newUsers[:j]
 		if changed {
+			log.Debugf(c, "group: %+v", group.GroupEntity)
 			if err = dal.Group.SaveGroup(c, group); err != nil {
 				return
 			}
