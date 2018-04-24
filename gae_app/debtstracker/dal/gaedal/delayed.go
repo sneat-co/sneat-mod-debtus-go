@@ -278,7 +278,7 @@ func onReceiptSendFail(c context.Context, receiptID, tgChatID int64, tgMsgID int
 //	}
 //	localeCode := tgChat.PreferredLanguage
 //	if localeCode == "" {
-//		localeCode = user.PreferredLocale()
+//		localeCode = user.GetPreferredLocale()
 //	}
 //	if translator, err = getTranslator(c, localeCode); err != nil {
 //		return
@@ -553,7 +553,7 @@ var delayedCreateAndSendReceiptToCounterpartyByTelegram = delay.Func("delayedCre
 		if err != nil {
 			return err
 		}
-		localeCode = toUser.PreferredLocale()
+		localeCode = toUser.GetPreferredLocale()
 	}
 
 	var translator strongo.SingleLocaleTranslator

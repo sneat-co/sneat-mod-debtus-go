@@ -37,7 +37,7 @@ func redirectToWebApp(w http.ResponseWriter, r *http.Request, authRequired bool,
 				w.Write([]byte(err.Error()))
 				return
 			}
-			lang = strings.ToLower(user.PreferredLocale()[:2])
+			lang = strings.ToLower(user.GetPreferredLocale()[:2])
 		} else {
 			lang = "en" // TODO: Bad to hard-code. Try to get from receipt?
 		}

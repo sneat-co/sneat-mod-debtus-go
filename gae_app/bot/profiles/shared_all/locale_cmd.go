@@ -16,7 +16,7 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"github.com/strongo/measurement-protocol"
+	"github.com/strongo/gamp"
 	"context"
 )
 
@@ -160,9 +160,9 @@ func setPreferredLanguageAction(whc bots.WebhookContext, code5, mode string, bot
 				localeChanged = true
 				selectedLocale = locale
 				if whc.GetBotSettings().Env == strongo.EnvProduction {
-					gaEvent := measurement.NewEvent("settings", "locale-changed", whc.GaCommon())
+					gaEvent := gamp.NewEvent("settings", "locale-changed", whc.GaCommon())
 					gaEvent.Label = strings.ToLower(locale.Code5)
-					gaErr := whc.GaMeasurement().Send(gaEvent)
+					gaErr := whc.GaMeasurement().Queue(gaEvent)
 					if gaErr != nil {
 						log.Warningf(c, "Failed to log event: %v", gaErr)
 					} else {

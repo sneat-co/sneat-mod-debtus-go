@@ -31,7 +31,7 @@ var inlineQueryCommand = bots.Command{
 
 			if user, err := whc.GetAppUser(); err != nil {
 				return m, err
-			} else if preferredLocale := user.PreferredLocale(); preferredLocale != "" {
+			} else if preferredLocale := user.GetPreferredLocale(); preferredLocale != "" {
 				log.Debugf(c, "User has preferring locale")
 				whc.SetLocale(preferredLocale)
 			} else if tgLang := update.InlineQuery.From.LanguageCode; len(tgLang) >= 2 {

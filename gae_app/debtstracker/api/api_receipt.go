@@ -193,7 +193,7 @@ func handleSendReceipt(c context.Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	locale := strongo.GetLocaleByCode5(user.PreferredLocale()) // TODO: Get language from request
+	locale := strongo.GetLocaleByCode5(user.GetPreferredLocale()) // TODO: Get language from request
 	translator := strongo.NewSingleMapTranslator(locale, common.TheAppContext.GetTranslator(c))
 	ec := strongo.NewExecutionContext(c, translator)
 
@@ -422,7 +422,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 		}
 		messageToSend = fmt.Sprintf("https://telegram.me/%v?start=send-receipt_%v", tgBotID, common.EncodeID(receiptID)) // TODO:
 	} else {
-		locale := strongo.GetLocaleByCode5(user.PreferredLocale())
+		locale := strongo.GetLocaleByCode5(user.GetPreferredLocale())
 		translator := strongo.NewSingleMapTranslator(locale, common.TheAppContext.GetTranslator(c))
 		//ec := strongo.NewExecutionContext(c, translator)
 
