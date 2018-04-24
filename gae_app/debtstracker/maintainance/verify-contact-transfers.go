@@ -12,9 +12,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sanity-io/litter"
 	"github.com/strongo/db"
-	"golang.org/x/net/context"
-	"google.golang.org/appengine/datastore"
 	"github.com/strongo/log"
+	"context"
+	"google.golang.org/appengine/datastore"
 )
 
 type verifyContactTransfers struct {

@@ -3,7 +3,7 @@ package gaedal
 import (
 	"testing"
 
-	"golang.org/x/net/context"
+	"context"
 )
 
 func TestNewReceiptIncompleteKey(t *testing.T) {

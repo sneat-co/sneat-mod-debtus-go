@@ -5,17 +5,17 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/strongo/bots-framework/core"
-	telegram_bot "github.com/strongo/bots-framework/platforms/telegram"
+	telegramBot "github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
 )
 
 func RegisterDal() {
 	dal.DB = gaedb.NewDatabase()
-	telegram_bot.DAL.DB = dal.DB
+	telegramBot.DAL.DB = dal.DB
 	//
 	dal.Contact = NewContactDalGae()
 	dal.Transfer = NewTransferDalGae()

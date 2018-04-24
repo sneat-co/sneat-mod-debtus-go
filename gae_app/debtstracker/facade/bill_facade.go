@@ -11,9 +11,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/strongo/db"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 )
 
 type billFacade struct {
@@ -510,7 +511,7 @@ func (billFacade) AddBillMember(
 ) (
 	bill models.Bill, group models.Group, changed, isJoined bool, err error,
 ) {
-	log.Debugf(c, "billFacade.AddBillMember(bill.ID=%v, memberID=%v, memberUserID=%v, paid=%v)", bill.ID, memberID, memberUserID, paid)
+	log.Debugf(c, "billFacade.AddBillMember(bill.ID=%v, memberID=%v, memberUserID=%v, memberUserName=%v, paid=%v)", bill.ID, memberID, memberUserID, memberUserName, paid)
 	if paid < 0 {
 		panic("paid < 0")
 	}
@@ -546,7 +547,7 @@ func (billFacade) AddBillMember(
 
 		groupMembersJsonBefore = group.MembersJson
 
-		if _, groupChanged, _, groupMember, groupMembers = group.AddOrGetMember(memberUserID, "", billMember.Name); groupChanged {
+		if _, groupChanged, _, groupMember, groupMembers = group.AddOrGetMember(memberUserID, "", memberUserName); groupChanged {
 			group.SetGroupMembers(groupMembers)
 		} else {
 			log.Debugf(c, "Group billMembers not changed, groupMember.ID: "+groupMember.ID)
@@ -624,6 +625,109 @@ func (billFacade) AddBillMember(
 	}
 
 	isJoined = true
+	return
+}
+
+var (
+	ErrSettledBillsCanNotBeDeleted   = errors.New("settled bills can't be deleted")
+	ErrOnlyDeletedBillsCanBeRestored = errors.New("only deleted bills can be restored")
+)
+
+func (billFacade) DeleteBill(c context.Context, billID string, userID int64) (bill models.Bill, err error) {
+	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+		if bill, err = dal.Bill.GetBillByID(c, billID); err != nil {
+			return
+		}
+		if bill.Status == models.BillStatusSettled {
+			err = ErrSettledBillsCanNotBeDeleted
+			return
+		}
+		if bill.Status == models.BillStatusDraft || bill.Status == models.BillStatusOutstanding {
+			billHistoryRecord := models.NewBillHistoryBillDeleted(strconv.FormatInt(userID, 10), bill)
+			if err = dal.InsertWithRandomStringID(c, &billHistoryRecord, models.BillsHistoryIdLen); err != nil {
+				return
+			}
+			bill.Status = models.BillStatusDeleted
+			if err = dal.Bill.SaveBill(c, bill); err != nil {
+				return
+			}
+		}
+		if groupID := bill.UserGroupID(); groupID != "" {
+			var group models.Group
+			if group, err = dal.Group.GetGroupByID(c, groupID); err != nil {
+				return
+			}
+			outstandingBills := group.GetOutstandingBills()
+			for i, billJson := range outstandingBills {
+				if billJson.ID == billID {
+					outstandingBills = append(outstandingBills[:i], outstandingBills[i+1:]...)
+					group.SetOutstandingBills(outstandingBills)
+					groupMembers := group.GetGroupMembers()
+					billMembers := bill.GetBillMembers()
+					for j, groupMember := range groupMembers {
+						for _, billMember := range billMembers {
+							if billMember.ID == groupMember.ID {
+								groupMember.Balance[bill.Currency] -= billMember.Balance()
+								groupMembers[j] = groupMember
+								break
+							}
+						}
+					}
+					group.SetGroupMembers(groupMembers)
+					if err = dal.Group.SaveGroup(c, group); err != nil {
+						return
+					}
+					break
+				}
+			}
+		}
+		return
+	}, db.CrossGroupTransaction); err != nil {
+		return
+	}
+	return
+}
+
+func (billFacade) RestoreBill(c context.Context, billID string, userID int64) (bill models.Bill, err error) {
+	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+		if bill, err = dal.Bill.GetBillByID(c, billID); err != nil {
+			return
+		}
+		if bill.Status != models.BillStatusDeleted {
+			err = ErrOnlyDeletedBillsCanBeRestored
+			return
+		}
+
+		if bill.MembersCount > 1 {
+			bill.Status = models.BillStatusOutstanding
+		} else {
+			bill.Status = models.BillStatusDraft
+		}
+		billHistoryRecord := models.NewBillHistoryBillRestored(strconv.FormatInt(userID, 10), bill)
+		if err = dal.InsertWithRandomStringID(c, &billHistoryRecord, models.BillsHistoryIdLen); err != nil {
+			return
+		}
+		if err = dal.Bill.SaveBill(c, bill); err != nil {
+			return
+		}
+		if groupID := bill.UserGroupID(); groupID != "" {
+			var group models.Group
+			if group, err = dal.Group.GetGroupByID(c, groupID); err != nil {
+				return
+			}
+			var groupChanged bool
+			if groupChanged, err = group.AddBill(bill); err != nil {
+				return
+			} else if groupChanged {
+				if err = dal.Group.SaveGroup(c, group); err != nil {
+					return
+				}
+			}
+		}
+		return
+	}, db.CrossGroupTransaction); err != nil {
+		return
+	}
 	return
 }
 

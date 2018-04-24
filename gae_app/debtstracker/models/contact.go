@@ -8,8 +8,8 @@ import (
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
+	"context"
 	"google.golang.org/appengine/datastore"
-	"golang.org/x/net/context"
 )
 
 func NewContactEntity(userID int64, details ContactDetails) *ContactEntity {
@@ -65,12 +65,12 @@ func NewContact(id int64, entity *ContactEntity) Contact {
 
 type ContactEntity struct {
 	DtCreated                  time.Time `datastore:",omitempty"`
-	UserID                     int64 // owner can not be in parent key as we have problem with filtering transfers then
-	CounterpartyUserID         int64 // The counterparty user ID if registered
+	UserID                     int64     // owner can not be in parent key as we have problem with filtering transfers then
+	CounterpartyUserID         int64     // The counterparty user ID if registered
 	CounterpartyCounterpartyID int64
-	LinkedBy                   string    `datastore:",noindex"`
+	LinkedBy                   string `datastore:",noindex"`
 	//
-	Status        string
+	Status string
 	ContactDetails
 	Balanced
 	TransfersJson string `datastore:",noindex"`

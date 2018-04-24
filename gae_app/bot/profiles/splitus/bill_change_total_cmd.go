@@ -11,7 +11,7 @@ import (
 
 const CHANGE_BILL_TOTAL_COMMAND = "bill_total"
 
-var changeBillTotalCommand = billCallbackCommand(CHANGE_BILL_TOTAL_COMMAND,
+var changeBillTotalCommand = billCallbackCommand(CHANGE_BILL_TOTAL_COMMAND, nil,
 	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "changeBillTotalCommand.CallbackAction()")

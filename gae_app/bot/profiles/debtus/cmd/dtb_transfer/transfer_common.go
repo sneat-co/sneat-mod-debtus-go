@@ -27,7 +27,7 @@ import (
 	"github.com/strongo/bots-framework/platforms/viber"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 	"golang.org/x/net/html"
 )
 
@@ -87,7 +87,7 @@ var currenciesByPriority = []models.Currency{
 
 func AskTransferCurrencyButtons(whc bots.WebhookContext) [][]string {
 	user, _ := whc.GetAppUser()
-	user.PreferredLocale()
+	user.GetPreferredLocale()
 
 	var (
 		row, col int
@@ -113,7 +113,9 @@ func AskTransferCurrencyButtons(whc bots.WebhookContext) [][]string {
 		}
 	}
 
-	for _, currency := range user.GetCurrencies() {
+	appUser := user.(models.AppUser)
+
+	for _, currency := range appUser.GetCurrencies() {
 		curr := models.Currency(currency)
 		addCurrencyAndNewLineIfNeeded(curr)
 		alreadyAddedCurrencies = append(alreadyAddedCurrencies, curr)
@@ -660,7 +662,7 @@ func CreateTransferFromBot(
 		} else {
 			action = "debt-new-created"
 		}
-		gaEvent := whc.GaEventWithLabel(analytics.EventCategory_Transfers, action, gaEventLabel)
+		gaEvent := whc.GaEventWithLabel(analytics.EventCategoryTransfers, action, gaEventLabel)
 		gaEvent.Value = uint(math.Abs(output.Transfer.AmountInCents.AsFloat64()) + 0.5)
 
 		if gaErr := gaMeasurement.Queue(gaEvent); gaErr != nil {
@@ -670,7 +672,7 @@ func CreateTransferFromBot(
 		}
 
 		if !output.Transfer.DtDueOn.IsZero() {
-			gaEvent = whc.GaEvent(analytics.EventCategory_Transfers, analytics.EventAction_DebtDueDateSet)
+			gaEvent = whc.GaEvent(analytics.EventCategoryTransfers, analytics.EventActionDebtDueDateSet)
 			//Do not set event value!: gaEvent.Value = uint(transfer.DtDueOn.Sub(time.Now()) / time.Hour)
 			if gaErr := gaMeasurement.Queue(gaEvent); gaErr != nil {
 				log.Warningf(c, "Failed to log event: %v", gaErr)

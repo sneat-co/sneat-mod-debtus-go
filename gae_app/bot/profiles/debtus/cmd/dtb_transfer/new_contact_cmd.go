@@ -7,6 +7,7 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	dtb_common "bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
@@ -15,8 +16,7 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/log"
-	"github.com/strongo/measurement-protocol"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"github.com/strongo/gamp"
 )
 
 const NEW_COUNTERPARTY_COMMAND = "new-counterparty"
@@ -122,14 +122,14 @@ func NewCounterpartyCommand(nextCommand bots.Command) bots.Command {
 					if contact, user, err = facade.CreateContact(c, whc.AppUserIntID(), contactDetails); err != nil {
 						return m, err
 					}
-					whc.GaMeasurement().Queue(measurement.NewEventWithLabel(
+					whc.GaMeasurement().Queue(gamp.NewEventWithLabel(
 						"contacts",
 						"contact-created",
 						fmt.Sprintf("user-%v", whc.AppUserIntID()),
 						whc.GaCommon(),
 					))
 					if contact.PhoneNumber != 0 && contact.PhoneNumberConfirmed {
-						whc.GaMeasurement().Queue(measurement.NewEventWithLabel(
+						whc.GaMeasurement().Queue(gamp.NewEventWithLabel(
 							"contacts",
 							"contact-details-added",
 							"phone-number",

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"golang.org/x/net/context"
+	"context"
 )
 
 func TestNewUserFacebookKey(t *testing.T) {

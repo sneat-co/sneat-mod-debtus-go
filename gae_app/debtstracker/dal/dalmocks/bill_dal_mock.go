@@ -5,7 +5,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pkg/errors"
 	"github.com/strongo/db"
-	"golang.org/x/net/context"
+	"context"
 )
 
 var _ dal.BillDal = (*BillDalMock)(nil)

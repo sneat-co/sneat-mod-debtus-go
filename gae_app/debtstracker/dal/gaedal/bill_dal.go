@@ -9,7 +9,7 @@ import (
 	"github.com/strongo/app/gae"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine/delay"
 )
 
@@ -69,7 +69,13 @@ func (_ billDalGae) InsertBillEntity(c context.Context, billEntity *models.BillE
 }
 
 func (billDalGae) SaveBill(c context.Context, bill models.Bill) (err error) {
-	return dal.DB.Update(c, &bill)
+	if err = dal.DB.Update(c, &bill); err != nil {
+		return
+	}
+	if err = DelayUpdateUsersWithBill(c, bill.ID, bill.UserIDs); err != nil {
+		return
+	}
+	return
 }
 
 func (billDalGae) DelayUpdateBillDependencies(c context.Context, billID string) (err error) {

@@ -3,21 +3,21 @@ package shared_group
 import (
 	"net/url"
 
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bytes"
+	"fmt"
+	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
+	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/db"
-	"strconv"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
-	"fmt"
-	"bytes"
-	"github.com/DebtsTracker/translations/trans"
+	"context"
+	"strconv"
 )
 
 func GetGroup(whc bots.WebhookContext, callbackUrl *url.URL) (group models.Group, err error) {
@@ -35,7 +35,9 @@ func GetGroup(whc bots.WebhookContext, callbackUrl *url.URL) (group models.Group
 	}
 
 	if !whc.IsInGroup() {
-		err = errors.New("An attempt to get group ID outside of group chat without callback parameter 'group'.")
+		if callbackUrl != nil {
+			err = errors.New("An attempt to get group ID outside of group chat without callback parameter 'group'.")
+		}
 		return
 	}
 
@@ -167,4 +169,3 @@ func NewGroupTelegramInlineButton(whc bots.WebhookContext, groupsMessageID int) 
 		URL:  buf.String(),
 	}
 }
-

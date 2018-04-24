@@ -9,7 +9,7 @@ import (
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"golang.org/x/net/context"
+	"context"
 )
 
 func TestWriteReceiptText(t *testing.T) {

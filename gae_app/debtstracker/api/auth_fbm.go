@@ -5,7 +5,7 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 )
 
 func handleSignInWithFbm(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {

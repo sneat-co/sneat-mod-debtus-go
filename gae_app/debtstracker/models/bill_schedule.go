@@ -5,6 +5,7 @@ import (
 
 	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
+	"github.com/strongo/db"
 )
 
 type BillScheduleStatus string
@@ -27,7 +28,7 @@ const (
 const BillScheduleKind = "BillSchedule"
 
 type BillSchedule struct {
-	ID int64
+	db.IntegerID
 	*BillScheduleEntity
 }
 
@@ -92,8 +93,4 @@ func (bill *BillSchedule) Entity() interface{} {
 
 func (bill *BillSchedule) SetEntity(entity interface{}) {
 	bill.BillScheduleEntity = entity.(*BillScheduleEntity)
-}
-
-func (bill *BillSchedule) SetIntID(id int64) {
-	bill.ID = id
 }

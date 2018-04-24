@@ -15,7 +15,7 @@ import (
 	"github.com/strongo/app/gae"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/memcache"

@@ -145,6 +145,12 @@ func (entity *GroupEntity) SetTelegramGroups(tgGroups []GroupTgChatJson) (change
 }
 
 func (entity *GroupEntity) AddOrGetMember(userID, contactID, name string) (isNew, changed bool, index int, member GroupMemberJson, groupMembers []GroupMemberJson) {
+	if userID == "" {
+		panic(userID == "")
+	}
+	if name == "" {
+		panic("name is empty string")
+	}
 	members := entity.GetMembers()
 	groupMembers = entity.GetGroupMembers()
 	var m MemberJson
@@ -250,6 +256,18 @@ func (entity *GroupEntity) GetGroupMemberByID(id string) (GroupMemberJson, error
 	return GroupMemberJson{}, errors.WithMessage(db.ErrRecordNotFound, "unknown id="+id)
 }
 
+func (entity *GroupEntity) GetGroupMemberByUserID(userID string) (GroupMemberJson, error) {
+	if userID == "" {
+		return GroupMemberJson{}, errors.WithMessage(db.ErrRecordNotFound, "empty id")
+	}
+	for _, m := range entity.GetGroupMembers() {
+		if m.UserID == userID {
+			return m, nil
+		}
+	}
+	return GroupMemberJson{}, errors.WithMessage(db.ErrRecordNotFound, "unknown userID="+userID)
+}
+
 func (entity *GroupEntity) GetMembers() (members []MemberJson) {
 	groupMembers := entity.GetGroupMembers()
 	members = make([]MemberJson, len(groupMembers))
@@ -349,6 +367,9 @@ func (entity *GroupEntity) validateMembers(members []GroupMemberJson, membersCou
 		if m.ID == "" {
 			return fmt.Errorf("members[%d].ID is empty string", i)
 		}
+		if strings.TrimSpace(m.Name) == "" {
+			return fmt.Errorf("members[%d].Name is empty string", i)
+		}
 		if _, ok := memberIDs[m.ID]; ok {
 			return fmt.Errorf("members[%d]: Duplicate ID: %v", i, m.ID)
 		}
@@ -423,4 +444,52 @@ func (entity *GroupEntity) Save() ([]datastore.Property, error) {
 	}
 	checkHasProperties(GroupKind, ps)
 	return ps, err
+}
+
+func (entity *GroupEntity) AddBill(bill Bill) (changed bool, err error) {
+	outstandingBills := entity.GetOutstandingBills()
+
+	for i, b := range outstandingBills {
+		if b.ID == bill.ID {
+			if b.Name != bill.Name {
+				outstandingBills[i].Name = bill.Name
+				changed = true
+			}
+			if b.MembersCount != bill.MembersCount {
+				outstandingBills[i].MembersCount = bill.MembersCount
+				changed = true
+			}
+			if b.Total != bill.AmountTotal {
+				outstandingBills[i].Total = bill.AmountTotal
+				changed = true
+			}
+			goto addedOrUpdatedOrNotChanged
+		}
+	}
+	outstandingBills = append(outstandingBills, BillJson{
+		ID:           bill.ID,
+		Name:         bill.Name,
+		MembersCount: bill.MembersCount,
+		Total:        bill.AmountTotal,
+		Currency:     bill.Currency,
+	})
+addedOrUpdatedOrNotChanged:
+	if changed {
+		if _, err = entity.SetOutstandingBills(outstandingBills); err != nil {
+			return
+		}
+		groupMembers := entity.GetGroupMembers()
+		billMembers := bill.GetBillMembers()
+		for j, groupMember := range groupMembers {
+			for _, billMember := range billMembers {
+				if billMember.ID == groupMember.ID {
+					groupMember.Balance[bill.Currency] += billMember.Balance()
+					groupMembers[j] = groupMember
+					break
+				}
+			}
+		}
+		entity.SetGroupMembers(groupMembers)
+	}
+	return
 }

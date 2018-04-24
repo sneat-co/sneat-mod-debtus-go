@@ -12,7 +12,7 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/taskqueue"
 )
@@ -274,28 +274,40 @@ func (userFacade) UpdateContactWithGroups(c context.Context, contactID int64, ad
 	}
 }
 
+var ErrAttemptToLeaveUnsettledGroup = errors.New("an attept to leave unsettled group")
+
 func (groupFacade) LeaveGroup(c context.Context, groupID string, userID string) (group models.Group, user models.AppUser, err error) {
 	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if group, err = dal.Group.GetGroupByID(c, groupID); err != nil {
+		group.ID = groupID
+		if user.ID, err = strconv.ParseInt(userID, 10, 64); err != nil {
+			return errors.WithMessage(err, "failed to parse userID to int64")
+		}
+		if err = dal.DB.GetMulti(c, []db.EntityHolder{&group, &user}); err != nil {
 			return
 		}
-		members := group.GetGroupMembers()
-		groupChanged := false
-		for i, m := range members {
-			if m.UserID == userID {
-				members = append(members[:i], members[i+1:]...)
-				groupChanged = true
-				break
+		//if group, err = dal.Group.GetGroupByID(c, groupID); err != nil {
+		//	return
+		//}
+		//if user, err = dal.User.GetUserByStrID(c, userID); err != nil {
+		//	return
+		//}
+
+		{ // Update group
+			members := group.GetGroupMembers()
+			for i, m := range members {
+				if m.UserID == userID {
+					if len(m.Balance) != 0 {
+						err = ErrAttemptToLeaveUnsettledGroup
+						return
+					}
+					members = append(members[:i], members[i+1:]...)
+					group.SetGroupMembers(members)
+					if err = dal.Group.SaveGroup(c, group); err != nil {
+						return
+					}
+					break
+				}
 			}
-		}
-		if groupChanged {
-			group.SetGroupMembers(members)
-			if err = dal.Group.SaveGroup(c, group); err != nil {
-				return
-			}
-		}
-		if user, err = dal.User.GetUserByStrID(c, userID); err != nil {
-			return
 		}
 		groups := user.ActiveGroups()
 		userChanged := false

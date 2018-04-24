@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/strongo/decimal"
-	"golang.org/x/net/context"
+	"context"
 )
 
 func TestCreateBillPanicOnNilContext(t *testing.T) {
@@ -258,7 +258,7 @@ func TestCreateBillSuccess(t *testing.T) {
 
 func createGoodBillSplitByPercentage(t *testing.T) (billEntity *models.BillEntity) {
 	//billEntity = new(models.BillEntity)
-	//billEntity.Status = models.BillStatusActive
+	//billEntity.Status = models.BillStatusOutstanding
 	//billEntity.SplitMode = models.SplitModePercentage
 	//billEntity.CreatorUserID = "1"
 	//billEntity.AmountTotal = 848
@@ -279,7 +279,7 @@ func createGoodBillSplitByPercentage(t *testing.T) (billEntity *models.BillEntit
 
 func createGoodBillSplitEqually(t *testing.T) (billEntity *models.BillEntity, err error) {
 	billEntity = new(models.BillEntity)
-	billEntity.Status = models.BillStatusActive
+	billEntity.Status = models.BillStatusOutstanding
 	billEntity.SplitMode = models.SplitModeEqually
 	billEntity.CreatorUserID = "1"
 	billEntity.AmountTotal = 637
@@ -298,7 +298,7 @@ func createGoodBillSplitEqually(t *testing.T) (billEntity *models.BillEntity, er
 
 func createGoodBillSplitByShare(t *testing.T) (billEntity *models.BillEntity, err error) {
 	billEntity = new(models.BillEntity)
-	billEntity.Status = models.BillStatusActive
+	billEntity.Status = models.BillStatusOutstanding
 	billEntity.SplitMode = models.SplitModeShare
 	billEntity.CreatorUserID = "1"
 	billEntity.AmountTotal = 636
@@ -317,7 +317,7 @@ func createGoodBillSplitByShare(t *testing.T) (billEntity *models.BillEntity, er
 
 func createGoodBillSplitWithAdjustments(t *testing.T) (billEntity *models.BillEntity, err error) {
 	billEntity = new(models.BillEntity)
-	billEntity.Status = models.BillStatusActive
+	billEntity.Status = models.BillStatusOutstanding
 	billEntity.SplitMode = models.SplitModeAdjustment
 	billEntity.CreatorUserID = "1"
 	billEntity.AmountTotal = 636

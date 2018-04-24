@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
@@ -13,8 +14,7 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
+	"context"
 )
 
 const joinGroupCommanCode = "join-group"

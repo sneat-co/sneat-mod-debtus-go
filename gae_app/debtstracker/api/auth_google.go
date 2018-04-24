@@ -1,9 +1,9 @@
 package api
 
 import (
-	"net/http"
-	"golang.org/x/net/context"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"context"
+	"net/http"
 	//"strings"
 	//"encoding/json"
 	//"io/ioutil"

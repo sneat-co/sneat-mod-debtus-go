@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
-	"golang.org/x/net/context"
+	"context"
 )
 
 type LastTransfer struct {
@@ -21,7 +21,7 @@ type LastTransfer struct {
 type TransferWithInterestJson struct {
 	TransferInterest
 	TransferID int64
-	Direction TransferDirection
+	Direction  TransferDirection
 	Starts     time.Time
 	Currency   Currency
 	Amount     decimal.Decimal64p2

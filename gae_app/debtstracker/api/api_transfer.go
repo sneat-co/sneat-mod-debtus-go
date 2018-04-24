@@ -15,7 +15,7 @@ import (
 	"github.com/strongo/db"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 )
 
 func handleGetTransfer(c context.Context, w http.ResponseWriter, r *http.Request) {

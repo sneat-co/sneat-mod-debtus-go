@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 )
 
 type AuthHandler func(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo)

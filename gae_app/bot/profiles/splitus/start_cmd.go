@@ -1,17 +1,17 @@
 package splitus
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"github.com/strongo/bots-api-telegram"
-	"fmt"
-	"github.com/DebtsTracker/translations/trans"
-	"strings"
-	"github.com/strongo/log"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"fmt"
+	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
+	"strings"
 )
 
 func startInGroupAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
@@ -74,5 +74,3 @@ func startInBotAction(whc bots.WebhookContext, startParams []string) (m bots.Mes
 	err = shared_all.ErrUnknownStartParam
 	return
 }
-
-

@@ -16,14 +16,14 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 )
 
 const billCardCommandCode = "bill-card"
 
 var billCardCommand = bots.Command{
 	Code: billCardCommandCode,
-	CallbackAction:billCallbackAction(func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
+	CallbackAction: billCallbackAction(func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
 		if m.Text, err = getBillCardMessageText(c, whc.GetBotCode(), whc, bill, false, ""); err != nil {
 			return
@@ -55,7 +55,7 @@ func billCallbackCommandData(command string, billID string) string {
 	return command + "?bill=" + billID
 }
 
-var billMembersCommand = billCallbackCommand(billMembersCommandCode,
+var billMembersCommand = billCallbackCommand(billMembersCommandCode, nil,
 	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
 		var buffer bytes.Buffer
 		if err = writeBillCardTitle(whc.Context(), bill, whc.GetBotCode(), &buffer, whc); err != nil {
@@ -172,7 +172,7 @@ const INVITE_BILL_MEMBER_COMMAND = "invite2bill"
 
 const INLINE_COMMAND_JOIN = "join"
 
-var inviteToBillCommand = billCallbackCommand(INVITE_BILL_MEMBER_COMMAND,
+var inviteToBillCommand = billCallbackCommand(INVITE_BILL_MEMBER_COMMAND, nil,
 	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
 		m.Keyboard = &tgbotapi.InlineKeyboardMarkup{
 			InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{
@@ -243,7 +243,7 @@ func getBillCardMessageText(c context.Context, botID string, translator strongo.
 	if showMembers {
 		//buffer.WriteString("\n")
 		//buffer.WriteString(translator.Translate(trans.MESSAGE_TEXT_SPLIT_LABEL_WITH_VALUE, translator.Translate(string(bill.SplitMode))))
-		//if bill.Status != models.BillStatusActive {
+		//if bill.Status != models.BillStatusOutstanding {
 		//	buffer.WriteString(", " + translator.Translate(trans.MESSAGE_TEXT_STATUS, bill.Status))
 		//}
 		//buffer.WriteString(fmt.Sprintf("\n\n<b>%v</b> (%d)\n\n", translator.Translate(trans.MESSAGE_TEXT_MEMBERS_TITLE), bill.MembersCount))

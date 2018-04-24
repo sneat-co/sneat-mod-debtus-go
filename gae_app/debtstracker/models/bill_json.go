@@ -8,10 +8,12 @@ import (
 
 type BillJson struct {
 	ID           string
+	GroupID      string              `json:"g,omitempty"`
 	Name         string              `json:"n"`
 	MembersCount int                 `json:"m"`
 	Total        decimal.Decimal64p2 `json:"t"`
 	Currency     Currency            `json:"c"`
+	UserBalance  decimal.Decimal64p2 `json:"u,omitempty"`
 }
 
 type BillMemberBalance struct {

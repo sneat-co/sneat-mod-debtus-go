@@ -11,15 +11,15 @@ type billsHolder struct {
 	OutstandingBillsJson  string `datastore:",noindex,omitempty"`
 }
 
-func (entity *billsHolder) GetOutstandingBills() (outstandingBills []BillJson, err error) {
+func (entity *billsHolder) GetOutstandingBills() (outstandingBills []BillJson) {
 	if entity.OutstandingBillsJson == "" {
 		return
 	}
-	if err = ffjson.Unmarshal([]byte(entity.OutstandingBillsJson), &outstandingBills); err != nil {
-		return
+	if err := ffjson.Unmarshal([]byte(entity.OutstandingBillsJson), &outstandingBills); err != nil {
+		panic(err)
 	}
 	if entity.OutstandingBillsCount != len(outstandingBills) {
-		err = errors.WithMessage(ErrJsonCountMismatch, "len([]BillJson) != OutstandingBillsCount")
+		panic(errors.WithMessage(ErrJsonCountMismatch, "len([]BillJson) != OutstandingBillsCount"))
 	}
 	return
 }

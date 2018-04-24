@@ -10,7 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 )
 
 func optionsHandler(c context.Context, w http.ResponseWriter, r *http.Request) {

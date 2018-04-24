@@ -11,7 +11,7 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/decimal"
-	"golang.org/x/net/context"
+	"context"
 )
 
 type assertHelper struct {

@@ -13,7 +13,7 @@ import (
 	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"github.com/strongo/nds"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine/datastore"
 )
 

@@ -8,7 +8,7 @@ import (
 
 	"github.com/strongo/app"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 )
 
 type TextTemplateProvider struct {

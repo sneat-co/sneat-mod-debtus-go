@@ -15,6 +15,7 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/analytics"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
+	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
@@ -22,8 +23,7 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
-	"github.com/DebtsTracker/translations/emoji"
+	"context"
 )
 
 const ASK_PHONE_NUMBER_FOR_RECEIPT_COMMAND = "ask-phone-number-for-receipt"

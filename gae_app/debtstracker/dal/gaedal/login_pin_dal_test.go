@@ -3,7 +3,7 @@ package gaedal
 import (
 	"testing"
 
-	"golang.org/x/net/context"
+	"context"
 )
 
 func TestNewLoginPinKey(t *testing.T) {

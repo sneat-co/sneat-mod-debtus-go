@@ -13,7 +13,7 @@ import (
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/db"
 	"github.com/strongo/nds"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
 	"time"
@@ -121,9 +121,9 @@ func (m *verifyUsers) createContact(c context.Context, buf *bytes.Buffer, counte
 		if contact, err = dal.Contact.GetContactByID(tc, userContact.ID); err != nil {
 			if db.IsNotFound(err) {
 				contact = models.NewContact(userContact.ID, &models.ContactEntity{
-					UserID: user.ID,
+					UserID:    user.ID,
 					DtCreated: time.Now(),
-					Status: models.STATUS_ACTIVE,
+					Status:    models.STATUS_ACTIVE,
 					ContactDetails: models.ContactDetails{
 						Nickname:       userContact.Name,
 						TelegramUserID: userContact.TgUserID,

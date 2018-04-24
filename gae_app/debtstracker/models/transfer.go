@@ -85,10 +85,6 @@ func (t *Transfer) SetEntity(entity interface{}) {
 	}
 }
 
-func (t *Transfer) SetIntID(id int64) {
-	t.ID = id
-}
-
 func (t *TransferEntity) HasObsoleteProps() bool {
 	return t.hasObsoleteProps
 }

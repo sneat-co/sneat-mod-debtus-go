@@ -13,7 +13,7 @@ import (
 	"github.com/strongo/db"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine/delay"
 )
 

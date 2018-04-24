@@ -3,14 +3,16 @@ package splitus
 import (
 	"net/url"
 
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
+	"context"
 )
 
 func GetBillMembersCallbackData(billID string) string {
@@ -36,8 +38,12 @@ func getBill(c context.Context, callbackUrl *url.URL) (bill models.Bill, err err
 
 type billCallbackActionType func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error)
 
-func billCallbackCommand(code string, f billCallbackActionType) bots.Command {
-	return bots.NewCallbackCommand(code, billCallbackAction(f))
+func billCallbackCommand(code string, txOptions db.RunOptions, f billCallbackActionType) (command bots.Command) {
+	command = bots.NewCallbackCommand(code, billCallbackAction(f))
+	if txOptions != nil {
+		command.CallbackAction = shared_all.TransactionalCallbackAction(txOptions, command.CallbackAction)
+	}
+	return
 }
 
 func billCallbackAction(f billCallbackActionType) func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
@@ -67,4 +73,3 @@ func billCallbackAction(f billCallbackActionType) func(whc bots.WebhookContext, 
 		return f(whc, callbackUrl, bill)
 	}
 }
-

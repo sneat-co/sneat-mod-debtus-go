@@ -73,14 +73,14 @@ func (r *Reminder) Save() ([]datastore.Property, error) {
 
 type ReminderEntity struct {
 	ParentReminderID    int64 `datastore:",omitempty"`
-	IsAutomatic         bool `datastore:",noindex,omitempty"`
-	IsRescheduled       bool `datastore:",noindex,omitempty"`
+	IsAutomatic         bool  `datastore:",noindex,omitempty"`
+	IsRescheduled       bool  `datastore:",noindex,omitempty"`
 	TransferID          int64
 	DtNext              time.Time
 	DtScheduled         time.Time `datastore:",noindex,omitempty"` // DtNext moves here once sent, can be used for stats & troubleshooting
 	Locale              string    `datastore:",noindex"`
 	ClosedByTransferIDs []int64   `datastore:",noindex"` // TODO: Why do we need list of IDs here?
-	SentVia             string `datastore:",omitempty"`
+	SentVia             string    `datastore:",omitempty"`
 	Status              string
 	UserID              int64
 	CounterpartyID      int64 // If this field != 0 then r is to a counterparty

@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
-	"golang.org/x/net/context"
+	"context"
 )
 
 func handleGetBill(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
@@ -56,7 +56,7 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 		return
 	}
 	billEntity := models.NewBillEntity(models.BillCommon{
-		Status:        models.STATUS_DRAFT,
+		Status:        models.BillStatusDraft,
 		SplitMode:     splitMode,
 		CreatorUserID: strconv.FormatInt(authInfo.UserID, 10),
 		Name:          r.PostFormValue("name"),

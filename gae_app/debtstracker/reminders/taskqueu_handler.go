@@ -14,7 +14,7 @@ import (
 	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"github.com/strongo/nds"
-	"golang.org/x/net/context"
+	"context"
 )
 
 func SendReminderHandler(c context.Context, w http.ResponseWriter, r *http.Request) {

@@ -13,8 +13,8 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
+	"context"
 	"google.golang.org/appengine/datastore"
-	"golang.org/x/net/context"
 )
 
 const AppUserKind = "User"
@@ -508,7 +508,7 @@ func (u *AppUserEntity) SetBotUserID(platform, botID, botUserID string) {
 	})
 }
 
-func (u *AppUserEntity) PreferredLocale() string {
+func (u *AppUserEntity) GetPreferredLocale() string {
 	if u.PreferredLanguage != "" {
 		return u.PreferredLanguage
 	} else {
@@ -595,7 +595,7 @@ func (u *AppUserEntity) Load(ps []datastore.Property) (err error) {
 			if v, ok := p.Value.(string); ok && v != "" {
 				u.AddAccount(user.Account{
 					Provider: "google",
-					App: "debtstracker",
+					App:      "debtstracker",
 					ID:       v,
 				})
 			}
@@ -743,7 +743,6 @@ func (u *AppUserEntity) TotalBalanceFromContacts() (balance Balance) {
 var ErrDuplicateContactName = errors.New("user has at least 2 contacts with same name")
 var ErrDuplicateTgUserID = errors.New("user has at least 2 contacts with same TgUserID")
 
-
 func (u *AppUserEntity) Save() (properties []datastore.Property, err error) {
 	if u.GroupsJsonActive != "" && u.GroupsCountActive == 0 {
 		return nil, errors.New(`u.GroupsJsonActive != "" && u.GroupsCountActive == 0`)
@@ -831,6 +830,14 @@ func (u *AppUserEntity) BalanceWithInterest(c context.Context, periodEnds time.T
 		//}
 	} else {
 		panic(fmt.Sprintf("TransfersWithInterestCount > 0: %v", u.TransfersWithInterestCount))
+	}
+	return
+}
+
+func (entity *AppUserEntity) GetOutstandingBalance() (balance Balance) {
+	balance = make(Balance, 2)
+	for _, bill := range entity.GetOutstandingBills() {
+		balance[bill.Currency] += bill.UserBalance
 	}
 	return
 }

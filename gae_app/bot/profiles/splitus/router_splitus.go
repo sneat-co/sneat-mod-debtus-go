@@ -2,13 +2,13 @@ package splitus
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 )
 
 var botParams = shared_all.BotParams{
@@ -60,6 +60,8 @@ var Router = bots.NewWebhookRouter(
 			setBillDueDateCommand,
 			groupsCommand,
 			settingsCommand,
+			settleBillsCommand,
+			outstandingBalanceCommand,
 		},
 		bots.WebhookInputCallbackQuery: {
 			joinBillCommand,
@@ -71,6 +73,8 @@ var Router = bots.NewWebhookRouter(
 			billSharesCommand,
 			billSplitModesListCommand,
 			finalizeBillCommand,
+			deleteBillCommand,
+			restoreBillCommand,
 			billChangeSplitModeCommand,
 			changeBillPayerCommand,
 			groupSplitCommand,
@@ -93,6 +97,7 @@ var Router = bots.NewWebhookRouter(
 			settleGroupAskForCounterpartyCommand,
 			settleGroupCounterpartyChoosenCommand,
 			settleGroupCounterpartyConfirmedCommand,
+			settleBillsCommand,
 		},
 		bots.WebhookInputInlineQuery: {
 			inlineQueryCommand,

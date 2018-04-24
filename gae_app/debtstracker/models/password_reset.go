@@ -46,10 +46,6 @@ func (record *PasswordReset) SetEntity(entity interface{}) {
 	}
 }
 
-func (record *PasswordReset) SetIntID(id int64) {
-	record.ID = id
-}
-
 func (entity *PasswordResetEntity) Load(ps []datastore.Property) error {
 	return datastore.LoadStruct(entity, ps)
 }

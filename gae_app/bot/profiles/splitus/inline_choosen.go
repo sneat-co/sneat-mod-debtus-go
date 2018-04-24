@@ -1,9 +1,7 @@
 package splitus
 
 import (
-	"net/url"
-	"regexp"
-	"strings"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
@@ -13,8 +11,10 @@ import (
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
+	"context"
+	"net/url"
+	"regexp"
+	"strings"
 )
 
 var choosenInlineResultCommand = bots.Command{
@@ -200,7 +200,7 @@ func getBillIDFromUrlInEditedMessage(whc bots.WebhookContext) (billID string) {
 	return
 }
 
-var EditedBillCardHookCommand = bots.Command{// TODO: seems to be not used anywhere
+var EditedBillCardHookCommand = bots.Command{ // TODO: seems to be not used anywhere
 	Code: "edited-bill-card",
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		whc.LogRequest()

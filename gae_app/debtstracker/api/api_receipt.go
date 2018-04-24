@@ -16,7 +16,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
+	"github.com/strongo/app/gaestandard"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/invites"
 	"github.com/DebtsTracker/translations/trans"
@@ -24,7 +24,7 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 )
 
 func NewReceiptTransferDto(c context.Context, transfer models.Transfer) dto.ApiReceiptTransferDto {
@@ -87,7 +87,7 @@ func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request)
 		if lang == "" {
 			lang = receipt.Lang
 		}
-		env := common.GetEnvironmentFromHost(r.Host)
+		env := gaestandard.GetEnvironmentFromHost(r.Host)
 		if env == strongo.EnvUnknown {
 			w.WriteHeader(http.StatusBadRequest)
 			log.Warningf(c, "Unknown host")

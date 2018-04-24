@@ -1,17 +1,18 @@
 package splitus
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"fmt"
-	"net/url"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/DebtsTracker/translations/emoji"
+	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/DebtsTracker/translations/emoji"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
+	"net/url"
 )
 
 const billsCommandCode = "bills"
@@ -19,8 +20,8 @@ const billsCommandCode = "bills"
 var billsCommand = bots.Command{
 	Code:     billsCommandCode,
 	Commands: trans.Commands(trans.COMMAND_TEXT_BILLS, "/"+billsCommandCode),
-	Icon: emoji.CLIPBOARD_ICON,
-	Title: trans.COMMAND_TEXT_BILLS,
+	Icon:     emoji.CLIPBOARD_ICON,
+	Title:    trans.COMMAND_TEXT_BILLS,
 	Action:   billsAction,
 	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		return billsAction(whc)
@@ -28,9 +29,34 @@ var billsCommand = bots.Command{
 }
 
 func billsAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	c := whc.Context()
 	if !whc.IsInGroup() {
-		m.Text = whc.Translate(trans.MESSAGE_TEXT_GROUPS_ONLY_COMMAND)
-		m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
+		var user models.AppUser
+		if user, err = dal.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+			return
+		}
+		if user.OutstandingBillsCount == 0 {
+			m.Text = whc.Translate("You have no outstanding bills.")
+			return
+		}
+
+		buf := new(bytes.Buffer)
+		fmt.Fprintf(buf, "<b>%v</b>\n", whc.Translate("Outstanding bills"))
+		for i, billJson := range user.GetOutstandingBills() {
+			fmt.Fprintf(buf, "\n%v. %v: %v %v", i+1, billJson.Name, billJson.Total, billJson.Currency)
+		}
+		m.Text = buf.String()
+		m.Format = bots.MessageFormatHTML
+		keyboard := tgbotapi.NewInlineKeyboardMarkup()
+		if !whc.IsInGroup() {
+			keyboard.InlineKeyboard = append(keyboard.InlineKeyboard,
+				[]tgbotapi.InlineKeyboardButton{{
+					Text:         whc.CommandText(trans.COMMAND_TEXT_SETTLE_BILLS, emoji.GREEN_CHECKBOX),
+					CallbackData: settleBillsCommandCode,
+				}},
+			)
+		}
+		keyboard.InlineKeyboard = append(keyboard.InlineKeyboard,
 			[]tgbotapi.InlineKeyboardButton{
 				tgbotapi.NewInlineKeyboardButtonSwitchInlineQuery(
 					whc.CommandText(trans.COMMAND_TEXT_NEW_BILL, emoji.MEMO_ICON),
@@ -41,6 +67,7 @@ func billsAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 				shared_group.NewGroupTelegramInlineButton(whc, 0),
 			},
 		)
+		m.Keyboard = keyboard
 		return
 	}
 
@@ -67,10 +94,8 @@ func billsAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 	buf := new(bytes.Buffer)
 	buf.WriteString("<b>Outstanding bills</b>\n\n")
 
-	var outstandingBills []models.BillJson
-	if outstandingBills, err = group.GetOutstandingBills(); err != nil {
-		return
-	}
+	outstandingBills := group.GetOutstandingBills()
+
 	for i, bill := range outstandingBills {
 		fmt.Fprintf(buf, `  %d. <a href="https://t.me/%v?start=bill-%v">%v</a>`+"\n", i+1, whc.GetBotCode(), bill.ID, bill.Name)
 	}

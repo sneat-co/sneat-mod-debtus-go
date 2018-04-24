@@ -8,16 +8,16 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bytes"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"github.com/strongo/measurement-protocol"
-	"golang.org/x/net/context"
-	"bytes"
-	"github.com/strongo/db"
+	"context"
 )
 
 const (
@@ -162,7 +162,7 @@ func setPreferredLanguageAction(whc bots.WebhookContext, code5, mode string, bot
 				if whc.GetBotSettings().Env == strongo.EnvProduction {
 					gaEvent := measurement.NewEvent("settings", "locale-changed", whc.GaCommon())
 					gaEvent.Label = strings.ToLower(locale.Code5)
-					gaErr := whc.GaMeasurement().Queue(gaEvent)
+					gaErr := whc.GaMeasurement().Send(gaEvent)
 					if gaErr != nil {
 						log.Warningf(c, "Failed to log event: %v", gaErr)
 					} else {

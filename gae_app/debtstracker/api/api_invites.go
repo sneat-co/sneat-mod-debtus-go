@@ -7,7 +7,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine/user"
 )
 

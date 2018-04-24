@@ -8,7 +8,6 @@ package models
 import (
 	"bytes"
 	"fmt"
-
 	fflib "github.com/pquerna/ffjson/fflib/v1"
 )
 
@@ -36,9 +35,15 @@ func (j *BillJson) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	var obj []byte
 	_ = obj
 	_ = err
-	buf.WriteString(`{"ID":`)
+	buf.WriteString(`{ "ID":`)
 	fflib.WriteJsonString(buf, string(j.ID))
-	buf.WriteString(`,"n":`)
+	buf.WriteByte(',')
+	if len(j.GroupID) != 0 {
+		buf.WriteString(`"g":`)
+		fflib.WriteJsonString(buf, string(j.GroupID))
+		buf.WriteByte(',')
+	}
+	buf.WriteString(`"n":`)
 	fflib.WriteJsonString(buf, string(j.Name))
 	buf.WriteString(`,"m":`)
 	fflib.FormatBits2(buf, uint64(j.MembersCount), 10, j.MembersCount < 0)
@@ -55,6 +60,22 @@ func (j *BillJson) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	}
 	buf.WriteString(`,"c":`)
 	fflib.WriteJsonString(buf, string(j.Currency))
+	buf.WriteByte(',')
+	if j.UserBalance != 0 {
+		buf.WriteString(`"u":`)
+
+		{
+
+			obj, err = j.UserBalance.MarshalJSON()
+			if err != nil {
+				return err
+			}
+			buf.Write(obj)
+
+		}
+		buf.WriteByte(',')
+	}
+	buf.Rewind(1)
 	buf.WriteByte('}')
 	return nil
 }
@@ -65,6 +86,8 @@ const (
 
 	ffjtBillJsonID
 
+	ffjtBillJsonGroupID
+
 	ffjtBillJsonName
 
 	ffjtBillJsonMembersCount
@@ -72,9 +95,13 @@ const (
 	ffjtBillJsonTotal
 
 	ffjtBillJsonCurrency
+
+	ffjtBillJsonUserBalance
 )
 
 var ffjKeyBillJsonID = []byte("ID")
+
+var ffjKeyBillJsonGroupID = []byte("g")
 
 var ffjKeyBillJsonName = []byte("n")
 
@@ -83,6 +110,8 @@ var ffjKeyBillJsonMembersCount = []byte("m")
 var ffjKeyBillJsonTotal = []byte("t")
 
 var ffjKeyBillJsonCurrency = []byte("c")
+
+var ffjKeyBillJsonUserBalance = []byte("u")
 
 // UnmarshalJSON umarshall json - template of ffjson
 func (j *BillJson) UnmarshalJSON(input []byte) error {
@@ -161,6 +190,14 @@ mainparse:
 						goto mainparse
 					}
 
+				case 'g':
+
+					if bytes.Equal(ffjKeyBillJsonGroupID, kn) {
+						currentKey = ffjtBillJsonGroupID
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
 				case 'm':
 
 					if bytes.Equal(ffjKeyBillJsonMembersCount, kn) {
@@ -185,6 +222,20 @@ mainparse:
 						goto mainparse
 					}
 
+				case 'u':
+
+					if bytes.Equal(ffjKeyBillJsonUserBalance, kn) {
+						currentKey = ffjtBillJsonUserBalance
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				}
+
+				if fflib.SimpleLetterEqualFold(ffjKeyBillJsonUserBalance, kn) {
+					currentKey = ffjtBillJsonUserBalance
+					state = fflib.FFParse_want_colon
+					goto mainparse
 				}
 
 				if fflib.SimpleLetterEqualFold(ffjKeyBillJsonCurrency, kn) {
@@ -207,6 +258,12 @@ mainparse:
 
 				if fflib.SimpleLetterEqualFold(ffjKeyBillJsonName, kn) {
 					currentKey = ffjtBillJsonName
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.SimpleLetterEqualFold(ffjKeyBillJsonGroupID, kn) {
+					currentKey = ffjtBillJsonGroupID
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
@@ -237,6 +294,9 @@ mainparse:
 				case ffjtBillJsonID:
 					goto handle_ID
 
+				case ffjtBillJsonGroupID:
+					goto handle_GroupID
+
 				case ffjtBillJsonName:
 					goto handle_Name
 
@@ -248,6 +308,9 @@ mainparse:
 
 				case ffjtBillJsonCurrency:
 					goto handle_Currency
+
+				case ffjtBillJsonUserBalance:
+					goto handle_UserBalance
 
 				case ffjtBillJsonnosuchkey:
 					err = fs.SkipField(tok)
@@ -282,6 +345,32 @@ handle_ID:
 			outBuf := fs.Output.Bytes()
 
 			j.ID = string(string(outBuf))
+
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_GroupID:
+
+	/* handler: j.GroupID type=string kind=string quoted=false*/
+
+	{
+
+		{
+			if tok != fflib.FFTok_string && tok != fflib.FFTok_null {
+				return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for string", tok))
+			}
+		}
+
+		if tok == fflib.FFTok_null {
+
+		} else {
+
+			outBuf := fs.Output.Bytes()
+
+			j.GroupID = string(string(outBuf))
 
 		}
 	}
@@ -392,6 +481,32 @@ handle_Currency:
 			j.Currency = Currency(string(outBuf))
 
 		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_UserBalance:
+
+	/* handler: j.UserBalance type=decimal.Decimal64p2 kind=int64 quoted=false*/
+
+	{
+		if tok == fflib.FFTok_null {
+
+			state = fflib.FFParse_after_value
+			goto mainparse
+		}
+
+		tbuf, err := fs.CaptureField(tok)
+		if err != nil {
+			return fs.WrapErr(err)
+		}
+
+		err = j.UserBalance.UnmarshalJSON(tbuf)
+		if err != nil {
+			return fs.WrapErr(err)
+		}
+		state = fflib.FFParse_after_value
 	}
 
 	state = fflib.FFParse_after_value

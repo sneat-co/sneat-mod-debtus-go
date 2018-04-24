@@ -7,7 +7,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pkg/errors"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 )
 
 type usersLinker struct {
@@ -304,7 +304,7 @@ func (linker usersLinker) updateInviterContact(
 			linker.changes.FlagAsChanged(linker.changes.inviterUser)
 		}
 	inviterUserContactFound:
-	// Queue task to update all existing transfers
+		// Queue task to update all existing transfers
 		if inviterContact.CountOfTransfers > 0 {
 			if err = dal.Transfer.DelayUpdateTransfersWithCounterparty(
 				tc,

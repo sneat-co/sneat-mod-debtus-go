@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	isLib "github.com/matryer/is"
-	"golang.org/x/net/context"
+	"context"
 )
 
 func TestNewContactIncompleteKey(t *testing.T) {

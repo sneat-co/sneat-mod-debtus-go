@@ -8,7 +8,7 @@ import (
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine"
 )
 

@@ -1,18 +1,18 @@
 package dtb_settings
 
 import (
-	"fmt"
-	"regexp"
-	"strconv"
-	"time"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"fmt"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
+	"regexp"
+	"strconv"
+	"time"
 )
 
 /*
@@ -20,7 +20,6 @@ Examples:
  receipt-{ID}-view_{LANG_CODE5}_[GA_CLIENT_ID]
 */
 var reInviteCodeFromStart = regexp.MustCompile(`^(invite|receipt)-(\w+)(-(view|accept|decline))?(_(\w{2}(-\w{2})?))(_(.+))?$`)
-
 
 func StartInBotAction(whc bots.WebhookContext, startParams []string) (m bots.MessageFromBot, err error) {
 	if len(startParams) == 1 {

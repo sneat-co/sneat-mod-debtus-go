@@ -9,7 +9,7 @@ import (
 	"github.com/captaincodeman/datastore-mapper"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine/datastore"
 	"time"
 )

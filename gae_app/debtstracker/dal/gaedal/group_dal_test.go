@@ -3,10 +3,10 @@ package gaedal
 import (
 	"testing"
 
-	"golang.org/x/net/context"
+	"context"
 )
 
 func TestNewGroupKey(t *testing.T) {
-	const groupID = 456
-	testDatastoreIntKey(t, groupID, NewGroupKey(context.Background(), groupID))
+	const groupID = "456"
+	testDatastoreStringKey(t, groupID, NewGroupKey(context.Background(), groupID))
 }

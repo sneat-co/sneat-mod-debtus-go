@@ -8,7 +8,7 @@ import (
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/delay"
 )
@@ -66,55 +66,21 @@ var delayedUpdateGroupWithBill = delay.Func("delayedUpdateWithBill", func(c cont
 	if err != nil {
 		return
 	}
-	err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-		group, err := dal.Group.GetGroupByID(c, groupID)
-		if err != nil {
+	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+		var group models.Group
+		if group, err = dal.Group.GetGroupByID(c, groupID); err != nil {
 			return err
 		}
-		outstandingBills, err := group.GetOutstandingBills()
-		if err != nil {
+		var changed bool
+		if changed, err = group.AddBill(bill); err != nil {
 			return err
-		}
-		changed := false
-
-		for i, b := range outstandingBills {
-			if b.ID == billID {
-				if b.Name != bill.Name {
-					outstandingBills[i].Name = bill.Name
-					changed = true
-				}
-				if b.MembersCount != bill.MembersCount {
-					outstandingBills[i].MembersCount = bill.MembersCount
-					changed = true
-				}
-				if b.Total != bill.AmountTotal {
-					outstandingBills[i].Total = bill.AmountTotal
-					changed = true
-				}
-				goto updated
-			}
-		}
-		outstandingBills = append(outstandingBills, models.BillJson{
-			ID:           bill.ID,
-			Name:         bill.Name,
-			MembersCount: bill.MembersCount,
-			Total:        bill.AmountTotal,
-			Currency:     bill.Currency,
-		})
-		changed = true
-	updated:
-		if changed {
-			if changed, err = group.SetOutstandingBills(outstandingBills); err != nil {
+		} else if changed {
+			if err = dal.Group.SaveGroup(c, group); err != nil {
 				return err
-			} else if changed {
-				if err = dal.Group.SaveGroup(c, group); err != nil {
-					return err
-				}
 			}
 		}
-		return nil
-	}, db.SingleGroupTransaction)
-	if err != nil {
+		return
+	}, db.SingleGroupTransaction); err != nil {
 		return
 	}
 	return

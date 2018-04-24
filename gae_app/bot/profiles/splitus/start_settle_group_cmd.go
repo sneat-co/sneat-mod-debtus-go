@@ -1,25 +1,25 @@
 package splitus
 
 import (
-	"bytes"
-	"fmt"
-	"net/url"
-	"strings"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bytes"
+	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
+	"net/url"
+	"strings"
 )
 
 const (
-	SettleGroupAskForCounterpartyCommandCode    = "settle"
-	SettleGroupCounterpartyChoosenCommandCode   = "sttl-g-cp-chsn"
-	SettleGroupCounterpartyConfirmedCommandCode = "sttl-g-cp-cnfrmd"
+	SettleGroupAskForCounterpartyCommandCode    = "sttl-grp"
+	SettleGroupCounterpartyChoosenCommandCode   = "sttl-grp-cp-chsn"
+	SettleGroupCounterpartyConfirmedCommandCode = "sttl-grp-cp-cnfrmd"
 )
 
 var settleGroupAskForCounterpartyCommand = bots.Command{

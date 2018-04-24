@@ -11,4 +11,3 @@ var howToCommand = bots.Command{
 		return
 	},
 }
-

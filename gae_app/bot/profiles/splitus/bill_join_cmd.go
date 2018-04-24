@@ -1,28 +1,27 @@
 package splitus
 
 import (
-	"fmt"
-	"net/url"
-	"strconv"
-	"strings"
-	"time"
-
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
+	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/db"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
-	"github.com/strongo/app"
-	"github.com/strongo/db"
+	"net/url"
+	"strconv"
+	"strings"
 	//"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
-	"golang.org/x/net/context"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"fmt"
+	"context"
+	"time"
 )
 
 const joinBillCommandCode = "join_bill"
@@ -139,26 +138,24 @@ func joinBillAction(whc bots.WebhookContext, bill models.Bill, memberStatus stri
 			}
 		}
 
-		if !whc.IsInGroup() {
-			//m.Keyboard = currenciesInlineKeyboard(billCallbackCommandData(setBillCurrencyCommandCode, bill.ID))
-			if user.PrimaryCurrency != "" {
-				bill.Currency = models.Currency(user.PrimaryCurrency)
-			} else if len(user.LastCurrencies) > 0 {
-				bill.Currency = models.Currency(user.LastCurrencies[0])
-			} else {
-				bill.Currency = guessCurrency()
-				err = errors.New("at the moment bill without currency can be joined just within Telegram group")
+		if whc.IsInGroup() {
+			var group models.Group
+			if group, err = shared_group.GetGroup(whc, nil); err != nil {
+				return
 			}
-
-			return
+			if group.GroupEntity != nil {
+				if group.DefaultCurrency != "" {
+					bill.Currency = group.DefaultCurrency
+				} else {
+					bill.Currency = guessCurrency()
+				}
+			}
+		} else if user.PrimaryCurrency != "" {
+			bill.Currency = models.Currency(user.PrimaryCurrency)
+		} else if len(user.LastCurrencies) > 0 {
+			bill.Currency = models.Currency(user.LastCurrencies[0])
 		}
-		var group models.Group
-		if group, err = shared_group.GetGroup(whc, nil); err != nil {
-			return
-		}
-		if group.DefaultCurrency != "" {
-			bill.Currency = group.DefaultCurrency
-		} else {
+		if bill.Currency == "" {
 			bill.Currency = guessCurrency()
 		}
 		billChanged = true

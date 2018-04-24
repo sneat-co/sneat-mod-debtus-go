@@ -10,7 +10,7 @@ import (
 
 const CLOSE_BILL_COMMAND = "close-bill"
 
-var closeBillCommand = billCallbackCommand(CLOSE_BILL_COMMAND,
+var closeBillCommand = billCallbackCommand(CLOSE_BILL_COMMAND, nil,
 	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "closeBillCommand.CallbackAction()")

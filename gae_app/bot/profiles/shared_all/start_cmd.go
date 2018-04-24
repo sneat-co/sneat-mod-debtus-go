@@ -1,21 +1,21 @@
 package shared_all
 
 import (
-	"bytes"
-	"fmt"
-	"net/url"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bytes"
+	"fmt"
+	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
+	"net/url"
 	"strings"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"github.com/DebtsTracker/translations/trans"
 )
 
 func StartBotLink(botID, command string, params ...string) string {
@@ -76,8 +76,6 @@ func startLoginGac(whc bots.WebhookContext, loginID int64) (m bots.MessageFromBo
 	return whc.NewMessageByCode(trans.MESSAGE_TEXT_LOGIN_CODE, models.LoginCodeToString(loginPin.Code)), nil
 }
 
-
-
 func startInlineHelp(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 	m = whc.NewMessage("<b>Help: How to use this bot in chats</b>\n\nExplain here how to use bot's inline mode.")
 	m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
@@ -91,7 +89,6 @@ func startInlineHelp(whc bots.WebhookContext) (m bots.MessageFromBot, err error)
 	)
 	return m, err
 }
-
 
 func GetUser(whc bots.WebhookContext) (userEntity *models.AppUserEntity, err error) { // TODO: Make library and use across app
 	var botAppUser bots.BotAppUser
@@ -156,4 +153,3 @@ func onStartCallbackCommand(params BotParams) bots.Command {
 		},
 	)
 }
-

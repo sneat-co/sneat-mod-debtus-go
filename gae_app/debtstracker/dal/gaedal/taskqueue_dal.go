@@ -1,7 +1,7 @@
 package gaedal
 
 //import (
-//	"golang.org/x/net/context"
+//	"context"
 //	"github.com/strongo/app/gae"
 //	"google.golang.org/appengine/delay"
 //)

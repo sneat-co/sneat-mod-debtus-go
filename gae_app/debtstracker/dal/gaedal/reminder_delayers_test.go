@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gae"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine/delay"
 )
 

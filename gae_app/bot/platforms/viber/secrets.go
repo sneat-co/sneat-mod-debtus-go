@@ -7,7 +7,7 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/viber"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine"
 )
 

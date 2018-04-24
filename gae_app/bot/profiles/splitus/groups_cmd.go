@@ -1,18 +1,18 @@
 package splitus
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"fmt"
-	"net/url"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/log"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
-	"github.com/DebtsTracker/translations/emoji"
+	"net/url"
 )
 
 const groupsCommandCode = "groups"
@@ -20,9 +20,9 @@ const groupsCommandCode = "groups"
 var groupsCommand = bots.Command{
 	Code:       groupsCommandCode,
 	InputTypes: []bots.WebhookInputType{bots.WebhookInputText, bots.WebhookInputCallbackQuery},
-	Commands:   trans.Commands(trans.COMMAND_TEXT_GROUPS, emoji.MAN_AND_WOMAN, "/" + groupsCommandCode),
-	Icon: emoji.MAN_AND_WOMAN,
-	Title: trans.COMMAND_TEXT_GROUPS,
+	Commands:   trans.Commands(trans.COMMAND_TEXT_GROUPS, emoji.MAN_AND_WOMAN, "/"+groupsCommandCode),
+	Icon:       emoji.MAN_AND_WOMAN,
+	Title:      trans.COMMAND_TEXT_GROUPS,
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		return groupsAction(whc, false, 0)
 	},
@@ -101,7 +101,7 @@ func groupsAction(whc bots.WebhookContext, isEdit bool, groupsMessageID int) (m 
 		[]tgbotapi.InlineKeyboardButton{},
 	)
 	if len(groups) > 0 {
-		tgKeyboard.InlineKeyboard = append(tgKeyboard.InlineKeyboard, groupsNavButtons(groups, ""))
+		tgKeyboard.InlineKeyboard = append(tgKeyboard.InlineKeyboard, groupsNavButtons(whc, groups, ""))
 	}
 
 	if groupsMessageID == 0 {

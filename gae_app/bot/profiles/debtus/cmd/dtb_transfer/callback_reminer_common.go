@@ -3,11 +3,11 @@ package dtb_transfer
 import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"github.com/strongo/measurement-protocol"
+	"github.com/strongo/gamp"
 )
 
 func reportReminderIsActed(whc bots.WebhookContext, action string) {
-	if err := whc.GaMeasurement().Queue(measurement.NewEvent(
+	if err := whc.GaMeasurement().Queue(gamp.NewEvent(
 		"reminders",
 		action,
 		whc.GaCommon(),

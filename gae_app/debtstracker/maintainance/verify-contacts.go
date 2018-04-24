@@ -3,13 +3,13 @@ package maintainance
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"fmt"
 	"github.com/captaincodeman/datastore-mapper"
 	"github.com/strongo/db"
 	"github.com/strongo/nds"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
-	"fmt"
 )
 
 type verifyContacts struct {

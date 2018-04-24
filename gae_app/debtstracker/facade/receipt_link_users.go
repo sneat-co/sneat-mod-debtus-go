@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/strongo/app/slices"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 )
 
 type receiptUsersLinker struct {

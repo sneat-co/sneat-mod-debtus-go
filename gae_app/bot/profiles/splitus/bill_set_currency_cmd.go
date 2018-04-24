@@ -1,18 +1,18 @@
 package splitus
 
 import (
-	"net/url"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
+	"net/url"
 )
 
 const setBillCurrencyCommandCode = "set-bill-currency"
 
-var setBillCurrencyCommand = shared_all.TransactionalCallbackCommand(billCallbackCommand(setBillCurrencyCommandCode,
+var setBillCurrencyCommand = billCallbackCommand(setBillCurrencyCommandCode, db.CrossGroupTransaction,
 	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "setBillCurrencyCommand.CallbackAction()")
@@ -53,4 +53,4 @@ var setBillCurrencyCommand = shared_all.TransactionalCallbackCommand(billCallbac
 
 		return
 	},
-), dal.CrossGroupTransaction)
+)

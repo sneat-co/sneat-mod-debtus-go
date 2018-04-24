@@ -7,7 +7,7 @@ import (
 	"github.com/captaincodeman/datastore-mapper"
 	"github.com/pkg/errors"
 	"github.com/strongo/db"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine/datastore"
 )
 

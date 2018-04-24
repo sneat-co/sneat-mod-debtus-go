@@ -8,7 +8,7 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 )
 
 const ASK_CURRENCY_SETTING_COMMAND = "ask-currency-settings"

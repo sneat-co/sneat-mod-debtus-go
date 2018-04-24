@@ -46,6 +46,8 @@ var _ db.EntityHolder = (*BillsHistory)(nil)
 type BillsHistoryEntity struct {
 	DtCreated              time.Time
 	UserID                 string
+	StatusOld              string              `datastore:",noindex"`
+	StatusNew              string              `datastore:",noindex"`
 	Action                 BillHistoryAction   `datastore:",noindex"`
 	Currency               Currency            `datastore:",noindex"`
 	TotalAmountDiff        decimal.Decimal64p2 `datastore:",noindex"`
@@ -159,6 +161,8 @@ type BillHistoryAction string
 
 const (
 	BillHistoryActionCreated     BillHistoryAction = "created"
+	BillHistoryActionDeleted     BillHistoryAction = "deleted"
+	BillHistoryActionRestored    BillHistoryAction = "restored"
 	BillHistoryActionMemberAdded BillHistoryAction = "member-added"
 	BillHistoryActionSettled     BillHistoryAction = "settled"
 )
@@ -195,4 +199,36 @@ func NewBillHistoryMemberAdded(userID string, bill Bill, totalAboutBefore decima
 	record.GroupMembersJsonBefore = groupMemberJsonBefore
 	record.GroupMembersJsonAfter = groupMemberJsonAfter
 	return
+}
+
+func NewBillHistoryBillDeleted(userID string, bill Bill) (record BillsHistory) {
+	return BillsHistory{
+		BillsHistoryEntity: &BillsHistoryEntity{
+			StatusOld:         bill.Status,
+			StatusNew:         BillStatusDeleted,
+			UserID:            userID,
+			Currency:          bill.Currency,
+			TotalAmountBefore: bill.AmountTotal,
+			TotalAmountAfter:  bill.AmountTotal,
+			Action:            BillHistoryActionMemberAdded,
+			BillIDs:           []string{bill.ID},
+			GroupIDs:          []string{bill.userGroupID},
+		},
+	}
+}
+
+func NewBillHistoryBillRestored(userID string, bill Bill) (record BillsHistory) {
+	return BillsHistory{
+		BillsHistoryEntity: &BillsHistoryEntity{
+			StatusOld:         BillStatusDeleted,
+			StatusNew:         bill.Status,
+			UserID:            userID,
+			Currency:          bill.Currency,
+			TotalAmountBefore: bill.AmountTotal,
+			TotalAmountAfter:  bill.AmountTotal,
+			Action:            BillHistoryActionMemberAdded,
+			BillIDs:           []string{bill.ID},
+			GroupIDs:          []string{bill.userGroupID},
+		},
+	}
 }

@@ -13,7 +13,7 @@ import (
 	"github.com/strongo/bots-framework/platforms/fbm"
 	fb "github.com/strongo/facebook"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 )
 
 const (

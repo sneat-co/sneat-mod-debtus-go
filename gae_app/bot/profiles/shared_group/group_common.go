@@ -45,4 +45,3 @@ func NewGroupCallbackAction(f GroupCallbackAction) bots.CallbackAction {
 		return f(whc, callbackUrl, group)
 	}
 }
-

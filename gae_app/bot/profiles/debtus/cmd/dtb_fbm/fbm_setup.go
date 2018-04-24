@@ -10,7 +10,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/bots-api-fbm"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
 )

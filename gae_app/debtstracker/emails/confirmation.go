@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"golang.org/x/net/context"
+	"context"
 )
 
 func CreateConfirmationEmailAndQueueForSending(c context.Context, user models.AppUser, userEmail models.UserEmail) error {

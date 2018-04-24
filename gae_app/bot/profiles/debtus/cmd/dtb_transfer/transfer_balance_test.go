@@ -12,7 +12,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/strongo/app"
 	"github.com/strongo/decimal"
-	"golang.org/x/net/context"
+	"context"
 )
 
 func getTestMocks(t *testing.T, locale strongo.Locale) BalanceMessageBuilder {

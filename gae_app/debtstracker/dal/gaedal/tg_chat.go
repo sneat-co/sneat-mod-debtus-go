@@ -11,7 +11,7 @@ import (
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 )
 
 type TgChatDalGae struct {

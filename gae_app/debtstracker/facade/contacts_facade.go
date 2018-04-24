@@ -11,7 +11,7 @@ import (
 	"github.com/sanity-io/litter"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 )
 
 func ChangeContactStatus(c context.Context, contactID int64, newStatus string) (contact models.Contact, err error) {

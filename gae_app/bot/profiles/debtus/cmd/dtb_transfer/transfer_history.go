@@ -29,7 +29,7 @@ var HistoryCommand = bots.Command{
 	Icon:     emoji.HISTORY_ICON,
 	Title:    trans.COMMAND_TEXT_HISTORY,
 	Commands: trans.Commands(trans.COMMAND_HISTORY, emoji.HISTORY_ICON), // TODO: Check icon!
-	Titles:   map[string]string{bots.SHORT_TITLE: emoji.HISTORY_ICON},   // TODO: Check icon!
+	Titles:   map[string]string{bots.ShortTitle: emoji.HISTORY_ICON},    // TODO: Check icon!
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		return showHistoryCard(whc, HistoryTopLimit)
 	},

@@ -1,7 +1,6 @@
 package debtus
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_admin"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_fbm"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
@@ -9,6 +8,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_retention"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_settings"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"github.com/strongo/bots-framework/core"
 )
 
@@ -45,7 +45,7 @@ var botParams = shared_all.BotParams{
 	//
 	//
 	StartInBotAction: dtb_settings.StartInBotAction,
-	SetMainMenu: dtb_general.SetMainMenuKeyboard,
+	SetMainMenu:      dtb_general.SetMainMenuKeyboard,
 }
 
 func init() {
@@ -137,7 +137,7 @@ var callbackCommands = []bots.Command{
 	shared_all.AddReferrerCommand,
 }
 
-var Router bots.WebhooksRouter = bots.NewWebhookRouter(
+var Router = bots.NewWebhookRouter(
 	map[bots.WebhookInputType][]bots.Command{
 		bots.WebhookInputText:          textAndContactCommands,
 		bots.WebhookInputContact:       textAndContactCommands,

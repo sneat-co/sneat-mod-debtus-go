@@ -9,7 +9,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/splitus"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
+	"github.com/strongo/app/gaestandard"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/app"
@@ -17,14 +17,14 @@ import (
 	"github.com/strongo/bots-framework/platforms/fbm"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/bots-framework/platforms/viber"
-	"golang.org/x/net/context"
+	"context"
 )
 
 func newTranslator(c context.Context) strongo.Translator {
 	return strongo.NewMapTranslator(c, trans.TRANS)
 }
 
-func InitBots(httpRouter *httprouter.Router, botHost bots.BotHost, appContext common.DebtsTrackerAppContext) {
+func InitBots(httpRouter *httprouter.Router, botHost bots.BotHost, appContext bots.BotAppContext) {
 
 	driver := bots.NewBotDriver( // Orchestrate requests to appropriate handlers
 		bots.AnalyticsSettings{GaTrackingID: common.GA_TRACKING_ID}, // TODO: Refactor to list of analytics providers

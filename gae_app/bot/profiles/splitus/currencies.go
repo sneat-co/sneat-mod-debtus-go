@@ -1,19 +1,19 @@
 package splitus
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"fmt"
+	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"net/url"
-	"fmt"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/DebtsTracker/translations/trans"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"golang.org/x/net/context"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
+	"context"
+	"net/url"
 )
 
 const CURRENCY_PARAM_NAME = "currency"
@@ -161,7 +161,7 @@ func inGroupWelcomeMessage(whc bots.WebhookContext, group models.Group) (m bots.
 	}
 
 	return whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_HI)+
-		"\n\n"+ whc.Translate(trans.SPLITUS_TEXT_HI_IN_GROUP)+
-		"\n\n"+ whc.Translate(trans.SPLITUS_TEXT_ABOUT_ME_AND_CO),
+		"\n\n"+whc.Translate(trans.SPLITUS_TEXT_HI_IN_GROUP)+
+		"\n\n"+whc.Translate(trans.SPLITUS_TEXT_ABOUT_ME_AND_CO),
 		bots.MessageFormatHTML)
 }

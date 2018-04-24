@@ -15,7 +15,7 @@ import (
 	"github.com/strongo/db"
 	fb "github.com/strongo/facebook"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 )
 
 var ErrUnauthorized = errors.New("Unauthorized")

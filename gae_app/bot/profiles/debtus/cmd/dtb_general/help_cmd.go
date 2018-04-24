@@ -8,7 +8,6 @@ import (
 	"github.com/strongo/bots-framework/core"
 )
 
-
 func HelpCommandAction(whc bots.WebhookContext, showFeedbackButton bool) (m bots.MessageFromBot, err error) {
 	keyboardMarkup := tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{
@@ -91,7 +90,7 @@ var AdsCommand = bots.Command{
 	Icon:     emoji.NEWSPAPER_ICON,
 	Commands: []string{emoji.NEWSPAPER_ICON, "/ads", "/реклама"},
 	Title:    trans.COMMAND_TEXT_HELP,
-	Titles:   map[string]string{bots.SHORT_TITLE: ""},
+	Titles:   map[string]string{bots.ShortTitle: ""},
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		chatEntity := whc.ChatEntity()
 

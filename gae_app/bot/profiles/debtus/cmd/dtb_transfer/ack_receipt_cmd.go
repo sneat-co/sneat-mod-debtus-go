@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"github.com/strongo/measurement-protocol"
+	"github.com/strongo/gamp"
 )
 
 func AcknowledgeReceipt(whc bots.WebhookContext, receiptID int64, operation string) (m bots.MessageFromBot, err error) {
@@ -29,7 +29,7 @@ func AcknowledgeReceipt(whc bots.WebhookContext, receiptID int64, operation stri
 		{ // Reporting to Google Analytics
 			gaMeasurement := whc.GaMeasurement()
 
-			gaMeasurement.Queue(measurement.NewEventWithLabel(
+			gaMeasurement.Queue(gamp.NewEventWithLabel(
 				"receipts",
 				"receipt-acknowledged",
 				operation,
@@ -37,7 +37,7 @@ func AcknowledgeReceipt(whc bots.WebhookContext, receiptID int64, operation stri
 			))
 
 			if isCounterpartiesJustConnected {
-				gaMeasurement.Queue(measurement.NewEvent(
+				gaMeasurement.Queue(gamp.NewEvent(
 					"counterparties",
 					"counterparties-connected",
 					whc.GaCommon(),

@@ -8,7 +8,7 @@ package dtb_transfer
 //	"github.com/pkg/errors"
 //	"github.com/strongo/nds"
 //	"github.com/strongo/bots-framework/core"
-//	"golang.org/x/net/context"
+//	"context"
 //	"time"
 //	"github.com/strongo/app"
 //)

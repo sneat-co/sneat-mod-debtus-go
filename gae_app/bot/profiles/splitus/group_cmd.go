@@ -5,18 +5,24 @@ import (
 	"net/url"
 	"strconv"
 
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bytes"
+	"github.com/DebtsTracker/translations/trans"
+	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/decimal"
 	"github.com/strongo/log"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 )
 
 const groupCommandCode = "group"
 
 var groupCommand = bots.NewCallbackCommand(groupCommandCode,
 	func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+		// we can't use GroupCallbackCommand as we have parameter id=[first|last|<id>]
 		c := whc.Context()
 		log.Debugf(c, "groupCommand.CallbackAction()")
 
@@ -37,8 +43,8 @@ var groupCommand = bots.NewCallbackCommand(groupCommandCode,
 		id := query.Get("id")
 
 		var (
-			i     int
-			group models.UserGroupJson
+			i             int
+			userGroupJson models.UserGroupJson
 		)
 		switch id {
 		case "first":
@@ -46,42 +52,77 @@ var groupCommand = bots.NewCallbackCommand(groupCommandCode,
 		case "last":
 			i = len(groups) - 1
 		default:
-			group.ID = id
+			userGroupJson.ID = id
 			for j, g := range groups {
-				if g.ID == group.ID {
+				if g.ID == userGroupJson.ID {
 					i = j
 				}
 			}
 		}
-		group = groups[i]
+		userGroupJson = groups[i]
 
 		do := query.Get("do")
 		switch do {
 		case "leave":
-			if _, _, err = facade.Group.LeaveGroup(c, group.ID, strconv.FormatInt(whc.AppUserIntID(), 10)); err != nil {
+			if _, _, err = facade.Group.LeaveGroup(c, userGroupJson.ID, strconv.FormatInt(whc.AppUserIntID(), 10)); err != nil {
+				if err == facade.ErrAttemptToLeaveUnsettledGroup {
+					err = nil
+					m.BotMessage = telegram_bot.CallbackAnswer(tgbotapi.AnswerCallbackQueryConfig{Text: "Please settle group debts before leaving it."})
+				}
 				return
 			}
 			return groupsAction(whc, true, 0)
 		}
 
-		m.Text = fmt.Sprintf("<b>Group #%d</b>: %v", i+1, group.Name)
+		var group models.Group
+
+		if group, err = dal.Group.GetGroupByID(c, userGroupJson.ID); err != nil {
+			return
+		}
+
+		buf := new(bytes.Buffer)
+
+		fmt.Fprintf(buf, "<b>Group #%d</b>: %v", i+1, userGroupJson.Name)
+		var groupMemberJson models.GroupMemberJson
+		if groupMemberJson, err = group.GetGroupMemberByUserID(strconv.FormatInt(whc.AppUserIntID(), 10)); err != nil {
+			return
+		}
+		writeBalanceSide := func(title string, sign decimal.Decimal64p2, b models.Balance) {
+			if len(b) > 0 {
+				fmt.Fprintf(buf, "\n<b>%v</b>: ", title)
+				if len(b) == 1 {
+					for currency, value := range b {
+						fmt.Fprintf(buf, "%v %v", sign*value, currency)
+					}
+				} else {
+					for currency, value := range b {
+						fmt.Fprintf(buf, "\n%v %v", sign*value, currency)
+					}
+				}
+			}
+		}
+		writeBalanceSide("Owed to me", +1, groupMemberJson.Balance.OnlyPositive())
+		writeBalanceSide("I owe", -1, groupMemberJson.Balance.OnlyNegative())
+		fmt.Fprintf(buf, "\n<b>Members</b>: %v", group.MembersCount)
+
+		m.Text = buf.String()
+
 		m.IsEdit = true
 		m.Format = bots.MessageFormatHTML
-		tgKeyboard := tgbotapi.NewInlineKeyboardMarkup(groupsNavButtons(groups, group.ID))
+		tgKeyboard := tgbotapi.NewInlineKeyboardMarkup(groupsNavButtons(whc, groups, userGroupJson.ID))
 		tgKeyboard.InlineKeyboard = append(tgKeyboard.InlineKeyboard, []tgbotapi.InlineKeyboardButton{
 			{
-				Text:         "Leave group",
+				Text:         whc.Translate("Leave group"),
 				CallbackData: CallbackLink.ToGroup(groups[len(groups)-1].ID, true) + "&do=leave",
 			},
 		})
-		tgKeyboard.InlineKeyboard = append(tgKeyboard.InlineKeyboard, []tgbotapi.InlineKeyboardButton{shared_group.NewGroupTelegramInlineButton(whc, 0)})
 		m.Keyboard = tgKeyboard
 
 		return
 	},
 )
 
-func groupsNavButtons(groups []models.UserGroupJson, currentGroupID string) []tgbotapi.InlineKeyboardButton {
+func groupsNavButtons(translator strongo.SingleLocaleTranslator, groups []models.UserGroupJson, currentGroupID string) []tgbotapi.InlineKeyboardButton {
 	var currentGroupIndex = -1
 	if currentGroupID != "" {
 
@@ -112,9 +153,9 @@ func groupsNavButtons(groups []models.UserGroupJson, currentGroupID string) []tg
 			})
 		}
 	}
-	if currentGroupID != "" && len(groups) != 1 {
+	if currentGroupID != "" {
 		buttons = append(buttons, tgbotapi.InlineKeyboardButton{
-			Text:         "📇",
+			Text:         translator.Translate(trans.COMMAND_TEXT_GROUPS),
 			CallbackData: groupsCommandCode + "?edit=1",
 		})
 

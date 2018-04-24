@@ -1,9 +1,9 @@
 package dtb_settings
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"github.com/strongo/bots-framework/core"
 	"net/url"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 )
 
 var SettingsCommand = shared_all.SettingsCommandTemplate

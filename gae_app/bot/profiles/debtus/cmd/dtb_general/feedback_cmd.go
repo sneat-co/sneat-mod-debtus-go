@@ -16,12 +16,12 @@ import (
 	//"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
 	"strconv"
 
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/admin"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"golang.org/x/net/context"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
+	"context"
 )
 
 const (

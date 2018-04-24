@@ -1,10 +1,10 @@
 package admin
 
 import (
-	"fmt"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"fmt"
 	"github.com/strongo/bots-api-telegram"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine/urlfetch"
 )
 

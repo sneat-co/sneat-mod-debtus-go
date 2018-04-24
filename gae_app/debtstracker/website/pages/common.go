@@ -11,11 +11,11 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/gaestandard"
+	"github.com/strongo/app/gaestandard"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine"
 )
 
@@ -35,7 +35,7 @@ func pageContext(r *http.Request, locale strongo.Locale) (translator strongo.Sin
 		translator = strongo.NewSingleLocaleTranslatorWithBackup(translator, strongo.NewSingleMapTranslator(strongo.LocaleEnUS, appTranslator))
 	}
 
-	env := common.GetEnvironmentFromHost(r.Host)
+	env := gaestandard.GetEnvironmentFromHost(r.Host)
 	if env == strongo.EnvUnknown {
 		panic("Unknown host: " + r.Host)
 	}

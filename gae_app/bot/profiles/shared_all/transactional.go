@@ -1,11 +1,11 @@
 package shared_all
 
 import (
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/db"
+	"context"
 	"net/url"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"golang.org/x/net/context"
 )
 
 func TransactionalCallbackCommand(c bots.Command, o db.RunOptions) bots.Command {
@@ -27,4 +27,3 @@ func TransactionalCallbackAction(o db.RunOptions,
 		return
 	}
 }
-

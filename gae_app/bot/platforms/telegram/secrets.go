@@ -34,7 +34,6 @@ func Bots(environment strongo.Environment, router func(profile string) bots.Webh
 				telegram_bot.NewTelegramBot(strongo.EnvProduction, bot.ProfileDebtus, "DebtsTrackerPLbot", "254844727:AAG3a_1wgSuu77gWmKrcnUy0KN7Yrt0MhO8", "", "", strongo.LocalePlPl),
 				telegram_bot.NewTelegramBot(strongo.EnvProduction, bot.ProfileDebtus, "DebtsTrackerPtBot", "236826743:AAGx0uDsCO0RZap84IO7dzVSszfA_0HE1m4", "", "", strongo.LocalePtBr),
 				telegram_bot.NewTelegramBot(strongo.EnvProduction, bot.ProfileDebtus, "DebtsTrackerEsBot", "189365214:AAGnXfb8qqUou__-X5foSGSGfgOkXDm9wV4", "", "", strongo.LocalePtBr),
-
 			)
 		case strongo.EnvDevTest:
 			_bots = bots.NewBotSettingsBy(router,

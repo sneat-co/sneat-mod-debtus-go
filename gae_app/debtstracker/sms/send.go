@@ -8,7 +8,7 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/gotwilio"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine/urlfetch"
 )
 

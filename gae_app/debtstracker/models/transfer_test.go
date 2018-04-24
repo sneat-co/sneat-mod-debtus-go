@@ -35,7 +35,7 @@ func TestTransfer_Save(t *testing.T) {
 		if saved[0].kind != TransferKind {
 			t.Errorf("saved[0].kind:'%v' != '%v'", saved[0].kind, TransferKind)
 		}
-		for _, p := range properties{
+		for _, p := range properties {
 			if p.Name == "AcknowledgeTime" {
 				t.Error("AcknowledgeTime should not be saved")
 			}

@@ -3,7 +3,7 @@ package api
 import (
 	"testing"
 
-	"golang.org/x/net/context"
+	"context"
 )
 
 func TestApiUserInfo(t *testing.T) {

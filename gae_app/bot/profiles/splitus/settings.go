@@ -1,15 +1,15 @@
 package splitus
 
 import (
-	"bytes"
-	"net/url"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bytes"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
+	"net/url"
 )
 
 func GroupSettingsAction(whc bots.WebhookContext, group models.Group, isEdit bool) (m bots.MessageFromBot, err error) {
@@ -55,14 +55,14 @@ func GroupSettingsAction(whc bots.WebhookContext, group models.Group, isEdit boo
 
 var settingsCommand = func() (settingsCommand bots.Command) {
 	settingsCommand = shared_all.SettingsCommandTemplate
-	settingsCommand = shared_all.SettingsCommandTemplate
 	settingsCommand.Action = settingsAction
 	settingsCommand.CallbackAction = func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
-		return settingsAction(whc)
+		m, err = settingsAction(whc)
+		m.IsEdit = true
+		return
 	}
 	return
 }()
-
 
 func settingsAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 	if whc.IsInGroup() {

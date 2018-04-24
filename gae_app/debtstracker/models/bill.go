@@ -16,15 +16,16 @@ const (
 )
 
 const (
-	BillStatusDraft   = "draft"
-	BillStatusActive  = "active"
-	BillStatusSettled = "settled"
+	BillStatusDraft       = STATUS_DRAFT
+	BillStatusDeleted     = STATUS_DELETED
+	BillStatusOutstanding = "outstanding"
+	BillStatusSettled     = "settled"
 )
 
 var (
 	BillStatuses = [3]string{
 		BillStatusDraft,
-		BillStatusActive,
+		BillStatusOutstanding,
 		BillStatusSettled,
 	}
 	BillSplitModes = [5]SplitMode{

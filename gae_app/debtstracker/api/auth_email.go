@@ -15,7 +15,7 @@ import (
 	"github.com/strongo/app/user"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 )
 
 var (
