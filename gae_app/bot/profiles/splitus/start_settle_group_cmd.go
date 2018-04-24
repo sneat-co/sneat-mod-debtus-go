@@ -18,7 +18,7 @@ import (
 
 const (
 	SettleGroupAskForCounterpartyCommandCode    = "sttl-grp"
-	SettleGroupCounterpartyChoosenCommandCode   = "sttl-grp-cp-chsn"
+	SettleGroupCounterpartyChosenCommandCode   = "sttl-grp-cp-chsn"
 	SettleGroupCounterpartyConfirmedCommandCode = "sttl-grp-cp-cnfrmd"
 )
 
@@ -98,7 +98,7 @@ userMemberFound:
 	case 0:
 		m.Text = "There are no members to settele up with."
 		//case 1:
-		//	return settleGroupCounterpartyChoosenAction(whc, group, userMember.ID)
+		//	return settleGroupCounterpartyChosenAction(whc, group, userMember.ID)
 	default:
 		membersToKeyboard := func() bots.Keyboard {
 			keyboard := make([][]tgbotapi.InlineKeyboardButton, len(groupMembers))
@@ -106,7 +106,7 @@ userMemberFound:
 				keyboard[i] = []tgbotapi.InlineKeyboardButton{
 					{
 						Text:         m.Name,
-						CallbackData: fmt.Sprintf("%v?group=%v&member=%v", SettleGroupCounterpartyChoosenCommandCode, group.ID, m.ID),
+						CallbackData: fmt.Sprintf("%v?group=%v&member=%v", SettleGroupCounterpartyChosenCommandCode, group.ID, m.ID),
 					},
 				}
 			}
@@ -142,14 +142,14 @@ userMemberFound:
 	return
 }
 
-var settleGroupCounterpartyChoosenCommand = shared_group.GroupCallbackCommand(
-	SettleGroupCounterpartyChoosenCommandCode,
+var settleGroupCounterpartyChosenCommand = shared_group.GroupCallbackCommand(
+	SettleGroupCounterpartyChosenCommandCode,
 	func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
-		return settleGroupCounterpartyChoosenAction(whc, group, callbackUrl.Query().Get("member"))
+		return settleGroupCounterpartyChosenAction(whc, group, callbackUrl.Query().Get("member"))
 	},
 )
 
-func settleGroupCounterpartyChoosenAction(whc bots.WebhookContext, group models.Group, memberID string) (m bots.MessageFromBot, err error) {
+func settleGroupCounterpartyChosenAction(whc bots.WebhookContext, group models.Group, memberID string) (m bots.MessageFromBot, err error) {
 
 	var userMember, counterpartyMember models.GroupMemberJson
 	userID := whc.AppUserStrID()

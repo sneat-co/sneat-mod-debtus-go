@@ -13,8 +13,8 @@ var ChosenInlineResultCommand = bots.Command{
 	InputTypes: []bots.WebhookInputType{bots.WebhookInputChosenInlineResult},
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
-		choosenResult := whc.Input().(bots.WebhookChosenInlineResult)
-		query := choosenResult.GetQuery()
+		chosenResult := whc.Input().(bots.WebhookChosenInlineResult)
+		query := chosenResult.GetQuery()
 		log.Debugf(c, "ChosenInlineResultCommand.Action() => query: %v", query)
 
 		queryUrl, err := url.Parse(query)
@@ -24,9 +24,9 @@ var ChosenInlineResultCommand = bots.Command{
 
 		switch queryUrl.Path {
 		case "receipt":
-			return dtb_transfer.OnInlineChoosenCreateReceipt(whc, choosenResult.GetInlineMessageID(), queryUrl)
+			return dtb_transfer.OnInlineChosenCreateReceipt(whc, chosenResult.GetInlineMessageID(), queryUrl)
 		default:
-			log.Warningf(c, "Unknown choosen inline query: "+query)
+			log.Warningf(c, "Unknown chosen inline query: "+query)
 		}
 		return
 	},

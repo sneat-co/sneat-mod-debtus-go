@@ -45,7 +45,7 @@ func (_ LoginCodeDalGae) NewLoginCode(c context.Context, userID int64) (int32, e
 					created = true
 					return nil
 				} else if err != nil {
-					return errors.Wrap(err, "Failed to get entity withing transaction")
+					return errors.Wrap(err, "Failed to get entity within transaction")
 				} else {
 					log.Warningf(c, "This logic code already creted outside of the current transaction")
 					return nil

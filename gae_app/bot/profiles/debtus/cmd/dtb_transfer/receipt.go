@@ -37,7 +37,7 @@ var CreateReceiptIfNoInlineNotificationCommand = bots.Command{
 	Code:       CREATE_RECEIPT_IF_NO_INLINE_CHOOSEN_NOTIFICATION,
 	InputTypes: []bots.WebhookInputType{bots.WebhookInputCallbackQuery},
 	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
-		return OnInlineChoosenCreateReceipt(whc, whc.Input().(bots.WebhookCallbackQuery).GetInlineMessageID(), callbackUrl)
+		return OnInlineChosenCreateReceipt(whc, whc.Input().(bots.WebhookCallbackQuery).GetInlineMessageID(), callbackUrl)
 	},
 }
 
@@ -145,10 +145,10 @@ func getInlineReceiptMessageText(t strongo.SingleLocaleTranslator, botCode, loca
 	return buf.String()
 }
 
-func OnInlineChoosenCreateReceipt(whc bots.WebhookContext, inlineMessageID string, queryUrl *url.URL) (m bots.MessageFromBot, err error) {
+func OnInlineChosenCreateReceipt(whc bots.WebhookContext, inlineMessageID string, queryUrl *url.URL) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
 
-	log.Debugf(c, "OnInlineChoosenCreateReceipt(queryUrl: %v)", queryUrl)
+	log.Debugf(c, "OnInlineChosenCreateReceipt(queryUrl: %v)", queryUrl)
 	transferEncodedID := queryUrl.Query().Get("id")
 	transferID, err := common.DecodeID(transferEncodedID)
 	if err != nil {

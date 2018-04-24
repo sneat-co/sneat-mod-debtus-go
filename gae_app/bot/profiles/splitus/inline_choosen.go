@@ -17,15 +17,15 @@ import (
 	"strings"
 )
 
-var choosenInlineResultCommand = bots.Command{
-	Code:       "choosen-inline-result-command",
+var chosenInlineResultCommand = bots.Command{
+	Code:       "chosen-inline-result-command",
 	InputTypes: []bots.WebhookInputType{bots.WebhookInputChosenInlineResult},
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
-		log.Debugf(whc.Context(), "splitus.choosenInlineResultHandler.Action()")
-		choosenResult := whc.Input().(bots.WebhookChosenInlineResult)
-		resultID := choosenResult.GetResultID()
+		log.Debugf(whc.Context(), "splitus.chosenInlineResultHandler.Action()")
+		chosenResult := whc.Input().(bots.WebhookChosenInlineResult)
+		resultID := chosenResult.GetResultID()
 		if strings.HasPrefix(resultID, "bill?") {
-			return createBillFromInlineChoosenResult(whc, choosenResult)
+			return createBillFromInlineChosenResult(whc, chosenResult)
 		}
 		return
 	},
@@ -33,11 +33,11 @@ var choosenInlineResultCommand = bots.Command{
 
 var reDecimal = regexp.MustCompile(`\d+(\.\d+)?`)
 
-func createBillFromInlineChoosenResult(whc bots.WebhookContext, choosenResult bots.WebhookChosenInlineResult) (m bots.MessageFromBot, err error) {
+func createBillFromInlineChosenResult(whc bots.WebhookContext, chosenResult bots.WebhookChosenInlineResult) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
-	log.Debugf(c, "createBillFromInlineChoosenResult()")
+	log.Debugf(c, "createBillFromInlineChosenResult()")
 
-	resultID := choosenResult.GetResultID()
+	resultID := chosenResult.GetResultID()
 
 	const prefix = "bill?"
 
@@ -59,7 +59,7 @@ func createBillFromInlineChoosenResult(whc bots.WebhookContext, choosenResult bo
 			}
 		}
 		var billName string
-		if reMatches := reInlineQueryNewBill.FindStringSubmatch(choosenResult.GetQuery()); reMatches != nil {
+		if reMatches := reInlineQueryNewBill.FindStringSubmatch(chosenResult.GetQuery()); reMatches != nil {
 			billName = strings.TrimSpace(reMatches[3])
 		} else {
 			billName = whc.Translate(trans.NO_NAME)
@@ -78,7 +78,7 @@ func createBillFromInlineChoosenResult(whc bots.WebhookContext, choosenResult bo
 			BillEntity: &models.BillEntity{
 				BillCommon: models.BillCommon{
 
-					TgInlineMessageIDs: []string{choosenResult.GetInlineMessageID()},
+					TgInlineMessageIDs: []string{chosenResult.GetInlineMessageID()},
 					Name:               billName,
 					AmountTotal:        amount,
 					Status:             models.STATUS_DRAFT,
@@ -128,11 +128,11 @@ func createBillFromInlineChoosenResult(whc bots.WebhookContext, choosenResult bo
 			err = errors.WithMessage(err, "Failed to call facade.Bill.CreateBill()")
 			return
 		}
-		log.Infof(c, "createBillFromInlineChoosenResult() => Bill created")
+		log.Infof(c, "createBillFromInlineChosenResult() => Bill created")
 
 		botCode := whc.GetBotCode()
 
-		log.Infof(c, "createBillFromInlineChoosenResult() => suxx 0")
+		log.Infof(c, "createBillFromInlineChosenResult() => suxx 0")
 
 		footer := strings.Repeat("―", 15) + "\n" + whc.Translate(trans.MESSAGE_TEXT_ASK_BILL_PAYER)
 
@@ -145,23 +145,23 @@ func createBillFromInlineChoosenResult(whc bots.WebhookContext, choosenResult bo
 			return
 		}
 
-		log.Infof(c, "createBillFromInlineChoosenResult() => suxx 1")
+		log.Infof(c, "createBillFromInlineChosenResult() => suxx 1")
 
 		if m, err = whc.NewEditMessage(m.Text, bots.MessageFormatHTML); err != nil { // TODO: Unnecessary hack?
-			log.Infof(c, "createBillFromInlineChoosenResult() => suxx 1.2")
+			log.Infof(c, "createBillFromInlineChosenResult() => suxx 1.2")
 			log.Errorf(c, err.Error())
 			return
 		}
 
-		log.Infof(c, "createBillFromInlineChoosenResult() => suxx 2")
+		log.Infof(c, "createBillFromInlineChosenResult() => suxx 2")
 
 		m.Keyboard = getWhoPaidInlineKeyboard(whc, bill.ID)
 
 		var response bots.OnMessageSentResponse
-		log.Debugf(c, "createBillFromInlineChoosenResult() => Sending bill card: %v", m)
+		log.Debugf(c, "createBillFromInlineChosenResult() => Sending bill card: %v", m)
 
 		if response, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
-			log.Errorf(c, "createBillFromInlineChoosenResult() => %v", err)
+			log.Errorf(c, "createBillFromInlineChosenResult() => %v", err)
 			return
 		}
 

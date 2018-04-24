@@ -95,7 +95,7 @@ var Router = bots.NewWebhookRouter(
 			settingsCommand,
 			groupSettingsChooseCurrencyCommand,
 			settleGroupAskForCounterpartyCommand,
-			settleGroupCounterpartyChoosenCommand,
+			settleGroupCounterpartyChosenCommand,
 			settleGroupCounterpartyConfirmedCommand,
 			settleBillsCommand,
 		},
@@ -103,7 +103,7 @@ var Router = bots.NewWebhookRouter(
 			inlineQueryCommand,
 		},
 		bots.WebhookInputChosenInlineResult: {
-			choosenInlineResultCommand,
+			chosenInlineResultCommand,
 		},
 		bots.WebhookInputNewChatMembers: {
 			newChatMembersCommand,
