@@ -25,7 +25,7 @@ import (
 	"google.golang.org/appengine/taskqueue"
 )
 
-func (_ ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, transferID, userID int64) (err error) {
+func (ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, transferID, userID int64) (err error) {
 	if transferID == 0 {
 		panic("transferID == 0")
 	}
@@ -113,7 +113,7 @@ func createReminderForTransferUser(c context.Context, transferID, userID int64) 
 	}, dal.CrossGroupTransaction)
 }
 
-func (_ ReminderDalGae) DelayDiscardReminders(c context.Context, transferIDs []int64, returnTransferID int64) error {
+func (ReminderDalGae) DelayDiscardReminders(c context.Context, transferIDs []int64, returnTransferID int64) error {
 	if len(transferIDs) > 0 {
 		return gae.CallDelayFunc(c, common.QUEUE_REMINDERS, "discard-reminders", delayDiscardReminders, transferIDs, returnTransferID)
 	} else {
@@ -234,7 +234,7 @@ func discardReminder(c context.Context, reminderID, transferID, returnTransferID
 	}
 
 	switch reminder.SentVia {
-	case telegram_bot.TelegramPlatformID: // We need to update a reminder message if it was already sent out
+	case telegram.TelegramPlatformID: // We need to update a reminder message if it was already sent out
 		if reminder.BotID == "" {
 			log.Errorf(c, "reminder.BotID == ''")
 			return nil
@@ -264,7 +264,7 @@ func discardReminder(c context.Context, reminderID, transferID, returnTransferID
 
 		utmParams := common.UtmParams{
 			Source:   "TODO", // TODO: Get bot ID
-			Medium:   telegram_bot.TelegramPlatformID,
+			Medium:   telegram.TelegramPlatformID,
 			Campaign: common.UTM_CAMPAIGN_RECEIPT_DISCARD,
 		}
 
@@ -305,7 +305,7 @@ func GetExecutionContextForReminder(c context.Context, reminder *models.Reminder
 
 var ErrDuplicateAttemptToDiscardReminder = errors.New("Duplicate attempt to close reminder by same return transfer")
 
-func (_ ReminderDalGae) SetReminderStatus(c context.Context, reminderID, returnTransferID int64, status string, when time.Time) (reminder models.Reminder, err error) {
+func (ReminderDalGae) SetReminderStatus(c context.Context, reminderID, returnTransferID int64, status string, when time.Time) (reminder models.Reminder, err error) {
 	var (
 		changed        bool
 		previousStatus string

@@ -10,7 +10,7 @@ import (
 func InlineEmptyQuery(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 	log.Debugf(whc.Context(), "InlineEmptyQuery()")
 	inlineQuery := whc.Input().(bots.WebhookInlineQuery)
-	m.BotMessage = telegram_bot.InlineBotMessage(tgbotapi.InlineConfig{
+	m.BotMessage = telegram.InlineBotMessage(tgbotapi.InlineConfig{
 		InlineQueryID:     inlineQuery.GetInlineQueryID(),
 		CacheTime:         60,
 		SwitchPMText:      "Help: How to use this bot?",

@@ -17,7 +17,7 @@ import (
 	"google.golang.org/appengine/delay"
 )
 
-func (_ TransferDalGae) DelayUpdateTransfersOnReturn(c context.Context, returnTransferID int64, transferReturnsUpdate []dal.TransferReturnUpdate) (err error) {
+func (TransferDalGae) DelayUpdateTransfersOnReturn(c context.Context, returnTransferID int64, transferReturnsUpdate []dal.TransferReturnUpdate) (err error) {
 	log.Debugf(c, "DelayUpdateTransfersOnReturn(returnTransferID=%v, transferReturnsUpdate=%v)", returnTransferID, transferReturnsUpdate)
 	if returnTransferID == 0 {
 		panic("returnTransferID == 0")
@@ -178,7 +178,7 @@ func removeFromOutstandingWithInterest(c context.Context, transfer models.Transf
 	return
 }
 
-func (_ TransferDalGae) UpdateTransferOnReturn(c context.Context, returnTransfer, transfer models.Transfer, returnedAmount decimal.Decimal64p2) (err error) {
+func (TransferDalGae) UpdateTransferOnReturn(c context.Context, returnTransfer, transfer models.Transfer, returnedAmount decimal.Decimal64p2) (err error) {
 	log.Debugf(c, "UpdateTransferOnReturn(\n\treturnTransfer=%v,\n\ttransfer=%v,\n\treturnedAmount=%v)", litter.Sdump(returnTransfer), litter.Sdump(transfer), returnedAmount)
 
 	if returnTransfer.Currency != transfer.Currency {

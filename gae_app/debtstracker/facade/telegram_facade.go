@@ -15,12 +15,12 @@ import (
 )
 
 func GetLocale(c context.Context, botID string, tgChatIntID, userID int64) (locale strongo.Locale, err error) {
-	botChatKey := datastore.NewKey(c, telegram_bot.TelegramChatKind, bots.NewChatID(botID, strconv.FormatInt(tgChatIntID, 10)), 0, nil)
-	var tgChatEntity telegram_bot.TelegramChatEntityBase
+	botChatKey := datastore.NewKey(c, telegram.ChatKind, bots.NewChatID(botID, strconv.FormatInt(tgChatIntID, 10)), 0, nil)
+	var tgChatEntity telegram.TgChatEntityBase
 	if err = nds.Get(c, botChatKey, &tgChatEntity); err != nil {
 		log.Debugf(c, "Failed to get TgChat entity by string ID=%v: %v", botChatKey.StringID(), err) // TODO: Replace with error once load by int ID removed
 		if err == datastore.ErrNoSuchEntity {
-			if err = nds.Get(c, datastore.NewKey(c, telegram_bot.TelegramChatKind, "", tgChatIntID, nil), &tgChatEntity); err != nil { // TODO: Remove this load by int ID
+			if err = nds.Get(c, datastore.NewKey(c, telegram.ChatKind, "", tgChatIntID, nil), &tgChatEntity); err != nil { // TODO: Remove this load by int ID
 				log.Errorf(c, "Failed to get TgChat entity by int ID=%v: %v", tgChatIntID, err)
 				return
 			}

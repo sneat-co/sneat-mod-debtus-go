@@ -21,7 +21,7 @@ var billSharesCommand = billCallbackCommand(billSharesCommandCode, db.CrossGroup
 		c := whc.Context()
 		members := bill.GetBillMembers()
 		if bill.Currency == "" {
-			m.BotMessage = telegram_bot.CallbackAnswer(tgbotapi.NewCallback("", whc.Translate(trans.MESSAGE_TEXT_ASK_BILL_CURRENCY)))
+			m.BotMessage = telegram.CallbackAnswer(tgbotapi.NewCallback("", whc.Translate(trans.MESSAGE_TEXT_ASK_BILL_CURRENCY)))
 			return
 		}
 		var billID string

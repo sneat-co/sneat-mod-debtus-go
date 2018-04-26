@@ -29,7 +29,7 @@ func NewAdminDalGae() AdminDalGae {
 	return AdminDalGae{}
 }
 
-func (_ AdminDalGae) LatestUsers(c context.Context) (users []models.AppUser, err error) {
+func (AdminDalGae) LatestUsers(c context.Context) (users []models.AppUser, err error) {
 	var (
 		userKeys     []*datastore.Key
 		userEntities []*models.AppUserEntity
@@ -45,7 +45,7 @@ func (_ AdminDalGae) LatestUsers(c context.Context) (users []models.AppUser, err
 	return
 }
 
-func (_ AdminDalGae) DeleteAll(c context.Context, botCode, botChatID string) error {
+func (AdminDalGae) DeleteAll(c context.Context, botCode, botChatID string) error {
 	tasksCount := 7
 	await := make(chan string, tasksCount)
 	allErrors := make(chan error, tasksCount)
@@ -68,9 +68,9 @@ func (_ AdminDalGae) DeleteAll(c context.Context, botCode, botChatID string) err
 	}
 
 	kindsToDelete := []string{
-		telegram_bot.TelegramUserKind,
-		telegram_bot.TelegramChatKind,
-		telegram_bot.TelegramChatInstanceKind,
+		telegram.TgUserKind,
+		telegram.ChatKind,
+		telegram.ChatInstanceKind,
 		models.TgGroupKind,
 		models.InviteKind,
 		models.InviteClaimKind,
@@ -82,8 +82,8 @@ func (_ AdminDalGae) DeleteAll(c context.Context, botCode, botChatID string) err
 		models.ReceiptKind,
 		models.UserBrowserKind,
 		models.TwilioSmsKind,
-		fbm_bot.FbmChatKind,
-		fbm_bot.FbmUserKind,
+		fbm.ChatKind,
+		fbm.BotUserKind,
 		models.UserFacebookKind,
 		models.UserGoogleKind,
 		models.UserOneSignalKind,
@@ -93,9 +93,9 @@ func (_ AdminDalGae) DeleteAll(c context.Context, botCode, botChatID string) err
 		models.BillKind,
 		models.BillScheduleKind,
 		models.BillsHistoryKind,
-		//viber_bot.ViberChatKind,
-		//viber_bot.ViberUserKind,
-		viber_bot.ViberUserChatKind,
+		//viber.ViberChatKind,
+		//viber.ViberUserKind,
+		viber.UserChatKind,
 		models.UserVkKind,
 	}
 
@@ -124,7 +124,7 @@ func (_ AdminDalGae) DeleteAll(c context.Context, botCode, botChatID string) err
 	}
 
 	// We need to delay deletion of chat entity as it will be put by bot framework on reply.
-	chatKey := gae_host.NewGaeTelegramChatStore(common.TheAppContext.GetBotChatEntityFactory("telegram")).NewBotChatKey(c, botCode, botChatID)
+	chatKey := gaehost.NewGaeTelegramChatStore(common.TheAppContext.GetBotChatEntityFactory("telegram")).NewBotChatKey(c, botCode, botChatID)
 	if t, err := delayTgChatDeletion.Task(chatKey.StringID()); err != nil {
 		err = errors.WithMessage(err, "failed to create delay task for Telegram chat deletion")
 		return err
@@ -141,7 +141,7 @@ func (_ AdminDalGae) DeleteAll(c context.Context, botCode, botChatID string) err
 
 var delayTgChatDeletion = delay.Func("delete-%v", func(c context.Context, id string) error {
 	log.Debugf(c, "delayTgChatDeletion(id=%v)", id)
-	key := gaedb.NewKey(c, telegram_bot.TelegramChatKind, id, 0, nil)
+	key := gaedb.NewKey(c, telegram.ChatKind, id, 0, nil)
 	if err := gaedb.Delete(c, key); err != nil {
 		log.Errorf(c, "Failed to delete %v: %v", key, err)
 		return err

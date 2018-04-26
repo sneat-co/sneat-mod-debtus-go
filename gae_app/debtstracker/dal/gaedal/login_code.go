@@ -24,7 +24,7 @@ func NewLoginCodeKey(c context.Context, code int32) *datastore.Key {
 	return gaedb.NewKey(c, models.LoginCodeKind, "", int64(code), nil)
 }
 
-func (_ LoginCodeDalGae) NewLoginCode(c context.Context, userID int64) (int32, error) {
+func (LoginCodeDalGae) NewLoginCode(c context.Context, userID int64) (int32, error) {
 	var code int32
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := 1; i < 20; i++ {
@@ -63,7 +63,7 @@ func (_ LoginCodeDalGae) NewLoginCode(c context.Context, userID int64) (int32, e
 	return 0, errors.New("Failed to create new loginc code")
 }
 
-func (_ LoginCodeDalGae) ClaimLoginCode(c context.Context, code int32) (userID int64, err error) {
+func (LoginCodeDalGae) ClaimLoginCode(c context.Context, code int32) (userID int64, err error) {
 	err = dal.DB.RunInTransaction(c, func(c context.Context) error {
 		key := NewLoginCodeKey(c, code)
 		var entity models.LoginCodeEntity

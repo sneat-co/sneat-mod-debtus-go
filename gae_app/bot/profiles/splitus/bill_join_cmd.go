@@ -95,14 +95,14 @@ func joinBillAction(whc bots.WebhookContext, bill models.Bill, memberStatus stri
 		log.Infof(c, "User is already member of the bill before transaction, memberStatus: "+memberStatus)
 		callbackAnswer := tgbotapi.NewCallback("", whc.Translate(trans.MESSAGE_TEXT_ALREADY_BILL_MEMBER, userName))
 		callbackAnswer.ShowAlert = true
-		m.BotMessage = telegram_bot.CallbackAnswer(callbackAnswer)
+		m.BotMessage = telegram.CallbackAnswer(callbackAnswer)
 		whc.LogRequest()
-		if update := whc.Input().(telegram_bot.TelegramWebhookInput).TgUpdate(); update.CallbackQuery.Message != nil {
+		if update := whc.Input().(telegram.TgWebhookInput).TgUpdate(); update.CallbackQuery.Message != nil {
 			if m2, err := ShowBillCard(whc, true, bill, ""); err != nil {
 				return m2, err
 			} else if m2.Text != update.CallbackQuery.Message.Text {
 				log.Debugf(c, "Need to update bill card")
-				if _, err = whc.Responder().SendMessage(c, m2, bots.BotApiSendMessageOverHTTPS); err != nil {
+				if _, err = whc.Responder().SendMessage(c, m2, bots.BotAPISendMessageOverHTTPS); err != nil {
 					return m2, err
 				}
 			} else {

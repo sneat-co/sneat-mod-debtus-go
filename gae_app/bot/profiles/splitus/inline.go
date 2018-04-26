@@ -26,7 +26,7 @@ var inlineQueryCommand = bots.Command{
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		whc.LogRequest()
 		c := whc.Context()
-		if tgInput, ok := whc.Input().(telegram_bot.TelegramWebhookInput); ok {
+		if tgInput, ok := whc.Input().(telegram.TgWebhookInput); ok {
 			update := tgInput.TgUpdate()
 
 			if user, err := whc.GetAppUser(); err != nil {
@@ -63,7 +63,7 @@ var inlineQueryCommand = bots.Command{
 
 func inlineEmptyQuery(whc bots.WebhookContext, inlineQuery bots.WebhookInlineQuery) (m bots.MessageFromBot, err error) {
 	log.Debugf(whc.Context(), "InlineEmptyQuery()")
-	m.BotMessage = telegram_bot.InlineBotMessage(tgbotapi.InlineConfig{
+	m.BotMessage = telegram.InlineBotMessage(tgbotapi.InlineConfig{
 		InlineQueryID:     inlineQuery.GetInlineQueryID(),
 		CacheTime:         60,
 		SwitchPMText:      "Help: How to use this bot?",
@@ -107,7 +107,7 @@ func inlineQueryJoinGroup(whc bots.WebhookContext, query string) (m bots.Message
 		},
 	}
 
-	m.BotMessage = telegram_bot.InlineBotMessage(tgbotapi.InlineConfig{
+	m.BotMessage = telegram.InlineBotMessage(tgbotapi.InlineConfig{
 		InlineQueryID: inlineQuery.GetInlineQueryID(),
 		CacheTime:     60,
 		Results: []interface{}{
@@ -156,7 +156,7 @@ func inlineQueryNewBill(whc bots.WebhookContext, amountNum, amountCurr, billName
 		},
 	}
 
-	m.BotMessage = telegram_bot.InlineBotMessage(tgbotapi.InlineConfig{
+	m.BotMessage = telegram.InlineBotMessage(tgbotapi.InlineConfig{
 		InlineQueryID: inlineQuery.GetInlineQueryID(),
 		CacheTime:     60,
 		Results: []interface{}{

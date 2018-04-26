@@ -8,14 +8,14 @@ import (
 )
 
 type TelegramChat struct {
-	telegram_bot.TelegramChatBase
+	telegram.TgChatBase
 	*DtTelegramChatEntity
 }
 
 var _ db.EntityHolder = (*TelegramChat)(nil)
 
 func (TelegramChat) Kind() string {
-	return telegram_bot.TelegramChatKind
+	return telegram.ChatKind
 }
 
 func (tgChat TelegramChat) Entity() interface{} {
@@ -36,7 +36,7 @@ func (tgChat *TelegramChat) SetEntity(entity interface{}) {
 
 type DtTelegramChatEntity struct {
 	UserGroupID string `datastore:",index"` // Do index
-	telegram_bot.TelegramChatEntityBase
+	telegram.TgChatEntityBase
 }
 
 func (entity *DtTelegramChatEntity) Load(ps []datastore.Property) error {
@@ -47,7 +47,7 @@ func (entity *DtTelegramChatEntity) Save() (properties []datastore.Property, err
 	if properties, err = datastore.SaveStruct(entity); err != nil {
 		return properties, err
 	}
-	if properties, err = entity.TelegramChatEntityBase.CleanProperties(properties); err != nil {
+	if properties, err = entity.TgChatEntityBase.CleanProperties(properties); err != nil {
 		return
 	}
 	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{

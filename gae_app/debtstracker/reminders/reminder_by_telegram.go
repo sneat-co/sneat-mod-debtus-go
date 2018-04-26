@@ -66,7 +66,7 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 		executionContext := strongo.NewExecutionContext(c, translator)
 		utm := common.UtmParams{
 			Source:   "TODO",
-			Medium:   telegram_bot.TelegramPlatformID,
+			Medium:   telegram.TelegramPlatformID,
 			Campaign: common.UTM_CAMPAIGN_REMINDER,
 		}
 		messageText += common.TextReceiptForTransfer(executionContext, transfer, reminder.UserID, common.ShowReceiptToAutodetect, utm)
@@ -120,7 +120,7 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 			return
 		}
 		if sent {
-			analytics.ReminderSent(c, reminder.UserID, translator.Locale().Code5, telegram_bot.TelegramPlatformID)
+			analytics.ReminderSent(c, reminder.UserID, translator.Locale().Code5, telegram.TelegramPlatformID)
 		}
 	}
 	return
@@ -134,7 +134,7 @@ var delaySetChatIsForbidden = delay.Func("SetChatIsForbidden", SetChatIsForbidde
 
 func SetChatIsForbidden(c context.Context, botID string, tgChatID int64, at time.Time) error {
 	log.Debugf(c, "SetChatIsForbidden(tgChatID=%v, at=%v)", tgChatID, at)
-	err := gae_host.MarkTelegramChatAsForbidden(c, botID, tgChatID, at)
+	err := gaehost.MarkTelegramChatAsForbidden(c, botID, tgChatID, at)
 	if err == nil {
 		log.Infof(c, "Success")
 	} else {

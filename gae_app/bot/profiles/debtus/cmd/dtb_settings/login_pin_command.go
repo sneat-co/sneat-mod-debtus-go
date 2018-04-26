@@ -15,8 +15,8 @@ import (
 var LoginPinCommand = bots.Command{
 	Code: "LoginPin",
 	Matcher: func(cmd bots.Command, whc bots.WebhookContext) bool {
-		if whc.BotPlatform().Id() == viber_bot.ViberPlatformID && whc.InputType() == bots.WebhookInputText {
-			context := whc.Input().(viber_bot.ViberWebhookInputConversationStarted).GetContext()
+		if whc.BotPlatform().ID() == viber.PlatformID && whc.InputType() == bots.WebhookInputText {
+			context := whc.Input().(viber.WebhookInputConversationStarted).GetContext()
 			return strings.HasPrefix(context, "login-")
 		} else {
 			return false

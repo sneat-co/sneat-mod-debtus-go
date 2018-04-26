@@ -41,7 +41,7 @@ func GetGroup(whc bots.WebhookContext, callbackUrl *url.URL) (group models.Group
 		return
 	}
 
-	tgChat := whc.Input().(telegram_bot.TelegramWebhookInput).TgUpdate().Chat()
+	tgChat := whc.Input().(telegram.TgWebhookInput).TgUpdate().Chat()
 	var tgChatEntity *models.DtTelegramChatEntity
 	if tgChatEntity, err = getTgChatEntity(whc); err != nil {
 		return
@@ -71,8 +71,8 @@ func createGroupFromTelegram(whc bots.WebhookContext, chatEntity *models.DtTeleg
 
 	if tgChat.IsSuperGroup() { // See: https://core.telegram.org/bots/api#exportchatinvitelink
 		// TODO: Do this in delayed task - Lets try to get chat  invite link
-		msg := bots.MessageFromBot{BotMessage: telegram_bot.ExportChatInviteLink{}}
-		if tgResponse, err := whc.Responder().SendMessage(c, msg, bots.BotApiSendMessageOverHTTPS); err != nil {
+		msg := bots.MessageFromBot{BotMessage: telegram.ExportChatInviteLink{}}
+		if tgResponse, err := whc.Responder().SendMessage(c, msg, bots.BotAPISendMessageOverHTTPS); err != nil {
 			log.Debugf(c, "Not able to export chat invite link: %v", err)
 		} else {
 			chatInviteLink = string(tgResponse.TelegramMessage.(tgbotapi.APIResponse).Result)
@@ -151,7 +151,7 @@ func getTgChatEntity(whc bots.WebhookContext) (tgChatEntity *models.DtTelegramCh
 	}
 	var ok bool
 	if tgChatEntity, ok = chatEntity.(*models.DtTelegramChatEntity); !ok {
-		log.Debugf(whc.Context(), "whc.ChatEntity() is not TelegramChatEntityBase")
+		log.Debugf(whc.Context(), "whc.ChatEntity() is not TgChatEntityBase")
 		return
 	}
 	return tgChatEntity, nil

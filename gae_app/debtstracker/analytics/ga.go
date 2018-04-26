@@ -71,7 +71,8 @@ func ReminderSent(c context.Context, userID int64, userLanguage, platform string
 }
 
 func ReceiptSentFromBot(whc bots.WebhookContext, channel string) error {
-	return whc.GaMeasurement().Queue(whc.GaEventWithLabel("receipts", "receipt-sent", channel))
+	ga := whc.GA()
+	return ga.Queue(ga.GaEventWithLabel("receipts", "receipt-sent", channel))
 }
 
 func ReceiptSentFromApi(c context.Context, r *http.Request, userID int64, userLanguage, platform, channel string) {

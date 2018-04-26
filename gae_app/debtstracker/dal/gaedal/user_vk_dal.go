@@ -19,7 +19,7 @@ func NewUserVkDalGae() UserVkDalGae {
 	return UserVkDalGae{}
 }
 
-func (_ UserVkDalGae) GetUserVkByID(c context.Context, vkUserID int64) (vkUser models.UserVk, err error) {
+func (UserVkDalGae) GetUserVkByID(c context.Context, vkUserID int64) (vkUser models.UserVk, err error) {
 	vkUserKey := NewUserVkKey(c, vkUserID)
 	var vkUserEntity models.UserVkEntity
 	if err = gaedb.Get(c, vkUserKey, &vkUserEntity); err != nil {
@@ -32,7 +32,7 @@ func (_ UserVkDalGae) GetUserVkByID(c context.Context, vkUserID int64) (vkUser m
 	return
 }
 
-func (_ UserVkDalGae) SaveUserVk(c context.Context, userVk models.UserVk) (err error) {
+func (UserVkDalGae) SaveUserVk(c context.Context, userVk models.UserVk) (err error) {
 	k := NewUserVkKey(c, userVk.ID)
 	_, err = gaedb.Put(c, k, userVk)
 	return

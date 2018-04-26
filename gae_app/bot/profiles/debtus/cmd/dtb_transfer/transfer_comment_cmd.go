@@ -142,7 +142,7 @@ func createTransferAskNoteOrCommentCommand(code string, nextCommand bots.Command
 					tgbotapi.NewInlineKeyboardButtonData(whc.Translate(trans.COMMAND_TEXT_MORE_ABOUT_INTEREST_COMMAND), ASK_FOR_INTEREST_AND_COMMENT_COMMAND),
 				},
 			)
-			if _, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
+			if _, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
 				return
 			}
 

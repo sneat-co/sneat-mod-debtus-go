@@ -24,7 +24,7 @@ func NewUserBrowserDalGae() UserBrowserDalGae {
 	return UserBrowserDalGae{}
 }
 
-func (_ UserBrowserDalGae) insertUserBrowser(c context.Context, entity *models.UserBrowserEntity) (userBrowser models.UserBrowser, err error) {
+func (UserBrowserDalGae) insertUserBrowser(c context.Context, entity *models.UserBrowserEntity) (userBrowser models.UserBrowser, err error) {
 	var key *datastore.Key
 	if key, err = gaedb.Put(c, newUserBrowserIncompleteKey(c), &entity); err != nil {
 		return

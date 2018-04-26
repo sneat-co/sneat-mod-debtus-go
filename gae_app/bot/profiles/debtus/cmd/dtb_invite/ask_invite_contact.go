@@ -35,7 +35,7 @@ func AskInviteAddress(channel, icon, commandText, messageCode, invalidMessageCod
 				email := strings.TrimSpace(whc.Input().(bots.WebhookTextMessage).Text())
 				isValid := channel == string(models.InviteByEmail) && strings.Contains(email, "@") && strings.Contains(email, ".")
 				if isValid {
-					invite, err := dal.Invite.CreatePersonalInvite(whc, whc.AppUserIntID(), models.InviteByEmail, email, whc.BotPlatform().Id(), whc.GetBotCode(), "counterparty=?")
+					invite, err := dal.Invite.CreatePersonalInvite(whc, whc.AppUserIntID(), models.InviteByEmail, email, whc.BotPlatform().ID(), whc.GetBotCode(), "counterparty=?")
 					if err != nil {
 						log.Errorf(whc.Context(), "Failed to call invites.CreateInvite()")
 						return m, err
@@ -79,7 +79,7 @@ var AskInviteAddressCallbackCommand = bots.Command{
 			if m, err = whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_ABOUT_INVITES)+"\n\n"+mt, bots.MessageFormatHTML); err != nil {
 				return err
 			}
-			_, err := whc.Responder().SendMessage(whc.Context(), m, bots.BotApiSendMessageOverHTTPS)
+			_, err := whc.Responder().SendMessage(whc.Context(), m, bots.BotAPISendMessageOverHTTPS)
 			return errors.Wrap(err, "Failed to edit callback message")
 		}
 		_ = whc.ChatEntity() // To switch locale

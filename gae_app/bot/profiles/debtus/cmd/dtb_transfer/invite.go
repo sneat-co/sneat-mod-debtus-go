@@ -35,7 +35,7 @@ package dtb_transfer
 //			return err
 //		}
 //		inviteClaimKey := datastore.NewIncompleteKey(tc, invites.InviteClaimKind, nil)
-//		inviteClaim := invites.NewInviteClaim(inviteKey.StringID(), userID, whc.BotPlatform().Id(), whc.GetBotCode())
+//		inviteClaim := invites.NewInviteClaim(inviteKey.StringID(), userID, whc.BotPlatform().ID(), whc.GetBotCode())
 //		invite.ClaimedCount += 1 // ToDo: Can be a bottleneck if invite.MaxClaimsCount > 1 and big
 //		userKey := gaedal.NewAppUserKey(tc, userID)
 //		transferKey := gaedal.NewTransferKey(tc, transferID)

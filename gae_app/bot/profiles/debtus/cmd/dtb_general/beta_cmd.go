@@ -15,7 +15,7 @@ var BetaCommand = bots.Command{
 	Commands: []string{"/beta"},
 	Action: func(whc bots.WebhookContext) (bots.MessageFromBot, error) {
 		bot := whc.GetBotSettings()
-		token := auth.IssueToken(whc.AppUserIntID(), whc.BotPlatform().Id()+":"+bot.Code, false)
+		token := auth.IssueToken(whc.AppUserIntID(), whc.BotPlatform().ID()+":"+bot.Code, false)
 		host := common.GetWebsiteHost(bot.Code)
 		betaUrl := fmt.Sprintf(
 			"https://%v/app/#lang=%v&secret=%v",

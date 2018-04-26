@@ -20,7 +20,7 @@ type ApiWebhookContext struct {
 
 var _ bots.WebhookContext = (*ApiWebhookContext)(nil)
 
-func (_ ApiWebhookContext) IsInGroup() bool {
+func (ApiWebhookContext) IsInGroup() bool {
 	panic("not supported")
 }
 
@@ -34,9 +34,9 @@ func NewApiWebhookContext(r *http.Request, appUser *models.AppUserEntity, userID
 		WebhookContextBase: bots.NewWebhookContextBase(
 			r,
 			common.TheAppContext,
-			telegram_bot.TelegramPlatform{},
+			telegram.Platform{},
 			*bots.NewBotContext(dal.BotHost, botSettings),
-			nil, // WebhookInput
+			nil, // webhookInput
 			bots.BotCoreStores{},
 			nil, // GaMeasurement
 			func() bool { return false },

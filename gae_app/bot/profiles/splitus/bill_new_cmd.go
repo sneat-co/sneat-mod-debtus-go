@@ -53,7 +53,7 @@ var newBillCommand = bots.Command{
 				UserIDs:       []string{strUserID},
 			},
 		)
-		//tgMessage := whc.Input().(telegram_bot.TelegramWebhookInput).
+		//tgMessage := whc.Input().(telegram.TelegramWebhookInput).
 		//callbackQuery :=
 		tgChatMessageID := fmt.Sprintf("%v@%v@%v", whc.Input().(bots.WebhookCallbackQuery).GetInlineMessageID(), whc.GetBotCode(), whc.Locale().Code5)
 		billEntity.TgChatMessageIDs = []string{tgChatMessageID}

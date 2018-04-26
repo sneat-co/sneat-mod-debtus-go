@@ -19,7 +19,7 @@ func NewUserGooglePlusDalGae() UserGooglePlusDalGae {
 	return UserGooglePlusDalGae{}
 }
 
-func (_ UserGooglePlusDalGae) GetUserGooglePlusByID(c context.Context, id string) (userGooglePlus models.UserGooglePlus, err error) {
+func (UserGooglePlusDalGae) GetUserGooglePlusByID(c context.Context, id string) (userGooglePlus models.UserGooglePlus, err error) {
 	var userGooglePlusEntity models.UserGooglePlusEntity
 	if err = gaedb.Get(c, newUserGooglePlusKey(c, id), &userGooglePlusEntity); err != nil {
 		if err == datastore.ErrNoSuchEntity {
@@ -31,7 +31,7 @@ func (_ UserGooglePlusDalGae) GetUserGooglePlusByID(c context.Context, id string
 	return
 }
 
-func (_ UserGooglePlusDalGae) SaveUserGooglePlusByID(c context.Context, userGooglePlus models.UserGooglePlus) (err error) {
+func (UserGooglePlusDalGae) SaveUserGooglePlusByID(c context.Context, userGooglePlus models.UserGooglePlus) (err error) {
 	if _, err = gaedb.Put(c, newUserGooglePlusKey(c, userGooglePlus.ID), userGooglePlus.UserGooglePlusEntity); err != nil {
 		return
 	}

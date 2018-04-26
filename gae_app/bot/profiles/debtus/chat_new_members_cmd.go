@@ -13,7 +13,7 @@ var newChatMembersCommand = bots.Command{
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		if whc.IsInGroup() {
 			log.Warningf(whc.Context(), "Leaving chat as @DebtsTrackerBot does not support group chats")
-			m.BotMessage = telegram_bot.LeaveChat{}
+			m.BotMessage = telegram.LeaveChat{}
 		}
 		return
 	},

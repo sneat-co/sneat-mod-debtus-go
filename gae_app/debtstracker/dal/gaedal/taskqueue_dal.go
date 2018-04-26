@@ -9,6 +9,6 @@ package gaedal
 //type TaskQueueDalGae struct {
 //}
 //
-//func (_ TaskQueueDalGae) CallDelayFunc(c context.Context, queueName, subPath, key string, f interface{}, args ...interface{}) error {
+//func (TaskQueueDalGae) CallDelayFunc(c context.Context, queueName, subPath, key string, f interface{}, args ...interface{}) error {
 //	return gae.CallDelayFunc(c, queueName, subPath, delay.Func(key, f), args...)
 //}

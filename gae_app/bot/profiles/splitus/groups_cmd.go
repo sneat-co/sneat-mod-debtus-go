@@ -106,10 +106,10 @@ func groupsAction(whc bots.WebhookContext, isEdit bool, groupsMessageID int) (m 
 
 	if groupsMessageID == 0 {
 		if isEdit {
-			groupsMessageID = whc.Input().(telegram_bot.TelegramWebhookCallbackQuery).TgUpdate().CallbackQuery.Message.MessageID
+			groupsMessageID = whc.Input().(telegram.TgWebhookCallbackQuery).TgUpdate().CallbackQuery.Message.MessageID
 		}
 	} else {
-		m.EditMessageUID = telegram_bot.ChatMessageUID{MessageID: groupsMessageID}
+		m.EditMessageUID = telegram.ChatMessageUID{MessageID: groupsMessageID}
 	}
 
 	tgKeyboard.InlineKeyboard = append(tgKeyboard.InlineKeyboard,
@@ -129,7 +129,7 @@ func groupsAction(whc bots.WebhookContext, isEdit bool, groupsMessageID int) (m 
 	m.Format = bots.MessageFormatHTML
 	if !isEdit {
 		var msg bots.OnMessageSentResponse
-		if msg, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
+		if msg, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
 
 		}
 		return groupsAction(whc, true, msg.TelegramMessage.(tgbotapi.Message).MessageID)

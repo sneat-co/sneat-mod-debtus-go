@@ -131,7 +131,7 @@ func ProcessFullReturn(whc bots.WebhookContext, transfer models.Transfer) (m bot
 		return
 	}
 
-	if _, err = whc.Responder().SendMessage(whc.Context(), m, bots.BotApiSendMessageOverHTTPS); err != nil {
+	if _, err = whc.Responder().SendMessage(whc.Context(), m, bots.BotAPISendMessageOverHTTPS); err != nil {
 		return m, err
 	}
 
@@ -245,7 +245,7 @@ var SetNextReminderDateCallbackCommand = bots.Command{
 			return
 		}
 
-		if _, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
+		if _, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
 			return m, err
 		}
 

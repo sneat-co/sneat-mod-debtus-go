@@ -32,7 +32,7 @@ var joinGroupCommand = shared_group.GroupCallbackCommand(joinGroupCommanCode,
 			whc.LogRequest()
 			callbackAnswer := tgbotapi.NewCallback("", whc.Translate(trans.ALERT_TEXT_YOU_ARE_ALREADY_MEMBER_OF_THE_GROUP))
 			callbackAnswer.ShowAlert = true
-			m.BotMessage = telegram_bot.CallbackAnswer(callbackAnswer)
+			m.BotMessage = telegram.CallbackAnswer(callbackAnswer)
 		} else {
 			err = dal.DB.RunInTransaction(c, func(c context.Context) error {
 				if appUser, err = dal.User.GetUserByStrID(c, userID); err != nil {
@@ -98,7 +98,7 @@ var joinGroupCommand = shared_group.GroupCallbackCommand(joinGroupCommanCode,
 
 			if m, err := showGroupMembers(whc, group, true); err != nil {
 				return m, err
-			} else if _, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
+			} else if _, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
 				return m, err
 			}
 

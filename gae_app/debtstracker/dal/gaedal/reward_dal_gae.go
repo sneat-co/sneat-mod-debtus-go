@@ -15,7 +15,7 @@ type rewardDalGae struct {
 
 var _ dal.RewardDal = (*rewardDalGae)(nil)
 
-func (_ rewardDalGae) InsertReward(c context.Context, rewardEntity *models.RewardEntity) (reward models.Reward, err error) {
+func (rewardDalGae) InsertReward(c context.Context, rewardEntity *models.RewardEntity) (reward models.Reward, err error) {
 	reward.RewardEntity = rewardEntity
 	return reward, dal.DB.Update(c, &reward)
 }

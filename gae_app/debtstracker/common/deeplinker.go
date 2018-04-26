@@ -12,7 +12,7 @@ import (
 type deeplink struct {
 }
 
-func (_ deeplink) AppHashPathToReceipt(receiptID int64) string {
+func (deeplink) AppHashPathToReceipt(receiptID int64) string {
 	return fmt.Sprintf("receipt=%d", receiptID)
 }
 
@@ -35,7 +35,7 @@ func NewLinker(environment strongo.Environment, userID int64, locale, issuer str
 }
 
 func NewLinkerFromWhc(whc bots.WebhookContext) Linker {
-	return NewLinker(whc.Environment(), whc.AppUserIntID(), whc.Locale().SiteCode(), formatIssuer(whc.BotPlatform().Id(), whc.GetBotCode()))
+	return NewLinker(whc.Environment(), whc.AppUserIntID(), whc.Locale().SiteCode(), formatIssuer(whc.BotPlatform().ID(), whc.GetBotCode()))
 }
 
 func host(environment strongo.Environment) string {

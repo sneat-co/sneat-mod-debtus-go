@@ -21,7 +21,7 @@ func NewTwilioDalGae() TwilioDalGae {
 	return TwilioDalGae{}
 }
 
-func (_ TwilioDalGae) GetLastTwilioSmsesForUser(c context.Context, userID int64, to string, limit int) (result []models.TwilioSms, err error) {
+func (TwilioDalGae) GetLastTwilioSmsesForUser(c context.Context, userID int64, to string, limit int) (result []models.TwilioSms, err error) {
 	query := datastore.NewQuery(models.TwilioSmsKind).Filter("UserID =", userID).Order("-DtCreated").Limit(limit)
 	if to != "" {
 		query = query.Filter("To =", to)
@@ -38,7 +38,7 @@ func (_ TwilioDalGae) GetLastTwilioSmsesForUser(c context.Context, userID int64,
 	return
 }
 
-func (_ TwilioDalGae) SaveTwilioSms(
+func (TwilioDalGae) SaveTwilioSms(
 	c context.Context,
 	smsResponse *gotwilio.SmsResponse,
 	transfer models.Transfer,

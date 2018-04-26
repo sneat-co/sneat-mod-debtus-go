@@ -30,7 +30,7 @@ func startInGroupAction(whc bots.WebhookContext) (m bots.MessageFromBot, err err
 
 	var botUser bots.BotUser
 
-	if botUser, err = whc.GetBotUserById(c, whc.Input().GetSender().GetID()); err != nil {
+	if botUser, err = whc.GetBotUserByID(c, whc.Input().GetSender().GetID()); err != nil {
 		return
 	}
 

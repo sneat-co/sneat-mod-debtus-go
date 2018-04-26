@@ -34,7 +34,7 @@ type Receipt struct {
 
 var _ db.EntityHolder = (*Receipt)(nil)
 
-func (_ *Receipt) Kind() string {
+func (*Receipt) Kind() string {
 	return ReceiptKind
 }
 

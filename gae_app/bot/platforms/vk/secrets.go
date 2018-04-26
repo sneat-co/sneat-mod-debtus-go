@@ -8,28 +8,28 @@ import (
 )
 
 var BotsBy = bots.NewBotSettingsBy(nil,
-	vk_bot.NewVkBot(
+	vk.NewVkBot(
 		strongo.EnvLocal,
 		"iframe",
 		"5744136", // Local iframe
 		"RtoBEsz8gTpWkXrYYe8e",
 		trans.SupportedLocalesByCode5[strongo.LOCALE_RU_RU],
 	),
-	vk_bot.NewVkBot(
+	vk.NewVkBot(
 		strongo.EnvLocal,
 		"site",
 		"5709327",
 		"t8pWXsRQcL1HSENAGtA6",
 		trans.SupportedLocalesByCode5[strongo.LOCALE_RU_RU],
 	),
-	vk_bot.NewVkBot(
+	vk.NewVkBot(
 		strongo.EnvDevTest,
 		"iframe",
 		"5764961",
 		"nzAkJmOZqHe5BXHorJ35",
 		trans.SupportedLocalesByCode5[strongo.LOCALE_RU_RU],
 	),
-	vk_bot.NewVkBot(
+	vk.NewVkBot(
 		strongo.EnvProduction,
 		"iframe",
 		"5764562",

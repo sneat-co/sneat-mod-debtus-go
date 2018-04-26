@@ -28,7 +28,7 @@ var MainMenuCommand = bots.Command{
 
 func MainMenuAction(whc bots.WebhookContext, messageText string, showHint bool) (bots.MessageFromBot, error) {
 	if messageText == "" {
-		if whc.BotPlatform().Id() != fbm_bot.FbmPlatformID {
+		if whc.BotPlatform().ID() != fbm.PlatformID {
 			if showHint {
 				messageText = fmt.Sprintf("%v\n\n%v", whc.Translate(trans.MESSAGE_TEXT_WHATS_NEXT), whc.Translate(trans.MESSAGE_TEXT_DEBTUS_COMMANDS))
 			} else {

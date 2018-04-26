@@ -17,7 +17,7 @@ import (
 	"google.golang.org/appengine/delay"
 )
 
-func (_ TransferDalGae) DelayUpdateTransfersWithCounterparty(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) error {
+func (TransferDalGae) DelayUpdateTransfersWithCounterparty(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) error {
 	log.Debugf(c, "DelayUpdateTransfersWithCounterparty(creatorCounterpartyID=%d, counterpartyCounterpartyID=%d)", creatorCounterpartyID, counterpartyCounterpartyID)
 	if creatorCounterpartyID == 0 {
 		return errors.New("creatorCounterpartyID == 0")

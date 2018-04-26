@@ -55,7 +55,7 @@ func InlineNewRecord(whc bots.WebhookContext, amountMatches []string) (m bots.Me
 	amountText := html.EscapeString(models.NewAmount(amountCurrency, amountValue).String())
 
 	newBillCallbackData := fmt.Sprintf("new-bill?v=%v&c=%v", amountMatches[1], url.QueryEscape(string(amountCurrency)))
-	m.BotMessage = telegram_bot.InlineBotMessage(tgbotapi.InlineConfig{
+	m.BotMessage = telegram.InlineBotMessage(tgbotapi.InlineConfig{
 		InlineQueryID: inlineQuery.GetInlineQueryID(),
 		Results: []interface{}{
 			tgbotapi.InlineQueryResultArticle{

@@ -143,7 +143,7 @@ func groupSettingsSetCurrencyCommand(params shared_all.BotParams) bots.Command {
 
 func onStartCallbackInGroup(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error) {
 	// This links Telegram ChatID and ChatInstance
-	if twhc, ok := whc.(*telegram_bot.TelegramWebhookContext); ok {
+	if twhc, ok := whc.(*telegram.tgWebhookContext); ok {
 		if err = twhc.CreateOrUpdateTgChatInstance(); err != nil {
 			return
 		}
@@ -156,7 +156,7 @@ func inGroupWelcomeMessage(whc bots.WebhookContext, group models.Group) (m bots.
 	if err != nil {
 		return
 	}
-	if _, err = whc.Responder().SendMessage(whc.Context(), m, bots.BotApiSendMessageOverHTTPS); err != nil {
+	if _, err = whc.Responder().SendMessage(whc.Context(), m, bots.BotAPISendMessageOverHTTPS); err != nil {
 		return
 	}
 

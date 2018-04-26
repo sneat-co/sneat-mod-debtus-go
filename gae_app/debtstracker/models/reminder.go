@@ -160,7 +160,7 @@ func (r ReminderEntity) validate() (err error) {
 func NewReminderViaTelegram(botID string, chatID, userID, transferID int64, isAutomatic bool, next time.Time) (reminder ReminderEntity) {
 	reminder = ReminderEntity{
 		Status:      ReminderStatusCreated,
-		SentVia:     telegram_bot.TelegramPlatformID,
+		SentVia:     telegram.PlatformID,
 		BotID:       botID,
 		ChatIntID:   chatID,
 		UserID:      userID,

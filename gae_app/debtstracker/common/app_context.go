@@ -39,7 +39,7 @@ func (appCtx DebtsTrackerAppContext) GetBotChatEntityFactory(platform string) fu
 	case "telegram":
 		return func() bots.BotChat {
 			return &models.DtTelegramChatEntity{
-				TelegramChatEntityBase: *telegram_bot.NewTelegramChatEntity(),
+				TgChatEntityBase: *telegram.NewTelegramChatEntity(),
 			}
 		}
 	default:

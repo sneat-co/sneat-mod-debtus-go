@@ -26,7 +26,7 @@ func _validateSetReminderIsSentMessageIDs(messageIntID int64, messageStrID strin
 	return nil
 }
 
-func (_ ReminderDalGae) DelaySetReminderIsSent(c context.Context, reminderID int64, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error {
+func (ReminderDalGae) DelaySetReminderIsSent(c context.Context, reminderID int64, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error {
 	if err := _validateSetReminderIsSentMessageIDs(messageIntID, messageStrID, sentAt); err != nil {
 		return err
 	}

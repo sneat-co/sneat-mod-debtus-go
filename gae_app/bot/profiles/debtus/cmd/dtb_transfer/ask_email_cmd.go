@@ -45,7 +45,7 @@ var AskEmailForReceiptCommand = bots.Command{
 func sendReceiptByEmail(whc bots.WebhookContext, toEmail, toName string, transfer models.Transfer) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
 	receiptEntity := models.NewReceiptEntity(whc.AppUserIntID(), transfer.ID, transfer.Counterparty().UserID, whc.Locale().Code5, string(models.InviteByEmail), toEmail, general.CreatedOn{
-		CreatedOnPlatform: whc.BotPlatform().Id(),
+		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
 	})
 	receiptID, err := dal.Receipt.CreateReceipt(c, &receiptEntity)

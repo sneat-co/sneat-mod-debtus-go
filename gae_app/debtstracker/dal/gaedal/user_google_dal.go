@@ -19,7 +19,7 @@ func NewUserGoogleDalGae() UserGoogleDalGae {
 	return UserGoogleDalGae{}
 }
 
-func (_ UserGoogleDalGae) GetUserGoogleByID(c context.Context, googleUserID string) (userGoogle models.UserGoogle, err error) {
+func (UserGoogleDalGae) GetUserGoogleByID(c context.Context, googleUserID string) (userGoogle models.UserGoogle, err error) {
 	userGoogle.ID = googleUserID
 	userGoogle.UserGoogleEntity = new(models.UserGoogleEntity)
 	if err = gaedb.Get(c, NewUserGoogleKey(c, googleUserID), userGoogle.UserGoogleEntity); err != nil {
@@ -31,14 +31,14 @@ func (_ UserGoogleDalGae) GetUserGoogleByID(c context.Context, googleUserID stri
 	return
 }
 
-func (_ UserGoogleDalGae) DeleteUserGoogle(c context.Context, googleUserID string) (err error) {
+func (UserGoogleDalGae) DeleteUserGoogle(c context.Context, googleUserID string) (err error) {
 	if err = gaedb.Delete(c, NewUserGoogleKey(c, googleUserID)); err != nil {
 		return
 	}
 	return
 }
 
-func (_ UserGoogleDalGae) SaveUserGoogle(c context.Context, userGoogle models.UserGoogle) (err error) {
+func (UserGoogleDalGae) SaveUserGoogle(c context.Context, userGoogle models.UserGoogle) (err error) {
 	if _, err = gaedb.Put(c, NewUserGoogleKey(c, userGoogle.ID), userGoogle.UserGoogleEntity); err != nil {
 		return
 	}
@@ -46,7 +46,7 @@ func (_ UserGoogleDalGae) SaveUserGoogle(c context.Context, userGoogle models.Us
 }
 
 // TODO: Obsolete!
-//func (_ UserGoogleDalGae) CreateUserGoogle(c context.Context, user user.User, appUserID int64, onSignIn bool, userAgent, remoteAddr string) (entity *models.UserGoogleEntity, isNewGoogleUser, isNewAppUser bool, err error) {
+//func (UserGoogleDalGae) CreateUserGoogle(c context.Context, user user.User, appUserID int64, onSignIn bool, userAgent, remoteAddr string) (entity *models.UserGoogleEntity, isNewGoogleUser, isNewAppUser bool, err error) {
 //	err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
 //		key := NewUserGoogleKey(tc, user.ID)
 //		entity = new(models.UserGoogleEntity)

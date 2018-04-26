@@ -16,7 +16,7 @@ type TransferSourceBot struct {
 func (s TransferSourceBot) PopulateTransfer(t *models.TransferEntity) {
 	t.CreatedOnPlatform = s.platform
 	t.CreatedOnID = s.botID
-	if s.platform == telegram_bot.TelegramPlatformID {
+	if s.platform == telegram.PlatformID {
 		t.Creator().TgBotID = s.botID
 		var err error
 		t.Creator().TgChatID, err = strconv.ParseInt(s.chatID, 10, 64)

@@ -257,7 +257,7 @@ func (r receiptTextBuilder) translateAndFormatMessage(messageTextToTranslate str
 	var counterpartyText string
 	{
 		// TODO: Disabled URL due to issue with Telegram parser
-		if userID == 0 || utmParams.Medium == UTM_MEDIUM_SMS || utmParams.Medium == telegram_bot.TelegramPlatformID {
+		if userID == 0 || utmParams.Medium == UTM_MEDIUM_SMS || utmParams.Medium == telegram.PlatformID {
 			counterpartyText = counterpartyInfo.Name()
 		} else {
 			counterpartyUrl := GetCounterpartyUrl(counterpartyInfo.ContactID, userID, r.Locale(), utmParams)

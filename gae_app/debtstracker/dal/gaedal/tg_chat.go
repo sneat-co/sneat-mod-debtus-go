@@ -33,12 +33,12 @@ func (TgChatDalGae) SaveTgChat(c context.Context, tgChat models.TelegramChat) er
 
 func (TgChatDalGae) /* TODO: rename properly! */ DoSomething(c context.Context,
 	userTask *sync.WaitGroup, currency string, tgChatID int64, authInfo auth.AuthInfo, user models.AppUser,
-	sendToTelegram func(tgChat telegram_bot.TelegramChatEntityBase) error,
+	sendToTelegram func(tgChat telegram.TgChatEntityBase) error,
 ) (err error) {
 	var isSentToTelegram bool // Needed in case of failed to save to DB and is auto-retry
-	tgChatKey := gaedb.NewKey(c, telegram_bot.TelegramChatKind, "", tgChatID, nil)
+	tgChatKey := gaedb.NewKey(c, telegram.ChatKind, "", tgChatID, nil)
 	if err = gaedb.RunInTransaction(c, func(tc context.Context) (err error) {
-		var tgChat telegram_bot.TelegramChatEntityBase
+		var tgChat telegram.TgChatEntityBase
 
 		if err = gaedb.Get(tc, tgChatKey, &tgChat); err != nil {
 			return errors.Wrapf(err, "Failed to get Telegram chat entity by key=%v", tgChatKey)

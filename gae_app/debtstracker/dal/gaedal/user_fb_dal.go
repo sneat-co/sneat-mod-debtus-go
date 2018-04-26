@@ -25,7 +25,7 @@ func NewUserFacebookDalGae() UserFacebookDalGae {
 	return UserFacebookDalGae{}
 }
 
-func (_ UserFacebookDalGae) SaveFbUser(c context.Context, fbUser models.UserFacebook) (err error) {
+func (UserFacebookDalGae) SaveFbUser(c context.Context, fbUser models.UserFacebook) (err error) {
 	key := NewUserFacebookKey(c, fbUser.FbAppOrPageID, fbUser.FbUserOrPageScopeID)
 	if _, err = gaedb.Put(c, key, fbUser.UserFacebookEntity); err != nil {
 		return
@@ -33,7 +33,7 @@ func (_ UserFacebookDalGae) SaveFbUser(c context.Context, fbUser models.UserFace
 	return
 }
 
-func (_ UserFacebookDalGae) DeleteFbUser(c context.Context, fbAppOrPageID, fbUserOrPageScopeID string) (err error) {
+func (UserFacebookDalGae) DeleteFbUser(c context.Context, fbAppOrPageID, fbUserOrPageScopeID string) (err error) {
 	key := NewUserFacebookKey(c, fbAppOrPageID, fbUserOrPageScopeID)
 	if err = gaedb.Delete(c, key); err != nil {
 		return
@@ -41,7 +41,7 @@ func (_ UserFacebookDalGae) DeleteFbUser(c context.Context, fbAppOrPageID, fbUse
 	return
 }
 
-func (_ UserFacebookDalGae) GetFbUserByFbID(c context.Context, fbAppOrPageID, fbUserOrPageScopeID string) (fbUser models.UserFacebook, err error) {
+func (UserFacebookDalGae) GetFbUserByFbID(c context.Context, fbAppOrPageID, fbUserOrPageScopeID string) (fbUser models.UserFacebook, err error) {
 	var entity models.UserFacebookEntity
 	if err = gaedb.Get(c, NewUserFacebookKey(c, fbAppOrPageID, fbUserOrPageScopeID), &entity); err != nil {
 		if err == datastore.ErrNoSuchEntity {

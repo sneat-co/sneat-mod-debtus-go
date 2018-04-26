@@ -19,7 +19,7 @@ func NewUserEmailGaeDal() UserEmailGaeDal {
 	return UserEmailGaeDal{}
 }
 
-func (_ UserEmailGaeDal) GetUserEmailByID(c context.Context, email string) (userEmail models.UserEmail, err error) {
+func (UserEmailGaeDal) GetUserEmailByID(c context.Context, email string) (userEmail models.UserEmail, err error) {
 	userEmail.UserEmailEntity = new(models.UserEmailEntity)
 	key := NewUserEmailKey(c, email)
 	userEmail.ID = key.StringID()
@@ -32,7 +32,7 @@ func (_ UserEmailGaeDal) GetUserEmailByID(c context.Context, email string) (user
 	return
 }
 
-func (_ UserEmailGaeDal) SaveUserEmail(c context.Context, userEmail models.UserEmail) (err error) {
+func (UserEmailGaeDal) SaveUserEmail(c context.Context, userEmail models.UserEmail) (err error) {
 	_, err = gaedb.Put(c, NewUserEmailKey(c, userEmail.ID), userEmail.UserEmailEntity)
 	return
 }

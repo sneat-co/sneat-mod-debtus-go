@@ -16,7 +16,7 @@ func InlineSendInvite(whc bots.WebhookContext) (m bots.MessageFromBot, err error
 	//callbackData := "call-back1"
 	//url := fmt.Sprintf("https://telegram.me/%v?start=invite-%v", whc.GetBotCode(), "some-code")
 	botCode := whc.GetBotCode()
-	m.BotMessage = telegram_bot.InlineBotMessage(tgbotapi.InlineConfig{
+	m.BotMessage = telegram.InlineBotMessage(tgbotapi.InlineConfig{
 		InlineQueryID: inlineQuery.GetInlineQueryID(),
 		//SwitchPmText: "Accept invite",
 		//SwitchPmParameter: "invite?code=ABC",

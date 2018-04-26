@@ -26,7 +26,7 @@ func NewEmailIncompleteKey(c context.Context) *datastore.Key {
 	return datastore.NewIncompleteKey(c, models.EmailKind, nil)
 }
 
-func (_ EmailDalGae) InsertEmail(c context.Context, entity *models.EmailEntity) (email models.Email, err error) {
+func (EmailDalGae) InsertEmail(c context.Context, entity *models.EmailEntity) (email models.Email, err error) {
 	key := NewEmailIncompleteKey(c)
 	if key, err = gaedb.Put(c, key, entity); err != nil {
 		return
@@ -36,7 +36,7 @@ func (_ EmailDalGae) InsertEmail(c context.Context, entity *models.EmailEntity) 
 	return
 }
 
-func (_ EmailDalGae) UpdateEmail(c context.Context, email models.Email) (err error) {
+func (EmailDalGae) UpdateEmail(c context.Context, email models.Email) (err error) {
 	if email.ID == 0 {
 		return errors.New("UpdateEmail(email.ID == 0)")
 	}
@@ -47,7 +47,7 @@ func (_ EmailDalGae) UpdateEmail(c context.Context, email models.Email) (err err
 	return
 }
 
-func (_ EmailDalGae) GetEmailByID(c context.Context, id int64) (email models.Email, err error) {
+func (EmailDalGae) GetEmailByID(c context.Context, id int64) (email models.Email, err error) {
 	email.ID = id
 	emailEntity := new(models.EmailEntity)
 	if err = gaedb.Get(c, NewEmailKey(c, id), emailEntity); err != nil {

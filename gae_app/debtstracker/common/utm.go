@@ -38,7 +38,7 @@ func FillUtmParams(whc bots.WebhookContext, utm UtmParams) UtmParams {
 		utm.Source = whc.GetBotCode()
 	}
 	if utm.Medium == "" {
-		utm.Medium = whc.BotPlatform().Id()
+		utm.Medium = whc.BotPlatform().ID()
 	}
 	return utm
 }

@@ -86,18 +86,18 @@ func mainMenuTelegramKeyboard(whc bots.WebhookContext, params mainMenuParams) *t
 }
 func SetMainMenuKeyboard(whc bots.WebhookContext, m *bots.MessageFromBot) {
 	params := getMainMenuParams(whc, true)
-	switch whc.BotPlatform().Id() {
-	case telegram_bot.TelegramPlatformID:
+	switch whc.BotPlatform().ID() {
+	case telegram.PlatformID:
 		m.Keyboard = mainMenuTelegramKeyboard(whc, params)
-	case viber_bot.ViberPlatformID:
+	case viber.ViberPlatformID:
 		m.Keyboard = mainMenuViberKeyboard(whc, params)
-	case fbm_bot.FbmPlatformID:
+	case fbm.PlatformID:
 		if m.Text != "" {
 			panic("FBM does not support message text and attachments in the same request.")
 		}
 		m.FbmAttachment = mainMenuFbmAttachment(whc, params)
 	default:
-		panic("Unsupported platform id=" + whc.BotPlatform().Id())
+		panic("Unsupported platform id=" + whc.BotPlatform().ID())
 	}
 }
 
@@ -177,8 +177,8 @@ func mainMenuViberKeyboard(whc bots.WebhookContext, params mainMenuParams) *vibe
 	if params.showBalanceAndHistory {
 		userID := whc.AppUserIntID()
 		locale := whc.Locale()
-		balanceUrl := common.GetBalanceUrlForUser(userID, locale, whc.BotPlatform().Id(), whc.GetBotCode())
-		historyUrl := common.GetHistoryUrlForUser(userID, locale, whc.BotPlatform().Id(), whc.GetBotCode())
+		balanceUrl := common.GetBalanceUrlForUser(userID, locale, whc.BotPlatform().ID(), whc.GetBotCode())
+		historyUrl := common.GetHistoryUrlForUser(userID, locale, whc.BotPlatform().ID(), whc.GetBotCode())
 		buttons = append(buttons, []viberinterface.Button{
 			{Columns: in2columns, ActionType: "open-url", ActionBody: balanceUrl, Text: whc.CommandText(trans.COMMAND_TEXT_BALANCE, emoji.BALANCE_ICON), BgColor: viber.ButtonBgColor},
 			{Columns: in2columns, ActionType: "open-url", ActionBody: historyUrl, Text: whc.CommandText(trans.COMMAND_TEXT_HISTORY, emoji.HISTORY_ICON), BgColor: viber.ButtonBgColor},

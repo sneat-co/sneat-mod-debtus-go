@@ -22,7 +22,7 @@ func newBillDalGae() billDalGae {
 	return billDalGae{}
 }
 
-func (_ billDalGae) GetBillByID(c context.Context, billID string) (bill models.Bill, err error) {
+func (billDalGae) GetBillByID(c context.Context, billID string) (bill models.Bill, err error) {
 	if billID == "" {
 		panic("billID is empty string")
 	}
@@ -35,7 +35,7 @@ func (_ billDalGae) GetBillByID(c context.Context, billID string) (bill models.B
 	return
 }
 
-func (_ billDalGae) GetBillsByIDs(c context.Context, billIDs []string) (bills []models.Bill, err error) {
+func (billDalGae) GetBillsByIDs(c context.Context, billIDs []string) (bills []models.Bill, err error) {
 	entityHolders := make([]db.EntityHolder, len(billIDs))
 	for i, id := range billIDs {
 		entityHolders[i] = &models.Bill{StringID: db.StringID{ID: id}, BillEntity: new(models.BillEntity)}
@@ -50,7 +50,7 @@ func (_ billDalGae) GetBillsByIDs(c context.Context, billIDs []string) (bills []
 	return
 }
 
-func (_ billDalGae) InsertBillEntity(c context.Context, billEntity *models.BillEntity) (bill models.Bill, err error) {
+func (billDalGae) InsertBillEntity(c context.Context, billEntity *models.BillEntity) (bill models.Bill, err error) {
 	if billEntity == nil {
 		panic("billEntity == nil")
 	}

@@ -92,7 +92,7 @@ func handleTgHelperCurrencySelected(c context.Context, w http.ResponseWriter, r 
 			}
 		}()
 		errs <- dal.TgChat.DoSomething(c, &userTask, currency, tgChatID, authInfo, user,
-			func(tgChat telegram_bot.TelegramChatEntityBase) error {
+			func(tgChat telegram.TelegramChatEntityBase) error {
 				// TODO: This is some serious architecture sheet. Too sleepy to make it right, just make it working.
 				return sendToTelegram(c, user, tgChatID, tgChat, &userTask, r)
 			},
@@ -112,7 +112,7 @@ func handleTgHelperCurrencySelected(c context.Context, w http.ResponseWriter, r 
 }
 
 // TODO: This is some serious architecture sheet. Too sleepy to make it right, just make it working.
-func sendToTelegram(c context.Context, user models.AppUser, tgChatID int64, tgChat telegram_bot.TelegramChatEntityBase, userTask *sync.WaitGroup, r *http.Request) (err error) {
+func sendToTelegram(c context.Context, user models.AppUser, tgChatID int64, tgChat telegram.TelegramChatEntityBase, userTask *sync.WaitGroup, r *http.Request) (err error) {
 	telegramBots := telegram.Bots(gaestandard.GetEnvironment(c), nil)
 	botSettings, ok := telegramBots.ByCode[tgChat.BotID]
 	if !ok {

@@ -66,7 +66,7 @@ func (h ApiBotHost) Context(r *http.Request) context.Context {
 	return appengine.NewContext(r)
 }
 
-func (h ApiBotHost) GetHttpClient(c context.Context) *http.Client {
+func (h ApiBotHost) GetHTTPClient(c context.Context) *http.Client {
 	return dal.HttpClient(c)
 }
 

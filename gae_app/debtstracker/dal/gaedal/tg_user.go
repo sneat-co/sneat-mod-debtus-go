@@ -13,10 +13,10 @@ func NewTgUserDalGae() TgUserDalGae {
 	return TgUserDalGae{}
 }
 
-func (_ TgUserDalGae) FindByUserName(c context.Context, userName string) (tgUsers []telegram_bot.TelegramUser, err error) {
-	var tgUserEntities []telegram_bot.TelegramUserEntity
+func (TgUserDalGae) FindByUserName(c context.Context, userName string) (tgUsers []telegram.TgUser, err error) {
+	var tgUserEntities []telegram.TgUserEntity
 
-	query := datastore.NewQuery(telegram_bot.TelegramUserKind)
+	query := datastore.NewQuery(telegram.TgUserKind)
 	query = query.Filter("UserName =", userName)
 
 	var keys []*datastore.Key
@@ -26,9 +26,9 @@ func (_ TgUserDalGae) FindByUserName(c context.Context, userName string) (tgUser
 		return
 	}
 
-	tgUsers = make([]telegram_bot.TelegramUser, len(keys))
+	tgUsers = make([]telegram.TgUser, len(keys))
 	for i, entity := range tgUserEntities {
-		tgUsers[i] = telegram_bot.TelegramUser{ID: keys[i].IntID(), TelegramUserEntity: entity}
+		tgUsers[i] = telegram.TgUser{ID: keys[i].IntID(), TgUserEntity: entity}
 	}
 	return
 }

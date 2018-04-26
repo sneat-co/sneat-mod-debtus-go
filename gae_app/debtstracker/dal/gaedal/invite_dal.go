@@ -29,7 +29,7 @@ func NewInviteDalGae() InviteDalGae {
 	return InviteDalGae{}
 }
 
-func (_ InviteDalGae) GetInvite(c context.Context, inviteCode string) (*models.InviteEntity, error) {
+func (InviteDalGae) GetInvite(c context.Context, inviteCode string) (*models.InviteEntity, error) {
 	inviteKey := gaedb.NewKey(c, models.InviteKind, inviteCode, 0, nil)
 	var inviteEntity models.InviteEntity
 	err := gaedb.Get(c, inviteKey, &inviteEntity)
@@ -39,7 +39,7 @@ func (_ InviteDalGae) GetInvite(c context.Context, inviteCode string) (*models.I
 	return &inviteEntity, err
 }
 
-func (_ InviteDalGae) ClaimInvite(c context.Context, userID int64, inviteCode, claimedOn, claimedVia string) (err error) {
+func (InviteDalGae) ClaimInvite(c context.Context, userID int64, inviteCode, claimedOn, claimedVia string) (err error) {
 	err = gaedb.RunInTransaction(c, func(tc context.Context) error {
 		inviteKey := gaedb.NewKey(tc, models.InviteKind, inviteCode, 0, nil)
 		var invite models.InviteEntity
@@ -82,11 +82,11 @@ const (
 	PERSONAL_INVITE           = 1
 )
 
-func (_ InviteDalGae) CreatePersonalInvite(ec strongo.ExecutionContext, userID int64, inviteBy models.InviteBy, inviteToAddress, createdOnPlatform, createdOnID, related string) (models.Invite, error) {
+func (InviteDalGae) CreatePersonalInvite(ec strongo.ExecutionContext, userID int64, inviteBy models.InviteBy, inviteToAddress, createdOnPlatform, createdOnID, related string) (models.Invite, error) {
 	return createInvite(ec, models.InviteTypePersonal, userID, inviteBy, inviteToAddress, createdOnPlatform, createdOnID, INVITE_CODE_LENGTH, AUTO_GENERATE_INVITE_CODE, related, PERSONAL_INVITE)
 }
 
-func (_ InviteDalGae) CreateMassInvite(ec strongo.ExecutionContext, userID int64, inviteCode string, maxClaimsCount int32, createdOnPlatform string) (invite models.Invite, err error) {
+func (InviteDalGae) CreateMassInvite(ec strongo.ExecutionContext, userID int64, inviteCode string, maxClaimsCount int32, createdOnPlatform string) (invite models.Invite, err error) {
 	invite, err = createInvite(ec, models.InviteTypePublic, userID, "", "", createdOnPlatform, "", uint8(len(inviteCode)), inviteCode, "", maxClaimsCount)
 	return
 }
@@ -169,7 +169,7 @@ func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, use
 	return
 }
 
-func (_ InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, inviteEntity *models.InviteEntity, claimedByUserID int64, claimedOn, claimedVia string) (invite models.Invite, err error) {
+func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, inviteEntity *models.InviteEntity, claimedByUserID int64, claimedOn, claimedVia string) (invite models.Invite, err error) {
 	var inviteClaimKey *datastore.Key
 	err = gaedb.RunInTransaction(c, func(tc context.Context) error {
 		inviteKey := NewInviteKey(tc, inviteCode)

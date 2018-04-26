@@ -47,7 +47,7 @@ func TestCreateTransfer(t *testing.T) {
 	c := context.Background()
 	assert := assertHelper{t: t}
 
-	source := dal.NewTransferSourceBot(telegram_bot.TelegramPlatformID, "test-bot", "444")
+	source := dal.NewTransferSourceBot(telegram.PlatformID, "test-bot", "444")
 
 	const (
 		userID         = 1
@@ -169,7 +169,7 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 		AppUserEntity: &models.AppUserEntity{},
 	}
 
-	source := dal.NewTransferSourceBot(telegram_bot.TelegramPlatformID, "test-bot", "444")
+	source := dal.NewTransferSourceBot(telegram.PlatformID, "test-bot", "444")
 	{ // Create 1st "gave" transfer
 		from := &models.TransferCounterpartyInfo{
 			UserID: userID,

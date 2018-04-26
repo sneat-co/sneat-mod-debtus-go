@@ -15,7 +15,7 @@ type Reward struct {
 	*RewardEntity
 }
 
-func (_ Reward) Kind() string {
+func (Reward) Kind() string {
 	return RewardKind
 }
 
@@ -58,7 +58,7 @@ type UserRewardBalance struct {
 	RewardIDs      []int64 `datastore:",noindex"`
 }
 
-func (_ UserRewardBalance) cleanProperties(properties []datastore.Property) ([]datastore.Property, error) {
+func (UserRewardBalance) cleanProperties(properties []datastore.Property) ([]datastore.Property, error) {
 	return gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
 		"RewardPoints":   gaedb.IsZeroInt,
 		"RewardOptedOut": gaedb.IsZeroTime,

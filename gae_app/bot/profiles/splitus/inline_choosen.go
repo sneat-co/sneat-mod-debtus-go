@@ -160,7 +160,7 @@ func createBillFromInlineChosenResult(whc bots.WebhookContext, chosenResult bots
 		var response bots.OnMessageSentResponse
 		log.Debugf(c, "createBillFromInlineChosenResult() => Sending bill card: %v", m)
 
-		if response, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
+		if response, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
 			log.Errorf(c, "createBillFromInlineChosenResult() => %v", err)
 			return
 		}
@@ -175,7 +175,7 @@ func createBillFromInlineChosenResult(whc bots.WebhookContext, chosenResult bots
 var reBillUrl = regexp.MustCompile(`\?start=bill-(\d+)$`)
 
 func getBillIDFromUrlInEditedMessage(whc bots.WebhookContext) (billID string) {
-	tgInput, ok := whc.Input().(telegram_bot.TelegramWebhookInput)
+	tgInput, ok := whc.Input().(telegram.TgWebhookInput)
 	if !ok {
 		return
 	}

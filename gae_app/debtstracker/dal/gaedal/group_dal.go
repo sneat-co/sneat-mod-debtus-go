@@ -29,13 +29,13 @@ func NewGroupDalGae() GroupDalGae {
 	return GroupDalGae{}
 }
 
-func (_ GroupDalGae) InsertGroup(c context.Context, groupEntity *models.GroupEntity) (group models.Group, err error) {
+func (GroupDalGae) InsertGroup(c context.Context, groupEntity *models.GroupEntity) (group models.Group, err error) {
 	group.GroupEntity = groupEntity
 	err = dal.InsertWithRandomStringID(c, &group, models.GroupIdLen)
 	return
 }
 
-func (_ GroupDalGae) SaveGroup(c context.Context, group models.Group) (err error) {
+func (GroupDalGae) SaveGroup(c context.Context, group models.Group) (err error) {
 	if _, err = gaedb.Put(c, NewGroupKey(c, group.ID), group.GroupEntity); err != nil {
 		return
 	}

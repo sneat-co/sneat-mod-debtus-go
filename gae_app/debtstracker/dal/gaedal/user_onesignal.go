@@ -33,6 +33,6 @@ func (userOneSignalDalGae UserOneSignalDalGae) SaveUserOneSignal(c context.Conte
 	return
 }
 
-func (_ UserOneSignalDalGae) NewUserOneSignalKey(c context.Context, oneSignalUserID string) *datastore.Key {
+func (UserOneSignalDalGae) NewUserOneSignalKey(c context.Context, oneSignalUserID string) *datastore.Key {
 	return datastore.NewKey(c, models.UserOneSignalKind, oneSignalUserID, 0, nil)
 }

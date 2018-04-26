@@ -70,7 +70,7 @@ func InlineSendReceipt(whc bots.WebhookContext) (m bots.MessageFromBot, err erro
 	log.Debugf(c, "Loaded transfer: %v", transfer)
 	creator := whc.GetSender()
 
-	m.BotMessage = telegram_bot.InlineBotMessage(tgbotapi.InlineConfig{
+	m.BotMessage = telegram.InlineBotMessage(tgbotapi.InlineConfig{
 		InlineQueryID: inlineQuery.GetInlineQueryID(),
 		//SwitchPmText: "Accept invite",
 		//SwitchPmParameter: "invite?code=ABC",
@@ -107,7 +107,7 @@ func InlineSendReceipt(whc bots.WebhookContext) (m bots.MessageFromBot, err erro
 	//botApi := &tgbotapi.BotAPI{
 	//	Token:  whc.GetBotToken(),
 	//	Debug:  true,
-	//	Client: whc.GetHttpClient(),
+	//	Client: whc.GetHTTPClient(),
 	//}
 	//mes, err := botApi.AnswerInlineQuery(inlineConfig)
 	//if err != nil {
@@ -161,9 +161,9 @@ func OnInlineChosenCreateReceipt(whc bots.WebhookContext, inlineMessageID string
 	if err != nil {
 		return m, err
 	}
-	receipt := models.NewReceiptEntity(whc.AppUserIntID(), transferID, transfer.Counterparty().UserID, whc.Locale().Code5, telegram_bot.TelegramPlatformID, "", general.CreatedOn{
+	receipt := models.NewReceiptEntity(whc.AppUserIntID(), transferID, transfer.Counterparty().UserID, whc.Locale().Code5, telegram.PlatformID, "", general.CreatedOn{
 		CreatedOnID:       whc.GetBotCode(), // TODO: Replace with method call.
-		CreatedOnPlatform: whc.BotPlatform().Id(),
+		CreatedOnPlatform: whc.BotPlatform().ID(),
 	})
 	receiptID, err := dal.Receipt.CreateReceipt(c, &receipt)
 	if err != nil {
@@ -175,7 +175,7 @@ func OnInlineChosenCreateReceipt(whc bots.WebhookContext, inlineMessageID string
 
 	analytics.ReceiptSentFromBot(whc, "telegram")
 
-	//_, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS)
+	//_, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS)
 	//if err != nil {
 	//	log.Errorf(c, "Failed to send inline response: %v", err.Error())
 	//}

@@ -44,7 +44,7 @@ func showReceiptAnnouncement(whc bots.WebhookContext, receiptID int64, creatorNa
 
 	messageText := getInlineReceiptMessageText(whc, whc.GetBotCode(), whc.Locale().Code5, creatorName, receiptID)
 	m, err = whc.NewEditMessage(messageText, bots.MessageFormatHTML)
-	m.EditMessageUID = telegram_bot.NewInlineMessageUID(inlineMessageID)
+	m.EditMessageUID = telegram.NewInlineMessageUID(inlineMessageID)
 	m.DisableWebPagePreview = true
 	kbRows := [][]tgbotapi.InlineKeyboardButton{
 		{
@@ -114,11 +114,11 @@ var ViewReceiptInTelegramCallbackCommand = bots.NewCallbackCommand(
 			//common.GetReceiptUrlForUser(
 			//	receiptID,
 			//	whc.AppUserIntID(),
-			//	whc.BotPlatform().Id(),
+			//	whc.BotPlatform().ID(),
 			//	whc.GetBotCode(),
 			//) + "&lang=" + localeCode5,
 		)
-		m.BotMessage = telegram_bot.CallbackAnswer(callbackAnswer)
+		m.BotMessage = telegram.CallbackAnswer(callbackAnswer)
 		// TODO: https://core.telegram.org/bots/api#answercallbackquery, show_alert = true
 		return
 	},

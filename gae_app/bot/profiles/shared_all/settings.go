@@ -18,8 +18,8 @@ var SettingsCommandTemplate = bots.Command{
 }
 
 func SettingsMainAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
-	switch whc.BotPlatform().Id() {
-	case telegram_bot.TelegramPlatformID:
+	switch whc.BotPlatform().ID() {
+	case telegram.PlatformID:
 		m, _, err = SettingsMainTelegram(whc)
 	default:
 		err = errors.New("Unsupported platform")

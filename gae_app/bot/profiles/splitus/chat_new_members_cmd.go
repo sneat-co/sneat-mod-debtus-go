@@ -44,7 +44,7 @@ var newChatMembersCommand = bots.Command{
 			for _, chatMember := range newMembers {
 				tgChatMember := chatMember.(tgbotapi.ChatMember)
 				var botUser bots.BotUser
-				if botUser, err = whc.GetBotUserById(c, tgChatMember.ID); err != nil {
+				if botUser, err = whc.GetBotUserByID(c, tgChatMember.ID); err != nil {
 					return
 				}
 				if botUser == nil {
@@ -91,7 +91,7 @@ var newChatMembersCommand = bots.Command{
 			responder := whc.Responder()
 			c := whc.Context()
 			for _, newUser := range newUsers {
-				if _, err = responder.SendMessage(c, createWelcomeMsg(newUser.ChatMember), bots.BotApiSendMessageOverHTTPS); err != nil {
+				if _, err = responder.SendMessage(c, createWelcomeMsg(newUser.ChatMember), bots.BotAPISendMessageOverHTTPS); err != nil {
 					return
 				}
 			}

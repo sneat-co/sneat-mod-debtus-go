@@ -83,7 +83,7 @@ func (reminderDalGae ReminderDalGae) GetActiveReminderIDsByTransferID(c context.
 }
 
 func (reminderDalGae ReminderDalGae) SetReminderIsSent(c context.Context, reminderID int64, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error {
-	gae_host.GaeLogger.Debugf(c, "setReminderIsSent(reminderID=%v, sentAt=%v, messageIntID=%v, messageStrID=%v)", reminderID, sentAt, messageIntID, messageStrID)
+	gaehost.GaeLogger.Debugf(c, "setReminderIsSent(reminderID=%v, sentAt=%v, messageIntID=%v, messageStrID=%v)", reminderID, sentAt, messageIntID, messageStrID)
 	if err := _validateSetReminderIsSentMessageIDs(messageIntID, messageStrID, sentAt); err != nil {
 		return err
 	}

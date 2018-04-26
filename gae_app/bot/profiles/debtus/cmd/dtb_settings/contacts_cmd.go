@@ -92,7 +92,7 @@ func contactsAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) 
 //			},
 //		)
 //		messageText := whc.NewMessageByCode(trans.MESSAGE_TEXT_CONTACT_DETAILS)
-//		m.TelegramEditMessageText = telegram_bot.EditMessageOnCallbackQuery(whc.Input().(bots.WebhookCallbackQuery), "HTML", messageText)
+//		m.TelegramEditMessageText = telegram.EditMessageOnCallbackQuery(whc.Input().(bots.WebhookCallbackQuery), "HTML", messageText)
 //		m.TelegramEditMessageText.ReplyMarkup = keyboard
 //		return
 //	},

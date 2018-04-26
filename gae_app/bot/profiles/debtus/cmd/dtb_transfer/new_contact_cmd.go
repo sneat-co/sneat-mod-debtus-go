@@ -85,7 +85,7 @@ func NewCounterpartyCommand(nextCommand bots.Command) bots.Command {
 					}
 
 					switch input.(type) {
-					case telegram_bot.TelegramWebhookContactMessage:
+					case telegram.tgWebhookContactMessage:
 						contactDetails.TelegramUserID = int64(contactMessage.UserID().(int))
 						if contactDetails.TelegramUserID != 0 {
 							for _, userContactJson := range user.Contacts() {
@@ -122,18 +122,17 @@ func NewCounterpartyCommand(nextCommand bots.Command) bots.Command {
 					if contact, user, err = facade.CreateContact(c, whc.AppUserIntID(), contactDetails); err != nil {
 						return m, err
 					}
-					whc.GaMeasurement().Queue(gamp.NewEventWithLabel(
+					ga := whc.GA()
+					ga.Queue(ga.GaEventWithLabel(
 						"contacts",
 						"contact-created",
 						fmt.Sprintf("user-%v", whc.AppUserIntID()),
-						whc.GaCommon(),
 					))
 					if contact.PhoneNumber != 0 && contact.PhoneNumberConfirmed {
-						whc.GaMeasurement().Queue(gamp.NewEventWithLabel(
+						ga.Queue(ga.GaEventWithLabel(
 							"contacts",
 							"contact-details-added",
 							"phone-number",
-							whc.GaCommon(),
 						))
 					}
 				}

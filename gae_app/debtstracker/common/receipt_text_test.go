@@ -50,7 +50,7 @@ func TestWriteReceiptText(t *testing.T) {
 
 	utmParams := UtmParams{
 		Source:   "BotIdUnitTest",
-		Medium:   telegram_bot.TelegramPlatformID,
+		Medium:   telegram.PlatformID,
 		Campaign: "unit-test-campaign",
 	}
 

@@ -112,6 +112,6 @@ func (mockDB MockDB) UpdateMulti(c context.Context, entityHolders []db.EntityHol
 	return nil
 }
 
-func (_ MockDB) RunInTransaction(c context.Context, f func(c context.Context) error, options db.RunOptions) error {
+func (MockDB) RunInTransaction(c context.Context, f func(c context.Context) error, options db.RunOptions) error {
 	return f(context.WithValue(c, "IsInTransaction", true))
 }

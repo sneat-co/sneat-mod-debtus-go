@@ -133,7 +133,7 @@ func balanceAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		)
 	}
 
-	//err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS)
+	//err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS)
 	return m, err
 	//SetMainMenuKeyboard(whc, &m) - Bad idea! Need to cleanup AwaitingReplyTo
 }

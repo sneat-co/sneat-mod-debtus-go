@@ -26,7 +26,7 @@ var botParams = shared_all.BotParams{
 	//	if err != nil {
 	//		return
 	//	}
-	//	if _, err = whc.Responder().SendMessage(whc.Context(), m, bots.BotApiSendMessageOverHTTPS); err != nil {
+	//	if _, err = whc.Responder().SendMessage(whc.Context(), m, bots.BotAPISendMessageOverHTTPS); err != nil {
 	//		return
 	//	}
 	//

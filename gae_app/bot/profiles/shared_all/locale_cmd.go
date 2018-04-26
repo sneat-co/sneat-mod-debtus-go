@@ -160,10 +160,9 @@ func setPreferredLanguageAction(whc bots.WebhookContext, code5, mode string, bot
 				localeChanged = true
 				selectedLocale = locale
 				if whc.GetBotSettings().Env == strongo.EnvProduction {
-					gaEvent := gamp.NewEvent("settings", "locale-changed", whc.GaCommon())
-					gaEvent.Label = strings.ToLower(locale.Code5)
-					gaErr := whc.GaMeasurement().Queue(gaEvent)
-					if gaErr != nil {
+					ga := whc.GA()
+					gaEvent := ga.GaEventWithLabel("settings", "locale-changed", strings.ToLower(locale.Code5))
+					if gaErr := ga.Queue(gaEvent); gaErr != nil {
 						log.Warningf(c, "Failed to log event: %v", gaErr)
 					} else {
 						log.Infof(c, "GA event queued: %v", gaEvent)
@@ -185,7 +184,7 @@ func setPreferredLanguageAction(whc bots.WebhookContext, code5, mode string, bot
 		log.Debugf(c, "whc.Locale().Code5: %v", whc.Locale().Code5)
 		m = whc.NewMessageByCode(trans.MESSAGE_TEXT_YOUR_SELECTED_PREFERRED_LANGUAGE, selectedLocale.NativeTitle)
 		botParams.SetMainMenu(whc, &m)
-		if _, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
+		if _, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
 			log.Errorf(c, "Failed to notify userEntity about selected language: %v", err)
 			// Not critical, lets continue
 		}
@@ -193,11 +192,11 @@ func setPreferredLanguageAction(whc bots.WebhookContext, code5, mode string, bot
 	case "settings":
 		if localeChanged {
 			m, err = dtb_general.MainMenuAction(whc, whc.Translate(trans.MESSAGE_TEXT_LOCALE_CHANGED, selectedLocale.TitleWithIcon()), false)
-			if _, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
+			if _, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
 				return m, err
 			}
 			return SettingsMainAction(whc)
-			//if _, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
+			//if _, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
 			//	return m, err
 			//}
 			//return dtb_general.MainMenuAction(whc, )
@@ -270,7 +269,7 @@ func aboutDrawAction(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.Mess
 			)
 			return
 		case joinDrawCommandCode:
-			if _, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
+			if _, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
 				log.Warningf(c, "Failed to edit message: %v", err)
 				err = nil // Not critical
 			}

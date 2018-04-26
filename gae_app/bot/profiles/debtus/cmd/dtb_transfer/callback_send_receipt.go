@@ -60,8 +60,8 @@ func CallbackSendReceipt(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.
 			return
 		}
 
-		// TODO: do type assertion
-		if callbackMessage := whc.Input().(telegram_bot.TelegramWebhookCallbackQuery).TelegramCallbackMessage; callbackMessage != nil && callbackMessage().Text == m.Text {
+		// TODO: do type assertion with bots.CallbackQuery interface
+		if callbackMessage := whc.Input().(telegram.TgWebhookCallbackQuery).TelegramCallbackMessage; callbackMessage != nil && callbackMessage().Text == m.Text {
 			m.Text += " (double clicked)"
 		}
 		m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
@@ -86,7 +86,7 @@ func CallbackSendReceipt(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.
 			if updateMessage, err = whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_LETS_SEND_SMS), bots.MessageFormatHTML); err != nil {
 				return
 			}
-			if _, err = whc.Responder().SendMessage(c, updateMessage, bots.BotApiSendMessageOverHTTPS); err != nil {
+			if _, err = whc.Responder().SendMessage(c, updateMessage, bots.BotAPISendMessageOverHTTPS); err != nil {
 				log.Errorf(c, errors.WithMessage(err, "failed to update Telegram message").Error())
 				err = nil
 			}
@@ -132,7 +132,7 @@ func CallbackSendReceipt(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.
 
 func showLinkForReceiptInTelegram(whc bots.WebhookContext, transfer models.Transfer) (m bots.MessageFromBot, err error) {
 	receipt := models.NewReceiptEntity(whc.AppUserIntID(), transfer.ID, transfer.Counterparty().UserID, whc.Locale().Code5, "link", "telegram", general.CreatedOn{
-		CreatedOnPlatform: whc.BotPlatform().Id(),
+		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
 	})
 	var receiptID int64

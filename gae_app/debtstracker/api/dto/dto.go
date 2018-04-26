@@ -27,7 +27,7 @@ type ApiAcknowledgeDto struct {
 }
 
 type ApiReceiptDto struct {
-	ID       string `json:"Id"`
+	ID       string `json:"ID"`
 	Code     string
 	Transfer ApiReceiptTransferDto
 	SentVia  string
@@ -35,13 +35,13 @@ type ApiReceiptDto struct {
 }
 
 type ApiUserDto struct {
-	ID   string `json:"Id"`
+	ID   string `json:"ID"`
 	Name string `json:",omitempty"`
 }
 
 type ApiReceiptTransferDto struct {
 	// TODO: We are not replacing with TransferDto as it has From/To => Creator optimisation. Think if we can reuse.
-	ID             string `json:"Id"`
+	ID             string `json:"ID"`
 	Amount         models.Amount
 	From           ContactDto
 	DtCreated      time.Time

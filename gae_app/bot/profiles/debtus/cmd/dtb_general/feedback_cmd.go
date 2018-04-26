@@ -145,7 +145,7 @@ var FeedbackCommand = bots.Command{
 			if feedbackEntity.Rate == FEEDBACK_UNDECIDED {
 				return MainMenuAction(whc, "", false)
 			} else {
-				//if _, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
+				//if _, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
 				//	return m, err
 				//}
 				//m = whc.NewMessageByCode(trans.MESSAGE_TEXT_BACK_TO_MAIN_MENU)
@@ -160,7 +160,7 @@ var FeedbackCommand = bots.Command{
 	},
 	CallbackAction: func(whc bots.WebhookContext, _ *url.URL) (m bots.MessageFromBot, err error) {
 		m, err = showFeedbackOptions(whc, whc.ChatEntity())
-		if _, err = whc.Responder().SendMessage(whc.Context(), m, bots.BotApiSendMessageOverHTTPS); err != nil {
+		if _, err = whc.Responder().SendMessage(whc.Context(), m, bots.BotAPISendMessageOverHTTPS); err != nil {
 			return m, err
 		}
 		return HelpCommandAction(whc, false)
@@ -190,7 +190,7 @@ var FeedbackCommand = bots.Command{
 		feedbackEntity := models.FeedbackEntity{
 			UserID: whc.AppUserIntID(),
 			CreatedOn: general.CreatedOn{
-				CreatedOnPlatform: whc.BotPlatform().Id(),
+				CreatedOnPlatform: whc.BotPlatform().ID(),
 				CreatedOnID:       whc.GetBotCode(),
 			},
 		}
@@ -309,11 +309,11 @@ func editTelegramMessageText(whc bots.WebhookContext, awaitingReplyTo, text stri
 		return
 	}
 	// TODO: Does it changes locale from RU to EN?
-	messageID := whc.Input().(telegram_bot.TelegramWebhookCallbackQuery).GetMessage().IntID()
+	messageID := whc.Input().(telegram.TelegramWebhookCallbackQuery).GetMessage().IntID()
 	if m, err = whc.NewEditMessage(text, bots.MessageFormatHTML); err != nil {
 		return
 	}
-	m.EditMessageUID = telegram_bot.NewChatMessageUID(tgChatID, int(messageID))
+	m.EditMessageUID = telegram.NewChatMessageUID(tgChatID, int(messageID))
 	if awaitingReplyTo != "" {
 		if awaitingReplyTo == "/" {
 			awaitingReplyTo = ""
@@ -342,7 +342,7 @@ var FeedbackTextCommand = bots.Command{
 						UserID: whc.AppUserIntID(),
 						Text:   mt,
 						CreatedOn: general.CreatedOn{
-							CreatedOnPlatform: whc.BotPlatform().Id(),
+							CreatedOnPlatform: whc.BotPlatform().ID(),
 							CreatedOnID:       whc.GetBotCode(),
 						},
 					}

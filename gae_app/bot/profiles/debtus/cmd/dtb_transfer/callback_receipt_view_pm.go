@@ -140,7 +140,7 @@ func ShowReceipt(whc bots.WebhookContext, receiptID int64) (m bots.MessageFromBo
 		}
 	}
 
-	if _, err = whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
+	if _, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
 		if strings.Contains(err.Error(), "message is not modified") { // TODO: Can fail on different receipts for same amount
 			log.Warningf(c, fmt.Sprintf("Failed to send receipt to counterparty: %v", err))
 		} else {
@@ -154,8 +154,8 @@ func ShowReceipt(whc bots.WebhookContext, receiptID int64) (m bots.MessageFromBo
 		); err != nil {
 			return
 		}
-		m.EditMessageUID = telegram_bot.NewChatMessageUID(transfer.Creator().TgChatID, int(transfer.CreatorTgReceiptByTgMsgID))
-		//if _, err := whc.Responder().SendMessage(c, editCreatorMessage, bots.BotApiSendMessageOverHTTPS); err != nil {
+		m.EditMessageUID = telegram.NewChatMessageUID(transfer.Creator().TgChatID, int(transfer.CreatorTgReceiptByTgMsgID))
+		//if _, err := whc.Responder().SendMessage(c, editCreatorMessage, bots.BotAPISendMessageOverHTTPS); err != nil {
 		//	log.Errorf(c, "Failed to edit creator message: %v", err)
 		//}
 	}
@@ -184,7 +184,7 @@ func viewReceiptCallbackAction(whc bots.WebhookContext, callbackUrl *url.URL) (m
 	return ShowReceipt(whc, receiptID)
 }
 
-//func (_ viewReceiptCallback) onInvite(whc bots.WebhookContext, inviteCode string) (exit bool, transferID int64, transfer *models.Transfer, m bots.MessageFromBot, err error) {
+//func (viewReceiptCallback) onInvite(whc bots.WebhookContext, inviteCode string) (exit bool, transferID int64, transfer *models.Transfer, m bots.MessageFromBot, err error) {
 //	c := whc.Context()
 //	var invite *invites.Invite
 //	if invite, err = invites.GetInvite(c, inviteCode); err != nil {

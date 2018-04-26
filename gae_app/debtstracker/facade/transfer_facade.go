@@ -799,7 +799,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 	return
 }
 
-func (_ transferFacade) updateUserAndCounterpartyWithTransferInfo(
+func (transferFacade) updateUserAndCounterpartyWithTransferInfo(
 	c context.Context,
 	amount models.Amount,
 	transfer models.Transfer,

@@ -26,7 +26,7 @@ type PasswordResetDalGae struct {
 
 var _ dal.PasswordResetDal = (*PasswordResetDalGae)(nil)
 
-func (_ PasswordResetDalGae) GetPasswordResetByID(c context.Context, id int64) (passwordReset models.PasswordReset, err error) {
+func (PasswordResetDalGae) GetPasswordResetByID(c context.Context, id int64) (passwordReset models.PasswordReset, err error) {
 	key := NewPasswordResetKey(c, id)
 	passwordReset.ID = id
 	passwordReset.PasswordResetEntity = new(models.PasswordResetEntity)
@@ -36,7 +36,7 @@ func (_ PasswordResetDalGae) GetPasswordResetByID(c context.Context, id int64) (
 	return
 }
 
-func (_ PasswordResetDalGae) CreatePasswordResetByID(c context.Context, entity *models.PasswordResetEntity) (passwordReset models.PasswordReset, err error) {
+func (PasswordResetDalGae) CreatePasswordResetByID(c context.Context, entity *models.PasswordResetEntity) (passwordReset models.PasswordReset, err error) {
 	key := NewPasswordResetIncompleteKey(c)
 	if key, err = gaedb.Put(c, key, entity); err != nil {
 		return
@@ -46,7 +46,7 @@ func (_ PasswordResetDalGae) CreatePasswordResetByID(c context.Context, entity *
 	return
 }
 
-func (_ PasswordResetDalGae) SavePasswordResetByID(c context.Context, entity models.PasswordReset) (err error) {
+func (PasswordResetDalGae) SavePasswordResetByID(c context.Context, entity models.PasswordReset) (err error) {
 	key := NewPasswordResetKey(c, entity.ID)
 	_, err = gaedb.Put(c, key, entity.PasswordResetEntity)
 	return

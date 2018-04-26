@@ -33,7 +33,7 @@ func NewReceiptDalGae() ReceiptDalGae {
 
 var _ dal.ReceiptDal = (*ReceiptDalGae)(nil)
 
-func (_ ReceiptDalGae) UpdateReceipt(c context.Context, receipt models.Receipt) error {
+func (ReceiptDalGae) UpdateReceipt(c context.Context, receipt models.Receipt) error {
 	_, err := gaedb.Put(c, NewReceiptKey(c, receipt.ID), receipt.ReceiptEntity)
 	return err
 }

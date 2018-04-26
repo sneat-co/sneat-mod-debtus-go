@@ -140,7 +140,7 @@ func sendReminderToUser(c context.Context, reminderID int64, transfer models.Tra
 			tgChatID = transferUserInfo.TgChatID
 			tgBotID = transferUserInfo.TgBotID
 		} else {
-			var tgChat *telegram_bot.TelegramChatEntityBase
+			var tgChat *telegram.TgChatEntityBase
 			_, tgChat, err = gaedal.GetTelegramChatByUserID(c, reminder.UserID) // TODO: replace with DAL method
 			if err != nil {
 				if db.IsNotFound(err) { // TODO: Get rid of datastore reference

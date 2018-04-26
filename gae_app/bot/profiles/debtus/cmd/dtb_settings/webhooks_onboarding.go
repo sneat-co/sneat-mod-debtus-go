@@ -25,7 +25,7 @@ var reEmail = regexp.MustCompile("^.+@.+\\.\\w+$")
 
 func handleInviteOnStart(whc bots.WebhookContext, inviteCode string, invite *models.InviteEntity) (m bots.MessageFromBot, err error) {
 	claimAndReply := func() {
-		if _, err = dal.Invite.ClaimInvite2(whc.Context(), inviteCode, invite, whc.AppUserIntID(), whc.BotPlatform().Id(), whc.GetBotCode()); err != nil {
+		if _, err = dal.Invite.ClaimInvite2(whc.Context(), inviteCode, invite, whc.AppUserIntID(), whc.BotPlatform().ID(), whc.GetBotCode()); err != nil {
 			err = errors.Wrap(err, "Failed to ClaimInvite()")
 			return
 		}
@@ -187,7 +187,7 @@ func NewMistypedCommand(messageToAdd string) bots.Command {
 //		inviteCode := strings.ToUpper(whc.Input().(bots.WebhookTextMessage).Text())
 //		userID := whc.AppUserIntID()
 //
-//		if err = dal.Invite.ClaimInvite(c, userID, inviteCode, whc.BotPlatform().Id(), whc.GetBotCode()); err != nil {
+//		if err = dal.Invite.ClaimInvite(c, userID, inviteCode, whc.BotPlatform().ID(), whc.GetBotCode()); err != nil {
 //			if db.IsNotFound(err) {
 //				m = whc.NewMessage(emoji.NO_ENTRY_SIGN_ICON + " " + strings.TrimSpace(fmt.Sprintf(whc.Translate(trans.MESSAGE_TEXT_WRONG_INVITE_CODE), inviteCode)))
 //				m.Keyboard = tgbotapi.NewReplyKeyboardUsingStrings([][]string{
@@ -358,7 +358,7 @@ var OnboardingOnUserContactReceivedCommand = bots.Command{
 func onboardingProcessPhoneContact(whc bots.WebhookContext, contact bots.WebhookContactMessage) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
 	//whc.ChatEntity().SetAwaitingReplyTo(ON_USER_CONTACT_RECEIVED_COMMAND)
-	invite, err := dal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserIntID(), models.InviteBySms, contact.PhoneNumber(), whc.BotPlatform().Id(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
+	invite, err := dal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserIntID(), models.InviteBySms, contact.PhoneNumber(), whc.BotPlatform().ID(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
 	if err != nil {
 		return m, err
 	}
@@ -427,7 +427,7 @@ func onboardingProcessEmail(messageText string, whc bots.WebhookContext, altCmd 
 		})
 	} else {
 		//TODO: Try to send email and handle return codes & exceptions
-		invite, err := dal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserIntID(), models.InviteByEmail, email, whc.BotPlatform().Id(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
+		invite, err := dal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserIntID(), models.InviteByEmail, email, whc.BotPlatform().ID(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
 		if err != nil {
 			return m, err
 		}
@@ -437,7 +437,7 @@ func onboardingProcessEmail(messageText string, whc bots.WebhookContext, altCmd 
 		}
 		whc.ChatEntity().SetAwaitingReplyTo(EMAIL_CONFIRMATION_SENT_COMMAND)
 		mt := fmt.Sprintf(whc.Translate(trans.MESSAGE_TEXT_USER_EMAIL_FOR_INVITE_RECEIVED), email)
-		if whc.BotPlatform().Id() == telegram_bot.TelegramPlatformID {
+		if whc.BotPlatform().ID() == telegram.PlatformID {
 			mt += "\n\n" + whc.Translate(trans.MESSAGE_TEXT_USER_EMAIL_FOR_INVITE_SENT_TELEGRAM)
 		}
 		m = whc.NewMessage(mt)

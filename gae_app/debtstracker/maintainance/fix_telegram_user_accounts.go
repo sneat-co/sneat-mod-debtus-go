@@ -30,7 +30,7 @@ func (m *verifyTelegramUserAccounts) Make() interface{} {
 
 func (m *verifyTelegramUserAccounts) Query(r *http.Request) (query *mapper.Query, err error) {
 	var filtered bool
-	if query, filtered, err = filterByStrID(r, telegram_bot.TelegramChatKind, "tgchat"); err != nil {
+	if query, filtered, err = filterByStrID(r, telegram.ChatKind, "tgchat"); err != nil {
 		return
 	} else {
 		paramsCount := len(r.URL.Query())
@@ -170,7 +170,7 @@ func (m *verifyTelegramUserAccounts) processTelegramChat(c context.Context, tgCh
 		userChanged = user.AddAccount(users.Account{
 			ID:       strconv.FormatInt(tgChat.TelegramUserID, 10),
 			App:      tgChat.BotID,
-			Provider: telegram_bot.TelegramPlatformID,
+			Provider: telegram.PlatformID,
 		}) || userChanged
 	userAccountFound:
 		if userChanged {

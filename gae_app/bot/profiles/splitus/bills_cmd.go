@@ -82,7 +82,7 @@ func billsAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		mt := "This group has no outstanding bills"
 		switch whc.InputType() {
 		case bots.WebhookInputCallbackQuery:
-			m.BotMessage = telegram_bot.CallbackAnswer(tgbotapi.AnswerCallbackQueryConfig{Text: mt})
+			m.BotMessage = telegram.CallbackAnswer(tgbotapi.AnswerCallbackQueryConfig{Text: mt})
 		case bots.WebhookInputText:
 			m.Text = mt
 		default:

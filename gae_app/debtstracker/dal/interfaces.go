@@ -290,11 +290,11 @@ type TgChatDal interface {
 	GetTgChatByID(c context.Context, tgBotID string, tgChatID int64) (tgChat models.TelegramChat, err error)
 	DoSomething(c context.Context, // TODO: WTF name?
 		userTask *sync.WaitGroup, currency string, tgChatID int64, authInfo auth.AuthInfo, user models.AppUser,
-		sendToTelegram func(tgChat telegram_bot.TelegramChatEntityBase) error) (err error)
+		sendToTelegram func(tgChat telegram.TgChatEntityBase) error) (err error)
 }
 
 type TgUserDal interface {
-	FindByUserName(c context.Context, userName string) (tgUsers []telegram_bot.TelegramUser, err error)
+	FindByUserName(c context.Context, userName string) (tgUsers []telegram.TgUser, err error)
 }
 
 //type TaskQueueDal interface {

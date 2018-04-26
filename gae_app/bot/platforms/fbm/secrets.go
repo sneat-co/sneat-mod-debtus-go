@@ -57,7 +57,7 @@ var _bots bots.SettingsBy
 func Bots(_ context.Context) bots.SettingsBy {
 	if len(_bots.ByCode) == 0 {
 		_bots = bots.NewBotSettingsBy(nil,
-			fbm_bot.NewFbmBot(
+			fbm.NewFbmBot(
 				strongo.EnvProduction,
 				bot.ProfileDebtus,
 				"debtstracker",
@@ -66,7 +66,7 @@ func Bots(_ context.Context) bots.SettingsBy {
 				"d6087a01-c728-4fdf-983c-1695d76236dc",
 				trans.SupportedLocalesByCode5[strongo.LOCALE_EN_US],
 			),
-			fbm_bot.NewFbmBot(
+			fbm.NewFbmBot(
 				strongo.EnvProduction,
 				bot.ProfileSplitus,
 				"splitbill.co",
@@ -75,7 +75,7 @@ func Bots(_ context.Context) bots.SettingsBy {
 				"e8535dd1-df3b-4c3f-bd2c-d4a822509bb3",
 				trans.SupportedLocalesByCode5[strongo.LOCALE_EN_US],
 			),
-			fbm_bot.NewFbmBot(
+			fbm.NewFbmBot(
 				strongo.EnvDevTest,
 				bot.ProfileDebtus,
 				"debtstracker.dev",
@@ -84,7 +84,7 @@ func Bots(_ context.Context) bots.SettingsBy {
 				"4afb645e-b592-48e6-882c-89f0ec126fbb",
 				trans.SupportedLocalesByCode5[strongo.LOCALE_EN_US],
 			),
-			fbm_bot.NewFbmBot(
+			fbm.NewFbmBot(
 				strongo.EnvLocal,
 				bot.ProfileDebtus,
 				"debtstracker.local",

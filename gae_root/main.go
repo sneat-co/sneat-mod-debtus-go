@@ -7,6 +7,6 @@ import (
 )
 
 func init() {
-	log.AddLogger(gae_host.GaeLogger)
-	gae_app.Init(gae_host.GaeBotHost{})
+	log.AddLogger(gaehost.GaeLogger)
+	gae_app.Init(gaehost.GaeBotHost{})
 }

@@ -154,7 +154,7 @@ func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact,
 	)
 
 	receipt := models.NewReceiptEntity(whc.AppUserIntID(), transfer.ID, transfer.Counterparty().UserID, whc.Locale().Code5, "sms", strconv.FormatInt(phoneContact.PhoneNumber, 10), general.CreatedOn{
-		CreatedOnPlatform: whc.BotPlatform().Id(),
+		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
 	})
 	if receiptID, err = dal.Receipt.CreateReceipt(c, &receipt); err != nil {
@@ -165,7 +165,7 @@ func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact,
 
 	if counterparty.CounterpartyUserID == 0 {
 		//related := fmt.Sprintf("%v=%v", models.TransferKind, transferID)
-		//inviteKey, invite, err := invites.CreatePersonalInvite(whc, whc.AppUserIntID(), invites.InviteBySms, strconv.FormatInt(phoneContact.PhoneNumber, 10), whc.BotPlatform().Id(), whc.GetBotCode(), related)
+		//inviteKey, invite, err := invites.CreatePersonalInvite(whc, whc.AppUserIntID(), invites.InviteBySms, strconv.FormatInt(phoneContact.PhoneNumber, 10), whc.BotPlatform().ID(), whc.GetBotCode(), related)
 		//if err != nil {
 		//	log.Errorf(c, "Failed to create invite: %v", err)
 		//	return m, err
@@ -207,7 +207,7 @@ func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact,
 		} else {
 			msgSmsStatus = whc.NewMessage(mt)
 		}
-		smsStatusMsg, err := whc.Responder().SendMessage(c, msgSmsStatus, bots.BotApiSendMessageOverHTTPS)
+		smsStatusMsg, err := whc.Responder().SendMessage(c, msgSmsStatus, bots.BotAPISendMessageOverHTTPS)
 		if err != nil {
 			return err
 		}
@@ -283,7 +283,7 @@ func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact,
 			if m, err = whc.NewEditMessage(mt, bots.MessageFormatText); err != nil {
 				return
 			}
-			m.EditMessageUID = telegram_bot.NewChatMessageUID(tgChatID, smsStatusMessageID)
+			m.EditMessageUID = telegram.NewChatMessageUID(tgChatID, smsStatusMessageID)
 			return
 		}
 		if counterparty.PhoneNumber == phoneContact.PhoneNumber {
@@ -302,7 +302,7 @@ func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact,
 		if m, err = whc.NewEditMessage(fmt.Sprintf("<b>Exception</b>\n%v\n\n<b>SMS text</b>\n%v", twilioException, smsText), bots.MessageFormatHTML); err != nil {
 			return
 		}
-		m.EditMessageUID = telegram_bot.NewChatMessageUID(tgChatID, smsStatusMessageID)
+		m.EditMessageUID = telegram.NewChatMessageUID(tgChatID, smsStatusMessageID)
 		m.DisableWebPagePreview = true
 		dtb_general.SetMainMenuKeyboard(whc, &m)
 		return
@@ -334,10 +334,10 @@ func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact,
 	if m, err = whc.NewEditMessage(mt, bots.MessageFormatHTML); err != nil {
 		return
 	}
-	m.EditMessageUID = telegram_bot.NewChatMessageUID(tgChatID, smsStatusMessageID)
+	m.EditMessageUID = telegram.NewChatMessageUID(tgChatID, smsStatusMessageID)
 	m.DisableWebPagePreview = true
 
-	if _, err := whc.Responder().SendMessage(c, m, bots.BotApiSendMessageOverHTTPS); err != nil {
+	if _, err := whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
 		err = errors.Wrap(err, "Failed to send bot response message over HTTPS")
 		return m, err
 	}

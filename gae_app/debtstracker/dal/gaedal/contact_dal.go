@@ -88,7 +88,7 @@ func delayedDeleteContactTransfers(c context.Context, contactID int64, cursor st
 	return nil
 }
 
-func (_ ContactDalGae) SaveContact(c context.Context, contact models.Contact) error {
+func (ContactDalGae) SaveContact(c context.Context, contact models.Contact) error {
 	_, err := gaedb.Put(c, NewContactKey(c, contact.ID), contact.ContactEntity)
 	if err != nil {
 		err = errors.Wrap(err, "Failed to SaveContact()")
@@ -108,7 +108,7 @@ func newContactQueryWithStatus(userID int64, status string) *datastore.Query {
 	return query
 }
 
-func (_ ContactDalGae) GetContactsWithDebts(c context.Context, userID int64) (counterparties []models.Contact, err error) {
+func (ContactDalGae) GetContactsWithDebts(c context.Context, userID int64) (counterparties []models.Contact, err error) {
 	query := newContactQueryWithStatus(userID, "").Filter("BalanceCount >", 0)
 	var (
 		counterpartyKeys     []*datastore.Key
@@ -159,7 +159,7 @@ func (contactDalGae ContactDalGae) GetContactsByIDs(c context.Context, contactsI
 	return contacts, err
 }
 
-func (_ ContactDalGae) GetLatestContacts(whc bots.WebhookContext, limit, totalCount int) (counterparties []models.Contact, err error) {
+func (ContactDalGae) GetLatestContacts(whc bots.WebhookContext, limit, totalCount int) (counterparties []models.Contact, err error) {
 	c := whc.Context()
 	query := newContactQueryActive(whc.AppUserIntID()).Order("-LastTransferAt")
 	if limit > 0 {
@@ -191,7 +191,7 @@ func (_ ContactDalGae) GetLatestContacts(whc bots.WebhookContext, limit, totalCo
 	return
 }
 
-func (_ ContactDalGae) GetContactByID(c context.Context, contactID int64) (contact models.Contact, err error) {
+func (ContactDalGae) GetContactByID(c context.Context, contactID int64) (contact models.Contact, err error) {
 	var counterpartyEntity models.ContactEntity
 	key := NewContactKey(c, contactID)
 	if err = gaedb.Get(c, key, &counterpartyEntity); err != nil {

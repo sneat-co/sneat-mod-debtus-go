@@ -586,7 +586,7 @@ func CreateTransferFromBot(
 		},
 	)
 
-	pleaseWaitMessage, err := whc.Responder().SendMessage(c, pleaseWaitMessageConfig, bots.BotApiSendMessageOverHTTPS)
+	pleaseWaitMessage, err := whc.Responder().SendMessage(c, pleaseWaitMessageConfig, bots.BotAPISendMessageOverHTTPS)
 
 	if err != nil {
 		return m, err
@@ -646,7 +646,7 @@ func CreateTransferFromBot(
 	log.Debugf(c, "isReturn: %v, transfer.IsReturn: %v", isReturn, output.Transfer.IsReturn)
 
 	{ // Reporting to Google Analytics
-		gaMeasurement := whc.GaMeasurement()
+		ga := whc.GA()
 
 		gaEventLabel := string(output.Transfer.Currency)
 		if len([]rune(gaEventLabel)) > 16 {
@@ -662,19 +662,19 @@ func CreateTransferFromBot(
 		} else {
 			action = "debt-new-created"
 		}
-		gaEvent := whc.GaEventWithLabel(analytics.EventCategoryTransfers, action, gaEventLabel)
+		gaEvent := ga.GaEventWithLabel(analytics.EventCategoryTransfers, action, gaEventLabel)
 		gaEvent.Value = uint(math.Abs(output.Transfer.AmountInCents.AsFloat64()) + 0.5)
 
-		if gaErr := gaMeasurement.Queue(gaEvent); gaErr != nil {
+		if gaErr := ga.Queue(gaEvent); gaErr != nil {
 			log.Warningf(c, "Failed to log event: %v", gaErr)
 		} else {
 			log.Infof(c, "GA event queued: %v", gaEvent)
 		}
 
 		if !output.Transfer.DtDueOn.IsZero() {
-			gaEvent = whc.GaEvent(analytics.EventCategoryTransfers, analytics.EventActionDebtDueDateSet)
+			gaEvent = ga.GaEvent(analytics.EventCategoryTransfers, analytics.EventActionDebtDueDateSet)
 			//Do not set event value!: gaEvent.Value = uint(transfer.DtDueOn.Sub(time.Now()) / time.Hour)
-			if gaErr := gaMeasurement.Queue(gaEvent); gaErr != nil {
+			if gaErr := ga.Queue(gaEvent); gaErr != nil {
 				log.Warningf(c, "Failed to log event: %v", gaErr)
 			} else {
 				log.Infof(c, "GA event queued: %v", gaEvent)
@@ -686,21 +686,21 @@ func CreateTransferFromBot(
 		utm := common.NewUtmParams(whc, common.UTM_CAMPAIGN_RECEIPT)
 		receiptMessageText := common.TextReceiptForTransfer(whc, output.Transfer, whc.AppUserIntID(), common.ShowReceiptToAutodetect, utm)
 
-		switch whc.BotPlatform().Id() {
-		case telegram_bot.TelegramPlatformID:
+		switch whc.BotPlatform().ID() {
+		case telegram.PlatformID:
 			var receiptMessageFromBot bots.MessageFromBot
 			if receiptMessageFromBot, err = whc.NewEditMessage(receiptMessageText, bots.MessageFormatHTML); err != nil {
 				return receiptMessageFromBot, err
 			}
-			receiptMessageFromBot.EditMessageUID = telegram_bot.NewChatMessageUID(0, pleaseWaitMessage.TelegramMessage.(tgbotapi.Message).MessageID)
-			_, err = whc.Responder().SendMessage(c, receiptMessageFromBot, bots.BotApiSendMessageOverHTTPS)
+			receiptMessageFromBot.EditMessageUID = telegram.NewChatMessageUID(0, pleaseWaitMessage.TelegramMessage.(tgbotapi.Message).MessageID)
+			_, err = whc.Responder().SendMessage(c, receiptMessageFromBot, bots.BotAPISendMessageOverHTTPS)
 			if err != nil {
 				return m, err
 			}
 			if receiptSendOptionsMessage, err := createSendReceiptOptionsMessage(whc, output.Transfer); err != nil {
 				return m, err
 			} else {
-				if response, err := whc.Responder().SendMessage(c, receiptSendOptionsMessage, bots.BotApiSendMessageOverHTTPS); err != nil {
+				if response, err := whc.Responder().SendMessage(c, receiptSendOptionsMessage, bots.BotAPISendMessageOverHTTPS); err != nil {
 					return m, err
 				} else {
 					tgMessage := response.TelegramMessage.(tgbotapi.Message)
@@ -710,11 +710,11 @@ func CreateTransferFromBot(
 					whc.ChatEntity().SetAwaitingReplyTo("")
 				}
 			}
-		case viber_bot.ViberPlatformID:
+		case viber.PlatformID:
 			receiptMessageFromBot := whc.NewMessage(receiptMessageText)
-			whc.Responder().SendMessage(c, receiptMessageFromBot, bots.BotApiSendMessageOverHTTPS)
+			whc.Responder().SendMessage(c, receiptMessageFromBot, bots.BotAPISendMessageOverHTTPS)
 		default:
-			panic("Unsupported bot platform: " + whc.BotPlatform().Id())
+			panic("Unsupported bot platform: " + whc.BotPlatform().ID())
 		}
 	}
 
@@ -788,7 +788,7 @@ func createSendReceiptOptionsMessage(whc bots.WebhookContext, transfer models.Tr
 			{sendReceiptByTelegramButton(transferEncodedID, whc)},
 		}
 		utmParams := common.UtmParams{
-			Source:   telegram_bot.TelegramPlatformID,
+			Source:   telegram.PlatformID,
 			Medium:   common.UTM_MEDIUM_BOT,
 			Campaign: common.UTM_CAMPAIGN_TRANSFER_SEND_RECEIPT,
 		}
@@ -837,7 +837,7 @@ func createSendReceiptOptionsMessage(whc bots.WebhookContext, transfer models.Tr
 //}
 
 func GetTransferSource(whc bots.WebhookContext) dal.TransferSource {
-	return dal.NewTransferSourceBot(whc.BotPlatform().Id(), whc.GetBotCode(), whc.MustBotChatID())
+	return dal.NewTransferSourceBot(whc.BotPlatform().ID(), whc.GetBotCode(), whc.MustBotChatID())
 }
 
 //const CALLBACK_COUNTERPARTY_WITHOUT_TG = "counterparty-no-tg"
@@ -885,10 +885,10 @@ func GetTransferSource(whc bots.WebhookContext) dal.TransferSource {
 //				},
 //				kbMarkup.InlineKeyboard...,
 //			)
-//			whc.GaMeasurement().Queue(measurement.NewEvent("receipt", "send-by-"+hide, whc.GaCommon()))
+//			whc.GA().Queue(measurement.NewEvent("receipt", "send-by-"+hide, whc.GaCommon()))
 //		}
 //
-//		m = telegram_bot.NewEditMessageKeyboard(whc, kbMarkup)
+//		m = telegram.NewEditMessageKeyboard(whc, kbMarkup)
 //		m.Text = whc.Translate(trans.MESSAGE_TEXT_RECEIPT_AVAILABLE_CHANNELS)
 //		return m, err
 //	},

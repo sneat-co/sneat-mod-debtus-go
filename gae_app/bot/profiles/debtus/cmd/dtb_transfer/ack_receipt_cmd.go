@@ -11,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"github.com/strongo/gamp"
 )
 
 func AcknowledgeReceipt(whc bots.WebhookContext, receiptID int64, operation string) (m bots.MessageFromBot, err error) {
@@ -27,20 +26,18 @@ func AcknowledgeReceipt(whc bots.WebhookContext, receiptID int64, operation stri
 	} else {
 
 		{ // Reporting to Google Analytics
-			gaMeasurement := whc.GaMeasurement()
+			ga := whc.GA()
 
-			gaMeasurement.Queue(gamp.NewEventWithLabel(
+			ga.Queue(ga.GaEventWithLabel(
 				"receipts",
 				"receipt-acknowledged",
 				operation,
-				whc.GaCommon(),
 			))
 
 			if isCounterpartiesJustConnected {
-				gaMeasurement.Queue(gamp.NewEvent(
+				ga.Queue(ga.GaEvent(
 					"counterparties",
 					"counterparties-connected",
-					whc.GaCommon(),
 				))
 			}
 		}
@@ -85,7 +82,7 @@ func AcknowledgeReceipt(whc bots.WebhookContext, receiptID int64, operation stri
 			if transfer.Creator().TgBotID != whc.GetBotCode() {
 				log.Warningf(c, "TODO: transferEntity.Creator().TgBotID != whc.GetBotCode(): "+askMsgToCreator.Text)
 			} else {
-				if _, err = whc.Responder().SendMessage(c, askMsgToCreator, bots.BotApiSendMessageOverHTTPS); err != nil {
+				if _, err = whc.Responder().SendMessage(c, askMsgToCreator, bots.BotAPISendMessageOverHTTPS); err != nil {
 					log.Errorf(c, "Failed to send acknowledge to creator: %v", err)
 					err = nil // This is not that critical to report the error to user
 				}
@@ -103,7 +100,7 @@ func AcknowledgeReceipt(whc bots.WebhookContext, receiptID int64, operation stri
 		//	}
 		//	updateMessage := whc.NewMessage("")
 		//	updateMessage.TelegramEditMessageText = &editMessage
-		//	_, err := whc.Responder().SendMessage(c, updateMessage, bots.BotApiSendMessageOverHTTPS)
+		//	_, err := whc.Responder().SendMessage(c, updateMessage, bots.BotAPISendMessageOverHTTPS)
 		//	if err != nil {
 		//		log.Errorf(c, "Failed to update counterparty receipt message: %v", err)
 		//	}

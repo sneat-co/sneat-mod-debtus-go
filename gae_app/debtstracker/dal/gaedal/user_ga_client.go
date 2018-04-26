@@ -18,7 +18,7 @@ func NewUserGaClientDalGae() UserGaClientDalGae {
 	return UserGaClientDalGae{}
 }
 
-func (_ UserGaClientDalGae) SaveGaClient(c context.Context, gaClientId, userAgent, ipAddress string) (gaClient models.GaClient, err error) {
+func (UserGaClientDalGae) SaveGaClient(c context.Context, gaClientId, userAgent, ipAddress string) (gaClient models.GaClient, err error) {
 	err = dal.DB.RunInTransaction(c, func(c context.Context) error {
 		var entity models.GaClientEntity
 		key := gaedb.NewKey(c, models.GaClientKind, gaClientId, 0, nil)

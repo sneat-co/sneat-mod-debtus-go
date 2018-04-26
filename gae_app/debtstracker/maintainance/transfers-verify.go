@@ -130,7 +130,7 @@ func (m *verifyTransfers) verifyTransferContacts(c context.Context, transfer mod
 	return nil
 }
 
-func (_ *verifyTransfers) verifyTransferCurrency(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
+func (*verifyTransfers) verifyTransferCurrency(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
 	var currency models.Currency
 	if transfer.Currency == models.Currency("euro") {
 		currency = models.Currency("EUR")
@@ -159,7 +159,7 @@ func (_ *verifyTransfers) verifyTransferCurrency(c context.Context, transfer mod
 	return
 }
 
-func (_ *verifyTransfers) verifyReturnsTransferIDs(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
+func (*verifyTransfers) verifyReturnsTransferIDs(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
 	if len(transfer.ReturnTransferIDs) == 0 {
 		return
 	}
@@ -178,7 +178,7 @@ func (_ *verifyTransfers) verifyReturnsTransferIDs(c context.Context, transfer m
 	return
 }
 
-func (_ *verifyTransfers) verifyReturnsToTransferIDs(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
+func (*verifyTransfers) verifyReturnsToTransferIDs(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
 	if len(transfer.ReturnToTransferIDs) == 0 {
 		return
 	}

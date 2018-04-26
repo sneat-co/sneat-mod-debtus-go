@@ -84,7 +84,7 @@ func GetPathAndQueryForInvite(inviteCode string, utmParams UtmParams) string {
 
 func GetNewDebtPageUrl(whc bots.WebhookContext, direction models.TransferDirection, utmCampaign string) string {
 	botID := whc.GetBotCode()
-	botPlatform := whc.BotPlatform().Id()
+	botPlatform := whc.BotPlatform().ID()
 	token := auth.IssueToken(whc.AppUserIntID(), formatIssuer(botPlatform, botID), false)
 	host := GetWebsiteHost(botID)
 	//utmParams := NewUtmParams(whc, utmCampaign)
