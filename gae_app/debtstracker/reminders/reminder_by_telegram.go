@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/analytics"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
@@ -52,7 +52,7 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 
 	env := gaestandard.GetEnvironment(c)
 
-	if botSettings, ok := telegram.Bots(env, nil).ByCode[tgBot]; !ok {
+	if botSettings, ok := tgbots.Bots(env, nil).ByCode[tgBot]; !ok {
 		err = fmt.Errorf("bot settings not found (env=%v, tgBotID=%v)", env, tgBot)
 		return
 	} else {
@@ -66,7 +66,7 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 		executionContext := strongo.NewExecutionContext(c, translator)
 		utm := common.UtmParams{
 			Source:   "TODO",
-			Medium:   telegram.TelegramPlatformID,
+			Medium:   telegram.PlatformID,
 			Campaign: common.UTM_CAMPAIGN_REMINDER,
 		}
 		messageText += common.TextReceiptForTransfer(executionContext, transfer, reminder.UserID, common.ShowReceiptToAutodetect, utm)
@@ -120,7 +120,7 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 			return
 		}
 		if sent {
-			analytics.ReminderSent(c, reminder.UserID, translator.Locale().Code5, telegram.TelegramPlatformID)
+			analytics.ReminderSent(c, reminder.UserID, translator.Locale().Code5, telegram.PlatformID)
 		}
 	}
 	return

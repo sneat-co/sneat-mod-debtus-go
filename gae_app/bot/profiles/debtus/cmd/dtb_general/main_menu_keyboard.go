@@ -1,7 +1,7 @@
 package dtb_general
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/viber"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/viberbots"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/emoji"
@@ -89,7 +89,7 @@ func SetMainMenuKeyboard(whc bots.WebhookContext, m *bots.MessageFromBot) {
 	switch whc.BotPlatform().ID() {
 	case telegram.PlatformID:
 		m.Keyboard = mainMenuTelegramKeyboard(whc, params)
-	case viber.ViberPlatformID:
+	case viber.PlatformID:
 		m.Keyboard = mainMenuViberKeyboard(whc, params)
 	case fbm.PlatformID:
 		if m.Text != "" {
@@ -154,24 +154,24 @@ func mainMenuViberKeyboard(whc bots.WebhookContext, params mainMenuParams) *vibe
 		buttons = []viberinterface.Button{
 			{
 				Columns:    in3columns,
-				BgColor:    viber.ButtonBgColor,
+				BgColor:    viberbots.ButtonBgColor,
 				Text:       lendingText,
 				ActionType: viberinterface.ActionTypeOpenUrl,
 				ActionBody: common.GetNewDebtPageUrl(whc, models.TransferDirectionUser2Counterparty, UTM_CAMPAIGN_BOT_MAIN_MENU),
 			},
 			{
 				Columns:    in3columns,
-				BgColor:    viber.ButtonBgColor,
+				BgColor:    viberbots.ButtonBgColor,
 				Text:       borrowText,
 				ActionType: viberinterface.ActionTypeOpenUrl,
 				ActionBody: common.GetNewDebtPageUrl(whc, models.TransferDirectionCounterparty2User, UTM_CAMPAIGN_BOT_MAIN_MENU),
 			},
-			{Columns: in3columns, ActionBody: returnText, Text: returnText, BgColor: viber.ButtonBgColor},
+			{Columns: in3columns, ActionBody: returnText, Text: returnText, BgColor: viberbots.ButtonBgColor},
 		}
 	} else {
 		buttons = []viberinterface.Button{
-			{Columns: in2columns, ActionBody: lendingText, Text: lendingText, BgColor: viber.ButtonBgColor},
-			{Columns: in2columns, ActionBody: borrowText, Text: borrowText, BgColor: viber.ButtonBgColor},
+			{Columns: in2columns, ActionBody: lendingText, Text: lendingText, BgColor: viberbots.ButtonBgColor},
+			{Columns: in2columns, ActionBody: borrowText, Text: borrowText, BgColor: viberbots.ButtonBgColor},
 		}
 	}
 	if params.showBalanceAndHistory {
@@ -180,8 +180,8 @@ func mainMenuViberKeyboard(whc bots.WebhookContext, params mainMenuParams) *vibe
 		balanceUrl := common.GetBalanceUrlForUser(userID, locale, whc.BotPlatform().ID(), whc.GetBotCode())
 		historyUrl := common.GetHistoryUrlForUser(userID, locale, whc.BotPlatform().ID(), whc.GetBotCode())
 		buttons = append(buttons, []viberinterface.Button{
-			{Columns: in2columns, ActionType: "open-url", ActionBody: balanceUrl, Text: whc.CommandText(trans.COMMAND_TEXT_BALANCE, emoji.BALANCE_ICON), BgColor: viber.ButtonBgColor},
-			{Columns: in2columns, ActionType: "open-url", ActionBody: historyUrl, Text: whc.CommandText(trans.COMMAND_TEXT_HISTORY, emoji.HISTORY_ICON), BgColor: viber.ButtonBgColor},
+			{Columns: in2columns, ActionType: "open-url", ActionBody: balanceUrl, Text: whc.CommandText(trans.COMMAND_TEXT_BALANCE, emoji.BALANCE_ICON), BgColor: viberbots.ButtonBgColor},
+			{Columns: in2columns, ActionType: "open-url", ActionBody: historyUrl, Text: whc.CommandText(trans.COMMAND_TEXT_HISTORY, emoji.HISTORY_ICON), BgColor: viberbots.ButtonBgColor},
 		}...)
 	}
 	{ // Last row
@@ -189,11 +189,11 @@ func mainMenuViberKeyboard(whc bots.WebhookContext, params mainMenuParams) *vibe
 		rate := whc.CommandText(trans.COMMAND_TEXT_HIGH_FIVE, emoji.STAR_ICON)
 		help := whc.CommandText(trans.COMMAND_TEXT_HELP, emoji.HELP_ICON)
 		buttons = append(buttons, []viberinterface.Button{
-			{Columns: in3columns, ActionBody: settings, Text: settings, BgColor: viber.ButtonBgColor},
-			{Columns: in3columns, ActionBody: rate, Text: rate, BgColor: viber.ButtonBgColor},
-			{Columns: in3columns, ActionBody: help, Text: help, BgColor: viber.ButtonBgColor},
+			{Columns: in3columns, ActionBody: settings, Text: settings, BgColor: viberbots.ButtonBgColor},
+			{Columns: in3columns, ActionBody: rate, Text: rate, BgColor: viberbots.ButtonBgColor},
+			{Columns: in3columns, ActionBody: help, Text: help, BgColor: viberbots.ButtonBgColor},
 		}...)
 	}
 
-	return viberinterface.NewKeyboard(viber.KeyboardBgColor, false, buttons...)
+	return viberinterface.NewKeyboard(viberbots.KeyboardBgColor, false, buttons...)
 }

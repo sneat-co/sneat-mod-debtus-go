@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbm"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbmbots"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
@@ -44,12 +44,12 @@ func signInFbUser(c context.Context, fbAppID, fbUserID string, r *http.Request, 
 			err = errors.WithMessage(ErrBadRequest, "Parameters access_token & signed_request should not be passed together")
 			return
 		} else if accessToken != "" {
-			_, fbSession, err = fbm.FbAppAndSessionFromAccessToken(c, r, accessToken)
+			_, fbSession, err = fbmbots.FbAppAndSessionFromAccessToken(c, r, accessToken)
 		} else if signedRequest != "" {
 			var (
 				signedData fb.Result
 			)
-			if fbApp, _, err = fbm.GetFbAppAndHost(r); err != nil {
+			if fbApp, _, err = fbmbots.GetFbAppAndHost(r); err != nil {
 				return
 			}
 			if signedData, err = fbApp.ParseSignedRequest(signedRequest); err != nil {
@@ -72,11 +72,11 @@ func signInFbUser(c context.Context, fbAppID, fbUserID string, r *http.Request, 
 				}
 
 				log.Debugf(c, "pageID: %v, signedData: %v", pageID, signedData)
-				if fbmBot, ok := fbm.Bots(c).ByID[pageID]; !ok {
+				if fbmBot, ok := fbmbots.Bots(c).ByID[pageID]; !ok {
 					err = errors.New("ReferredTo settings not found by page ID=" + pageID)
 				} else {
 					isFbm = true
-					_, fbSession, err = fbm.FbAppAndSessionFromAccessToken(c, r, fbmBot.Token)
+					_, fbSession, err = fbmbots.FbAppAndSessionFromAccessToken(c, r, fbmBot.Token)
 				}
 			} else {
 				err = fmt.Errorf("Not implemented for signed request: %v", signedData)

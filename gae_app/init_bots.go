@@ -2,9 +2,9 @@ package gae_app
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbm"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/viber"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbmbots"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/viberbots"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/collectus"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/splitus"
@@ -39,18 +39,18 @@ func InitBots(httpRouter *httprouter.Router, botHost bots.BotHost, appContext bo
 			newTranslator,          // Creates translator that gets a context.Context (for logging purpose)
 		),
 		viber.NewViberWebhookHandler(
-			viber.Bots,
+			viberbots.Bots,
 			newTranslator,
 		),
 		fbm.NewFbmWebhookHandler(
-			fbm.Bots,
+			fbmbots.Bots,
 			newTranslator,
 		),
 	)
 }
 
 func telegramBotsWithRouter(c context.Context) bots.SettingsBy {
-	return telegram.Bots(gaestandard.GetEnvironment(c), func(profile string) bots.WebhooksRouter {
+	return tgbots.Bots(gaestandard.GetEnvironment(c), func(profile string) bots.WebhooksRouter {
 		switch profile {
 		case bot.ProfileDebtus:
 			return debtus.Router

@@ -6,7 +6,7 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/website/pages"
 	//"github.com/strongo/app"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/vk"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/vkbots"
 	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/app"
 )
@@ -27,7 +27,7 @@ func IFrameHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	query := r.URL.Query()
 	apiID := query.Get("api_id")
-	_, ok := vk.BotsBy.ByCode[apiID]
+	_, ok := vkbots.BotsBy.ByCode[apiID]
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Unknown app id"))

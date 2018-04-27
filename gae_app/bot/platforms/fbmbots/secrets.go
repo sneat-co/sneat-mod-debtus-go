@@ -1,4 +1,4 @@
-package fbm
+package fbmbots
 
 import (
 	"net/http"

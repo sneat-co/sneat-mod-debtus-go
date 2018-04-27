@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbm"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbmbots"
 	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/bots-api-fbm"
 	"github.com/strongo/log"
@@ -20,7 +20,7 @@ func SetupFbm(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	botID := query.Get("bot")
 	c := appengine.NewContext(r)
-	bot, ok := fbm.Bots(c).ByCode[botID]
+	bot, ok := fbmbots.Bots(c).ByCode[botID]
 	if !ok {
 		w.Write([]byte("Unknown bot: " + botID))
 		return

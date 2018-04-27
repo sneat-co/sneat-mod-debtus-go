@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
@@ -92,7 +92,7 @@ func handleTgHelperCurrencySelected(c context.Context, w http.ResponseWriter, r 
 			}
 		}()
 		errs <- dal.TgChat.DoSomething(c, &userTask, currency, tgChatID, authInfo, user,
-			func(tgChat telegram.TelegramChatEntityBase) error {
+			func(tgChat telegram.TgChatEntityBase) error {
 				// TODO: This is some serious architecture sheet. Too sleepy to make it right, just make it working.
 				return sendToTelegram(c, user, tgChatID, tgChat, &userTask, r)
 			},
@@ -112,8 +112,8 @@ func handleTgHelperCurrencySelected(c context.Context, w http.ResponseWriter, r 
 }
 
 // TODO: This is some serious architecture sheet. Too sleepy to make it right, just make it working.
-func sendToTelegram(c context.Context, user models.AppUser, tgChatID int64, tgChat telegram.TelegramChatEntityBase, userTask *sync.WaitGroup, r *http.Request) (err error) {
-	telegramBots := telegram.Bots(gaestandard.GetEnvironment(c), nil)
+func sendToTelegram(c context.Context, user models.AppUser, tgChatID int64, tgChat telegram.TgChatEntityBase, userTask *sync.WaitGroup, r *http.Request) (err error) {
+	telegramBots := tgbots.Bots(gaestandard.GetEnvironment(c), nil)
 	botSettings, ok := telegramBots.ByCode[tgChat.BotID]
 	if !ok {
 		return fmt.Errorf("ReferredTo settings not found by tgChat.BotID=%v, out of %v items", tgChat.BotID, len(telegramBots.ByCode))

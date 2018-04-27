@@ -1,7 +1,7 @@
 package shared_all
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
@@ -39,7 +39,7 @@ func createStartCommand(botParams BotParams) bots.Command {
 			text := whc.Input().(bots.WebhookTextMessage).Text()
 			log.Debugf(c, "createStartCommand.Action() => text: "+text)
 
-			startParam, startParams := telegram.ParseStartCommand(whc)
+			startParam, startParams := tgbots.ParseStartCommand(whc)
 
 			if whc.IsInGroup() {
 				return botParams.StartInGroupAction(whc)

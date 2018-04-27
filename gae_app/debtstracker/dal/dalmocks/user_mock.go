@@ -14,6 +14,11 @@ type UserDalMock struct {
 	Users      map[int64]*models.AppUserEntity
 }
 
+func (mock *UserDalMock) DelayUpdateUserWithContact(c context.Context, userID, contactID int64) error {
+	panic("not implemented yet")
+}
+
+
 func NewUserDalMock() *UserDalMock {
 	return &UserDalMock{
 		Users: make(map[int64]*models.AppUserEntity),
@@ -24,11 +29,11 @@ func (mock *UserDalMock) SetLastCurrency(c context.Context, userID int64, curren
 	panic("Not implemented yet")
 }
 
-func (mock *UserDalMock) GetUserByID(c context.Context, userID int64) (models.AppUser, error) {
+func (mock *UserDalMock) GetUserByID(c context.Context, userID int64) (appUser models.AppUser, err error) {
 	if entity, ok := mock.Users[userID]; ok {
-		return models.AppUser{ID: userID, AppUserEntity: entity}, nil
+		return models.AppUser{IntegerID: db.NewIntID(userID), AppUserEntity: entity}, nil
 	}
-	return models.AppUser{ID: userID}, db.NewErrNotFoundByIntID(models.AppUserKind, userID, nil)
+	return models.AppUser{IntegerID: db.NewIntID(userID)}, db.NewErrNotFoundByIntID(models.AppUserKind, userID, nil)
 }
 
 func (mock *UserDalMock) GetUserByStrID(c context.Context, userID string) (user models.AppUser, err error) {

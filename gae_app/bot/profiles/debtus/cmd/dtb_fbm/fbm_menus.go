@@ -3,7 +3,7 @@ package dtb_fbm
 import (
 	"fmt"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbm"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbmbots"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
@@ -126,7 +126,7 @@ func settingsCard(whc bots.WebhookContext) fbm_api.RequestElement {
 }
 
 func fbmAppBaseUrl(whc bots.WebhookContext) string {
-	fbApp, host, err := fbm.GetFbAppAndHost(whc.Request())
+	fbApp, host, err := fbmbots.GetFbAppAndHost(whc.Request())
 	if err != nil {
 		panic(err)
 	}

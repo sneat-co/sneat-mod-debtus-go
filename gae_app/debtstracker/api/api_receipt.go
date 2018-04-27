@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/analytics"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
@@ -92,7 +92,7 @@ func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request)
 			w.WriteHeader(http.StatusBadRequest)
 			log.Warningf(c, "Unknown host")
 		}
-		botSettings, err := telegram.GetBotSettingsByLang(gaestandard.GetEnvironment(c), bot.ProfileDebtus, lang)
+		botSettings, err := tgbots.GetBotSettingsByLang(gaestandard.GetEnvironment(c), bot.ProfileDebtus, lang)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			log.Errorf(c, errors.Wrap(err, "Failed to get bot settings by lang").Error())

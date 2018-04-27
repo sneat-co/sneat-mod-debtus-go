@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
@@ -234,7 +234,7 @@ func discardReminder(c context.Context, reminderID, transferID, returnTransferID
 	}
 
 	switch reminder.SentVia {
-	case telegram.TelegramPlatformID: // We need to update a reminder message if it was already sent out
+	case telegram.PlatformID: // We need to update a reminder message if it was already sent out
 		if reminder.BotID == "" {
 			log.Errorf(c, "reminder.BotID == ''")
 			return nil
@@ -244,7 +244,7 @@ func discardReminder(c context.Context, reminderID, transferID, returnTransferID
 			return nil
 		}
 		log.Infof(c, "Will try to update a reminder message as it was already sent to user, reminder.MessageIntID: %v", reminder.MessageIntID)
-		tgBotApi := telegram.GetTelegramBotApiByBotCode(c, reminder.BotID)
+		tgBotApi := tgbots.GetTelegramBotApiByBotCode(c, reminder.BotID)
 		if tgBotApi == nil {
 			return fmt.Errorf("Not able to create API client as there no settings for telegram bot with id '%v'", reminder.BotID)
 		}
@@ -255,7 +255,7 @@ func discardReminder(c context.Context, reminderID, transferID, returnTransferID
 				return errors.Wrapf(err, "Failed to get user by id=%v", reminder.UserID)
 			} else if user.PreferredLanguage != "" {
 				reminder.Locale = user.PreferredLanguage
-			} else if s, ok := telegram.Bots(gaestandard.GetEnvironment(c), nil).ByCode[reminder.BotID]; ok {
+			} else if s, ok := tgbots.Bots(gaestandard.GetEnvironment(c), nil).ByCode[reminder.BotID]; ok {
 				reminder.Locale = s.Locale.Code5
 			}
 		}
@@ -264,7 +264,7 @@ func discardReminder(c context.Context, reminderID, transferID, returnTransferID
 
 		utmParams := common.UtmParams{
 			Source:   "TODO", // TODO: Get bot ID
-			Medium:   telegram.TelegramPlatformID,
+			Medium:   telegram.PlatformID,
 			Campaign: common.UTM_CAMPAIGN_RECEIPT_DISCARD,
 		}
 

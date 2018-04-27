@@ -16,7 +16,6 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"github.com/strongo/gamp"
 	"context"
 )
 

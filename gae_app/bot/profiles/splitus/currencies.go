@@ -9,7 +9,6 @@ import (
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"context"
@@ -143,12 +142,13 @@ func groupSettingsSetCurrencyCommand(params shared_all.BotParams) bots.Command {
 
 func onStartCallbackInGroup(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error) {
 	// This links Telegram ChatID and ChatInstance
-	if twhc, ok := whc.(*telegram.tgWebhookContext); ok {
-		if err = twhc.CreateOrUpdateTgChatInstance(); err != nil {
-			return
-		}
-	}
-	return inGroupWelcomeMessage(whc, group)
+	panic("not implemeted")
+	// if twhc, ok := whc.(*telegram.tgWebhookContext); ok {
+	// 	if err = twhc.CreateOrUpdateTgChatInstance(); err != nil {
+	// 		return
+	// 	}
+	// }
+	// return inGroupWelcomeMessage(whc, group)
 }
 
 func inGroupWelcomeMessage(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error) {

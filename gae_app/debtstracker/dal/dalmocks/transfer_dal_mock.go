@@ -26,7 +26,7 @@ func (mock *TransferDalMock) DelayUpdateTransfersOnReturn(c context.Context, ret
 
 func (mock *TransferDalMock) GetTransferByID(c context.Context, transferID int64) (models.Transfer, error) {
 	if transferEntity, ok := mock.Transfers[transferID]; ok {
-		return models.Transfer{ID: transferID, TransferEntity: transferEntity}, nil
+		return models.Transfer{IntegerID: db.NewIntID(transferID), TransferEntity: transferEntity}, nil
 	} else {
 		return models.Transfer{}, db.NewErrNotFoundByIntID(models.TransferKind, transferID, nil)
 	}
@@ -85,7 +85,7 @@ func (mock *TransferDalMock) LoadOverdueTransfers(c context.Context, userID int6
 func (mock *TransferDalMock) LoadOutstandingTransfers(c context.Context, periodEnds time.Time, userID, contactID int64, currency models.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error) {
 	for id, t := range mock.Transfers {
 		if t.GetOutstandingValue(periodEnds) != 0 {
-			transfers = append(transfers, models.Transfer{ID: id, TransferEntity: t})
+			transfers = append(transfers, models.Transfer{IntegerID: db.NewIntID(id), TransferEntity: t})
 		}
 	}
 	return

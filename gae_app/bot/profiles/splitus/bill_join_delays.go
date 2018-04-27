@@ -1,7 +1,7 @@
 package splitus
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
@@ -68,7 +68,7 @@ func delayedUpdateBillTgChartCard(c context.Context, billID string, tgChatMessag
 		if err := updateInlineBillCardMessage(c, translator, true, editMessage, bill, botCode, footer); err != nil {
 			return err
 		} else {
-			telegramBots := telegram.Bots(gaestandard.GetEnvironment(c), nil)
+			telegramBots := tgbots.Bots(gaestandard.GetEnvironment(c), nil)
 			botSettings, ok := telegramBots.ByCode[botCode]
 			if !ok {
 				log.Errorf(c, "No bot settings for bot: "+botCode)

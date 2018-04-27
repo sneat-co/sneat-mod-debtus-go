@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
@@ -112,11 +112,11 @@ func (ReceiptDalGae) DelayCreateAndSendReceiptToCounterpartyByTelegram(c context
 	return nil
 }
 
-func GetTelegramChatByUserID(c context.Context, userID int64) (entityID string, chat *telegram.TelegramChatEntityBase, err error) {
+func GetTelegramChatByUserID(c context.Context, userID int64) (entityID string, chat *telegram.TgChatEntityBase, err error) {
 	tgChatQuery := datastore.NewQuery(telegram.ChatKind).Filter("AppUserIntID =", userID).Order("-DtUpdated")
 	limit1 := 1
 	tgChatQuery = tgChatQuery.Limit(limit1)
-	var tgChats []*telegram.TelegramChatEntityBase
+	var tgChats []*telegram.TgChatEntityBase
 	tgChatKeys, err := tgChatQuery.GetAll(c, &tgChats)
 	if err != nil {
 		err = errors.Wrapf(err, "Failed to load telegram chat by app user id=%v", userID)
@@ -301,7 +301,7 @@ func getTranslator(c context.Context, localeCode string) (translator strongo.Sin
 
 func editTgMessageText(c context.Context, tgBotID string, tgChatID int64, tgMsgID int, text string) (err error) {
 	msg := tgbotapi.NewEditMessageText(tgChatID, tgMsgID, "", text)
-	telegramBots := telegram.Bots(gaestandard.GetEnvironment(c), nil)
+	telegramBots := tgbots.Bots(gaestandard.GetEnvironment(c), nil)
 	botSettings, ok := telegramBots.ByCode[tgBotID]
 	if !ok {
 		return fmt.Errorf("Bot settings not found by tgChat.BotID=%v, out of %v items", tgBotID, len(telegramBots.ByCode))
@@ -499,7 +499,7 @@ func sendReceiptToTelegramChat(c context.Context, receipt models.Receipt, transf
 		Text: messageText,
 	}
 
-	tgBotApi := telegram.GetTelegramBotApiByBotCode(c, tgChat.BotID)
+	tgBotApi := tgbots.GetTelegramBotApiByBotCode(c, tgChat.BotID)
 
 	if _, err = tgBotApi.Send(tgMessage); err != nil {
 		return
@@ -564,7 +564,7 @@ var delayedCreateAndSendReceiptToCounterpartyByTelegram = delay.Func("delayedCre
 
 	var receiptID int64
 	err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-		receipt := models.NewReceiptEntity(transfer.CreatorUserID, transferID, transfer.Counterparty().UserID, locale.Code5, telegram.TelegramPlatformID, strconv.FormatInt(tgChat.TelegramUserID, 10), general.CreatedOn{
+		receipt := models.NewReceiptEntity(transfer.CreatorUserID, transferID, transfer.Counterparty().UserID, locale.Code5, telegram.PlatformID, strconv.FormatInt(tgChat.TelegramUserID, 10), general.CreatedOn{
 			CreatedOnID:       transfer.Creator().TgBotID, // TODO: Replace with method call.
 			CreatedOnPlatform: transfer.CreatedOnPlatform,
 		})

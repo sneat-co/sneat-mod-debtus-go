@@ -16,7 +16,7 @@ import (
 	//"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
 	"strconv"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/admin"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
@@ -309,7 +309,7 @@ func editTelegramMessageText(whc bots.WebhookContext, awaitingReplyTo, text stri
 		return
 	}
 	// TODO: Does it changes locale from RU to EN?
-	messageID := whc.Input().(telegram.TelegramWebhookCallbackQuery).GetMessage().IntID()
+	messageID := whc.Input().(telegram.TgWebhookCallbackQuery).GetMessage().IntID()
 	if m, err = whc.NewEditMessage(text, bots.MessageFormatHTML); err != nil {
 		return
 	}
@@ -365,7 +365,7 @@ var FeedbackTextCommand = bots.Command{
 			m = whc.NewMessageByCode(trans.MESSAGE_TEXT_THANKS)
 			m.Text += fmt.Sprintf(` Feedback #<a href="https://debtstracker.io/app/#/feedback/%d">%d</a>`, feedback.ID, feedback.ID)
 			SetMainMenuKeyboard(whc, &m)
-			if err2 := admin.SendFeedbackToAdmins(c, telegram.DebtusBotToken, feedback); err2 != nil {
+			if err2 := admin.SendFeedbackToAdmins(c, tgbots.DebtusBotToken, feedback); err2 != nil {
 				log.Errorf(c, "failed to notify admins: %v", err)
 			}
 		default:

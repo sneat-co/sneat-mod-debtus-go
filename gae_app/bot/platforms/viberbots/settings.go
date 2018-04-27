@@ -1,4 +1,4 @@
-package viber
+package viberbots
 
 const (
 	KeyboardBgColor = "#FFFFFF"

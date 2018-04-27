@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"github.com/strongo/app/gaestandard"
 	"github.com/DebtsTracker/translations/trans"
@@ -39,7 +39,7 @@ func pageContext(r *http.Request, locale strongo.Locale) (translator strongo.Sin
 	if env == strongo.EnvUnknown {
 		panic("Unknown host: " + r.Host)
 	}
-	botSettings, err := telegram.GetBotSettingsByLang(gaestandard.GetEnvironment(c), bot.ProfileDebtus, locale.Code5)
+	botSettings, err := tgbots.GetBotSettingsByLang(gaestandard.GetEnvironment(c), bot.ProfileDebtus, locale.Code5)
 	if err != nil {
 		panic(err)
 	}

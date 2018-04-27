@@ -1,4 +1,4 @@
-package vk
+package vkbots
 
 import (
 	"github.com/DebtsTracker/translations/trans"

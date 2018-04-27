@@ -14,9 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/log"
-	"github.com/strongo/gamp"
 )
 
 const NEW_COUNTERPARTY_COMMAND = "new-counterparty"
@@ -84,9 +82,9 @@ func NewCounterpartyCommand(nextCommand bots.Command) bots.Command {
 						}
 					}
 
-					switch input.(type) {
-					case telegram.tgWebhookContactMessage:
-						contactDetails.TelegramUserID = int64(contactMessage.UserID().(int))
+					switch input.InputType() {
+					case bots.WebhookInputContact:
+						contactDetails.TelegramUserID = int64(contactMessage.UserID().(int)) // TODO: check we are on Telegram
 						if contactDetails.TelegramUserID != 0 {
 							for _, userContactJson := range user.Contacts() {
 								if userContactJson.TgUserID == contactDetails.TelegramUserID {
