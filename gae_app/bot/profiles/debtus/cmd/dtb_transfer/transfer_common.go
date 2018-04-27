@@ -17,6 +17,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"context"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
@@ -27,7 +28,6 @@ import (
 	"github.com/strongo/bots-framework/platforms/viber"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
-	"context"
 	"golang.org/x/net/html"
 )
 
@@ -210,13 +210,13 @@ func AskTransferAmountCommand(code, messageTextFormat string, nextCommand bots.C
 				} else {
 					m.Keyboard = tgbotapi.NewReplyKeyboardUsingStrings(
 						[][]string{
-							[]string{
+							{
 								"1", "2", "3", "4", "5",
 							},
-							[]string{
+							{
 								"6", "7", "8", "9", "10",
 							},
-							[]string{
+							{
 								emoji.NO_ENTRY_SIGN_ICON + " " + whc.Translate(trans.COMMAND_TEXT_CANCEL),
 							},
 						},

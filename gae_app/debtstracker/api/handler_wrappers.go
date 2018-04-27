@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"strings"
 
+	"context"
 	"github.com/pkg/errors"
 	"github.com/strongo/log"
-	"context"
 )
 
 func optionsHandler(c context.Context, w http.ResponseWriter, r *http.Request) {

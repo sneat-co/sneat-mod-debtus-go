@@ -3,8 +3,8 @@ package gaedal
 import (
 	"testing"
 
-	isLib "github.com/matryer/is"
 	"context"
+	isLib "github.com/matryer/is"
 )
 
 func TestNewContactIncompleteKey(t *testing.T) {

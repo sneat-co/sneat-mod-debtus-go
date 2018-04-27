@@ -19,8 +19,8 @@ import (
 	//"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"fmt"
 	"context"
+	"fmt"
 	"time"
 )
 

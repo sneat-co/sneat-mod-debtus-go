@@ -6,12 +6,12 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"context"
 	is2 "github.com/matryer/is"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/decimal"
-	"context"
 )
 
 type assertHelper struct {

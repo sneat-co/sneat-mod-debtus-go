@@ -7,11 +7,11 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"context"
 	"github.com/pkg/errors"
 	"github.com/sanity-io/litter"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"context"
 )
 
 func ChangeContactStatus(c context.Context, contactID int64, newStatus string) (contact models.Contact, err error) {

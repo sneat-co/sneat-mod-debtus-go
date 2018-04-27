@@ -8,6 +8,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
@@ -16,7 +17,6 @@ import (
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"context"
 	"strconv"
 )
 

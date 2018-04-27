@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"github.com/strongo/log"
 	"context"
+	"github.com/strongo/log"
 )
 
 func handleSignedWithFacebook(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {

@@ -10,9 +10,9 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"context"
 	"github.com/strongo/app"
 	"github.com/strongo/decimal"
-	"context"
 )
 
 func getTestMocks(t *testing.T, locale strongo.Locale) BalanceMessageBuilder {

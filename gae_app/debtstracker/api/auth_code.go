@@ -9,9 +9,9 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"context"
 	"github.com/pkg/errors"
 	"github.com/strongo/log"
-	"context"
 )
 
 // TODO: Obsolete - migrate to handleSignInWithPin

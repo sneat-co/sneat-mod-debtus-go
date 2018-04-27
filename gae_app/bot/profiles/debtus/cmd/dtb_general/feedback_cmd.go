@@ -20,8 +20,8 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/admin"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"context"
+	"github.com/strongo/bots-framework/platforms/telegram"
 )
 
 const (

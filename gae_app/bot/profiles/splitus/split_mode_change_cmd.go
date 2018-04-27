@@ -3,9 +3,9 @@ package splitus
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"context"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"context"
 	"net/url"
 )
 

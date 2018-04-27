@@ -9,15 +9,15 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/splitus"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"github.com/strongo/app/gaestandard"
+	"context"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/app"
+	"github.com/strongo/app/gaestandard"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/fbm"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/bots-framework/platforms/viber"
-	"context"
 )
 
 func newTranslator(c context.Context) strongo.Translator {

@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/log"
 	"context"
+	"github.com/strongo/log"
 )
 
 type ReminderDalMock struct {

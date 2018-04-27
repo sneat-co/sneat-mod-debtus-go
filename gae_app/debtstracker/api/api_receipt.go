@@ -16,15 +16,15 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/app/gaestandard"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/invites"
+	"context"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
+	"github.com/strongo/app/gaestandard"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"context"
 )
 
 func NewReceiptTransferDto(c context.Context, transfer models.Transfer) dto.ApiReceiptTransferDto {
@@ -374,7 +374,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 						}
 					case 2:
 						al = strings.ToLower(al)
-						for localeCode, _ := range trans.SupportedLocalesByCode5 {
+						for localeCode := range trans.SupportedLocalesByCode5 {
 							if strings.HasPrefix(localeCode, al) {
 								lang = localeCode
 								goto langSet

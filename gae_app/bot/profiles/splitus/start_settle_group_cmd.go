@@ -18,7 +18,7 @@ import (
 
 const (
 	SettleGroupAskForCounterpartyCommandCode    = "sttl-grp"
-	SettleGroupCounterpartyChosenCommandCode   = "sttl-grp-cp-chsn"
+	SettleGroupCounterpartyChosenCommandCode    = "sttl-grp-cp-chsn"
 	SettleGroupCounterpartyConfirmedCommandCode = "sttl-grp-cp-cnfrmd"
 )
 

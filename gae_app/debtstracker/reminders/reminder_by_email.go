@@ -9,12 +9,12 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"context"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
-	"context"
 	"google.golang.org/appengine/urlfetch"
 )
 

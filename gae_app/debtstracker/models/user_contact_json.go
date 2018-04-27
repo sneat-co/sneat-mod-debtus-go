@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"time"
 
+	"context"
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
-	"context"
 )
 
 type LastTransfer struct {

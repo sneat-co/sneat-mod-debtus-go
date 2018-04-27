@@ -65,7 +65,7 @@ func balanceAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 			var currencies []models.Currency
 			for _, counterparty := range contacts {
 				//log.Debugf(c, "counterparty: %v", counterparty)
-				for currency, _ := range counterparty.Balance() {
+				for currency := range counterparty.Balance() {
 					//log.Debugf(c, "currency: %v", currency)
 					for _, curr := range currencies {
 						//log.Debugf(c, "curr: %v; curr == currency: %v", curr, curr == currency)

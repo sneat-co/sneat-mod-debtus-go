@@ -10,6 +10,7 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"context"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
@@ -18,7 +19,6 @@ import (
 	"github.com/strongo/decimal"
 	"github.com/strongo/gotwilio"
 	"github.com/strongo/log"
-	"context"
 )
 
 type TransferSource interface {

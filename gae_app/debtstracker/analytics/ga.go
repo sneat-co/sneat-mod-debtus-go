@@ -6,12 +6,12 @@ import (
 	"strconv"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"context"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/log"
-	"context"
-	"google.golang.org/appengine/urlfetch"
 	"github.com/strongo/gamp"
+	"github.com/strongo/log"
+	"google.golang.org/appengine/urlfetch"
 )
 
 const (
@@ -54,7 +54,7 @@ func getGaCommon(r *http.Request, userID int64, userLanguage, platform string) g
 	}
 
 	return gamp.Common{
-		TrackingID: common.GA_TRACKING_ID,
+		TrackingID:    common.GA_TRACKING_ID,
 		UserID:        strconv.FormatInt(userID, 10),
 		UserLanguage:  userLanguage,
 		UserAgent:     userAgent,

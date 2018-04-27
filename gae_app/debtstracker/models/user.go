@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"context"
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/app"
@@ -13,7 +14,6 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
-	"context"
 	"google.golang.org/appengine/datastore"
 )
 

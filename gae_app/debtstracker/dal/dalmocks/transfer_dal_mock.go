@@ -5,9 +5,9 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"context"
 	"github.com/strongo/db"
 	"github.com/strongo/decimal"
-	"context"
 )
 
 type TransferDalMock struct {
@@ -53,7 +53,7 @@ func (mock *TransferDalMock) InsertTransfer(c context.Context, transferEntity *m
 		panic("transferEntity == nil")
 	}
 	var maxTransferID int64
-	for transferID, _ := range mock.Transfers {
+	for transferID := range mock.Transfers {
 		if transferID > maxTransferID {
 			maxTransferID = transferID
 		}

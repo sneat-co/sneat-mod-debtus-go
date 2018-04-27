@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"context"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gae"
-	"context"
 	"google.golang.org/appengine/delay"
 )
 

@@ -3,8 +3,8 @@ package gaedal
 import (
 	"testing"
 
-	"github.com/strongo/db/gaedb"
 	"context"
+	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
 )
 

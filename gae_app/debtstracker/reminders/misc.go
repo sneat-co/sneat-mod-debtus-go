@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"context"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"github.com/strongo/log"
-	"context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
 )

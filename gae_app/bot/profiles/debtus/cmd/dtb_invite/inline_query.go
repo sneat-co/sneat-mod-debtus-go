@@ -34,7 +34,7 @@ func InlineSendInvite(whc bots.WebhookContext) (m bots.MessageFromBot, err error
 				},
 				ReplyMarkup: &tgbotapi.InlineKeyboardMarkup{
 					InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{
-						[]tgbotapi.InlineKeyboardButton{
+						{
 							{Text: whc.Translate(trans.COMMAND_TEXT_WAIT_A_SECOND), CallbackData: "invite/inline-query"}, //dtb_inline.ChosenInlineResultCommand()
 						},
 					},

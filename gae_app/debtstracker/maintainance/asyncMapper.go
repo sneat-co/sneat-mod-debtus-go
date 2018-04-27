@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"sync"
 
+	"context"
 	"github.com/captaincodeman/datastore-mapper"
 	"github.com/pkg/errors"
 	"github.com/strongo/log"
-	"context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 )

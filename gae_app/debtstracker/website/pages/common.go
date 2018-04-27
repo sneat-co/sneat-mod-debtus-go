@@ -11,11 +11,11 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"github.com/strongo/app/gaestandard"
+	"context"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
+	"github.com/strongo/app/gaestandard"
 	"github.com/strongo/log"
-	"context"
 	"google.golang.org/appengine"
 )
 

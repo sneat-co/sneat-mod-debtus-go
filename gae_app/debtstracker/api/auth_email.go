@@ -11,11 +11,11 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/emails"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"context"
 	"github.com/pkg/errors"
 	"github.com/strongo/app/user"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"context"
 )
 
 var (

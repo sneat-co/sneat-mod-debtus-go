@@ -110,7 +110,7 @@ func CallbackSendReceipt(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.
 			}
 			lastName := whc.GetSender().GetLastName()
 			if lastName == "Trakhimenok" || lastName == "Paltseva" {
-				for k, _ := range common.TwilioTestNumbers {
+				for k := range common.TwilioTestNumbers {
 					keyboard = append(keyboard, []tgbotapi.KeyboardButton{{Text: k}})
 
 				}

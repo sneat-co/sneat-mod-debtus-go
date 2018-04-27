@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/db"
 	"context"
+	"github.com/strongo/db"
 )
 
 type UserDalMock struct {
@@ -17,7 +17,6 @@ type UserDalMock struct {
 func (mock *UserDalMock) DelayUpdateUserWithContact(c context.Context, userID, contactID int64) error {
 	panic("not implemented yet")
 }
-
 
 func NewUserDalMock() *UserDalMock {
 	return &UserDalMock{

@@ -3,8 +3,8 @@ package dtb_settings
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/bots-framework/core"
 	"context"
+	"github.com/strongo/bots-framework/core"
 )
 
 var FixBalanceCommand = bots.Command{

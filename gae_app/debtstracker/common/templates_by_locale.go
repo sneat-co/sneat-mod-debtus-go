@@ -6,9 +6,9 @@ import (
 	"sync"
 	text "text/template"
 
+	"context"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
-	"context"
 )
 
 type TextTemplateProvider struct {

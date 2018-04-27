@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/strongo/decimal"
 	"context"
+	"github.com/strongo/decimal"
 )
 
 func TestCreateBillPanicOnNilContext(t *testing.T) {

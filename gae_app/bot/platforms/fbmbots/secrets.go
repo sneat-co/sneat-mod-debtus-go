@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"context"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
@@ -13,7 +14,6 @@ import (
 	"github.com/strongo/bots-framework/platforms/fbm"
 	fb "github.com/strongo/facebook"
 	"github.com/strongo/log"
-	"context"
 )
 
 const (
