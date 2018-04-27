@@ -39,7 +39,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 
 	defer func() {
 		if hasError || warningsCount > 0 {
-			var logFunc log.LogFunc
+			var logFunc log.Func
 			if hasError {
 				logFunc = log.Errorf
 			} else {
