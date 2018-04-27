@@ -41,6 +41,6 @@ func (entity *billsHolder) SetOutstandingBills(outstandingBills []BillJson) (cha
 }
 
 func init() {
-	userPropertiesToClean["OutstandingBillsJson"] = gaedb.IsEmptyJson
-	groupPropertiesToClean["OutstandingBillsJson"] = gaedb.IsEmptyJson
+	userPropertiesToClean["OutstandingBillsJson"] = gaedb.IsEmptyJSON
+	groupPropertiesToClean["OutstandingBillsJson"] = gaedb.IsEmptyJSON
 }

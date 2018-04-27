@@ -167,7 +167,7 @@ var contactPropertiesToClean = map[string]gaedb.IsOkToRemove{
 	"SmsCostUSD":                 gaedb.IsZeroInt,
 	"EmailAddress":               gaedb.IsEmptyString,
 	"EmailAddressOriginal":       gaedb.IsEmptyString,
-	"TransfersJson":              gaedb.IsEmptyJson,
+	"TransfersJson":              gaedb.IsEmptyJSON,
 	"Nickname":                   gaedb.IsEmptyString,
 	"FirstName":                  gaedb.IsEmptyString,
 	"LastName":                   gaedb.IsEmptyString,

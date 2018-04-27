@@ -59,7 +59,7 @@ type TwilioSmsEntity struct {
 	//ApiVersion  string   `datastore:",noindex"`
 	Price    float32             `datastore:",noindex"` // TODO: Remove obsolete
 	PriceUSD decimal.Decimal64p2 `datastore:",noindex"`
-	//Url         string   `datastore:",noindex"`
+	//URL         string   `datastore:",noindex"`
 
 	//
 	CreatorTgChatID             int64

@@ -649,16 +649,16 @@ var userPropertiesToClean = map[string]gaedb.IsOkToRemove{
 	"CounterpartyIDs": gaedb.IsObsolete,
 	//
 	"ContactsCount": gaedb.IsZeroInt,   // TODO: Obsolete
-	"ContactsJson":  gaedb.IsEmptyJson, // TODO: Obsolete
+	"ContactsJson":  gaedb.IsEmptyJSON, // TODO: Obsolete
 	//
 	"GroupsCountActive":                   gaedb.IsZeroInt,
-	"GroupsJsonActive":                    gaedb.IsEmptyJson,
+	"GroupsJsonActive":                    gaedb.IsEmptyJSON,
 	"GroupsCountArchived":                 gaedb.IsZeroInt,
-	"GroupsJsonArchived":                  gaedb.IsEmptyJson,
+	"GroupsJsonArchived":                  gaedb.IsEmptyJSON,
 	"BillsCountActive":                    gaedb.IsZeroInt,
-	"BillsJsonActive":                     gaedb.IsEmptyJson,
+	"BillsJsonActive":                     gaedb.IsEmptyJSON,
 	"BillSchedulesCountActive":            gaedb.IsZeroInt,
-	"BillSchedulesJsonActive":             gaedb.IsEmptyJson,
+	"BillSchedulesJsonActive":             gaedb.IsEmptyJSON,
 	"BalanceCount":                        gaedb.IsZeroInt,
 	"BalanceJson":                         gaedb.IsEmptyString,
 	"CountOfAckTransfersByCounterparties": gaedb.IsZeroInt,
@@ -668,9 +668,9 @@ var userPropertiesToClean = map[string]gaedb.IsOkToRemove{
 	"CountOfReceiptsCreated":              gaedb.IsZeroInt,
 	"CountOfTransfers":                    gaedb.IsZeroInt,
 	"ContactsCountActive":                 gaedb.IsZeroInt,
-	"ContactsJsonActive":                  gaedb.IsEmptyJson,
+	"ContactsJsonActive":                  gaedb.IsEmptyJSON,
 	"ContactsCountArchived":               gaedb.IsZeroInt,
-	"ContactsJsonArchived":                gaedb.IsEmptyJson,
+	"ContactsJsonArchived":                gaedb.IsEmptyJSON,
 	"DtAccessGranted":                     gaedb.IsZeroTime,
 	"EmailAddress":                        gaedb.IsEmptyString,
 	"EmailAddressOriginal":                gaedb.IsEmptyString,

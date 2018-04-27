@@ -148,9 +148,9 @@ func (entity *BillsHistoryEntity) Save() (properties []datastore.Property, err e
 		"TotalAmountBefore":      gaedb.IsZeroInt,
 		"TotalAmountAfter":       gaedb.IsZeroInt,
 		"BillsSettlementCount":   gaedb.IsZeroInt,
-		"BillsSettlementJson":    gaedb.IsEmptyJson,
-		"GroupMembersJsonBefore": gaedb.IsEmptyJson,
-		"GroupMembersJsonAfter":  gaedb.IsEmptyJson,
+		"BillsSettlementJson":    gaedb.IsEmptyJSON,
+		"GroupMembersJsonBefore": gaedb.IsEmptyJSON,
+		"GroupMembersJsonAfter":  gaedb.IsEmptyJSON,
 	}); err != nil {
 		return
 	}

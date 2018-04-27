@@ -248,7 +248,7 @@ func (entity *BillCommon) save(properties []datastore.Property) (filtered []data
 	}
 	if filtered, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
 		"MembersCount": gaedb.IsZeroInt,
-		"MembersJson":  gaedb.IsEmptyJson,
+		"MembersJson":  gaedb.IsEmptyJSON,
 		"PayMode":      gaedb.IsEmptyString,
 		"ContactName":  gaedb.IsEmptyString,
 		"SplitMode":    gaedb.IsEmptyString,

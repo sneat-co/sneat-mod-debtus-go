@@ -420,12 +420,12 @@ var groupPropertiesToClean = map[string]gaedb.IsOkToRemove{
 	"DefaultCurrency":       gaedb.IsEmptyString,
 	"MembersCount":          gaedb.IsZeroInt,
 	"MemberLastID":          gaedb.IsZeroInt,
-	"MembersJson":           gaedb.IsEmptyJson,
+	"MembersJson":           gaedb.IsEmptyJSON,
 	"Note":                  gaedb.IsEmptyString,
-	"OutstandingBillsJson":  gaedb.IsEmptyJson,
+	"OutstandingBillsJson":  gaedb.IsEmptyJSON,
 	"OutstandingBillsCount": gaedb.IsZeroInt,
 	"TgGroupsCount":         gaedb.IsZeroInt,
-	"TgGroupsJson":          gaedb.IsEmptyJson,
+	"TgGroupsJson":          gaedb.IsEmptyJSON,
 }
 
 func (entity *GroupEntity) Save() ([]datastore.Property, error) {

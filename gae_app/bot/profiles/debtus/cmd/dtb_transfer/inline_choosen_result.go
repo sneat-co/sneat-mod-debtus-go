@@ -109,7 +109,7 @@ var ViewReceiptInTelegramCallbackCommand = bots.NewCallbackCommand(
 			return m, errors.New("len(localeCode5) != 5")
 		}
 
-		callbackAnswer := tgbotapi.NewCallbackWithUrl(
+		callbackAnswer := tgbotapi.NewCallbackWithURL(
 			GetUrlForReceiptInTelegram(whc.GetBotCode(), receiptID, localeCode5),
 			//common.GetReceiptUrlForUser(
 			//	receiptID,
