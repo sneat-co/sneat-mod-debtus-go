@@ -141,8 +141,8 @@ func handleSignedInWithGooglePlus(c context.Context, w http.ResponseWriter, r *h
 	//			userGooglePlus.ServerAuthCode = googleAuthData.ServerAuthCode
 	//			changed = true
 	//		}
-	//		if googleAuthData.ImageUrl != "" && userGooglePlus.ImageUrl != googleAuthData.ImageUrl {
-	//			userGooglePlus.ImageUrl = googleAuthData.ImageUrl
+	//		if googleAuthData.ImageURL != "" && userGooglePlus.ImageURL != googleAuthData.ImageURL {
+	//			userGooglePlus.ImageURL = googleAuthData.ImageURL
 	//			changed = true
 	//		}
 	//		if googleAuthData.RefreshToken != "" && userGooglePlus.RefreshToken != googleAuthData.RefreshToken {

@@ -27,7 +27,7 @@ func SetupFbm(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 
 	c, _ = context.WithDeadline(c, time.Now().Add(20*time.Second))
-	api := fbm_api.NewGraphApi(urlfetch.Client(c), bot.Token)
+	api := fbmbotapi.NewGraphAPI(urlfetch.Client(c), bot.Token)
 
 	var err error
 
@@ -49,7 +49,7 @@ func SetupFbm(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 
 	if query.Get("enable-get-started") == "1" {
-		getStartedMessage := fbm_api.GetStartedMessage{}
+		getStartedMessage := fbmbotapi.GetStartedMessage{}
 
 		getStartedMessage.GetStarted.Payload = "fbm-get-started"
 

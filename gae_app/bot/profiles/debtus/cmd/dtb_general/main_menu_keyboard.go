@@ -101,34 +101,34 @@ func SetMainMenuKeyboard(whc bots.WebhookContext, m *bots.MessageFromBot) {
 	}
 }
 
-func mainMenuFbmAttachment(whc bots.WebhookContext, params mainMenuParams) *fbm_api.RequestAttachment {
-	attachment := &fbm_api.RequestAttachment{
-		Type: fbm_api.RequestAttachmentTypeTemplate,
-		Payload: fbm_api.NewListTemplate(
-			fbm_api.TopElementStyleCompact,
-			fbm_api.NewRequestElementWithDefaultAction(
+func mainMenuFbmAttachment(whc bots.WebhookContext, params mainMenuParams) *fbmbotapi.RequestAttachment {
+	attachment := &fbmbotapi.RequestAttachment{
+		Type: fbmbotapi.RequestAttachmentTypeTemplate,
+		Payload: fbmbotapi.NewListTemplate(
+			fbmbotapi.TopElementStyleCompact,
+			fbmbotapi.NewRequestElementWithDefaultAction(
 				"DebtsTracker.io",
 				"Tracks personal debts (auto-reminders to your debtors)",
-				fbm_api.NewDefaultActionWithWebUrl(fbm_api.RequestWebUrlAction{MessengerExtensions: true, Url: "https://debtstracker-dev1.appspot.com/app/?page=debts&lang=ru"}),
-				fbm_api.NewRequestWebUrlButtonWithRatio(emoji.CURRENCY_EXCAHNGE_ICON+" Record new debt", "https://debtstracker-dev1.appspot.com/app/?page=new-debt&lang=ru", "full"),
+				fbmbotapi.NewDefaultActionWithWebURL(fbmbotapi.RequestWebURLAction{MessengerExtensions: true, URL: "https://debtstracker-dev1.appspot.com/app/?page=debts&lang=ru"}),
+				fbmbotapi.NewRequestWebURLButtonWithRatio(emoji.CURRENCY_EXCAHNGE_ICON+" Record new debt", "https://debtstracker-dev1.appspot.com/app/?page=new-debt&lang=ru", "full"),
 			),
-			fbm_api.NewRequestElementWithDefaultAction(
+			fbmbotapi.NewRequestElementWithDefaultAction(
 				"Current balance",
 				"You owe $100",
-				fbm_api.NewDefaultActionWithWebUrl(fbm_api.RequestWebUrlAction{MessengerExtensions: true, Url: "https://debtstracker-dev1.appspot.com/app/?page=debts&lang=ru"}),
-				fbm_api.NewRequestWebUrlButtonWithRatio(emoji.BALANCE_ICON+" Record return", "https://debtstracker-dev1.appspot.com/app/?page=return&lang=ru", "full"),
+				fbmbotapi.NewDefaultActionWithWebURL(fbmbotapi.RequestWebURLAction{MessengerExtensions: true, URL: "https://debtstracker-dev1.appspot.com/app/?page=debts&lang=ru"}),
+				fbmbotapi.NewRequestWebURLButtonWithRatio(emoji.BALANCE_ICON+" Record return", "https://debtstracker-dev1.appspot.com/app/?page=return&lang=ru", "full"),
 			),
-			fbm_api.NewRequestElementWithDefaultAction(
+			fbmbotapi.NewRequestElementWithDefaultAction(
 				"History",
 				"Last transfer: $100 to Jack Smith",
-				fbm_api.NewDefaultActionWithWebUrl(fbm_api.RequestWebUrlAction{MessengerExtensions: true, Url: "https://debtstracker-dev1.appspot.com/app/?page=history&lang=ru"}),
-				fbm_api.NewRequestWebUrlButtonWithRatio(emoji.HISTORY_ICON+" View full history", "https://debtstracker-dev1.appspot.com/app/?page=history&lang=ru", "full"),
+				fbmbotapi.NewDefaultActionWithWebURL(fbmbotapi.RequestWebURLAction{MessengerExtensions: true, URL: "https://debtstracker-dev1.appspot.com/app/?page=history&lang=ru"}),
+				fbmbotapi.NewRequestWebURLButtonWithRatio(emoji.HISTORY_ICON+" View full history", "https://debtstracker-dev1.appspot.com/app/?page=history&lang=ru", "full"),
 			),
-			fbm_api.NewRequestElementWithDefaultAction(
+			fbmbotapi.NewRequestElementWithDefaultAction(
 				"Settings",
 				"You can change language, notification preferences, etc.",
-				fbm_api.NewDefaultActionWithWebUrl(fbm_api.RequestWebUrlAction{MessengerExtensions: true, Url: "https://debtstracker-dev1.appspot.com/app/?page=debts&lang=ru"}),
-				fbm_api.NewRequestWebUrlButtonWithRatio(emoji.SETTINGS_ICON+" Edit my preferences", "https://debtstracker-dev1.appspot.com/app/?page=settings&lang=ru", "full"),
+				fbmbotapi.NewDefaultActionWithWebURL(fbmbotapi.RequestWebURLAction{MessengerExtensions: true, URL: "https://debtstracker-dev1.appspot.com/app/?page=debts&lang=ru"}),
+				fbmbotapi.NewRequestWebURLButtonWithRatio(emoji.SETTINGS_ICON+" Edit my preferences", "https://debtstracker-dev1.appspot.com/app/?page=settings&lang=ru", "full"),
 			),
 		),
 	}

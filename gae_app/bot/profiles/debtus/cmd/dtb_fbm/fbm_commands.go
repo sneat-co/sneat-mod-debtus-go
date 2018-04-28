@@ -14,14 +14,14 @@ var FbmGetStartedCommand = bots.Command{ // TODO: Move command to other package?
 		c := whc.Context()
 		log.Debugf(c, "FbmGetStartedCommand.CallbackAction() => callbackUrl: %v", callbackUrl)
 		//m.Text = "Welcome!"
-		m.FbmAttachment = &fbm_api.RequestAttachment{
-			Type: fbm_api.RequestAttachmentTypeTemplate,
+		m.FbmAttachment = &fbmbotapi.RequestAttachment{
+			Type: fbmbotapi.RequestAttachmentTypeTemplate,
 		}
 
 		if whc.ChatEntity().GetPreferredLanguage() == "" {
 			m.FbmAttachment.Payload = askLanguageCard(whc)
 		} else {
-			m.FbmAttachment.Payload = fbm_api.NewGenericTemplate(
+			m.FbmAttachment.Payload = fbmbotapi.NewGenericTemplate(
 				welcomeCard(whc),
 				debtsCard(whc),
 				billsCard(whc),
@@ -39,9 +39,9 @@ var FbmMainMenuCommand = bots.Command{
 		c := whc.Context()
 		log.Debugf(c, "FbmMainMenuCommand.CallbackAction() => callbackUrl: %v", callbackUrl)
 
-		m.FbmAttachment = &fbm_api.RequestAttachment{
-			Type: fbm_api.RequestAttachmentTypeTemplate,
-			Payload: fbm_api.NewGenericTemplate(
+		m.FbmAttachment = &fbmbotapi.RequestAttachment{
+			Type: fbmbotapi.RequestAttachmentTypeTemplate,
+			Payload: fbmbotapi.NewGenericTemplate(
 				mainMenuCard(whc),
 				debtsCard(whc),
 				billsCard(whc),
@@ -59,9 +59,9 @@ var FbmDebtsCommand = bots.Command{
 		c := whc.Context()
 		log.Debugf(c, "FbmDebtsCommand.CallbackAction() => callbackUrl: %v", callbackUrl)
 
-		m.FbmAttachment = &fbm_api.RequestAttachment{
-			Type: fbm_api.RequestAttachmentTypeTemplate,
-			Payload: fbm_api.NewGenericTemplate(
+		m.FbmAttachment = &fbmbotapi.RequestAttachment{
+			Type: fbmbotapi.RequestAttachmentTypeTemplate,
+			Payload: fbmbotapi.NewGenericTemplate(
 				debtsCard(whc),
 			),
 		}
@@ -76,9 +76,9 @@ var FbmBillsCommand = bots.Command{
 		c := whc.Context()
 		log.Debugf(c, "FbmBillsCommand.CallbackAction() => callbackUrl: %v", callbackUrl)
 		//m.Text = "Welcome!"
-		m.FbmAttachment = &fbm_api.RequestAttachment{
-			Type: fbm_api.RequestAttachmentTypeTemplate,
-			Payload: fbm_api.NewGenericTemplate(
+		m.FbmAttachment = &fbmbotapi.RequestAttachment{
+			Type: fbmbotapi.RequestAttachmentTypeTemplate,
+			Payload: fbmbotapi.NewGenericTemplate(
 				billsCard(whc),
 			),
 		}
@@ -92,9 +92,9 @@ var FbmSettingsCommand = bots.Command{
 	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "FbmSettingsCommand.CallbackAction() => callbackUrl: %v", callbackUrl)
-		m.FbmAttachment = &fbm_api.RequestAttachment{
-			Type: fbm_api.RequestAttachmentTypeTemplate,
-			Payload: fbm_api.NewGenericTemplate(
+		m.FbmAttachment = &fbmbotapi.RequestAttachment{
+			Type: fbmbotapi.RequestAttachmentTypeTemplate,
+			Payload: fbmbotapi.NewGenericTemplate(
 				settingsCard(whc),
 			),
 		}

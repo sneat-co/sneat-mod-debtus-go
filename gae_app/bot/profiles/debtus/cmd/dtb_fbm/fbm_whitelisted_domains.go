@@ -10,11 +10,11 @@ import (
 	"github.com/strongo/bots-framework/core"
 )
 
-func SetWhitelistedDomains(c context.Context, r *http.Request, bot bots.BotSettings, api fbm_api.GraphAPI) (err error) {
-	var whitelistedDomainsMessage fbm_api.WhitelistedDomainsMessage
+func SetWhitelistedDomains(c context.Context, r *http.Request, bot bots.BotSettings, api fbmbotapi.GraphAPI) (err error) {
+	var whitelistedDomainsMessage fbmbotapi.WhitelistedDomainsMessage
 	switch bot.Env {
 	case strongo.EnvProduction:
-		whitelistedDomainsMessage = fbm_api.WhitelistedDomainsMessage{WhitelistedDomains: []string{
+		whitelistedDomainsMessage = fbmbotapi.WhitelistedDomainsMessage{WhitelistedDomains: []string{
 			"https://debtstracker.io",
 			"https://splitbill.co",
 		}}
@@ -26,9 +26,9 @@ func SetWhitelistedDomains(c context.Context, r *http.Request, bot bots.BotSetti
 		if host != "" {
 			domains = append(domains, fmt.Sprintf("https://%v", host))
 		}
-		whitelistedDomainsMessage = fbm_api.WhitelistedDomainsMessage{WhitelistedDomains: domains}
+		whitelistedDomainsMessage = fbmbotapi.WhitelistedDomainsMessage{WhitelistedDomains: domains}
 	case strongo.EnvDevTest:
-		whitelistedDomainsMessage = fbm_api.WhitelistedDomainsMessage{WhitelistedDomains: []string{
+		whitelistedDomainsMessage = fbmbotapi.WhitelistedDomainsMessage{WhitelistedDomains: []string{
 			"https://debtstracker-dev1.appspot.com",
 		}}
 	default:

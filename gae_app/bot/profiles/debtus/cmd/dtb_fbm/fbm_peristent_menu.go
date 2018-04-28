@@ -14,21 +14,21 @@ import (
 
 var EM_SPACE = strings.Repeat("\u00A0", 2)
 
-func SetPersistentMenu(c context.Context, r *http.Request, bot bots.BotSettings, api fbm_api.GraphAPI) (err error) {
+func SetPersistentMenu(c context.Context, r *http.Request, bot bots.BotSettings, api fbmbotapi.GraphAPI) (err error) {
 	url := fmt.Sprintf("https://%v/app/#fbm%v", r.Host, bot.ID)
 
-	//menuItemWebUrl := func(icon, title, hash string) fbm_api.MenuItemWebUrl {
+	//menuItemWebUrl := func(icon, title, hash string) fbm_api.MenuItemWebURL {
 	//	return fbm_api.NewMenuItemWebUrl(
 	//		icon + EM_SPACE + title,
 	//		url + hash, fbm_api.WebviewHeightRatioFull, false, true)
 	//}
-	menuItemPostback := func(icon, title, payload string) fbm_api.MenuItemPostback {
-		return fbm_api.NewMenuItemPostback(icon+EM_SPACE+title, payload)
+	menuItemPostback := func(icon, title, payload string) fbmbotapi.MenuItemPostback {
+		return fbmbotapi.NewMenuItemPostback(icon+EM_SPACE+title, payload)
 	}
 
 	log.Debugf(c, "url: %v", url)
 
-	persistentMenu := func(locale string) fbm_api.PersistentMenu {
+	persistentMenu := func(locale string) fbmbotapi.PersistentMenu {
 
 		//topMenuDebts := fbm_api.NewMenuItemNested(emoji.MEMO_ICON + EM_SPACE + "Debts",
 		//	menuItemWebUrl(emoji.TAKE_ICON, "I borrowed", "#new-debt=contact-to-user"),
@@ -56,15 +56,15 @@ func SetPersistentMenu(c context.Context, r *http.Request, bot bots.BotSettings,
 		//	topMenuBills,
 		//	topMenuView,
 		//)
-		return fbm_api.NewPersistentMenu(locale, false,
+		return fbmbotapi.NewPersistentMenu(locale, false,
 			menuItemPostback(emoji.HOME_ICON, "Main menu", FbmMainMenuCommand.Code),
 			menuItemPostback(emoji.MEMO_ICON, "Debt", FbmDebtsCommand.Code),
 			menuItemPostback(emoji.BILLS_ICON, "Bills", FbmBillsCommand.Code),
 		)
 	}
 
-	persistentMenuMessage := fbm_api.PersistentMenuMessage{
-		PersistentMenus: []fbm_api.PersistentMenu{
+	persistentMenuMessage := fbmbotapi.PersistentMenuMessage{
+		PersistentMenus: []fbmbotapi.PersistentMenu{
 			persistentMenu("default"),
 			//persistentMenu("ru_RU"),
 		},

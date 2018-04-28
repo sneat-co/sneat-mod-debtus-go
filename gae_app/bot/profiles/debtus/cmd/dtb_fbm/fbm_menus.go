@@ -12,9 +12,9 @@ import (
 	"github.com/strongo/bots-framework/core"
 )
 
-func aboutCard(whc bots.WebhookContext) fbm_api.RequestElement {
+func aboutCard(whc bots.WebhookContext) fbmbotapi.RequestElement {
 	baseUrl := fbmAppBaseUrl(whc)
-	return fbm_api.NewRequestElementWithDefaultAction(
+	return fbmbotapi.NewRequestElementWithDefaultAction(
 		"More...",
 		"What can I do for you?",
 		newDefaultUrlAction(baseUrl, ""),
@@ -24,9 +24,9 @@ func aboutCard(whc bots.WebhookContext) fbm_api.RequestElement {
 	)
 }
 
-func linkAccountsCard(whc bots.WebhookContext) fbm_api.RequestElement {
+func linkAccountsCard(whc bots.WebhookContext) fbmbotapi.RequestElement {
 	baseUrl := fbmAppBaseUrl(whc)
-	return fbm_api.NewRequestElementWithDefaultAction(
+	return fbmbotapi.NewRequestElementWithDefaultAction(
 		"link Accounts",
 		"to to...",
 		newDefaultUrlAction(baseUrl, ""),
@@ -34,9 +34,9 @@ func linkAccountsCard(whc bots.WebhookContext) fbm_api.RequestElement {
 	)
 }
 
-func mainMenuCard(whc bots.WebhookContext) fbm_api.RequestElement {
+func mainMenuCard(whc bots.WebhookContext) fbmbotapi.RequestElement {
 	baseUrl := fbmAppBaseUrl(whc)
-	return fbm_api.NewRequestElementWithDefaultAction(
+	return fbmbotapi.NewRequestElementWithDefaultAction(
 		"Welcome",
 		"This is an app to split bills and track debt records.",
 		newDefaultUrlAction(baseUrl, ""),
@@ -61,11 +61,11 @@ func mainMenuCard(whc bots.WebhookContext) fbm_api.RequestElement {
 //	)
 //}
 
-func askLanguageCard(whc bots.WebhookContext) fbm_api.RequestAttachmentPayload {
-	fbm_api.NewButtonTemplate(
+func askLanguageCard(whc bots.WebhookContext) fbmbotapi.RequestAttachmentPayload {
+	fbmbotapi.NewButtonTemplate(
 		"",
 	)
-	requestElement := fbm_api.RequestElement{
+	requestElement := fbmbotapi.RequestElement{
 		Title:    whc.Translate(trans.MESSAGE_TEXT_HI),
 		Subtitle: "Please choose your language:",
 	}
@@ -73,12 +73,12 @@ func askLanguageCard(whc bots.WebhookContext) fbm_api.RequestAttachmentPayload {
 		requestElement.Buttons = append(requestElement.Buttons, newPostbackButton(lang.FlagIcon, lang.NativeTitle, "fbm-set-lang?code5="+lang.Code5))
 	}
 	requestElement.Buttons = append(requestElement.Buttons, newUrlButton("", "More...", fbmAppBaseUrl(whc), "#set-locale"))
-	return fbm_api.NewGenericTemplate(requestElement)
+	return fbmbotapi.NewGenericTemplate(requestElement)
 }
 
-func welcomeCard(whc bots.WebhookContext) fbm_api.RequestElement {
+func welcomeCard(whc bots.WebhookContext) fbmbotapi.RequestElement {
 	baseUrl := fbmAppBaseUrl(whc)
-	return fbm_api.NewRequestElementWithDefaultAction(
+	return fbmbotapi.NewRequestElementWithDefaultAction(
 		"Welcome!",
 		"Have you ever used DebtsTracker.io app/bot outside of FB Messenger before?",
 		newDefaultUrlAction(baseUrl, ""),
@@ -88,9 +88,9 @@ func welcomeCard(whc bots.WebhookContext) fbm_api.RequestElement {
 	)
 }
 
-func debtsCard(whc bots.WebhookContext) fbm_api.RequestElement {
+func debtsCard(whc bots.WebhookContext) fbmbotapi.RequestElement {
 	baseUrl := fbmAppBaseUrl(whc)
-	requestElement := fbm_api.NewRequestElementWithDefaultAction(
+	requestElement := fbmbotapi.NewRequestElementWithDefaultAction(
 		"Debts",
 		"Tracks personal debts (auto-reminders to your debtors)",
 		newDefaultUrlAction(baseUrl, "#debts"),
@@ -98,13 +98,13 @@ func debtsCard(whc bots.WebhookContext) fbm_api.RequestElement {
 		newPostbackButton(emoji.CLIPBOARD_ICON, whc.Translate(trans.COMMAND_TEXT_BALANCE), dtb_transfer.BALANCE_COMMAND),
 		newPostbackButton(emoji.HISTORY_ICON, whc.Translate(trans.COMMAND_TEXT_HISTORY), dtb_transfer.HISTORY_COMMAND),
 	)
-	//requestElement.ImageUrl = ""
+	//requestElement.ImageURL = ""
 	return requestElement
 }
 
-func billsCard(whc bots.WebhookContext) fbm_api.RequestElement {
+func billsCard(whc bots.WebhookContext) fbmbotapi.RequestElement {
 	baseUrl := fbmAppBaseUrl(whc)
-	return fbm_api.NewRequestElementWithDefaultAction(
+	return fbmbotapi.NewRequestElementWithDefaultAction(
 		"Bills",
 		"Split regular or single bills and get paid back",
 		newDefaultUrlAction(baseUrl, "#bills"),
@@ -114,9 +114,9 @@ func billsCard(whc bots.WebhookContext) fbm_api.RequestElement {
 	)
 }
 
-func settingsCard(whc bots.WebhookContext) fbm_api.RequestElement {
+func settingsCard(whc bots.WebhookContext) fbmbotapi.RequestElement {
 	baseUrl := fbmAppBaseUrl(whc)
-	return fbm_api.NewRequestElementWithDefaultAction(
+	return fbmbotapi.NewRequestElementWithDefaultAction(
 		"Settings",
 		"Adjust settings",
 		newDefaultUrlAction(baseUrl, "#bills"),
@@ -133,33 +133,33 @@ func fbmAppBaseUrl(whc bots.WebhookContext) string {
 	return fmt.Sprintf("https://%v/app/#fbm%v", host, fbApp.AppId)
 }
 
-func newDefaultUrlAction(baseUrl, hash string) fbm_api.RequestDefaultAction {
-	return fbm_api.NewDefaultActionWithWebUrl(
-		fbm_api.RequestWebUrlAction{
+func newDefaultUrlAction(baseUrl, hash string) fbmbotapi.RequestDefaultAction {
+	return fbmbotapi.NewDefaultActionWithWebURL(
+		fbmbotapi.RequestWebURLAction{
 			MessengerExtensions: true,
-			Url:                 baseUrl + hash,
+			URL:                 baseUrl + hash,
 		},
 	)
 }
 
-func newUrlButton(icon, title, baseUrl, hash string) fbm_api.RequestButton {
+func newUrlButton(icon, title, baseUrl, hash string) fbmbotapi.RequestButton {
 	if icon != "" {
 		title = icon + EM_SPACE + title
 	}
-	button := fbm_api.NewRequestWebUrlButtonWithRatio(
+	button := fbmbotapi.NewRequestWebURLButtonWithRatio(
 		title,
 		baseUrl+hash,
-		fbm_api.WebviewHeightRatioFull,
+		fbmbotapi.WebviewHeightRatioFull,
 	)
 	button.MessengerExtensions = true
 	return button
 }
 
-func newPostbackButton(icon, title, payload string) fbm_api.RequestButton {
+func newPostbackButton(icon, title, payload string) fbmbotapi.RequestButton {
 	if icon != "" {
 		title = icon + EM_SPACE + title
 	}
-	button := fbm_api.NewRequestPostbackButton(
+	button := fbmbotapi.NewRequestPostbackButton(
 		title,
 		payload,
 	)
