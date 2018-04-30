@@ -1,4 +1,4 @@
-package gae_app
+package gaeapp
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"

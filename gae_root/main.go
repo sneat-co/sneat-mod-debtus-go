@@ -8,5 +8,5 @@ import (
 
 func init() {
 	log.AddLogger(gaehost.GaeLogger)
-	gae_app.Init(gaehost.GaeBotHost{})
+	gaeapp.Init(gaehost.GaeBotHost{})
 }

@@ -15,6 +15,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/strongo/decimal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 )
 
 const (
@@ -27,23 +28,32 @@ func TestBillApiCreateBill(t *testing.T) {
 	c := context.Background()
 	facade.SetupMocks(c)
 
-	if contact, err := dal.Contact.InsertContact(c, creatorUserID, 0, 0, models.ContactDetails{
-		FirstName: "First",
-	}, models.Balanced{}); err != nil {
+	if contact, err := dal.Contact.InsertContact(c, &models.ContactEntity{
+		UserID: creatorUserID,
+		ContactDetails: models.ContactDetails{
+			FirstName: "First",
+		},
+	}); err != nil {
 		t.Fatal(err)
 	} else if contact.ID != 1 {
 		t.Fatalf("contact.ID: %v", contact.ID)
 	}
-	if contact, err := dal.Contact.InsertContact(c, creatorUserID, 0, 0, models.ContactDetails{
-		FirstName: "Second",
-	}, models.Balanced{}); err != nil {
+	if contact, err := dal.Contact.InsertContact(c, &models.ContactEntity{
+		UserID: creatorUserID,
+		ContactDetails: models.ContactDetails{
+			FirstName: "Second",
+		},
+	}); err != nil {
 		t.Fatal(err)
 	} else if contact.ID != 2 {
 		t.Fatalf("contact.ID != 2: %v", contact.ID)
 	}
-	if contact, err := dal.Contact.InsertContact(c, creatorUserID, 0, 0, models.ContactDetails{
-		FirstName: "Third",
-	}, models.Balanced{}); err != nil {
+	if contact, err := dal.Contact.InsertContact(c, &models.ContactEntity{
+		UserID: creatorUserID,
+		ContactDetails: models.ContactDetails{
+			FirstName: "Third",
+		},
+	}); err != nil {
 		t.Fatal(err)
 	} else if contact.ID != 3 {
 		t.Fatalf("contact.ID != 3: %v", contact.ID)
@@ -86,14 +96,15 @@ func TestBillApiCreateBill(t *testing.T) {
 		t.Error("Expected to get http.StatusOK, got:", responseRecorder.Code, responseRecorder.Body.String(), form)
 		return
 	}
-	responseObject := make(map[string]BillDto, 1)
+
+	responseObject := make(map[string]dto.BillDto, 1)
 
 	if err = json.Unmarshal(responseRecorder.Body.Bytes(), &responseObject); err != nil {
 		t.Errorf("Response body is not valid JSON: %v", string(responseRecorder.Body.String()))
 		return
 	}
 	responseBill := responseObject["Bill"]
-	if responseBill.ID != 1 {
+	if responseBill.ID != "1" {
 		t.Errorf("Response Bill.ID field has unexpected value: %v", responseBill.ID)
 	}
 	if responseBill.Name != "Test bill" {

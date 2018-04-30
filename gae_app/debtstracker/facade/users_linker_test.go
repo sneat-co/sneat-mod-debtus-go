@@ -49,7 +49,7 @@ func TestUsersLinker_LinkUsersWithinTransaction(t *testing.T) {
 
 	err = mockDB.RunInTransaction(c, func(tc context.Context) (err error) {
 		usersLinker = newUsersLinker(new(usersLinkingDbChanges))
-		if err = usersLinker.linkUsersWithinTransaction(tc); err != nil {
+		if err = usersLinker.linkUsersWithinTransaction(tc, "unit-test:1"); err != nil {
 			return err
 		}
 		return nil

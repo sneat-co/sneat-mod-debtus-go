@@ -154,7 +154,7 @@ func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context,
 		if outstandingValue := transfer.GetOutstandingValue(periodEnds); outstandingValue > 0 {
 			transfers = append(transfers, transfer)
 		} else if outstandingValue == 0 {
-			fmt.Fprintln(&warnings, "Transfer(id=%v) => GetOutstandingValue() == 0 && IsOutstanding==true\n", transfer.ID)
+			fmt.Fprintf(&warnings, "Transfer(id=%v) => GetOutstandingValue() == 0 && IsOutstanding==true\n", transfer.ID)
 			transfersIDsToFixIsOutstanding = append(transfersIDsToFixIsOutstanding, transfer.ID)
 		} else { // outstandingValue < 0
 			fmt.Fprintf(&errorMessages, "Transfer(id=%v) => IsOutstanding==true && GetOutstandingValue() < 0: %v\n", transfer.ID, outstandingValue)

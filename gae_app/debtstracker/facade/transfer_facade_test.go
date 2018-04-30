@@ -12,6 +12,7 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/decimal"
+	"github.com/strongo/db"
 )
 
 type assertHelper struct {
@@ -26,23 +27,23 @@ func (assert assertHelper) OutputIsNilIfErr(output createTransferOutput, err err
 		if output.Transfer.TransferEntity != nil {
 			assert.t.Error("Returned a non nil transfer entity with error")
 		}
-		//if counterparty != nil {
-		//	t.Errorf("Returned a counterparty with error: %v", counterparty)
-		//}
-		//if creatorUser != nil {
-		//	t.Errorf("Returned creatorUser with error: %v", creatorUser)
-		//	return
-		//}
+		// if counterparty != nil {
+		// 	t.Errorf("Returned a counterparty with error: %v", counterparty)
+		// }
+		// if creatorUser != nil {
+		// 	t.Errorf("Returned creatorUser with error: %v", creatorUser)
+		// 	return
+		// }
 	}
 	return output, err
 }
 
 func TestCreateTransfer(t *testing.T) {
-	//c, done, err := aetest.NewContext()
-	//if err != nil {
-	//	t.Fatal(err.Error())
-	//}
-	//defer done()
+	// c, done, err := aetest.NewContext()
+	// if err != nil {
+	// 	t.Fatal(err.Error())
+	// }
+	// defer done()
 	SetupMocks(context.Background())
 	c := context.Background()
 	assert := assertHelper{t: t}
@@ -56,10 +57,10 @@ func TestCreateTransfer(t *testing.T) {
 
 	/* Test CreateTransfer that should succeed  - new counterparty by name */
 	{
-		//counterparty, err := dal.Contact.CreateContact(c, user.ID, 0, 0, models.ContactDetails{
-		//	FirstName: "First",
-		//	LastName:  "Contact",
-		//})
+		// counterparty, err := dal.Contact.CreateContact(c, user.ID, 0, 0, models.ContactDetails{
+		// 	FirstName: "First",
+		// 	LastName:  "Contact",
+		// })
 
 		from := &models.TransferCounterpartyInfo{
 			UserID:  userID,
@@ -72,7 +73,7 @@ func TestCreateTransfer(t *testing.T) {
 		}
 
 		creatorUser := models.AppUser{
-			ID:            userID,
+			IntegerID:     db.IntegerID{ID: userID},
 			AppUserEntity: &models.AppUserEntity{},
 		}
 		newTransfer := NewTransferInput(strongo.EnvLocal,
@@ -165,7 +166,7 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 		err        error
 	)
 	creatorUser := models.AppUser{
-		ID:            userID,
+		IntegerID:     db.IntegerID{ID: userID},
 		AppUserEntity: &models.AppUserEntity{},
 	}
 
@@ -188,7 +189,7 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 			from, to,
 			models.NewAmount(models.CURRENCY_RUB, decimal.NewDecimal64p2FromFloat64(10.00)),
 			time.Now().Add(time.Minute), models.TransferInterest{})
-		//t1, _, fromUser, toUser, fromCounterparty, toCounterparty
+		// t1, _, fromUser, toUser, fromCounterparty, toCounterparty
 		if output, err = assert.OutputIsNilIfErr(Transfers.CreateTransfer(c, newTransfer)); err != nil {
 			t.Errorf(err.Error())
 			return

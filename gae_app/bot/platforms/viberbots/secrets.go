@@ -16,7 +16,7 @@ var _bots bots.SettingsBy
 func Bots(c context.Context) bots.SettingsBy { //TODO: Consider to do pre-deployment replace
 	if len(_bots.ByCode) == 0 {
 		host := appengine.DefaultVersionHostname(c)
-		if strings.Contains(host, "dev") {
+		if host == "" || strings.Contains(host, "dev") {
 			_bots = bots.NewBotSettingsBy(nil,
 				// Development bot
 				viber.NewViberBot(strongo.EnvDevTest, bot.ProfileDebtus, "DebtsTrackerDev", "451be8dd024fbbc7-4fb4285be8dbb24e-1b2d99610f798855", strongo.LocalesByCode5[strongo.LocaleCodeEnUS]),

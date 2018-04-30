@@ -17,11 +17,11 @@ import (
 )
 
 const (
-	fbm_PROD_PAGE_ACCESS_TOKEN  = "CAAGdsU6rzXgBAIVVFCQKsmZCue0PUpzuZA4BaZA80UfhxnRH2Nbf5Ri9K66tkXwkLuPa2WhN53MsiAngUUcE2wZBuhb5ZBO0DV5hVAQbOFuCuL5rP35FFQuf2NCkSs0IVwmhpkXkeAAt3a4yn4ZCnBkfearPByE4gbvSD4WfswvZBb6GrtTJ2ZAEgvawDfUWKKdcm8yXsuz2ZBAZDZD"
-	fbm_TEST_PAGE_ACCESS_TOKEN  = "EAAIOtyFmtbsBAA4CuLiZALf4R4voPZBg3AySB63XB8SdRsid7FB2dWwHJgAgONJ0olWEGcOEVYXEjsZBeQ1M124keNAWhgWj3XwIDJ4mfYCl1m1DUuwaZCaOZCm7BZCY6TWwAKTRL5Uv0BSilWVhwGZBDcVmUg8Cm5na19KrFUVOAZDZD"
-	fbm_LOCAL_PAGE_ACCESS_TOKEN = "EAAGgOpi8kU8BADaJYHciKTZAgVnvewxXZCGVsoeRZBHN2o3mXj1sEXsQwfrQMGHZCGprtRY61TRwpX15ZAqYRXmbMpDjPhcts4M1fnWwWbZA9ZCVYEAW0htPj6XFZAX1AWHOlm9CirI8qx2G5k9Hg62hK7VZCNdvZCtPICAj8BwbAnegZDZD"
+	fbmProdPageAccessToken  = "CAAGdsU6rzXgBAIVVFCQKsmZCue0PUpzuZA4BaZA80UfhxnRH2Nbf5Ri9K66tkXwkLuPa2WhN53MsiAngUUcE2wZBuhb5ZBO0DV5hVAQbOFuCuL5rP35FFQuf2NCkSs0IVwmhpkXkeAAt3a4yn4ZCnBkfearPByE4gbvSD4WfswvZBb6GrtTJ2ZAEgvawDfUWKKdcm8yXsuz2ZBAZDZD"
+	fbmTestPageAccessToken  = "EAAIOtyFmtbsBAA4CuLiZALf4R4voPZBg3AySB63XB8SdRsid7FB2dWwHJgAgONJ0olWEGcOEVYXEjsZBeQ1M124keNAWhgWj3XwIDJ4mfYCl1m1DUuwaZCaOZCm7BZCY6TWwAKTRL5Uv0BSilWVhwGZBDcVmUg8Cm5na19KrFUVOAZDZD"
+	fbmLocalPageAccessToken = "EAAGgOpi8kU8BADaJYHciKTZAgVnvewxXZCGVsoeRZBHN2o3mXj1sEXsQwfrQMGHZCGprtRY61TRwpX15ZAqYRXmbMpDjPhcts4M1fnWwWbZA9ZCVYEAW0htPj6XFZAX1AWHOlm9CirI8qx2G5k9Hg62hK7VZCNdvZCtPICAj8BwbAnegZDZD"
 
-	fbm_SPLITBILL_PROD_PAGE_ACCESS_TOKEN = "EAAFzhuSvVPIBAIo4R2oBtrhfHEXOYUOqA4I6ogBqkHhOeJmb6SDWtptIcAe40J0Nbliqwh32omjjPQrxbPydsnwGZBxCEx7QEfQXEGsfs9JLLKFlZCqEDeO35pAoZCLriDRVjIAc6oMbxWOwMgNd4xxdJfSio88okNxo88imAZDZD"
+	fbmSplitBillProdPageAccessToken = "EAAFzhuSvVPIBAIo4R2oBtrhfHEXOYUOqA4I6ogBqkHhOeJmb6SDWtptIcAe40J0Nbliqwh32omjjPQrxbPydsnwGZBxCEx7QEfQXEGsfs9JLLKFlZCqEDeO35pAoZCLriDRVjIAc6oMbxWOwMgNd4xxdJfSio88okNxo88imAZDZD"
 )
 
 type fbAppSecrets struct {
@@ -62,7 +62,7 @@ func Bots(_ context.Context) bots.SettingsBy {
 				bot.ProfileDebtus,
 				"debtstracker",
 				"1587055508253137",
-				fbm_PROD_PAGE_ACCESS_TOKEN,
+				fbmProdPageAccessToken,
 				"d6087a01-c728-4fdf-983c-1695d76236dc",
 				trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
 			),
@@ -71,7 +71,7 @@ func Bots(_ context.Context) bots.SettingsBy {
 				bot.ProfileSplitus,
 				"splitbill.co",
 				"286238251784027",
-				fbm_SPLITBILL_PROD_PAGE_ACCESS_TOKEN,
+				fbmSplitBillProdPageAccessToken,
 				"e8535dd1-df3b-4c3f-bd2c-d4a822509bb3",
 				trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
 			),
@@ -80,7 +80,7 @@ func Bots(_ context.Context) bots.SettingsBy {
 				bot.ProfileDebtus,
 				"debtstracker.dev",
 				"942911595837341",
-				fbm_TEST_PAGE_ACCESS_TOKEN,
+				fbmTestPageAccessToken,
 				"4afb645e-b592-48e6-882c-89f0ec126fbb",
 				trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
 			),
@@ -89,7 +89,7 @@ func Bots(_ context.Context) bots.SettingsBy {
 				bot.ProfileDebtus,
 				"debtstracker.local",
 				"300392587037950",
-				fbm_LOCAL_PAGE_ACCESS_TOKEN,
+				fbmLocalPageAccessToken,
 				"4afb645e-b592-48e6-882c-89f0ec126fbb",
 				trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
 			),

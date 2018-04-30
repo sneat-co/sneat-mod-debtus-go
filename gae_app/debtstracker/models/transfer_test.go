@@ -12,12 +12,12 @@ func TestTransfer_Save(t *testing.T) {
 		kind       string
 		properties []datastore.Property
 	}{}
-	checkHasProperties = func(kind string, properties []datastore.Property) error {
+	checkHasProperties = func(kind string, properties []datastore.Property) {
 		saved = append(saved, struct {
 			kind       string
 			properties []datastore.Property
 		}{kind, properties})
-		return nil
+		return
 	}
 	rub := Currency(CURRENCY_IRR)
 	creator := TransferCounterpartyInfo{

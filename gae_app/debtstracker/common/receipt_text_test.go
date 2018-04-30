@@ -10,6 +10,7 @@ import (
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/db"
 )
 
 func TestWriteReceiptText(t *testing.T) {
@@ -31,7 +32,7 @@ func TestWriteReceiptText(t *testing.T) {
 	ec := strongo.NewExecutionContext(c, translator)
 
 	transfer := models.Transfer{
-		ID: 123,
+		IntegerID: db.IntegerID{ID: 123},
 		TransferEntity: models.NewTransferEntity(
 			12,
 			false,
@@ -56,7 +57,7 @@ func TestWriteReceiptText(t *testing.T) {
 
 	receiptTextBuilder.WriteReceiptText(&buffer, utmParams)
 
-	re := regexp.MustCompile(`Anna Black borrowed from you 987.65 EUR.`)
+	re := regexp.MustCompile(`Anna Black borrowed from you <b>987.65 EUR</b>.`)
 	if matched := re.MatchString(buffer.String()); !matched {
 		t.Errorf("Unexpected output:\nOutput:\n%v\nRegex:\n%v", buffer.String(), re.String())
 	}

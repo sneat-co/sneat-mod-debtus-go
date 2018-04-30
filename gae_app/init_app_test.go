@@ -1,4 +1,4 @@
-package gae_app
+package gaeapp
 
 import (
 	"testing"

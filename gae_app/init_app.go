@@ -1,4 +1,4 @@
-package gae_app
+package gaeapp
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api"
@@ -22,6 +22,7 @@ import (
 	"google.golang.org/appengine/datastore"
 )
 
+// Init initializes debts tracker server
 func Init(botHost bots.BotHost) {
 	if botHost == nil {
 		panic("botHost parameter is required")
@@ -43,7 +44,7 @@ func Init(botHost bots.BotHost) {
 
 	InitBots(httpRouter, botHost, common.TheAppContext)
 
-	httpRouter.GET("/test-pointer", TestModelPointer)
+	httpRouter.GET("/test-pointer", testModelPointer)
 	httpRouter.GET("/Users/astec/", NotFoundSilent)
 
 	maintainance.RegisterMappers()
@@ -73,7 +74,7 @@ type TestTransfer struct {
 	To   TestTransferCounterparty
 }
 
-func TestModelPointer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func testModelPointer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	c := appengine.NewContext(r)
 	testTransfer := TestTransfer{
 		From: TestTransferCounterparty{UserID: 1, UserName: "First"},

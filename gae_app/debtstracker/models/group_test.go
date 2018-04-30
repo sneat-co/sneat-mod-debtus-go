@@ -14,7 +14,7 @@ func TestGroupEntity_ApplyBillBalanceDifference(t *testing.T) {
 	}
 
 	groupEntity.SetGroupMembers([]GroupMemberJson{
-		{MemberJson: MemberJson{ID: "m1", UserID: "1"}},
+		{MemberJson: MemberJson{ID: "m1", UserID: "1", Name: "First member"}},
 		//{MemberJson: MemberJson{ID: "m2", UserID: "2"}},
 	})
 
@@ -24,7 +24,7 @@ func TestGroupEntity_ApplyBillBalanceDifference(t *testing.T) {
 		}
 	}
 
-	members := append(groupEntity.GetGroupMembers(), GroupMemberJson{MemberJson: MemberJson{ID: "m2", UserID: "2"}})
+	members := append(groupEntity.GetGroupMembers(), GroupMemberJson{MemberJson: MemberJson{ID: "m2", UserID: "2", Name: "Second member"}})
 	if changed := groupEntity.SetGroupMembers(members); !changed {
 		t.Fatalf("Shor return changed=true")
 	}
