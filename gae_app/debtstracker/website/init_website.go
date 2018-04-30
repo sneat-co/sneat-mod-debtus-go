@@ -32,7 +32,7 @@ func InitWebsite(router *httprouter.Router) {
 		router.GET(fmt.Sprintf("/%v/login", localeSiteCode), LoginHandler)
 		router.GET(fmt.Sprintf("/%v/counterparty", localeSiteCode), pages.CounterpartyPage)
 		router.GET(fmt.Sprintf("/%v/", localeSiteCode), pages.IndexPage)
-		//strongo.AddHttpHandler(fmt.Sprintf("/%v/create-mass-invite", localeSiteCode), api.AuthOnly(CreateInvitePage))
+		//strongo.AddHTTPHandler(fmt.Sprintf("/%v/create-mass-invite", localeSiteCode), api.AuthOnly(CreateInvitePage))
 
 	}
 	router.GET("/en/songs/annie-iou-a-dance", pages.AnnieIOUaDancePage)
@@ -84,7 +84,7 @@ func CreateInvitePage(w http.ResponseWriter, r *http.Request, authInfo auth.Auth
 			w.Write([]byte(fmt.Sprintf("Invate code [%v] already exists", inviteCode)))
 			return
 		}
-		translator := strongo.NewSingleMapTranslator(strongo.GetLocaleByCode5(strongo.LOCALE_EN_US), strongo.NewMapTranslator(c, trans.TRANS))
+		translator := strongo.NewSingleMapTranslator(strongo.GetLocaleByCode5(strongo.LocaleCodeEnUS), strongo.NewMapTranslator(c, trans.TRANS))
 		ec := strongo.NewExecutionContext(c, translator)
 		if _, err = dal.Invite.CreateMassInvite(ec, userID, inviteCode, int32(maxClaimsCount), "web"); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)

@@ -290,7 +290,7 @@ func getTranslator(c context.Context, localeCode string) (translator strongo.Sin
 	log.Debugf(c, "getTranslator(localeCode=%v)", localeCode)
 	var locale strongo.Locale
 	if locale, err = common.TheAppContext.SupportedLocales().GetLocaleByCode5(localeCode); errors.Cause(err) == trans.ErrUnsupportedLocale {
-		localeCode = strongo.LOCALE_EN_US
+		localeCode = strongo.LocaleCodeEnUS
 	}
 	if locale, err = common.TheAppContext.SupportedLocales().GetLocaleByCode5(localeCode); err != nil {
 		return

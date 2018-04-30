@@ -387,7 +387,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 		}
 	}
 	if lang == "" {
-		lang = strongo.LOCALE_EN_US
+		lang = strongo.LocaleCodeEnUS
 	}
 	receipt := models.NewReceiptEntity(creatorUserID, transferID, transfer.Counterparty().UserID, lang, channel, "", general.CreatedOn{
 		CreatedOnPlatform: "api", // TODO: Replace with actual, pass from client

@@ -117,9 +117,9 @@ func callbackTransferHistory(whc bots.WebhookContext, _ *url.URL) (bots.MessageF
 
 func shortDate(t time.Time, translator strongo.SingleLocaleTranslator) string {
 	switch translator.Locale().Code5 {
-	case strongo.LOCALE_EN_US:
+	case strongo.LocaleCodeEnUS:
 		return t.Format("02 Jan 2006")
-	case strongo.LOCALE_FA_IR:
+	case strongo.LocaleCodeFaIR:
 		pt := ptime.New(t)
 		return pt.Format("dd MMM yyyy")
 	default:

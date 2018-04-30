@@ -44,7 +44,7 @@ func HelpCommandAction(whc bots.WebhookContext, showFeedbackButton bool) (m bots
 
 func getUserReportUrl(t strongo.SingleLocaleTranslator, submit string) string {
 	switch t.Locale().Code5 {
-	case strongo.LOCALE_RU_RU:
+	case strongo.LocalCodeRuRu:
 		switch submit {
 		case "idea":
 			return "https://goo.gl/dAKHFC"

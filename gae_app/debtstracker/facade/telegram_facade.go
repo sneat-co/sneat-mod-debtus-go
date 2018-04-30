@@ -42,8 +42,8 @@ func GetLocale(c context.Context, botID string, tgChatIntID, userID int64) (loca
 			tgChatPreferredLanguage = user.PreferredLanguage
 		}
 		if tgChatPreferredLanguage == "" {
-			tgChatPreferredLanguage = strongo.LOCALE_EN_US
-			log.Warningf(c, "tgChat.PreferredLanguage == '' && user.PreferredLanguage == '', set to %v", strongo.LOCALE_EN_US)
+			tgChatPreferredLanguage = strongo.LocaleCodeEnUS
+			log.Warningf(c, "tgChat.PreferredLanguage == '' && user.PreferredLanguage == '', set to %v", strongo.LocaleCodeEnUS)
 		}
 	}
 	locale = strongo.LocalesByCode5[tgChatPreferredLanguage]

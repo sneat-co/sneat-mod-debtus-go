@@ -24,14 +24,14 @@ func pageContext(r *http.Request, locale strongo.Locale) (translator strongo.Sin
 	c := appengine.NewContext(r)
 
 	switch locale.Code5 {
-	case strongo.LOCALE_RU_RU:
+	case strongo.LocalCodeRuRu:
 		userVoiceID = "47c67b85-d064-4727-b149-bda58cfe6c2d"
 	}
 
 	appTranslator := common.TheAppContext.GetTranslator(c)
 	translator = strongo.NewSingleMapTranslator(locale, appTranslator)
 
-	if locale.Code5 != strongo.LOCALE_EN_US {
+	if locale.Code5 != strongo.LocaleCodeEnUS {
 		translator = strongo.NewSingleLocaleTranslatorWithBackup(translator, strongo.NewSingleMapTranslator(strongo.LocaleEnUS, appTranslator))
 	}
 

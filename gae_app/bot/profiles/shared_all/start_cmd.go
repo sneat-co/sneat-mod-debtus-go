@@ -103,11 +103,11 @@ var LangKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	[]tgbotapi.InlineKeyboardButton{
 		{
 			Text:         strongo.LocaleEnUS.TitleWithIcon(),
-			CallbackData: onStartCallbackCommandCode + "?lang=" + strongo.LOCALE_EN_US,
+			CallbackData: onStartCallbackCommandCode + "?lang=" + strongo.LocaleCodeEnUS,
 		},
 		{
 			Text:         strongo.LocaleRuRu.TitleWithIcon(),
-			CallbackData: onStartCallbackCommandCode + "?lang=" + strongo.LOCALE_RU_RU,
+			CallbackData: onStartCallbackCommandCode + "?lang=" + strongo.LocalCodeRuRu,
 		},
 	},
 )

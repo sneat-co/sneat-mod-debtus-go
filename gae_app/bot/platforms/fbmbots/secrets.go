@@ -64,7 +64,7 @@ func Bots(_ context.Context) bots.SettingsBy {
 				"1587055508253137",
 				fbm_PROD_PAGE_ACCESS_TOKEN,
 				"d6087a01-c728-4fdf-983c-1695d76236dc",
-				trans.SupportedLocalesByCode5[strongo.LOCALE_EN_US],
+				trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
 			),
 			fbm.NewFbmBot(
 				strongo.EnvProduction,
@@ -73,7 +73,7 @@ func Bots(_ context.Context) bots.SettingsBy {
 				"286238251784027",
 				fbm_SPLITBILL_PROD_PAGE_ACCESS_TOKEN,
 				"e8535dd1-df3b-4c3f-bd2c-d4a822509bb3",
-				trans.SupportedLocalesByCode5[strongo.LOCALE_EN_US],
+				trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
 			),
 			fbm.NewFbmBot(
 				strongo.EnvDevTest,
@@ -82,7 +82,7 @@ func Bots(_ context.Context) bots.SettingsBy {
 				"942911595837341",
 				fbm_TEST_PAGE_ACCESS_TOKEN,
 				"4afb645e-b592-48e6-882c-89f0ec126fbb",
-				trans.SupportedLocalesByCode5[strongo.LOCALE_EN_US],
+				trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
 			),
 			fbm.NewFbmBot(
 				strongo.EnvLocal,
@@ -91,7 +91,7 @@ func Bots(_ context.Context) bots.SettingsBy {
 				"300392587037950",
 				fbm_LOCAL_PAGE_ACCESS_TOKEN,
 				"4afb645e-b592-48e6-882c-89f0ec126fbb",
-				trans.SupportedLocalesByCode5[strongo.LOCALE_EN_US],
+				trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
 			),
 		)
 	}

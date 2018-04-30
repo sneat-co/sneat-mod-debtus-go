@@ -34,19 +34,19 @@ func TestDelaySetReminderIsSent(t *testing.T) {
 
 	reminderDal := NewReminderDalGae()
 
-	if err = reminderDal.DelaySetReminderIsSent(context.TODO(), 0, time.Now(), 1, "", strongo.LOCALE_EN_US, ""); err == nil {
+	if err = reminderDal.DelaySetReminderIsSent(context.TODO(), 0, time.Now(), 1, "", strongo.LocaleCodeEnUS, ""); err == nil {
 		t.Error("Should fail as reminder is 0")
 	}
-	if err = reminderDal.DelaySetReminderIsSent(context.TODO(), 1, time.Now(), 0, "", strongo.LOCALE_EN_US, ""); err == nil {
+	if err = reminderDal.DelaySetReminderIsSent(context.TODO(), 1, time.Now(), 0, "", strongo.LocaleCodeEnUS, ""); err == nil {
 		t.Error("Should fail as no message id supplied")
 	}
-	if err = reminderDal.DelaySetReminderIsSent(context.TODO(), 1, time.Now(), 1, "not empty", strongo.LOCALE_EN_US, ""); err == nil {
+	if err = reminderDal.DelaySetReminderIsSent(context.TODO(), 1, time.Now(), 1, "not empty", strongo.LocaleCodeEnUS, ""); err == nil {
 		t.Error("Should fail as both int and string message ids supplied")
 	}
-	if err = reminderDal.DelaySetReminderIsSent(context.TODO(), 1, time.Time{}, 1, "not empty", strongo.LOCALE_EN_US, ""); err == nil {
+	if err = reminderDal.DelaySetReminderIsSent(context.TODO(), 1, time.Time{}, 1, "not empty", strongo.LocaleCodeEnUS, ""); err == nil {
 		t.Error("Should fail as both int and string message ids supplied")
 	}
-	if err = reminderDal.DelaySetReminderIsSent(context.TODO(), 1, time.Time{}, 1, "", strongo.LOCALE_EN_US, ""); err == nil {
+	if err = reminderDal.DelaySetReminderIsSent(context.TODO(), 1, time.Time{}, 1, "", strongo.LocaleCodeEnUS, ""); err == nil {
 		t.Error("Should fail as both sentAt is zero")
 	}
 
@@ -55,7 +55,7 @@ func TestDelaySetReminderIsSent(t *testing.T) {
 		countOfCallsToDelay += 1
 		return nil
 	}
-	if err = reminderDal.DelaySetReminderIsSent(context.TODO(), 1, time.Now(), 1, "", strongo.LOCALE_EN_US, ""); err != nil {
+	if err = reminderDal.DelaySetReminderIsSent(context.TODO(), 1, time.Now(), 1, "", strongo.LocaleCodeEnUS, ""); err != nil {
 		t.Error(errors.Wrap(err, "Should NOT fail").Error())
 	}
 	if countOfCallsToDelay != 1 {

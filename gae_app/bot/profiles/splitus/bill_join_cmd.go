@@ -121,17 +121,17 @@ func joinBillAction(whc bots.WebhookContext, bill models.Bill, memberStatus stri
 	if bill.Currency == "" {
 		guessCurrency := func() models.Currency {
 			switch whc.Locale().Code5 {
-			case strongo.LOCALE_RU_RU:
+			case strongo.LocalCodeRuRu:
 				return models.CURRENCY_RUB
-			case strongo.LOCALE_DE_DE:
+			case strongo.LocaleCodeDeDE:
 				return models.CURRENCY_EUR
-			case strongo.LOCALE_FR_FR:
+			case strongo.LocaleCodeFrFR:
 				return models.CURRENCY_EUR
-			case strongo.LOCALE_IT_IT:
+			case strongo.LocaleCodeItIT:
 				return models.CURRENCY_EUR
-			case strongo.LOCALE_PT_PT:
+			case strongo.LocaleCodePtPT:
 				return models.CURRENCY_EUR
-			case strongo.LOCALE_EN_UK:
+			case strongo.LocaleCodeEnUK:
 				return models.CURRENCY_GBP
 			default:
 				return models.CURRENCY_USD

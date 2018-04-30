@@ -12,7 +12,7 @@ import (
 
 var _bots bots.SettingsBy
 
-const DEFAULT_LOCALE = strongo.LOCALE_EN_US
+const DEFAULT_LOCALE = strongo.LocaleCodeEnUS
 
 const DebtusBotToken = "467112035:AAG9Hij0ofnI6GGXyuc6zol0F4XGQ4OK5Tk"
 
@@ -27,7 +27,7 @@ func Bots(environment strongo.Environment, router func(profile string) bots.Webh
 				telegram.NewTelegramBot(strongo.EnvProduction, bot.ProfileSplitus, "SplitusBot", "345328965:AAHmM7rUCwiPBlVIv-IfhrWhYIUVSHerkpg", "", "", strongo.LocaleEnUS),
 				telegram.NewTelegramBot(strongo.EnvProduction, bot.ProfileDebtus, "DebtsTrackerBot", "209808950:AAHEwdBVtVIhKZhieTCP6zdbVkTROoj0fyA", "284685063:TEST:Njc4MWQ2NzlmMDAx", "350862534:LIVE:ZjAzOWE3ODg5OWMy", strongo.LocaleEnUS),
 				telegram.NewTelegramBot(strongo.EnvProduction, bot.ProfileDebtus, "DebtsTrackerRuBot", "218446201:AAGyvWHuodNYT8kgbR_701m6y8Xg5D9iTSA", "284685063:TEST:MDg3NzM5ZTUxMTNk	", "350862534:LIVE:MGM1ODY0N2Q2ZDM5", strongo.LocaleRuRu),
-				telegram.NewTelegramBot(strongo.EnvProduction, bot.ProfileDebtus, "DebtsTrackerFaBot", "182148042:AAFHD7MfWr5CLjGczaiqsx-Oo6msoR_5JfM", "", "", strongo.LocalesByCode5[strongo.LOCALE_FA_IR]),
+				telegram.NewTelegramBot(strongo.EnvProduction, bot.ProfileDebtus, "DebtsTrackerFaBot", "182148042:AAFHD7MfWr5CLjGczaiqsx-Oo6msoR_5JfM", "", "", strongo.LocalesByCode5[strongo.LocaleCodeFaIR]),
 				telegram.NewTelegramBot(strongo.EnvProduction, bot.ProfileDebtus, "DebtsTrackerItBot", "143800015:AAFrLrjyKCIqVFE0YsdZghYtDVmiLpa_P_A", "84685063:TEST:Zjg1ZTIxYzEyNTQ3", "350862534:LIVE:ZmRhMWRhOWZiOWIx", strongo.LocaleItIt),
 				telegram.NewTelegramBot(strongo.EnvProduction, bot.ProfileDebtus, "DebtsTrackerFrBot", "203397175:AAEqqh2k2QFneWzJ_CmIJ3CHp7cjLa9Pptc", "", "", strongo.LocaleFrFr),
 				telegram.NewTelegramBot(strongo.EnvProduction, bot.ProfileDebtus, "DebtsTrackerDeBot", "211199220:AAEia3GkoOOX61aygVJdVnxU83PQJpftae4", "", "", strongo.LocaleDeDe),
@@ -40,7 +40,7 @@ func Bots(environment strongo.Environment, router func(profile string) bots.Webh
 				// Development bots
 				telegram.NewTelegramBot(strongo.EnvDevTest, bot.ProfileDebtus, "DebtsTrackerDev1Bot", "256321815:AAEmCyeWYIIL7TZhJZIqTHohtR3RP7MOOTY", "", "", strongo.LocaleEnUS),
 				telegram.NewTelegramBot(strongo.EnvDevTest, bot.ProfileDebtus, "DebtsTrackerDev1RuBot", "395833888:AAF-1QnJvy5tOk4LSfIan07AFuEJcldszhs", "", "", strongo.LocaleRuRu),
-				//telegram.NewTelegramBot(strongo.EnvDevTest, bot.ProfileDebtus, "DebtsTrackerDev2RuBot", "360514041:AAFXuT0STHBD9cOn1SFmKzTYDmalP0Rz-7M", "", "", strongo.LocalesByCode5[strongo.LOCALE_RU_RU]),
+				//telegram.NewTelegramBot(strongo.EnvDevTest, bot.ProfileDebtus, "DebtsTrackerDev2RuBot", "360514041:AAFXuT0STHBD9cOn1SFmKzTYDmalP0Rz-7M", "", "", strongo.LocalesByCode5[strongo.LocalCodeRuRu]),
 			)
 		case strongo.EnvStaging:
 			_bots = bots.NewBotSettingsBy(router,

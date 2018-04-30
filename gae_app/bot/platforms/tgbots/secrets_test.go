@@ -17,6 +17,6 @@ func TestGetBotSettingsByLang(t *testing.T) {
 			t.Error(code + " not found in settings, got: " + botSettings.Code)
 		}
 	}
-	verify(bot.ProfileDebtus, strongo.LOCALE_RU_RU, "DebtsTrackerRuBot")
-	verify(bot.ProfileDebtus, strongo.LOCALE_EN_US, "DebtsTrackerBot")
+	verify(bot.ProfileDebtus, strongo.LocalCodeRuRu, "DebtsTrackerRuBot")
+	verify(bot.ProfileDebtus, strongo.LocaleCodeEnUS, "DebtsTrackerBot")
 }

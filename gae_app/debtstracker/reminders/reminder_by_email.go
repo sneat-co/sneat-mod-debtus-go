@@ -78,8 +78,8 @@ func sendReminderByEmail(c context.Context, reminder models.Reminder, emailTo st
 		errDetails = err.Error()
 	}
 
-	if err = dal.Reminder.SetReminderIsSent(c, reminder.ID, sentAt, 0, emailMessageID, strongo.LOCALE_EN_US, errDetails); err != nil {
-		dal.Reminder.DelaySetReminderIsSent(c, reminder.ID, sentAt, 0, emailMessageID, strongo.LOCALE_EN_US, errDetails)
+	if err = dal.Reminder.SetReminderIsSent(c, reminder.ID, sentAt, 0, emailMessageID, strongo.LocaleCodeEnUS, errDetails); err != nil {
+		dal.Reminder.DelaySetReminderIsSent(c, reminder.ID, sentAt, 0, emailMessageID, strongo.LocaleCodeEnUS, errDetails)
 	}
 
 	if err != nil {
