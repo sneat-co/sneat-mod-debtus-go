@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/log"
@@ -53,7 +53,7 @@ func LatestPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		b.WriteString(user.BalanceJson)
 		b.WriteString("</td><td>")
 		if user.InvitedByUserID != 0 {
-			if invitedByUser, err := dal.User.GetUserByID(c, user.InvitedByUserID); err != nil {
+			if invitedByUser, err := facade.User.GetUserByID(c, user.InvitedByUserID); err != nil {
 				b.WriteString(err.Error())
 			} else {
 				b.WriteString(fmt.Sprintf("<a href='user?id=%v>%v</a>')", user.InvitedByUserID, invitedByUser.FullName()))

@@ -33,7 +33,7 @@ func (groupFacade groupFacade) CreateGroup(c context.Context,
 		if intUserID, err = strconv.ParseInt(groupEntity.CreatorUserID, 10, 64); err != nil {
 			return err
 		}
-		user, err := dal.User.GetUserByID(c, intUserID)
+		user, err := User.GetUserByID(c, intUserID)
 		if err != nil {
 			return err
 		}
@@ -91,7 +91,7 @@ func (groupFacade groupFacade) CreateGroup(c context.Context,
 			}
 		}
 
-		if err = dal.User.SaveUser(c, user); err != nil {
+		if err = User.SaveUser(c, user); err != nil {
 			return err
 		}
 		if err = groupFacade.DelayUpdateGroupUsers(c, group.ID); err != nil {
@@ -234,7 +234,7 @@ func (userFacade) UpdateUserWithGroups(c context.Context, user models.AppUser, g
 		return
 	}
 	user.SetActiveGroups(groups)
-	if err = dal.User.SaveUser(c, user); err != nil {
+	if err = User.SaveUser(c, user); err != nil {
 		return
 	}
 	return
@@ -248,7 +248,7 @@ func (userFacade) DelayUpdateContactWithGroups(c context.Context, contactID int6
 
 func delayedUpdateContactWithGroup(c context.Context, contactID int64, addGroupIDs, removeGroupIDs []string) (err error) {
 	log.Debugf(c, "delayedUpdateContactWithGroup(contactID=%d, addGroupIDs=%v, removeGroupIDs=%v)", contactID, addGroupIDs, removeGroupIDs)
-	if _, err = dal.Contact.GetContactByID(c, contactID); err != nil {
+	if _, err = GetContactByID(c, contactID); err != nil {
 		return
 	}
 	if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
@@ -261,14 +261,14 @@ func delayedUpdateContactWithGroup(c context.Context, contactID int64, addGroupI
 
 func (userFacade) UpdateContactWithGroups(c context.Context, contactID int64, addGroupIDs, removeGroupIDs []string) error {
 	log.Debugf(c, "UpdateContactWithGroups(contactID=%d, addGroupIDs=%v, removeGroupIDs=%v)", contactID, addGroupIDs, removeGroupIDs)
-	if contact, err := dal.Contact.GetContactByID(c, contactID); err != nil {
+	if contact, err := GetContactByID(c, contactID); err != nil {
 		return err
 	} else {
 		var isAdded, isRemoved bool
 		contact.GroupIDs, isAdded = slices.MergeStrings(contact.GroupIDs, addGroupIDs)
 		contact.GroupIDs, isRemoved = slices.FilterStrings(contact.GroupIDs, removeGroupIDs)
 		if isAdded || isRemoved {
-			return dal.Contact.SaveContact(c, contact)
+			return SaveContact(c, contact)
 		}
 		return nil
 	}
@@ -320,7 +320,7 @@ func (groupFacade) LeaveGroup(c context.Context, groupID string, userID string) 
 		}
 		if userChanged {
 			user.SetActiveGroups(groups)
-			if err = dal.User.SaveUser(c, user); err != nil {
+			if err = User.SaveUser(c, user); err != nil {
 				return
 			}
 		}

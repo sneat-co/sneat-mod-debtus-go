@@ -5,6 +5,7 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/pkg/errors"
@@ -17,7 +18,7 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 	provider := r.URL.Query().Get("provider")
 
 	if err := dal.DB.RunInTransaction(c, func(c context.Context) error {
-		appUser, err := dal.User.GetUserByID(c, authInfo.UserID)
+		appUser, err := facade.User.GetUserByID(c, authInfo.UserID)
 		if err != nil {
 			return err
 		}
@@ -91,7 +92,7 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 		}
 
 		if changed {
-			if err = dal.User.SaveUser(c, appUser); err != nil {
+			if err = facade.User.SaveUser(c, appUser); err != nil {
 				return err
 			}
 		}

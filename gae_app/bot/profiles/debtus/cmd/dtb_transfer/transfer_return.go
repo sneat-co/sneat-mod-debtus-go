@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
@@ -198,7 +199,7 @@ func processReturnCommand(whc bots.WebhookContext, returnValue decimal.Decimal64
 
 	if transferID != 0 && returnValue > 0 {
 		var transfer models.Transfer
-		if transfer, err = dal.Transfer.GetTransferByID(whc.Context(), transferID); err != nil {
+		if transfer, err = facade.GetTransferByID(whc.Context(), transferID); err != nil {
 			return
 		}
 
@@ -376,7 +377,7 @@ func getReturnWizardParams(whc bots.WebhookContext) (counterpartyID, transferID 
 
 func getCounterparty(whc bots.WebhookContext, counterpartyID int64) (counterparty models.Contact, err error) {
 	//counterparty = new(models.Contact)
-	if counterparty, err = dal.Contact.GetContactByID(whc.Context(), counterpartyID); err != nil {
+	if counterparty, err = facade.GetContactByID(whc.Context(), counterpartyID); err != nil {
 		return
 	}
 	return

@@ -178,10 +178,17 @@ var contactPropertiesToClean = map[string]gaedb.IsOkToRemove{
 	"TelegramUserID":             gaedb.IsZeroInt,
 }
 
-func (entity *ContactEntity) Save() (properties []datastore.Property, err error) {
+func (entity *ContactEntity) BeforeSave() (err error) {
+	//entity.UpdateSearchName()
 	entity.EmailAddressOriginal = strings.TrimSpace(entity.EmailAddressOriginal)
 	entity.EmailAddress = strings.ToLower(entity.EmailAddressOriginal)
-	//entity.UpdateSearchName()
+	return nil
+}
+
+func (entity *ContactEntity) Save() (properties []datastore.Property, err error) {
+	if err = entity.BeforeSave(); err != nil {
+		return
+	}
 
 	if properties, err = datastore.SaveStruct(entity); err != nil {
 		return

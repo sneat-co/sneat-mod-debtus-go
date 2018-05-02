@@ -10,6 +10,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
@@ -46,7 +47,7 @@ func ProcessReturnAnswer(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.
 	}
 
 	howMuch := q.Get("how-much")
-	transfer, err := dal.Transfer.GetTransferByID(c, transferID)
+	transfer, err := facade.GetTransferByID(c, transferID)
 	if err != nil {
 		return m, err
 	}
@@ -83,7 +84,7 @@ var EnableReminderAgainCallbackCommand = bots.NewCallbackCommand(ENABLE_REMINDER
 		return
 	}
 
-	if transfer, err = dal.Transfer.GetTransferByID(c, transfer.ID); err != nil {
+	if transfer, err = facade.GetTransferByID(c, transfer.ID); err != nil {
 		return
 	}
 
@@ -236,7 +237,7 @@ var SetNextReminderDateCallbackCommand = bots.Command{
 		if err != nil {
 			return m, errors.Wrap(err, "Failed to get reminder by id")
 		}
-		transfer, err := dal.Transfer.GetTransferByID(c, reminder.TransferID)
+		transfer, err := facade.GetTransferByID(c, reminder.TransferID)
 		if err != nil {
 			return m, errors.Wrap(err, "Failed to get transfer by id")
 		}

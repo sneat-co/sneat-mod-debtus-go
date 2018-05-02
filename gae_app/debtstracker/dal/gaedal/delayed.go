@@ -9,6 +9,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"context"
@@ -45,7 +46,7 @@ func (UserDalGae) DelaySetUserPreferredLocale(c context.Context, delay time.Dura
 var delayedSetUserPreferredLocale = delay.Func("SetUserPreferredLocale", func(c context.Context, userID int64, localeCode5 string) error {
 	log.Debugf(c, "delayedSetUserPreferredLocale(userID=%v, localeCode5=%v)", userID, localeCode5)
 	return dal.DB.RunInTransaction(c, func(tc context.Context) error {
-		user, err := dal.User.GetUserByID(tc, userID)
+		user, err := facade.User.GetUserByID(tc, userID)
 		if db.IsNotFound(err) {
 			log.Errorf(c, "User not found by ID: %v", err)
 			return nil
@@ -53,7 +54,7 @@ var delayedSetUserPreferredLocale = delay.Func("SetUserPreferredLocale", func(c 
 		if err == nil && user.PreferredLanguage != localeCode5 {
 			user.PreferredLanguage = localeCode5
 
-			if err = dal.User.SaveUser(tc, user); err != nil {
+			if err = facade.User.SaveUser(tc, user); err != nil {
 				err = errors.Wrap(err, "Failed to save user to db")
 			}
 		}
@@ -76,7 +77,7 @@ func (TransferDalGae) DelayUpdateTransferWithCreatorReceiptTgMessageID(c context
 var delayedUpdateTransferWithCreatorReceiptTgMessageID = delay.Func("UpdateTransferWithCreatorReceiptTgMessageID", func(c context.Context, botCode string, transferID, creatorTgChatID, creatorTgReceiptMessageID int64) error {
 	log.Infof(c, "delayedUpdateTransferWithCreatorReceiptTgMessageID(botCode=%v, transferID=%v, creatorTgChatID=%v, creatorReceiptTgMessageID=%v)", botCode, transferID, creatorTgChatID, creatorTgReceiptMessageID)
 	return dal.DB.RunInTransaction(c, func(c context.Context) error {
-		transfer, err := dal.Transfer.GetTransferByID(c, transferID)
+		transfer, err := facade.GetTransferByID(c, transferID)
 		if err != nil {
 			log.Errorf(c, "Failed to get transfer by ID: %v", err)
 			if db.IsNotFound(err) {
@@ -90,7 +91,7 @@ var delayedUpdateTransferWithCreatorReceiptTgMessageID = delay.Func("UpdateTrans
 			transfer.Creator().TgBotID = botCode
 			transfer.Creator().TgChatID = creatorTgChatID
 			transfer.CreatorTgReceiptByTgMsgID = creatorTgReceiptMessageID
-			if err = dal.Transfer.SaveTransfer(c, transfer); err != nil {
+			if err = facade.Transfers.SaveTransfer(c, transfer); err != nil {
 				err = errors.Wrap(err, "Failed to save transfer to db")
 			}
 		}
@@ -265,7 +266,7 @@ func onReceiptSendFail(c context.Context, receiptID, tgChatID int64, tgMsgID int
 //		//transfer models.Transfer
 //		user models.AppUser
 //	)
-//	if user, err = dal.User.GetUserByID(c, userID); err != nil {
+//	if user, err = facade.User.GetUserByID(c, userID); err != nil {
 //		return
 //	}
 //	if user.TelegramUserID == 0 {
@@ -367,7 +368,7 @@ func sendReceiptToCounterpartyByTelegram(c context.Context, receiptID, tgChatID 
 	}
 
 	var transfer models.Transfer
-	if transfer, err = dal.Transfer.GetTransferByID(c, receipt.TransferID); err != nil {
+	if transfer, err = facade.GetTransferByID(c, receipt.TransferID); err != nil {
 		log.Errorf(c, err.Error())
 		if db.IsNotFound(err) {
 			err = nil
@@ -378,7 +379,7 @@ func sendReceiptToCounterpartyByTelegram(c context.Context, receiptID, tgChatID 
 
 	var counterpartyUser models.AppUser
 
-	if counterpartyUser, err = dal.User.GetUserByID(c, receipt.CounterpartyUserID); err != nil {
+	if counterpartyUser, err = facade.User.GetUserByID(c, receipt.CounterpartyUserID); err != nil {
 		return
 	}
 
@@ -540,7 +541,7 @@ var delayedCreateAndSendReceiptToCounterpartyByTelegram = delay.Func("delayedCre
 		return nil
 	}
 	localeCode := tgChat.PreferredLanguage
-	transfer, err := dal.Transfer.GetTransferByID(c, transferID)
+	transfer, err := facade.GetTransferByID(c, transferID)
 	if err != nil {
 		if db.IsNotFound(err) {
 			log.Errorf(c, err.Error())
@@ -549,7 +550,7 @@ var delayedCreateAndSendReceiptToCounterpartyByTelegram = delay.Func("delayedCre
 		return errors.WithMessage(err, fmt.Sprintf("Failed to get transfer by id=%v", transferID))
 	}
 	if localeCode == "" {
-		toUser, err := dal.User.GetUserByID(c, toUserID)
+		toUser, err := facade.User.GetUserByID(c, toUserID)
 		if err != nil {
 			return err
 		}
@@ -599,7 +600,7 @@ var delayedUpdateUserHasDueTransfers = delay.Func("delayedUpdateUserHasDueTransf
 		log.Errorf(c, "userID == 0")
 		return nil
 	}
-	user, err := dal.User.GetUserByID(c, userID)
+	user, err := facade.User.GetUserByID(c, userID)
 	if err != nil {
 		if db.IsNotFound(err) {
 			log.Errorf(c, err.Error())
@@ -626,7 +627,7 @@ var delayedUpdateUserHasDueTransfers = delay.Func("delayedUpdateUserHasDueTransf
 		//panic("Not implemented - refactoring in progress")
 		//reminder := reminders[0]
 		err = dal.DB.RunInTransaction(c, func(tc context.Context) error {
-			if user, err := dal.User.GetUserByID(tc, userID); err != nil {
+			if user, err := facade.User.GetUserByID(tc, userID); err != nil {
 				if db.IsNotFound(err) {
 					log.Errorf(c, err.Error())
 					return nil // Do not retry

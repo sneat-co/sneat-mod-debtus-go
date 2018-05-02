@@ -260,30 +260,30 @@ func (u *AppUserEntity) RemoveContact(contactID int64) (changed bool) {
 	return false
 }
 
-func (u AppUser) AddOrUpdateContact(c Contact) (changed bool) {
+func (u AppUser) AddOrUpdateContact(c Contact) (contactJson UserContactJson, changed bool) {
 	if c.ContactEntity == nil {
 		panic("c.ContactEntity == nil")
 	}
 	if u.ID != c.UserID {
 		panic(fmt.Sprintf("appUser.ID:%d != contact.UserID:%d", u.ID, c.UserID))
 	}
-	c2 := NewUserContactJson(c.ID, c.Status, c.FullName(), c.Balanced)
-	c2.Transfers = c.GetTransfersInfo()
-	c2.TgUserID = c.TelegramUserID
+	contactJson = NewUserContactJson(c.ID, c.Status, c.FullName(), c.Balanced)
+	contactJson.Transfers = c.GetTransfersInfo()
+	contactJson.TgUserID = c.TelegramUserID
 	contacts := u.Contacts()
 	found := false
 	for i, c1 := range contacts {
 		if c1.ID == c.ID {
 			found = true
-			if !c1.Equal(c2) {
-				contacts[i] = c2
+			if !c1.Equal(contactJson) {
+				contacts[i] = contactJson
 				changed = true
 			}
 			break
 		}
 	}
 	if !found {
-		contacts = append(contacts, c2)
+		contacts = append(contacts, contactJson)
 		changed = true
 	}
 	if changed {
@@ -743,9 +743,9 @@ func (u *AppUserEntity) TotalBalanceFromContacts() (balance Balance) {
 var ErrDuplicateContactName = errors.New("user has at least 2 contacts with same name")
 var ErrDuplicateTgUserID = errors.New("user has at least 2 contacts with same TgUserID")
 
-func (u *AppUserEntity) Save() (properties []datastore.Property, err error) {
+func (u *AppUserEntity) BeforeSave() (err error) {
 	if u.GroupsJsonActive != "" && u.GroupsCountActive == 0 {
-		return nil, errors.New(`u.GroupsJsonActive != "" && u.GroupsCountActive == 0`)
+		return errors.New(`u.GroupsJsonActive != "" && u.GroupsCountActive == 0`)
 	}
 
 	contacts := u.Contacts()
@@ -787,6 +787,13 @@ func (u *AppUserEntity) Save() (properties []datastore.Property, err error) {
 		if contact.Transfers != nil {
 			u.TransfersWithInterestCount += len(contact.Transfers.OutstandingWithInterest)
 		}
+	}
+	return
+}
+
+func (u *AppUserEntity) Save() (properties []datastore.Property, err error) {
+	if err = u.BeforeSave(); err != nil {
+		return
 	}
 
 	u.SavedCounter += 1

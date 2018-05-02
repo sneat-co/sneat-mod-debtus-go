@@ -26,7 +26,7 @@ func SaveFeedback(c context.Context, feedbackID int64, feedbackEntity *models.Fe
 		panic("feedbackEntity.Rate is empty string")
 	}
 	feedback = models.Feedback{FeedbackEntity: feedbackEntity}
-	user, err = dal.User.GetUserByID(c, feedbackEntity.UserID)
+	user, err = User.GetUserByID(c, feedbackEntity.UserID)
 	if err != nil {
 		err = errors.Wrapf(err, "Failed to get user by ID=%d", feedbackEntity.UserID)
 	}

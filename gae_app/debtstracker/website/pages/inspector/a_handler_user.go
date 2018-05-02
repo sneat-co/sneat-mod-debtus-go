@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/db"
@@ -168,7 +168,7 @@ func validateContacts(c context.Context,
 
 	for i, userContactInfo := range userContactsJson {
 		var contact models.Contact
-		if contact, err = dal.Contact.GetContactByID(c, userContactInfo.ID); err != nil {
+		if contact, err = facade.GetContactByID(c, userContactInfo.ID); err != nil {
 			if db.IsNotFound(err) {
 				contactInfosNotFoundInDb = append(contactInfosNotFoundInDb, userContactInfo)
 			} else {
@@ -205,7 +205,7 @@ func validateContacts(c context.Context,
 			matchedContacts = append(matchedContacts, contactInfo)
 		} else {
 			var contact models.Contact
-			if contact, err = dal.Contact.GetContactByID(c, key.IntID()); err != nil {
+			if contact, err = facade.GetContactByID(c, key.IntID()); err != nil {
 				return
 			}
 			contactInfo = updateBalance(contact)
@@ -255,7 +255,7 @@ func userPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		contactsMissingInJson, contactsMissedByQuery, matchedContacts []contactWithBalances
 		contactInfosNotFoundInDb                                      []models.UserContactJson
 	)
-	if user, err = dal.User.GetUserByID(c, userID); err != nil {
+	if user, err = facade.User.GetUserByID(c, userID); err != nil {
 		w.Write([]byte(err.Error()))
 		return
 	}

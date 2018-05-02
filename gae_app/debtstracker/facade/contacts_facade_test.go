@@ -23,7 +23,7 @@ package facade
 //
 //	c := context.Background()
 //
-//	user, err := dal.User.GetUserByID(c, 2)
+//	user, err := User.GetUserByID(c, 2)
 //	if err != nil {
 //		t.Error("Faled to get user by ID: ", err)
 //		return

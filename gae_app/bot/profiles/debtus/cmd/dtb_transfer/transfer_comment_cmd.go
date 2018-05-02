@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-telegram"
@@ -154,7 +154,7 @@ func createTransferAskNoteOrCommentCommand(code string, nextCommand bots.Command
 			if counterpartyID == 0 {
 				return m, errors.New("transferWizard.CounterpartyID() == 0")
 			}
-			counterparty, err := dal.Contact.GetContactByID(whc.Context(), counterpartyID)
+			counterparty, err := facade.GetContactByID(whc.Context(), counterpartyID)
 			m.Text = strings.TrimLeft(fmt.Sprintf("%v\n(<i>%v</i>)",
 				whc.Translate(trans.MESSAGE_TEXT_TRANSFER_ASK_FOR_COMMENT_ONLY),
 				whc.Translate(trans.MESSAGE_TEXT_VISIBLE_TO_YOU_AND_COUNTERPARTY, html.EscapeString(counterparty.FullName()))),

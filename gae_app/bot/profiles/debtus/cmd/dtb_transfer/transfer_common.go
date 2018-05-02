@@ -282,7 +282,7 @@ func CreateAskTransferCounterpartyCommand(
 							contactID := contactIDs[0]
 							chatEntity.AddWizardParam(WIZARD_PARAM_COUNTERPARTY, strconv.FormatInt(contactID, 10))
 							var contact models.Contact
-							if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil {
+							if contact, err = facade.GetContactByID(c, contactID); err != nil {
 								return
 							}
 							m, err = onContactSelectedAction(whc, contact)
@@ -303,7 +303,7 @@ func CreateAskTransferCounterpartyCommand(
 			default:
 				log.Debugf(c, "default:")
 				var user models.AppUser
-				if user, err = dal.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+				if user, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
 					return
 				}
 				if isReturn && user.BalanceCount <= 3 && user.TotalContactsCount() <= 3 {
@@ -371,7 +371,7 @@ func listCounterpartiesAsButtons(whc bots.WebhookContext, user models.AppUser, i
 	}
 	m.Format = bots.MessageFormatHTML
 	if user.AppUserEntity == nil {
-		if user, err = dal.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+		if user, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
 			return
 		}
 	}
@@ -595,7 +595,7 @@ func CreateTransferFromBot(
 	from, to := facade.TransferCounterparties(direction, creatorInfo)
 
 	var appUser models.AppUser
-	if appUser, err = dal.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+	if appUser, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
 		return
 	}
 	newTransfer := facade.NewTransferInput(whc.Environment(),
@@ -770,7 +770,7 @@ func createSendReceiptOptionsMessage(whc bots.WebhookContext, transfer models.Tr
 	var telegramKeyboard tgbotapi.InlineKeyboardMarkup
 	var isCounterpartyUserHasTelegram bool
 	if transfer.Creator().ContactID != 0 {
-		if user, err := dal.User.GetUserByID(c, transfer.Counterparty().UserID); err != nil {
+		if user, err := facade.User.GetUserByID(c, transfer.Counterparty().UserID); err != nil {
 			err = errors.Wrapf(err, "Failed to get counterparty user by ID=%v", transfer.Counterparty().UserID)
 			return m, err
 		} else {

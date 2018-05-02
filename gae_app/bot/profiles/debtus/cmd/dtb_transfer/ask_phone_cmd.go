@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/analytics"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"context"
 	"github.com/DebtsTracker/translations/emoji"
@@ -56,7 +57,7 @@ var AskPhoneNumberForReceiptCommand = bots.Command{
 				m = whc.NewMessageByCode(trans.MESSAGE_TEXT_INVALID_PHONE_NUMBER)
 				return m, nil
 			}
-			user, err := dal.User.GetUserByID(c, whc.AppUserIntID())
+			user, err := facade.User.GetUserByID(c, whc.AppUserIntID())
 			if err != nil {
 				return m, err
 			}
@@ -67,14 +68,14 @@ var AskPhoneNumberForReceiptCommand = bots.Command{
 					err = nil
 				} else if user.PhoneNumber == 0 {
 					err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-						user, err := dal.User.GetUserByID(c, whc.AppUserIntID())
+						user, err := facade.User.GetUserByID(c, whc.AppUserIntID())
 						if err != nil {
 							return err
 						}
 						if user.PhoneNumber == 0 {
 							user.PhoneNumber = phoneNumber
 							user.PhoneNumberConfirmed = true
-							return dal.User.SaveUser(c, user)
+							return facade.User.SaveUser(c, user)
 						}
 						return nil
 					}, nil)
@@ -113,11 +114,11 @@ var AskPhoneNumberForReceiptCommand = bots.Command{
 		if transferID, err := strconv.ParseInt(awaitingUrl.Query().Get(WIZARD_PARAM_TRANSFER), 10, 64); err != nil {
 			return m, errors.WithMessage(err, fmt.Sprintf("Failed to parse transferID: %v", awaitingUrl))
 		} else {
-			transfer, err := dal.Transfer.GetTransferByID(c, transferID)
+			transfer, err := facade.GetTransferByID(c, transferID)
 			if err != nil {
 				return m, errors.WithMessage(err, "Failed to get transfer by ID")
 			}
-			counterparty, err := dal.Contact.GetContactByID(c, transfer.Counterparty().ContactID)
+			counterparty, err := facade.GetContactByID(c, transfer.Counterparty().ContactID)
 			if err != nil {
 				return m, errors.WithMessage(err, "Failed to get contact by ID")
 			}
@@ -135,7 +136,7 @@ func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact,
 	c := whc.Context()
 
 	if transfer.TransferEntity == nil {
-		if transfer, err = dal.Transfer.GetTransferByID(c, transfer.ID); err != nil {
+		if transfer, err = facade.GetTransferByID(c, transfer.ID); err != nil {
 			return m, err
 		}
 	}
@@ -288,13 +289,13 @@ func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact,
 		}
 		if counterparty.PhoneNumber == phoneContact.PhoneNumber {
 			dal.DB.RunInTransaction(whc.Context(), func(tc context.Context) error {
-				counterparty, err := dal.Contact.GetContactByID(tc, transfer.Counterparty().ContactID)
+				counterparty, err := facade.GetContactByID(tc, transfer.Counterparty().ContactID)
 				if err != nil {
 					return err
 				}
 				if counterparty.PhoneNumber != phoneContact.PhoneNumber {
 					counterparty.PhoneNumber = phoneContact.PhoneNumber
-					err = dal.Contact.SaveContact(c, counterparty)
+					err = facade.SaveContact(c, counterparty)
 				}
 				return err
 			}, nil)

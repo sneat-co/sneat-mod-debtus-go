@@ -124,11 +124,11 @@ func onStartCallbackCommand(params BotParams) bots.Command {
 			whc.ChatEntity().SetPreferredLanguage(lang)
 
 			if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-				if user, err := dal.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+				if user, err := facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
 					return err
 				} else if err = user.SetPreferredLocale(lang); err != nil {
 					return err
-				} else if err = dal.User.SaveUser(c, user); err != nil {
+				} else if err = facade.User.SaveUser(c, user); err != nil {
 					return err
 				}
 				return nil

@@ -224,7 +224,7 @@ var EditedBillCardHookCommand = bots.Command{ // TODO: seems to be not used anyw
 		changed := false
 		err = dal.DB.RunInTransaction(c, func(c context.Context) error {
 			var bill models.Bill
-			if bill, err = dal.Bill.GetBillByID(c, billID); err != nil {
+			if bill, err = facade.GetBillByID(c, billID); err != nil {
 				return err
 			}
 

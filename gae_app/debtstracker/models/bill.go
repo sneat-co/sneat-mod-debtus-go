@@ -28,8 +28,8 @@ var (
 		BillStatusOutstanding,
 		BillStatusSettled,
 	}
-	BillSplitModes = [5]SplitMode{
-		SplitModeAdjustment,
+	BillSplitModes = [4]SplitMode{
+		// SplitModeAdjustment,
 		SplitModeEqually,
 		SplitModeExactAmount,
 		SplitModePercentage,
@@ -215,5 +215,16 @@ func (entity *BillEntity) SetBillMembers(members []BillMemberJson) (err error) {
 	if err = entity.updateMemberOwes(members); err != nil {
 		return
 	}
-	return entity.setBillMembers(members)
+
+	if err = entity.validateMembersForDuplicatesAndBasicChecks(members); err != nil {
+		return
+	}
+
+	if err = entity.marshalMembersToJsonAndSetMembersCount(members); err != nil {
+		return
+	}
+
+	entity.setUserIDs(members)
+
+	return
 }

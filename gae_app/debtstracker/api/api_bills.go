@@ -22,7 +22,7 @@ func handleGetBill(c context.Context, w http.ResponseWriter, r *http.Request, au
 		BadRequestError(c, w, errors.New("Missing id parameter"))
 		return
 	}
-	bill, err := dal.Bill.GetBillByID(c, billID)
+	bill, err := facade.GetBillByID(c, billID)
 	if err != nil {
 		InternalError(c, w, err)
 		return
@@ -47,9 +47,13 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 		return
 	}
 	var members []dto.BillMemberDto
-	if err = ffjson.Unmarshal([]byte(r.PostFormValue("members")), &members); err != nil {
-		BadRequestError(c, w, err)
-		return
+	{
+		membersJSON := r.PostFormValue("members")
+		if err = ffjson.Unmarshal([]byte(membersJSON), &members); err != nil {
+			BadRequestError(c, w, err)
+			return
+		}
+
 	}
 	if len(members) == 0 {
 		BadRequestMessage(c, w, "No members has been provided")
@@ -85,7 +89,7 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 			contactIDs = append(contactIDs, contactID)
 		}
 		if member.UserID != "" {
-			memberUserID, err := strconv.ParseInt(member.ContactID, 10, 64)
+			memberUserID, err := strconv.ParseInt(member.UserID, 10, 64)
 			if err != nil {
 				BadRequestError(c, w, errors.WithMessage(err, "memberUserID is not an integer"))
 			}
@@ -95,15 +99,15 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 
 	var contacts []models.Contact
 	if len(contactIDs) > 0 {
-		if contacts, err = dal.Contact.GetContactsByIDs(c, contactIDs); err != nil {
+		if contacts, err = facade.GetContactsByIDs(c, contactIDs); err != nil {
 			InternalError(c, w, err)
 			return
 		}
 	}
 
-	var memberUsers []models.AppUser
+	var memberUsers []*models.AppUser
 	if len(memberUserIDs) > 0 {
-		if memberUsers, err = dal.User.GetUsersByIDs(c, memberUserIDs); err != nil {
+		if memberUsers, err = facade.User.GetUsersByIDs(c, memberUserIDs); err != nil {
 			InternalError(c, w, err)
 			return
 		}

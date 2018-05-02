@@ -76,7 +76,7 @@ var joinGroupCommand = shared_group.GroupCallbackCommand(joinGroupCommanCode,
 					log.Debugf(c, "Group member not changed")
 				}
 				if userChanged := appUser.AddGroup(group, whc.GetBotCode()); userChanged {
-					if err = dal.User.SaveUser(c, appUser); err != nil {
+					if err = facade.User.SaveUser(c, appUser); err != nil {
 						return err
 					}
 				}

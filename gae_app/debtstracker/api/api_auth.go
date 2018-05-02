@@ -9,6 +9,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/pkg/errors"
@@ -40,7 +41,7 @@ func AuthOnlyWithUser(handler AuthHandlerWithUser) dal.ContextHandler {
 			return
 		}
 
-		user, err := dal.User.GetUserByID(c, userID)
+		user, err := facade.User.GetUserByID(c, userID)
 
 		if hasError(c, w, err, models.AppUserKind, userID, http.StatusInternalServerError) {
 			return

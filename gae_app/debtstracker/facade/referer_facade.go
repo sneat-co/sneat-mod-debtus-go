@@ -33,7 +33,7 @@ var errAlreadyReferred = errors.New("already referred")
 func setUserReferrer(c context.Context, userID int64, referredBy string) (err error) {
 	userChanged := false
 	if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-		user, err := dal.User.GetUserByID(c, userID)
+		user, err := User.GetUserByID(c, userID)
 		if err != nil {
 			return err
 		}
@@ -43,7 +43,7 @@ func setUserReferrer(c context.Context, userID int64, referredBy string) (err er
 		}
 		user.ReferredBy = referredBy
 		userChanged = true
-		return dal.User.SaveUser(c, user)
+		return User.SaveUser(c, user)
 	}, db.CrossGroupTransaction); err != nil {
 		log.Errorf(c, "failed to check & update user: %v", err)
 		return err
@@ -71,7 +71,7 @@ func (f refererFacade) AddTelegramReferrer(c context.Context, userID int64, tgUs
 				log.Errorf(c, "panic in refererFacade.AddTelegramReferrer(): %v", r)
 			}
 		}()
-		user, err := dal.User.GetUserByID(c, userID)
+		user, err := User.GetUserByID(c, userID)
 		if err != nil {
 			log.Errorf(c, err.Error())
 			return

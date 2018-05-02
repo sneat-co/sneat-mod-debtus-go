@@ -8,6 +8,7 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"context"
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
@@ -55,7 +56,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	if _user, err := dal.User.GetUserByID(c, userID); err != nil {
+	if _user, err := facade.User.GetUserByID(c, userID); err != nil {
 		if db.IsNotFound(err) {
 			w.WriteHeader(http.StatusNotFound)
 			log.Infof(c, err.Error())
@@ -77,13 +78,13 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 				} else {
 					log.Infof(c, "gaeUser.Email: %v", gaeUser.Email)
 					err = dal.DB.RunInTransaction(c, func(tc context.Context) error {
-						u, err := dal.User.GetUserByID(tc, userID)
+						u, err := facade.User.GetUserByID(tc, userID)
 						if err != nil {
 							return errors.Wrap(err, "Failed to load user")
 						}
 						if u.EmailAddress == "" {
 							u.SetEmail(gaeUser.Email, true)
-							if err = dal.User.SaveUser(c, u); err != nil {
+							if err = facade.User.SaveUser(c, u); err != nil {
 								err = errors.Wrap(err, "Failed to save user")
 							}
 						}

@@ -7,7 +7,6 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	dtb_common "bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
@@ -102,7 +101,7 @@ func NewCounterpartyCommand(nextCommand bots.Command) bots.Command {
 
 				if !existingContact {
 					var user models.AppUser
-					if user, err = dal.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+					if user, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
 						return
 					}
 

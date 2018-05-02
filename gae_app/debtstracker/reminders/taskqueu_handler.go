@@ -8,6 +8,7 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/pkg/errors"
@@ -52,7 +53,7 @@ func sendReminder(c context.Context, reminderID int64) error {
 		return nil
 	}
 
-	transfer, err := dal.Transfer.GetTransferByID(c, reminder.TransferID)
+	transfer, err := facade.GetTransferByID(c, reminder.TransferID)
 	if err != nil {
 		if db.IsNotFound(err) {
 			log.Errorf(c, err.Error())

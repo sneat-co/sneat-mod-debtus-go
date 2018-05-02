@@ -9,24 +9,24 @@ import (
 	"strings"
 	"testing"
 
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dtmocks"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/strongo/decimal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 )
 
 const (
 	mockBillID    = 123
-	creatorUserID = 234
+	creatorUserID = 1
 )
 
 func TestBillApiCreateBill(t *testing.T) {
 
 	c := context.Background()
-	facade.SetupMocks(c)
+	dtmocks.SetupMocks(c)
 
 	if contact, err := dal.Contact.InsertContact(c, &models.ContactEntity{
 		UserID: creatorUserID,
@@ -38,26 +38,26 @@ func TestBillApiCreateBill(t *testing.T) {
 	} else if contact.ID != 1 {
 		t.Fatalf("contact.ID: %v", contact.ID)
 	}
-	if contact, err := dal.Contact.InsertContact(c, &models.ContactEntity{
-		UserID: creatorUserID,
-		ContactDetails: models.ContactDetails{
-			FirstName: "Second",
-		},
-	}); err != nil {
-		t.Fatal(err)
-	} else if contact.ID != 2 {
-		t.Fatalf("contact.ID != 2: %v", contact.ID)
-	}
-	if contact, err := dal.Contact.InsertContact(c, &models.ContactEntity{
-		UserID: creatorUserID,
-		ContactDetails: models.ContactDetails{
-			FirstName: "Third",
-		},
-	}); err != nil {
-		t.Fatal(err)
-	} else if contact.ID != 3 {
-		t.Fatalf("contact.ID != 3: %v", contact.ID)
-	}
+	// if contact, err := dal.Contact.InsertContact(c, &models.ContactEntity{
+	// 	UserID: creatorUserID,
+	// 	ContactDetails: models.ContactDetails{
+	// 		FirstName: "Second",
+	// 	},
+	// }); err != nil {
+	// 	t.Fatal(err)
+	// } else if contact.ID != 2 {
+	// 	t.Fatalf("contact.ID != 2: %v", contact.ID)
+	// }
+	// if contact, err := dal.Contact.InsertContact(c, &models.ContactEntity{
+	// 	UserID: creatorUserID,
+	// 	ContactDetails: models.ContactDetails{
+	// 		FirstName: "Third",
+	// 	},
+	// }); err != nil {
+	// 	t.Fatal(err)
+	// } else if contact.ID != 3 {
+	// 	t.Fatalf("contact.ID != 3: %v", contact.ID)
+	// }
 
 	responseRecorder := httptest.NewRecorder()
 
@@ -82,9 +82,9 @@ func TestBillApiCreateBill(t *testing.T) {
 	form.Add("split", "percentage")
 	form.Add("members", `
 	[
-		{"UserID":1,"Percent":34,"Amount":0.04},
-		{"ContactID":2,"Percent":33,"Amount":0.03},
-		{"ContactID":3,"Percent":33,"Amount":0.03}
+		{"UserID":"1","Percent":34,"Amount":0.04},
+		{"ContactID":"62","Percent":33,"Amount":0.03},
+		{"ContactID":"63","Percent":33,"Amount":0.03}
 	]`)
 
 	//body = strings.NewReader("name=Test+bill&currency=EUR&amount=1.23")
@@ -100,7 +100,7 @@ func TestBillApiCreateBill(t *testing.T) {
 	responseObject := make(map[string]dto.BillDto, 1)
 
 	if err = json.Unmarshal(responseRecorder.Body.Bytes(), &responseObject); err != nil {
-		t.Errorf("Response body is not valid JSON: %v", string(responseRecorder.Body.String()))
+		t.Errorf("Response(code=%v) body is not valid JSON: %v", responseRecorder.Code, string(responseRecorder.Body.String()))
 		return
 	}
 	responseBill := responseObject["Bill"]

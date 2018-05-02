@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/captaincodeman/datastore-mapper"
@@ -73,7 +74,7 @@ func (m *verifyUsers) checkContactsExistsAndRecreateIfNeeded(c context.Context, 
 	for i, userContact := range userContacts {
 		contactID := userContact.ID
 		var contact models.Contact
-		if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil {
+		if contact, err = facade.GetContactByID(c, contactID); err != nil {
 			if db.IsNotFound(err) {
 				if err = m.createContact(c, buf, counters, user, userContact); err != nil {
 					log.Errorf(c, "Failed to create contact %v", userContact.ID)
@@ -99,11 +100,11 @@ func (m *verifyUsers) checkContactsExistsAndRecreateIfNeeded(c context.Context, 
 	}
 	if userChanged {
 		if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-			if user, err = dal.User.GetUserByID(c, user.ID); err != nil {
+			if user, err = facade.User.GetUserByID(c, user.ID); err != nil {
 				return err
 			}
 			user.SetContacts(userContacts)
-			if err = dal.User.SaveUser(c, user); err != nil {
+			if err = facade.User.SaveUser(c, user); err != nil {
 				return err
 			}
 			return nil
@@ -118,7 +119,7 @@ func (m *verifyUsers) checkContactsExistsAndRecreateIfNeeded(c context.Context, 
 func (m *verifyUsers) createContact(c context.Context, buf *bytes.Buffer, counters *asyncCounters, user models.AppUser, userContact models.UserContactJson) (err error) {
 	var contact models.Contact
 	if err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
-		if contact, err = dal.Contact.GetContactByID(tc, userContact.ID); err != nil {
+		if contact, err = facade.GetContactByID(tc, userContact.ID); err != nil {
 			if db.IsNotFound(err) {
 				contact = models.NewContact(userContact.ID, &models.ContactEntity{
 					UserID:    user.ID,
@@ -135,7 +136,7 @@ func (m *verifyUsers) createContact(c context.Context, buf *bytes.Buffer, counte
 				if err = contact.SetTransfersInfo(*contact.GetTransfersInfo()); err != nil {
 					return
 				}
-				if err = dal.Contact.SaveContact(tc, contact); err != nil {
+				if err = facade.SaveContact(tc, contact); err != nil {
 					return
 				}
 			}
@@ -158,7 +159,7 @@ func (m *verifyUsers) verifyUserBalanceAndContacts(c context.Context, buf *bytes
 			return err
 		} else if fixedContactsBalances || FixBalanceCurrencies(balance) {
 			if err = nds.RunInTransaction(c, func(c context.Context) error {
-				if user, err = dal.User.GetUserByID(c, user.ID); err != nil {
+				if user, err = facade.User.GetUserByID(c, user.ID); err != nil {
 					return err
 				}
 				balance = m.entity.Balance()
@@ -176,7 +177,7 @@ func (m *verifyUsers) verifyUserBalanceAndContacts(c context.Context, buf *bytes
 					changed = true
 				}
 				if changed {
-					if err = dal.User.SaveUser(c, user); err != nil {
+					if err = facade.User.SaveUser(c, user); err != nil {
 						return err
 					}
 					fmt.Fprintf(buf, "User fixed: %d ", user.ID)

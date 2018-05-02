@@ -86,7 +86,7 @@ package dtb_transfer
 //				log.Warningf(c, "Transfer %v had CounterpartyCounterpartyID != 0", transferID)
 //			}
 //			transferCreatorUser := new(models.AppUser)
-//			if transferCreatorUser, err = dal.User.GetUserByID(tc, transfer.CreatorUserID); err != nil {
+//			if transferCreatorUser, err = facade.User.GetUserByID(tc, transfer.CreatorUserID); err != nil {
 //				log.Errorf(c, "Failed to load transferCreatorUser by ID (%v): %err", transfer.CreatorUserID, err)
 //				return err
 //			}

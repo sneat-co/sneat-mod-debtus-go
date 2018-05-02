@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/invites"
@@ -33,7 +34,7 @@ var AskEmailForReceiptCommand = bots.Command{
 		if err != nil {
 			return m, err
 		}
-		transfer, err := dal.Transfer.GetTransferByID(c, transferID)
+		transfer, err := facade.GetTransferByID(c, transferID)
 		if err != nil {
 			return m, err
 		}

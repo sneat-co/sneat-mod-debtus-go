@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
@@ -40,7 +40,7 @@ func balanceAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 
 	var user models.AppUser
 
-	if user, err = dal.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+	if user, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
 		return
 	}
 

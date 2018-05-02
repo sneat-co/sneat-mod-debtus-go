@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"context"
 	"github.com/pkg/errors"
 	"github.com/strongo/log"
 )
@@ -19,7 +20,8 @@ func TestBadRequest(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	errMsg := "Test error #1"
-	BadRequestError(nil, rr, errors.New(errMsg))
+	c := context.Background()
+	BadRequestError(c, rr, errors.New(errMsg))
 	rr.Flush()
 	if !strings.Contains(rr.Body.String(), errMsg) {
 		t.Error("Output does not contain error message")

@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/strongo/decimal"
-	//"google.golang.org/appengine/datastore"
-	//"github.com/strongo/db/gaedb"
+	// "google.golang.org/appengine/datastore"
+	// "github.com/strongo/db/gaedb"
 	"time"
 
 	"github.com/pkg/errors"
@@ -34,7 +34,7 @@ type TransferInterest struct {
 	InterestPercent       decimal.Decimal64p2 `datastore:",noindex,omitempty"`
 	InterestGracePeriod   int                 `datastore:",noindex,omitempty" json:",omitempty"` // How many days are without any interest
 	InterestMinimumPeriod int                 `datastore:",noindex,omitempty" json:",omitempty"` // Minimum days for interest (e.g. penalty for earlier return).
-	//InterestAmountInCents decimal.Decimal64p2 `datastore:",noindex" json:",omitempty"`
+	// InterestAmountInCents decimal.Decimal64p2 `datastore:",noindex" json:",omitempty"`
 }
 
 func (t TransferInterest) HasInterest() bool {
@@ -66,7 +66,7 @@ func (t *TransferEntity) validateTransferInterestAndReturns() (err error) {
 		returns := t.GetReturns()
 		if len(returns) != len(t.ReturnTransferIDs) && len(returns) > 0 {
 			t.ReturnTransferIDs = nil
-			//return fmt.Errorf("len(t.GetReturns()) != len(t.ReturnTransferIDs): %v != %v", len(t.GetReturns()), len(t.ReturnTransferIDs))
+			// return fmt.Errorf("len(t.GetReturns()) != len(t.ReturnTransferIDs): %v != %v", len(t.GetReturns()), len(t.ReturnTransferIDs))
 		}
 		var amountReturned decimal.Decimal64p2
 		for _, r := range returns {
@@ -89,9 +89,9 @@ func (ti TransferInterest) validateTransferInterest() (err error) {
 	if ti.InterestPercent <= 0 {
 		return fmt.Errorf("InterestPercent <= 0: %v", ti.InterestPercent)
 	}
-	//if entity.InterestAmountInCents < 0 {
-	//	return fmt.Errorf("InterestAmountInCents < 0: %v", entity.InterestAmountInCents)
-	//}
+	// if entity.InterestAmountInCents < 0 {
+	// 	return fmt.Errorf("InterestAmountInCents < 0: %v", entity.InterestAmountInCents)
+	// }
 	if ti.InterestType == "" {
 		return ErrInterestTypeIsNotSet
 	}
@@ -108,16 +108,16 @@ func (ti TransferInterest) validateTransferInterest() (err error) {
 	return
 }
 
-//func init() {
-//	addInterestPropertiesToClean := func(props2clean map[string]gaedb.IsOkToRemove) {
-//		props2clean["InterestType"] = gaedb.IsEmptyString
-//		props2clean["InterestPeriod"] = gaedb.IsZeroInt
-//		props2clean["InterestPercent"] = gaedb.IsZeroInt
-//		props2clean["InterestGracePeriod"] = gaedb.IsZeroInt
-//		props2clean["InterestMinimumPeriod"] = gaedb.IsZeroInt
-//	}
-//	addInterestPropertiesToClean(transferPropertiesToClean)
-//}
+// func init() {
+// 	addInterestPropertiesToClean := func(props2clean map[string]gaedb.IsOkToRemove) {
+// 		props2clean["InterestType"] = gaedb.IsEmptyString
+// 		props2clean["InterestPeriod"] = gaedb.IsZeroInt
+// 		props2clean["InterestPercent"] = gaedb.IsZeroInt
+// 		props2clean["InterestGracePeriod"] = gaedb.IsZeroInt
+// 		props2clean["InterestMinimumPeriod"] = gaedb.IsZeroInt
+// 	}
+// 	addInterestPropertiesToClean(transferPropertiesToClean)
+// }
 
 func (t *TransferEntity) GetOutstandingValue(periodEnds time.Time) (outstandingValue decimal.Decimal64p2) {
 	if t.IsReturn && t.AmountInCentsReturned == 0 {
@@ -126,7 +126,8 @@ func (t *TransferEntity) GetOutstandingValue(periodEnds time.Time) (outstandingV
 	interestValue := t.GetInterestValue(periodEnds)
 	outstandingValue = t.AmountInCents + interestValue - t.AmountInCentsReturned
 	if outstandingValue < 0 && interestValue != 0 {
-		panic(fmt.Sprintf("outstandingValue < 0: %v, IsReturn: %v, Amount: %v, Returned: %v, Interest: %v\n%v", outstandingValue, t.IsReturn, t.AmountInCents, t.AmountInCentsReturned, interestValue, litter.Sdump(t)))
+		panic(fmt.Sprintf("outstandingValue < 0: %v, IsReturn: %v, Amount: %v, Returned: %v, Interest: %v\n%v",
+			outstandingValue, t.IsReturn, t.AmountInCents, t.AmountInCentsReturned, interestValue, litter.Sdump(t)))
 	}
 	return
 }
@@ -175,11 +176,8 @@ func CalculateInterestValue(t TransferInterestCalculable, periodEnds time.Time) 
 		periodStarts := t.GetStartDate()
 		for _, transferReturn := range t.GetReturns() {
 			interestForPeriod := getSimpleInterestForPeriod(periodStarts, transferReturn.Time)
-			if transferReturn.Amount < interestForPeriod {
-				unpaidInterest := interestForPeriod - transferReturn.Amount
-				interestValue += unpaidInterest
-				outstanding += unpaidInterest
-			}
+			outstanding += interestForPeriod
+			interestValue += interestForPeriod
 			outstanding -= transferReturn.Amount
 			periodStarts = transferReturn.Time
 		}

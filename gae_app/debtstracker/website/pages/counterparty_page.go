@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/log"
 	"golang.org/x/net/html"
@@ -23,7 +23,7 @@ func CounterpartyPage(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 		return
 	}
 
-	counterparty, err := dal.Contact.GetContactByID(c, counterpartyID)
+	counterparty, err := facade.GetContactByID(c, counterpartyID)
 	if err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte(err.Error()))

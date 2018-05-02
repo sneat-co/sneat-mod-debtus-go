@@ -7,6 +7,7 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/pkg/errors"
@@ -73,20 +74,6 @@ func (transferDalGae TransferDalGae) LoadDueTransfers(c context.Context, userID 
 	})
 }
 
-func (transferDalGae TransferDalGae) GetTransferByID(c context.Context, id int64) (models.Transfer, error) {
-	var transferEntity models.TransferEntity
-	key := NewTransferKey(c, id)
-	if err := gaedb.Get(c, key, &transferEntity); err != nil {
-		if err == datastore.ErrNoSuchEntity {
-			err = db.NewErrNotFoundByIntID(models.TransferKind, id, err)
-		} else {
-			err = errors.Wrapf(err, "Failed to get transfer by id=%v", id)
-		}
-		return models.Transfer{IntegerID: db.NewIntID(id)}, err
-	}
-	return models.NewTransfer(id, &transferEntity), nil
-}
-
 func (transferDalGae TransferDalGae) GetTransfersByID(c context.Context, transferIDs []int64) (transfers []models.Transfer, err error) {
 	entityHolders := make([]db.EntityHolder, len(transferIDs))
 	for i, transferID := range transferIDs {
@@ -100,23 +87,6 @@ func (transferDalGae TransferDalGae) GetTransfersByID(c context.Context, transfe
 		transfers[i] = *eh.(*models.Transfer)
 	}
 	return
-}
-
-func (transferDalGae TransferDalGae) InsertTransfer(c context.Context, transferEntity *models.TransferEntity) (transfer models.Transfer, err error) {
-	transfer.TransferEntity = transferEntity
-	err = dal.DB.InsertWithRandomIntID(c, &transfer)
-	return
-}
-
-func (transferDalGae TransferDalGae) SaveTransfer(c context.Context, transfer models.Transfer) error {
-	if transfer.ID == 0 {
-		panic("transfer.ID == 0")
-	}
-	if _, err := gaedb.Put(c, NewTransferKey(c, transfer.ID), transfer.TransferEntity); err != nil {
-		return errors.Wrap(err, "Failed to save transfer")
-	} else {
-		return nil
-	}
 }
 
 func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context, periodEnds time.Time, userID, contactID int64, currency models.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error) {
@@ -193,12 +163,12 @@ func fixTransfersIsOutstanding(c context.Context, transferIDs []int64) (err erro
 
 func fixTransferIsOutstanding(c context.Context, transferID int64) (transfer models.Transfer, err error) {
 	err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-		if transfer, err = dal.Transfer.GetTransferByID(c, transferID); err != nil {
+		if transfer, err = facade.GetTransferByID(c, transferID); err != nil {
 			return err
 		}
 		if transfer.GetOutstandingValue(time.Now()) == 0 {
 			transfer.IsOutstanding = true
-			return dal.Transfer.SaveTransfer(c, transfer)
+			return facade.Transfers.SaveTransfer(c, transfer)
 		}
 		return nil
 	}, db.SingleGroupTransaction)

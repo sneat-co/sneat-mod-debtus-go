@@ -11,7 +11,7 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
 )
@@ -31,7 +31,7 @@ func redirectToWebApp(w http.ResponseWriter, r *http.Request, authRequired bool,
 	lang := query.Get("lang")
 	if lang == "" {
 		if authInfo.UserID != 0 {
-			user, err := dal.User.GetUserByID(c, authInfo.UserID)
+			user, err := facade.User.GetUserByID(c, authInfo.UserID)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(err.Error()))

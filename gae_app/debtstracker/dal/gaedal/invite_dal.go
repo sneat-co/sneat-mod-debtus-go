@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"context"
@@ -207,7 +208,7 @@ func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, inviteEnt
 			}
 			if len(counterpartiesKeys) == 0 {
 				counterpartyKey := NewContactIncompleteKey(tc)
-				inviteCreator, err := dal.User.GetUserByID(c, inviteEntity.CreatedByUserID)
+				inviteCreator, err := facade.User.GetUserByID(c, inviteEntity.CreatedByUserID)
 				if err != nil {
 					return errors.Wrap(err, "Failed to get invite creator user")
 				}

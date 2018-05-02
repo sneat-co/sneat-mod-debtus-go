@@ -10,6 +10,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/pkg/errors"
@@ -64,7 +65,7 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 	log.Infof(c, "keepID: %d, deleteID: %d", keepID, deleteID)
 
 	if err := dal.DB.RunInTransaction(c, func(c context.Context) error {
-		contacts, err := dal.Contact.GetContactsByIDs(c, []int64{keepID, deleteID})
+		contacts, err := facade.GetContactsByIDs(c, []int64{keepID, deleteID})
 		if err != nil {
 			return err
 		}
@@ -79,7 +80,7 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 		if contactToDelete.CounterpartyUserID != 0 && contactToKeep.CounterpartyUserID == 0 {
 			return errors.New("contactToDelete.CounterpartyUserID != 0 && contactToKeep.CounterpartyUserID == 0")
 		}
-		user, err := dal.User.GetUserByID(c, contactToKeep.UserID)
+		user, err := facade.User.GetUserByID(c, contactToKeep.UserID)
 		if err != nil {
 			return err
 		}
@@ -87,7 +88,7 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 			return errors.New("Not implemented yet: Need to update counterparty & user balances + last transfer info")
 		}
 		if userChanged := user.RemoveContact(deleteID); userChanged {
-			if err = dal.User.SaveUser(c, user); err != nil {
+			if err = facade.User.SaveUser(c, user); err != nil {
 				return err
 			}
 		}
@@ -134,11 +135,11 @@ var delayedChangeTransfersCounterparty = delay.Func("changeTransfersCounterparty
 
 var delayedChangeTransferCounterparty = delay.Func("changeTransferCounterparty", func(c context.Context, transferID, oldID, newID int64, cursor string) error {
 	log.Debugf(c, "delayedChangeTransferCounterparty(oldID=%d, newID=%d, cursor=%v)", oldID, newID, cursor)
-	if _, err := dal.Contact.GetContactByID(c, newID); err != nil {
+	if _, err := facade.GetContactByID(c, newID); err != nil {
 		return err
 	}
 	err := dal.DB.RunInTransaction(c, func(c context.Context) error {
-		transfer, err := dal.Transfer.GetTransferByID(c, transferID)
+		transfer, err := facade.GetTransferByID(c, transferID)
 		if err != nil {
 			return err
 		}
@@ -156,7 +157,7 @@ var delayedChangeTransferCounterparty = delay.Func("changeTransferCounterparty",
 			} else if to := transfer.To(); to.ContactID == oldID {
 				to.ContactID = newID
 			}
-			err = dal.Transfer.SaveTransfer(c, transfer)
+			err = facade.Transfers.SaveTransfer(c, transfer)
 		}
 		return err
 	}, dal.SingleGroupTransaction)

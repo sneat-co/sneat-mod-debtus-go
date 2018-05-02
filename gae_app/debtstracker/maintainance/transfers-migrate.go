@@ -1,7 +1,7 @@
 package maintainance
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/captaincodeman/datastore-mapper"
@@ -22,11 +22,11 @@ func (m *migrateTransfers) migrateTransfer(c context.Context, counters *asyncCou
 		return
 	}
 	if err = datastore.RunInTransaction(c, func(tc context.Context) (err error) {
-		if transfer, err = dal.Transfer.GetTransferByID(c, transfer.ID); err != nil {
+		if transfer, err = facade.GetTransferByID(c, transfer.ID); err != nil {
 			return
 		}
 		if transfer.HasObsoleteProps() {
-			if err = dal.Transfer.SaveTransfer(tc, transfer); err != nil {
+			if err = facade.Transfers.SaveTransfer(tc, transfer); err != nil {
 				return
 			}
 			log.Infof(c, "Transfer %v fixed", transfer.ID)

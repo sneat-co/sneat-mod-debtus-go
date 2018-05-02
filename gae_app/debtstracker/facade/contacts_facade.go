@@ -16,22 +16,22 @@ import (
 
 func ChangeContactStatus(c context.Context, contactID int64, newStatus string) (contact models.Contact, err error) {
 	err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-		if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil {
-			return err
-		} else if contact.Status != newStatus {
-			contact.Status = newStatus
-			user, err := dal.User.GetUserByID(c, contact.UserID)
-			if err != nil {
-				return err
-			}
-			if userChanged := user.AddOrUpdateContact(contact); userChanged {
-				err = dal.DB.UpdateMulti(c, []db.EntityHolder{&contact, &user})
-			} else {
-				err = dal.Contact.SaveContact(c, contact)
-			}
+		if contact, err = GetContactByID(c, contactID); err != nil {
 			return err
 		}
-		return nil
+		if contact.Status != newStatus {
+			contact.Status = newStatus
+			var user models.AppUser
+			if user, err = User.GetUserByID(c, contact.UserID); err != nil {
+				return err
+			}
+			if _, userChanged := user.AddOrUpdateContact(contact); userChanged {
+				err = dal.DB.UpdateMulti(c, []db.EntityHolder{&contact, &user})
+			} else {
+				err = dal.DB.Update(c, &contact)
+			}
+		}
+		return err
 	}, dal.CrossGroupTransaction)
 	return
 }
@@ -74,7 +74,7 @@ func createContactWithinTransaction(
 	contact.ContactEntity = models.NewContactEntity(appUser.ID, contactDetails)
 	if counterpartyContact.ID != 0 {
 		if counterpartyContact.ContactEntity == nil {
-			if counterpartyContact, err = dal.Contact.GetContactByID(tc, counterpartyContact.ID); err != nil {
+			if counterpartyContact, err = GetContactByID(tc, counterpartyContact.ID); err != nil {
 				return
 			}
 			changes.counterpartyContact = &counterpartyContact
@@ -120,7 +120,7 @@ func createContactWithinTransaction(
 		}
 	}
 
-	if appUser.AddOrUpdateContact(contact) {
+	if _, changed := appUser.AddOrUpdateContact(contact); changed {
 		changes.FlagAsChanged(changes.user)
 	}
 
@@ -173,7 +173,7 @@ func CreateContact(c context.Context, userID int64, contactDetails models.Contac
 	switch len(contactIDs) {
 	case 0:
 		err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
-			if user, err = dal.User.GetUserByID(tc, userID); err != nil {
+			if user, err = User.GetUserByID(tc, userID); err != nil {
 				return
 			}
 			changes := &createContactDbChanges{
@@ -209,7 +209,7 @@ func CreateContact(c context.Context, userID int64, contactDetails models.Contac
 		}
 		return
 	case 1:
-		if contact, err = dal.Contact.GetContactByID(c, contactIDs[0]); err != nil {
+		if contact, err = GetContactByID(c, contactIDs[0]); err != nil {
 			return
 		}
 		user.ID = userID
@@ -222,7 +222,7 @@ func CreateContact(c context.Context, userID int64, contactDetails models.Contac
 
 func UpdateContact(c context.Context, contactID int64, values map[string]string) (contactEntity *models.ContactEntity, err error) {
 	err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-		if contact, err := dal.Contact.GetContactByID(c, contactID); err != nil {
+		if contact, err := GetContactByID(c, contactID); err != nil {
 			return err
 		} else {
 			contactEntity = contact.ContactEntity
@@ -267,7 +267,7 @@ func UpdateContact(c context.Context, contactID int64, values map[string]string)
 				}
 			}
 			if changed {
-				if user, err := dal.User.GetUserByID(c, contact.UserID); err != nil {
+				if user, err := User.GetUserByID(c, contact.UserID); err != nil {
 					return errors.Wrapf(err, "Failed to get user by ID=%v", contact.UserID)
 				} else {
 					user.AddOrUpdateContact(contact)
@@ -286,7 +286,7 @@ func DeleteContact(c context.Context, contactID int64) (user models.AppUser, err
 	log.Warningf(c, "ContactDalGae.DeleteContact(%d)", contactID)
 	var contact models.Contact
 	err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil {
+		if contact, err = GetContactByID(c, contactID); err != nil {
 			if db.IsNotFound(err) {
 				log.Warningf(c, "Contact not found by ID: %v", contactID)
 				err = nil
@@ -296,7 +296,7 @@ func DeleteContact(c context.Context, contactID int64) (user models.AppUser, err
 		if contact.ContactEntity != nil && contact.CounterpartyUserID != 0 {
 			return ErrContactNotDeletable
 		}
-		if user, err = dal.User.GetUserByID(c, contact.UserID); err != nil {
+		if user, err = User.GetUserByID(c, contact.UserID); err != nil {
 			return
 		}
 		if userContact := user.ContactByID(contactID); userContact != nil {
@@ -317,14 +317,43 @@ func DeleteContact(c context.Context, contactID int64) (user models.AppUser, err
 					return err
 				}
 			}
-			if err = dal.User.SaveUser(c, user); err != nil {
+			if err = User.SaveUser(c, user); err != nil {
 				return err
 			}
 		}
-		if err = dal.Contact.DeleteContact(c, contactID); err != nil {
+		if err = dal.DB.Delete(c, &models.Contact{IntegerID: db.IntegerID{ID: contactID}}); err != nil {
 			return err
 		}
 		return nil
 	}, dal.CrossGroupTransaction)
+	return
+}
+
+func SaveContact(c context.Context, contact models.Contact) error {
+	return dal.DB.Update(c, &contact)
+}
+
+func GetContactsByIDs(c context.Context, contactsIDs []int64) (contacts []models.Contact, err error) {
+	count := len(contactsIDs)
+	entityHolders := make([]db.EntityHolder, count)
+	for i, contactID := range contactsIDs {
+		if contactID == 0 {
+			panic(fmt.Sprintf("contactsIDs[%d] == 0", i))
+		}
+		entityHolders[i] = &models.Contact{IntegerID: db.NewIntID(contactID)}
+	}
+	if err = dal.DB.GetMulti(c, entityHolders); err != nil {
+		return
+	}
+	contacts = make([]models.Contact, count)
+	for i, entityHolder := range entityHolders {
+		contacts[i] = *(entityHolder.(*models.Contact))
+	}
+	return contacts, err
+}
+
+func GetContactByID(c context.Context, contactID int64) (contact models.Contact, err error) {
+	contact.ID = contactID
+	err = dal.DB.Get(c, &contact)
 	return
 }

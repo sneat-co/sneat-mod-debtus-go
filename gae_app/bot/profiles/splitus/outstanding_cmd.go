@@ -1,7 +1,7 @@
 package splitus
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/strongo/bots-framework/core"
@@ -20,7 +20,7 @@ func outstandingBalanceAction(whc bots.WebhookContext) (m bots.MessageFromBot, e
 	c := whc.Context()
 	log.Debugf(c, "outstandingBalanceAction()")
 	var user models.AppUser
-	if user, err = dal.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+	if user, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
 		return
 	}
 

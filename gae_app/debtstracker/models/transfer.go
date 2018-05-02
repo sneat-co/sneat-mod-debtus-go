@@ -537,7 +537,7 @@ var transferPropertiesToClean = map[string]gaedb.IsOkToRemove{
 	"IsReturn":                 gaedb.IsFalse,
 }
 
-func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
+func (t *TransferEntity) BeforeSave() (err error) {
 	if t.CreatorUserID == 0 {
 		err = errors.New("*TransferEntity.CreatorUserID == 0")
 		return
@@ -687,6 +687,14 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 
 	if t.C_To == "" && t.DirectionObsoleteProp == "" {
 		err = errors.New("C_To is empty")
+		return
+	}
+
+	return
+}
+
+func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
+	if err = t.BeforeSave(); err != nil {
 		return
 	}
 

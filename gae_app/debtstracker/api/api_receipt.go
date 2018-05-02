@@ -70,7 +70,7 @@ func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	transfer, err := dal.Transfer.GetTransferByID(c, receipt.TransferID)
+	transfer, err := facade.GetTransferByID(c, receipt.TransferID)
 	if hasError(c, w, err, models.TransferKind, receipt.TransferID, http.StatusInternalServerError) {
 		return
 	}
@@ -182,7 +182,7 @@ func handleSendReceipt(c context.Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	transfer, err := dal.Transfer.GetTransferByID(c, receipt.TransferID)
+	transfer, err := facade.GetTransferByID(c, receipt.TransferID)
 	if err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
@@ -219,7 +219,7 @@ func updateReceiptAndTransferOnSent(c context.Context, receiptID int64, channel,
 			return err
 		}
 		if receipt.SentVia == RECEIPT_CHANNEL_DRAFT {
-			if transfer, err = dal.Transfer.GetTransferByID(c, receipt.TransferID); err != nil {
+			if transfer, err = facade.GetTransferByID(c, receipt.TransferID); err != nil {
 				return err
 			}
 			receipt.DtSent = time.Now()
@@ -335,7 +335,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 		w.Write([]byte("Missing transfer parameter"))
 		return
 	}
-	transfer, err := dal.Transfer.GetTransferByID(c, transferID)
+	transfer, err := facade.GetTransferByID(c, transferID)
 	if err != nil {
 		if db.IsNotFound(err) {
 			w.WriteHeader(http.StatusBadRequest)
@@ -347,7 +347,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 	var user models.AppUser
-	if user, err = dal.User.GetUserByID(c, authInfo.UserID); err != nil {
+	if user, err = facade.User.GetUserByID(c, authInfo.UserID); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	}
@@ -401,7 +401,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	//user, err = dal.User.GetUserByID(c, transfer.CreatorUserID)
+	//user, err = facade.User.GetUserByID(c, transfer.CreatorUserID)
 	//if err != nil {
 	//	w.WriteHeader(http.StatusInternalServerError)
 	//	err = errors.Wrapf(err, "Failed to get user by ID=%v", transfer.CreatorUserID)

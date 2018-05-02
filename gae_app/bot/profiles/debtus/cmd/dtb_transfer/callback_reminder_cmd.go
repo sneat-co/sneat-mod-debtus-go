@@ -22,6 +22,7 @@ import (
 	//"google.golang.org/appengine/delay"
 	//"google.golang.org/appengine/urlfetch"
 	//"net/http"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"net/url"
 	"strconv"
 	"strings"
@@ -79,7 +80,7 @@ func rescheduleReminder(whc bots.WebhookContext, reminderID int64, remindInDurat
 		return m, err
 	}
 	var transfer models.Transfer
-	if transfer, err = dal.Transfer.GetTransferByID(c, oldReminder.TransferID); err != nil {
+	if transfer, err = facade.GetTransferByID(c, oldReminder.TransferID); err != nil {
 		return m, errors.Wrap(err, "Failed to get transferEntity by id")
 	}
 	var messageText string
@@ -171,7 +172,7 @@ func rescheduleReminder(whc bots.WebhookContext, reminderID int64, remindInDurat
 
 //func disableReminders(whc bots.WebhookContext, transferID int64) (m bots.MessageFromBot, err error) {
 //	c := whc.Context()
-//	transferKey, transfer, err := dal.Transfer.GetTransferByID(c, transferID)
+//	transferKey, transfer, err := facade.GetTransferByID(c, transferID)
 //	userID := whc.AppUserIntID()
 //	if !transfer.IsRemindersDisabled(userID) {
 //		err = dal.DB.RunInTransaction(c, func(tc context.Context) error {

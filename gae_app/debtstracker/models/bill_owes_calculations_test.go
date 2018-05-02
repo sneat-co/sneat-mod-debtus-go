@@ -10,7 +10,35 @@ func TestUpdateMemberOwesForEqualSplit(t *testing.T) {
 	var members []BillMemberJson
 
 	members = []BillMemberJson{{}, {}, {}, {}}
-	updateMemberOwesForEqualSplit(1000, "", members)
+	updateMemberOwesForEqualSplit(1001, "", members)
+	verifyMemberOwes := func(i int, expecting decimal.Decimal64p2) {
+		t.Helper()
+		if members[i].Owes != expecting {
+			t.Errorf("members[%d].Owes:%v != %v", i, members[i].Owes, expecting)
+		}
+	}
+	verifyMemberOwes(0, 251)
+	verifyMemberOwes(1, 250)
+	verifyMemberOwes(2, 250)
+	verifyMemberOwes(3, 250)
+	//t.Logf("members +v: %+v", members)
+}
+
+func TestUpdateMemberOwesForEqualSplitWithAdjustment(t *testing.T) {
+	var members []BillMemberJson
+
+	members = []BillMemberJson{{}, {Adjustment: 200}, {}, {}}
+	updateMemberOwesForEqualSplit(1001, "", members)
+	verifyMemberOwes := func(i int, expecting decimal.Decimal64p2) {
+		t.Helper()
+		if members[i].Owes != expecting {
+			t.Errorf("members[%d].Owes:%v != %v", i, members[i].Owes, expecting)
+		}
+	}
+	verifyMemberOwes(0, 201)
+	verifyMemberOwes(1, 400)
+	verifyMemberOwes(2, 200)
+	verifyMemberOwes(3, 200)
 	//t.Logf("members +v: %+v", members)
 }
 

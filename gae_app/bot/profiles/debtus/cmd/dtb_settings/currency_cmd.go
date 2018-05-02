@@ -2,6 +2,7 @@ package dtb_settings
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/DebtsTracker/translations/emoji"
@@ -47,11 +48,11 @@ var SetPrimaryCurrency = bots.Command{
 		primaryCurrency := whc.Input().(bots.WebhookTextMessage).Text()
 		if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 			var user models.AppUser
-			if user, err = dal.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+			if user, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
 				return
 			}
 			user.PrimaryCurrency = primaryCurrency
-			return dal.User.SaveUser(c, user)
+			return facade.User.SaveUser(c, user)
 		}, nil); err != nil {
 			return
 		}

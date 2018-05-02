@@ -7,7 +7,7 @@ import (
 	"google.golang.org/appengine/datastore"
 )
 
-func TestTransfer_Save(t *testing.T) {
+func TestTransfer_LoadSaver(t *testing.T) {
 	saved := []struct {
 		kind       string
 		properties []datastore.Property
@@ -29,7 +29,8 @@ func TestTransfer_Save(t *testing.T) {
 		ContactName: "Creator 1",
 	}
 	transfer := NewTransferEntity(creator.UserID, false, NewAmount(rub, decimal.NewDecimal64p2FromFloat64(123.45)), &creator, &counterparty)
-	if properties, err := transfer.Save(); err != nil {
+	properties, err := transfer.Save()
+	if err != nil {
 		t.Error(err)
 	} else if len(saved) == 1 {
 		if saved[0].kind != TransferKind {
@@ -42,6 +43,14 @@ func TestTransfer_Save(t *testing.T) {
 		}
 	} else {
 		t.Errorf("len(saved):%v != 1", len(saved))
+	}
+
+	loadedTransfer := new(TransferEntity)
+	if err = loadedTransfer.Load(properties); err != nil {
+		t.Fatal(err)
+	}
+	if len(loadedTransfer.BothUserIDs) == 0 {
+		t.Error("len(loadedTransfer.BothUserIDs) == 0")
 	}
 }
 

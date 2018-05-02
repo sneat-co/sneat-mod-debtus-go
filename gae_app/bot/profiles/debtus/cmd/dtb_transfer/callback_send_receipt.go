@@ -9,6 +9,7 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
 	"github.com/DebtsTracker/translations/emoji"
@@ -36,13 +37,13 @@ func CallbackSendReceipt(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.
 	if err != nil {
 		return m, errors.Wrap(err, "Faield to decode transferID to int")
 	}
-	transfer, err = dal.Transfer.GetTransferByID(c, transferID)
+	transfer, err = facade.GetTransferByID(c, transferID)
 	if err != nil {
 		return m, errors.Wrap(err, "Failed to get transfer by ID")
 	}
 	//chatEntity := whc.ChatEntity() //TODO: Need this to get appUser, has to be refactored
 	//appUser, err := whc.GetAppUser()
-	counterparty, err := dal.Contact.GetContactByID(c, transfer.Counterparty().ContactID)
+	counterparty, err := facade.GetContactByID(c, transfer.Counterparty().ContactID)
 	if err != nil {
 		return m, err
 	}

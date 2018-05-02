@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"context"
 	"github.com/pkg/errors"
 	"github.com/strongo/db"
@@ -27,7 +28,7 @@ func handleSignInAnonymous(c context.Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	userEntity, err := dal.User.GetUserByID(c, userID)
+	userEntity, err := facade.User.GetUserByID(c, userID)
 
 	if err != nil {
 		if db.IsNotFound(err) {

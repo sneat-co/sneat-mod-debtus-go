@@ -5,7 +5,6 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/db"
 )
 
 var _ dal.ContactDal = (*ContactDalMock)(nil)
@@ -17,31 +16,6 @@ type ContactDalMock struct {
 
 func NewContactDalMock() *ContactDalMock {
 	return &ContactDalMock{Contacts: make(map[int64]*models.ContactEntity)}
-}
-
-func (mock *ContactDalMock) GetContactByID(c context.Context, contactID int64) (contact models.Contact, err error) {
-	if contactEntity, ok := mock.Contacts[contactID]; ok {
-		contact.ContactEntity = contactEntity
-		contact.ID = contactID
-	} else {
-		err = db.ErrRecordNotFound
-	}
-	return
-}
-
-func (mock *ContactDalMock) GetContactsByIDs(c context.Context, contactsIDs []int64) (contacts []models.Contact, err error) {
-	contacts = make([]models.Contact, len(contactsIDs))
-	var found bool
-	for i, id := range contactsIDs {
-		contact := contacts[i]
-		contact.ID = id
-		if contact.ContactEntity, found = mock.Contacts[id]; !found {
-			err = db.NewErrNotFoundByIntID(models.ContactKind, id, nil)
-			return
-		}
-		contacts[i] = contact
-	}
-	return
 }
 
 func (mock *ContactDalMock) GetLatestContacts(whc bots.WebhookContext, limit, totalCount int) (contacts []models.Contact, err error) {

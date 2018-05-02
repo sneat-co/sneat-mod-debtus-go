@@ -5,14 +5,15 @@ import (
 	"time"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dtmocks"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	is2 "github.com/matryer/is"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/decimal"
 	"github.com/strongo/db"
+	"github.com/strongo/decimal"
 )
 
 type assertHelper struct {
@@ -44,11 +45,13 @@ func TestCreateTransfer(t *testing.T) {
 	// 	t.Fatal(err.Error())
 	// }
 	// defer done()
-	SetupMocks(context.Background())
+	dtmocks.SetupMocks(context.Background())
 	c := context.Background()
 	assert := assertHelper{t: t}
 
 	source := dal.NewTransferSourceBot(telegram.PlatformID, "test-bot", "444")
+
+	currency := models.CURRENCY_EUR
 
 	const (
 		userID         = 1
@@ -83,7 +86,7 @@ func TestCreateTransfer(t *testing.T) {
 			false,
 			0,
 			from, to,
-			models.NewAmount(models.CURRENCY_RUB, 10),
+			models.NewAmount(currency, 10),
 			time.Now().Add(time.Minute), models.TransferInterest{})
 
 		output, err := assert.OutputIsNilIfErr(Transfers.CreateTransfer(c, newTransfer))
@@ -121,7 +124,8 @@ func TestCreateTransfer(t *testing.T) {
 		if transfer.Counterparty().ContactName == "" {
 			t.Error("transfer.Contact().ContactName is empty string")
 		}
-		transfer2, err := dal.Transfer.GetTransferByID(c, transfer.ID)
+
+		transfer2, err := GetTransferByID(c, transfer.ID)
 		if err != nil {
 			t.Error(errors.Wrapf(err, "Failed to get transfer by id=%v", transfer.ID))
 			return
@@ -151,9 +155,11 @@ func TestCreateTransfer(t *testing.T) {
 
 func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 	c := context.TODO()
-	SetupMocks(c)
+	dtmocks.SetupMocks(c)
 	assert := assertHelper{t: t}
 	is := is2.New(t)
+	currency := models.CURRENCY_EUR
+
 	const (
 		zero      int64 = 0
 		userID    int64 = 1
@@ -165,12 +171,15 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 		t1, t2, t3 models.Transfer
 		err        error
 	)
-	creatorUser := models.AppUser{
-		IntegerID:     db.IntegerID{ID: userID},
-		AppUserEntity: &models.AppUserEntity{},
+
+	creatorUser, err := User.GetUserByID(c, userID)
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	source := dal.NewTransferSourceBot(telegram.PlatformID, "test-bot", "444")
+
+	t1val := decimal.NewDecimal64p2FromFloat64(10.00)
 	{ // Create 1st "gave" transfer
 		from := &models.TransferCounterpartyInfo{
 			UserID: userID,
@@ -187,21 +196,40 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 			false,
 			0,
 			from, to,
-			models.NewAmount(models.CURRENCY_RUB, decimal.NewDecimal64p2FromFloat64(10.00)),
+			models.NewAmount(currency, t1val),
 			time.Now().Add(time.Minute), models.TransferInterest{})
-		// t1, _, fromUser, toUser, fromCounterparty, toCounterparty
-		if output, err = assert.OutputIsNilIfErr(Transfers.CreateTransfer(c, newTransfer)); err != nil {
-			t.Errorf(err.Error())
-			return
+
+		output, err = Transfers.CreateTransfer(c, newTransfer)
+
+		if output, err = assert.OutputIsNilIfErr(output, err); err != nil {
+			t.Fatal(err)
 		}
 		t1 = output.Transfer
 		is.True(t1.ID != 0)
+		is.True(t1.IsOutstanding)
+		is.Equal(t1.AmountInCentsReturned, decimal.Decimal64p2(0))
+		is.Equal(t1.AmountInCents, t1val)
+		is.Equal(t1.GetOutstandingValue(time.Now()), t1val)
 		is.Equal(output.From.User.ID, userID)
 		is.Equal(output.To.Contact.ID, contactID)
 		is.Equal(output.From.Contact.ID, zero)
 		is.Equal(output.To.User.ID, zero)
+		is.Equal(output.To.Contact.BalanceCount, 1)
+		is.Equal(len(output.To.Contact.Balance()), 1)
+		is.Equal(output.From.User.BalanceCount, 1)
+		is.Equal(len(output.From.User.Balance()), 1)
+		is.Equal(output.From.User.Balance()[currency], t1val)
+		is.Equal(output.To.Contact.Balance()[currency], t1val)
+
+		is.Equal(output.From.User.ContactsCountActive, 1)
+		is.Equal(len(output.From.User.ActiveContacts()), 1)
+		is.Equal(len(output.From.User.ActiveContacts()[0].Balance()), 1)
 	}
 
+	creatorUser = output.From.User
+	t.Log(*creatorUser.AppUserEntity)
+
+	t2val := decimal.NewDecimal64p2FromFloat64(17.00)
 	{ // Create 2nd got transfer
 		from := &models.TransferCounterpartyInfo{
 			ContactID: contactID,
@@ -218,28 +246,48 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 			false,
 			0,
 			from, to,
-			models.NewAmount(models.CURRENCY_RUB, decimal.NewDecimal64p2FromFloat64(17.00)),
+			models.NewAmount(currency, t2val),
 			time.Now().Add(time.Minute), models.TransferInterest{})
 
-		if output, err = assert.OutputIsNilIfErr(Transfers.CreateTransfer(c, newTransfer)); err != nil {
+		output, err = Transfers.CreateTransfer(c, newTransfer)
+
+		if output, err = assert.OutputIsNilIfErr(output, err); err != nil {
 			t.Errorf(err.Error())
 			return
 		}
+
 		t2 = output.Transfer
 		is.True(t2.ID != zero)
-		is.Equal(output.To.User.ID, userID)
-		is.Equal(output.From.Contact.ID, contactID)
 		is.Equal(output.To.Contact.ID, zero)
 		is.Equal(output.From.User.ID, zero)
+		is.True(!t1.IsOutstanding) // 1st transfer should be closed
+		is.True(t2.IsOutstanding)  // 2nd transfer should be outstanding
+		is.Equal(t2.AmountInCents, t2val)
+		is.Equal(t2.AmountInCentsReturned, t1val)
+		is.Equal(t1.AmountInCentsReturned, t1val)
 
-		balance := output.To.User.Balance()
-		is.Equal(len(balance), 1)
-		is.Equal(balance[models.CURRENCY_RUB], decimal.NewDecimal64p2FromFloat64(-7.00))
+		{
+			toUser := output.To.User
+			t.Log(*toUser.AppUserEntity)
+			is.Equal(toUser.ID, userID)
+			is.Equal(toUser.BalanceCount, 1)
+			is.Equal(len(toUser.Balance()), 1)
+			is.Equal(toUser.Balance()[currency], decimal.NewDecimal64p2FromFloat64(-7.00))
+		}
+		{
+			fromContact := output.From.Contact
+			is.Equal(fromContact.ID, contactID)
+			is.Equal(fromContact.BalanceCount, 1)
+			is.Equal(len(fromContact.Balance()), 1)
+			is.Equal(fromContact.Balance()[currency], decimal.NewDecimal64p2FromFloat64(-7.00))
+		}
 	}
 
-	is.Equal(t1.AmountInCentsReturned, decimal.NewDecimal64p2FromFloat64(10))
-	is.Equal(t2.AmountInCentsReturned, decimal.NewDecimal64p2FromFloat64(10))
+	if t1, err = GetTransferByID(c, t1.ID); err != nil {
+		t.Fatal(err)
+	}
 
+	t3val := decimal.NewDecimal64p2FromFloat64(7.00)
 	{ // Create 3d transfer - full return
 		from := &models.TransferCounterpartyInfo{
 			UserID: userID,
@@ -256,10 +304,11 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 			true,
 			0,
 			from, to,
-			models.NewAmount(models.CURRENCY_RUB, decimal.NewDecimal64p2FromFloat64(7.00)),
+			models.NewAmount(currency, t3val),
 			time.Now().Add(time.Minute), models.TransferInterest{})
 
-		if output, err = assert.OutputIsNilIfErr(Transfers.CreateTransfer(c, newTransfer)); err != nil {
+		output, err = Transfers.CreateTransfer(c, newTransfer)
+		if output, err = assert.OutputIsNilIfErr(output, err); err != nil {
 			t.Errorf(err.Error())
 			return
 		}
@@ -270,19 +319,31 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 		is.Equal(output.From.Contact.ID, zero)
 		is.Equal(output.To.User.ID, zero)
 
-		balance := output.From.User.Balance()
-		is.Equal(len(balance), 0)
+		{
+			fromUser := output.From.User
+			is.Equal(fromUser.BalanceCount, 0)
+			is.Equal(len(fromUser.Balance()), 0)
+		}
+		{
+			toContact := output.To.Contact
+			is.Equal(toContact.BalanceCount, 0)
+			is.Equal(len(toContact.Balance()), 0)
+		}
+
+		is.True(!t1.IsOutstanding)
+		is.True(!t2.IsOutstanding)
+		is.True(!t3.IsOutstanding)
+
+		is.Equal(t2.AmountInCentsReturned, t2val) // t2.AmountInCentsReturned
+		is.Equal(t2.GetOutstandingValue(time.Now()), decimal.Decimal64p2(0))
+
+		is.Equal(t3.AmountInCentsReturned, decimal.Decimal64p2(0))
+		is.Equal(t3.GetOutstandingValue(time.Now()), decimal.Decimal64p2(0))
 	}
 
-	is.Equal(t2.AmountInCentsReturned, decimal.NewDecimal64p2FromFloat64(17))
-	is.Equal(t2.GetOutstandingValue(time.Now()), decimal.NewDecimal64p2FromFloat64(0))
-
-	is.Equal(t3.AmountInCentsReturned, decimal.NewDecimal64p2FromFloat64(0))
-	is.Equal(t3.GetOutstandingValue(time.Now()), decimal.NewDecimal64p2FromFloat64(0))
-
-	println("t1", t1.String())
-	println("t2", t2.String())
-	println("t3", t3.String())
+	// println("t1", t1.String())
+	// println("t2", t2.String())
+	// println("t3", t3.String())
 }
 
 func Test_removeClosedTransfersFromOutstandingWithInterest(t *testing.T) {

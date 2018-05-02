@@ -37,7 +37,7 @@ var joinBillCommand = bots.Command{
 			return
 		}
 		if err = dal.DB.RunInTransaction(whc.Context(), func(c context.Context) (err error) {
-			if bill, err = dal.Bill.GetBillByID(whc.Context(), bill.ID); err != nil {
+			if bill, err = facade.GetBillByID(whc.Context(), bill.ID); err != nil {
 				return
 			}
 			m, err = joinBillAction(whc, bill, "", false)
@@ -113,7 +113,7 @@ func joinBillAction(whc bots.WebhookContext, bill models.Bill, memberStatus stri
 	}
 
 	//if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-	//if bill, err = dal.Bill.GetBillByID(c, bill.ID); err != nil {
+	//if bill, err = facade.GetBillByID(c, bill.ID); err != nil {
 	//	return
 	//}
 

@@ -5,6 +5,7 @@ import (
 	"runtime/debug"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/captaincodeman/datastore-mapper"
@@ -39,9 +40,9 @@ func (m *transfersRecreateContacts) verifyAndFix(c context.Context, counters *as
 func verifyAndFixMissingTransferContacts(c context.Context, transfer models.Transfer) (fixed bool, err error) {
 	isMissingAndCanBeFixed := func(contactID, contactUserID, counterpartyContactID int64) (bool, error) {
 		if contactID != 0 && contactUserID != 0 && counterpartyContactID != 0 {
-			if _, err := dal.Contact.GetContactByID(c, contactID); err != nil {
+			if _, err := facade.GetContactByID(c, contactID); err != nil {
 				if db.IsNotFound(err) {
-					if user, err := dal.User.GetUserByID(c, contactUserID); err != nil {
+					if user, err := facade.User.GetUserByID(c, contactUserID); err != nil {
 						return false, err
 					} else {
 						for _, c := range user.Contacts() {
@@ -62,16 +63,16 @@ func verifyAndFixMissingTransferContacts(c context.Context, transfer models.Tran
 		err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
 			log.Debugf(c, "Recreating contact # %v", contactInfo.ContactID)
 			var counterpartyContact models.Contact
-			if counterpartyContact, err = dal.Contact.GetContactByID(c, counterpartyInfo.ContactID); err != nil {
+			if counterpartyContact, err = facade.GetContactByID(c, counterpartyInfo.ContactID); err != nil {
 				return
 			}
 			var contactUser, counterpartyUser models.AppUser
 
-			if contactUser, err = dal.User.GetUserByID(c, counterpartyInfo.UserID); err != nil {
+			if contactUser, err = facade.User.GetUserByID(c, counterpartyInfo.UserID); err != nil {
 				return
 			}
 
-			if counterpartyUser, err = dal.User.GetUserByID(c, contactInfo.UserID); err != nil {
+			if counterpartyUser, err = facade.User.GetUserByID(c, contactInfo.UserID); err != nil {
 				return
 			}
 
@@ -97,7 +98,7 @@ func verifyAndFixMissingTransferContacts(c context.Context, transfer models.Tran
 					log.Errorf(c, "counterpartyContact.CounterpartyCounterpartyID != contact.ID: %v != %v", counterpartyContact.CounterpartyCounterpartyID, contactInfo.ContactID)
 					return
 				}
-				if err = dal.Contact.SaveContact(c, counterpartyContact); err != nil {
+				if err = facade.SaveContact(c, counterpartyContact); err != nil {
 					return err
 				}
 			}
@@ -120,7 +121,7 @@ func verifyAndFixMissingTransferContacts(c context.Context, transfer models.Tran
 				err = fmt.Errorf("contact(%v).Balance != contactUserContactJson.Balance(): %v != %v", contact.ID, contact.Balance(), contactUserContactJson.Balance())
 				return
 			}
-			if err = dal.Contact.SaveContact(c, contact); err != nil {
+			if err = facade.SaveContact(c, contact); err != nil {
 				return
 			}
 

@@ -3,7 +3,7 @@ package splitus
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"fmt"
@@ -39,7 +39,7 @@ func delayUpdateBillCardOnUserJoin(c context.Context, billID string, message str
 
 func delayedUpdateBillCards(c context.Context, billID string, footer string) error {
 	log.Debugf(c, "delayedUpdateBillCards(billID=%d)", billID)
-	if bill, err := dal.Bill.GetBillByID(c, billID); err != nil {
+	if bill, err := facade.GetBillByID(c, billID); err != nil {
 		return err
 	} else {
 		for _, tgChatMessageID := range bill.TgChatMessageIDs {
@@ -54,7 +54,7 @@ func delayedUpdateBillCards(c context.Context, billID string, footer string) err
 
 func delayedUpdateBillTgChartCard(c context.Context, billID string, tgChatMessageID, footer string) error {
 	log.Debugf(c, "delayedUpdateBillTgChartCard(billID=%d, tgChatMessageID=%v)", billID, tgChatMessageID)
-	if bill, err := dal.Bill.GetBillByID(c, billID); err != nil {
+	if bill, err := facade.GetBillByID(c, billID); err != nil {
 		return err
 	} else {
 		ids := strings.Split(tgChatMessageID, "@")

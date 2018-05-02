@@ -187,7 +187,7 @@ func handleSignedWithVK(c context.Context, w http.ResponseWriter, r *http.Reques
 	//}
 	//
 	//if authInfo.UserID != 0 {
-	//	if user, err = dal.User.GetUserByID(c, authInfo.UserID); err != nil {
+	//	if user, err = facade.User.GetUserByID(c, authInfo.UserID); err != nil {
 	//		if err == datastore.ErrNoSuchEntity {
 	//			log.Warningf(c, "User not found ID=%v", authInfo.UserID)
 	//		} else {

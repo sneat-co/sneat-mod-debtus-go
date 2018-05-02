@@ -37,7 +37,7 @@ func newReceiptDbChanges() *receiptDbChanges {
 }
 
 func workaroundReinsertContact(c context.Context, receipt models.Receipt, invitedContact models.Contact, changes *receiptDbChanges) (err error) {
-	if _, err = dal.Contact.GetContactByID(c, invitedContact.ID); err != nil {
+	if _, err = GetContactByID(c, invitedContact.ID); err != nil {
 		if db.IsNotFound(err) {
 			log.Warningf(c, "workaroundReinsertContact(invitedContact.ID=%v) => %v", invitedContact.ID, err.Error())
 			err = nil
@@ -162,10 +162,10 @@ func AcknowledgeReceipt(
 			log.Debugf(c, "Nothing to save")
 		}
 
-		//if _, err = dal.Contact.GetContactByID(c, invitedContact.ID); err != nil {
+		//if _, err = GetContactByID(c, invitedContact.ID); err != nil {
 		//	if db.IsNotFound(err) {
 		//		log.Errorf(c, "Invited contact is not found by ID, let's try to re-insert.")
-		//		if err = dal.Contact.SaveContact(c, invitedContact); err != nil {
+		//		if err = facade.SaveContact(c, invitedContact); err != nil {
 		//			return
 		//		}
 		//	} else {
@@ -186,7 +186,7 @@ func AcknowledgeReceipt(
 	log.Infof(c, "Receipt successfully acknowledged")
 
 	{ // verify invitedContact
-		if invitedContact, err = dal.Contact.GetContactByID(c, invitedContact.ID); err != nil {
+		if invitedContact, err = GetContactByID(c, invitedContact.ID); err != nil {
 			err = errors.WithMessage(err, "failed to load invited contact outside of transaction")
 			if db.IsNotFound(err) {
 				return
@@ -247,7 +247,7 @@ func getReceiptTransferAndUsers(c context.Context, receiptID, userID int64) (
 		return
 	}
 
-	if transfer, err = dal.Transfer.GetTransferByID(c, receipt.TransferID); err != nil {
+	if transfer, err = GetTransferByID(c, receipt.TransferID); err != nil {
 		return
 	}
 
@@ -256,7 +256,7 @@ func getReceiptTransferAndUsers(c context.Context, receiptID, userID int64) (
 		return
 	}
 
-	if creatorUser, err = dal.User.GetUserByID(c, transfer.CreatorUserID); err != nil {
+	if creatorUser, err = User.GetUserByID(c, transfer.CreatorUserID); err != nil {
 		return
 	}
 
@@ -265,7 +265,7 @@ func getReceiptTransferAndUsers(c context.Context, receiptID, userID int64) (
 	}
 
 	if counterpartyUser.ID != 0 {
-		if counterpartyUser, err = dal.User.GetUserByID(c, counterpartyUser.ID); err != nil {
+		if counterpartyUser, err = User.GetUserByID(c, counterpartyUser.ID); err != nil {
 			return
 		}
 	}

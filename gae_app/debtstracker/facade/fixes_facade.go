@@ -13,7 +13,7 @@ import (
 
 func CheckTransferCreatorNameAndFixIfNeeded(c context.Context, w http.ResponseWriter, transfer models.Transfer) (models.Transfer, error) {
 	if transfer.Creator().UserName == "" {
-		user, err := dal.User.GetUserByID(c, transfer.CreatorUserID)
+		user, err := User.GetUserByID(c, transfer.CreatorUserID)
 		if err != nil {
 			return transfer, err
 		}
@@ -32,7 +32,7 @@ func CheckTransferCreatorNameAndFixIfNeeded(c context.Context, w http.ResponseWr
 		}
 
 		if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-			if transfer, err = dal.Transfer.GetTransferByID(c, transfer.ID); err != nil {
+			if transfer, err = GetTransferByID(c, transfer.ID); err != nil {
 				return err
 			}
 			if transfer.Creator().UserName == "" {
@@ -46,7 +46,7 @@ func CheckTransferCreatorNameAndFixIfNeeded(c context.Context, w http.ResponseWr
 					changed = true
 				}
 				if changed {
-					return dal.Transfer.SaveTransfer(c, transfer)
+					return Transfers.SaveTransfer(c, transfer)
 				}
 			}
 			return nil

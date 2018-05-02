@@ -9,6 +9,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"context"
 	"github.com/pkg/errors"
 	"github.com/strongo/log"
@@ -41,7 +42,7 @@ func handleAdminLatestUsers(c context.Context, w http.ResponseWriter, r *http.Re
 		if len(userCounterpartiesIDs) > 0 {
 			wg.Add(1)
 			go func(i int, userCounterpartiesIDs []int64) {
-				counterparties, err := dal.Contact.GetContactsByIDs(c, userCounterpartiesIDs)
+				counterparties, err := facade.GetContactsByIDs(c, userCounterpartiesIDs)
 				if err != nil {
 					log.Errorf(c, errors.Wrapf(err, "Failed to get counterparties by ids=%v", userCounterpartiesIDs).Error())
 					wg.Done()
@@ -67,7 +68,7 @@ func handleAdminLatestUsers(c context.Context, w http.ResponseWriter, r *http.Re
 		if user.InvitedByUserID != 0 {
 			wg.Add(1)
 			go func(i int, userID int64) {
-				inviter, err := dal.User.GetUserByID(c, userID)
+				inviter, err := facade.User.GetUserByID(c, userID)
 				if err != nil {
 					log.Errorf(c, errors.Wrapf(err, "Failed to get user by id=%v", userID).Error())
 					return

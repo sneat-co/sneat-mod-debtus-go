@@ -3,7 +3,6 @@ package facade
 import (
 	"strconv"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"context"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
@@ -34,7 +33,7 @@ func GetLocale(c context.Context, botID string, tgChatIntID, userID int64) (loca
 			userID = tgChatEntity.AppUserIntID
 		}
 		if userID != 0 {
-			user, err := dal.User.GetUserByID(c, userID)
+			user, err := User.GetUserByID(c, userID)
 			if err != nil {
 				log.Errorf(c, errors.Wrapf(err, "Failed to get user by ID=%v", userID).Error())
 				return locale, err

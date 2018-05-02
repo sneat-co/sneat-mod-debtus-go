@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-framework/core"
@@ -79,7 +79,7 @@ var newBillCommand = bots.Command{
 			return
 		}
 		var bill models.Bill
-		if bill, err = dal.Bill.InsertBillEntity(c, billEntity); err != nil {
+		if bill, err = facade.Bill.CreateBill(c, c, billEntity); err != nil {
 			return
 		}
 		return ShowBillCard(whc, true, bill, "")

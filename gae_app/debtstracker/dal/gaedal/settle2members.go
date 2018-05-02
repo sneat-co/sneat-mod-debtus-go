@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/pkg/errors"
@@ -80,7 +81,7 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 				panic(fmt.Sprintf("amount < 0: %v", amount))
 			}
 			bill := models.Bill{}
-			if bill, err = dal.Bill.GetBillByID(c, k.StringID()); err != nil {
+			if bill, err = facade.GetBillByID(c, k.StringID()); err != nil {
 				return
 			}
 			billMembers := bill.GetBillMembers()

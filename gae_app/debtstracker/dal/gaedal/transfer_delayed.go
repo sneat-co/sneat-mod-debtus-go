@@ -7,6 +7,7 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/pkg/errors"
@@ -95,7 +96,7 @@ var delayedUpdateTransferWithCounterparty = delay.Func(DELAY_UPDATE_1_TRANSFER_W
 			return nil
 		}
 
-		counterpartyCounterparty, err := dal.Contact.GetContactByID(c, counterpartyCounterpartyID)
+		counterpartyCounterparty, err := facade.GetContactByID(c, counterpartyCounterpartyID)
 		if err != nil {
 			log.Errorf(c, err.Error())
 			if db.IsNotFound(err) {
@@ -106,7 +107,7 @@ var delayedUpdateTransferWithCounterparty = delay.Func(DELAY_UPDATE_1_TRANSFER_W
 
 		log.Debugf(c, "counterpartyCounterparty: %v", counterpartyCounterparty)
 
-		counterpartyUser, err := dal.User.GetUserByID(c, counterpartyCounterparty.UserID)
+		counterpartyUser, err := facade.User.GetUserByID(c, counterpartyCounterparty.UserID)
 		if err != nil {
 			log.Errorf(c, err.Error())
 			if db.IsNotFound(err) {
@@ -118,7 +119,7 @@ var delayedUpdateTransferWithCounterparty = delay.Func(DELAY_UPDATE_1_TRANSFER_W
 		log.Debugf(c, "counterpartyUser: %v", *counterpartyUser.AppUserEntity)
 
 		if err := dal.DB.RunInTransaction(c, func(tc context.Context) error {
-			transfer, err := dal.Transfer.GetTransferByID(tc, transferID)
+			transfer, err := facade.GetTransferByID(tc, transferID)
 			if err != nil {
 				return err
 			}
@@ -174,12 +175,12 @@ var delayedUpdateTransferWithCounterparty = delay.Func(DELAY_UPDATE_1_TRANSFER_W
 			log.Debugf(c, "transfer.To() after: %v", transfer.To())
 
 			if changed {
-				if err = dal.Transfer.SaveTransfer(tc, transfer); err != nil {
+				if err = facade.Transfers.SaveTransfer(tc, transfer); err != nil {
 					return err
 				}
 				if !transfer.DtDueOn.IsZero() {
 					var counterpartyUser models.AppUser
-					if counterpartyUser, err = dal.User.GetUserByID(c, counterpartyCounterparty.UserID); err != nil {
+					if counterpartyUser, err = facade.User.GetUserByID(c, counterpartyCounterparty.UserID); err != nil {
 						return err
 					}
 
@@ -214,7 +215,7 @@ func DelayUpdateTransfersWithCreatorName(c context.Context, userID int64) error 
 var delayedUpdateTransfersWithCreatorName = delay.Func(UPDATE_TRANSFERS_WITH_CREATOR_NAME, func(c context.Context, userID int64) error {
 	log.Debugf(c, "delayedUpdateTransfersWithCreatorName(userID=%d)", userID)
 
-	user, err := dal.User.GetUserByID(c, userID)
+	user, err := facade.User.GetUserByID(c, userID)
 	if err != nil {
 		log.Errorf(c, err.Error())
 		if db.IsNotFound(err) {
@@ -244,7 +245,7 @@ var delayedUpdateTransfersWithCreatorName = delay.Func(UPDATE_TRANSFERS_WITH_CRE
 		go func(transferID int64) {
 			defer wg.Done()
 			err := dal.DB.RunInTransaction(c, func(c context.Context) error {
-				transfer, err := dal.Transfer.GetTransferByID(c, transferID)
+				transfer, err := facade.GetTransferByID(c, transferID)
 				if err != nil {
 					return err
 				}
@@ -264,7 +265,7 @@ var delayedUpdateTransfersWithCreatorName = delay.Func(UPDATE_TRANSFERS_WITH_CRE
 					log.Infof(c, "Transfer(%d) creator is not a counterparty")
 				}
 				if changed {
-					if err = dal.Transfer.SaveTransfer(c, transfer); err != nil {
+					if err = facade.Transfers.SaveTransfer(c, transfer); err != nil {
 						return err
 					}
 				}

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/pkg/errors"
@@ -44,7 +44,7 @@ func (loginPinDalGae LoginPinDalGae) CreateLoginPin(c context.Context, channel, 
 		return 0, fmt.Errorf("Unknown channel: %v", channel)
 	}
 	if createdUserID != 0 {
-		if _, err := dal.User.GetUserByID(c, createdUserID); err != nil {
+		if _, err := facade.User.GetUserByID(c, createdUserID); err != nil {
 			return 0, errors.Wrapf(err, "Unknown user ID: %d", createdUserID)
 		}
 	}

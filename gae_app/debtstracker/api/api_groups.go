@@ -142,7 +142,7 @@ func handleJoinGroups(c context.Context, w http.ResponseWriter, r *http.Request,
 	var user models.AppUser
 
 	err := dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if user, err = dal.User.GetUserByID(c, authInfo.UserID); err != nil {
+		if user, err = facade.User.GetUserByID(c, authInfo.UserID); err != nil {
 			return
 		}
 		var waitGroup sync.WaitGroup
@@ -254,7 +254,7 @@ func handlerUpdateGroup(c context.Context, w http.ResponseWriter, r *http.Reques
 				return
 			}
 		}
-		if user, err = dal.User.GetUserByID(c, authInfo.UserID); err != nil {
+		if user, err = facade.User.GetUserByID(c, authInfo.UserID); err != nil {
 			return
 		}
 
@@ -305,7 +305,7 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 	removeMemberIDs = strings.Split(r.FormValue("removeMemberIDs"), ",")
 
 	var contacts2add []models.Contact
-	if contacts2add, err = dal.Contact.GetContactsByIDs(c, addContactIDs); err != nil {
+	if contacts2add, err = facade.GetContactsByIDs(c, addContactIDs); err != nil {
 		BadRequestError(c, w, err)
 		return
 	}
@@ -383,7 +383,7 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 		}
 
 		{ // Executing this block outside of IF just in case for self-healing.
-			if user, err = dal.User.GetUserByID(c, user.ID); err != nil {
+			if user, err = facade.User.GetUserByID(c, user.ID); err != nil {
 				return err
 			}
 			if err = facade.User.UpdateUserWithGroups(c, user, []models.Group{group}, []string{}); err != nil {

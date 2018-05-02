@@ -1,8 +1,8 @@
 package viberbots
 
 import (
-	"testing"
 	"context"
+	"testing"
 )
 
 func TestBots(t *testing.T) {

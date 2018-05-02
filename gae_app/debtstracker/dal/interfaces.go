@@ -46,10 +46,7 @@ type RewardDal interface {
 }
 
 type TransferDal interface {
-	GetTransferByID(c context.Context, transferID int64) (models.Transfer, error)
 	GetTransfersByID(c context.Context, transferIDs []int64) ([]models.Transfer, error)
-	SaveTransfer(c context.Context, transfer models.Transfer) error
-	InsertTransfer(c context.Context, transferEntity *models.TransferEntity) (transfer models.Transfer, err error)
 	LoadTransfersByUserID(c context.Context, userID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error)
 	LoadTransfersByContactID(c context.Context, contactID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error)
 	LoadTransferIDsByContactID(c context.Context, contactID int64, limit int, startCursor string) (transferIDs []int64, endCursor string, err error)
@@ -60,7 +57,6 @@ type TransferDal interface {
 	DelayUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCode string, transferID, creatorTgChatID, creatorTgReceiptMessageID int64) error
 	DelayUpdateTransfersWithCounterparty(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) error
 	DelayUpdateTransfersOnReturn(c context.Context, returnTransferID int64, transferReturnUpdates []TransferReturnUpdate) (err error)
-	UpdateTransferOnReturn(c context.Context, returnTransfer, transfer models.Transfer, returnedAmount decimal.Decimal64p2) (err error)
 }
 
 type ReceiptDal interface {
@@ -114,12 +110,9 @@ func CreateUserEntity(createUserData CreateUserData) (user *models.AppUserEntity
 
 type UserDal interface {
 	GetUserByStrID(c context.Context, userID string) (models.AppUser, error)
-	GetUserByID(c context.Context, userID int64) (models.AppUser, error)
-	GetUsersByIDs(c context.Context, userIDs []int64) ([]models.AppUser, error)
 	GetUserByVkUserID(c context.Context, vkUserID int64) (models.AppUser, error)
 	CreateAnonymousUser(c context.Context) (models.AppUser, error)
 	CreateUser(c context.Context, userEntity *models.AppUserEntity) (models.AppUser, error)
-	SaveUser(c context.Context, user models.AppUser) error
 	DelaySetUserPreferredLocale(c context.Context, delay time.Duration, userID int64, localeCode5 string) error
 	DelayUpdateUserHasDueTransfers(c context.Context, userID int64) error
 	SetLastCurrency(c context.Context, userID int64, currency models.Currency) error
@@ -144,15 +137,11 @@ type FeedbackDal interface {
 }
 
 type ContactDal interface {
-	GetContactByID(c context.Context, contactID int64) (contact models.Contact, err error)
-	GetContactsByIDs(c context.Context, contactsIDs []int64) (contacts []models.Contact, err error)
 	GetLatestContacts(whc bots.WebhookContext, limit, totalCount int) (contacts []models.Contact, err error)
 	InsertContact(c context.Context, contactEntity *models.ContactEntity) (contact models.Contact, err error)
 	//CreateContact(c context.Context, userID int64, contactDetails models.ContactDetails) (contact models.Contact, user models.AppUser, err error)
 	//CreateContactWithinTransaction(c context.Context, user models.AppUser, contactUserID, counterpartyCounterpartyID int64, contactDetails models.ContactDetails, balanced models.Balanced) (contact models.Contact, err error)
 	//UpdateContact(c context.Context, contactID int64, values map[string]string) (contactEntity *models.ContactEntity, err error)
-	SaveContact(c context.Context, contact models.Contact) error
-	DeleteContact(c context.Context, contactID int64) error
 	GetContactIDsByTitle(c context.Context, userID int64, title string, caseSensitive bool) (contactIDs []int64, err error)
 	GetContactsWithDebts(c context.Context, userID int64) (contacts []models.Contact, err error)
 }
@@ -160,9 +149,6 @@ type ContactDal interface {
 type BillsHolderGetter func(c context.Context) (billsHolder db.EntityHolder, err error)
 
 type BillDal interface {
-	GetBillByID(c context.Context, billID string) (bill models.Bill, err error)
-	GetBillsByIDs(c context.Context, billIDs []string) (bills []models.Bill, err error)
-	InsertBillEntity(c context.Context, billEntity *models.BillEntity) (bill models.Bill, err error)
 	SaveBill(c context.Context, bill models.Bill) (err error)
 	UpdateBillsHolder(c context.Context, billID string, getBillsHolder BillsHolderGetter) (err error)
 }

@@ -4,37 +4,34 @@ import (
 	"testing"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dtmocks"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/strongo/db"
-	"github.com/strongo/db/gaedb"
 )
 
 func TestUsersLinker_LinkUsersWithinTransaction(t *testing.T) {
 	c := context.Background()
-	gaedb.SetupNdsMock()
-	mockDB := SetupMocks(c)
+	dtmocks.SetupMocks(c)
 
 	usersLinker := usersLinker{}
 
 	var (
 		err                            error
-		entitiesToSave                 []db.EntityHolder
 		inviterUser, invitedUser       models.AppUser
 		inviterContact, invitedContact models.Contact
 	)
 
-	if inviterUser, err = dal.User.GetUserByID(c, 1); err != nil {
+	if inviterUser, err = User.GetUserByID(c, 1); err != nil {
 		t.Error("Failed to get inviter user", err)
 		return
 	}
 
-	if invitedUser, err = dal.User.GetUserByID(c, 3); err != nil {
+	if invitedUser, err = User.GetUserByID(c, 3); err != nil {
 		t.Error("Failed to get invited user", err)
 		return
 	}
 
-	if inviterContact, err = dal.Contact.GetContactByID(c, 6); err != nil {
+	if inviterContact, err = GetContactByID(c, 6); err != nil {
 		t.Error("Failed to get inviter user", err)
 		return
 	}
@@ -47,8 +44,13 @@ func TestUsersLinker_LinkUsersWithinTransaction(t *testing.T) {
 		t.Error("inviterContact.CounterpartyCounterpartyID != 0")
 	}
 
-	err = mockDB.RunInTransaction(c, func(tc context.Context) (err error) {
-		usersLinker = newUsersLinker(new(usersLinkingDbChanges))
+	err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
+		usersLinker = newUsersLinker(&usersLinkingDbChanges{
+			inviterUser:    &inviterUser,
+			invitedUser:    &invitedUser,
+			inviterContact: &inviterContact,
+			invitedContact: &invitedContact,
+		})
 		if err = usersLinker.linkUsersWithinTransaction(tc, "unit-test:1"); err != nil {
 			return err
 		}
@@ -60,10 +62,15 @@ func TestUsersLinker_LinkUsersWithinTransaction(t *testing.T) {
 		return
 	}
 
-	if len(entitiesToSave) == 0 {
-		t.Error("len(entitiesToSave) == 0")
+	if len(usersLinker.changes.EntityHolders()) == 0 {
+		t.Error("len(usersLinker.changes.EntityHolders()) == 0")
 		return
 	}
+
+	invitedContact = *usersLinker.changes.invitedContact
+	inviterContact = *usersLinker.changes.inviterContact
+	invitedUser = *usersLinker.changes.invitedUser
+	inviterUser = *usersLinker.changes.inviterUser
 
 	if invitedContact.ID == 0 {
 		t.Error("invitedContact.ID == 0")

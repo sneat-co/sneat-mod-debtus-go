@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/captaincodeman/datastore-mapper"
@@ -56,7 +57,7 @@ func (m *verifyTransfers) verifyTransfer(c context.Context, counters *asyncCount
 func (m *verifyTransfers) verifyTransferUsers(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
 	for _, userID := range transfer.BothUserIDs {
 		if userID != 0 {
-			if _, err2 := dal.User.GetUserByID(c, userID); db.IsNotFound(err2) {
+			if _, err2 := facade.User.GetUserByID(c, userID); db.IsNotFound(err2) {
 				counters.Increment(fmt.Sprintf("User:%d", userID), 1)
 				fmt.Fprintf(buf, "Unknown user %d\n", userID)
 			} else if err2 != nil {
@@ -71,7 +72,7 @@ func (m *verifyTransfers) verifyTransferUsers(c context.Context, transfer models
 func (m *verifyTransfers) verifyTransferContacts(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
 	for _, contactID := range transfer.BothCounterpartyIDs {
 		if contactID != 0 {
-			if _, err2 := dal.Contact.GetContactByID(c, contactID); db.IsNotFound(err2) {
+			if _, err2 := facade.GetContactByID(c, contactID); db.IsNotFound(err2) {
 				counters.Increment(fmt.Sprintf("Contact:%d", contactID), 1)
 				fmt.Fprintf(buf, "Unknown contact %d\n", contactID)
 			} else if err2 != nil {
@@ -89,14 +90,14 @@ func (m *verifyTransfers) verifyTransferContacts(c context.Context, transfer mod
 				panic("toFix.ContactID != 0")
 			}
 			var user models.AppUser
-			if user, err = dal.User.GetUserByID(c, toUse.UserID); err != nil {
+			if user, err = facade.User.GetUserByID(c, toUse.UserID); err != nil {
 				return changed, errors.WithMessage(err, "failed to get user by ID")
 			}
 			contactIDs := make([]int64, 0, user.ContactsCount)
 			for _, c := range user.Contacts() {
 				contactIDs = append(contactIDs, c.ID)
 			}
-			contacts, err := dal.Contact.GetContactsByIDs(c, contactIDs)
+			contacts, err := facade.GetContactsByIDs(c, contactIDs)
 			if err != nil {
 				return false, errors.WithMessage(err, fmt.Sprintf("failed to get contacts by IDs: %v", contactIDs))
 			}
@@ -141,12 +142,12 @@ func (*verifyTransfers) verifyTransferCurrency(c context.Context, transfer model
 	}
 	if currency != "" {
 		if err = nds.RunInTransaction(c, func(c context.Context) error {
-			if transfer, err = dal.Transfer.GetTransferByID(c, transfer.ID); err != nil {
+			if transfer, err = facade.GetTransferByID(c, transfer.ID); err != nil {
 				return errors.WithMessage(err, "failed to get transfer by ID"+strconv.FormatInt(transfer.ID, 10))
 			}
 			if transfer.Currency != currency {
 				transfer.Currency = currency
-				if err = dal.Transfer.SaveTransfer(c, transfer); err != nil {
+				if err = facade.Transfers.SaveTransfer(c, transfer); err != nil {
 					return errors.WithMessage(err, "failed to save transfer")
 				}
 				fmt.Fprintf(buf, "Currency fixed: %d\n", transfer.ID)

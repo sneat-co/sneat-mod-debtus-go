@@ -22,6 +22,34 @@ var User = userFacade{}
 
 var ErrEmailAlreadyRegistered = errors.New("Email already registered")
 
+func (userFacade) GetUserByID(c context.Context, userID int64) (user models.AppUser, err error) {
+	user.ID = userID
+	err = dal.DB.Get(c, &user)
+	return
+}
+
+func (userFacade) GetUsersByIDs(c context.Context, userIDs []int64) (users []*models.AppUser, err error) {
+	//log.Debugf(c, "UserDalGae.GetUsersByIDs(%d)", userIDs)
+	if len(userIDs) == 0 {
+		return
+	}
+	entityHolders := db.CreateEntityHoldersWithIntIDs(userIDs, func() db.EntityHolder {
+		return new(models.AppUser)
+	})
+	if err = dal.DB.GetMulti(c, entityHolders); err != nil {
+		return
+	}
+	users = make([]*models.AppUser, len(entityHolders))
+	for i, eh := range entityHolders {
+		users[i] = eh.(*models.AppUser)
+	}
+	return
+}
+
+func (userFacade) SaveUser(c context.Context, user models.AppUser) (err error) {
+	return dal.DB.Update(c, &user)
+}
+
 func (uf userFacade) CreateUserByEmail(
 	c context.Context,
 	email, name string,
@@ -95,7 +123,7 @@ func (uf userFacade) GetOrCreateEmailUser(
 	var to db.RunOptions = dal.CrossGroupTransaction
 
 	if err = dal.DB.RunInTransaction(c, func(tc context.Context) error {
-		if err = dal.User.SaveUser(tc, appUser); err != nil {
+		if err = User.SaveUser(tc, appUser); err != nil {
 			return errors.Wrap(err, "Failed to save new appUser to datastore")
 		}
 		userEmail.DtCreated = now
@@ -193,7 +221,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 			if !isNewUser && uaRecordUserID != userID {
 				panic(fmt.Sprintf("Relinking of appUser accounts us not implemented yet => userAccountRecord.GetAppUserIntID():%d != userID:%d", uaRecordUserID, userID))
 			}
-			if appUser, err = dal.User.GetUserByID(c, uaRecordUserID); err != nil {
+			if appUser, err = User.GetUserByID(c, uaRecordUserID); err != nil {
 				if db.IsNotFound(err) {
 					err = errors.WithMessage(err, "UserGoogle is referencing non existing appUser")
 				}
@@ -215,7 +243,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 		}
 
 		if !isNewUser {
-			if appUser, err = dal.User.GetUserByID(c, userID); err != nil {
+			if appUser, err = User.GetUserByID(c, userID); err != nil {
 				return
 			}
 		}
@@ -251,7 +279,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 				if appUser, err = dal.User.CreateUser(c, appUser.AppUserEntity); err != nil {
 					return
 				}
-			} else if err = dal.User.SaveUser(c, appUser); err != nil {
+			} else if err = User.SaveUser(c, appUser); err != nil {
 				return
 			}
 
@@ -268,7 +296,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 			}
 
 			if isNewUser {
-				if appUser, err = dal.User.GetUserByID(c, userEmail.AppUserIntID); err != nil {
+				if appUser, err = User.GetUserByID(c, userEmail.AppUserIntID); err != nil {
 					if db.IsNotFound(err) {
 						err = errors.WithMessage(err, "UserEmail is referencing non existing User")
 					}

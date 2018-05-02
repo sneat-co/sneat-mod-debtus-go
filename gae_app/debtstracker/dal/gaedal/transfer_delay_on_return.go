@@ -2,14 +2,13 @@ package gaedal
 
 import (
 	"fmt"
-	"time"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/pkg/errors"
-	"github.com/sanity-io/litter"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/db"
 	"github.com/strongo/decimal"
@@ -65,7 +64,7 @@ func updateTransferOnReturn(c context.Context, returnTransferID, transferID int6
 
 	var transfer, returnTransfer models.Transfer
 
-	if returnTransfer, err = dal.Transfer.GetTransferByID(c, returnTransferID); err != nil {
+	if returnTransfer, err = facade.GetTransferByID(c, returnTransferID); err != nil {
 		if db.IsNotFound(err) {
 			log.Errorf(c, errors.WithMessage(err, "return transfer not found").Error())
 			err = nil
@@ -73,7 +72,7 @@ func updateTransferOnReturn(c context.Context, returnTransferID, transferID int6
 		return
 	}
 
-	if transfer, err = dal.Transfer.GetTransferByID(c, transferID); err != nil {
+	if transfer, err = facade.GetTransferByID(c, transferID); err != nil {
 		return
 	}
 	var txOptions db.RunOptions
@@ -84,14 +83,14 @@ func updateTransferOnReturn(c context.Context, returnTransferID, transferID int6
 	}
 
 	return dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if transfer, err = dal.Transfer.GetTransferByID(c, transferID); err != nil {
+		if transfer, err = facade.GetTransferByID(c, transferID); err != nil {
 			if db.IsNotFound(err) {
 				log.Errorf(c, err.Error())
 				err = nil
 			}
 			return
 		}
-		if err = dal.Transfer.UpdateTransferOnReturn(c, returnTransfer, transfer, returnedAmount); err != nil {
+		if err = facade.Transfers.UpdateTransferOnReturn(c, returnTransfer, transfer, returnedAmount); err != nil {
 			return
 		}
 		if transfer.HasInterest() && !transfer.IsOutstanding {
@@ -117,7 +116,7 @@ func removeFromOutstandingWithInterest(c context.Context, transfer models.Transf
 				user models.AppUser
 				//contact models.Contact
 			)
-			if user, err = dal.User.GetUserByID(c, userID); err != nil {
+			if user, err = facade.User.GetUserByID(c, userID); err != nil {
 				return
 			}
 			contacts := user.Contacts()
@@ -129,7 +128,7 @@ func removeFromOutstandingWithInterest(c context.Context, transfer models.Transf
 						userContact.Transfers.OutstandingWithInterest = append(a[:i], a[i+1:]...)
 						user.SetContacts(contacts)
 						user.TransfersWithInterestCount -= 1
-						err = dal.User.SaveUser(c, user)
+						err = facade.User.SaveUser(c, user)
 					}
 				}
 			}
@@ -139,7 +138,7 @@ func removeFromOutstandingWithInterest(c context.Context, transfer models.Transf
 			var (
 				contact models.Contact
 			)
-			if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil {
+			if contact, err = facade.GetContactByID(c, contactID); err != nil {
 				return
 			}
 			if contact.UserID != userID {
@@ -154,7 +153,7 @@ func removeFromOutstandingWithInterest(c context.Context, transfer models.Transf
 					if err = contact.SetTransfersInfo(transfersInfo); err != nil {
 						return
 					}
-					return dal.Contact.SaveContact(c, contact)
+					return facade.SaveContact(c, contact)
 				}
 			}
 			return
@@ -175,87 +174,5 @@ func removeFromOutstandingWithInterest(c context.Context, transfer models.Transf
 	if err = removeFromOutstanding(to.UserID, from.ContactID); err != nil {
 		return
 	}
-	return
-}
-
-func (TransferDalGae) UpdateTransferOnReturn(c context.Context, returnTransfer, transfer models.Transfer, returnedAmount decimal.Decimal64p2) (err error) {
-	log.Debugf(c, "UpdateTransferOnReturn(\n\treturnTransfer=%v,\n\ttransfer=%v,\n\treturnedAmount=%v)", litter.Sdump(returnTransfer), litter.Sdump(transfer), returnedAmount)
-
-	if returnTransfer.Currency != transfer.Currency {
-		panic(fmt.Sprintf("returnTransfer(id=%v).Currency != transfer.Currency => %v != %v", returnTransfer.ID, returnTransfer.Currency, transfer.Currency))
-	} else if cID := returnTransfer.From().ContactID; cID != 0 && cID != transfer.To().ContactID {
-		if transfer.To().ContactID == 0 && returnTransfer.From().UserID == transfer.To().UserID {
-			transfer.To().ContactID = cID
-			log.Warningf(c, "Fixed Transfer(%v).To().ContactID: 0 => %v", transfer.ID, cID)
-		} else {
-			panic(fmt.Sprintf("returnTransfer(id=%v).From().ContactID != transfer.To().ContactID => %v != %v", returnTransfer.ID, cID, transfer.To().ContactID))
-		}
-	} else if cID := returnTransfer.To().ContactID; cID != 0 && cID != transfer.From().ContactID {
-		if transfer.From().ContactID == 0 && returnTransfer.To().UserID == transfer.From().UserID {
-			transfer.From().ContactID = cID
-			log.Warningf(c, "Fixed Transfer(%v).From().ContactID: 0 => %v", transfer.ID, cID)
-		} else {
-			panic(fmt.Sprintf("returnTransfer(id=%v).To().ContactID != transfer.From().ContactID => %v != %v", returnTransfer.ID, cID, transfer.From().ContactID))
-		}
-	}
-
-	for _, previousReturn := range transfer.GetReturns() {
-		if previousReturn.TransferID == returnTransfer.ID {
-			log.Infof(c, "Transfer already has information about return transfer")
-			return
-		}
-	}
-
-	if outstandingValue := transfer.GetOutstandingValue(returnTransfer.DtCreated); outstandingValue < returnedAmount {
-		log.Errorf(c, "transfer.GetOutstandingValue() < returnedAmount: %v <  %v", outstandingValue, returnedAmount)
-		if outstandingValue <= 0 {
-			return
-		}
-		returnedAmount = outstandingValue
-	}
-
-	//transfer.ReturnTransferIDs = append(transfer.ReturnTransferIDs, returnTransfer.ID)
-	returns := transfer.GetReturns()
-	if len(returns) == 0 && len(transfer.ReturnTransferIDs) != 0 { // TODO: Remove fix for old transfers
-		var returnTransfers []models.Transfer
-		if returnTransfers, err = dal.Transfer.GetTransfersByID(c, transfer.ReturnTransferIDs); err != nil {
-			return
-		}
-		returns = make([]models.TransferReturnJson, len(transfer.ReturnTransferIDs), len(transfer.ReturnTransferIDs)+1)
-		var returnedVal decimal.Decimal64p2
-
-		for i, rt := range returnTransfers {
-			returns[i] = models.TransferReturnJson{
-				TransferID: rt.ID,
-				Time:       rt.DtCreated, // TODO: Replace with DtActual?
-				Amount:     rt.AmountInCents,
-			}
-			returnedVal += rt.AmountInCents
-		}
-		if returnedVal > transfer.AmountInCents {
-			log.Warningf(c, "failed to properly migrated ReturnTransferIDs to ReturnsJson: returnedAmount > transfer.AmountInCents")
-			for i := range returns {
-				returns[i].Amount = 0
-			}
-		}
-	}
-	returns = append(returns, models.TransferReturnJson{
-		TransferID: returnTransfer.ID,
-		Time:       returnTransfer.DtCreated, // TODO: Replace with DtActual?
-		Amount:     returnedAmount,
-	})
-	transfer.SetReturns(returns)
-
-	transfer.IsOutstanding = transfer.GetOutstandingValue(time.Now()) > 0
-
-	if err = dal.Transfer.SaveTransfer(c, transfer); err != nil {
-		return
-	}
-
-	if err = dal.Reminder.DelayDiscardReminders(c, []int64{transfer.ID}, returnTransfer.ID); err != nil {
-		err = errors.WithMessage(err, "failed to delay task to discard reminders")
-		return
-	}
-
 	return
 }

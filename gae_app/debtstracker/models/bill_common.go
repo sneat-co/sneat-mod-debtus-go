@@ -14,7 +14,7 @@ import (
 type SplitMode string
 
 const (
-	SplitModeAdjustment  SplitMode = "adjustment"
+	// SplitModeAdjustment  SplitMode = "adjustment"
 	SplitModeEqually     SplitMode = "equally"
 	SplitModeExactAmount SplitMode = "exact-amount"
 	SplitModePercentage  SplitMode = "percentage"
@@ -124,7 +124,9 @@ func (entity *BillCommon) GetBillMembers() (members []BillMemberJson) {
 		panic("len(entity.members) != entity.MembersCount")
 	}
 	// copy to make sure we don't expose cache
-	return append(make([]BillMemberJson, 0, len(entity.members)), entity.members...)
+	members = make([]BillMemberJson, len(entity.members))
+	copy(members, entity.members)
+	return
 }
 
 func (entity *BillCommon) GetMembers() (members []MemberJson) {
@@ -171,12 +173,6 @@ func (entity *BillCommon) validateMembersForDuplicatesAndBasicChecks(members []B
 			return fmt.Errorf("members[%d].Adjustment is too big", i)
 		}
 	}
-
-	if isEquallySplit {
-		entity.SplitMode = SplitModeEqually
-	} else if entity.SplitMode == SplitModeEqually {
-		entity.SplitMode = SplitModeShare
-	}
 	return nil
 }
 
@@ -204,23 +200,6 @@ func (entity *BillCommon) setUserIDs(members []BillMemberJson) {
 		userIdFound:
 		}
 	}
-}
-
-func (entity *BillCommon) setBillMembers(members []BillMemberJson) (err error) {
-	//if err = entity.updateMemberOwes(members); err != nil {
-	//	return
-	//}
-
-	if err = entity.validateMembersForDuplicatesAndBasicChecks(members); err != nil {
-		return err
-	}
-
-	if err := entity.marshalMembersToJsonAndSetMembersCount(members); err != nil {
-		return err
-	}
-
-	entity.setUserIDs(members)
-	return nil
 }
 
 func (entity *BillCommon) load(ps []datastore.Property) []datastore.Property {

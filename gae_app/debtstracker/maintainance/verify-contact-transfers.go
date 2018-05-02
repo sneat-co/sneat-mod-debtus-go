@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/captaincodeman/datastore-mapper"
@@ -104,7 +105,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 				changed = true
 			}
 			if counterparty.UserName == "" && counterparty.UserID != 0 {
-				if user, err := dal.User.GetUserByID(c, counterparty.UserID); err != nil {
+				if user, err := facade.User.GetUserByID(c, counterparty.UserID); err != nil {
 					log.Errorf(c, err.Error())
 					return err
 				} else {
@@ -119,7 +120,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 			}
 
 			if self.ContactID != 0 && self.ContactName == "" {
-				if counterpartyContact, err := dal.Contact.GetContactByID(c, self.ContactID); err != nil {
+				if counterpartyContact, err := facade.GetContactByID(c, self.ContactID); err != nil {
 					log.Errorf(c, err.Error())
 					return err
 				} else {
@@ -129,7 +130,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 			}
 
 			if self.UserID != 0 && self.UserName == "" {
-				if user, err := dal.User.GetUserByID(c, self.UserID); err != nil {
+				if user, err := facade.User.GetUserByID(c, self.UserID); err != nil {
 					log.Errorf(c, err.Error())
 					return err
 				} else {
@@ -140,7 +141,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 
 			if changed {
 				log.Warningf(c, "Fixing contact details for transfer %v: From:%v, To: %v\n\noriginal: %v\n\n new: %v", transfer.ID, litter.Sdump(transfer.From()), litter.Sdump(transfer.To()), litter.Sdump(originalTransfer), litter.Sdump(transfer))
-				if err = dal.Transfer.SaveTransfer(c, transfer); err != nil {
+				if err = facade.Transfers.SaveTransfer(c, transfer); err != nil {
 					log.Errorf(c, errors.WithMessage(err, "failed to save transfer").Error())
 					return
 				}
@@ -252,7 +253,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 	}
 
 	if outstandingIsValid {
-		if user, err = dal.User.GetUserByID(c, contact.UserID); err != nil {
+		if user, err = facade.User.GetUserByID(c, contact.UserID); err != nil {
 			log.Errorf(c, errors.WithMessage(err, fmt.Sprintf("Contact(%v): ", contact.ID)+"user not found by ID").Error())
 			return
 		}
@@ -264,7 +265,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 
 	if !needsFixingContactOrUser && contact.CounterpartyCounterpartyID != 0 {
 		var counterpartyContact models.Contact
-		if counterpartyContact, err = dal.Contact.GetContactByID(c, contact.CounterpartyCounterpartyID); err != nil {
+		if counterpartyContact, err = facade.GetContactByID(c, contact.CounterpartyCounterpartyID); err != nil {
 			return
 		}
 		fmt.Fprintf(buf, "contact.Balance(): %v\n", contact.Balance())
@@ -347,7 +348,7 @@ func (m *verifyContactTransfers) fixContactAndUser(c context.Context, buf *bytes
 
 func (m *verifyContactTransfers) fixContactAndUserWithinTransaction(c context.Context, buf *bytes.Buffer, counters *asyncCounters, contactID int64, transfersBalance models.Balance, transfersCount int, lastTransfer models.Transfer) (contact models.Contact, user models.AppUser, err error) {
 	fmt.Fprintf(buf, "Fixing contact %v...\n", contactID)
-	if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil {
+	if contact, err = facade.GetContactByID(c, contactID); err != nil {
 		return
 	}
 	changed := false
@@ -375,11 +376,11 @@ func (m *verifyContactTransfers) fixContactAndUserWithinTransaction(c context.Co
 		changed = true
 	}
 	if changed {
-		if err = dal.Contact.SaveContact(c, contact); err != nil {
+		if err = facade.SaveContact(c, contact); err != nil {
 			return
 		}
 		//var user models.AppUser
-		if user, err = dal.User.GetUserByID(c, contact.UserID); err != nil {
+		if user, err = facade.User.GetUserByID(c, contact.UserID); err != nil {
 			return
 		}
 		userContacts := user.Contacts()
@@ -400,7 +401,7 @@ func (m *verifyContactTransfers) fixContactAndUserWithinTransaction(c context.Co
 			}
 		}
 		// Contact not found
-		userChanged = user.AddOrUpdateContact(contact) || userChanged
+		_, userChanged = user.AddOrUpdateContact(contact) || userChanged
 	contactFound:
 		userTotalBalance := user.Balance()
 		if userContactsBalance := user.TotalBalanceFromContacts(); !userContactsBalance.Equal(userTotalBalance) {
@@ -411,7 +412,7 @@ func (m *verifyContactTransfers) fixContactAndUserWithinTransaction(c context.Co
 			fmt.Fprintf(buf, "user total balance update from contacts\nwas: %v\nnew: %v\n", userTotalBalance, userContactsBalance)
 		}
 		if userChanged {
-			if err = dal.User.SaveUser(c, user); err != nil {
+			if err = facade.User.SaveUser(c, user); err != nil {
 				return
 			}
 		}

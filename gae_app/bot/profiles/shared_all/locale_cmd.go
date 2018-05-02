@@ -7,6 +7,7 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"context"
@@ -141,7 +142,7 @@ func setPreferredLanguageAction(whc bots.WebhookContext, code5, mode string, bot
 
 				if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 					var user models.AppUser
-					if user, err = dal.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+					if user, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
 						return
 					}
 					if err = user.SetPreferredLocale(locale.Code5); err != nil {
@@ -152,7 +153,7 @@ func setPreferredLanguageAction(whc bots.WebhookContext, code5, mode string, bot
 					if err = whc.SaveBotChat(c, whc.GetBotCode(), whc.MustBotChatID(), chatEntity); err != nil {
 						return
 					}
-					return dal.User.SaveUser(c, user)
+					return facade.User.SaveUser(c, user)
 				}, db.CrossGroupTransaction); err != nil {
 					return
 				}

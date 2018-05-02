@@ -1,12 +1,10 @@
 package dalmocks
 
 import (
-	"strconv"
 	"time"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/strongo/db"
 )
 
 type UserDalMock struct {
@@ -28,28 +26,12 @@ func (mock *UserDalMock) SetLastCurrency(c context.Context, userID int64, curren
 	panic("Not implemented yet")
 }
 
-func (mock *UserDalMock) GetUserByID(c context.Context, userID int64) (appUser models.AppUser, err error) {
-	if entity, ok := mock.Users[userID]; ok {
-		return models.AppUser{IntegerID: db.NewIntID(userID), AppUserEntity: entity}, nil
-	}
-	return models.AppUser{IntegerID: db.NewIntID(userID)}, db.NewErrNotFoundByIntID(models.AppUserKind, userID, nil)
-}
-
 func (mock *UserDalMock) GetUserByStrID(c context.Context, userID string) (user models.AppUser, err error) {
-	if user.ID, err = strconv.ParseInt(userID, 10, 64); err != nil {
-		return
-	}
-	return mock.GetUserByID(c, user.ID)
-}
-
-func (mock *UserDalMock) GetUsersByIDs(c context.Context, userIDs []int64) (users []models.AppUser, err error) {
-	users = make([]models.AppUser, len(userIDs))
-	for i, userID := range userIDs {
-		if users[i], err = mock.GetUserByID(c, userID); err != nil {
-			return
-		}
-	}
-	return
+	panic("not implemented yet due to import cycle")
+	// if user.ID, err = strconv.ParseInt(userID, 10, 64); err != nil {
+	// 	return
+	// }
+	// return facade.User.GetUserByID(c, user.ID)
 }
 
 func (mock *UserDalMock) GetUserByEmail(c context.Context, email string) (models.AppUser, error) {
@@ -65,9 +47,6 @@ func (mock *UserDalMock) GetUserByVkUserID(c context.Context, vkUserID int64) (m
 }
 func (mock *UserDalMock) CreateAnonymousUser(c context.Context) (models.AppUser, error) {
 	panic("Not implemented yet")
-}
-func (mock *UserDalMock) SaveUser(c context.Context, user models.AppUser) error {
-	return nil
 }
 func (mock *UserDalMock) DelaySetUserPreferredLocale(c context.Context, delay time.Duration, userID int64, localeCode5 string) error {
 	return nil

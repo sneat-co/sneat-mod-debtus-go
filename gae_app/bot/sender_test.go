@@ -1,8 +1,8 @@
 package bot
 
 import (
-	"testing"
 	"github.com/strongo/bots-framework/core"
+	"testing"
 )
 
 func TestSendRefreshOrNothingChanged(t *testing.T) {

@@ -69,7 +69,7 @@ func (billFacade) AssignBillToGroup(c context.Context, inBill models.Bill, group
 					if user.ID, err = strconv.ParseInt(userID, 10, 64); err != nil {
 						return
 					}
-					if user, err = dal.User.GetUserByID(dal.DB.NonTransactionalContext(c), user.ID); err != nil {
+					if user, err = User.GetUserByID(dal.DB.NonTransactionalContext(c), user.ID); err != nil {
 						return
 					}
 					_, _, _, groupMember, _ := group.AddOrGetMember(userID, "", user.FullName())
@@ -162,32 +162,30 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 			shareAmount = decimal.NewDecimal64p2FromFloat64(
 				math.Floor(billEntity.AmountTotal.AsFloat64()/float64(len(members))*100+0.5) / 100,
 			)
-		} else if billEntity.SplitMode == models.SplitModeEqually || billEntity.SplitMode == models.SplitModeAdjustment {
+		} else if billEntity.SplitMode == models.SplitModeEqually {
 			amountToSplitEqually := billEntity.AmountTotal
-			if billEntity.SplitMode == models.SplitModeAdjustment {
-				var totalAdjustmentByMembers decimal.Decimal64p2
-				for i, member := range members {
-					if member.Adjustment > billEntity.AmountTotal {
-						return bill, errors.WithMessage(ErrBadInput, fmt.Sprintf("members[%d].Adjustment > billEntity.AmountTotal", i))
-					} else if member.Adjustment < 0 && member.Adjustment < -1*billEntity.AmountTotal {
-						err = errors.WithMessage(ErrBadInput,
-							fmt.Sprintf("members[%d].AdjustmentInCents < 0 && AdjustmentInCents < -1*billEntity.AmountTotal", i))
-						return
-					}
-					totalAdjustmentByMembers += member.Adjustment
+			var totalAdjustmentByMembers decimal.Decimal64p2
+			for i, member := range members {
+				if member.Adjustment > billEntity.AmountTotal {
+					return bill, errors.WithMessage(ErrBadInput, fmt.Sprintf("members[%d].Adjustment > billEntity.AmountTotal", i))
+				} else if member.Adjustment < 0 && member.Adjustment < -1*billEntity.AmountTotal {
+					err = errors.WithMessage(ErrBadInput,
+						fmt.Sprintf("members[%d].AdjustmentInCents < 0 && AdjustmentInCents < -1*billEntity.AmountTotal", i))
+					return
 				}
-				if totalAdjustmentByMembers > billEntity.AmountTotal {
-					return bill, errors.Wrap(ErrBadInput, "totalAdjustmentByMembers > billEntity.AmountTotal")
-				}
-				amountToSplitEqually -= totalAdjustmentByMembers
+				totalAdjustmentByMembers += member.Adjustment
 			}
+			if totalAdjustmentByMembers > billEntity.AmountTotal {
+				return bill, errors.Wrap(ErrBadInput, "totalAdjustmentByMembers > billEntity.AmountTotal")
+			}
+			amountToSplitEqually -= totalAdjustmentByMembers
 			equalAmount = decimal.NewDecimal64p2FromFloat64(
 				math.Floor(amountToSplitEqually.AsFloat64()/float64(len(members))*100+0.5) / 100,
 			)
 		}
 
-		// Used to check equal split
-		amountsCountByValue := make(map[decimal.Decimal64p2]int, 2)
+		// We use it to check equal split
+		amountsCountByValue := make(map[decimal.Decimal64p2]int)
 
 		// Calculate totals & initial checks
 		for i, member := range members {
@@ -197,10 +195,6 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 			}
 			totalOwedByMembers += member.Owes
 			totalSharesPerMembers += member.Shares
-
-			if member.Adjustment != 0 && billEntity.SplitMode != models.SplitModeAdjustment {
-				err = fmt.Errorf("members[%d].Adjustment != 0 && billEntity.SplitMode == %v", member.Adjustment, billEntity.SplitMode)
-			}
 
 			// Individual member checks - we can't move this checks down as it should fail first before deviation checks
 			{
@@ -245,7 +239,11 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 			}
 		}
 
+		adjustmentsCount := 0
 		for i, member := range members {
+			if member.Adjustment != 0 {
+				adjustmentsCount++
+			}
 			ensureNoAdjustment := func() {
 				if member.Adjustment != 0 {
 					panic(fmt.Sprintf("Member #%d has Adjustment property not allowed with split mode %v", i, billEntity.SplitMode))
@@ -283,28 +281,24 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 			}
 			switch billEntity.SplitMode {
 			case models.SplitModeEqually:
-				ensureNoAdjustment()
+				// ensureNoAdjustment()
 				ensureEqualShare()
 				if err = ensureMemberAmountDeviateWithin1cent(); err != nil {
 					return
 				}
-				amountsCountByValue[member.Owes] += 1
-			case models.SplitModeAdjustment: //TODO: Should we allow negative adjustments?
-				ensureNoShare()
-				if err = ensureMemberAmountDeviateWithin1cent(); err != nil {
-					return
-				}
+				amountsCountByValue[member.Owes]++
 			case models.SplitModeExactAmount:
 				ensureNoAdjustment()
 				ensureNoShare()
 			case models.SplitModePercentage:
-				ensureNoAdjustment()
+				totalPercentageByMembers += member.Percent
+				// ensureNoAdjustment()
 			case models.SplitModeShare:
 				if member.Shares == 0 {
 					err = errors.Wrapf(ErrBadInput, "Member %d is missing Shares value", i)
 					return
 				}
-				ensureNoAdjustment()
+				// ensureNoAdjustment()
 			}
 		}
 
@@ -318,9 +312,8 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 		}
 		switch billEntity.SplitMode {
 		case models.SplitModeEqually:
-			if len(amountsCountByValue) > 2 {
-				return bill, errors.Wrapf(ErrBadInput, "len(amountsCountByValue) > 2: %v", amountsCountByValue)
-
+			if len(amountsCountByValue) > 2+adjustmentsCount {
+				return bill, errors.Wrapf(ErrBadInput, "len(amountsCountByValue):%v > 2 + adjustmentsCount:%v", amountsCountByValue, adjustmentsCount)
 			}
 		case models.SplitModePercentage:
 			if int64(totalPercentageByMembers) != 100*100 {
@@ -334,8 +327,6 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 				err = errors.WithMessage(ErrBadInput, fmt.Sprintf("billEntity.Shares != totalSharesPerMembers"))
 				return
 			}
-		case models.SplitModeAdjustment:
-
 		}
 
 		if (totalOwedByMembers != 0 || totalPaidByMembers != 0) && totalOwedByMembers != billEntity.AmountTotal {
@@ -346,7 +337,7 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 		// Load counterparties so we can get respective userIDs
 		var counterparties []models.Contact
 		// Use non transactional context
-		counterparties, err = dal.Contact.GetContactsByIDs(c, contactIDs)
+		counterparties, err = GetContactsByIDs(c, contactIDs)
 		if err != nil {
 			return bill, errors.Wrap(err, "Failed to get counterparties by ID.")
 		}
@@ -369,7 +360,7 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 
 	}
 
-	if bill, err = dal.Bill.InsertBillEntity(tc, billEntity); err != nil {
+	if bill, err = InsertBillEntity(tc, billEntity); err != nil {
 		return
 	}
 
@@ -381,7 +372,7 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 }
 
 //func (billFacade) CreateBillTransfers(c context.Context, billID string) error {
-//	bill, err := dal.Bill.GetBillByID(c, billID)
+//	bill, err := facade.GetBillByID(c, billID)
 //	if err != nil {
 //		return err
 //	}
@@ -415,7 +406,7 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 //
 //func (billFacade) createBillTransfer(c context.Context, billID string, creatorCounterpartyID int64) error {
 //	err := dal.DB.RunInTransaction(c, func(c context.Context) error {
-//		bill, err := dal.Bill.GetBillByID(c, billID)
+//		bill, err := facade.GetBillByID(c, billID)
 //
 //		if err != nil {
 //			return err
@@ -635,7 +626,7 @@ var (
 
 func (billFacade) DeleteBill(c context.Context, billID string, userID int64) (bill models.Bill, err error) {
 	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if bill, err = dal.Bill.GetBillByID(c, billID); err != nil {
+		if bill, err = GetBillByID(c, billID); err != nil {
 			return
 		}
 		if bill.Status == models.BillStatusSettled {
@@ -690,7 +681,7 @@ func (billFacade) DeleteBill(c context.Context, billID string, userID int64) (bi
 
 func (billFacade) RestoreBill(c context.Context, billID string, userID int64) (bill models.Bill, err error) {
 	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if bill, err = dal.Bill.GetBillByID(c, billID); err != nil {
+		if bill, err = GetBillByID(c, billID); err != nil {
 			return
 		}
 		if bill.Status != models.BillStatusDeleted {
@@ -728,6 +719,30 @@ func (billFacade) RestoreBill(c context.Context, billID string, userID int64) (b
 	}, db.CrossGroupTransaction); err != nil {
 		return
 	}
+	return
+}
+
+func GetBillByID(c context.Context, billID string) (bill models.Bill, err error) {
+	bill.ID = billID
+	err = dal.DB.Get(c, &bill)
+	return
+}
+
+func InsertBillEntity(c context.Context, billEntity *models.BillEntity) (bill models.Bill, err error) {
+	if billEntity == nil {
+		panic("billEntity == nil")
+	}
+	if billEntity.CreatorUserID == "" {
+		panic("CreatorUserID == 0")
+	}
+	if billEntity.AmountTotal == 0 {
+		panic("AmountTotal == 0")
+	}
+
+	billEntity.DtCreated = time.Now()
+	bill.BillEntity = billEntity
+
+	err = dal.InsertWithRandomStringID(c, &bill, models.BillIdLen)
 	return
 }
 

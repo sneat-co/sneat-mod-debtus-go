@@ -2,6 +2,7 @@ package maintainance
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"fmt"
@@ -22,7 +23,7 @@ func (m *verifyContacts) Next(c context.Context, counters mapper.Counters, key *
 }
 
 func (m *verifyContacts) processContact(c context.Context, counters *asyncCounters, contact models.Contact) (err error) {
-	if _, err = dal.User.GetUserByID(c, contact.UserID); db.IsNotFound(err) {
+	if _, err = facade.User.GetUserByID(c, contact.UserID); db.IsNotFound(err) {
 		counters.Increment("wrong_UserID", 1)
 		log.Warningf(c, "Contact %d reference unknown user %d", contact.ID, contact.UserID)
 	} else if err != nil {
@@ -43,7 +44,7 @@ func (m *verifyContacts) processContact(c context.Context, counters *asyncCounte
 func (m *verifyContacts) verifyLinking(c context.Context, counters *asyncCounters, contact models.Contact) (err error) {
 	if contact.CounterpartyCounterpartyID != 0 {
 		var counterpartyContact models.Contact
-		if counterpartyContact, err = dal.Contact.GetContactByID(c, contact.CounterpartyCounterpartyID); err != nil {
+		if counterpartyContact, err = facade.GetContactByID(c, contact.CounterpartyCounterpartyID); err != nil {
 			log.Errorf(c, err.Error())
 			return
 		}
@@ -65,7 +66,7 @@ func (m *verifyContacts) verifyLinking(c context.Context, counters *asyncCounter
 func (m *verifyContacts) linkContacts(c context.Context, counters *asyncCounters, contact models.Contact) (err error) {
 	var counterpartyContact models.Contact
 	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if counterpartyContact, err = dal.Contact.GetContactByID(c, contact.CounterpartyCounterpartyID); err != nil {
+		if counterpartyContact, err = facade.GetContactByID(c, contact.CounterpartyCounterpartyID); err != nil {
 			log.Errorf(c, err.Error())
 			return
 		}
@@ -78,7 +79,7 @@ func (m *verifyContacts) linkContacts(c context.Context, counters *asyncCounters
 					counterpartyContact.ID, contact.ID, counterpartyContact.CounterpartyUserID, contact.UserID)
 				return
 			}
-			if err = dal.Contact.SaveContact(c, counterpartyContact); err != nil {
+			if err = facade.SaveContact(c, counterpartyContact); err != nil {
 				return
 			}
 		} else if counterpartyContact.CounterpartyCounterpartyID != contact.ID {
@@ -100,14 +101,14 @@ func (m *verifyContacts) verifyBalance(c context.Context, counters *asyncCounter
 	balance := contact.Balance()
 	if FixBalanceCurrencies(balance) {
 		if err = nds.RunInTransaction(c, func(c context.Context) (err error) {
-			if contact, err = dal.Contact.GetContactByID(c, contact.ID); err != nil {
+			if contact, err = facade.GetContactByID(c, contact.ID); err != nil {
 				return err
 			}
 			if balance := contact.Balance(); FixBalanceCurrencies(balance) {
 				if err = contact.SetBalance(balance); err != nil {
 					return err
 				}
-				if err = dal.Contact.SaveContact(c, contact); err != nil {
+				if err = facade.SaveContact(c, contact); err != nil {
 					return err
 				}
 				log.Infof(c, "Fixed contact balance currencies: %d", contact.ID)

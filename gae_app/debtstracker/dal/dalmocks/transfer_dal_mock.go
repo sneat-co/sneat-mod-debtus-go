@@ -6,17 +6,18 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/strongo/db"
-	"github.com/strongo/decimal"
+	"github.com/strongo/db/mockdb"
 )
 
+const NOT_IMPLEMENTED_YET = "NOT_IMPLEMENTED_YET"
+
 type TransferDalMock struct {
-	Transfers map[int64]*models.TransferEntity
+	mockDB *mockdb.MockDB
 }
 
-func NewTransferDalMock() *TransferDalMock {
+func NewTransferDalMock(mockDB *mockdb.MockDB) *TransferDalMock {
 	return &TransferDalMock{
-		Transfers: make(map[int64]*models.TransferEntity),
+		mockDB: mockDB,
 	}
 }
 
@@ -24,46 +25,8 @@ func (mock *TransferDalMock) DelayUpdateTransfersOnReturn(c context.Context, ret
 	panic("not implemented yet")
 }
 
-func (mock *TransferDalMock) GetTransferByID(c context.Context, transferID int64) (models.Transfer, error) {
-	if transferEntity, ok := mock.Transfers[transferID]; ok {
-		return models.Transfer{IntegerID: db.NewIntID(transferID), TransferEntity: transferEntity}, nil
-	} else {
-		return models.Transfer{}, db.NewErrNotFoundByIntID(models.TransferKind, transferID, nil)
-	}
-}
-
 func (mock *TransferDalMock) GetTransfersByID(c context.Context, transferIDs []int64) ([]models.Transfer, error) {
 	panic("not implemented yet")
-}
-
-func (mock *TransferDalMock) UpdateTransferOnReturn(c context.Context, returnTransfer, transfer models.Transfer, returnedAmount decimal.Decimal64p2) (err error) {
-	panic("not implemented yet")
-}
-
-func (mock *TransferDalMock) SaveTransfer(c context.Context, transfer models.Transfer) error {
-	if _, err := transfer.TransferEntity.Save(); err != nil {
-		return err
-	}
-	mock.Transfers[transfer.ID] = transfer.TransferEntity
-	return nil
-}
-
-func (mock *TransferDalMock) InsertTransfer(c context.Context, transferEntity *models.TransferEntity) (transfer models.Transfer, err error) {
-	if transferEntity == nil {
-		panic("transferEntity == nil")
-	}
-	var maxTransferID int64
-	for transferID := range mock.Transfers {
-		if transferID > maxTransferID {
-			maxTransferID = transferID
-		}
-	}
-	maxTransferID += 1
-	if _, err = transferEntity.Save(); err != nil {
-		return
-	}
-	mock.Transfers[maxTransferID] = transferEntity
-	return models.NewTransfer(maxTransferID, transferEntity), nil
 }
 
 func (mock *TransferDalMock) LoadTransfersByUserID(c context.Context, userID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error) {
@@ -83,9 +46,10 @@ func (mock *TransferDalMock) LoadOverdueTransfers(c context.Context, userID int6
 }
 
 func (mock *TransferDalMock) LoadOutstandingTransfers(c context.Context, periodEnds time.Time, userID, contactID int64, currency models.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error) {
-	for id, t := range mock.Transfers {
+	for _, entity := range mock.mockDB.EntitiesByKind[models.TransferKind] {
+		t := entity.(*models.Transfer)
 		if t.GetOutstandingValue(periodEnds) != 0 {
-			transfers = append(transfers, models.Transfer{IntegerID: db.NewIntID(id), TransferEntity: t})
+			transfers = append(transfers, *t)
 		}
 	}
 	return

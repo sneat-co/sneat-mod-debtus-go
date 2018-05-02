@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
 	"github.com/strongo/decimal"
 )
 
@@ -13,8 +14,10 @@ func (entity *BillCommon) updateMemberOwes(members []BillMemberJson) (err error)
 		updateMemberOwesForEqualSplit(entity.AmountTotal, entity.CreatorUserID, members)
 	case SplitModeShare:
 		updateMemberOwesForSplitByShares(entity.AmountTotal, entity.CreatorUserID, members)
+	case SplitModePercentage:
+		updateMemberOwesForSplitByPercentage(entity.AmountTotal, entity.CreatorUserID, members)
 	default:
-		err = ErrUnknownSplitMode
+		err = errors.WithMessage(ErrUnknownSplitMode, string(entity.SplitMode))
 	}
 	return
 }
@@ -24,29 +27,47 @@ func updateMemberOwesForEqualSplit(amountTotal decimal.Decimal64p2, creatorUserI
 	if membersCount == 0 {
 		return
 	}
-	perMember := decimal.Decimal64p2(int64(amountTotal) / membersCount)
+	adjustedTotal := amountTotal
+	for i := range members {
+		if adjustedTotal -= members[i].Adjustment; adjustedTotal < 0 {
+			panic("adjustedTotal < 0")
+		}
+	}
+	perMember := decimal.Decimal64p2(int64(adjustedTotal) / membersCount)
 
-	getRemainder := func() decimal.Decimal64p2 { return amountTotal - decimal.Decimal64p2(int64(perMember)*membersCount) }
+	getRemainder := func() decimal.Decimal64p2 {
+		return adjustedTotal - decimal.Decimal64p2(int64(perMember)*membersCount)
+	}
 
 	remainder := getRemainder()
 
-	for remainder > 1 || remainder < -1 {
-		switch {
-		case remainder > 1:
-			perMember += 1
-		case remainder < -1:
-			perMember -= 1
-		}
-		remainder = getRemainder()
+	// if we need this add comment on why
+	// for remainder > 1 || remainder < -1 {
+	// 	switch {
+	// 	case remainder > 1:
+	// 		perMember += 1
+	// 	case remainder < -1:
+	// 		perMember -= 1
+	// 	}
+	// 	remainder = getRemainder()
+	// }
+
+	if remainder > 1 || remainder < -1 {
+		panic("remainder > 1 || remainder < -1")
 	}
 
 	creatorIndex := -1
-	for i := range members {
-		members[i].Owes = perMember
-		if members[i].UserID == creatorUserID {
-			creatorIndex = i
+	for i, member := range members {
+		members[i].Owes = perMember + member.Adjustment
+		if creatorUserID != "" && member.UserID == creatorUserID {
+			if creatorIndex == -1 {
+				creatorIndex = i
+			} else {
+				panic(fmt.Sprintf("creator is listed as member twice with UserID=%v", creatorUserID))
+			}
 		}
 	}
+
 	if remainder != 0 {
 		i := creatorIndex
 		if i < 0 {
@@ -54,7 +75,11 @@ func updateMemberOwesForEqualSplit(amountTotal decimal.Decimal64p2, creatorUserI
 		}
 		members[i].Owes += remainder
 	}
-	fixTotal(amountTotal, members)
+	// fixTotal(adjustedTotal, members)
+}
+
+func updateMemberOwesForSplitByPercentage(amountTotal decimal.Decimal64p2, creatorUserID string, members []BillMemberJson) {
+	updateMemberOwesForSplitByShares(amountTotal, creatorUserID, members)
 }
 
 func updateMemberOwesForSplitByShares(amountTotal decimal.Decimal64p2, creatorUserID string, members []BillMemberJson) {

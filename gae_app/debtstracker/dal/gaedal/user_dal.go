@@ -7,6 +7,7 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/pkg/errors"
@@ -37,27 +38,14 @@ var _ dal.UserDal = (*UserDalGae)(nil)
 
 func (userDal UserDalGae) SetLastCurrency(c context.Context, userID int64, currency models.Currency) error {
 	return dal.DB.RunInTransaction(c, func(c context.Context) error {
-		user, err := userDal.GetUserByID(c, userID)
+		user, err := facade.User.GetUserByID(c, userID)
 		if err != nil {
 			return err
 		}
 		user.SetLastCurrency(string(currency))
-		return userDal.SaveUser(c, user)
+		return facade.User.SaveUser(c, user)
 	}, dal.CrossGroupTransaction)
 
-}
-
-func (userDal UserDalGae) SaveUser(c context.Context, user models.AppUser) (err error) {
-	var key *datastore.Key
-	if user.ID == 0 {
-		key = NewAppUserIncompleteKey(c)
-	} else {
-		key = NewAppUserKey(c, user.ID)
-	}
-	if key, err = gaedb.Put(c, key, user.AppUserEntity); err == nil && user.ID == 0 {
-		user.ID = key.IntID()
-	}
-	return
 }
 
 func (userDal UserDalGae) GetUserByStrID(c context.Context, userID string) (user models.AppUser, err error) {
@@ -66,44 +54,7 @@ func (userDal UserDalGae) GetUserByStrID(c context.Context, userID string) (user
 		err = errors.WithMessage(err, "UserDalGae.GetUserByStrID()")
 		return
 	}
-	return userDal.GetUserByID(c, intUserID)
-}
-
-func (userDal UserDalGae) GetUserByID(c context.Context, userID int64) (user models.AppUser, err error) {
-	//log.Debugf(c, "UserDalGae.GetUserByID(%d)", userID)
-	if userID == 0 {
-		panic("GetUserByID(userID == 0)")
-	}
-	user.ID = userID
-
-	var userEntity models.AppUserEntity
-
-	if err = gaedb.Get(c, NewAppUserKey(c, userID), &userEntity); err != nil {
-		if err == datastore.ErrNoSuchEntity {
-			err = db.NewErrNotFoundByIntID(models.AppUserKind, userID, nil)
-			return
-		} else {
-			err = errors.Wrap(err, "Failed to get userEntity by id")
-			return
-		}
-	}
-	user = models.AppUser{IntegerID: db.NewIntID(userID), AppUserEntity: &userEntity}
-	return
-}
-
-func (userDal UserDalGae) GetUsersByIDs(c context.Context, userIDs []int64) (users []models.AppUser, err error) {
-	//log.Debugf(c, "UserDalGae.GetUsersByIDs(%d)", userIDs)
-	if len(userIDs) == 0 {
-		return
-	}
-
-	keys := make([]*datastore.Key, len(userIDs))
-	for i, userID := range userIDs {
-		keys[i] = NewAppUserKey(c, userID)
-	}
-
-	err = gaedb.GetMulti(c, keys, &users)
-	return
+	return facade.User.GetUserByID(c, intUserID)
 }
 
 func (userDal UserDalGae) GetUserByVkUserID(c context.Context, vkUserID int64) (models.AppUser, error) {
@@ -209,7 +160,7 @@ var delayedUpdateUserWithContact = delay.Func("updateUserWithContact", updateUse
 func updateUserWithContact(c context.Context, userID, contactID int64) (err error) {
 	log.Debugf(c, "updateUserWithContact(userID=%v, contactID=%v)", userID, contactID)
 	var contact models.Contact
-	if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil {
+	if contact, err = facade.GetContactByID(c, contactID); err != nil {
 		err = nil
 		log.Errorf(c, err.Error())
 		return
@@ -217,7 +168,7 @@ func updateUserWithContact(c context.Context, userID, contactID int64) (err erro
 	return dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 		var user models.AppUser
 
-		if user, err = dal.User.GetUserByID(c, userID); err != nil {
+		if user, err = facade.User.GetUserByID(c, userID); err != nil {
 			return
 		}
 		if db.IsNotFound(err) {
@@ -225,8 +176,8 @@ func updateUserWithContact(c context.Context, userID, contactID int64) (err erro
 			err = nil
 		}
 
-		if user.AddOrUpdateContact(contact) {
-			if err = dal.User.SaveUser(c, user); err != nil {
+		if _, changed := user.AddOrUpdateContact(contact); changed {
+			if err = facade.User.SaveUser(c, user); err != nil {
 				return
 			}
 		} else {

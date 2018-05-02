@@ -8,6 +8,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/DebtsTracker/translations/trans"
@@ -62,7 +63,7 @@ func createReminderForTransferUser(c context.Context, transferID, userID int64) 
 
 	return dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 		var transfer models.Transfer
-		transfer, err = dal.Transfer.GetTransferByID(c, transferID)
+		transfer, err = facade.GetTransferByID(c, transferID)
 		if err != nil {
 			if db.IsNotFound(err) {
 				log.Errorf(c, errors.WithMessage(err, "Not able to create reminder for specified transfer").Error())
@@ -105,7 +106,7 @@ func createReminderForTransferUser(c context.Context, transferID, userID int64) 
 		}
 		transferUserInfo.ReminderID = reminderKey.IntID()
 
-		if err = dal.Transfer.SaveTransfer(c, transfer); err != nil {
+		if err = facade.Transfers.SaveTransfer(c, transfer); err != nil {
 			return errors.WithMessage(err, "failed to save transfer to datastore")
 		}
 
@@ -251,7 +252,7 @@ func discardReminder(c context.Context, reminderID, transferID, returnTransferID
 
 		if reminder.Locale == "" {
 			log.Errorf(c, "reminder.Locale == ''")
-			if user, err := dal.User.GetUserByID(c, reminder.UserID); err != nil {
+			if user, err := facade.User.GetUserByID(c, reminder.UserID); err != nil {
 				return errors.Wrapf(err, "Failed to get user by id=%v", reminder.UserID)
 			} else if user.PreferredLanguage != "" {
 				reminder.Locale = user.PreferredLanguage

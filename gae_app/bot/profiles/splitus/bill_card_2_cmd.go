@@ -6,7 +6,7 @@ import (
 	"net/url"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/DebtsTracker/translations/emoji"
@@ -39,7 +39,7 @@ func startBillAction(whc bots.WebhookContext, billParam string) (m bots.MessageF
 	if bill.ID = billParam[len("bill-"):]; bill.ID == "" {
 		return m, errors.New("Invalid bill parameter")
 	}
-	if bill, err = dal.Bill.GetBillByID(whc.Context(), bill.ID); err != nil {
+	if bill, err = facade.GetBillByID(whc.Context(), bill.ID); err != nil {
 		return
 	}
 	return ShowBillCard(whc, false, bill, "")

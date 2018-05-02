@@ -3,6 +3,7 @@ package gaedal
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/pkg/errors"
@@ -53,7 +54,7 @@ func updateUserWithBill(c context.Context, billID, userID string) (err error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if bill, billErr = dal.Bill.GetBillByID(c, billID); err != nil {
+		if bill, billErr = facade.GetBillByID(c, billID); err != nil {
 			return
 		}
 	}()
@@ -133,7 +134,7 @@ func updateUserWithBill(c context.Context, billID, userID string) (err error) {
 			if _, err = user.SetOutstandingBills(userOutstandingBills); err != nil {
 				return
 			}
-			if err = dal.User.SaveUser(c, user); err != nil {
+			if err = facade.User.SaveUser(c, user); err != nil {
 				return
 			}
 		} else {

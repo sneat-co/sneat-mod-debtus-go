@@ -226,7 +226,7 @@ func handleConfirmEmailAndSignIn(c context.Context, w http.ResponseWriter, r *ht
 		}
 
 		var appUser models.AppUser
-		if appUser, err = dal.User.GetUserByID(c, userEmail.AppUserIntID); err != nil {
+		if appUser, err = facade.User.GetUserByID(c, userEmail.AppUserIntID); err != nil {
 			return err
 		}
 

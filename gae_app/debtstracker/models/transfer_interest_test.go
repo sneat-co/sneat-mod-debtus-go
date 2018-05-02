@@ -13,14 +13,14 @@ var simpleFor7daysAt7percent = TransferInterest{
 	InterestType:    InterestPercentSimple,
 	InterestPeriod:  7,
 	InterestPercent: decimal.NewDecimal64p2(7, 0),
-	//InterestMinimumPeriod: 5,
+	// InterestMinimumPeriod: 5,
 }
 
 const day = 24 * time.Hour
 
-func assertOutstandingValue(t *testing.T, transfer *TransferEntity, expected decimal.Decimal64p2) bool {
+func assertOutstandingValue(t *testing.T, transfer *TransferEntity, periodEnds time.Time, expected decimal.Decimal64p2) bool {
 	t.Helper()
-	if v := transfer.GetOutstandingValue(time.Now()); v != expected {
+	if v := transfer.GetOutstandingValue(periodEnds); v != expected {
 		t.Errorf("Expected %v, got: %v", expected, v)
 		return false
 	}
@@ -29,52 +29,59 @@ func assertOutstandingValue(t *testing.T, transfer *TransferEntity, expected dec
 
 func TestTransferEntity_GetInterestValue(t *testing.T) {
 	now := time.Now()
-	transfer := &TransferEntity{
-		DtCreated:     now,
-		AmountInCents: decimal.NewDecimal64p2(10, 0),
+	transfer := &TransferEntity{DtCreated: now, IsOutstanding: true, AmountInCents: 1000,
 		TransferInterest: TransferInterest{
 			InterestType:          InterestPercentSimple,
 			InterestPeriod:        3,
-			InterestPercent:       decimal.NewDecimal64p2(3, 0),
 			InterestMinimumPeriod: 3,
+			InterestPercent:       decimal.FromInt(3),
 		},
 	}
 
-	if !assertOutstandingValue(t, transfer, decimal.NewDecimal64p2(10, 30)) {
+	if !assertOutstandingValue(t, transfer, now, 1030) {
 		return
 	}
 
-	transfer.SetReturns([]TransferReturnJson{
-		{
-			Time:   now,
-			Amount: decimal.NewDecimal64p2(10, 30),
-		},
-	})
-	if !assertOutstandingValue(t, transfer, 0) {
+	if err := transfer.SetReturns([]TransferReturnJson{{TransferID: 123, Time: now, Amount: 1030}}); err != nil {
+		t.Fatal(err)
+	}
+
+	if transfer.IsOutstanding {
+		t.Error("Transfer should be NOT outstaning")
+	}
+	if !assertOutstandingValue(t, transfer, now, 0) {
 		return
 	}
 }
 
-func TestTransferEntityGetOutstandingAmount(t *testing.T) {
+func TestTransferEntityGetOutstandingValue(t *testing.T) {
 	now := time.Now()
 	transfer := &TransferEntity{
-		DtCreated:        now.Add(-3 * day),
+		IsOutstanding:    true,
+		DtCreated:        now.Add(-3*day + time.Hour),
 		AmountInCents:    decimal.NewDecimal64p2(100, 0),
 		TransferInterest: simpleFor7daysAt7percent,
 	}
 
-	if !assertOutstandingValue(t, transfer, decimal.NewDecimal64p2(104, 0)) {
+	if !assertOutstandingValue(t, transfer, now, decimal.NewDecimal64p2(103, 0)) {
 		return
 	}
 
-	transfer.SetReturns([]TransferReturnJson{
-		{
-			Time:   now.Add(-2 * day),
-			Amount: decimal.NewDecimal64p2(50, 0),
-		},
-	})
-	if !assertOutstandingValue(t, transfer, decimal.NewDecimal64p2(103, 0)) {
+	if err := transfer.SetReturns([]TransferReturnJson{{TransferID: 123, Time: transfer.DtCreated.Add(23 * time.Hour), Amount: 3100}}); err != nil {
+		t.Fatal(err)
+	}
+	if !transfer.IsOutstanding {
+		t.Fatal("transfer should remain outstanding after partial return")
+	}
+	// expecting 100 + 1 - 31 => 70 + 0.7*2 => 71.40
+	if !assertOutstandingValue(t, transfer, now, 7140) {
 		return
+	}
+	if err := transfer.SetReturns(append(transfer.GetReturns(), TransferReturnJson{TransferID: 124, Time: now, Amount: 7140})); err != nil {
+		t.Fatal(err)
+	}
+	if transfer.IsOutstanding {
+		t.Fatal("transfer should be NOT outstanding after full return")
 	}
 }
 

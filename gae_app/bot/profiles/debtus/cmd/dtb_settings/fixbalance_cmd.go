@@ -2,6 +2,7 @@ package dtb_settings
 
 import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/strongo/bots-framework/core"
@@ -12,7 +13,7 @@ var FixBalanceCommand = bots.Command{
 	Commands: []string{"/fixbalance"},
 	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		if err = dal.DB.RunInTransaction(whc.Context(), func(c context.Context) error {
-			user, err := dal.User.GetUserByID(c, whc.AppUserIntID())
+			user, err := facade.User.GetUserByID(c, whc.AppUserIntID())
 			if err != nil {
 				return err
 			}
@@ -25,7 +26,7 @@ var FixBalanceCommand = bots.Command{
 				}
 			}
 			user.SetBalance(balance)
-			return dal.User.SaveUser(c, user)
+			return facade.User.SaveUser(c, user)
 		}, dal.CrossGroupTransaction); err != nil {
 			return
 		}

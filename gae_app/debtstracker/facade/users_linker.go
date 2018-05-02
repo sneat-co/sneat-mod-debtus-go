@@ -29,6 +29,12 @@ func (linker usersLinker) linkUsersWithinTransaction(
 ) {
 	changes := linker.changes
 	inviterUser, invitedUser := changes.inviterUser, changes.invitedUser
+	if inviterUser == nil {
+		panic("inviterUser == nil")
+	}
+	if invitedUser == nil {
+		panic("invitedUser == nil")
+	}
 	inviterContact, invitedContact := changes.inviterContact, changes.invitedContact
 	if invitedContact == nil {
 		invitedContact = new(models.Contact)
@@ -51,16 +57,16 @@ func (linker usersLinker) linkUsersWithinTransaction(
 	{
 		if err = linker.getOrCreateInvitedContactByInviterUserAndInviterContact(tc, changes); err != nil {
 			return
-		} else {
-			invitedContact = changes.invitedContact
 		}
+		invitedContact = changes.invitedContact
 
 		if invitedContact.ContactEntity == nil {
 			err = fmt.Errorf(
 				"getOrCreateInvitedContactByInviterUserAndInviterContact() returned invitedContact.ContactEntity == nil, invitedContact.ID: %d",
 				invitedContact.ID)
 			return
-		} else if invitedContact.UserID != invitedUser.ID {
+		}
+		if invitedContact.UserID != invitedUser.ID {
 			panic(fmt.Sprintf("invitedContact.UserID != invitedUser.ID: %v != %v", invitedContact.UserID, invitedUser.ID))
 		}
 
@@ -78,7 +84,21 @@ func (linker usersLinker) linkUsersWithinTransaction(
 	// verify
 	{
 		invitedContact.MustMatchCounterparty(*inviterContact)
-		if !invitedUser.ContactByID(invitedContact.ID).Balance().Equal(inviterUser.ContactByID(inviterContact.ID).Balance().Reversed()) {
+
+		addContactJSON := func(user *models.AppUser, contact *models.Contact) (contactJSON *models.UserContactJson) {
+			contactJSON = user.ContactByID(invitedContact.ID)
+			if contactJSON == nil {
+				// err = fmt.Errorf("invitedUserContact == nil, ID=%v", invitedContact.ID)
+				userContactJSON, _ := user.AddOrUpdateContact(*contact)
+				contactJSON = &userContactJSON
+				linker.changes.FlagAsChanged(user)
+			}
+			return contactJSON
+		}
+		inviterUserContact := addContactJSON(inviterUser, inviterContact)
+		invitedUserContact := addContactJSON(invitedUser, invitedContact)
+
+		if !invitedUserContact.Balance().Equal(inviterUserContact.Balance().Reversed()) {
 			panic(fmt.Sprintf("users contacts json balances are not equal (invited vs inviter): %v != %v",
 				invitedUser.ContactByID(invitedContact.ID).Balance(),
 				inviterUser.ContactByID(inviterContact.ID).Balance(),
@@ -131,17 +151,17 @@ func (linker usersLinker) getOrCreateInvitedContactByInviterUserAndInviterContac
 	if invitedUser.ContactsCount > 0 {
 		var invitedUserContacts []models.Contact
 		// Use non transaction context
-		invitedUserContacts, err = dal.Contact.GetContactsByIDs(tc, invitedUser.ContactIDs())
+		invitedUserContacts, err = GetContactsByIDs(tc, invitedUser.ContactIDs())
 		if err != nil {
-			err = errors.Wrap(err, "Failed to call dal.Contact.GetContactsByIDs()")
+			err = errors.Wrap(err, "Failed to call facade.GetContactsByIDs()")
 			return
 		}
 		for _, invitedUserContact := range invitedUserContacts {
 			if invitedUserContact.CounterpartyUserID == inviterUser.ID {
 				// We re-get the entity of the found invitedContact using transactional context
 				// and store it to output var
-				if invitedContact, err = dal.Contact.GetContactByID(tc, invitedUserContact.ID); err != nil {
-					err = errors.Wrapf(err, "Failed to call dal.Contact.GetContactByID(%d)", invitedUserContact.ID)
+				if invitedContact, err = GetContactByID(tc, invitedUserContact.ID); err != nil {
+					err = errors.Wrapf(err, "Failed to call GetContactByID(%d)", invitedUserContact.ID)
 					return
 				}
 				if invitedContact.FirstName == "" {
@@ -300,7 +320,7 @@ func (linker usersLinker) updateInviterContact(
 				goto inviterUserContactFound
 			}
 		}
-		if inviterUser.AddOrUpdateContact(*inviterContact) {
+		if _, changed := inviterUser.AddOrUpdateContact(*inviterContact); changed {
 			linker.changes.FlagAsChanged(linker.changes.inviterUser)
 		}
 	inviterUserContactFound:

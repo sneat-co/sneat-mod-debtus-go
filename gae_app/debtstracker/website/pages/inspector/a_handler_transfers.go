@@ -9,7 +9,7 @@ import (
 
 	"time"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/julienschmidt/httprouter"
@@ -48,12 +48,12 @@ func (h transfersPage) transfersPageHandler(w http.ResponseWriter, r *http.Reque
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil {
+		if contact, err = facade.GetContactByID(c, contactID); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(w, err)
 			return
 		}
-		if user, err = dal.User.GetUserByID(c, contact.UserID); err != nil {
+		if user, err = facade.User.GetUserByID(c, contact.UserID); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(w, err)
 			return

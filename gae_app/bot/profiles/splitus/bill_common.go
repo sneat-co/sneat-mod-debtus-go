@@ -30,7 +30,7 @@ func getBill(c context.Context, callbackUrl *url.URL) (bill models.Bill, err err
 	if bill.ID, err = GetBillID(callbackUrl); err != nil {
 		return
 	}
-	if bill, err = dal.Bill.GetBillByID(c, bill.ID); err != nil {
+	if bill, err = facade.GetBillByID(c, bill.ID); err != nil {
 		return
 	}
 	return

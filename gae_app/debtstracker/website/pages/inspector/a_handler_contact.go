@@ -8,7 +8,7 @@ import (
 
 	"sync"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/julienschmidt/httprouter"
@@ -26,7 +26,7 @@ func (h contactPage) contactPageHandler(w http.ResponseWriter, r *http.Request, 
 
 	var contact models.Contact
 
-	if contact, err = dal.Contact.GetContactByID(c, contactID); err != nil {
+	if contact, err = facade.GetContactByID(c, contactID); err != nil {
 		fmt.Fprint(w, err)
 		return
 	}
@@ -46,7 +46,7 @@ func (h contactPage) contactPageHandler(w http.ResponseWriter, r *http.Request, 
 	//
 	//wg.Add(1)
 	//go func() {
-	//	if user, err = dal.User.GetUserByID(c, contact.UserID); err != nil {
+	//	if user, err = facade.User.GetUserByID(c, contact.UserID); err != nil {
 	//		return
 	//	}
 	//
@@ -54,14 +54,14 @@ func (h contactPage) contactPageHandler(w http.ResponseWriter, r *http.Request, 
 	//
 	//if contact.CounterpartyUserID != 0 {
 	//	wg.Add(1)
-	//	if user, err = dal.User.GetUserByID(c, contact.CounterpartyUserID); err != nil {
+	//	if user, err = facade.User.GetUserByID(c, contact.CounterpartyUserID); err != nil {
 	//		return
 	//	}
 	//}
 	//
 	//if contact.CounterpartyCounterpartyID != 0 {
 	//	wg.Add(1)
-	//	if counterpartyContact, err = dal.Contact.GetContactByID(c, contact.CounterpartyCounterpartyID); err != nil {
+	//	if counterpartyContact, err = facade.GetContactByID(c, contact.CounterpartyCounterpartyID); err != nil {
 	//		return
 	//	}
 	//}

@@ -27,7 +27,7 @@ func NewReceiptUsersLinker(changes *receiptDbChanges) receiptUsersLinker {
 
 func (linker *receiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID, counterpartyUserID int64) (isJustLinked bool, err error) {
 	log.Debugf(c, "receiptUsersLinker.LinkReceiptUsers(receiptID=%v, counterpartyUserID=%v)", receiptID, counterpartyUserID)
-	if currentUser, err := dal.User.GetUserByID(c, counterpartyUserID); err != nil {
+	if currentUser, err := User.GetUserByID(c, counterpartyUserID); err != nil {
 		// TODO: Instead pass user as a parameter? Even better if the user entity was created within following transaction.
 		return isJustLinked, err
 	} else if currentUser.DtCreated.After(time.Now().Add(-time.Second / 2)) {
@@ -86,7 +86,7 @@ func (linker *receiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID,
 		return
 	}
 	log.Debugf(c, "receiptUsersLinker.LinkReceiptUsers() => invitedContact: %+v", invitedContact)
-	if invitedContact, err = dal.Contact.GetContactByID(c, invitedContact.ID); err != nil {
+	if invitedContact, err = GetContactByID(c, invitedContact.ID); err != nil {
 		return
 	}
 	log.Debugf(c, "receiptUsersLinker.LinkReceiptUsers() => invitedContact from DB: %+v", invitedContact)
@@ -143,7 +143,7 @@ func (linker receiptUsersLinker) linkUsersByReceiptWithinTransaction(
 
 	transferCreatorCounterparty := transfer.Counterparty()
 
-	if inviterContact, err = dal.Contact.GetContactByID(tc, transferCreatorCounterparty.ContactID); err != nil {
+	if inviterContact, err = GetContactByID(tc, transferCreatorCounterparty.ContactID); err != nil {
 		return
 	} else if inviterContact.UserID != inviterUser.ID {
 		panic(fmt.Sprintf("inviterContact.UserID !=  inviterUser.ID: %v != %v", inviterContact.UserID, inviterUser.ID))

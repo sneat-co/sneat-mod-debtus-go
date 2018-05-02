@@ -6,15 +6,14 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/pkg/errors"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
-	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/delay"
 )
@@ -122,43 +121,6 @@ func (ContactDalGae) GetContactsWithDebts(c context.Context, userID int64) (coun
 	return
 }
 
-func (contactDalGae ContactDalGae) GetContactsByIDs(c context.Context, contactsIDs []int64) ([]models.Contact, error) {
-	count := len(contactsIDs)
-	keys := make([]*datastore.Key, count)
-	contactEntities := make([]*models.ContactEntity, count)
-	for i, counterpartyID := range contactsIDs {
-		if counterpartyID == 0 {
-			panic(fmt.Sprintf("contactsIDs[%d] == 0", i))
-		}
-		keys[i] = NewContactKey(c, counterpartyID)
-		contactEntities[i] = new(models.ContactEntity)
-	}
-	err := gaedb.GetMulti(c, keys, contactEntities)
-	if multiError, ok := err.(appengine.MultiError); ok {
-		if len(multiError) == len(keys) {
-			var foundIDs, notFoundIds []int64
-			for i, er := range multiError {
-				if er == datastore.ErrNoSuchEntity {
-					notFoundIds = append(notFoundIds, keys[i].IntID())
-				} else {
-					foundIDs = append(foundIDs, keys[i].IntID())
-				}
-			}
-			if len(notFoundIds) > 0 {
-				log.Errorf(c, "GetContactsByIDs(): Not found counterparty IDs (%v): %v", len(notFoundIds), notFoundIds)
-				if len(foundIDs) > 0 {
-					return contactDalGae.GetContactsByIDs(c, foundIDs) // TODO: Need explanation in a comment why we need the recursive call here
-				}
-			}
-		}
-	}
-	contacts := make([]models.Contact, len(contactEntities))
-	for i, contactEntity := range contactEntities {
-		contacts[i] = models.NewContact(contactsIDs[i], contactEntity)
-	}
-	return contacts, err
-}
-
 func (ContactDalGae) GetLatestContacts(whc bots.WebhookContext, limit, totalCount int) (counterparties []models.Contact, err error) {
 	c := whc.Context()
 	query := newContactQueryActive(whc.AppUserIntID()).Order("-LastTransferAt")
@@ -191,22 +153,9 @@ func (ContactDalGae) GetLatestContacts(whc bots.WebhookContext, limit, totalCoun
 	return
 }
 
-func (ContactDalGae) GetContactByID(c context.Context, contactID int64) (contact models.Contact, err error) {
-	var counterpartyEntity models.ContactEntity
-	key := NewContactKey(c, contactID)
-	if err = gaedb.Get(c, key, &counterpartyEntity); err != nil {
-		if err == datastore.ErrNoSuchEntity {
-			err = db.NewErrNotFoundByIntID(models.ContactKind, contactID, nil)
-		}
-		return
-	}
-	contact = models.NewContact(contactID, &counterpartyEntity)
-	return
-}
-
 func (contactDalGae ContactDalGae) GetContactIDsByTitle(c context.Context, userID int64, title string, caseSensitive bool) (contactIDs []int64, err error) {
 	var user models.AppUser
-	if user, err = dal.User.GetUserByID(c, userID); err != nil {
+	if user, err = facade.User.GetUserByID(c, userID); err != nil {
 		return
 	}
 	if caseSensitive {

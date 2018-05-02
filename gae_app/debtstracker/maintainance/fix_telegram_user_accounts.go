@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/captaincodeman/datastore-mapper"
@@ -145,7 +146,7 @@ func (m *verifyTelegramUserAccounts) processTelegramChat(c context.Context, tgCh
 		return
 	}
 	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if user, err = dal.User.GetUserByID(c, tgChat.AppUserIntID); err != nil {
+		if user, err = facade.User.GetUserByID(c, tgChat.AppUserIntID); err != nil {
 			if db.IsNotFound(err) {
 				log.Errorf(c, "Failed to process %v: %v", tgChat.ID, err)
 				err = nil
@@ -181,7 +182,7 @@ func (m *verifyTelegramUserAccounts) processTelegramChat(c context.Context, tgCh
 					err = fmt.Errorf("panic on saving user %v: %v", user.ID, r)
 				}
 			}()
-			if err = dal.User.SaveUser(c, user); err != nil {
+			if err = facade.User.SaveUser(c, user); err != nil {
 				return
 			}
 			//} else {

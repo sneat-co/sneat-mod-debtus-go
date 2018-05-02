@@ -9,7 +9,6 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
@@ -22,7 +21,7 @@ func handleGetTransfer(c context.Context, w http.ResponseWriter, r *http.Request
 	if transferID := getID(c, w, r, "id"); transferID == 0 {
 		return
 	} else {
-		transfer, err := dal.Transfer.GetTransferByID(c, transferID)
+		transfer, err := facade.GetTransferByID(c, transferID)
 		if hasError(c, w, err, models.TransferKind, transferID, http.StatusBadRequest) {
 			return
 		}
@@ -108,13 +107,13 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 		}
 	}
 
-	//user, err := dal.User.GetUserByID(c, authInfo.AppUserIntID)
+	//user, err := facade.User.GetUserByID(c, authInfo.AppUserIntID)
 	//if err != nil {
 	//	hashedWriter.WriteHeader(http.StatusInternalServerError)
 	//	hashedWriter.Write([]byte(errors.Wrap(err, "Failed to get user")))
 	//}
 	if isReturn {
-		if counterparty, err := dal.Contact.GetContactByID(c, contactID); err != nil {
+		if counterparty, err := facade.GetContactByID(c, contactID); err != nil {
 			if db.IsNotFound(err) {
 				BadRequestError(c, w, err)
 			} else {
@@ -168,7 +167,7 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	var appUser models.AppUser
-	if appUser, err = dal.User.GetUserByID(c, authInfo.UserID); err != nil {
+	if appUser, err = facade.User.GetUserByID(c, authInfo.UserID); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	}

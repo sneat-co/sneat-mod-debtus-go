@@ -11,6 +11,7 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/pkg/errors"
@@ -23,7 +24,7 @@ func getApiUser(c context.Context, w http.ResponseWriter, r *http.Request, authI
 		return
 	}
 
-	if user, err = dal.User.GetUserByID(c, user.ID); hasError(c, w, err, models.AppUserKind, user.ID, 0) {
+	if user, err = facade.User.GetUserByID(c, user.ID); hasError(c, w, err, models.AppUserKind, user.ID, 0) {
 		return
 	} else if user.AppUserEntity == nil {
 		w.Write([]byte(fmt.Sprintf("User not found by ID=%v", user.ID)))
@@ -115,12 +116,12 @@ func setUserName(c context.Context, w http.ResponseWriter, r *http.Request, auth
 	}
 
 	err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-		user, err := dal.User.GetUserByID(c, authInfo.UserID)
+		user, err := facade.User.GetUserByID(c, authInfo.UserID)
 		if err != nil {
 			return err
 		}
 		user.Username = string(body)
-		if err = dal.User.SaveUser(c, user); err != nil {
+		if err = facade.User.SaveUser(c, user); err != nil {
 			return err
 		}
 		if err = gaedal.DelayUpdateTransfersWithCreatorName(c, user.ID); err != nil {

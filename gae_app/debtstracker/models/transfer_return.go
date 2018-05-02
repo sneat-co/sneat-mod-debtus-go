@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
 )
@@ -46,30 +47,49 @@ func (t *TransferEntity) GetReturns() (returns []TransferReturnJson) {
 	return
 }
 
-func (t *TransferEntity) SetReturns(returns []TransferReturnJson) {
-	if len(returns) == 0 {
-		t.ReturnsCount = 0
-		t.ReturnsJson = ""
-		return
-	}
-	if data, err := ffjson.Marshal(returns); err != nil {
-		panic(err)
-	} else {
-		t.ReturnsJson = string(data)
-	}
+func (t *TransferEntity) SetReturns(returns []TransferReturnJson) error {
 	if len(returns) == 0 {
 		t.AmountInCentsReturned = 0
-	} else {
-		var returnedValue decimal.Decimal64p2
-		for _, r := range returns {
-			returnedValue += r.Amount
-		}
-		if returnedValue > 0 {
-			t.AmountInCentsReturned = returnedValue
-		}
+		t.ReturnsCount = 0
+		t.ReturnsJson = ""
+		return nil
 	}
+
+	transferAmount := t.GetAmount()
+	totalDue := transferAmount.Value + t.GetInterestValue(time.Now())
+
+	var returnedValue decimal.Decimal64p2
+	returnTransferIDs := make([]int64, 0, len(returns))
+	for i, r := range returns {
+		if r.TransferID == 0 {
+			return fmt.Errorf("return is missing TransferID (i=%d)", i)
+		}
+		if r.Amount <= 0 {
+			return fmt.Errorf("transfer return amount <= 0 (ID=%v, amount=%v)", r.TransferID, r.Amount)
+		}
+		for _, tID := range returnTransferIDs {
+			if tID == r.TransferID {
+				return fmt.Errorf("duplicate return transfer ID=%v", r.TransferID)
+			}
+		}
+		returnTransferIDs = append(returnTransferIDs, r.TransferID)
+		returnedValue += r.Amount
+	}
+	if returnedValue > totalDue {
+		return fmt.Errorf("wrong transfer returns: returnedValue > totalDue (%v > %v)", returnedValue, totalDue)
+	}
+	if returnedValue == totalDue {
+		t.IsOutstanding = false
+	}
+	returnsJson, err := ffjson.Marshal(returns) // We'll assign to t.ReturnsJson when all checks are OK
+	if err != nil {
+		return errors.WithMessage(err, "failed to marshal transfer returns")
+	}
+	t.AmountInCentsReturned = returnedValue
+	t.ReturnsJson = string(returnsJson)
 	t.ReturnsCount = len(returns)
 	t.returns = make([]TransferReturnJson, t.ReturnsCount)
 	copy(t.returns, returns)
-	return
+
+	return nil
 }

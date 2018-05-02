@@ -43,7 +43,7 @@ func ShowReceipt(whc bots.WebhookContext, receiptID int64) (m bots.MessageFromBo
 		return
 	}
 
-	transfer, err := dal.Transfer.GetTransferByID(c, receipt.TransferID)
+	transfer, err := facade.GetTransferByID(c, receipt.TransferID)
 	if err != nil {
 		return m, err
 	}
@@ -57,9 +57,9 @@ func ShowReceipt(whc bots.WebhookContext, receiptID int64) (m bots.MessageFromBo
 	counterpartyCounterparty := transfer.Creator()
 
 	if counterpartyCounterparty.ContactID != 0 {
-		counterparty, err = dal.Contact.GetContactByID(c, counterpartyCounterparty.ContactID)
+		counterparty, err = facade.GetContactByID(c, counterpartyCounterparty.ContactID)
 	} else {
-		if user, err := dal.User.GetUserByID(c, transfer.CreatorUserID); err != nil {
+		if user, err := facade.User.GetUserByID(c, transfer.CreatorUserID); err != nil {
 			return m, err
 		} else {
 			counterparty.ContactEntity = &models.ContactEntity{}
@@ -198,7 +198,7 @@ func viewReceiptCallbackAction(whc bots.WebhookContext, callbackUrl *url.URL) (m
 //			if transferID, err = invite.RelatedIntID(); err != nil {
 //				return
 //			}
-//			if transfer, err = dal.Transfer.GetTransferByID(c, transferID); err != nil {
+//			if transfer, err = facade.GetTransferByID(c, transferID); err != nil {
 //				return
 //			}
 //			sender := whc.GetSender()

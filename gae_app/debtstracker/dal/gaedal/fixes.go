@@ -6,6 +6,7 @@ import (
 	//"github.com/pkg/errors"
 	"sync"
 
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"context"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
@@ -43,7 +44,7 @@ func (f *TransferFixter) needFixCounterpartyCounterpartyName() bool {
 //			}
 //		}
 //		if f.transfer.Creator().ContactName == "" { // Not fixed from counterparty
-//			user, err := dal.User.GetUserByID(c, f.transfer.CreatorUserID)
+//			user, err := facade.User.GetUserByID(c, f.transfer.CreatorUserID)
 //			if err != nil {
 //				return err
 //			}
@@ -73,7 +74,7 @@ func (f *TransferFixter) needFixes(c context.Context) bool {
 func (f *TransferFixter) FixAllIfNeeded(c context.Context) (err error) {
 	if f.needFixes(c) {
 		err = dal.DB.RunInTransaction(c, func(tc context.Context) error {
-			transfer, err := dal.Transfer.GetTransferByID(tc, f.transferKey.IntID())
+			transfer, err := facade.GetTransferByID(tc, f.transferKey.IntID())
 			if err != nil {
 				return err
 			}

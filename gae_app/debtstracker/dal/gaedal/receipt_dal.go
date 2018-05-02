@@ -5,6 +5,7 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/pkg/errors"
@@ -52,7 +53,7 @@ func (receiptDalGae ReceiptDalGae) GetReceiptByID(c context.Context, id int64) (
 func (receiptDalGae ReceiptDalGae) CreateReceipt(c context.Context, receipt *models.ReceiptEntity) (id int64, err error) { // TODO: Move to facade
 	err = dal.DB.RunInTransaction(c, func(c context.Context) error {
 		receiptKey := NewReceiptIncompleteKey(c)
-		user, err := dal.User.GetUserByID(c, receipt.CreatorUserID)
+		user, err := facade.User.GetUserByID(c, receipt.CreatorUserID)
 		if err != nil {
 			return err
 		}
@@ -80,7 +81,7 @@ func (receiptDalGae ReceiptDalGae) MarkReceiptAsSent(c context.Context, receiptI
 			if receipt, err = receiptDalGae.GetReceiptByID(c, receiptID); err != nil {
 				return err
 			}
-			if transfer, err = dal.Transfer.GetTransferByID(c, transferID); err != nil {
+			if transfer, err = facade.GetTransferByID(c, transferID); err != nil {
 				return err
 			}
 			transferKey = NewTransferKey(c, transferID)

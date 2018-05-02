@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/pkg/errors"
@@ -49,13 +50,13 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 		user          models.AppUser
 	)
 
-	if targetContact, err = dal.Contact.GetContactByID(c, targetContactID); err != nil {
+	if targetContact, err = facade.GetContactByID(c, targetContactID); err != nil {
 		if db.IsNotFound(err) && len(sourceContactIDs) == 1 {
-			if targetContact, err = dal.Contact.GetContactByID(c, sourceContactIDs[0]); err != nil {
+			if targetContact, err = facade.GetContactByID(c, sourceContactIDs[0]); err != nil {
 				return
 			}
 			targetContact.ID = targetContactID
-			if err = dal.Contact.SaveContact(c, targetContact); err != nil {
+			if err = facade.SaveContact(c, targetContact); err != nil {
 				return
 			}
 		} else {
@@ -63,7 +64,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 		}
 	}
 
-	if user, err = dal.User.GetUserByID(c, targetContact.UserID); err != nil {
+	if user, err = facade.User.GetUserByID(c, targetContact.UserID); err != nil {
 		return
 	}
 
@@ -73,7 +74,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 			return
 		}
 		var sourceContact models.Contact
-		if sourceContact, err = dal.Contact.GetContactByID(c, sourceContactID); err != nil {
+		if sourceContact, err = facade.GetContactByID(c, sourceContactID); err != nil {
 			if db.IsNotFound(err) {
 				continue
 			}
@@ -105,7 +106,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 	}
 
 	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if user, err = dal.User.GetUserByID(c, user.ID); err != nil {
+		if user, err = facade.User.GetUserByID(c, user.ID); err != nil {
 			return
 		}
 		var contacts []models.UserContactJson
@@ -118,7 +119,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 						targetContactBalance.Add(models.NewAmount(currency, value))
 					}
 					var sourceContact models.Contact
-					if sourceContact, err = dal.Contact.GetContactByID(c, sourceContactID); err != nil {
+					if sourceContact, err = facade.GetContactByID(c, sourceContactID); err != nil {
 						if db.IsNotFound(err) {
 							err = nil
 						} else {
@@ -132,7 +133,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 						}
 						if sourceContact.CounterpartyCounterpartyID != 0 {
 							var counterpartyContact models.Contact
-							if counterpartyContact, err = dal.Contact.GetContactByID(c, sourceContact.CounterpartyCounterpartyID); err != nil {
+							if counterpartyContact, err = facade.GetContactByID(c, sourceContact.CounterpartyCounterpartyID); err != nil {
 								if db.IsNotFound(err) {
 									err = nil
 								} else {
@@ -140,7 +141,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 								}
 							} else if counterpartyContact.CounterpartyCounterpartyID == sourceContactID {
 								counterpartyContact.CounterpartyCounterpartyID = targetContactID
-								if err = dal.Contact.SaveContact(c, counterpartyContact); err != nil {
+								if err = facade.SaveContact(c, counterpartyContact); err != nil {
 									return
 								}
 							} else if counterpartyContact.CounterpartyCounterpartyID != 0 && counterpartyContact.CounterpartyCounterpartyID != targetContactID {
@@ -151,7 +152,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 							}
 						}
 					}
-					if err = dal.Contact.DeleteContact(c, sourceContactID); err != nil {
+					if _, err = facade.DeleteContact(c, sourceContactID); err != nil {
 						return
 					}
 				} else {
@@ -169,7 +170,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 			}
 		}
 
-		if err = dal.User.SaveUser(c, user); err != nil {
+		if err = facade.User.SaveUser(c, user); err != nil {
 			return
 		}
 		return
@@ -213,7 +214,7 @@ func mergeContactTransfers(c context.Context, wg *sync.WaitGroup, targetContactI
 		case transfer.BothCounterpartyIDs[1]:
 			transfer.BothCounterpartyIDs[1] = targetContactID
 		}
-		if err = dal.Transfer.SaveTransfer(c, transfer); err != nil {
+		if err = facade.Transfers.SaveTransfer(c, transfer); err != nil {
 			log.Errorf(c, "Failed to save transfer #%v: %v", transfer.ID, err)
 		}
 	}
