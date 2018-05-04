@@ -37,12 +37,46 @@ type TransferInterest struct {
 	// InterestAmountInCents decimal.Decimal64p2 `datastore:",noindex" json:",omitempty"`
 }
 
-func (t TransferInterest) HasInterest() bool {
-	return t.InterestPercent != 0
+func NewInterest(percentType InterestPercentType, percent decimal.Decimal64p2) TransferInterest {
+	if percent <= 0 {
+		panic(fmt.Sprintf("percent <= 0 (%v)", percent))
+	}
+	switch percentType {
+	case InterestPercentSimple, InterestPercentCompound:
+	default:
+		panic(fmt.Sprintf("unknown interest percent type (%v)", percentType))
+	}
+	return TransferInterest{
+		InterestType: percentType,
+		InterestPercent: percent,
+	}
 }
 
-func (t TransferInterest) GetInterestData() TransferInterest {
-	return t
+func (interest TransferInterest) WithPeriod(period int) TransferInterest {
+	interest.InterestPeriod = period
+	return interest
+}
+
+func (interest TransferInterest) WithMinimumPeriod(minimumPeriod int) TransferInterest {
+	interest.InterestMinimumPeriod = minimumPeriod
+	return interest
+}
+
+func (interest TransferInterest) WithGracePeriod(gracePeriodInDays int) TransferInterest {
+	interest.InterestGracePeriod = gracePeriodInDays
+	return interest
+}
+
+func NoInterest() TransferInterest {
+	return TransferInterest{}
+}
+
+func (interest TransferInterest) HasInterest() bool {
+	return interest.InterestPercent != 0
+}
+
+func (interest TransferInterest) GetInterestData() TransferInterest {
+	return interest
 }
 
 var (

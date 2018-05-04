@@ -76,27 +76,38 @@ func interestAction(whc bots.WebhookContext, nextAction bots.CommandAction) (m b
 
 const TRANSFER_WIZARD_PARAM_INTEREST = "interest"
 
-func getInterestData(s string) (data models.TransferInterest, err error) {
+func getInterestData(s string) (models.TransferInterest, error) {
 	v := strings.Split(s, "/")
+	var interest models.TransferInterest
 	switch v[0] {
 	case models.InterestPercentSimple:
 	case models.InterestPercentCompound:
 	default:
-		err = errors.New("unknown interest type: " + v[0])
-		return
+		return interest, errors.New("unknown interest type: " + v[0])
 	}
-	data.InterestType = models.InterestPercentType(v[0])
-	if data.InterestPercent, err = decimal.ParseDecimal64p2(v[1]); err != nil {
-		return
+	if percent, err := decimal.ParseDecimal64p2(v[1]); err != nil {
+		return interest, err
+	} else {
+		interest = models.NewInterest(models.InterestPercentType(v[0]), percent)
 	}
-	if data.InterestPeriod, err = strconv.Atoi(v[2]); err != nil {
-		return
+
+	if period, err := strconv.Atoi(v[2]); err != nil {
+		return interest, err
+	} else {
+		interest = interest.WithPeriod(period)
 	}
-	if data.InterestMinimumPeriod, err = strconv.Atoi(v[3]); err != nil {
-		return
+
+	if minimumPeriod, err := strconv.Atoi(v[3]); err != nil {
+		return interest, err
+	} else {
+		interest = interest.WithMinimumPeriod(minimumPeriod)
 	}
-	if data.InterestGracePeriod, err = strconv.Atoi(v[4]); err != nil {
-		return
+
+	if gracePeriod, err := strconv.Atoi(v[4]); err != nil {
+		return interest, err
+	} else {
+		interest = interest.WithGracePeriod(gracePeriod)
 	}
-	return
+
+	return interest, nil
 }

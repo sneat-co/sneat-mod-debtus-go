@@ -30,19 +30,15 @@ func assertOutstandingValue(t *testing.T, transfer *TransferEntity, periodEnds t
 func TestTransferEntity_GetInterestValue(t *testing.T) {
 	now := time.Now()
 	transfer := &TransferEntity{DtCreated: now, IsOutstanding: true, AmountInCents: 1000,
-		TransferInterest: TransferInterest{
-			InterestType:          InterestPercentSimple,
-			InterestPeriod:        3,
-			InterestMinimumPeriod: 3,
-			InterestPercent:       decimal.FromInt(3),
-		},
+		TransferInterest: NewInterest(InterestPercentSimple, decimal.FromInt(3)).
+			WithPeriod(3).WithMinimumPeriod(3),
 	}
 
 	if !assertOutstandingValue(t, transfer, now, 1030) {
 		return
 	}
 
-	if err := transfer.SetReturns([]TransferReturnJson{{TransferID: 123, Time: now, Amount: 1030}}); err != nil {
+	if err := transfer.AddReturn([]TransferReturnJson{{TransferID: 123, Time: now, Amount: 1030}}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -67,7 +63,7 @@ func TestTransferEntityGetOutstandingValue(t *testing.T) {
 		return
 	}
 
-	if err := transfer.SetReturns([]TransferReturnJson{{TransferID: 123, Time: transfer.DtCreated.Add(23 * time.Hour), Amount: 3100}}); err != nil {
+	if err := transfer.AddReturn([]TransferReturnJson{{TransferID: 123, Time: transfer.DtCreated.Add(23 * time.Hour), Amount: 3100}}); err != nil {
 		t.Fatal(err)
 	}
 	if !transfer.IsOutstanding {
@@ -77,7 +73,7 @@ func TestTransferEntityGetOutstandingValue(t *testing.T) {
 	if !assertOutstandingValue(t, transfer, now, 7140) {
 		return
 	}
-	if err := transfer.SetReturns(append(transfer.GetReturns(), TransferReturnJson{TransferID: 124, Time: now, Amount: 7140})); err != nil {
+	if err := transfer.AddReturn(append(transfer.GetReturns(), TransferReturnJson{TransferID: 124, Time: now, Amount: 7140})); err != nil {
 		t.Fatal(err)
 	}
 	if transfer.IsOutstanding {
@@ -129,12 +125,8 @@ func Test_updateBalanceWithInterest(t *testing.T) {
 	now := time.Now()
 	outstandingWithInterest := []TransferWithInterestJson{
 		{
-			TransferInterest: TransferInterest{
-				InterestType:          InterestPercentSimple,
-				InterestPercent:       decimal.NewDecimal64p2FromFloat64(2.00),
-				InterestPeriod:        1,
-				InterestMinimumPeriod: 1,
-			},
+			TransferInterest: NewInterest(InterestPercentSimple, decimal.FromInt(2)).
+				WithPeriod(1).WithMinimumPeriod(1),
 			Starts:   now,
 			Currency: CURRENCY_EUR,
 			Amount:   decimal.NewDecimal64p2FromFloat64(100.00),

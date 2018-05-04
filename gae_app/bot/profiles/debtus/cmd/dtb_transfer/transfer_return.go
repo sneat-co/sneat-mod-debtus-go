@@ -345,7 +345,7 @@ func CreateReturnAndShowReceipt(whc bots.WebhookContext, returnToTransferID, cou
 		ContactID: counterpartyID,
 	}
 
-	if m, err = CreateTransferFromBot(whc, true, returnToTransferID, direction, creatorInfo, returnAmount, time.Time{}, models.TransferInterest{}); err != nil {
+	if m, err = CreateTransferFromBot(whc, true, returnToTransferID, direction, creatorInfo, returnAmount, time.Time{}, models.NoInterest()); err != nil {
 		return m, err
 	}
 	log.Debugf(c, "createReturnAndShowReceipt(): %v", m)

@@ -47,26 +47,28 @@ func (t *TransferEntity) GetReturns() (returns []TransferReturnJson) {
 	return
 }
 
-func (t *TransferEntity) SetReturns(returns []TransferReturnJson) error {
-	if len(returns) == 0 {
-		t.AmountInCentsReturned = 0
-		t.ReturnsCount = 0
-		t.ReturnsJson = ""
-		return nil
+func (t Transfer) AddReturn(returnTransfer TransferReturnJson) error {
+	if returnTransfer.TransferID == 0 {
+		return errors.New("returnTransfer.TransferID == 0")
+	}
+	if returnTransfer.TransferID == t.ID {
+		return fmt.Errorf("returnTransfer.TransferID == t.ID => %v", t.ID)
+	}
+	if returnTransfer.Time.IsZero() {
+		return fmt.Errorf("returnTransfer.Time.IsZero(), ID=%v", returnTransfer.TransferID)
+	}
+	if returnTransfer.Amount <= 0 {
+		return fmt.Errorf("transfer return amount <= 0 (ID=%v, amount=%v)", returnTransfer.TransferID, returnTransfer.Amount)
 	}
 
-	transferAmount := t.GetAmount()
-	totalDue := transferAmount.Value + t.GetInterestValue(time.Now())
-
+	returns := t.GetReturns()
+	if len(returns) != t.ReturnsCount {
+		return fmt.Errorf("transfer data integrity issue: len(returns) != t.ReturnsCount => %v != %v", len(returns), t.ReturnsCount)
+	}
 	var returnedValue decimal.Decimal64p2
-	returnTransferIDs := make([]int64, 0, len(returns))
-	for i, r := range returns {
-		if r.TransferID == 0 {
-			return fmt.Errorf("return is missing TransferID (i=%d)", i)
-		}
-		if r.Amount <= 0 {
-			return fmt.Errorf("transfer return amount <= 0 (ID=%v, amount=%v)", r.TransferID, r.Amount)
-		}
+	returnTransferIDs := make([]int64, 1, len(returns) + 1)
+	returnTransferIDs[0] = returnTransfer.TransferID
+	for _, r := range returns {
 		for _, tID := range returnTransferIDs {
 			if tID == r.TransferID {
 				return fmt.Errorf("duplicate return transfer ID=%v", r.TransferID)
@@ -75,21 +77,26 @@ func (t *TransferEntity) SetReturns(returns []TransferReturnJson) error {
 		returnTransferIDs = append(returnTransferIDs, r.TransferID)
 		returnedValue += r.Amount
 	}
+	if returnedValue != t.AmountInCentsReturned {
+		return fmt.Errorf("transfer data integrity issue: sum(returns.Amount) != t.AmountInCentsReturned => %v != %v", returnedValue, t.AmountInCentsReturned)
+	}
+
+	transferAmount := t.GetAmount()
+	totalDue := transferAmount.Value + t.GetInterestValue(time.Now())
 	if returnedValue > totalDue {
 		return fmt.Errorf("wrong transfer returns: returnedValue > totalDue (%v > %v)", returnedValue, totalDue)
 	}
 	if returnedValue == totalDue {
 		t.IsOutstanding = false
 	}
+	returns = append(returns, returnTransfer)
 	returnsJson, err := ffjson.Marshal(returns) // We'll assign to t.ReturnsJson when all checks are OK
 	if err != nil {
 		return errors.WithMessage(err, "failed to marshal transfer returns")
 	}
-	t.AmountInCentsReturned = returnedValue
 	t.ReturnsJson = string(returnsJson)
+	t.AmountInCentsReturned += returnTransfer.Amount
 	t.ReturnsCount = len(returns)
 	t.returns = make([]TransferReturnJson, t.ReturnsCount)
-	copy(t.returns, returns)
-
 	return nil
 }

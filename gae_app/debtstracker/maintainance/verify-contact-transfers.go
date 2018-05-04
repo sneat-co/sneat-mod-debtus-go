@@ -401,7 +401,9 @@ func (m *verifyContactTransfers) fixContactAndUserWithinTransaction(c context.Co
 			}
 		}
 		// Contact not found
-		_, userChanged = user.AddOrUpdateContact(contact) || userChanged
+		if _, changed := user.AddOrUpdateContact(contact); changed {
+			userChanged = true
+		}
 	contactFound:
 		userTotalBalance := user.Balance()
 		if userContactsBalance := user.TotalBalanceFromContacts(); !userContactsBalance.Equal(userTotalBalance) {

@@ -14,6 +14,7 @@ import (
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/db"
 	"github.com/strongo/decimal"
+	"strings"
 )
 
 type assertHelper struct {
@@ -87,7 +88,7 @@ func TestCreateTransfer(t *testing.T) {
 			0,
 			from, to,
 			models.NewAmount(currency, 10),
-			time.Now().Add(time.Minute), models.TransferInterest{})
+			time.Now().Add(time.Minute), models.NoInterest())
 
 		output, err := assert.OutputIsNilIfErr(Transfers.CreateTransfer(c, newTransfer))
 		if err != nil {
@@ -153,6 +154,90 @@ func TestCreateTransfer(t *testing.T) {
 	}
 }
 
+func TestCreateReturnTransferWithInterest(t *testing.T) {
+	c := context.TODO()
+	dtmocks.SetupMocks(c)
+	assert := assertHelper{t: t}
+	currency := models.CURRENCY_EUR
+
+	const (
+		userID    int64 = 1
+		contactID int64 = 2
+	)
+
+	var (
+		output     createTransferOutput
+		err        error
+	)
+
+	creatorUser, err := User.GetUserByID(c, userID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	source := dal.NewTransferSourceBot(telegram.PlatformID, "test-bot", "444")
+
+	t1val := decimal.FromInt(10)
+	{ // Create 1st "gave" transfer
+		from := &models.TransferCounterpartyInfo{
+			UserID: userID,
+		}
+
+		to := &models.TransferCounterpartyInfo{
+			ContactID: contactID,
+		}
+
+		newTransfer := NewTransferInput(strongo.EnvLocal,
+			source,
+			creatorUser,
+			"",
+			false,
+			0,
+			from, to,
+			models.NewAmount(currency, t1val),
+			time.Now().Add(time.Minute), models.NoInterest())
+
+		output, err = Transfers.CreateTransfer(c, newTransfer)
+
+		if output, err = assert.OutputIsNilIfErr(output, err); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	{ // Create return transfer with interest
+		from := &models.TransferCounterpartyInfo{
+			ContactID: contactID,
+		}
+
+		to := &models.TransferCounterpartyInfo{
+			UserID: userID,
+		}
+
+		newTransfer := NewTransferInput(strongo.EnvLocal,
+			source,
+			creatorUser,
+			"",
+			false,
+			0,
+			from, to,
+			models.NewAmount(currency, 1000),
+			time.Now().Add(time.Minute), models.NewInterest(models.InterestPercentSimple, 2.00))
+
+		output, err = Transfers.CreateTransfer(c, newTransfer)
+
+		if err == nil {
+			t.Fatal("") // should fail
+		}
+
+		if !strings.Contains(err.Error(), "interest") {
+			t.Fatalf("error should mention 'interest', got: %v", err)
+		}
+		if !strings.Contains(err.Error(), "outstanding") {
+			t.Fatalf("error should mention 'outstanding', got: %v", err)
+		}
+	}
+}
+
 func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 	c := context.TODO()
 	dtmocks.SetupMocks(c)
@@ -179,7 +264,7 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 
 	source := dal.NewTransferSourceBot(telegram.PlatformID, "test-bot", "444")
 
-	t1val := decimal.NewDecimal64p2FromFloat64(10.00)
+	t1val := decimal.FromInt(10)
 	{ // Create 1st "gave" transfer
 		from := &models.TransferCounterpartyInfo{
 			UserID: userID,
@@ -197,7 +282,7 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 			0,
 			from, to,
 			models.NewAmount(currency, t1val),
-			time.Now().Add(time.Minute), models.TransferInterest{})
+			time.Now().Add(time.Minute), models.NoInterest())
 
 		output, err = Transfers.CreateTransfer(c, newTransfer)
 
@@ -247,12 +332,12 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 			0,
 			from, to,
 			models.NewAmount(currency, t2val),
-			time.Now().Add(time.Minute), models.TransferInterest{})
+			time.Now().Add(time.Minute), models.NoInterest())
 
 		output, err = Transfers.CreateTransfer(c, newTransfer)
 
 		if output, err = assert.OutputIsNilIfErr(output, err); err != nil {
-			t.Errorf(err.Error())
+			t.Fatal(err)
 			return
 		}
 
@@ -305,7 +390,7 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 			0,
 			from, to,
 			models.NewAmount(currency, t3val),
-			time.Now().Add(time.Minute), models.TransferInterest{})
+			time.Now().Add(time.Minute), models.NoInterest())
 
 		output, err = Transfers.CreateTransfer(c, newTransfer)
 		if output, err = assert.OutputIsNilIfErr(output, err); err != nil {
