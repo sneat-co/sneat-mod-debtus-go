@@ -8,9 +8,9 @@ import (
 
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/decimal"
+	"bitbucket.com/asterus/debtstracker-server/interest"
 )
 
 var reInterest = regexp.MustCompile(`^\s*(?P<percent>\d+(?:[\.,]\d+)?)%?(?:/(?P<period>\d+|w(?:eek)?|y(?:ear)?|m(?:onth)?))?(?:/(?P<minimum>\d+))?(?:/(?P<grace>\d+))?(?::\s*(?P<comment>.+?))?\s*$`)
@@ -37,16 +37,20 @@ func interestAction(whc bots.WebhookContext, nextAction bots.CommandAction) (m b
 					return
 				}
 				switch v[0] {
+				case "d"[0]:
+					data.InterestPeriod = interest.RatePeriodDaily
 				case "w"[0]:
-					data.InterestPeriod = models.InterestRatePeriodWeekly
+					data.InterestPeriod = interest.RatePeriodWeekly
 				case "m"[0]:
-					data.InterestPeriod = models.InterestRatePeriodMonthly
+					data.InterestPeriod = interest.RatePeriodMonthly
 				case "y"[0]:
-					data.InterestPeriod = models.InterestRatePeriodYearly
+					data.InterestPeriod = interest.RatePeriodYearly
 				default:
-					if data.InterestPeriod, err = strconv.Atoi(v); err != nil {
+					var vInt int
+					if vInt, err = strconv.Atoi(v); err != nil {
 						return
 					}
+					data.InterestPeriod = interest.RatePeriodInDays(vInt)
 				}
 			case "minimum":
 				if v != "" {
@@ -65,7 +69,7 @@ func interestAction(whc bots.WebhookContext, nextAction bots.CommandAction) (m b
 			}
 		}
 		chatEntity.AddWizardParam(TRANSFER_WIZARD_PARAM_INTEREST, fmt.Sprintf("%v/%v/%v/%v/%v",
-			models.InterestPercentSimple, data.InterestPercent, data.InterestPeriod, data.InterestMinimumPeriod, data.InterestGracePeriod),
+			interest.FormulaSimple, data.InterestPercent, data.InterestPeriod, data.InterestMinimumPeriod, data.InterestGracePeriod),
 		)
 
 		return nextAction(whc)
@@ -76,38 +80,36 @@ func interestAction(whc bots.WebhookContext, nextAction bots.CommandAction) (m b
 
 const TRANSFER_WIZARD_PARAM_INTEREST = "interest"
 
-func getInterestData(s string) (models.TransferInterest, error) {
+func getInterestData(s string) (transferInterest models.TransferInterest, err error) {
 	v := strings.Split(s, "/")
-	var interest models.TransferInterest
-	switch v[0] {
-	case models.InterestPercentSimple:
-	case models.InterestPercentCompound:
-	default:
-		return interest, errors.New("unknown interest type: " + v[0])
+	formula := interest.Formula(v[0])
+	if !interest.IsKnownFormula(formula) {
+		return transferInterest, fmt.Errorf("unknown interest formula=%v", formula)
 	}
-	if percent, err := decimal.ParseDecimal64p2(v[1]); err != nil {
-		return interest, err
-	} else {
-		interest = models.NewInterest(models.InterestPercentType(v[0]), percent)
+	var (
+		period int
+		percent decimal.Decimal64p2
+	)
+	if period, err = strconv.Atoi(v[2]); err != nil {
+		return transferInterest, err
 	}
-
-	if period, err := strconv.Atoi(v[2]); err != nil {
-		return interest, err
+	if percent, err = decimal.ParseDecimal64p2(v[1]); err != nil {
+		return transferInterest, err
 	} else {
-		interest = interest.WithPeriod(period)
+		transferInterest = models.NewInterest(formula, percent, interest.RatePeriodInDays(period))
 	}
 
 	if minimumPeriod, err := strconv.Atoi(v[3]); err != nil {
-		return interest, err
+		return transferInterest, err
 	} else {
-		interest = interest.WithMinimumPeriod(minimumPeriod)
+		transferInterest = transferInterest.WithMinimumPeriod(minimumPeriod)
 	}
 
 	if gracePeriod, err := strconv.Atoi(v[4]); err != nil {
-		return interest, err
+		return transferInterest, err
 	} else {
-		interest = interest.WithGracePeriod(gracePeriod)
+		transferInterest = transferInterest.WithGracePeriod(gracePeriod)
 	}
 
-	return interest, nil
+	return transferInterest, nil
 }

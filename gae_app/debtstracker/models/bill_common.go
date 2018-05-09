@@ -9,6 +9,7 @@ import (
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/decimal"
 	"google.golang.org/appengine/datastore"
+	"strconv"
 )
 
 type SplitMode string
@@ -32,10 +33,10 @@ const (
 
 type BillCommon struct {
 	PayMode            PayMode
-	CreatorUserID      string    `datastore:",noindex"`
-	userGroupID        string    `datastore:"UserGroupID"`
-	TgInlineMessageIDs []string  `datastore:",noindex"`
-	SplitMode          SplitMode `datastore:",noindex"`
+	CreatorUserID      string              `datastore:",noindex"`
+	userGroupID        string              `datastore:"UserGroupID"`
+	TgInlineMessageIDs []string            `datastore:",noindex"`
+	SplitMode          SplitMode           `datastore:",noindex"`
 	Status             string
 	DtCreated          time.Time
 	Name               string              `datastore:",noindex"`
@@ -43,10 +44,11 @@ type BillCommon struct {
 	Currency           Currency
 	UserIDs            []string
 	members            []BillMemberJson
-	MembersJson        string   `datastore:",noindex"`
-	MembersCount       int      `datastore:",noindex"`
+	MembersJson        string              `datastore:",noindex"`
+	MembersCount       int                 `datastore:",noindex"`
+	LastMemberID       int                 `datastore:",noindex"`
 	ContactIDs         []string // Holds contact IDs so we can update names in MembersJson on contact changed
-	Shares             int      `datastore:",noindex"`
+	Shares             int                 `datastore:",noindex"`
 }
 
 func (entity BillCommon) UserGroupID() string {
@@ -100,7 +102,7 @@ func (entity *BillCommon) IsOkToSplit() bool {
 	var paidByMembers decimal.Decimal64p2
 	for _, m := range entity.GetBillMembers() {
 		paidByMembers += m.Paid
-		//owedByMembers += m.Owes
+		// owedByMembers += m.Owes
 	}
 	return paidByMembers == entity.AmountTotal
 }
@@ -140,17 +142,18 @@ func (entity *BillCommon) GetMembers() (members []MemberJson) {
 
 func (entity *BillCommon) validateMembersForDuplicatesAndBasicChecks(members []BillMemberJson) error {
 	isEquallySplit := true
-	//maxShares := 0
+	// maxShares := 0
 
 	uniqueUserIDs := make(map[string]int, len(members))
 	for i, member := range members {
 		if member.ID == "" {
-			return fmt.Errorf("members[%d].ID is empty string, Name: %v", i, member.Name)
+			entity.LastMemberID++
+			member.ID = strconv.Itoa(entity.LastMemberID)
 		}
 		if isEquallySplit {
-			//if member.Shares > maxShares {
-			//	maxShares = member.Shares
-			//}
+			// if member.Shares > maxShares {
+			// 	maxShares = member.Shares
+			// }
 			if member.Adjustment != 0 || (i > 0 && member.Shares != members[i-1].Shares) {
 				isEquallySplit = false
 			}
@@ -189,15 +192,16 @@ func (entity *BillCommon) marshalMembersToJsonAndSetMembersCount(members []BillM
 }
 
 func (entity *BillCommon) setUserIDs(members []BillMemberJson) {
+	entity.UserIDs = make([]string, 0, len(members))
+Members:
 	for _, m := range members {
 		if m.UserID != "" {
 			for _, userID := range entity.UserIDs {
 				if userID == m.UserID {
-					goto userIdFound
+					continue Members
 				}
 			}
 			entity.UserIDs = append(entity.UserIDs, m.UserID)
-		userIdFound:
 		}
 	}
 }

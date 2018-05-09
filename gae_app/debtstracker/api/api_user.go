@@ -94,7 +94,7 @@ func handleMe(c context.Context, w http.ResponseWriter, r *http.Request, authInf
 		}
 	}
 
-	if meDto.FullName == models.NO_NAME {
+	if meDto.FullName == models.NoName {
 		meDto.FullName = ""
 	}
 

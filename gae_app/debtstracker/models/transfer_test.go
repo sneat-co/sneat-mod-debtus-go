@@ -8,10 +8,10 @@ import (
 )
 
 func TestTransfer_LoadSaver(t *testing.T) {
-	saved := []struct {
+	var saved []struct {
 		kind       string
 		properties []datastore.Property
-	}{}
+	}
 	checkHasProperties = func(kind string, properties []datastore.Property) {
 		saved = append(saved, struct {
 			kind       string

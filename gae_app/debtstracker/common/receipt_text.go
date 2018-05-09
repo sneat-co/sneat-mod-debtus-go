@@ -221,7 +221,7 @@ func (r receiptTextBuilder) WriteReceiptText(buffer *bytes.Buffer, utmParams Utm
 		buffer.WriteString("\n" + emoji.ALARM_CLOCK_ICON + " " + fmt.Sprintf(r.Translate(trans.MESSAGE_TEXT_DUE_ON), r.transfer.DtDueOn.Format("2006-01-02 15:04")))
 	}
 
-	if r.transfer.AmountInCentsReturned > 0 && r.transfer.AmountInCentsReturned != r.transfer.AmountInCents {
+	if r.transfer.AmountReturned > 0 && r.transfer.AmountReturned != r.transfer.AmountInCents {
 		buffer.WriteString("\n" + r.translateAndFormatMessage(trans.MESSAGE_TEXT_RECEIPT_ALREADY_RETURNED_AMOUNT, r.transfer.GetReturnedAmount(), utmParams))
 	}
 
@@ -231,7 +231,7 @@ func (r receiptTextBuilder) WriteReceiptText(buffer *bytes.Buffer, utmParams Utm
 }
 
 func WriteTransferInterest(buffer *bytes.Buffer, transfer models.Transfer, translator strongo.SingleLocaleTranslator) {
-	buffer.WriteString(translator.Translate(trans.MESSAGE_TEXT_INTEREST, transfer.InterestPercent, days(translator, transfer.InterestPeriod)))
+	buffer.WriteString(translator.Translate(trans.MESSAGE_TEXT_INTEREST, transfer.InterestPercent, days(translator, int(transfer.InterestPeriod))))
 	if transfer.InterestMinimumPeriod > 1 {
 		buffer.WriteString(", " + translator.Translate(trans.MESSAGE_TEXT_INTEREST_MIN_PERIOD, days(translator, transfer.InterestMinimumPeriod)))
 	}

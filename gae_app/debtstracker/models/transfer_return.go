@@ -47,13 +47,13 @@ func (t *TransferEntity) GetReturns() (returns []TransferReturnJson) {
 	return
 }
 
-func (t Transfer) AddReturn(returnTransfer TransferReturnJson) error {
+func (t *TransferEntity) AddReturn(returnTransfer TransferReturnJson) error {
 	if returnTransfer.TransferID == 0 {
 		return errors.New("returnTransfer.TransferID == 0")
 	}
-	if returnTransfer.TransferID == t.ID {
-		return fmt.Errorf("returnTransfer.TransferID == t.ID => %v", t.ID)
-	}
+	// if returnTransfer.TransferID == t.ID {
+	// 	return fmt.Errorf("returnTransfer.TransferID == t.ID => %v", t.ID)
+	// }
 	if returnTransfer.Time.IsZero() {
 		return fmt.Errorf("returnTransfer.Time.IsZero(), ID=%v", returnTransfer.TransferID)
 	}
@@ -77,12 +77,13 @@ func (t Transfer) AddReturn(returnTransfer TransferReturnJson) error {
 		returnTransferIDs = append(returnTransferIDs, r.TransferID)
 		returnedValue += r.Amount
 	}
-	if returnedValue != t.AmountInCentsReturned {
-		return fmt.Errorf("transfer data integrity issue: sum(returns.Amount) != t.AmountInCentsReturned => %v != %v", returnedValue, t.AmountInCentsReturned)
+	if returnedValue != t.AmountReturned {
+		return fmt.Errorf("transfer data integrity issue: sum(returns.Amount) != t.AmountReturned => %v != %v", returnedValue, t.AmountReturned)
 	}
 
 	transferAmount := t.GetAmount()
 	totalDue := transferAmount.Value + t.GetInterestValue(time.Now())
+	returnedValue += returnTransfer.Amount
 	if returnedValue > totalDue {
 		return fmt.Errorf("wrong transfer returns: returnedValue > totalDue (%v > %v)", returnedValue, totalDue)
 	}
@@ -95,8 +96,8 @@ func (t Transfer) AddReturn(returnTransfer TransferReturnJson) error {
 		return errors.WithMessage(err, "failed to marshal transfer returns")
 	}
 	t.ReturnsJson = string(returnsJson)
-	t.AmountInCentsReturned += returnTransfer.Amount
+	t.AmountReturned = returnedValue
 	t.ReturnsCount = len(returns)
-	t.returns = make([]TransferReturnJson, t.ReturnsCount)
+	t.returns = returns
 	return nil
 }

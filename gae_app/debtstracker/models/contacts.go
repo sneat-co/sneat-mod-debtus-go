@@ -68,9 +68,11 @@ func (contact *ContactDetails) FullName() string {
 		return addUserNameIfNotSame(contact.ScreenName)
 	} else if contact.Username != "" {
 		return contact.Username
+	} else if contact.Nickname != "" {
+		return addUserNameIfNotSame(contact.Nickname)
 	} else {
-		return NO_NAME
+		return NoName
 	}
 }
 
-const NO_NAME = ">NO_NAME<"
+const NoName = ">NO_NAME<"

@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	fflib "github.com/pquerna/ffjson/fflib/v1"
+	interest "bitbucket.com/asterus/debtstracker-server/interest"
 )
 
 // MarshalJSON marshal bytes to json - template
@@ -915,7 +916,7 @@ handle_InterestType:
 
 			outBuf := fs.Output.Bytes()
 
-			j.InterestType = InterestPercentType(string(outBuf))
+			j.InterestType = interest.Formula(string(outBuf))
 
 		}
 	}
@@ -945,7 +946,7 @@ handle_InterestPeriod:
 				return fs.WrapErr(err)
 			}
 
-			j.InterestPeriod = int(tval)
+			j.InterestPeriod = interest.RatePeriodInDays(tval)
 
 		}
 	}

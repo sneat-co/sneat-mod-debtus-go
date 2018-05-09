@@ -7,10 +7,12 @@ import (
 
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
+	"github.com/strongo/db"
+	"bitbucket.com/asterus/debtstracker-server/interest"
 )
 
 var simpleFor7daysAt7percent = TransferInterest{
-	InterestType:    InterestPercentSimple,
+	InterestType:    interest.FormulaSimple,
 	InterestPeriod:  7,
 	InterestPercent: decimal.NewDecimal64p2(7, 0),
 	// InterestMinimumPeriod: 5,
@@ -18,10 +20,10 @@ var simpleFor7daysAt7percent = TransferInterest{
 
 const day = 24 * time.Hour
 
-func assertOutstandingValue(t *testing.T, transfer *TransferEntity, periodEnds time.Time, expected decimal.Decimal64p2) bool {
+func assertOutstandingValue(t *testing.T, transfer interface{GetOutstandingValue(time.Time) decimal.Decimal64p2}, periodEnds time.Time, expected decimal.Decimal64p2) bool {
 	t.Helper()
 	if v := transfer.GetOutstandingValue(periodEnds); v != expected {
-		t.Errorf("Expected %v, got: %v", expected, v)
+		t.Errorf("Expected outstanding value to be %v, got: %v", expected, v)
 		return false
 	}
 	return true
@@ -29,41 +31,50 @@ func assertOutstandingValue(t *testing.T, transfer *TransferEntity, periodEnds t
 
 func TestTransferEntity_GetInterestValue(t *testing.T) {
 	now := time.Now()
-	transfer := &TransferEntity{DtCreated: now, IsOutstanding: true, AmountInCents: 1000,
-		TransferInterest: NewInterest(InterestPercentSimple, decimal.FromInt(3)).
-			WithPeriod(3).WithMinimumPeriod(3),
+	transfer := Transfer{
+		IntegerID: db.NewIntID(111),
+		TransferEntity: &TransferEntity{
+			DtCreated: now,
+			IsOutstanding: true,
+			AmountInCents: 1000,
+			TransferInterest: NewInterest(interest.FormulaSimple, decimal.FromInt(3), 3).WithMinimumPeriod(3),
+		},
 	}
 
-	if !assertOutstandingValue(t, transfer, now, 1030) {
+	if !assertOutstandingValue(t, transfer.TransferEntity, now, 1030) {
 		return
 	}
 
-	if err := transfer.AddReturn([]TransferReturnJson{{TransferID: 123, Time: now, Amount: 1030}}); err != nil {
+	if err := transfer.AddReturn(TransferReturnJson{TransferID: 123, Time: now, Amount: 1030}); err != nil {
 		t.Fatal(err)
+	}
+
+	if !assertOutstandingValue(t, transfer.TransferEntity, now, 0) {
+		return
 	}
 
 	if transfer.IsOutstanding {
 		t.Error("Transfer should be NOT outstaning")
 	}
-	if !assertOutstandingValue(t, transfer, now, 0) {
-		return
-	}
 }
 
 func TestTransferEntityGetOutstandingValue(t *testing.T) {
 	now := time.Now()
-	transfer := &TransferEntity{
-		IsOutstanding:    true,
-		DtCreated:        now.Add(-3*day + time.Hour),
-		AmountInCents:    decimal.NewDecimal64p2(100, 0),
-		TransferInterest: simpleFor7daysAt7percent,
+	transfer := Transfer{
+		IntegerID: db.NewIntID(111),
+		TransferEntity: &TransferEntity{
+			IsOutstanding:    true,
+			DtCreated:        now.Add(-3*day + time.Hour),
+			AmountInCents:    decimal.NewDecimal64p2(100, 0),
+			TransferInterest: simpleFor7daysAt7percent,
+		},
 	}
 
 	if !assertOutstandingValue(t, transfer, now, decimal.NewDecimal64p2(103, 0)) {
 		return
 	}
 
-	if err := transfer.AddReturn([]TransferReturnJson{{TransferID: 123, Time: transfer.DtCreated.Add(23 * time.Hour), Amount: 3100}}); err != nil {
+	if err := transfer.AddReturn(TransferReturnJson{TransferID: 123, Time: transfer.DtCreated.Add(23 * time.Hour), Amount: 3100}); err != nil {
 		t.Fatal(err)
 	}
 	if !transfer.IsOutstanding {
@@ -73,7 +84,7 @@ func TestTransferEntityGetOutstandingValue(t *testing.T) {
 	if !assertOutstandingValue(t, transfer, now, 7140) {
 		return
 	}
-	if err := transfer.AddReturn(append(transfer.GetReturns(), TransferReturnJson{TransferID: 124, Time: now, Amount: 7140})); err != nil {
+	if err := transfer.AddReturn(TransferReturnJson{TransferID: 124, Time: now, Amount: 7140}); err != nil {
 		t.Fatal(err)
 	}
 	if transfer.IsOutstanding {
@@ -125,8 +136,7 @@ func Test_updateBalanceWithInterest(t *testing.T) {
 	now := time.Now()
 	outstandingWithInterest := []TransferWithInterestJson{
 		{
-			TransferInterest: NewInterest(InterestPercentSimple, decimal.FromInt(2)).
-				WithPeriod(1).WithMinimumPeriod(1),
+			TransferInterest: NewInterest(interest.FormulaSimple, decimal.FromInt(2), 1).WithMinimumPeriod(1),
 			Starts:   now,
 			Currency: CURRENCY_EUR,
 			Amount:   decimal.NewDecimal64p2FromFloat64(100.00),

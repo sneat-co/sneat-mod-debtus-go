@@ -100,8 +100,8 @@ func (t *TransferEntity) GetLendingValue() decimal.Decimal64p2 {
 type TransferEntity struct {
 	hasObsoleteProps bool
 	general.CreatedOn
-	from *TransferCounterpartyInfo
-	to   *TransferCounterpartyInfo
+	from             *TransferCounterpartyInfo
+	to               *TransferCounterpartyInfo
 
 	BillIDs []string
 
@@ -111,51 +111,51 @@ type TransferEntity struct {
 	ReturnToTransferIDs   []int64 `datastore:",noindex"`           // List of transfer to which this debt is a return. Should be populated only if IsReturn=True
 	//
 	returns           []TransferReturnJson // Deserialized cache
-	ReturnsJson       string               `datastore:",noindex,omitempty"`
-	ReturnsCount      int                  `datastore:",noindex,omitempty"`
-	ReturnTransferIDs []int64              `datastore:",noindex"` // TODO: Obsolete - replace with ReturnsJson List of transfers that return money to this debts
+	ReturnsJson       string  `datastore:",noindex,omitempty"`
+	ReturnsCount      int     `datastore:",noindex,omitempty"`
+	ReturnTransferIDs []int64 `datastore:",noindex"` // TODO: Obsolete - replace with ReturnsJson List of transfers that return money to this debts
 	//
 	CreatorUserID           int64  `datastore:",noindex"`           // Do not delete
-	CreatorCounterpartyID   int64  `datastore:",noindex,omitempty"` //TODO: Replace with <From|To>ContactID
-	CreatorCounterpartyName string `datastore:",noindex,omitempty"` //TODO: Replace with <From|To>ContactName
-	CreatorNote             string `datastore:",noindex,omitempty"` //TODO: Replace with <From|To>Note
-	CreatorComment          string `datastore:",noindex,omitempty"` //TODO: Replace with <From|To>Comment
+	CreatorCounterpartyID   int64  `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>ContactID
+	CreatorCounterpartyName string `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>ContactName
+	CreatorNote             string `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>Note
+	CreatorComment          string `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>Comment
 
 	CreatorTgReceiptByTgMsgID int64 `datastore:",noindex,omitempty"` // TODO: Move to Receipt ?
 	//
-	//CreatorTgBotID       string `datastore:",noindex"` // TODO: Migrated to TransferCounterpartyInfo
-	//CreatorTgChatID      int64  `datastore:",noindex"` // TODO: Migrated to TransferCounterpartyInfo
-	//CounterpartyTgBotID  string `datastore:",noindex"` // TODO: Migrated to TransferCounterpartyInfo
-	//CounterpartyTgChatID int64  `datastore:",noindex"` // TODO: Migrated to TransferCounterpartyInfo
+	// CreatorTgBotID       string `datastore:",noindex"` // TODO: Migrated to TransferCounterpartyInfo
+	// CreatorTgChatID      int64  `datastore:",noindex"` // TODO: Migrated to TransferCounterpartyInfo
+	// CounterpartyTgBotID  string `datastore:",noindex"` // TODO: Migrated to TransferCounterpartyInfo
+	// CounterpartyTgChatID int64  `datastore:",noindex"` // TODO: Migrated to TransferCounterpartyInfo
 	//
-	//CreatorAutoRemindersDisabled bool   `datastore:",noindex"`
-	//CreatorReminderID      int64 `datastore:",noindex"` // obsolete
-	//CounterpartyReminderID int64 `datastore:",noindex"` // obsolete
+	// CreatorAutoRemindersDisabled bool   `datastore:",noindex"`
+	// CreatorReminderID      int64 `datastore:",noindex"` // obsolete
+	// CounterpartyReminderID int64 `datastore:",noindex"` // obsolete
 	//
-	CounterpartyUserID           int64  `datastore:",noindex,omitempty"` //TODO: Replace with <From|To>UserID
-	CounterpartyCounterpartyID   int64  `datastore:",noindex,omitempty"` //TODO: Replace with <From|To>ContactID
-	CounterpartyCounterpartyName string `datastore:",noindex,omitempty"` //TODO: Replace with <From|To>ContactName
-	CounterpartyNote             string `datastore:",noindex,omitempty"` //TODO: Replace with <From|To>Note
-	CounterpartyComment          string `datastore:",noindex,omitempty"` //TODO: Replace with <From|To>Comment
-	//CounterpartyAutoRemindersDisabled bool   `datastore:",noindex"`
-	//CounterpartyTgReceiptInlineMessageID string    `datastore:",noindex"` - not useful as we can edit message just once on callback
+	CounterpartyUserID           int64  `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>UserID
+	CounterpartyCounterpartyID   int64  `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>ContactID
+	CounterpartyCounterpartyName string `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>ContactName
+	CounterpartyNote             string `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>Note
+	CounterpartyComment          string `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>Comment
+	// CounterpartyAutoRemindersDisabled bool   `datastore:",noindex"`
+	// CounterpartyTgReceiptInlineMessageID string    `datastore:",noindex"` - not useful as we can edit message just once on callback
 
 	C_From string `datastore:",noindex"`
 	C_To   string `datastore:",noindex"`
 
-	//** New properties to replace Creator/Contact set of props **
-	//FromUserID           int64  `datastore:",noindex"`
-	//FromUserName         string `datastore:",noindex"`
-	//FromCounterpartyID   int64  `datastore:",noindex"`
-	//FromCounterpartyName string `datastore:",noindex"`
-	//FromComment          string `datastore:",noindex"`
-	//FromNote             string `datastore:",noindex"`
-	//ToUserID             int64  `datastore:",noindex"`
-	//ToUserName           string `datastore:",noindex"`
-	//ToCounterpartyID     int64  `datastore:",noindex"`
-	//ToCounterpartyName   string `datastore:",noindex"`
-	//ToComment            string `datastore:",noindex"`
-	//ToNote               string `datastore:",noindex"`
+	// ** New properties to replace Creator/Contact set of props **
+	// FromUserID           int64  `datastore:",noindex"`
+	// FromUserName         string `datastore:",noindex"`
+	// FromCounterpartyID   int64  `datastore:",noindex"`
+	// FromCounterpartyName string `datastore:",noindex"`
+	// FromComment          string `datastore:",noindex"`
+	// FromNote             string `datastore:",noindex"`
+	// ToUserID             int64  `datastore:",noindex"`
+	// ToUserName           string `datastore:",noindex"`
+	// ToCounterpartyID     int64  `datastore:",noindex"`
+	// ToCounterpartyName   string `datastore:",noindex"`
+	// ToComment            string `datastore:",noindex"`
+	// ToNote               string `datastore:",noindex"`
 
 	AcknowledgeStatus string    `datastore:",noindex,omitempty"`
 	AcknowledgeTime   time.Time `datastore:",noindex,omitempty"`
@@ -167,14 +167,14 @@ type TransferEntity struct {
 	DtCreated time.Time
 	DtDueOn   time.Time `datastore:",omitempty"`
 
-	//Amount                   float64                                    // TODO: Obsolete!, Replaced with AmountInCents
-	//AmountReturned           float64             `datastore:",noindex"` // TODO: Obsolete!, Replaced with AmountInCentsReturned
-	//AmountOutstanding        float64             `datastore:",noindex"` // TODO: Obsolete!, Replaced with AmountInCentsOutstanding
+	// Amount                   float64                                    // TODO: Obsolete!, Replaced with AmountInCents
+	// AmountReturned           float64             `datastore:",noindex"` // TODO: Obsolete!, Replaced with AmountReturned
+	// AmountOutstanding        float64             `datastore:",noindex"` // TODO: Obsolete!, Replaced with AmountInCentsOutstanding
 
-	AmountInCents         decimal.Decimal64p2
-	AmountInCentsReturned decimal.Decimal64p2 `datastore:",noindex,omitempty"`
-	AmountInCentsInterest decimal.Decimal64p2 `datastore:",noindex,omitempty"`
-	//AmountInCentsOutstanding decimal.Decimal64p2 `datastore:",noindex,omitempty"` // TODO: Should be removed!
+	AmountInCents  decimal.Decimal64p2
+	AmountReturned decimal.Decimal64p2 `datastore:"AmountInCentsReturned,noindex,omitempty"`
+	AmountInterest decimal.Decimal64p2 `datastore:"AmountInCentsInterest,noindex,omitempty"`
+	// AmountInCentsOutstanding decimal.Decimal64p2 `datastore:",noindex,omitempty"` // TODO: Should be removed!
 
 	TransferInterest
 
@@ -196,7 +196,7 @@ func (t Transfer) String() string {
 func (t TransferEntity) String() string {
 	return fmt.Sprintf(
 		"TransferEntity{DtCreated: %v, Direction: %v, GetAmount(): %v, AmoutInCentsReturned: %v, IsReturn: %v, ReturnToTransferIDs: %v, CreatorUserID: %d, Creator: %v, Contact: %v, BothUserIDs: %v, BothCounterpartyIDs: %v, From: %v, To: %v}",
-		t.DtCreated, t.Direction(), t.GetAmount(), t.AmountInCentsReturned, t.IsReturn, t.ReturnToTransferIDs, t.CreatorUserID, t.Creator(), t.Counterparty(), t.BothUserIDs, t.BothCounterpartyIDs, t.From(), t.To())
+		t.DtCreated, t.Direction(), t.GetAmount(), t.AmountReturned, t.IsReturn, t.ReturnToTransferIDs, t.CreatorUserID, t.Creator(), t.Counterparty(), t.BothUserIDs, t.BothCounterpartyIDs, t.From(), t.To())
 }
 
 func (t *TransferEntity) Direction() TransferDirection {
@@ -291,13 +291,13 @@ func (t TransferEntity) Creator() *TransferCounterpartyInfo { // TODO: Same as t
 }
 
 func (t *TransferEntity) Counterparty() *TransferCounterpartyInfo {
-	//return TransferCounterpartyInfo{
-	//	UserID:         t.CounterpartyUserID,
-	//	ContactID: t.CreatorCounterpartyID,
-	//	ContactName:           t.CreatorCounterpartyName,
-	//	Note:           t.CreatorNote,
-	//	Comment:        t.CreatorComment,
-	//}
+	// return TransferCounterpartyInfo{
+	// 	UserID:         t.CounterpartyUserID,
+	// 	ContactID: t.CreatorCounterpartyID,
+	// 	ContactName:           t.CreatorCounterpartyName,
+	// 	Note:           t.CreatorNote,
+	// 	Comment:        t.CreatorComment,
+	// }
 	switch t.Direction() {
 	case TransferDirectionUser2Counterparty:
 		return t.To()
@@ -330,47 +330,47 @@ func (t TransferEntity) UserInfoByUserID(userID int64) *TransferCounterpartyInfo
 	}
 }
 
-//const TRANSFER_REMINDERS_DISABLED = "disabled"
+// const TRANSFER_REMINDERS_DISABLED = "disabled"
 //
-//func (t *Transfer) IsRemindersDisabled(userID int64) bool {
-//	switch userID {
-//	case t.CreatorUserID:
-//		return t.CreatorAutoRemindersDisabled
-//	case t.CounterpartyUserID:
-//		return t.CounterpartyAutoRemindersDisabled
-//	default:
-//		panic("Attempt to check reminders for a user not related to the transfer")
-//	}
-//}
+// func (t *Transfer) IsRemindersDisabled(userID int64) bool {
+// 	switch userID {
+// 	case t.CreatorUserID:
+// 		return t.CreatorAutoRemindersDisabled
+// 	case t.CounterpartyUserID:
+// 		return t.CounterpartyAutoRemindersDisabled
+// 	default:
+// 		panic("Attempt to check reminders for a user not related to the transfer")
+// 	}
+// }
 //
-//// Returns true if value have been changed and false if unchanged.
-//func (t *Transfer) setAutoRemindersDisabled(userID int64, value bool) bool {
-//	switch userID {
-//	case t.CreatorUserID:
-//		if t.CreatorAutoRemindersDisabled != value {
-//			t.CreatorAutoRemindersDisabled = value
-//			return true
-//		}
-//	case t.CounterpartyUserID:
-//		if t.CounterpartyAutoRemindersDisabled != value {
-//			t.CounterpartyAutoRemindersDisabled = value
-//			return true
-//		}
-//	default:
-//		panic("Attempt to set remindersDisabled for a user not related to the transfer")
-//	}
-//	return false
-//}
+// // Returns true if value have been changed and false if unchanged.
+// func (t *Transfer) setAutoRemindersDisabled(userID int64, value bool) bool {
+// 	switch userID {
+// 	case t.CreatorUserID:
+// 		if t.CreatorAutoRemindersDisabled != value {
+// 			t.CreatorAutoRemindersDisabled = value
+// 			return true
+// 		}
+// 	case t.CounterpartyUserID:
+// 		if t.CounterpartyAutoRemindersDisabled != value {
+// 			t.CounterpartyAutoRemindersDisabled = value
+// 			return true
+// 		}
+// 	default:
+// 		panic("Attempt to set remindersDisabled for a user not related to the transfer")
+// 	}
+// 	return false
+// }
 //
-//// Returns true if value have been changed and false if unchanged.
-//func (t *Transfer) EnableAutoReminders(userID int64) bool {
-//	return t.setAutoRemindersDisabled(userID, false)
-//}
+// // Returns true if value have been changed and false if unchanged.
+// func (t *Transfer) EnableAutoReminders(userID int64) bool {
+// 	return t.setAutoRemindersDisabled(userID, false)
+// }
 //
-//// Returns true if value have been changed and false if unchanged.
-//func (t *Transfer) DisableAutoReminders(userID int64) bool {
-//	return t.setAutoRemindersDisabled(userID, true)
-//}
+// // Returns true if value have been changed and false if unchanged.
+// func (t *Transfer) DisableAutoReminders(userID int64) bool {
+// 	return t.setAutoRemindersDisabled(userID, true)
+// }
 
 func (t *TransferEntity) Load(ps []datastore.Property) error {
 	// Load I and J as usual.
@@ -405,18 +405,18 @@ func (t *TransferEntity) Load(ps []datastore.Property) error {
 			t.hasObsoleteProps = true
 			creationPlatform = p.Value.(string)
 
-			//case "FromUserID": // TODO: Ignore legacy, temporary
-			//case "FromUserName": // TODO: Ignore legacy, temporary
-			//case "FromCounterpartyID": // TODO: Ignore legacy, temporary
-			//case "FromCounterpartyName": // TODO: Ignore legacy, temporary
-			//case "FromComment": // TODO: Ignore legacy, temporary
-			//case "FromNote": // TODO: Ignore legacy, temporary
-			//case "ToUserID": // TODO: Ignore legacy, temporary
-			//case "ToUserName": // TODO: Ignore legacy, temporary
-			//case "ToCounterpartyID": // TODO: Ignore legacy, temporary
-			//case "ToCounterpartyName": // TODO:  Ignore legacy, temporary
-			//case "ToComment": // TODO: Ignore legacy, temporary
-			//case "ToNote": // TODO: Ignore legacy, temporary
+			// case "FromUserID": // TODO: Ignore legacy, temporary
+			// case "FromUserName": // TODO: Ignore legacy, temporary
+			// case "FromCounterpartyID": // TODO: Ignore legacy, temporary
+			// case "FromCounterpartyName": // TODO: Ignore legacy, temporary
+			// case "FromComment": // TODO: Ignore legacy, temporary
+			// case "FromNote": // TODO: Ignore legacy, temporary
+			// case "ToUserID": // TODO: Ignore legacy, temporary
+			// case "ToUserName": // TODO: Ignore legacy, temporary
+			// case "ToCounterpartyID": // TODO: Ignore legacy, temporary
+			// case "ToCounterpartyName": // TODO:  Ignore legacy, temporary
+			// case "ToComment": // TODO: Ignore legacy, temporary
+			// case "ToNote": // TODO: Ignore legacy, temporary
 
 		case "CreatorReminderID":
 			t.hasObsoleteProps = true
@@ -443,7 +443,7 @@ func (t *TransferEntity) Load(ps []datastore.Property) error {
 				p.Value = int64(decimal.NewDecimal64p2FromFloat64(v))
 				p2 = append(p2, p)
 			}
-		case "AmountReturned":
+		case "AmountInCentsReturned":
 			t.hasObsoleteProps = true
 			if v := p.Value.(float64); v != 0 {
 				p.Name = "AmountInCentsReturned"
@@ -519,13 +519,13 @@ var transferPropertiesToClean = map[string]gaedb.IsOkToRemove{
 	"SmsCost":           gaedb.IsZeroFloat,
 	"SmsCostUSD":        gaedb.IsZeroInt,
 	"ReceiptsSentCount": gaedb.IsZeroInt,
-	//"CreatorReminderID":         gaedb.IsZeroInt,
-	//"CounterpartyReminderID":    gaedb.IsZeroInt,
-	//"CreatorTgChatID":           gaedb.IsZeroInt,
-	//"CounterpartyTgChatID":      gaedb.IsZeroInt,
+	// "CreatorReminderID":         gaedb.IsZeroInt,
+	// "CounterpartyReminderID":    gaedb.IsZeroInt,
+	// "CreatorTgChatID":           gaedb.IsZeroInt,
+	// "CounterpartyTgChatID":      gaedb.IsZeroInt,
 	"CreatorTgReceiptByTgMsgID": gaedb.IsZeroInt,
-	//"CounterpartyTgBotID":       gaedb.IsEmptyString,
-	//"CreatorTgBotID":            gaedb.IsEmptyString,
+	// "CounterpartyTgBotID":       gaedb.IsEmptyString,
+	// "CreatorTgBotID":            gaedb.IsEmptyString,
 	"Direction":                gaedb.IsEmptyString,
 	"BillID":                   gaedb.IsEmptyString,
 	"AmountInCentsOutstanding": gaedb.IsZeroInt,
@@ -553,8 +553,8 @@ func (t *TransferEntity) BeforeSave() (err error) {
 		return
 	}
 
-	if t.AmountInCentsReturned < 0 {
-		err = fmt.Errorf("*TransferEntity.AmountInCentsReturned:%v < 0", t.AmountInCentsReturned)
+	if t.AmountReturned < 0 {
+		err = fmt.Errorf("*TransferEntity.AmountReturned:%v < 0", t.AmountReturned)
 		return
 	}
 
@@ -571,61 +571,61 @@ func (t *TransferEntity) BeforeSave() (err error) {
 				t.IsOutstanding = false
 			}
 		case false:
-			if t.AmountInCents == t.AmountInCentsReturned {
+			if t.AmountInCents == t.AmountReturned {
 				t.IsOutstanding = false
 			}
 		}
 	}
 
-	//t.onSaveMigrateUserProps()
+	// t.onSaveMigrateUserProps()
 
-	//switch t.Direction() { // TODO: Delete later!
-	//case "":
-	//	if t.BillID == "" && t.From().UserID == 0 && t.To().UserID == 0 {
-	//		err = errors.New("t.Direction is empty string")
-	//		return
-	//	}
-	//case TransferDirectionUser2Counterparty:
-	//case TransferDirectionCounterparty2User:
-	//default:
-	//	err = errors.New("Unknown direction: " + t.DirectionObsoleteProp)
-	//	return
-	//}
+	// switch t.Direction() { // TODO: Delete later!
+	// case "":
+	// 	if t.BillID == "" && t.From().UserID == 0 && t.To().UserID == 0 {
+	// 		err = errors.New("t.Direction is empty string")
+	// 		return
+	// 	}
+	// case TransferDirectionUser2Counterparty:
+	// case TransferDirectionCounterparty2User:
+	// default:
+	// 	err = errors.New("Unknown direction: " + t.DirectionObsoleteProp)
+	// 	return
+	// }
 
-	//if t.AmountInCentsOutstanding < 0 {
-	//	err = fmt.Errorf("*TransferEntity.AmountInCentsOutstanding:%v < 0", t.AmountInCentsOutstanding)
-	//	return
-	//}
+	// if t.AmountInCentsOutstanding < 0 {
+	// 	err = fmt.Errorf("*TransferEntity.AmountInCentsOutstanding:%v < 0", t.AmountInCentsOutstanding)
+	// 	return
+	// }
 
-	//if t.AmountInCentsReturned > t.AmountInCents {
-	//	err = fmt.Errorf("*TransferEntity.AmountInCentsReturned:%v > AmountInCents:%v", t.AmountInCentsReturned, t.AmountInCents)
-	//	return
-	//}
+	// if t.AmountReturned > t.AmountInCents {
+	// 	err = fmt.Errorf("*TransferEntity.AmountReturned:%v > AmountInCents:%v", t.AmountReturned, t.AmountInCents)
+	// 	return
+	// }
 
-	//if t.AmountInCentsOutstanding > t.AmountInCents {
-	//	err = fmt.Errorf("*TransferEntity.AmountInCentsOutstanding:%v > AmountInCents:%v", t.AmountInCentsOutstanding, t.AmountInCents)
-	//	return
-	//}
+	// if t.AmountInCentsOutstanding > t.AmountInCents {
+	// 	err = fmt.Errorf("*TransferEntity.AmountInCentsOutstanding:%v > AmountInCents:%v", t.AmountInCentsOutstanding, t.AmountInCents)
+	// 	return
+	// }
 	//
-	//if t.AmountInCentsReturned+t.AmountInCentsOutstanding > t.AmountInCents {
-	//	err = fmt.Errorf("*TransferEntity.AmountInCentsReturned:%v + AmountInCentsOutstanding:%v > AmountInCents:%v", t.AmountInCentsReturned, t.AmountInCentsOutstanding, t.AmountInCents)
-	//	return
-	//}
+	// if t.AmountReturned+t.AmountInCentsOutstanding > t.AmountInCents {
+	// 	err = fmt.Errorf("*TransferEntity.AmountReturned:%v + AmountInCentsOutstanding:%v > AmountInCents:%v", t.AmountReturned, t.AmountInCentsOutstanding, t.AmountInCents)
+	// 	return
+	// }
 
 	if t.IsReturn {
 		if len(t.ReturnToTransferIDs) == 0 {
 			err = errors.New("*TransferEntity: IsReturn == true && len(ReturnToTransferIDs) == 0")
 			return
 		}
-		//if (t.AmountInCentsReturned != 0 || t.AmountInCentsOutstanding != 0) && t.AmountInCents != t.AmountInCentsReturned+t.AmountInCentsOutstanding {
-		//	err = fmt.Errorf("*TransferEntity: IsReturn == true && AmountInCents != AmountInCentsReturned + AmountInCentsOutstanding: %v != %v + %v", t.AmountInCents, t.AmountInCentsReturned, t.AmountInCentsOutstanding)
-		//	return
-		//}
-		//} else {
-		//	if t.AmountInCents != t.AmountInCentsReturned+t.AmountInCentsOutstanding {
-		//		err = fmt.Errorf("*TransferEntity: IsReturn == false && AmountInCents != AmountInCentsReturned + AmountInCentsOutstanding: %v != %v + %v", t.AmountInCents, t.AmountInCentsReturned, t.AmountInCentsOutstanding)
-		//		return
-		//	}
+		// if (t.AmountReturned != 0 || t.AmountInCentsOutstanding != 0) && t.AmountInCents != t.AmountReturned+t.AmountInCentsOutstanding {
+		// 	err = fmt.Errorf("*TransferEntity: IsReturn == true && AmountInCents != AmountReturned + AmountInCentsOutstanding: %v != %v + %v", t.AmountInCents, t.AmountReturned, t.AmountInCentsOutstanding)
+		// 	return
+		// }
+		// } else {
+		// 	if t.AmountInCents != t.AmountReturned+t.AmountInCentsOutstanding {
+		// 		err = fmt.Errorf("*TransferEntity: IsReturn == false && AmountInCents != AmountReturned + AmountInCentsOutstanding: %v != %v + %v", t.AmountInCents, t.AmountReturned, t.AmountInCentsOutstanding)
+		// 		return
+		// 	}
 	}
 
 	if t.CreatorUserID <= 0 { // Should be always presented
@@ -635,10 +635,10 @@ func (t *TransferEntity) BeforeSave() (err error) {
 
 	from := t.From()
 	to := t.To()
-	if from.UserName == NO_NAME {
+	if from.UserName == NoName {
 		from.UserName = ""
 	}
-	if to.UserName == NO_NAME {
+	if to.UserName == NoName {
 		to.UserName = ""
 	}
 
@@ -761,12 +761,12 @@ func NewTransferEntity(creatorUserID int64, isReturn bool, amount Amount, from *
 
 		DtCreated: time.Now(),
 		//
-		//DirectionObsoleteProp: string(direction),
+		// DirectionObsoleteProp: string(direction),
 		AmountInCents: amount.Value,
 		Currency:      amount.Currency,
 	}
 	if !isReturn {
-		//transfer.AmountInCentsOutstanding = amount.Value
+		// transfer.AmountInCentsOutstanding = amount.Value
 		transfer.IsOutstanding = true
 	}
 	return transfer
@@ -777,7 +777,7 @@ func (t *TransferEntity) GetAmount() Amount {
 }
 
 func (t *TransferEntity) GetReturnedAmount() Amount {
-	return Amount{Currency: t.Currency, Value: t.AmountInCentsReturned}
+	return Amount{Currency: t.Currency, Value: t.AmountReturned}
 }
 
 func ReverseTransfers(t []Transfer) {

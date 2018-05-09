@@ -177,7 +177,7 @@ func renderTransfersPage(contact models.Contact, currency models.Currency, balan
 		hero.EscapeHTML(fmt.Sprintf("%v", transfer.AmountInCents), _buffer)
 		_buffer.WriteString(`</td>
             <td class=d>`)
-		hero.EscapeHTML(fmt.Sprintf("%v", transfer.AmountInCentsReturned), _buffer)
+		hero.EscapeHTML(fmt.Sprintf("%v", transfer.AmountReturned), _buffer)
 		_buffer.WriteString(`</td>
         </tr>
         `)

@@ -158,11 +158,12 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 			shareAmount              decimal.Decimal64p2
 		)
 
-		if billEntity.SplitMode == models.SplitModeShare {
+		switch billEntity.SplitMode {
+		case models.SplitModeShare:
 			shareAmount = decimal.NewDecimal64p2FromFloat64(
 				math.Floor(billEntity.AmountTotal.AsFloat64()/float64(len(members))*100+0.5) / 100,
 			)
-		} else if billEntity.SplitMode == models.SplitModeEqually {
+		case models.SplitModeEqually:
 			amountToSplitEqually := billEntity.AmountTotal
 			var totalAdjustmentByMembers decimal.Decimal64p2
 			for i, member := range members {
@@ -316,8 +317,8 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 				return bill, errors.Wrapf(ErrBadInput, "len(amountsCountByValue):%v > 2 + adjustmentsCount:%v", amountsCountByValue, adjustmentsCount)
 			}
 		case models.SplitModePercentage:
-			if int64(totalPercentageByMembers) != 100*100 {
-				err = errors.WithMessage(ErrBadInput, fmt.Sprintf("Total percentage for all members should be 100%%, got %v", totalPercentageByMembers))
+			if totalPercentageByMembers != decimal.FromInt(100) {
+				err = errors.WithMessage(ErrBadInput, fmt.Sprintf("Total percentage for all members should be 100%%, got %v%%", totalPercentageByMembers))
 				return
 			}
 		case models.SplitModeShare:

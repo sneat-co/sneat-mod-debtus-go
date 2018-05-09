@@ -158,7 +158,7 @@ func handleJoinGroups(c context.Context, w http.ResponseWriter, r *http.Request,
 				}
 				groups[i] = group
 				userName := user.FullName()
-				if userName == models.NO_NAME {
+				if userName == models.NoName {
 					userName = ""
 				}
 				if _, changed, _, _, members := group.AddOrGetMember(strconv.FormatInt(authInfo.UserID, 10), "", userName); changed {

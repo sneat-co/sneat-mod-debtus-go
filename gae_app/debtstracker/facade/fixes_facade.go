@@ -19,7 +19,7 @@ func CheckTransferCreatorNameAndFixIfNeeded(c context.Context, w http.ResponseWr
 		}
 
 		creatorFullName := user.FullName()
-		if creatorFullName == "" || creatorFullName == models.NO_NAME {
+		if creatorFullName == "" || creatorFullName == models.NoName {
 			log.Debugf(c, "Can't fix transfers creator name as user entity has no name defined.")
 			return transfer, nil
 		}

@@ -212,11 +212,11 @@ func (entity *BillEntity) GetBalance() (billBalanceByMember BillBalanceByMember)
 }
 
 func (entity *BillEntity) SetBillMembers(members []BillMemberJson) (err error) {
-	if err = entity.updateMemberOwes(members); err != nil {
+	if err = entity.validateMembersForDuplicatesAndBasicChecks(members); err != nil {
 		return
 	}
 
-	if err = entity.validateMembersForDuplicatesAndBasicChecks(members); err != nil {
+	if err = entity.updateMemberOwes(members); err != nil {
 		return
 	}
 

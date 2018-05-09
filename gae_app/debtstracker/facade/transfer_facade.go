@@ -603,6 +603,12 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 			amountToAssign -= amountReturnedToTransfer
 			returnedValue += amountReturnedToTransfer
 
+			transferEntity.AddReturn(models.TransferReturnJson{
+				TransferID: returnToTransfer.ID,
+				Amount: amountReturnedToTransfer,
+				Time: returnToTransfer.DtCreated,
+			})
+
 			assignedToExistingTransfers = true
 			entities = append(entities, returnToTransfer) // TODO: Potentially can exceed max number of entities in GAE transaction
 
@@ -630,13 +636,13 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 				if returnedValue == input.Amount.Value && !transferEntity.IsReturn {
 					transferEntity.IsReturn = true
 					// transferEntity.AmountInCentsOutstanding = 0
-					transferEntity.AmountInCentsReturned = 0
+					// transferEntity.AmountReturned = 0
 					log.Debugf(c, "Transfer marked IsReturn=true as it's amount less or equal to outstanding debt(s)")
 				}
-				if returnedValue != input.Amount.Value {
-					// transferEntity.AmountInCentsOutstanding = input.Amount.Value - returnedAmount
-					transferEntity.AmountInCentsReturned = returnedValue
-				}
+				// if returnedValue != input.Amount.Value {
+				// 	// transferEntity.AmountInCentsOutstanding = input.Amount.Value - returnedAmount
+				// 	transferEntity.AmountReturned = returnedValue
+				// }
 			}
 			if output.From.User.ID != 0 {
 				dal.User.DelayUpdateUserHasDueTransfers(c, output.From.User.ID)
@@ -678,7 +684,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 
 	log.Debugf(c, "from: %v", input.From)
 	log.Debugf(c, "to: %v", input.To)
-	transferEntity.AmountInCentsInterest = returnedInterest
+	transferEntity.AmountInterest = returnedInterest
 
 	// log.Debugf(c, "transferEntity before insert: %v", litter.Sdump(transferEntity))
 	if output.Transfer, err = InsertTransfer(c, transferEntity); err != nil {

@@ -93,27 +93,33 @@ func TestBillApiCreateBill(t *testing.T) {
 	handleCreateBill(c, responseRecorder, request, auth.AuthInfo{UserID: creatorUserID})
 
 	if responseRecorder.Code != http.StatusOK {
-		t.Error("Expected to get http.StatusOK, got:", responseRecorder.Code, responseRecorder.Body.String(), form)
+		t.Errorf(`Expected to get http.StatusOK==200, got responseRecorder.Code=%v
+--- Response body ---
+%v
+--- End of response body ---
+Request data: %v`,
+			responseRecorder.Code, responseRecorder.Body.String(), form)
 		return
 	}
 
 	responseObject := make(map[string]dto.BillDto, 1)
 
-	if err = json.Unmarshal(responseRecorder.Body.Bytes(), &responseObject); err != nil {
-		t.Errorf("Response(code=%v) body is not valid JSON: %v", responseRecorder.Code, string(responseRecorder.Body.String()))
+	responseBody := responseRecorder.Body.Bytes()
+	if err = json.Unmarshal(responseBody, &responseObject); err != nil {
+		t.Errorf("Response(code=%v) body is not valid JSON: %v", responseRecorder.Code, string(responseBody))
 		return
 	}
 	responseBill := responseObject["Bill"]
-	if responseBill.ID != "1" {
-		t.Errorf("Response Bill.ID field has unexpected value: %v", responseBill.ID)
+	if responseBill.ID == "" {
+		t.Errorf("Response Bill.ID field is empty: %v", string(responseBody))
 	}
 	if responseBill.Name != "Test bill" {
-		t.Error("Response Bill.ContactName field has unexpected value:", responseBill.Name)
+		t.Errorf("Response Bill.ContactName field has unexpected value: %v\n%v", responseBill.Name, string(responseBody))
 	}
 	if responseBill.Amount.Currency != "EUR" {
-		t.Error("Response Bill.AmountTotal.Currency field has unexpected value:", responseBill.Amount.Currency)
+		t.Errorf("Response Bill.AmountTotal.Currency field has unexpected value: %v\n%v", responseBill.Amount.Currency, string(responseBody))
 	}
 	if responseBill.Amount.Value != decimal.NewDecimal64p2FromFloat64(0.10) {
-		t.Error("Response Bill.AmountTotal.Value field has unexpected value:", responseBill.Amount.Value)
+		t.Errorf("Response Bill.AmountTotal.Value field has unexpected value: %v\n%v", responseBill.Amount.Value, string(responseBody))
 	}
 }

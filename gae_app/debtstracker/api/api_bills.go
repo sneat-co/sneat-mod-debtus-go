@@ -71,7 +71,6 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 	var (
 		totalByMembers decimal.Decimal64p2
 	)
-	billMembers := make([]models.BillMemberJson, len(members))
 
 	contactIDs := make([]int64, 0, len(members))
 	memberUserIDs := make([]int64, 0, len(members))
@@ -85,6 +84,7 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 			contactID, err := strconv.ParseInt(member.ContactID, 10, 64)
 			if err != nil {
 				BadRequestError(c, w, errors.WithMessage(err, "ContactID is not an integer"))
+				return
 			}
 			contactIDs = append(contactIDs, contactID)
 		}
@@ -92,6 +92,7 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 			memberUserID, err := strconv.ParseInt(member.UserID, 10, 64)
 			if err != nil {
 				BadRequestError(c, w, errors.WithMessage(err, "memberUserID is not an integer"))
+				return
 			}
 			memberUserIDs = append(memberUserIDs, memberUserID)
 		}
@@ -113,6 +114,7 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 		}
 	}
 
+	billMembers := make([]models.BillMemberJson, len(members))
 	for i, member := range members {
 		if member.UserID != "" && member.ContactID != "" {
 			BadRequestMessage(c, w, fmt.Sprintf("Member has both UserID and ContactID: %v, %v", member.UserID, member.ContactID))
@@ -124,22 +126,28 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 				UserID: member.UserID,
 				Shares: member.Share,
 			},
+			Percent: member.Percent,
 			Owes:       member.Amount,
 			Adjustment: member.Adjustment,
 		}
 		if member.ContactID != "" {
 			for _, contact := range contacts {
 				if strconv.FormatInt(contact.ID, 10) == member.ContactID {
+					contactName := contact.FullName()
 					billMembers[i].ContactByUser = models.MemberContactsJsonByUser{
 						strconv.FormatInt(contact.UserID, 10): {
 							ContactID:   member.ContactID,
-							ContactName: contact.FullName(),
+							ContactName: contactName,
 						},
+					}
+					if billMembers[i].Name == "" {
+						billMembers[i].Name = contactName
 					}
 					goto contactFound
 				}
 			}
-			panic(fmt.Sprintf("Contact not found by ID=%v", member.ContactID))
+			BadRequestError(c, w, fmt.Errorf("contact not found by ID=%v", member.ContactID))
+			return
 		contactFound:
 		}
 		if member.UserID != "" {
@@ -159,6 +167,7 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 	billEntity.SplitMode = models.SplitModePercentage
 
 	if err = billEntity.SetBillMembers(billMembers); err != nil {
+		InternalError(c, w, err)
 		return
 	}
 

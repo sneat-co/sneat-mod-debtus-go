@@ -15,6 +15,7 @@ import (
 	"github.com/strongo/db"
 	"github.com/strongo/decimal"
 	"strings"
+	"bitbucket.com/asterus/debtstracker-server/interest"
 )
 
 type assertHelper struct {
@@ -22,12 +23,13 @@ type assertHelper struct {
 }
 
 func (assert assertHelper) OutputIsNilIfErr(output createTransferOutput, err error) (createTransferOutput, error) {
+	assert.t.Helper()
 	if err != nil {
 		if output.Transfer.ID != 0 {
-			assert.t.Errorf("Returned transfer.ID != 0 with error: %v", output.Transfer.ID)
+			assert.t.Errorf("Returned transfer.ID != 0 with error: (ID=%v), error: %v", output.Transfer.ID, err)
 		}
 		if output.Transfer.TransferEntity != nil {
-			assert.t.Error("Returned a non nil transfer entity with error")
+			assert.t.Errorf("Returned a non nil transfer entity with error: %v", err)
 		}
 		// if counterparty != nil {
 		// 	t.Errorf("Returned a counterparty with error: %v", counterparty)
@@ -221,7 +223,7 @@ func TestCreateReturnTransferWithInterest(t *testing.T) {
 			0,
 			from, to,
 			models.NewAmount(currency, 1000),
-			time.Now().Add(time.Minute), models.NewInterest(models.InterestPercentSimple, 2.00))
+			time.Now().Add(time.Minute), models.NewInterest(interest.FormulaSimple, 2.00, interest.RatePeriodDaily))
 
 		output, err = Transfers.CreateTransfer(c, newTransfer)
 
@@ -292,7 +294,7 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 		t1 = output.Transfer
 		is.True(t1.ID != 0)
 		is.True(t1.IsOutstanding)
-		is.Equal(t1.AmountInCentsReturned, decimal.Decimal64p2(0))
+		is.Equal(t1.AmountReturned, decimal.Decimal64p2(0))
 		is.Equal(t1.AmountInCents, t1val)
 		is.Equal(t1.GetOutstandingValue(time.Now()), t1val)
 		is.Equal(output.From.User.ID, userID)
@@ -312,7 +314,6 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 	}
 
 	creatorUser = output.From.User
-	t.Log(*creatorUser.AppUserEntity)
 
 	t2val := decimal.NewDecimal64p2FromFloat64(17.00)
 	{ // Create 2nd got transfer
@@ -348,12 +349,11 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 		is.True(!t1.IsOutstanding) // 1st transfer should be closed
 		is.True(t2.IsOutstanding)  // 2nd transfer should be outstanding
 		is.Equal(t2.AmountInCents, t2val)
-		is.Equal(t2.AmountInCentsReturned, t1val)
-		is.Equal(t1.AmountInCentsReturned, t1val)
+		is.Equal(t2.AmountReturned, t1val)
+		is.Equal(t1.AmountReturned, t1val)
 
 		{
 			toUser := output.To.User
-			t.Log(*toUser.AppUserEntity)
 			is.Equal(toUser.ID, userID)
 			is.Equal(toUser.BalanceCount, 1)
 			is.Equal(len(toUser.Balance()), 1)
@@ -369,6 +369,9 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 	}
 
 	if t1, err = GetTransferByID(c, t1.ID); err != nil {
+		t.Fatal(err)
+	}
+	if t2, err = GetTransferByID(c, t2.ID); err != nil {
 		t.Fatal(err)
 	}
 
@@ -419,11 +422,11 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 		is.True(!t2.IsOutstanding)
 		is.True(!t3.IsOutstanding)
 
-		is.Equal(t2.AmountInCentsReturned, t2val) // t2.AmountInCentsReturned
-		is.Equal(t2.GetOutstandingValue(time.Now()), decimal.Decimal64p2(0))
+		is.Equal(t2.AmountReturned, t2val) // t2.AmountReturned
+		is.Equal(t2.GetOutstandingValue(time.Now()), decimal.FromInt(0))
 
-		is.Equal(t3.AmountInCentsReturned, decimal.Decimal64p2(0))
-		is.Equal(t3.GetOutstandingValue(time.Now()), decimal.Decimal64p2(0))
+		is.Equal(t3.AmountReturned, decimal.FromInt(7)) // t3.AmountReturned
+		is.Equal(t3.GetOutstandingValue(time.Now()), decimal.FromInt(0))
 	}
 
 	// println("t1", t1.String())

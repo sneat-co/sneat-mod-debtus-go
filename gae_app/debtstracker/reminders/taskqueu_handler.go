@@ -78,7 +78,7 @@ func sendReminder(c context.Context, reminderID int64) error {
 	}
 
 	if !transfer.IsOutstanding {
-		log.Infof(c, "Transfer(id=%v) is not outstanding, transfer.Amount=%v, transfer.AmountReturned=%v", reminder.TransferID, transfer.AmountInCents, transfer.AmountInCentsReturned)
+		log.Infof(c, "Transfer(id=%v) is not outstanding, transfer.Amount=%v, transfer.AmountReturned=%v", reminder.TransferID, transfer.AmountInCents, transfer.AmountReturned)
 		if err := gaedal.DiscardReminder(c, reminderID, reminder.TransferID, 0); err != nil {
 			return errors.Wrapf(err, "Failed to discard a reminder for non outstanding transfer id=%v", reminder.TransferID)
 		}
