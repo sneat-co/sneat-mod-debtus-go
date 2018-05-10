@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	fflib "github.com/pquerna/ffjson/fflib/v1"
-	interest "bitbucket.com/asterus/debtstracker-server/interest"
+	interest "github.com/crediterra/go-interest"
 )
 
 // MarshalJSON marshal bytes to json - template

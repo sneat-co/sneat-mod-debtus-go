@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/sanity-io/litter"
-	"bitbucket.com/asterus/debtstracker-server/interest"
+	"github.com/crediterra/go-interest"
 )
 
 type TransferInterest struct {

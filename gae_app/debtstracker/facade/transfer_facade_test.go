@@ -15,7 +15,7 @@ import (
 	"github.com/strongo/db"
 	"github.com/strongo/decimal"
 	"strings"
-	"bitbucket.com/asterus/debtstracker-server/interest"
+	"github.com/crediterra/go-interest"
 )
 
 type assertHelper struct {

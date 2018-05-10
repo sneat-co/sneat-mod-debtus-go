@@ -10,7 +10,7 @@ import (
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/decimal"
-	"bitbucket.com/asterus/debtstracker-server/interest"
+	"github.com/crediterra/go-interest"
 )
 
 var reInterest = regexp.MustCompile(`^\s*(?P<percent>\d+(?:[\.,]\d+)?)%?(?:/(?P<period>\d+|w(?:eek)?|y(?:ear)?|m(?:onth)?))?(?:/(?P<minimum>\d+))?(?:/(?P<grace>\d+))?(?::\s*(?P<comment>.+?))?\s*$`)

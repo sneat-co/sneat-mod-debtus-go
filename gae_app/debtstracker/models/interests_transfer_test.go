@@ -8,7 +8,7 @@ import (
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
 	"github.com/strongo/db"
-	"bitbucket.com/asterus/debtstracker-server/interest"
+	"github.com/crediterra/go-interest"
 )
 
 var simpleFor7daysAt7percent = TransferInterest{
