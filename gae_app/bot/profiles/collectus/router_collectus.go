@@ -37,7 +37,7 @@ var botParams = shared_all.BotParams{
 	},
 }
 
-var Router bots.WebhooksRouter = bots.NewWebhookRouter(
+var Router = bots.NewWebhookRouter(
 	map[bots.WebhookInputType][]bots.Command{},
 	func() string { return "Please report any errors to @CollectusGroup" },
 )
