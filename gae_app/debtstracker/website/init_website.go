@@ -20,7 +20,11 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func InitWebsite(router *httprouter.Router) {
+type router interface {
+	GET(path string, handle httprouter.Handle)
+}
+
+func InitWebsite(router router) {
 	router.GET("/", pages.IndexRootPage)
 
 	redirects.InitRedirects(router)

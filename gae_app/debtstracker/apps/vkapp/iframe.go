@@ -7,11 +7,14 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/website/pages"
 	//"github.com/strongo/app"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/vkbots"
-	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/app"
 )
 
-func InitVkIFrameApp(router *httprouter.Router) {
+type router interface {
+	HandlerFunc(method, path string, handler http.HandlerFunc)
+}
+
+func InitVkIFrameApp(router router) {
 	router.HandlerFunc("GET", "/apps/vk/iframe", IFrameHandler)
 }
 

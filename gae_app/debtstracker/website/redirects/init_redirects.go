@@ -8,7 +8,11 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func InitRedirects(router *httprouter.Router) {
+type router interface {
+	GET(path string, handle httprouter.Handle)
+}
+
+func InitRedirects(router router) {
 	router.GET("/receipt", ReceiptRedirect)
 
 	router.GET("/transfer",

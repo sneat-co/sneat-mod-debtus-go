@@ -5,7 +5,11 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func InitAdmin(router *httprouter.Router) {
+type router interface {
+	GET(path string, handle httprouter.Handle)
+}
+
+func InitAdmin(router router) {
 	router.GET("/admin/latest", LatestPage)
 	router.GET("/admin/clean", CleanupPage)
 	//strongo.AddHttpHandler("/admin/mass-invites", LatestPage)
