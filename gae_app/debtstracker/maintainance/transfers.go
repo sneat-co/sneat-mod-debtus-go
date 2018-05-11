@@ -26,7 +26,9 @@ func (m *transfersAsyncJob) Query(r *http.Request) (query *mapper.Query, err err
 	if query, filtered, err = filterByIntID(r, models.TransferKind, "transfer"); err != nil || filtered {
 		return
 	}
-	paramsCount := len(r.URL.Query())
+	values := r.URL.Query()
+	delete(values, "name")
+	paramsCount := len(values)
 	if query, filtered, err = filterByUserParam(r, query, "BothUserIDs"); err != nil {
 		return
 	} else {

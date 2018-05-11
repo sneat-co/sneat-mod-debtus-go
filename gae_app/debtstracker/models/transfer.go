@@ -10,6 +10,7 @@ import (
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/decimal"
 	"google.golang.org/appengine/datastore"
+	"strings"
 )
 
 type TransferDirection string
@@ -106,9 +107,13 @@ type TransferEntity struct {
 	BillIDs []string
 
 	SmsStats
-	DirectionObsoleteProp string  `datastore:"Direction,noindex,omitempty"`
-	IsReturn              bool    `datastore:",noindex,omitempty"` // We need it is not always possible to identify original transfer (think multiply & partial transfers)
-	ReturnToTransferIDs   []int64 `datastore:",noindex"`           // List of transfer to which this debt is a return. Should be populated only if IsReturn=True
+	DirectionObsoleteProp string `datastore:"Direction,noindex,omitempty"`
+
+	// We need it is not always possible to identify original transfer (think multiply & partial transfers)
+	IsReturn bool `datastore:",noindex,omitempty"`
+
+	// List of transfer to which this debt is a return. Should be populated only if IsReturn=True
+	ReturnToTransferIDs []int64 `datastore:",noindex"`
 	//
 	returns           []TransferReturnJson // Deserialized cache
 	ReturnsJson       string  `datastore:",noindex,omitempty"`
@@ -377,9 +382,12 @@ func (t *TransferEntity) Load(ps []datastore.Property) error {
 	p2 := make([]datastore.Property, 0, len(ps))
 	var creationPlatform string
 	var ( // TODO: obsolete props migrated to TransferCounterpartyJson
-		creatorReminderID, counterpartyReminderID int64
-		creatorTgChatID, counterpartyTgChatID     int64
-		creatorTgBotID, counterpartyTgBotID       string
+		creatorReminderID, counterpartyReminderID   int64
+		creatorTgChatID, counterpartyTgChatID       int64
+		creatorTgBotID, counterpartyTgBotID         string
+		creatorContactName, counterpartyContactName string
+		creatorNote, counterpartyNote string
+		creatorComment, counterpartyComment string
 	)
 	for _, p := range ps {
 		switch p.Name {
@@ -405,6 +413,28 @@ func (t *TransferEntity) Load(ps []datastore.Property) error {
 			t.hasObsoleteProps = true
 			creationPlatform = p.Value.(string)
 
+		case "CreatorCounterpartyName":
+			t.hasObsoleteProps = true
+			counterpartyContactName = p.Value.(string)
+		case "CounterpartyCounterpartyName":
+			t.hasObsoleteProps = true
+			counterpartyContactName = p.Value.(string)
+
+		case "CreatorNote":
+			t.hasObsoleteProps = true
+			creatorNote = p.Value.(string)
+		case "CounterpartyNote":
+			t.hasObsoleteProps = true
+			counterpartyNote = p.Value.(string)
+
+		case "CreatorComment":
+			t.hasObsoleteProps = true
+			creatorComment = p.Value.(string)
+		case "CounterpartyComment":
+			t.hasObsoleteProps = true
+			counterpartyComment = p.Value.(string)
+
+
 			// case "FromUserID": // TODO: Ignore legacy, temporary
 			// case "FromUserName": // TODO: Ignore legacy, temporary
 			// case "FromCounterpartyID": // TODO: Ignore legacy, temporary
@@ -424,18 +454,21 @@ func (t *TransferEntity) Load(ps []datastore.Property) error {
 		case "CounterpartyReminderID":
 			t.hasObsoleteProps = true
 			counterpartyReminderID = p.Value.(int64)
-		case "CreatorTgBotID":
+
+			case "CreatorTgBotID":
 			t.hasObsoleteProps = true
 			creatorTgBotID = p.Value.(string)
 		case "CounterpartyTgBotID":
 			t.hasObsoleteProps = true
 			counterpartyTgBotID = p.Value.(string)
+
 		case "CreatorTgChatID":
 			t.hasObsoleteProps = true
 			creatorTgChatID = p.Value.(int64)
 		case "CounterpartyTgChatID":
 			t.hasObsoleteProps = true
 			counterpartyTgChatID = p.Value.(int64)
+
 		case "Amount":
 			t.hasObsoleteProps = true
 			if v := p.Value.(float64); v != 0 {
@@ -484,23 +517,29 @@ func (t *TransferEntity) Load(ps []datastore.Property) error {
 		migrateToCounterpartyInfo := func(
 			counterparty *TransferCounterpartyInfo,
 			reminderID, tgChatID int64,
-			tgBotID string,
+			tgBotID, contactName, note, comment string,
 		) {
 			if reminderID != 0 {
-				t.hasObsoleteProps = true
 				counterparty.ReminderID = reminderID
 			}
 			if tgChatID != 0 {
-				t.hasObsoleteProps = true
 				counterparty.TgChatID = tgChatID
 			}
 			if tgBotID != "" {
-				t.hasObsoleteProps = true
 				counterparty.TgBotID = tgBotID
 			}
+			if contactName != "" && counterparty.ContactName == "" {
+				counterparty.ContactName = contactName
+			}
+			if note != "" && counterparty.Note == "" {
+				counterparty.Note = note
+			}
+			if comment != "" && counterparty.Comment == "" {
+				counterparty.Comment = comment
+			}
 		}
-		migrateToCounterpartyInfo(t.Creator(), creatorReminderID, creatorTgChatID, creatorTgBotID)
-		migrateToCounterpartyInfo(t.Counterparty(), counterpartyReminderID, counterpartyTgChatID, counterpartyTgBotID)
+		migrateToCounterpartyInfo(t.Creator(), creatorReminderID, creatorTgChatID, creatorTgBotID, creatorContactName, creatorNote, creatorComment)
+		migrateToCounterpartyInfo(t.Counterparty(), counterpartyReminderID, counterpartyTgChatID, counterpartyTgBotID, counterpartyContactName, counterpartyNote, counterpartyComment)
 	}
 
 	return nil
@@ -708,21 +747,20 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 		return
 	}
 
-	// Obsolete properties also should be removed
-	{
+	{ // Obsolete properties that were moved to JSON also should be removed
+		movedToJson := func(propName string) bool {
+			return (strings.HasPrefix(propName, "Creator") || strings.HasPrefix(propName, "Counterparty")) && (
+				strings.HasSuffix(propName, "CounterpartyID") ||
+					strings.HasSuffix(propName, "CounterpartyName") ||
+					strings.HasSuffix(propName, "Note") ||
+					strings.HasSuffix(propName, "Comment") ||
+					strings.HasSuffix(propName, "TgBotID") ||
+					strings.HasSuffix(propName, "TgChatID"))
+		}
+
 		properties2 := make([]datastore.Property, 0, len(properties))
 		for _, p := range properties {
-			if t.DirectionObsoleteProp == "" && t.C_From != "" && t.C_To != "" &&
-				(p.Name == "CreatorCounterpartyID" ||
-					p.Name == "CreatorCounterpartyName" ||
-					p.Name == "CreatorNote" ||
-					p.Name == "CreatorComment" ||
-					p.Name == "CounterpartyUserID" ||
-					p.Name == "CounterpartyCounterpartyID" ||
-					p.Name == "CounterpartyCounterpartyName" ||
-					p.Name == "CounterpartyNote" ||
-					p.Name == "CounterpartyComment" ||
-					p.Name == "DirectionObsoleteProp") {
+			if t.DirectionObsoleteProp == "" && t.C_From != "" && t.C_To != "" && movedToJson(p.Name) {
 				continue
 			}
 			properties2 = append(properties2, p)
