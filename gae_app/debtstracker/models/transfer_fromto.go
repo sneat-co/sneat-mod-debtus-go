@@ -89,59 +89,61 @@ func (t *TransferEntity) From() *TransferCounterpartyInfo {
 			if err := ffjson.UnmarshalFast([]byte(t.C_From), t.from); err != nil {
 				panic(err.Error())
 			}
-		} else { // TODO: Migration code to be deleted
-			from := t.from
-			switch t.DirectionObsoleteProp {
-			case TransferDirectionUser2Counterparty:
-				if from.UserID == 0 {
-					from.UserID = t.CreatorUserID
-				} else if from.UserID != t.CreatorUserID {
-					panic(fmt.Sprintf("from.UserID:%d != t.CreatorUserID:%d", from.UserID, t.CreatorUserID))
-				}
-				if from.ContactID == 0 {
-					from.ContactID = t.CounterpartyCounterpartyID
-				} else if from.ContactID != t.CounterpartyCounterpartyID {
-					panic(fmt.Sprintf("from.ContactID != t.CounterpartyCounterpartyID: %v, %v", from.ContactID, t.CounterpartyCounterpartyID))
-				}
-				if from.ContactName == "" {
-					from.ContactName = t.CounterpartyCounterpartyName
-				} else if from.ContactName != t.CounterpartyCounterpartyName {
-					panic(fmt.Sprintf("from.ContactName != t.CounterpartyCounterpartyName: %v, %v", from.ContactName, t.CounterpartyCounterpartyName))
-				}
-				if from.Comment == "" {
-					from.Comment = t.CreatorComment
-				} else if from.Comment != t.CreatorComment {
-					panic(fmt.Sprintf("from.Comment != t.CreatorComment: %v, %v", from.Comment, t.CreatorComment))
-				}
-			case TransferDirectionCounterparty2User:
-				if from.UserID == 0 {
-					from.UserID = t.CounterpartyUserID
-				} else if from.UserID != t.CounterpartyUserID {
-					panic(fmt.Sprintf("from.UserID:%d != t.CounterpartyUserID:%d", from.UserID, t.CounterpartyUserID))
-				}
-
-				if from.ContactID == 0 {
-					from.ContactID = t.CreatorCounterpartyID
-				} else if from.ContactID != t.CounterpartyCounterpartyID {
-					panic(fmt.Sprintf("from.ContactID != t.CreatorCounterpartyID: %v, %v", from.ContactID, t.CreatorCounterpartyID))
-				}
-				if from.ContactName == "" {
-					from.ContactName = t.CreatorCounterpartyName
-				} else if from.ContactName != t.CreatorCounterpartyName {
-					panic(fmt.Sprintf("from.ContactName != t.CreatorCounterpartyName: %v, %v", from.ContactName, t.CreatorCounterpartyName))
-				}
-				if from.Comment == "" {
-					from.Comment = t.CounterpartyComment
-				} else if from.Comment != t.CounterpartyComment {
-					panic(fmt.Sprintf("from.Comment != t.CounterpartyComment: %v, %v", from.Comment, t.CounterpartyComment))
-				}
-			default:
-				if t.DirectionObsoleteProp == "" {
-					panic("Cant migrate to new From/To props as DirectionObsoleteProp is empty")
-				} else {
-					panic("Unknown DirectionObsoleteProp: " + t.DirectionObsoleteProp)
-				}
-			}
+		} else {
+			panic("C_From is empty")
+			// // TODO: Migration code to be deleted
+			// from := t.from
+			// switch t.DirectionObsoleteProp {
+			// case TransferDirectionUser2Counterparty:
+			// 	if from.UserID == 0 {
+			// 		from.UserID = t.CreatorUserID
+			// 	} else if from.UserID != t.CreatorUserID {
+			// 		panic(fmt.Sprintf("from.UserID:%d != t.CreatorUserID:%d", from.UserID, t.CreatorUserID))
+			// 	}
+			// 	if from.ContactID == 0 {
+			// 		from.ContactID = t.CounterpartyCounterpartyID
+			// 	} else if from.ContactID != t.CounterpartyCounterpartyID {
+			// 		panic(fmt.Sprintf("from.ContactID != t.CounterpartyCounterpartyID: %v, %v", from.ContactID, t.CounterpartyCounterpartyID))
+			// 	}
+			// 	if from.ContactName == "" {
+			// 		from.ContactName = t.CounterpartyCounterpartyName
+			// 	} else if from.ContactName != t.CounterpartyCounterpartyName {
+			// 		panic(fmt.Sprintf("from.ContactName != t.CounterpartyCounterpartyName: %v, %v", from.ContactName, t.CounterpartyCounterpartyName))
+			// 	}
+			// 	if from.Comment == "" {
+			// 		from.Comment = t.CreatorComment
+			// 	} else if from.Comment != t.CreatorComment {
+			// 		panic(fmt.Sprintf("from.Comment != t.CreatorComment: %v, %v", from.Comment, t.CreatorComment))
+			// 	}
+			// case TransferDirectionCounterparty2User:
+			// 	if from.UserID == 0 {
+			// 		from.UserID = t.CounterpartyUserID
+			// 	} else if from.UserID != t.CounterpartyUserID {
+			// 		panic(fmt.Sprintf("from.UserID:%d != t.CounterpartyUserID:%d", from.UserID, t.CounterpartyUserID))
+			// 	}
+			//
+			// 	if from.ContactID == 0 {
+			// 		from.ContactID = t.CreatorCounterpartyID
+			// 	} else if from.ContactID != t.CounterpartyCounterpartyID {
+			// 		panic(fmt.Sprintf("from.ContactID != t.CreatorCounterpartyID: %v, %v", from.ContactID, t.CreatorCounterpartyID))
+			// 	}
+			// 	if from.ContactName == "" {
+			// 		from.ContactName = t.CreatorCounterpartyName
+			// 	} else if from.ContactName != t.CreatorCounterpartyName {
+			// 		panic(fmt.Sprintf("from.ContactName != t.CreatorCounterpartyName: %v, %v", from.ContactName, t.CreatorCounterpartyName))
+			// 	}
+			// 	if from.Comment == "" {
+			// 		from.Comment = t.CounterpartyComment
+			// 	} else if from.Comment != t.CounterpartyComment {
+			// 		panic(fmt.Sprintf("from.Comment != t.CounterpartyComment: %v, %v", from.Comment, t.CounterpartyComment))
+			// 	}
+			// default:
+			// 	if t.DirectionObsoleteProp == "" {
+			// 		panic("Cant migrate to new From/To props as DirectionObsoleteProp is empty")
+			// 	} else {
+			// 		panic("Unknown DirectionObsoleteProp: " + t.DirectionObsoleteProp)
+			// 	}
+			// }
 		}
 	}
 	return t.from
@@ -155,53 +157,54 @@ func (t *TransferEntity) To() *TransferCounterpartyInfo {
 				panic(err.Error())
 			}
 		} else { // TODO: Migration code to be deleted
-			to := t.to
-			switch t.DirectionObsoleteProp {
-			case TransferDirectionUser2Counterparty:
-				if to.UserID == 0 {
-					to.UserID = t.CounterpartyUserID
-				} else if to.UserID != t.CounterpartyUserID {
-					panic(fmt.Sprintf("to.UserID:%d != t.CounterpartyUserID:%d", to.UserID, t.CounterpartyUserID))
-				}
-				if to.ContactID == 0 {
-					to.ContactID = t.CreatorCounterpartyID
-				} else if to.ContactID != t.CounterpartyCounterpartyID {
-					panic(fmt.Sprintf("to.ContactID != t.CreatorCounterpartyID: %v, %v", to.ContactID, t.CreatorCounterpartyID))
-				}
-				if to.ContactName == "" {
-					to.ContactName = t.CreatorCounterpartyName
-				} else if to.ContactName != t.CreatorCounterpartyName {
-					panic(fmt.Sprintf("to.ContactName != t.CreatorCounterpartyName: %v, %v", to.ContactName, t.CreatorCounterpartyName))
-				}
-				if to.Comment == "" {
-					to.Comment = t.CounterpartyComment
-				} else if to.Comment != t.CounterpartyComment {
-					panic(fmt.Sprintf("to.Comment != t.CounterpartyComment: %v, %v", to.Comment, t.CounterpartyComment))
-				}
-			case TransferDirectionCounterparty2User:
-				if to.UserID == 0 {
-					to.UserID = t.CreatorUserID
-				} else if to.UserID != t.CreatorUserID {
-					panic(fmt.Sprintf("to.UserID:%d != t.CreatorUserID:%d", to.UserID, t.CreatorUserID))
-				}
-				if to.ContactID == 0 {
-					to.ContactID = t.CounterpartyCounterpartyID
-				} else if to.ContactID != t.CounterpartyCounterpartyID {
-					panic(fmt.Sprintf("to.ContactID != t.CounterpartyCounterpartyID: %v, %v", to.ContactID, t.CounterpartyCounterpartyID))
-				}
-				if to.ContactName == "" {
-					to.ContactName = t.CounterpartyCounterpartyName
-				} else if to.ContactName != t.CounterpartyCounterpartyName {
-					panic(fmt.Sprintf("to.ContactName != t.CounterpartyCounterpartyName: %v, %v", to.ContactName, t.CounterpartyCounterpartyName))
-				}
-				if to.Comment == "" {
-					to.Comment = t.CreatorComment
-				} else if to.Comment != t.CreatorComment {
-					panic(fmt.Sprintf("to.Comment != t.CreatorComment: %v, %v", to.Comment, t.CreatorComment))
-				}
-			default:
-				panic(fmt.Sprintf("Unknown direction: %v", t.Direction()))
-			}
+			panic("C_To is empty")
+			// to := t.to
+			// switch t.DirectionObsoleteProp {
+			// case TransferDirectionUser2Counterparty:
+			// 	if to.UserID == 0 {
+			// 		to.UserID = t.CounterpartyUserID
+			// 	} else if to.UserID != t.CounterpartyUserID {
+			// 		panic(fmt.Sprintf("to.UserID:%d != t.CounterpartyUserID:%d", to.UserID, t.CounterpartyUserID))
+			// 	}
+			// 	if to.ContactID == 0 {
+			// 		to.ContactID = t.CreatorCounterpartyID
+			// 	} else if to.ContactID != t.CounterpartyCounterpartyID {
+			// 		panic(fmt.Sprintf("to.ContactID != t.CreatorCounterpartyID: %v, %v", to.ContactID, t.CreatorCounterpartyID))
+			// 	}
+			// 	if to.ContactName == "" {
+			// 		to.ContactName = t.CreatorCounterpartyName
+			// 	} else if to.ContactName != t.CreatorCounterpartyName {
+			// 		panic(fmt.Sprintf("to.ContactName != t.CreatorCounterpartyName: %v, %v", to.ContactName, t.CreatorCounterpartyName))
+			// 	}
+			// 	if to.Comment == "" {
+			// 		to.Comment = t.CounterpartyComment
+			// 	} else if to.Comment != t.CounterpartyComment {
+			// 		panic(fmt.Sprintf("to.Comment != t.CounterpartyComment: %v, %v", to.Comment, t.CounterpartyComment))
+			// 	}
+			// case TransferDirectionCounterparty2User:
+			// 	if to.UserID == 0 {
+			// 		to.UserID = t.CreatorUserID
+			// 	} else if to.UserID != t.CreatorUserID {
+			// 		panic(fmt.Sprintf("to.UserID:%d != t.CreatorUserID:%d", to.UserID, t.CreatorUserID))
+			// 	}
+			// 	if to.ContactID == 0 {
+			// 		to.ContactID = t.CounterpartyCounterpartyID
+			// 	} else if to.ContactID != t.CounterpartyCounterpartyID {
+			// 		panic(fmt.Sprintf("to.ContactID != t.CounterpartyCounterpartyID: %v, %v", to.ContactID, t.CounterpartyCounterpartyID))
+			// 	}
+			// 	if to.ContactName == "" {
+			// 		to.ContactName = t.CounterpartyCounterpartyName
+			// 	} else if to.ContactName != t.CounterpartyCounterpartyName {
+			// 		panic(fmt.Sprintf("to.ContactName != t.CounterpartyCounterpartyName: %v, %v", to.ContactName, t.CounterpartyCounterpartyName))
+			// 	}
+			// 	if to.Comment == "" {
+			// 		to.Comment = t.CreatorComment
+			// 	} else if to.Comment != t.CreatorComment {
+			// 		panic(fmt.Sprintf("to.Comment != t.CreatorComment: %v, %v", to.Comment, t.CreatorComment))
+			// 	}
+			// default:
+			// 	panic(fmt.Sprintf("Unknown direction: %v", t.Direction()))
+			// }
 		}
 	}
 	return t.to
@@ -214,7 +217,7 @@ func (t *TransferEntity) onSaveSerializeJson() error {
 		} else {
 			t.C_From = string(s)
 		}
-	} else if t.C_From == "" && t.DirectionObsoleteProp == "" {
+	} else if t.C_From == "" {
 		return errors.New("Transfer should have 'From' counterparty")
 	}
 	if t.to != nil {
@@ -223,7 +226,7 @@ func (t *TransferEntity) onSaveSerializeJson() error {
 		} else {
 			t.C_To = string(s)
 		}
-	} else if t.C_To == "" && t.DirectionObsoleteProp == "" {
+	} else if t.C_To == "" {
 		return errors.New("Transfer should have 'To' counterparty")
 	}
 	return nil

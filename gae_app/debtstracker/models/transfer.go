@@ -109,7 +109,7 @@ type TransferEntity struct {
 	BillIDs []string
 
 	SmsStats
-	DirectionObsoleteProp string `datastore:"Direction,noindex,omitempty"`
+	// DirectionObsoleteProp string `datastore:"Direction,noindex,omitempty"`
 
 	// We need it is not always possible to identify original transfer (think multiply & partial transfers)
 	IsReturn bool `datastore:",noindex,omitempty"`
@@ -207,9 +207,9 @@ func (t TransferEntity) String() string {
 }
 
 func (t *TransferEntity) Direction() TransferDirection {
-	if t.DirectionObsoleteProp != "" {
-		return TransferDirection(t.DirectionObsoleteProp)
-	}
+	// if t.DirectionObsoleteProp != "" {
+	// 	return TransferDirection(t.DirectionObsoleteProp)
+	// }
 	switch t.CreatorUserID {
 	case 0:
 		panic("CreatorUserID == 0")
@@ -514,18 +514,18 @@ func (t *TransferEntity) Load(ps []datastore.Property) error {
 		return err
 	}
 
-	t.hasObsoleteProps = t.hasObsoleteProps || t.DirectionObsoleteProp != ""
+	// t.hasObsoleteProps = t.hasObsoleteProps || t.DirectionObsoleteProp != ""
 
 	if t.CreatedOnPlatform == "" && creationPlatform != "" {
 		t.CreatedOnPlatform = creationPlatform
 	}
 
-	switch t.DirectionObsoleteProp {
-	case "from":
-		t.DirectionObsoleteProp = TransferDirectionUser2Counterparty
-	case "to":
-		t.DirectionObsoleteProp = TransferDirectionCounterparty2User
-	}
+	// switch t.DirectionObsoleteProp {
+	// case "from":
+	// 	t.DirectionObsoleteProp = TransferDirectionUser2Counterparty
+	// case "to":
+	// 	t.DirectionObsoleteProp = TransferDirectionCounterparty2User
+	// }
 
 	if t.GetOutstandingValue(time.Now()) > 0 && !t.IsOutstanding {
 		t.IsOutstanding = true
@@ -754,12 +754,12 @@ func (t *TransferEntity) BeforeSave() (err error) {
 		return
 	}
 
-	if t.C_From == "" && t.DirectionObsoleteProp == "" {
+	if t.C_From == "" {
 		err = errors.New("C_From is empty")
 		return
 	}
 
-	if t.C_To == "" && t.DirectionObsoleteProp == "" {
+	if t.C_To == "" {
 		err = errors.New("C_To is empty")
 		return
 	}
@@ -792,21 +792,21 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 		return
 	}
 
-	{ // Obsolete properties that were moved to JSON also should be removed
-		if migratedToJson := t.C_From != "" && t.C_To != ""; migratedToJson {
-			if t.DirectionObsoleteProp != "" {
-				t.DirectionObsoleteProp = ""
-			}
-			properties2 := make([]datastore.Property, 0, len(properties))
-			for _, p := range properties {
-				if t.movedToJson(p.Name) {
-					continue
-				}
-				properties2 = append(properties2, p)
-			}
-			properties = properties2
-		}
-	}
+	// { // Obsolete properties that were moved to JSON also should be removed
+	// 	if migratedToJson := t.C_From != "" && t.C_To != ""; migratedToJson {
+	// 		if t.DirectionObsoleteProp != "" {
+	// 			t.DirectionObsoleteProp = ""
+	// 		}
+	// 		properties2 := make([]datastore.Property, 0, len(properties))
+	// 		for _, p := range properties {
+	// 			if t.movedToJson(p.Name) {
+	// 				continue
+	// 			}
+	// 			properties2 = append(properties2, p)
+	// 		}
+	// 		properties = properties2
+	// 	}
+	// }
 
 	// Make general application-wide checks and call hooks if any
 	checkHasProperties(TransferKind, properties)
