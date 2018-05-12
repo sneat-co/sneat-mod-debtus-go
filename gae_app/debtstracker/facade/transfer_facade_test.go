@@ -294,7 +294,7 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 		t1 = output.Transfer
 		is.True(t1.ID != 0)
 		is.True(t1.IsOutstanding)
-		is.Equal(t1.AmountReturned, decimal.Decimal64p2(0))
+		is.Equal(t1.AmountInCentsReturned, decimal.Decimal64p2(0))
 		is.Equal(t1.AmountInCents, t1val)
 		is.Equal(t1.GetOutstandingValue(time.Now()), t1val)
 		is.Equal(output.From.User.ID, userID)
@@ -349,8 +349,8 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 		is.True(!t1.IsOutstanding) // 1st transfer should be closed
 		is.True(t2.IsOutstanding)  // 2nd transfer should be outstanding
 		is.Equal(t2.AmountInCents, t2val)
-		is.Equal(t2.AmountReturned, t1val)
-		is.Equal(t1.AmountReturned, t1val)
+		is.Equal(t2.AmountInCentsReturned, t1val)
+		is.Equal(t1.AmountInCentsReturned, t1val)
 
 		{
 			toUser := output.To.User
@@ -422,10 +422,10 @@ func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 		is.True(!t2.IsOutstanding)
 		is.True(!t3.IsOutstanding)
 
-		is.Equal(t2.AmountReturned, t2val) // t2.AmountReturned
+		is.Equal(t2.AmountInCentsReturned, t2val) // t2.AmountInCentsReturned
 		is.Equal(t2.GetOutstandingValue(time.Now()), decimal.FromInt(0))
 
-		is.Equal(t3.AmountReturned, decimal.FromInt(7)) // t3.AmountReturned
+		is.Equal(t3.AmountInCentsReturned, decimal.FromInt(7)) // t3.AmountInCentsReturned
 		is.Equal(t3.GetOutstandingValue(time.Now()), decimal.FromInt(0))
 	}
 

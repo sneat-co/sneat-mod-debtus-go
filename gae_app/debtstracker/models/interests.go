@@ -28,14 +28,14 @@ func (t *TransferEntity) validateTransferInterestAndReturns() (err error) {
 	if err = t.TransferInterest.ValidateTransferInterest(); err != nil {
 		return
 	}
-	if t.AmountInterest < 0 {
-		panic(fmt.Sprintf("t.AmountInterest < 0: %v", t.AmountInterest))
+	if t.AmountInCentsInterest < 0 {
+		panic(fmt.Sprintf("t.AmountInCentsInterest < 0: %v", t.AmountInCentsInterest))
 	}
-	if !t.IsReturn && t.AmountInterest != 0 {
-		panic(fmt.Sprintf("!t.IsReturn && t.AmountInterest != 0: %v", t.AmountInterest))
+	if !t.IsReturn && t.AmountInCentsInterest != 0 {
+		panic(fmt.Sprintf("!t.IsReturn && t.AmountInCentsInterest != 0: %v", t.AmountInCentsInterest))
 	}
-	if t.AmountInterest > t.AmountInCents {
-		panic(fmt.Sprintf("t.AmountInterest > t.AmountInCents: %v > %v", t.AmountInterest, t.AmountInCents))
+	if t.AmountInCentsInterest > t.AmountInCents {
+		panic(fmt.Sprintf("t.AmountInCentsInterest > t.AmountInCents: %v > %v", t.AmountInCentsInterest, t.AmountInCents))
 	}
 	if t.InterestType != "" { // TODO: Migrate old records and then do the check for all transfers
 		returns := t.GetReturns()
@@ -47,8 +47,8 @@ func (t *TransferEntity) validateTransferInterestAndReturns() (err error) {
 		for _, r := range returns {
 			amountReturned += r.Amount
 		}
-		if amountReturned != t.AmountReturned {
-			return fmt.Errorf("sum(returns.Amount) != *TransferEntity.AmountReturned: %v != %v", amountReturned, t.AmountReturned)
+		if amountReturned != t.AmountInCentsReturned {
+			return fmt.Errorf("sum(returns.Amount) != *TransferEntity.AmountInCentsReturned: %v != %v", amountReturned, t.AmountInCentsReturned)
 		}
 	}
 	return

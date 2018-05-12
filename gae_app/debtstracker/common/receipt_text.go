@@ -221,7 +221,7 @@ func (r receiptTextBuilder) WriteReceiptText(buffer *bytes.Buffer, utmParams Utm
 		buffer.WriteString("\n" + emoji.ALARM_CLOCK_ICON + " " + fmt.Sprintf(r.Translate(trans.MESSAGE_TEXT_DUE_ON), r.transfer.DtDueOn.Format("2006-01-02 15:04")))
 	}
 
-	if r.transfer.AmountReturned > 0 && r.transfer.AmountReturned != r.transfer.AmountInCents {
+	if r.transfer.AmountInCentsReturned > 0 && r.transfer.AmountInCentsReturned != r.transfer.AmountInCents {
 		buffer.WriteString("\n" + r.translateAndFormatMessage(trans.MESSAGE_TEXT_RECEIPT_ALREADY_RETURNED_AMOUNT, r.transfer.GetReturnedAmount(), utmParams))
 	}
 

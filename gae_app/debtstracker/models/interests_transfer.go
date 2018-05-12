@@ -99,17 +99,17 @@ func (ti TransferInterest) ValidateTransferInterest() (err error) {
 // }
 
 func (t *TransferEntity) GetOutstandingValue(periodEnds time.Time) (outstandingValue decimal.Decimal64p2) {
-	if t.IsReturn && t.AmountReturned == 0 {
+	if t.IsReturn && t.AmountInCentsReturned == 0 {
 		return 0
 	}
 	var interestValue decimal.Decimal64p2
 	if t.InterestType != "" {
 		interestValue = t.GetInterestValue(periodEnds)
 	}
-	outstandingValue = t.AmountInCents + interestValue - t.AmountReturned
+	outstandingValue = t.AmountInCents + interestValue - t.AmountInCentsReturned
 	if outstandingValue < 0 && interestValue != 0 {
 		panic(fmt.Sprintf("outstandingValue < 0: %v, IsReturn: %v, Amount: %v, Returned: %v, Interest: %v\n%v",
-			outstandingValue, t.IsReturn, t.AmountInCents, t.AmountReturned, interestValue, litter.Sdump(t)))
+			outstandingValue, t.IsReturn, t.AmountInCents, t.AmountInCentsReturned, interestValue, litter.Sdump(t)))
 	}
 	return
 }

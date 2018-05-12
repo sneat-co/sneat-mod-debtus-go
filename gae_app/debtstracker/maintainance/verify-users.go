@@ -11,7 +11,6 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/captaincodeman/datastore-mapper"
-	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/db"
 	"github.com/strongo/nds"
@@ -31,16 +30,7 @@ func (m *verifyUsers) Make() interface{} {
 }
 
 func (m *verifyUsers) Query(r *http.Request) (query *mapper.Query, err error) {
-	var filtered bool
-	if query, filtered, err = filterByIntID(r, models.AppUserKind, "user"); err != nil {
-		return
-	} else if filtered {
-		if len(r.URL.Query()) != 2 {
-			err = errors.New("unexpected params: " + r.URL.RawQuery)
-		}
-		return
-	}
-	return
+	return applyIDAndUserFilters(r, "verifyUsers", models.AppUserKind, filterByIntID, "")
 }
 
 func (m *verifyUsers) Next(c context.Context, counters mapper.Counters, key *datastore.Key) (err error) {

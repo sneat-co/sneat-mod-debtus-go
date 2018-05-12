@@ -1,5 +1,5 @@
-application: debtstracker
-version: 13
+application: debtstracker-io
+version: mapreduce
 runtime: go
 api_version: go1.9
 

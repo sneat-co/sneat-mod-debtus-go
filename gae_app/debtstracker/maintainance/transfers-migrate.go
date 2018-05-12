@@ -18,7 +18,12 @@ func (m *migrateTransfers) Next(c context.Context, counters mapper.Counters, key
 }
 
 func (m *migrateTransfers) migrateTransfer(c context.Context, counters *asyncCounters, transfer models.Transfer) (err error) {
+	if transfer.CreatorUserID == 0 {
+		log.Errorf(c, "Transfer(ID=%v) is missing CreatorUserID")
+		return
+	}
 	if !transfer.HasObsoleteProps() {
+		// log.Debugf(c, "transfer.ID=%v has no obsolete props", transfer.ID)
 		return
 	}
 	if err = datastore.RunInTransaction(c, func(tc context.Context) (err error) {

@@ -159,7 +159,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 			fmt.Fprintf(buf, p+"\tFrom(): userID=%v, contactID=%v\n", transfer.From().UserID, transfer.From().ContactID)
 			fmt.Fprintf(buf, p+"\t  To(): userID=%v, contactID=%v\n", transfer.To().UserID, transfer.To().ContactID)
 			fmt.Fprintf(buf, p+"\tAmount: %v\n", transfer.GetAmount())
-			fmt.Fprintf(buf, p+"\tReturned: %v\n", transfer.AmountReturned)
+			fmt.Fprintf(buf, p+"\tReturned: %v\n", transfer.AmountInCentsReturned)
 			fmt.Fprintf(buf, p+"\tOutstanding: %v\n", transfer.GetOutstandingValue(time.Now()))
 			fmt.Fprintf(buf, p+"\tIsReturn: %v\n", transfer.IsReturn)
 			fmt.Fprintf(buf, p+"\tReturnTransferIDs: %v\n", transfer.ReturnTransferIDs)
@@ -473,8 +473,8 @@ func (m *verifyContactTransfers) fixTransfers(c context.Context, now time.Time, 
 	transfersToSave = make(map[int64]*models.TransferEntity)
 
 	for _, transfer := range transfers {
-		if transfer.AmountReturned != 0 {
-			transfer.AmountReturned = 0
+		if transfer.AmountInCentsReturned != 0 {
+			transfer.AmountInCentsReturned = 0
 			transfersToSave[transfer.ID] = transfer.TransferEntity
 		}
 		if len(transfer.ReturnTransferIDs) != 0 {
@@ -492,19 +492,19 @@ func (m *verifyContactTransfers) fixTransfers(c context.Context, now time.Time, 
 				transfer.ReturnToTransferIDs = append(transfer.ReturnToTransferIDs, previousTransfer.ID)
 				transfersToSave[previousTransfer.ID] = previousTransfer.TransferEntity
 				if previousTransferOutstandingValue := previousTransfer.GetOutstandingValue(now); amountToAssign <= previousTransferOutstandingValue {
-					previousTransfer.AmountReturned += amountToAssign
+					previousTransfer.AmountInCentsReturned += amountToAssign
 					amountToAssign = 0
 					break
 				} else /* previousTransfer.AmountInCentsOutstanding < amountToAssign */ {
 					amountToAssign -= previousTransferOutstandingValue
-					previousTransfer.AmountReturned += previousTransferOutstandingValue
+					previousTransfer.AmountInCentsReturned += previousTransferOutstandingValue
 					previousTransfer.IsOutstanding = false
 				}
 			}
 		}
 		transfer.IsReturn = len(transfer.ReturnToTransferIDs) > 0
 		if transfer.IsOutstanding = amountToAssign != 0; transfer.IsOutstanding {
-			transfer.AmountReturned = transfer.AmountInCents - amountToAssign
+			transfer.AmountInCentsReturned = transfer.AmountInCents - amountToAssign
 			transfersToSave[transfer.ID] = transfer.TransferEntity
 		}
 		transfersByCurrency[transfer.Currency] = append(transfersByCurrency[transfer.Currency], transfer)

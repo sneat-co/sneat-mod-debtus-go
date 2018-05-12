@@ -6,7 +6,6 @@ import (
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/captaincodeman/datastore-mapper"
-	"github.com/pkg/errors"
 	"github.com/strongo/db"
 	"google.golang.org/appengine/datastore"
 )
@@ -22,25 +21,7 @@ func (m *transfersAsyncJob) Make() interface{} {
 }
 
 func (m *transfersAsyncJob) Query(r *http.Request) (query *mapper.Query, err error) {
-	var filtered bool
-	if query, filtered, err = filterByIntID(r, models.TransferKind, "transfer"); err != nil || filtered {
-		return
-	}
-	values := r.URL.Query()
-	delete(values, "name")
-	paramsCount := len(values)
-	if query, filtered, err = filterByUserParam(r, query, "BothUserIDs"); err != nil {
-		return
-	} else {
-		if filtered {
-			paramsCount -= 1
-		}
-	}
-	if paramsCount != 0 {
-		err = errors.New("Some unknown parameters: " + r.URL.RawQuery)
-		return
-	}
-	return
+	return applyIDAndUserFilters(r, "transfersAsyncJob", models.TransferKind, filterByIntID, "BothUserIDs")
 }
 
 func (m *transfersAsyncJob) Transfer(key *datastore.Key) models.Transfer {

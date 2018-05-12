@@ -33,17 +33,17 @@ func RegisterMappers() {
 	http.HandleFunc("/_ah/merge-contacts", mergeContactsHandler)
 }
 
-func filterByUserParam(r *http.Request, query *mapper.Query, prop string) (q *mapper.Query, filtered bool, err error) {
-	return filterByIntParam(r, query, "user", prop)
+func filterByUserParam(query *mapper.Query, pv, prop string) (q *mapper.Query, filtered bool, err error) {
+	return filterByIntParam(query, pv, prop)
 }
 
 //func filterByContactParam(r *http.Request, query *mapper.Query, prop string) (*mapper.Query, error) {
 //	return filterByIntParam(r, query, "contact", prop)
 //}
 
-func filterByIntParam(r *http.Request, query *mapper.Query, param, prop string) (q *mapper.Query, filtered bool, err error) {
+func filterByIntParam(query *mapper.Query, pv, prop string) (q *mapper.Query, filtered bool, err error) {
 	q = query
-	if pv := r.URL.Query().Get(param); pv != "" {
+	if pv != "" {
 		var v int64
 		if v, err = strconv.ParseInt(pv, 10, 64); err != nil {
 			return

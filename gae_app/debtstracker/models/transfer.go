@@ -13,6 +13,8 @@ import (
 	"strings"
 )
 
+const MaxTransferAmount = decimal.Decimal64p2(^uint64(0) >> 8)
+
 type TransferDirection string
 
 func (d TransferDirection) Reverse() TransferDirection {
@@ -120,7 +122,7 @@ type TransferEntity struct {
 	ReturnsCount      int     `datastore:",noindex,omitempty"`
 	ReturnTransferIDs []int64 `datastore:",noindex"` // TODO: Obsolete - replace with ReturnsJson List of transfers that return money to this debts
 	//
-	CreatorUserID           int64  `datastore:",noindex"`           // Do not delete
+	CreatorUserID           int64  `datastore:",noindex"`           // Do not delete, is NOT obsolete!
 	CreatorCounterpartyID   int64  `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>ContactID
 	CreatorCounterpartyName string `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>ContactName
 	CreatorNote             string `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>Note
@@ -173,12 +175,12 @@ type TransferEntity struct {
 	DtDueOn   time.Time `datastore:",omitempty"`
 
 	// Amount                   float64                                    // TODO: Obsolete!, Replaced with AmountInCents
-	// AmountReturned           float64             `datastore:",noindex"` // TODO: Obsolete!, Replaced with AmountReturned
+	// AmountInCentsReturned           float64             `datastore:",noindex"` // TODO: Obsolete!, Replaced with AmountInCentsReturned
 	// AmountOutstanding        float64             `datastore:",noindex"` // TODO: Obsolete!, Replaced with AmountInCentsOutstanding
 
-	AmountInCents  decimal.Decimal64p2
-	AmountReturned decimal.Decimal64p2 `datastore:"AmountInCentsReturned,noindex,omitempty"`
-	AmountInterest decimal.Decimal64p2 `datastore:"AmountInCentsInterest,noindex,omitempty"`
+	AmountInCents         decimal.Decimal64p2
+	AmountInCentsReturned decimal.Decimal64p2 `datastore:",noindex,omitempty"`
+	AmountInCentsInterest decimal.Decimal64p2 `datastore:",noindex,omitempty"`
 	// AmountInCentsOutstanding decimal.Decimal64p2 `datastore:",noindex,omitempty"` // TODO: Should be removed!
 
 	TransferInterest
@@ -186,7 +188,7 @@ type TransferEntity struct {
 	IsOutstanding bool
 	Currency      Currency // Should be indexed for loading outstanding transfers
 	//
-	ReceiptsSentCount int64   `datastore:",noindex"`
+	ReceiptsSentCount int64   `datastore:",noindex,omitempty"`
 	ReceiptIDs        []int64 `datastore:",noindex"`
 }
 
@@ -201,7 +203,7 @@ func (t Transfer) String() string {
 func (t TransferEntity) String() string {
 	return fmt.Sprintf(
 		"TransferEntity{DtCreated: %v, Direction: %v, GetAmount(): %v, AmoutInCentsReturned: %v, IsReturn: %v, ReturnToTransferIDs: %v, CreatorUserID: %d, Creator: %v, Contact: %v, BothUserIDs: %v, BothCounterpartyIDs: %v, From: %v, To: %v}",
-		t.DtCreated, t.Direction(), t.GetAmount(), t.AmountReturned, t.IsReturn, t.ReturnToTransferIDs, t.CreatorUserID, t.Creator(), t.Counterparty(), t.BothUserIDs, t.BothCounterpartyIDs, t.From(), t.To())
+		t.DtCreated, t.Direction(), t.GetAmount(), t.AmountInCentsReturned, t.IsReturn, t.ReturnToTransferIDs, t.CreatorUserID, t.Creator(), t.Counterparty(), t.BothUserIDs, t.BothCounterpartyIDs, t.From(), t.To())
 }
 
 func (t *TransferEntity) Direction() TransferDirection {
@@ -382,17 +384,20 @@ func (t *TransferEntity) Load(ps []datastore.Property) error {
 	p2 := make([]datastore.Property, 0, len(ps))
 	var creationPlatform string
 	var ( // TODO: obsolete props migrated to TransferCounterpartyJson
-		creatorReminderID, counterpartyReminderID   int64
-		creatorTgChatID, counterpartyTgChatID       int64
-		creatorTgBotID, counterpartyTgBotID         string
-		creatorContactName, counterpartyContactName string
-		creatorNote, counterpartyNote string
-		creatorComment, counterpartyComment string
+		creatorReminderID, counterpartyReminderID         int64
+		creatorTgChatID, counterpartyTgChatID             int64
+		creatorTgBotID, counterpartyTgBotID               string
+		creatorContactName, counterpartyContactName       string
+		creatorNote, counterpartyNote                     string
+		creatorComment, counterpartyComment               string
+		creatorUserID, counterpartyUserID                 int64
+		creatorCounterpartyID, counterpartyCounterpartyID int64
+		// creatorTgReceiptByTgMsgID, counterpartyTgReceiptByTgMsgID int64
 	)
 	for _, p := range ps {
 		switch p.Name {
-		case "AmountInCentsOutstanding": // Ignore legacy
-			t.hasObsoleteProps = true
+		// case "AmountInCentsOutstanding": // Ignore legacy
+		// 	t.hasObsoleteProps = true
 		case "CounterpartyAutoRemindersDisabled": // Ignore legacy
 			t.hasObsoleteProps = true
 		case "CreatorAutoRemindersDisabled": // Ignore legacy
@@ -434,6 +439,20 @@ func (t *TransferEntity) Load(ps []datastore.Property) error {
 			t.hasObsoleteProps = true
 			counterpartyComment = p.Value.(string)
 
+		case "CreatorUserID": // Is NOT obsolete!
+			// t.hasObsoleteProps = true
+			p2 = append(p2, p)
+			creatorUserID = p.Value.(int64)
+		case "CounterpartyUserID":
+			t.hasObsoleteProps = true
+			counterpartyUserID = p.Value.(int64)
+
+		case "CreatorCounterpartyID":
+			t.hasObsoleteProps = true
+			creatorCounterpartyID = p.Value.(int64)
+		case "CounterpartyCounterpartyID":
+			t.hasObsoleteProps = true
+			counterpartyCounterpartyID = p.Value.(int64)
 
 			// case "FromUserID": // TODO: Ignore legacy, temporary
 			// case "FromUserName": // TODO: Ignore legacy, temporary
@@ -455,7 +474,7 @@ func (t *TransferEntity) Load(ps []datastore.Property) error {
 			t.hasObsoleteProps = true
 			counterpartyReminderID = p.Value.(int64)
 
-			case "CreatorTgBotID":
+		case "CreatorTgBotID":
 			t.hasObsoleteProps = true
 			creatorTgBotID = p.Value.(string)
 		case "CounterpartyTgBotID":
@@ -468,35 +487,34 @@ func (t *TransferEntity) Load(ps []datastore.Property) error {
 		case "CounterpartyTgChatID":
 			t.hasObsoleteProps = true
 			counterpartyTgChatID = p.Value.(int64)
-
-		case "Amount":
+		case "Amount", "AmountReturned", "AmountOutstanding":
 			t.hasObsoleteProps = true
-			if v := p.Value.(float64); v != 0 {
-				p.Name = "AmountInCents"
-				p.Value = int64(decimal.NewDecimal64p2FromFloat64(v))
-				p2 = append(p2, p)
-			}
-		case "AmountInCentsReturned":
-			t.hasObsoleteProps = true
-			if v := p.Value.(float64); v != 0 {
-				p.Name = "AmountInCentsReturned"
-				p.Value = int64(decimal.NewDecimal64p2FromFloat64(v))
-				p2 = append(p2, p)
-			}
-		case "AmountOutstanding":
-			t.hasObsoleteProps = true
-			if v := p.Value.(float64); v != 0 {
-				p.Name = "AmountInCentsOutstanding"
-				p.Value = int64(decimal.NewDecimal64p2FromFloat64(v))
-				p2 = append(p2, p)
+			if v, isFloat := p.Value.(float64); isFloat {
+				if v != 0 {
+					p.Name = strings.Replace(p.Name, "Amount", "AmountInCents", 1)
+					if v < 0.01 { // Fix very small amounts
+						v = 0.01
+					}
+					val := int64(decimal.NewDecimal64p2FromFloat64(v))
+					if val < 0 && v > 0 { // value is too big so we are getting overflow
+						val = int64(MaxTransferAmount)
+					}
+					p.Value = val
+					p2 = append(p2, p)
+				}
+			} else {
+				return fmt.Errorf("obsolete property '%v' expected to be of type float64, got: %T=%v", p.Name, p.Value, p.Value)
 			}
 		default:
 			p2 = append(p2, p)
 		}
 	}
+
 	if err := datastore.LoadStruct(t, p2); err != nil {
 		return err
 	}
+
+	t.hasObsoleteProps = t.hasObsoleteProps || t.DirectionObsoleteProp != ""
 
 	if t.CreatedOnPlatform == "" && creationPlatform != "" {
 		t.CreatedOnPlatform = creationPlatform
@@ -516,9 +534,16 @@ func (t *TransferEntity) Load(ps []datastore.Property) error {
 	{ // TODO: Get rid once all transfers migrated - Moves properties to JSON
 		migrateToCounterpartyInfo := func(
 			counterparty *TransferCounterpartyInfo,
+			userID, contactID int64,
 			reminderID, tgChatID int64,
 			tgBotID, contactName, note, comment string,
 		) {
+			if userID != 0 && counterparty.UserID == 0 {
+				counterparty.UserID = userID
+			}
+			if contactID != 0 && counterparty.ContactID == 0 {
+				counterparty.ContactID = contactID
+			}
 			if reminderID != 0 {
 				counterparty.ReminderID = reminderID
 			}
@@ -538,8 +563,11 @@ func (t *TransferEntity) Load(ps []datastore.Property) error {
 				counterparty.Comment = comment
 			}
 		}
-		migrateToCounterpartyInfo(t.Creator(), creatorReminderID, creatorTgChatID, creatorTgBotID, creatorContactName, creatorNote, creatorComment)
-		migrateToCounterpartyInfo(t.Counterparty(), counterpartyReminderID, counterpartyTgChatID, counterpartyTgBotID, counterpartyContactName, counterpartyNote, counterpartyComment)
+
+		if creatorUserID != 0 { // TODO: temporary workaround to fix migration
+			migrateToCounterpartyInfo(t.Creator(), creatorUserID, counterpartyCounterpartyID, creatorReminderID, creatorTgChatID, creatorTgBotID, creatorContactName, creatorNote, creatorComment)
+			migrateToCounterpartyInfo(t.Counterparty(), counterpartyUserID, creatorCounterpartyID, counterpartyReminderID, counterpartyTgChatID, counterpartyTgBotID, counterpartyContactName, counterpartyNote, counterpartyComment)
+		}
 	}
 
 	return nil
@@ -587,13 +615,18 @@ func (t *TransferEntity) BeforeSave() (err error) {
 		return
 	}
 
+	if t.AmountInCents > MaxTransferAmount {
+		err = fmt.Errorf("*TransferEntity.AmountInCents is too big, expected to be less then %v, got %v", MaxTransferAmount, t.AmountInCents)
+		return
+	}
+
 	if t.Currency == "" { // Should be always presented
 		err = errors.New("*TransferEntity.Currency is empty string")
 		return
 	}
 
-	if t.AmountReturned < 0 {
-		err = fmt.Errorf("*TransferEntity.AmountReturned:%v < 0", t.AmountReturned)
+	if t.AmountInCentsReturned < 0 {
+		err = fmt.Errorf("*TransferEntity.AmountInCentsReturned:%v < 0", t.AmountInCentsReturned)
 		return
 	}
 
@@ -610,7 +643,7 @@ func (t *TransferEntity) BeforeSave() (err error) {
 				t.IsOutstanding = false
 			}
 		case false:
-			if t.AmountInCents == t.AmountReturned {
+			if t.AmountInCents == t.AmountInCentsReturned {
 				t.IsOutstanding = false
 			}
 		}
@@ -636,8 +669,8 @@ func (t *TransferEntity) BeforeSave() (err error) {
 	// 	return
 	// }
 
-	// if t.AmountReturned > t.AmountInCents {
-	// 	err = fmt.Errorf("*TransferEntity.AmountReturned:%v > AmountInCents:%v", t.AmountReturned, t.AmountInCents)
+	// if t.AmountInCentsReturned > t.AmountInCents {
+	// 	err = fmt.Errorf("*TransferEntity.AmountInCentsReturned:%v > AmountInCents:%v", t.AmountInCentsReturned, t.AmountInCents)
 	// 	return
 	// }
 
@@ -646,23 +679,25 @@ func (t *TransferEntity) BeforeSave() (err error) {
 	// 	return
 	// }
 	//
-	// if t.AmountReturned+t.AmountInCentsOutstanding > t.AmountInCents {
-	// 	err = fmt.Errorf("*TransferEntity.AmountReturned:%v + AmountInCentsOutstanding:%v > AmountInCents:%v", t.AmountReturned, t.AmountInCentsOutstanding, t.AmountInCents)
+	// if t.AmountInCentsReturned+t.AmountInCentsOutstanding > t.AmountInCents {
+	// 	err = fmt.Errorf("*TransferEntity.AmountInCentsReturned:%v + AmountInCentsOutstanding:%v > AmountInCents:%v", t.AmountInCentsReturned, t.AmountInCentsOutstanding, t.AmountInCents)
 	// 	return
 	// }
 
 	if t.IsReturn {
-		if len(t.ReturnToTransferIDs) == 0 {
-			err = errors.New("*TransferEntity: IsReturn == true && len(ReturnToTransferIDs) == 0")
-			return
-		}
-		// if (t.AmountReturned != 0 || t.AmountInCentsOutstanding != 0) && t.AmountInCents != t.AmountReturned+t.AmountInCentsOutstanding {
-		// 	err = fmt.Errorf("*TransferEntity: IsReturn == true && AmountInCents != AmountReturned + AmountInCentsOutstanding: %v != %v + %v", t.AmountInCents, t.AmountReturned, t.AmountInCentsOutstanding)
+		// TODO: Temporally commented just this if on 11 May 2018 to fix migration mapreduce
+		// if len(t.ReturnToTransferIDs) == 0 {
+		// 	err = errors.New("*TransferEntity: IsReturn == true && len(ReturnToTransferIDs) == 0")
+		// 	return
+		// }
+
+		// if (t.AmountInCentsReturned != 0 || t.AmountInCentsOutstanding != 0) && t.AmountInCents != t.AmountInCentsReturned+t.AmountInCentsOutstanding {
+		// 	err = fmt.Errorf("*TransferEntity: IsReturn == true && AmountInCents != AmountInCentsReturned + AmountInCentsOutstanding: %v != %v + %v", t.AmountInCents, t.AmountInCentsReturned, t.AmountInCentsOutstanding)
 		// 	return
 		// }
 		// } else {
-		// 	if t.AmountInCents != t.AmountReturned+t.AmountInCentsOutstanding {
-		// 		err = fmt.Errorf("*TransferEntity: IsReturn == false && AmountInCents != AmountReturned + AmountInCentsOutstanding: %v != %v + %v", t.AmountInCents, t.AmountReturned, t.AmountInCentsOutstanding)
+		// 	if t.AmountInCents != t.AmountInCentsReturned+t.AmountInCentsOutstanding {
+		// 		err = fmt.Errorf("*TransferEntity: IsReturn == false && AmountInCents != AmountInCentsReturned + AmountInCentsOutstanding: %v != %v + %v", t.AmountInCents, t.AmountInCentsReturned, t.AmountInCentsOutstanding)
 		// 		return
 		// 	}
 	}
@@ -732,6 +767,16 @@ func (t *TransferEntity) BeforeSave() (err error) {
 	return
 }
 
+func (TransferEntity) movedToJson(propName string) bool {
+	return propName == "CounterpartyUserID" || (strings.HasPrefix(propName, "Creator") || strings.HasPrefix(propName, "Counterparty")) && (
+		strings.HasSuffix(propName, "CounterpartyID") ||
+			strings.HasSuffix(propName, "CounterpartyName") ||
+			strings.HasSuffix(propName, "Note") ||
+			strings.HasSuffix(propName, "Comment") ||
+			strings.HasSuffix(propName, "TgBotID") ||
+			strings.HasSuffix(propName, "TgChatID"))
+}
+
 func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 	if err = t.BeforeSave(); err != nil {
 		return
@@ -748,24 +793,19 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 	}
 
 	{ // Obsolete properties that were moved to JSON also should be removed
-		movedToJson := func(propName string) bool {
-			return (strings.HasPrefix(propName, "Creator") || strings.HasPrefix(propName, "Counterparty")) && (
-				strings.HasSuffix(propName, "CounterpartyID") ||
-					strings.HasSuffix(propName, "CounterpartyName") ||
-					strings.HasSuffix(propName, "Note") ||
-					strings.HasSuffix(propName, "Comment") ||
-					strings.HasSuffix(propName, "TgBotID") ||
-					strings.HasSuffix(propName, "TgChatID"))
-		}
-
-		properties2 := make([]datastore.Property, 0, len(properties))
-		for _, p := range properties {
-			if t.DirectionObsoleteProp == "" && t.C_From != "" && t.C_To != "" && movedToJson(p.Name) {
-				continue
+		if migratedToJson := t.C_From != "" && t.C_To != ""; migratedToJson {
+			if t.DirectionObsoleteProp != "" {
+				t.DirectionObsoleteProp = ""
 			}
-			properties2 = append(properties2, p)
+			properties2 := make([]datastore.Property, 0, len(properties))
+			for _, p := range properties {
+				if t.movedToJson(p.Name) {
+					continue
+				}
+				properties2 = append(properties2, p)
+			}
+			properties = properties2
 		}
-		properties = properties2
 	}
 
 	// Make general application-wide checks and call hooks if any
@@ -815,7 +855,7 @@ func (t *TransferEntity) GetAmount() Amount {
 }
 
 func (t *TransferEntity) GetReturnedAmount() Amount {
-	return Amount{Currency: t.Currency, Value: t.AmountReturned}
+	return Amount{Currency: t.Currency, Value: t.AmountInCentsReturned}
 }
 
 func ReverseTransfers(t []Transfer) {

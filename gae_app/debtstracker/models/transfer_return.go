@@ -77,8 +77,8 @@ func (t *TransferEntity) AddReturn(returnTransfer TransferReturnJson) error {
 		returnTransferIDs = append(returnTransferIDs, r.TransferID)
 		returnedValue += r.Amount
 	}
-	if returnedValue != t.AmountReturned {
-		return fmt.Errorf("transfer data integrity issue: sum(returns.Amount) != t.AmountReturned => %v != %v", returnedValue, t.AmountReturned)
+	if returnedValue != t.AmountInCentsReturned {
+		return fmt.Errorf("transfer data integrity issue: sum(returns.Amount) != t.AmountInCentsReturned => %v != %v", returnedValue, t.AmountInCentsReturned)
 	}
 
 	transferAmount := t.GetAmount()
@@ -96,7 +96,7 @@ func (t *TransferEntity) AddReturn(returnTransfer TransferReturnJson) error {
 		return errors.WithMessage(err, "failed to marshal transfer returns")
 	}
 	t.ReturnsJson = string(returnsJson)
-	t.AmountReturned = returnedValue
+	t.AmountInCentsReturned = returnedValue
 	t.ReturnsCount = len(returns)
 	t.returns = returns
 	return nil

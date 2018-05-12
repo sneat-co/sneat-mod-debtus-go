@@ -1,6 +1,6 @@
 package general
 
 type CreatedOn struct {
-	CreatedOnPlatform string `datastore:",noindex"` // e.g. "Telegram"
-	CreatedOnID       string `datastore:",noindex"` // e.g. "DebtsTrackerBot"
+	CreatedOnPlatform string `datastore:",noindex,omitempty"` // e.g. "Telegram"
+	CreatedOnID       string `datastore:",noindex,omitempty"` // e.g. "DebtsTrackerBot"
 }
