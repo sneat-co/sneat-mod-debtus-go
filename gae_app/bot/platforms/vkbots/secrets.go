@@ -5,6 +5,7 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/vk"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 )
 
 var BotsBy = bots.NewBotSettingsBy(nil,
@@ -13,6 +14,7 @@ var BotsBy = bots.NewBotSettingsBy(nil,
 		"iframe",
 		"5744136", // Local iframe
 		"RtoBEsz8gTpWkXrYYe8e",
+		"",
 		trans.SupportedLocalesByCode5[strongo.LocalCodeRuRu],
 	),
 	vk.NewVkBot(
@@ -20,6 +22,7 @@ var BotsBy = bots.NewBotSettingsBy(nil,
 		"site",
 		"5709327",
 		"t8pWXsRQcL1HSENAGtA6",
+		"",
 		trans.SupportedLocalesByCode5[strongo.LocalCodeRuRu],
 	),
 	vk.NewVkBot(
@@ -27,6 +30,7 @@ var BotsBy = bots.NewBotSettingsBy(nil,
 		"iframe",
 		"5764961",
 		"nzAkJmOZqHe5BXHorJ35",
+		"",
 		trans.SupportedLocalesByCode5[strongo.LocalCodeRuRu],
 	),
 	vk.NewVkBot(
@@ -34,6 +38,7 @@ var BotsBy = bots.NewBotSettingsBy(nil,
 		"iframe",
 		"5764562",
 		"MMtMQJvwfRhvSc0SoLbC",
+		common.GA_TRACKING_ID,
 		trans.SupportedLocalesByCode5[strongo.LocalCodeRuRu],
 	),
 )

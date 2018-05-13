@@ -113,7 +113,7 @@ func AskTransferCurrencyButtons(whc bots.WebhookContext) [][]string {
 		}
 	}
 
-	appUser := user.(models.AppUser)
+	appUser := user.(*models.AppUserEntity)
 
 	for _, currency := range appUser.GetCurrencies() {
 		curr := models.Currency(currency)

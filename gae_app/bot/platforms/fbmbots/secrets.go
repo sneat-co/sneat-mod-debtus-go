@@ -14,6 +14,7 @@ import (
 	"github.com/strongo/bots-framework/platforms/fbm"
 	fb "github.com/strongo/facebook"
 	"github.com/strongo/log"
+	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 )
 
 const (
@@ -64,6 +65,7 @@ func Bots(_ context.Context) bots.SettingsBy {
 				"1587055508253137",
 				fbmProdPageAccessToken,
 				"d6087a01-c728-4fdf-983c-1695d76236dc",
+				common.GA_TRACKING_ID,
 				trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
 			),
 			fbm.NewFbmBot(
@@ -73,6 +75,7 @@ func Bots(_ context.Context) bots.SettingsBy {
 				"286238251784027",
 				fbmSplitBillProdPageAccessToken,
 				"e8535dd1-df3b-4c3f-bd2c-d4a822509bb3",
+				common.GA_TRACKING_ID,
 				trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
 			),
 			fbm.NewFbmBot(
@@ -82,6 +85,7 @@ func Bots(_ context.Context) bots.SettingsBy {
 				"942911595837341",
 				fbmTestPageAccessToken,
 				"4afb645e-b592-48e6-882c-89f0ec126fbb",
+				"",
 				trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
 			),
 			fbm.NewFbmBot(
@@ -91,6 +95,7 @@ func Bots(_ context.Context) bots.SettingsBy {
 				"300392587037950",
 				fbmLocalPageAccessToken,
 				"4afb645e-b592-48e6-882c-89f0ec126fbb",
+				"",
 				trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
 			),
 		)

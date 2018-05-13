@@ -161,8 +161,8 @@ func updateUserWithContact(c context.Context, userID, contactID int64) (err erro
 	log.Debugf(c, "updateUserWithContact(userID=%v, contactID=%v)", userID, contactID)
 	var contact models.Contact
 	if contact, err = facade.GetContactByID(c, contactID); err != nil {
-		err = nil
-		log.Errorf(c, err.Error())
+		log.Errorf(c, "updateUserWithContact: %v", err)
+		err = nil // TODO: Why ignore error here?
 		return
 	}
 	return dal.DB.RunInTransaction(c, func(c context.Context) (err error) {

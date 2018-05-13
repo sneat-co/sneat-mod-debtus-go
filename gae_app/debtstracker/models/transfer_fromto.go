@@ -4,7 +4,6 @@ package models
 
 import (
 	"bytes"
-	"fmt"
 	"strconv"
 	"strings"
 
