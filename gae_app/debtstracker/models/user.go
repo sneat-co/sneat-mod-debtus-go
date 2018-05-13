@@ -106,7 +106,7 @@ type AppUserEntity struct {
 	InvitedByUserID int64  `datastore:",omitempty"` // TODO: Prevent circular references! see users 6032980589936640 & 5998019824582656
 	ReferredBy      string `datastore:",omitempty"`
 
-	user.Accounts
+	user.AccountsOfUser
 
 	TelegramUserIDs    []int64 // TODO: Obsolete
 	ViberBotID         string  `datastore:",noindex,omitempty"` // TODO: Obsolete
@@ -577,14 +577,14 @@ func (u *AppUserEntity) Load(ps []datastore.Property) (err error) {
 			continue
 		case "TelegramUserID":
 			if telegramUserID, ok := p.Value.(int64); ok && telegramUserID != 0 {
-				u.Accounts.Accounts = append(u.Accounts.Accounts, "telegram::"+strconv.FormatInt(telegramUserID, 10))
+				u.AccountsOfUser.Accounts = append(u.AccountsOfUser.Accounts, "telegram::"+strconv.FormatInt(telegramUserID, 10))
 			}
 			continue
 		case "TelegramUserIDs":
 			switch p.Value.(type) {
 			case int64:
 				if id := p.Value.(int64); id != 0 {
-					u.Accounts.Accounts = append(u.Accounts.Accounts, "telegram::"+strconv.FormatInt(id, 10))
+					u.AccountsOfUser.Accounts = append(u.AccountsOfUser.Accounts, "telegram::"+strconv.FormatInt(id, 10))
 				}
 			default:
 				err = fmt.Errorf("unknown type of TelegramUserIDs value: %T", p.Value)
