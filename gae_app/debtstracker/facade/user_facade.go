@@ -143,6 +143,9 @@ func (uf userFacade) GetOrCreateUserGoogleOnSignIn(
 ) (
 	userGoogle models.UserGoogle, appUser models.AppUser, err error,
 ) {
+	if googleUser == nil {
+		panic("googleUser == nil")
+	}
 	getUserAccountRecordFromDB := func(c context.Context) (user.AccountRecord, error) {
 		userGoogle, err = dal.UserGoogle.GetUserGoogleByID(c, googleUser.ID)
 		return &userGoogle, err

@@ -13,6 +13,7 @@ import (
 	"context"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/user"
+	"github.com/pkg/errors"
 )
 
 var handleFunc = http.HandleFunc
@@ -62,23 +63,39 @@ func handleSignedWithGoogle(c context.Context, w http.ResponseWriter, r *http.Re
 
 	clientInfo := models.NewClientInfoFromRequest(r)
 
-	if googleUser, _, err := facade.User.GetOrCreateUserGoogleOnSignIn(c, user.Current(c), userID, clientInfo); err != nil {
+	googleUser := user.Current(c)
+	if googleUser == nil {
+		err := errors.New("handleSignedWithGoogle(): googleUser == nil")
+		log.Errorf(c, err.Error())
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	userGoogle, _, err := facade.User.GetOrCreateUserGoogleOnSignIn(c, googleUser, userID, clientInfo)
+	if err != nil {
+		log.Errorf(c, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
-	} else {
-		log.Debugf(c, "googleUser.AppUserIntID: %d", googleUser.AppUserIntID)
-		isAdmin := googleUser.Email == "alexander.trakhimenok@gmail.com"
-		token := auth.IssueToken(googleUser.AppUserIntID, "web", isAdmin)
-		destinationUrl := r.URL.Query().Get(REDIRECT_DESTINATION_PARAM_NAME)
-
-		var delimiter string
-		if strings.Contains(destinationUrl, "#") {
-			delimiter = "&"
-		} else {
-			delimiter = "#"
-		}
-		destinationUrl += delimiter + "signed-in-with=google"
-		destinationUrl += "&secret=" + token
-		http.Redirect(w, r, destinationUrl, http.StatusFound)
 	}
+
+	if userGoogle.UserGoogleEntity == nil {
+		log.Errorf(c, "userGoogle.UserGoogleEntity == nil")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("userGoogle.UserGoogleEntity == nil"))
+	}
+
+	log.Debugf(c, "userGoogle.AppUserIntID: %d", userGoogle.AppUserIntID)
+	token := auth.IssueToken(userGoogle.AppUserIntID, "web", userGoogle.Email == "alexander.trakhimenok@gmail.com")
+	destinationUrl := r.URL.Query().Get(REDIRECT_DESTINATION_PARAM_NAME)
+
+	var delimiter string
+	if strings.Contains(destinationUrl, "#") {
+		delimiter = "&"
+	} else {
+		delimiter = "#"
+	}
+	destinationUrl += delimiter + "signed-in-with=google"
+	destinationUrl += "&secret=" + token
+	http.Redirect(w, r, destinationUrl, http.StatusFound)
 }
