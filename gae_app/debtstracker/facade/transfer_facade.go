@@ -265,7 +265,7 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 			return
 		}
 
-		log.Errorf(c, "data integrity issue: contact found by ID in database but is missing in user's JSON: creatorContactID=%v, creatorContact.UserID=%v, user.ID=%v, user.ContactsJsonActive: %v",
+		log.Warningf(c, "data integrity issue: contact found by ID in database but is missing in user's JSON: creatorContactID=%v, creatorContact.UserID=%v, user.ID=%v, user.ContactsJsonActive: %v",
 			creatorContactID, creatorContact.UserID, input.CreatorUser.ID, input.CreatorUser.ContactsJsonActive)
 
 		if creatorContact.UserID != input.CreatorUser.ID {

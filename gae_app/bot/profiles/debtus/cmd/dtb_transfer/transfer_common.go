@@ -719,9 +719,6 @@ func CreateTransferFromBot(
 	}
 
 	return dtb_general.MainMenuAction(whc, "", false)
-	//
-	//
-	//return m, err
 }
 
 func sendReceiptByTelegramButton(transferEncodedID string, translator strongo.SingleLocaleTranslator) tgbotapi.InlineKeyboardButton {
