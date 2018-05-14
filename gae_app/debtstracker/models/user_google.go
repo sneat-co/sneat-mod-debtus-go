@@ -12,7 +12,7 @@ import (
 const UserGoogleKind = "UserGoogle"
 
 type UserGoogleEntity struct {
-	gaeuser.User // TODO: We would wnat to abstract from a specific implementation
+	gaeuser.User // TODO: We would want to abstract from a specific implementation
 	user.Names
 	user.LastLogin
 	user.OwnedByUser
@@ -76,7 +76,7 @@ func (entity *UserGoogleEntity) Save() (properties []datastore.Property, err err
 	return
 }
 
-type UserGoogle struct {
+type UserGoogle struct { // TODO: Move out to library?
 	db.StringID
 	*UserGoogleEntity
 }
@@ -84,7 +84,7 @@ type UserGoogle struct {
 var _ db.EntityHolder = (*UserGoogle)(nil)
 
 func (userGoogle UserGoogle) UserAccount() user.Account {
-	return user.Account{Provider: "google", ID: userGoogle.ID}
+	return user.Account{Provider: "google", App: "*", ID: userGoogle.ID}
 }
 
 func (userGoogle UserGoogle) Kind() string {
