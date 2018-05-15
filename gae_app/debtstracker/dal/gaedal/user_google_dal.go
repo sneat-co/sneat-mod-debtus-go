@@ -100,7 +100,7 @@ func (UserGoogleDalGae) SaveUserGoogle(c context.Context, userGoogle models.User
 //		entity = &models.UserGoogleEntity{
 //			LastSignIn: now,
 //			User:       user,
-//			OwnedByUser: user.OwnedByUser{
+//			OwnedByUserWithIntID: user.OwnedByUserWithIntID{
 //				AppUserIntID: appUserID,
 //				DtCreated: now,
 //			},

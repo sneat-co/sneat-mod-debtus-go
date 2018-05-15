@@ -15,7 +15,7 @@ type UserGoogleEntity struct {
 	gaeuser.User // TODO: We would want to abstract from a specific implementation
 	user.Names
 	user.LastLogin
-	user.OwnedByUser
+	user.OwnedByUserWithIntID
 }
 
 var _ user.AccountEntity = (*UserGoogle)(nil)

@@ -15,7 +15,7 @@ type Split struct {
 var _ db.EntityHolder = (*Split)(nil)
 
 type SplitEntity struct {
-	user.OwnedByUser
+	user.OwnedByUserWithIntID
 	BillIDs []string `datastore:",noindex"`
 }
 

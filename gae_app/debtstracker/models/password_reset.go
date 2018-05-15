@@ -19,7 +19,7 @@ var _ db.EntityHolder = (*PasswordReset)(nil)
 type PasswordResetEntity struct {
 	Email  string
 	Status string
-	user.OwnedByUser
+	user.OwnedByUserWithIntID
 }
 
 func (PasswordReset) Kind() string {

@@ -115,10 +115,7 @@ func handleRequestPasswordReset(c context.Context, w http.ResponseWriter, r *htt
 	pwdResetEntity := models.PasswordResetEntity{
 		Email:  userEmail.ID,
 		Status: "created",
-		OwnedByUser: user.OwnedByUser{
-			AppUserIntID: userEmail.AppUserIntID,
-			DtCreated:    now,
-		},
+		OwnedByUserWithIntID: user.NewOwnedByUserWithIntID(userEmail.AppUserIntID, now),
 	}
 
 	if _, err := dal.PasswordReset.CreatePasswordResetByID(c, &pwdResetEntity); err != nil {
@@ -235,7 +232,7 @@ func handleConfirmEmailAndSignIn(c context.Context, w http.ResponseWriter, r *ht
 		}
 
 		userEmail.IsConfirmed = true
-		userEmail.SetDtUpdated(now)
+		userEmail.SetUpdatedTime(now)
 		userEmail.PasswordBcryptHash = []byte{}
 		userEmail.SetLastLogin(now)
 		appUser.SetLastLogin(now)

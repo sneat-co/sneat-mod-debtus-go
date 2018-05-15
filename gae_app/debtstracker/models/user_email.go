@@ -17,7 +17,7 @@ const UserEmailKind = "UserEmail"
 type UserEmailEntity struct {
 	user.LastLogin
 	user.Names
-	user.OwnedByUser
+	user.OwnedByUserWithIntID
 	IsConfirmed        bool
 	PasswordBcryptHash []byte   `datastore:",noindex"`
 	Providers          []string `datastore:",noindex"` // E.g. facebook, vk, user
@@ -90,10 +90,7 @@ func (entity *UserEmailEntity) IsEmailConfirmed() bool {
 
 func NewUserEmailEntity(userID int64, isConfirmed bool, provider string) *UserEmailEntity {
 	entity := &UserEmailEntity{
-		OwnedByUser: user.OwnedByUser{
-			AppUserIntID: userID,
-			DtCreated:    time.Now(),
-		},
+		OwnedByUserWithIntID: user.NewOwnedByUserWithIntID(userID, time.Now()),
 		IsConfirmed: isConfirmed,
 	}
 	entity.AddProvider(provider)

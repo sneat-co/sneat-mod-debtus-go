@@ -71,7 +71,7 @@ type UserFacebookEntity struct {
 	user.Names
 	Email            string `datastore:",noindex"`
 	EmailIsConfirmed bool   `datastore:",noindex"`
-	user.OwnedByUser
+	user.OwnedByUserWithIntID
 }
 
 var _ user.AccountEntity = (*UserFacebookEntity)(nil)

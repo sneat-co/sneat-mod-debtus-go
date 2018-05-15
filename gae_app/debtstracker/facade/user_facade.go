@@ -158,7 +158,7 @@ func (uf userFacade) GetOrCreateUserGoogleOnSignIn(
 			StringID: db.StringID{ID: googleUser.ID},
 			UserGoogleEntity: &models.UserGoogleEntity{
 				User: *googleUser,
-				OwnedByUser: user.OwnedByUser{
+				OwnedByUserWithIntID: user.OwnedByUserWithIntID{
 					AppUserIntID: appUserID,
 				},
 			},
@@ -220,7 +220,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 		}
 
 		if err == nil { // User account record found
-			uaRecordUserID := userAccountRecord.GetAppUserIntID()
+			uaRecordUserID := userAccountRecord.GetAppUserID().(int64)
 			if !isNewUser && uaRecordUserID != userID {
 				panic(fmt.Sprintf("Relinking of appUser accounts us not implemented yet => userAccountRecord.GetAppUserIntID():%d != userID:%d", uaRecordUserID, userID))
 			}
@@ -251,7 +251,12 @@ func getOrCreateUserAccountRecordOnSignIn(
 			}
 		}
 
-		userAccountRecord.SetDtCreated(now)
+		if i, ok := userAccountRecord.(user.CreatedTimesSetter); ok {
+			i.SetCreatedTime(now)
+		}
+		if i, ok := userAccountRecord.(user.UpdatedTimeSetter); ok {
+			i.SetUpdatedTime(now)
+		}
 		userAccountRecord.SetLastLogin(now)
 
 		email := models.GetEmailID(userAccountRecord.GetEmail())
@@ -286,14 +291,14 @@ func getOrCreateUserAccountRecordOnSignIn(
 				return
 			}
 
-			userAccountRecord.SetAppUserIntID(appUser.ID)
+			userAccountRecord.(user.BelongsToUserWithIntID).SetAppUserIntID(appUser.ID)
 			userEmail.AppUserIntID = appUser.ID
 			if err = dal.DB.UpdateMulti(c, []db.EntityHolder{userAccountRecord, &userEmail}); err != nil {
 				return
 			}
 			return
 		} else { // UserEmail record found
-			userAccountRecord.SetAppUserIntID(userEmail.AppUserIntID) // No need to create a new appUser, link to existing
+			userAccountRecord.(user.BelongsToUserWithIntID).SetAppUserIntID(userEmail.AppUserIntID) // No need to create a new appUser, link to existing
 			if !isNewUser && userEmail.AppUserIntID != userID {
 				panic(fmt.Sprintf("Relinking of appUser accounts us not implemented yet => userEmail.AppUserIntID:%d != userID:%d", userEmail.AppUserIntID, userID))
 			}
@@ -369,7 +374,7 @@ func (uf userFacade) GetOrCreateUserFacebookOnSignIn(
 					LastName:  lastName,
 				},
 				EmailIsConfirmed: isEmailConfirmed,
-				OwnedByUser: user.OwnedByUser{
+				OwnedByUserWithIntID: user.OwnedByUserWithIntID{
 					AppUserIntID: appUserID,
 				},
 			},
