@@ -9,7 +9,7 @@ import (
 	"context"
 	"github.com/pkg/errors"
 	"github.com/strongo/app/gae"
-	"github.com/strongo/app/slices"
+	"github.com/strongo/slices"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
@@ -266,7 +266,7 @@ func (userFacade) UpdateContactWithGroups(c context.Context, contactID int64, ad
 	} else {
 		var isAdded, isRemoved bool
 		contact.GroupIDs, isAdded = slices.MergeStrings(contact.GroupIDs, addGroupIDs)
-		contact.GroupIDs, isRemoved = slices.FilterStrings(contact.GroupIDs, removeGroupIDs)
+		contact.GroupIDs, isRemoved = slices.RemoveStrings(contact.GroupIDs, removeGroupIDs)
 		if isAdded || isRemoved {
 			return SaveContact(c, contact)
 		}

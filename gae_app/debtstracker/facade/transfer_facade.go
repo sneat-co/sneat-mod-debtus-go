@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sanity-io/litter"
 	"github.com/strongo/app"
-	"github.com/strongo/app/slices"
+	"github.com/strongo/slices"
 	"github.com/strongo/db"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
