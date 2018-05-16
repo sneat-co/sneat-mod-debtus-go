@@ -264,10 +264,11 @@ func (userFacade) UpdateContactWithGroups(c context.Context, contactID int64, ad
 	if contact, err := GetContactByID(c, contactID); err != nil {
 		return err
 	} else {
-		var isAdded, isRemoved bool
+		var isAdded bool
 		contact.GroupIDs, isAdded = slices.MergeStrings(contact.GroupIDs, addGroupIDs)
-		contact.GroupIDs, isRemoved = slices.RemoveStrings(contact.GroupIDs, removeGroupIDs)
-		if isAdded || isRemoved {
+		var removedCount int
+		contact.GroupIDs, removedCount = slices.RemoveStrings(contact.GroupIDs, removeGroupIDs)
+		if isAdded || removedCount > 0 {
 			return SaveContact(c, contact)
 		}
 		return nil
