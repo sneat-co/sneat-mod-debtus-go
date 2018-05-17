@@ -19,11 +19,11 @@ import (
 Examples:
  receipt-{ID}-view_{LANG_CODE5}_[GA_CLIENT_ID]
 */
-var reInviteCodeFromStart = regexp.MustCompile(`^(invite|receipt)-(\w+)(-(view|accept|decline))?(_(\w{2}(-\w{2})?))(_(.+))?$`)
+var reInviteOrReceiptCodeFromStart = regexp.MustCompile(`^(invite|receipt)-(\w+)(-(view|accept|decline))?(_(\w{2}(-\w{2})?))(_(.+))?$`)
 
 func StartInBotAction(whc bots.WebhookContext, startParams []string) (m bots.MessageFromBot, err error) {
 	if len(startParams) == 1 {
-		if matched := reInviteCodeFromStart.FindStringSubmatch(startParams[0]); matched != nil {
+		if matched := reInviteOrReceiptCodeFromStart.FindStringSubmatch(startParams[0]); matched != nil {
 			return startByLinkCode(whc, matched)
 		}
 	}
@@ -89,14 +89,12 @@ func startReceipt(whc bots.WebhookContext, receiptCode, operation, localeCode5 s
 		if db.IsNotFound(err) {
 			err = nil
 			if receiptID, err = common.DecodeID(receiptCode); err != nil {
+				err = errors.WithMessage(err, "failed to decode receipt ID")
 				return
 			}
 		} else {
 			return
 		}
-	}
-	if err != nil {
-		return m, errors.Wrap(err, "Failed to decode receipt ID")
 	}
 	switch operation {
 	case "view":

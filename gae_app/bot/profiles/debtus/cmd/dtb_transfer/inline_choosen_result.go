@@ -2,18 +2,14 @@ package dtb_transfer
 
 import (
 	"fmt"
-	"net/url"
-
 	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_inline"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/log"
 )
 
 func showReceiptAnnouncement(whc bots.WebhookContext, receiptID int64, creatorName string) (m bots.MessageFromBot, err error) {
@@ -72,54 +68,3 @@ func GetUrlForReceiptInTelegram(botCode string, receiptID int64, localeCode5 str
 	return fmt.Sprintf("https://t.me/%v?start=receipt-%v-view_%v", botCode, receiptID, localeCode5)
 }
 
-var ViewReceiptInTelegramCallbackCommand = bots.NewCallbackCommand(
-	VIEW_RECEIPT_IN_TELEGRAM_COMMAND,
-	func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
-		c := whc.Context()
-		log.Debugf(c, "ViewReceiptInTelegramCallbackCommand.CallbackAction()")
-		query := callbackUrl.Query()
-		receiptID, err := common.DecodeID(query.Get("id"))
-		if err != nil {
-			return m, err
-		}
-		receipt, err := dal.Receipt.GetReceiptByID(c, receiptID)
-		if err != nil {
-			return m, err
-		}
-		currentUserID := whc.AppUserIntID()
-		if receipt.CreatorUserID != currentUserID {
-			if receipt.CounterpartyUserID == 0 {
-				linker := facade.NewReceiptUsersLinker(nil) // TODO: Link users
-				if _, err = linker.LinkReceiptUsers(c, receiptID, currentUserID); err != nil {
-					return m, err
-				}
-			} else if receipt.CounterpartyUserID != currentUserID {
-				// TODO: Should we allow to see receipt but block from changing it?
-				log.Warningf(c, `Security issue: receipt.CreatorUserID != currentUserID && receipt.CounterpartyUserID != currentUserID
-	currentUserID: %d
-	receipt.CreatorUserID: %d
-	receipt.CounterpartyUserID: %d
-				`, currentUserID, receipt.CreatorUserID, receipt.CounterpartyUserID)
-			} else {
-				// receipt.CounterpartyUserID == currentUserID - we are fine
-			}
-		}
-		localeCode5 := query.Get("locale")
-		if len(localeCode5) != 5 {
-			return m, errors.New("len(localeCode5) != 5")
-		}
-
-		callbackAnswer := tgbotapi.NewCallbackWithURL(
-			GetUrlForReceiptInTelegram(whc.GetBotCode(), receiptID, localeCode5),
-			//common.GetReceiptUrlForUser(
-			//	receiptID,
-			//	whc.AppUserIntID(),
-			//	whc.BotPlatform().ID(),
-			//	whc.GetBotCode(),
-			//) + "&lang=" + localeCode5,
-		)
-		m.BotMessage = telegram.CallbackAnswer(callbackAnswer)
-		// TODO: https://core.telegram.org/bots/api#answercallbackquery, show_alert = true
-		return
-	},
-)

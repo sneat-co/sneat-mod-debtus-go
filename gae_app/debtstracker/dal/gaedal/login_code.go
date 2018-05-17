@@ -52,7 +52,7 @@ func (LoginCodeDalGae) NewLoginCode(c context.Context, userID int64) (int32, err
 				}
 			}, nil)
 			if err != nil {
-				log.Errorf(c, errors.Wrap(err, "Transaction failed").Error())
+				log.Errorf(c, errors.WithMessage(err, "transaction failed").Error())
 			} else if created {
 				return int32(code), nil
 			}

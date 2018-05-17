@@ -25,12 +25,12 @@ func NewReceiptUsersLinker(changes *receiptDbChanges) receiptUsersLinker {
 	}
 }
 
-func (linker *receiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID, counterpartyUserID int64) (isJustLinked bool, err error) {
-	log.Debugf(c, "receiptUsersLinker.LinkReceiptUsers(receiptID=%v, counterpartyUserID=%v)", receiptID, counterpartyUserID)
-	if currentUser, err := User.GetUserByID(c, counterpartyUserID); err != nil {
+func (linker *receiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID, invitedUserID int64) (isJustLinked bool, err error) {
+	log.Debugf(c, "receiptUsersLinker.LinkReceiptUsers(receiptID=%v, invitedUserID=%v)", receiptID, invitedUserID)
+	if invitedUser, err := User.GetUserByID(c, invitedUserID); err != nil {
 		// TODO: Instead pass user as a parameter? Even better if the user entity was created within following transaction.
 		return isJustLinked, err
-	} else if currentUser.DtCreated.After(time.Now().Add(-time.Second / 2)) {
+	} else if invitedUser.DtCreated.After(time.Now().Add(-time.Second / 2)) {
 		log.Debugf(c, "A new user, will wait for half a seconds to cleanup previous transaction")
 		time.Sleep(time.Second / 2)
 	}
@@ -44,18 +44,18 @@ func (linker *receiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID,
 		}
 		changes := linker.changes
 		var (
-			receipt          models.Receipt
-			transfer         models.Transfer
-			creatorUser      models.AppUser
-			counterpartyUser models.AppUser
+			receipt     models.Receipt
+			transfer    models.Transfer
+			inviterUser models.AppUser
+			invitedUser models.AppUser
 		)
-		if receipt, transfer, creatorUser, counterpartyUser, err = getReceiptTransferAndUsers(tc, receiptID, counterpartyUserID); err != nil {
+		if receipt, transfer, inviterUser, invitedUser, err = getReceiptTransferAndUsers(tc, receiptID, invitedUserID); err != nil {
 			return
 		}
 		changes.receipt = &receipt
 		changes.transfer = &transfer
-		changes.inviterUser = &creatorUser
-		changes.invitedUser = &counterpartyUser
+		changes.inviterUser = &inviterUser
+		changes.invitedUser = &invitedUser
 		if invitedContact.ID != 0 { // This means we are attempting to retry failed transaction
 			if err = workaroundReinsertContact(tc, receipt, invitedContact, changes); err != nil {
 				return
