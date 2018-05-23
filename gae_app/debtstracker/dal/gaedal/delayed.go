@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
 	"context"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
@@ -170,7 +170,7 @@ var delayedOnReceiptSendFail = delay.Func("onReceiptSendFail", onReceiptSendFail
 func onReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transferID, tgChatID int64, tgMsgID int, tgBotID, locale string) (err error) {
 	log.Debugf(c, "onReceiptSentSuccess(sentAt=%v, receiptID=%v, transferID=%v, tgChatID=%v, tgMsgID=%v tgBotID=%v, locale=%v)", sentAt, receiptID, transferID, tgChatID, tgMsgID, tgBotID, locale)
 	if receiptID == 0 {
-		log.Errorf(c,"receiptID == 0")
+		log.Errorf(c, "receiptID == 0")
 		return
 
 	}
@@ -518,7 +518,7 @@ func sendReceiptToTelegramChat(c context.Context, receipt models.Receipt, transf
 		},
 		ParseMode:             "HTML",
 		DisableWebPagePreview: true,
-		Text:                  messageText,
+		Text: messageText,
 	}
 
 	tgBotApi := tgbots.GetTelegramBotApiByBotCode(c, tgChat.BotID)

@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/emails"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/emails"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/pkg/errors"
 	"github.com/strongo/app/user"
@@ -113,8 +113,8 @@ func handleRequestPasswordReset(c context.Context, w http.ResponseWriter, r *htt
 	now := time.Now()
 
 	pwdResetEntity := models.PasswordResetEntity{
-		Email:  userEmail.ID,
-		Status: "created",
+		Email:                userEmail.ID,
+		Status:               "created",
 		OwnedByUserWithIntID: user.NewOwnedByUserWithIntID(userEmail.AppUserIntID, now),
 	}
 

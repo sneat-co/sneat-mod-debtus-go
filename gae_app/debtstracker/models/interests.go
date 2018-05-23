@@ -1,10 +1,10 @@
 package models
 
 import (
-	"time"
-	"github.com/pkg/errors"
 	"fmt"
+	"github.com/pkg/errors"
 	"github.com/strongo/decimal"
+	"time"
 )
 
 var ErrBalanceIsZero = errors.New("balance is zero")
@@ -37,17 +37,14 @@ func (t *TransferEntity) validateTransferInterestAndReturns() (err error) {
 	if t.AmountInCentsInterest > t.AmountInCents {
 		panic(fmt.Sprintf("t.AmountInCentsInterest > t.AmountInCents: %v > %v", t.AmountInCentsInterest, t.AmountInCents))
 	}
+
 	if t.InterestType != "" { // TODO: Migrate old records and then do the check for all transfers
 		returns := t.GetReturns()
-		if len(returns) != len(t.ReturnTransferIDs) && len(returns) > 0 {
-			t.ReturnTransferIDs = nil
-			// return fmt.Errorf("len(t.GetReturns()) != len(t.ReturnTransferIDs): %v != %v", len(t.GetReturns()), len(t.ReturnTransferIDs))
-		}
 		var amountReturned decimal.Decimal64p2
 		for _, r := range returns {
 			amountReturned += r.Amount
 		}
-		if amountReturned != t.AmountInCentsReturned {
+		if amountReturned != t.AmountReturned() {
 			return fmt.Errorf("sum(returns.Amount) != *TransferEntity.AmountInCentsReturned: %v != %v", amountReturned, t.AmountInCentsReturned)
 		}
 	}

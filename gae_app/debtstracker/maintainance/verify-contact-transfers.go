@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/captaincodeman/datastore-mapper"
 	"github.com/pkg/errors"
@@ -162,7 +162,6 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 			fmt.Fprintf(buf, p+"\tReturned: %v\n", transfer.AmountInCentsReturned)
 			fmt.Fprintf(buf, p+"\tOutstanding: %v\n", transfer.GetOutstandingValue(time.Now()))
 			fmt.Fprintf(buf, p+"\tIsReturn: %v\n", transfer.IsReturn)
-			fmt.Fprintf(buf, p+"\tReturnTransferIDs: %v\n", transfer.ReturnTransferIDs)
 			fmt.Fprintf(buf, p+"\tReturnToTransferIDs: %v\n", transfer.ReturnToTransferIDs)
 			if transfer.HasInterest() {
 				fmt.Fprintf(buf, p+"\tInterest: %v @ %v%%/%v_days, min=%v, grace=%v",
@@ -179,16 +178,6 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 		valid = true
 		counters.Lock()
 		for _, transfer := range transfersByID {
-			for i, returnTransferID := range transfer.ReturnTransferIDs {
-				if _, ok := transfersByID[returnTransferID]; ok {
-					counters.Increment("good_ReturnTransferID", 1)
-				} else {
-					valid = false
-					fmt.Fprintf(buf, "\t\tReturnTransferIDs[%d]: %v\n", i, returnTransferID)
-					counters.Increment("wrong_ReturnTransferID", 1)
-					warningsCount += 1
-				}
-			}
 			for i, returnToTransferID := range transfer.ReturnToTransferIDs {
 				if _, ok := transfersByID[returnToTransferID]; ok {
 					counters.Increment("good_ReturnToTransferID", 1)
@@ -477,10 +466,6 @@ func (m *verifyContactTransfers) fixTransfers(c context.Context, now time.Time, 
 			transfer.AmountInCentsReturned = 0
 			transfersToSave[transfer.ID] = transfer.TransferEntity
 		}
-		if len(transfer.ReturnTransferIDs) != 0 {
-			transfer.ReturnTransferIDs = []int64{}
-			transfersToSave[transfer.ID] = transfer.TransferEntity
-		}
 		if len(transfer.ReturnToTransferIDs) != 0 {
 			transfer.ReturnToTransferIDs = []int64{}
 			transfersToSave[transfer.ID] = transfer.TransferEntity
@@ -488,7 +473,7 @@ func (m *verifyContactTransfers) fixTransfers(c context.Context, now time.Time, 
 		amountToAssign := transfer.GetAmount().Value
 		for _, previousTransfer := range transfersByCurrency[transfer.Currency] {
 			if previousTransfer.IsOutstanding && previousTransfer.IsReverseDirection(transfer.TransferEntity) {
-				previousTransfer.ReturnTransferIDs = append(previousTransfer.ReturnTransferIDs, transfer.ID)
+				panic("// previousTransfer.ReturnTransferIDs = append(previousTransfer.ReturnTransferIDs, transfer.ID)")
 				transfer.ReturnToTransferIDs = append(transfer.ReturnToTransferIDs, previousTransfer.ID)
 				transfersToSave[previousTransfer.ID] = previousTransfer.TransferEntity
 				if previousTransferOutstandingValue := previousTransfer.GetOutstandingValue(now); amountToAssign <= previousTransferOutstandingValue {

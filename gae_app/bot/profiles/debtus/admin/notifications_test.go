@@ -1,8 +1,8 @@
 package admin
 
 import (
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"testing"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
 )
 
 func TestSendFeedbackToAdmins(t *testing.T) {

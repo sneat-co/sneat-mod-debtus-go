@@ -3,8 +3,8 @@ package dtb_fbm
 import (
 	"fmt"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbmbots"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/fbmbots"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"

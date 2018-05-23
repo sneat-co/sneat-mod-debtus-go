@@ -2,9 +2,9 @@ package dtb_transfer
 
 //
 //import (
-//	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
-//	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-//	"bitbucket.com/asterus/debtstracker-server/gae_app/invites"
+//	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
+//	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+//	"bitbucket.org/asterus/debtstracker-server/gae_app/invites"
 //	"github.com/pkg/errors"
 //	"github.com/strongo/nds"
 //	"github.com/strongo/bots-framework/core"

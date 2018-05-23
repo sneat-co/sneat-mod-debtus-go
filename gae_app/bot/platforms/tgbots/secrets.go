@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 )
 
 var _bots bots.SettingsBy

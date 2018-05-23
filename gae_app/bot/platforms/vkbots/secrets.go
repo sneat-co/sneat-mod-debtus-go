@@ -1,11 +1,11 @@
 package vkbots
 
 import (
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/vk"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 )
 
 var BotsBy = bots.NewBotSettingsBy(nil,

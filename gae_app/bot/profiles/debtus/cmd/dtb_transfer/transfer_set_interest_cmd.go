@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"strings"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
+	"github.com/crediterra/go-interest"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/decimal"
-	"github.com/crediterra/go-interest"
 )
 
 var reInterest = regexp.MustCompile(`^\s*(?P<percent>\d+(?:[\.,]\d+)?)%?(?:/(?P<period>\d+|w(?:eek)?|y(?:ear)?|m(?:onth)?))?(?:/(?P<minimum>\d+))?(?:/(?P<grace>\d+))?(?::\s*(?P<comment>.+?))?\s*$`)
@@ -87,7 +87,7 @@ func getInterestData(s string) (transferInterest models.TransferInterest, err er
 		return transferInterest, fmt.Errorf("unknown interest formula=%v", formula)
 	}
 	var (
-		period int
+		period  int
 		percent decimal.Decimal64p2
 	)
 	if period, err = strconv.Atoi(v[2]); err != nil {

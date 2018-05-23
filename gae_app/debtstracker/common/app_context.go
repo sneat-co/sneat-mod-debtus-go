@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"time"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"

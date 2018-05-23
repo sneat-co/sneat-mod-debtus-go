@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"strings"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"

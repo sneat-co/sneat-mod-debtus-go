@@ -1,10 +1,10 @@
 package splitus
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"

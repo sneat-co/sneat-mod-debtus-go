@@ -3,7 +3,7 @@ package gaedal
 import (
 	"net/http"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"context"
 	"github.com/strongo/bots-framework/core"
 	telegramBot "github.com/strongo/bots-framework/platforms/telegram"

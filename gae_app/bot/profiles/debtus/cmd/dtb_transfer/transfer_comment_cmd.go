@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-telegram"

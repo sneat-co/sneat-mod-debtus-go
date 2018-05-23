@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/templates/inspiration/builtin/html"

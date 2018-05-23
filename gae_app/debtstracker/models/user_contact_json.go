@@ -25,7 +25,7 @@ type TransferWithInterestJson struct {
 	Starts     time.Time
 	Currency   Currency
 	Amount     decimal.Decimal64p2
-	Returns    []TransferReturnJson `json:",omitempty"`
+	Returns    TransferReturns `json:",omitempty"`
 }
 
 func (t TransferWithInterestJson) Equal(t2 TransferWithInterestJson) bool {
@@ -55,7 +55,7 @@ func (t TransferWithInterestJson) GetStartDate() time.Time {
 	return t.Starts
 }
 
-func (t TransferWithInterestJson) GetReturns() (returns []TransferReturnJson) {
+func (t TransferWithInterestJson) GetReturns() (returns TransferReturns) {
 	return t.Returns
 }
 

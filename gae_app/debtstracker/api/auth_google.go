@@ -1,15 +1,15 @@
 package api
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"context"
 	"net/http"
 	//"strings"
 	//"encoding/json"
 	//"io/ioutil"
 	//"time"
-	//"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	//"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	//"github.com/pkg/errors"
 	//"github.com/pquerna/ffjson/ffjson"
 	//"github.com/strongo/db"

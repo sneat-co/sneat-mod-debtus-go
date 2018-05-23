@@ -3,7 +3,7 @@ package sms
 import (
 	"strings"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"context"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"

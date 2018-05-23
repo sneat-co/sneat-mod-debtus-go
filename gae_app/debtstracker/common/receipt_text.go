@@ -7,7 +7,7 @@ import (
 	"html/template"
 	"time"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
@@ -221,7 +221,7 @@ func (r receiptTextBuilder) WriteReceiptText(buffer *bytes.Buffer, utmParams Utm
 		buffer.WriteString("\n" + emoji.ALARM_CLOCK_ICON + " " + fmt.Sprintf(r.Translate(trans.MESSAGE_TEXT_DUE_ON), r.transfer.DtDueOn.Format("2006-01-02 15:04")))
 	}
 
-	if r.transfer.AmountInCentsReturned > 0 && r.transfer.AmountInCentsReturned != r.transfer.AmountInCents {
+	if amountReturned := r.transfer.AmountReturned(); amountReturned > 0 && amountReturned != r.transfer.AmountInCents {
 		buffer.WriteString("\n" + r.translateAndFormatMessage(trans.MESSAGE_TEXT_RECEIPT_ALREADY_RETURNED_AMOUNT, r.transfer.GetReturnedAmount(), utmParams))
 	}
 

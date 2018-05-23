@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"github.com/strongo/app"
 )
 

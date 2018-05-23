@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"github.com/captaincodeman/datastore-mapper"
 )
 

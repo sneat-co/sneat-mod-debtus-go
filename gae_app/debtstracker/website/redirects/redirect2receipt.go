@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/website/pages"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/website/pages"
 	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/app"
 	"github.com/strongo/log"

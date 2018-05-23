@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #projectFolder=~/debtstracker
-gaeAppFolder=~/go_workspace/src/bitbucket.com/asterus/debtstracker-server/
+gaeAppFolder=~/go_workspace/src/bitbucket.org/asterus/debtstracker-server/
 ionicAppFolder=~/debtstracker/ionic/debtstracker-app/
 deployFolder=~/debtstracker_deploy
 #testsBackupFolder=~/debtstracker_tests/

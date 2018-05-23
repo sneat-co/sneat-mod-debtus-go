@@ -1,9 +1,9 @@
 package splitus
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"fmt"
 	"github.com/DebtsTracker/translations/emoji"

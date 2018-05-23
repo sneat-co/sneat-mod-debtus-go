@@ -1,14 +1,14 @@
 package facade
 
 import (
-	// "bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	// "bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/dalmocks"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	// "bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	// "bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal/dalmocks"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	// "github.com/pkg/errors"
 	"strings"
 	"testing"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dtmocks"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtmocks"
 	"context"
 	"github.com/pkg/errors"
 	"github.com/strongo/decimal"

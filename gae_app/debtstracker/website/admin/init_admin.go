@@ -1,7 +1,7 @@
 package admin
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_fbm"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_fbm"
 	"github.com/julienschmidt/httprouter"
 )
 

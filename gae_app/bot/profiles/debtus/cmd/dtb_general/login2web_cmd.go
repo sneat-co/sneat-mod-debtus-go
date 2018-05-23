@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-framework/core"
 )

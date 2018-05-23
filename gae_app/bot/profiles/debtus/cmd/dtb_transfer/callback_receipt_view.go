@@ -1,20 +1,20 @@
 package dtb_transfer
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"github.com/strongo/bots-framework/core"
-	"net/url"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/log"
-	"github.com/pkg/errors"
-	"google.golang.org/appengine/delay"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/db"
+	"github.com/pkg/errors"
 	"github.com/strongo/app/gae"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/db"
+	"github.com/strongo/log"
+	"google.golang.org/appengine/delay"
+	"net/url"
 	"strings"
 )
 
@@ -58,7 +58,6 @@ var ViewReceiptInTelegramCallbackCommand = bots.NewCallbackCommand(
 		return
 	},
 )
-
 
 const delayLinkUserByReceiptKeyName = "delayLinkUserByReceipt"
 

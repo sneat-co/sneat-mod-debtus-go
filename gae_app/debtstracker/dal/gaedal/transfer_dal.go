@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/pkg/errors"
 	"github.com/strongo/app/gae"
@@ -167,7 +167,7 @@ func fixTransferIsOutstanding(c context.Context, transferID int64) (transfer mod
 			return err
 		}
 		if transfer.GetOutstandingValue(time.Now()) == 0 {
-			transfer.IsOutstanding = true
+			transfer.IsOutstanding = false
 			return facade.Transfers.SaveTransfer(c, transfer)
 		}
 		return nil

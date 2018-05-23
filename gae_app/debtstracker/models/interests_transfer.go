@@ -6,8 +6,8 @@ import (
 	"github.com/strongo/decimal"
 	"time"
 
-	"github.com/sanity-io/litter"
 	"github.com/crediterra/go-interest"
+	"github.com/sanity-io/litter"
 )
 
 type TransferInterest struct {
@@ -99,15 +99,16 @@ func (ti TransferInterest) ValidateTransferInterest() (err error) {
 // }
 
 func (t *TransferEntity) GetOutstandingValue(periodEnds time.Time) (outstandingValue decimal.Decimal64p2) {
-	if t.IsReturn && t.AmountInCentsReturned == 0 {
+	if t.IsReturn && (t.AmountInCentsReturned == 0 || t.AmountInCents == t.AmountInCentsReturned) {
+		/*
+			TODO: What if transfer was a return > then outstanding value? We decided to allow it for returns without interest.
+		*/
 		return 0
 	}
-	var interestValue decimal.Decimal64p2
-	if t.InterestType != "" {
-		interestValue = t.GetInterestValue(periodEnds)
-	}
+	interestValue := t.GetInterestValue(periodEnds)
 	outstandingValue = t.AmountInCents + interestValue - t.AmountInCentsReturned
-	if outstandingValue < 0 && interestValue != 0 {
+
+	if outstandingValue < 0 /* && interestValue != 0 */ {
 		panic(fmt.Sprintf("outstandingValue < 0: %v, IsReturn: %v, Amount: %v, Returned: %v, Interest: %v\n%v",
 			outstandingValue, t.IsReturn, t.AmountInCents, t.AmountInCentsReturned, interestValue, litter.Sdump(t)))
 	}
@@ -121,7 +122,7 @@ func (t *TransferEntity) GetOutstandingAmount(periodEnds time.Time) Amount {
 type TransferInterestCalculable interface {
 	GetLendingValue() decimal.Decimal64p2
 	GetStartDate() time.Time
-	GetReturns() []TransferReturnJson
+	GetReturns() TransferReturns
 	GetInterestData() TransferInterest
 }
 

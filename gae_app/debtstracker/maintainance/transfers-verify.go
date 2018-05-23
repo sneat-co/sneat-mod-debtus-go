@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"strings"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/captaincodeman/datastore-mapper"
 	"github.com/pkg/errors"
@@ -38,10 +38,6 @@ func (m *verifyTransfers) verifyTransfer(c context.Context, counters *asyncCount
 	}
 	if err = m.verifyTransferCurrency(c, transfer, buf, counters); err != nil {
 		log.Errorf(c, errors.WithMessage(err, "verifyTransferCurrency:transfer=%v").Error(), transfer.ID)
-		return
-	}
-	if err = m.verifyReturnsTransferIDs(c, transfer, buf, counters); err != nil {
-		log.Errorf(c, errors.WithMessage(err, "verifyReturnsTransferIDs:transfer=%v").Error(), transfer.ID)
 		return
 	}
 	if err = m.verifyReturnsToTransferIDs(c, transfer, buf, counters); err != nil {
@@ -155,25 +151,6 @@ func (*verifyTransfers) verifyTransferCurrency(c context.Context, transfer model
 			return nil
 		}, nil); err != nil {
 			return err
-		}
-	}
-	return
-}
-
-func (*verifyTransfers) verifyReturnsTransferIDs(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
-	if len(transfer.ReturnTransferIDs) == 0 {
-		return
-	}
-	var returnTransfers []models.Transfer
-	if returnTransfers, err = dal.Transfer.GetTransfersByID(c, transfer.ReturnTransferIDs); err != nil {
-		return errors.WithMessage(err, fmt.Sprintf("failed to get transfers by IDs: %v", transfer.ReturnTransferIDs))
-	}
-	for _, returnTransfer := range returnTransfers {
-		if transfer.From().ContactID != returnTransfer.To().ContactID {
-			fmt.Fprintf(buf, "returnTransfer(id=%v).To().ContactID != From().ContactID: %v != %v\n", returnTransfer.ID, returnTransfer.To().ContactID, transfer.From().ContactID)
-		}
-		if transfer.To().ContactID != returnTransfer.From().ContactID {
-			fmt.Fprintf(buf, "returnTransfer(id=%v).From().ContactID != To().ContactID: %v != %v\n", returnTransfer.ID, returnTransfer.From().ContactID, transfer.To().ContactID)
 		}
 	}
 	return

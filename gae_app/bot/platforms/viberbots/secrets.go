@@ -3,13 +3,13 @@ package viberbots
 import (
 	"strings"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"context"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/viber"
 	"google.golang.org/appengine"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 )
 
 var _bots bots.SettingsBy

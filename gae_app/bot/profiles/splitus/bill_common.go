@@ -3,11 +3,11 @@ package splitus
 import (
 	"net/url"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-framework/core"

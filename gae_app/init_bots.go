@@ -1,14 +1,14 @@
 package gaeapp
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbmbots"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/viberbots"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/collectus"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/splitus"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/fbmbots"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/viberbots"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/collectus"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/splitus"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"context"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/julienschmidt/httprouter"

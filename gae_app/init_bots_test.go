@@ -3,7 +3,7 @@ package gaeapp
 import (
 	"testing"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 )
 
 func TestInitBot(t *testing.T) {

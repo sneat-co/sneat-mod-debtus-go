@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/fbmbots"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/fbmbots"
 	"context"
 	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/bots-api-fbm"

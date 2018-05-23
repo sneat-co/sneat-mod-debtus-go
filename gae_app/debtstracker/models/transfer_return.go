@@ -17,32 +17,27 @@ type TransferReturnJson struct {
 	Amount     decimal.Decimal64p2 `json:",omitempty"` // TODO: For legacy records, consider removing later
 }
 
-func (t *TransferEntity) GetReturns() (returns []TransferReturnJson) {
-	if t.returns != nil && len(t.returns) == t.ReturnsCount {
-		returns = make([]TransferReturnJson, t.ReturnsCount)
-		copy(returns, t.returns)
+type TransferReturns []TransferReturnJson
+
+func (t *TransferEntity) GetReturns() (returns TransferReturns) {
+	if t.ReturnsCount == 0 && t.ReturnsJson == "" {
 		return
 	}
-	if len(t.ReturnsJson) == 0 && len(t.ReturnTransferIDs) == 0 {
+	if t.returns != nil {
+		if len(t.returns) != t.ReturnsCount {
+			panic(fmt.Sprintf("len(t.returns) != t.ReturnsCount: %v != %v", len(t.returns), t.ReturnsCount))
+		}
+		returns = make(TransferReturns, t.ReturnsCount)
+		copy(returns, t.returns)
 		return
 	}
 	if err := ffjson.Unmarshal([]byte(t.ReturnsJson), &returns); err != nil {
 		panic(err)
 	}
-	if t.ReturnsCount == 0 {
-		switch {
-		case (len(t.ReturnTransferIDs) > 0 && len(returns) > 0 && len(t.ReturnTransferIDs) == len(returns)) || len(returns) > 0:
-			t.ReturnsCount = len(returns)
-		case len(t.ReturnTransferIDs) > 0:
-			t.ReturnsCount = len(t.ReturnTransferIDs)
-		default:
-			panic(fmt.Sprintf("len(returns) != len(ReturnTransferIDs): %v != %v", len(returns), len(t.ReturnTransferIDs)))
-		}
-	}
 	if len(returns) != t.ReturnsCount {
-		panic(fmt.Sprintf("len(returns) != ReturnsCount: %v != %v", len(returns), t.ReturnsCount))
+		panic(fmt.Sprintf("len(returns) != t.ReturnsCount: %v != %v", len(returns), t.ReturnsCount))
 	}
-	t.returns = make([]TransferReturnJson, len(returns))
+	t.returns = make(TransferReturns, len(returns))
 	copy(t.returns, returns)
 	return
 }
@@ -66,7 +61,7 @@ func (t *TransferEntity) AddReturn(returnTransfer TransferReturnJson) error {
 		return fmt.Errorf("transfer data integrity issue: len(returns) != t.ReturnsCount => %v != %v", len(returns), t.ReturnsCount)
 	}
 	var returnedValue decimal.Decimal64p2
-	returnTransferIDs := make([]int64, 1, len(returns) + 1)
+	returnTransferIDs := make([]int64, 1, len(returns)+1)
 	returnTransferIDs[0] = returnTransfer.TransferID
 	for _, r := range returns {
 		for _, tID := range returnTransferIDs {

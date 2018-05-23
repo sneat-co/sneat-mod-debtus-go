@@ -1,7 +1,7 @@
 package shared_all
 
 import (
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"context"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/db"

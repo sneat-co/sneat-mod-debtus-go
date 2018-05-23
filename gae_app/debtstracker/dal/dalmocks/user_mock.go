@@ -3,7 +3,7 @@ package dalmocks
 import (
 	"time"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 )
 

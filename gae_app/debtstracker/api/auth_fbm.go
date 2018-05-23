@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"context"
 	"github.com/strongo/log"
 )

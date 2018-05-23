@@ -1,11 +1,11 @@
 package dtb_transfer
 
 import (
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_inline"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"fmt"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_inline"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
@@ -67,4 +67,3 @@ const VIEW_RECEIPT_IN_TELEGRAM_COMMAND = "tg-view-receipt"
 func GetUrlForReceiptInTelegram(botCode string, receiptID int64, localeCode5 string) string {
 	return fmt.Sprintf("https://t.me/%v?start=receipt-%v-view_%v", botCode, receiptID, localeCode5)
 }
-

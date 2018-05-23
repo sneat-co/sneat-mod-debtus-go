@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"time"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/pkg/errors"
 	"github.com/sanity-io/litter"
 	"github.com/strongo/app"
-	"github.com/strongo/slices"
 	"github.com/strongo/db"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
+	"github.com/strongo/slices"
 )
 
 const (
@@ -559,9 +559,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 	)
 
 	// For returns to specific transfers
-	if len(returnToTransferIDs) == 0 {
-		//
-	} else {
+	if len(returnToTransferIDs) > 0 {
 		transferEntity.ReturnToTransferIDs = returnToTransferIDs
 		returnToTransfers := make([]db.EntityHolder, len(returnToTransferIDs))
 		for i, returnToTransferID := range returnToTransferIDs {
@@ -578,7 +576,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 			returnToTransfer := transferEntityHolder.(*models.Transfer)
 			returnToTransferOutstandingValue := returnToTransfer.GetOutstandingValue(dtCreated)
 			if !returnToTransfer.IsOutstanding {
-				log.Warningf(c, "Transfer(%v).IsOutstanding: false", returnToTransfer.ID)
+				log.Warningf(c, "Transfer(%v).IsOutstanding: false, returnToTransferOutstandingValue: %v", returnToTransfer.ID, returnToTransferOutstandingValue)
 				continue
 			} else if returnToTransferOutstandingValue == 0 {
 				log.Warningf(c, "Transfer(%v) => returnToTransferOutstandingValue == 0", returnToTransfer.ID, returnToTransferOutstandingValue)
@@ -603,11 +601,13 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 			amountToAssign -= amountReturnedToTransfer
 			returnedValue += amountReturnedToTransfer
 
-			transferEntity.AddReturn(models.TransferReturnJson{
+			if err = transferEntity.AddReturn(models.TransferReturnJson{
 				TransferID: returnToTransfer.ID,
-				Amount: amountReturnedToTransfer,
-				Time: returnToTransfer.DtCreated,
-			})
+				Amount:     amountReturnedToTransfer,
+				Time:       returnToTransfer.DtCreated,
+			}); err != nil {
+				return
+			}
 
 			assignedToExistingTransfers = true
 			entities = append(entities, returnToTransfer) // TODO: Potentially can exceed max number of entities in GAE transaction
@@ -904,8 +904,8 @@ func (transferFacade) updateUserAndCounterpartyWithTransferInfo(
 							})
 							contactTransfersInfo.OutstandingWithInterest[i] = outstanding
 						} else {
-							// err = errors.WithMessage(ErrNotImplemented, "Return to multiple debts if at least one of them have interest is not implemented yet, please return debts with interest one by one.")
-							// return
+							err = errors.WithMessage(ErrNotImplemented, "Return to multiple debts if at least one of them have interest is not implemented yet, please return debts with interest one by one.")
+							return
 						}
 						continue OuterLoop
 					}
@@ -989,30 +989,6 @@ func (transferFacade) UpdateTransferOnReturn(c context.Context, returnTransfer, 
 			return
 		}
 		returnedAmount = outstandingValue
-	}
-
-	if returns := transfer.GetReturns(); len(returns) == 0 && len(transfer.ReturnTransferIDs) != 0 { // TODO: Remove fix for old transfers
-		var returnTransfers []models.Transfer
-		if returnTransfers, err = dal.Transfer.GetTransfersByID(c, transfer.ReturnTransferIDs); err != nil {
-			return
-		}
-		returns = make([]models.TransferReturnJson, len(transfer.ReturnTransferIDs), len(transfer.ReturnTransferIDs)+1)
-		var returnedVal decimal.Decimal64p2
-
-		for i, rt := range returnTransfers {
-			returns[i] = models.TransferReturnJson{
-				TransferID: rt.ID,
-				Time:       rt.DtCreated, // TODO: Replace with DtActual?
-				Amount:     rt.AmountInCents,
-			}
-			returnedVal += rt.AmountInCents
-		}
-		if returnedVal > transfer.AmountInCents {
-			log.Warningf(c, "failed to properly migrated ReturnTransferIDs to ReturnsJson: returnedAmount > transfer.AmountInCents")
-			for i := range returns {
-				returns[i].Amount = 0
-			}
-		}
 	}
 
 	if err = transfer.AddReturn(models.TransferReturnJson{

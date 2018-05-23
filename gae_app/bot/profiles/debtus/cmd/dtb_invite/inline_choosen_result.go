@@ -3,7 +3,7 @@ package dtb_invite
 import (
 	"net/url"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 )

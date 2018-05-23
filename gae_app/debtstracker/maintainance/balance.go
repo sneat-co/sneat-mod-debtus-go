@@ -3,7 +3,7 @@ package maintainance
 import (
 	"strings"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 )
 
 func FixBalanceCurrencies(balance models.Balance) (changed bool) {

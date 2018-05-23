@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
 	"github.com/pkg/errors"
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"

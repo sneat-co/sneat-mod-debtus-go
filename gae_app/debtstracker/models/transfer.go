@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/general"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
 	"github.com/pkg/errors"
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
@@ -103,24 +103,24 @@ func (t *TransferEntity) GetLendingValue() decimal.Decimal64p2 {
 type TransferEntity struct {
 	hasObsoleteProps bool
 	general.CreatedOn
-	from             *TransferCounterpartyInfo
-	to               *TransferCounterpartyInfo
+	from *TransferCounterpartyInfo
+	to   *TransferCounterpartyInfo
 
 	BillIDs []string
 
 	SmsStats
 	// DirectionObsoleteProp string `datastore:"Direction,noindex,omitempty"`
 
-	// We need it is not always possible to identify original transfer (think multiply & partial transfers)
+	// We need it is not always possible to identify original transfer (think multiple & partial transfers)
 	IsReturn bool `datastore:",noindex,omitempty"`
 
 	// List of transfer to which this debt is a return. Should be populated only if IsReturn=True
-	ReturnToTransferIDs []int64 `datastore:",noindex"`
+	ReturnToTransferIDs []int64 `datastore:",noindex"` // TODO: to make it obsolete - move to ReturnsJson
 	//
-	returns           []TransferReturnJson // Deserialized cache
-	ReturnsJson       string  `datastore:",noindex,omitempty"`
-	ReturnsCount      int     `datastore:",noindex,omitempty"`
-	ReturnTransferIDs []int64 `datastore:",noindex"` // TODO: Obsolete - replace with ReturnsJson List of transfers that return money to this debts
+	returns      TransferReturns // Deserialized cache
+	ReturnsJson  string          `datastore:",noindex,omitempty"`
+	ReturnsCount int             `datastore:",noindex,omitempty"`
+	// ReturnTransferIDs []int64 `datastore:",noindex"` // Obsolete - replaced with ReturnsJson List of transfers that return money to this debts
 	//
 	CreatorUserID           int64  `datastore:",noindex"`           // Do not delete, is NOT obsolete!
 	CreatorCounterpartyID   int64  `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>ContactID
@@ -190,6 +190,16 @@ type TransferEntity struct {
 	//
 	ReceiptsSentCount int64   `datastore:",noindex,omitempty"`
 	ReceiptIDs        []int64 `datastore:",noindex"`
+}
+
+func (t *TransferEntity) AmountReturned() decimal.Decimal64p2 {
+	if t.AmountInCentsReturned > 0 {
+		return t.AmountInCentsReturned
+	}
+	if t.IsReturn && t.AmountInCentsReturned == 0 {
+		return t.AmountInCents
+	}
+	return 0
 }
 
 func (t Transfer) String() string {
@@ -768,13 +778,12 @@ func (t *TransferEntity) BeforeSave() (err error) {
 }
 
 func (TransferEntity) movedToJson(propName string) bool {
-	return propName == "CounterpartyUserID" || (strings.HasPrefix(propName, "Creator") || strings.HasPrefix(propName, "Counterparty")) && (
-		strings.HasSuffix(propName, "CounterpartyID") ||
-			strings.HasSuffix(propName, "CounterpartyName") ||
-			strings.HasSuffix(propName, "Note") ||
-			strings.HasSuffix(propName, "Comment") ||
-			strings.HasSuffix(propName, "TgBotID") ||
-			strings.HasSuffix(propName, "TgChatID"))
+	return propName == "CounterpartyUserID" || (strings.HasPrefix(propName, "Creator") || strings.HasPrefix(propName, "Counterparty")) && (strings.HasSuffix(propName, "CounterpartyID") ||
+		strings.HasSuffix(propName, "CounterpartyName") ||
+		strings.HasSuffix(propName, "Note") ||
+		strings.HasSuffix(propName, "Comment") ||
+		strings.HasSuffix(propName, "TgBotID") ||
+		strings.HasSuffix(propName, "TgChatID"))
 }
 
 func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
@@ -855,7 +864,7 @@ func (t *TransferEntity) GetAmount() Amount {
 }
 
 func (t *TransferEntity) GetReturnedAmount() Amount {
-	return Amount{Currency: t.Currency, Value: t.AmountInCentsReturned}
+	return Amount{Currency: t.Currency, Value: t.AmountReturned()}
 }
 
 func ReverseTransfers(t []Transfer) {

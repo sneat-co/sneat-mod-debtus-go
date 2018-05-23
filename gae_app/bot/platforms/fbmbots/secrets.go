@@ -4,8 +4,9 @@ import (
 	"net/http"
 	"strings"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"context"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/pkg/errors"
@@ -14,7 +15,6 @@ import (
 	"github.com/strongo/bots-framework/platforms/fbm"
 	fb "github.com/strongo/facebook"
 	"github.com/strongo/log"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/common"
 )
 
 const (

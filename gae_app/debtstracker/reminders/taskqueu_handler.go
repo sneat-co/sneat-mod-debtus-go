@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"time"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-framework/platforms/telegram"
@@ -78,7 +78,7 @@ func sendReminder(c context.Context, reminderID int64) error {
 	}
 
 	if !transfer.IsOutstanding {
-		log.Infof(c, "Transfer(id=%v) is not outstanding, transfer.Amount=%v, transfer.AmountInCentsReturned=%v", reminder.TransferID, transfer.AmountInCents, transfer.AmountInCentsReturned)
+		log.Infof(c, "Transfer(id=%v) is not outstanding, transfer.Amount=%v, transfer.AmountInCentsReturned=%v", reminder.TransferID, transfer.AmountInCents, transfer.AmountReturned())
 		if err := gaedal.DiscardReminder(c, reminderID, reminder.TransferID, 0); err != nil {
 			return errors.Wrapf(err, "Failed to discard a reminder for non outstanding transfer id=%v", reminder.TransferID)
 		}

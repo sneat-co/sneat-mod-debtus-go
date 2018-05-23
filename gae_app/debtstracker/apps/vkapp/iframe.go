@@ -4,9 +4,9 @@ import (
 	"html/template"
 	"net/http"
 
-	"bitbucket.com/asterus/debtstracker-server/gae_app/debtstracker/website/pages"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/website/pages"
 	//"github.com/strongo/app"
-	"bitbucket.com/asterus/debtstracker-server/gae_app/bot/platforms/vkbots"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/vkbots"
 	"github.com/strongo/app"
 )
 
