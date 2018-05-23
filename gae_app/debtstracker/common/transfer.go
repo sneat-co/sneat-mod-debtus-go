@@ -11,7 +11,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/templates/inspiration/builtin/html"
+	"html/template"
 )
 
 func GetBalanceUrlForUser(userID int64, locale strongo.Locale, createdOnPlatform, createdOnID string) string {
@@ -79,7 +79,7 @@ func GetWebsiteHost(createdOnID string) string {
 }
 
 func GetPathAndQueryForInvite(inviteCode string, utmParams UtmParams) string {
-	return fmt.Sprintf("ack?invite=%v#%v", html.URLQueryEscaper(inviteCode), utmParams)
+	return fmt.Sprintf("ack?invite=%v#%v", template.URLQueryEscaper(inviteCode), utmParams)
 }
 
 func GetNewDebtPageUrl(whc bots.WebhookContext, direction models.TransferDirection, utmCampaign string) string {
@@ -87,9 +87,9 @@ func GetNewDebtPageUrl(whc bots.WebhookContext, direction models.TransferDirecti
 	botPlatform := whc.BotPlatform().ID()
 	token := auth.IssueToken(whc.AppUserIntID(), formatIssuer(botPlatform, botID), false)
 	host := GetWebsiteHost(botID)
-	//utmParams := NewUtmParams(whc, utmCampaign)
+	// utmParams := NewUtmParams(whc, utmCampaign)
 	return fmt.Sprintf(
 		"https://%v/open/new-debt?d=%v&lang=%v&secret=%v",
-		host, direction, whc.Locale().SiteCode(), token, //utmParams, - commented out as: Viber response.Status=3: keyboard is not valid. is too long (length: 274, maximum allowed: 250)]
+		host, direction, whc.Locale().SiteCode(), token, // utmParams, - commented out as: Viber response.Status=3: keyboard is not valid. is too long (length: 274, maximum allowed: 250)]
 	)
 }
