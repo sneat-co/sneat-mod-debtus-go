@@ -539,8 +539,8 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 	source := dal.NewTransferSourceBot(telegram.PlatformID, "test-bot", "444")
 
 	const (
-		userID         = 1
-		counterpartyID = 2
+		userID    = 1
+		contactID = 2
 	)
 
 	creatorUser := models.AppUser{
@@ -553,7 +553,7 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 	}
 
 	tContact := &models.TransferCounterpartyInfo{
-		ContactID: counterpartyID,
+		ContactID: contactID,
 	}
 
 	for i, step := range testCase.steps {
