@@ -582,15 +582,24 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 			return
 		}
 
-		var creatorUser models.AppUser
+		var (
+			creatorUser models.AppUser
+			contact models.Contact
+		)
 		switch step.input.direction {
 		case models.TransferDirectionUser2Counterparty:
 			creatorUser = output.From.User
+			contact = output.To.Contact
 		case models.TransferDirectionCounterparty2User:
 			creatorUser = output.To.User
+			contact = output.From.Contact
 		}
 		if balance := creatorUser.Balance()[currency]; balance != step.expects.balance {
 			t.Errorf("step #%v: Expected user balance does not match actual: expected:%v != got:%v",
+				i+1, step.expects.balance, balance)
+		}
+		if balance := contact.Balance()[currency]; balance != step.expects.balance {
+			t.Errorf("step #%v: Expected contact balance does not match actual: expected:%v != got:%v",
 				i+1, step.expects.balance, balance)
 		}
 		if output.Transfer.AmountInCentsReturned != step.expects.amountInCentsReturned {
