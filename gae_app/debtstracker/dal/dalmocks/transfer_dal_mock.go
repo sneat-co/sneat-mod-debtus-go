@@ -48,7 +48,7 @@ func (mock *TransferDalMock) LoadOverdueTransfers(c context.Context, userID int6
 func (mock *TransferDalMock) LoadOutstandingTransfers(c context.Context, periodEnds time.Time, userID, contactID int64, currency models.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error) {
 	for _, entity := range mock.mockDB.EntitiesByKind[models.TransferKind] {
 		t := entity.(*models.Transfer)
-		if t.GetOutstandingValue(periodEnds) != 0 {
+		if t.Direction() == direction && t.GetOutstandingValue(periodEnds) != 0 {
 			transfers = append(transfers, *t)
 		}
 	}

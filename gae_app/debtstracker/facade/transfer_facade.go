@@ -344,7 +344,8 @@ func (transferFacade transferFacade) checkOutstandingTransfersForReturns(c conte
 	creatorUserID := input.CreatorUser.ID
 	creatorContactID := input.CreatorContactID()
 
-	outstandingTransfers, err = dal.Transfer.LoadOutstandingTransfers(c, time.Now(), creatorUserID, creatorContactID, input.Amount.Currency, input.Direction().Reverse())
+	reversedDirection := input.Direction().Reverse()
+	outstandingTransfers, err = dal.Transfer.LoadOutstandingTransfers(c, now, creatorUserID, creatorContactID, input.Amount.Currency, reversedDirection)
 	if err != nil {
 		err = errors.WithMessage(err, "failed to load outstanding transfers")
 		return
@@ -399,7 +400,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 	log.Debugf(c, "createTransferWithinTransaction(input=%v, returnToTransferIDs=%v)", input, returnToTransferIDs)
 
 	input.Validate()
-	// if len(returnToTransferIDs) > 0 && !input.IsReturn { // TODO: It's OK to have returns without isReturn=true
+	// if len(returnToTransferIDs) > 0 && !input.IsReturn { // TODO: It's OK to have transfers without isReturn=true
 	// 	panic("len(returnToTransferIDs) > 0 && !isReturn")
 	// }
 
@@ -558,7 +559,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		closedTransferIDs               []int64
 	)
 
-	// For returns to specific transfers
+	// For transfers to specific transfers
 	if len(returnToTransferIDs) > 0 {
 		transferEntity.ReturnToTransferIDs = returnToTransferIDs
 		returnToTransfers := make([]db.EntityHolder, len(returnToTransferIDs))
@@ -614,8 +615,8 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 
 			if transferEntity.CreatorUserID == returnToTransfer.CreatorUserID && transferEntity.Direction() == returnToTransfer.Direction() {
 				panic(fmt.Sprintf(
-					"transfer.CreatorUserID == returnToTransfer.CreatorUserID && transfer.Direction == returnToTransfer.Direction, userID=%v, direction=%v",
-					transferEntity.CreatorUserID, transferEntity.Direction()))
+					"transfer.CreatorUserID == returnToTransfer.CreatorUserID && transfer.Direction == returnToTransfer.Direction, userID=%v, direction=%v, returnToTransfer=%v",
+					transferEntity.CreatorUserID, transferEntity.Direction(), returnToTransfer.ID))
 			}
 
 			if transferEntity.CreatorUserID == returnToTransfer.Counterparty().UserID && transferEntity.Direction() != returnToTransfer.Direction() {
