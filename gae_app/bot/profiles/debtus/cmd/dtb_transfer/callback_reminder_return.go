@@ -65,9 +65,9 @@ func ProcessReturnAnswer(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.
 	}
 }
 
-const ENABLE_REMINDER_AGAIN_COMMAND = "enable-reminder-again"
+const commandCodeEnableReminderAgain = "enable-reminder-again"
 
-var EnableReminderAgainCallbackCommand = bots.NewCallbackCommand(ENABLE_REMINDER_AGAIN_COMMAND, func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+var EnableReminderAgainCallbackCommand = bots.NewCallbackCommand(commandCodeEnableReminderAgain, func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
 	log.Debugf(c, "EnableReminderAgainCallbackCommand()")
 	q := callbackUrl.Query()
@@ -96,7 +96,7 @@ func ProcessFullReturn(whc bots.WebhookContext, transfer models.Transfer) (m bot
 	if amountValue == 0 {
 		return dtb_general.EditReminderMessage(whc, transfer, whc.Translate(trans.MESSAGE_TEXT_TRANSFER_ALREADY_FULLY_RETURNED))
 	} else if amountValue < 0 {
-		err = fmt.Errorf("Data integrity error -> transfer.AmountInCentsOutstanding:%v < 0", amountValue)
+		err = fmt.Errorf("data integrity error -> transfer.GetOutstandingValue():%v < 0", amountValue)
 		return
 	}
 

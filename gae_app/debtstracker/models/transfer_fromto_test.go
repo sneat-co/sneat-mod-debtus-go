@@ -16,11 +16,11 @@ func TestOnSaveSerializeJson(t *testing.T) {
 
 	transferEntity.onSaveSerializeJson()
 
-	if transferEntity.C_From == "" {
-		t.Error("transferEntity.C_From is empty")
+	if transferEntity.FromJson == "" {
+		t.Error("transferEntity.FromJson is empty")
 	}
-	if transferEntity.C_To == "" {
-		t.Error("transferEntity.C_To is empty")
+	if transferEntity.ToJson == "" {
+		t.Error("transferEntity.ToJson is empty")
 	}
 }
 

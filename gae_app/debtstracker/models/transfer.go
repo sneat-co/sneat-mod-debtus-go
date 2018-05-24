@@ -35,7 +35,7 @@ const ( // Transfer directions
 )
 
 const ( // Transfer statuses
-	TransferViewed   = "viewed"
+	TransferViewed   = "viewed"  // TODO: use the status
 	TransferAccepted = "accepted"
 	TransferDeclined = "declined"
 )
@@ -139,16 +139,16 @@ type TransferEntity struct {
 	// CreatorReminderID      int64 `datastore:",noindex"` // obsolete
 	// CounterpartyReminderID int64 `datastore:",noindex"` // obsolete
 	//
-	CounterpartyUserID           int64  `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>UserID
-	CounterpartyCounterpartyID   int64  `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>ContactID
-	CounterpartyCounterpartyName string `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>ContactName
-	CounterpartyNote             string `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>Note
-	CounterpartyComment          string `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>Comment
+	//CounterpartyUserID           int64  `datastore:",noindex,omitempty"` // Replaced with <From|To>UserID
+	//CounterpartyCounterpartyID   int64  `datastore:",noindex,omitempty"` // Replaced with <From|To>ContactID
+	//CounterpartyCounterpartyName string `datastore:",noindex,omitempty"` // Replaced with <From|To>ContactName
+	//CounterpartyNote             string `datastore:",noindex,omitempty"` // Replaced with <From|To>Note
+	//CounterpartyComment          string `datastore:",noindex,omitempty"` // Replaced with <From|To>Comment
 	// CounterpartyAutoRemindersDisabled bool   `datastore:",noindex"`
 	// CounterpartyTgReceiptInlineMessageID string    `datastore:",noindex"` - not useful as we can edit message just once on callback
 
-	C_From string `datastore:",noindex"`
-	C_To   string `datastore:",noindex"`
+	FromJson string `datastore:"C_From,noindex"`
+	ToJson   string `datastore:"C_To,noindex"`
 
 	// ** New properties to replace Creator/Contact set of props **
 	// FromUserID           int64  `datastore:",noindex"`
@@ -174,14 +174,10 @@ type TransferEntity struct {
 	DtCreated time.Time
 	DtDueOn   time.Time `datastore:",omitempty"`
 
-	// Amount                   float64                                    // TODO: Obsolete!, Replaced with AmountInCents
-	// AmountInCentsReturned           float64             `datastore:",noindex"` // TODO: Obsolete!, Replaced with AmountInCentsReturned
-	// AmountOutstanding        float64             `datastore:",noindex"` // TODO: Obsolete!, Replaced with AmountInCentsOutstanding
-
 	AmountInCents         decimal.Decimal64p2
 	AmountInCentsReturned decimal.Decimal64p2 `datastore:",noindex,omitempty"`
 	AmountInCentsInterest decimal.Decimal64p2 `datastore:",noindex,omitempty"`
-	// AmountInCentsOutstanding decimal.Decimal64p2 `datastore:",noindex,omitempty"` // TODO: Should be removed!
+	// AmountInCentsOutstanding decimal.Decimal64p2 `datastore:",noindex,omitempty"` // Removed
 
 	TransferInterest
 
@@ -276,7 +272,7 @@ func (t *TransferEntity) transferIsNotAssociatedWithContact(contactID int64) str
 func (t *TransferEntity) transferIsNotRelatedToCreator() string {
 	return ErrTransferNotRelatedToCreator.Error() + fmt.Sprintf(
 		"\nDirection(): %v, CreatorUserID: %d, From: %v, To: %v",
-		t.Direction(), t.CreatorUserID, t.C_From, t.C_To,
+		t.Direction(), t.CreatorUserID, t.FromJson, t.ToJson,
 	)
 }
 
@@ -764,13 +760,13 @@ func (t *TransferEntity) BeforeSave() (err error) {
 		return
 	}
 
-	if t.C_From == "" {
-		err = errors.New("C_From is empty")
+	if t.FromJson == "" {
+		err = errors.New("FromJson is empty")
 		return
 	}
 
-	if t.C_To == "" {
-		err = errors.New("C_To is empty")
+	if t.ToJson == "" {
+		err = errors.New("ToJson is empty")
 		return
 	}
 
@@ -802,7 +798,7 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 	}
 
 	// { // Obsolete properties that were moved to JSON also should be removed
-	// 	if migratedToJson := t.C_From != "" && t.C_To != ""; migratedToJson {
+	// 	if migratedToJson := t.FromJson != "" && t.ToJson != ""; migratedToJson {
 	// 		if t.DirectionObsoleteProp != "" {
 	// 			t.DirectionObsoleteProp = ""
 	// 		}

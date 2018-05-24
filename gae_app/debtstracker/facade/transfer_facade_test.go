@@ -157,90 +157,6 @@ func TestCreateTransfer(t *testing.T) {
 	}
 }
 
-func TestCreateReturnTransferWithInterest(t *testing.T) {
-	c := context.TODO()
-	dtmocks.SetupMocks(c)
-	assert := assertHelper{t: t}
-	currency := models.CURRENCY_EUR
-
-	const (
-		userID    int64 = 1
-		contactID int64 = 2
-	)
-
-	var (
-		output createTransferOutput
-		err    error
-	)
-
-	creatorUser, err := User.GetUserByID(c, userID)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	source := dal.NewTransferSourceBot(telegram.PlatformID, "test-bot", "444")
-
-	t1val := decimal.FromInt(10)
-	{ // Create 1st "gave" transfer
-		from := &models.TransferCounterpartyInfo{
-			UserID: userID,
-		}
-
-		to := &models.TransferCounterpartyInfo{
-			ContactID: contactID,
-		}
-
-		newTransfer := NewTransferInput(strongo.EnvLocal,
-			source,
-			creatorUser,
-			"",
-			false,
-			0,
-			from, to,
-			models.NewAmount(currency, t1val),
-			time.Now().Add(time.Minute), models.NoInterest())
-
-		output, err = Transfers.CreateTransfer(c, newTransfer)
-
-		if output, err = assert.OutputIsNilIfErr(output, err); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	{ // Create return transfer with interest
-		from := &models.TransferCounterpartyInfo{
-			ContactID: contactID,
-		}
-
-		to := &models.TransferCounterpartyInfo{
-			UserID: userID,
-		}
-
-		newTransfer := NewTransferInput(strongo.EnvLocal,
-			source,
-			creatorUser,
-			"",
-			false,
-			0,
-			from, to,
-			models.NewAmount(currency, 1000),
-			time.Now().Add(time.Minute), models.NewInterest(interest.FormulaSimple, 2.00, interest.RatePeriodDaily))
-
-		output, err = Transfers.CreateTransfer(c, newTransfer)
-
-		if err == nil {
-			t.Fatal("") // should fail
-		}
-
-		if !strings.Contains(err.Error(), "interest") {
-			t.Fatalf("error should mention 'interest', got: %v", err)
-		}
-		if !strings.Contains(err.Error(), "outstanding") {
-			t.Fatalf("error should mention 'outstanding', got: %v", err)
-		}
-	}
-}
-
 func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
 	c := context.TODO()
 	dtmocks.SetupMocks(c)
@@ -469,10 +385,11 @@ type createTransferStepInput struct {
 }
 
 type createTransferStepExpects struct {
-	balance               decimal.Decimal64p2
-	amountInCentsReturned decimal.Decimal64p2
-	returns               models.TransferReturns
-	transfers             []transferExpectedState
+	isExpectedError func(error) bool
+	balance         decimal.Decimal64p2
+	amountReturned  decimal.Decimal64p2
+	returns         models.TransferReturns
+	transfers       []transferExpectedState
 }
 
 type createTransferStep struct {
@@ -494,21 +411,56 @@ func TestCreateTransfers(t *testing.T) {
 
 	expects := func(
 		balance decimal.Decimal64p2,
-		amountInCentsReturned decimal.Decimal64p2,
+		amountReturned decimal.Decimal64p2,
 		returns models.TransferReturns,
 		transfers []transferExpectedState,
 	) createTransferStepExpects {
 		return createTransferStepExpects{
-			balance:               balance,
-			amountInCentsReturned: amountInCentsReturned,
-			returns:               returns,
-			transfers:             transfers,
+			balance:        balance,
+			amountReturned: amountReturned,
+			returns:        returns,
+			transfers:      transfers,
 		}
 	}
 
-	for _, testCase := range []createTransferTestCase{
+	expectsError := func(f func(error) bool) createTransferStepExpects {
+		return createTransferStepExpects{
+			isExpectedError: f,
+		}
+	}
+
+	testCases := []createTransferTestCase{
 		{
-			name: "same_day_no_interests",
+			name: "error on attempt to make a return with interest",
+			steps: []createTransferStep{
+				{
+					input: createTransferStepInput{
+						direction: models.TransferDirectionUser2Counterparty,
+						amount:    10,
+						time:      dayHour(1, 1),
+					},
+					expects: expects(10, 0, nil, nil),
+				},
+				{
+					input: createTransferStepInput{
+						direction:        models.TransferDirectionCounterparty2User,
+						amount:           10,
+						time:             dayHour(1, 1),
+						TransferInterest: models.NewInterest(interest.FormulaSimple, 2.00, interest.RatePeriodDaily),
+					},
+					expects: expectsError(func(err error) bool {
+						if err == nil {
+							return false
+						}
+						errMsg := err.Error()
+
+						return strings.Contains(errMsg, "interest") && strings.Contains(errMsg, "outstanding")
+					}),
+				},
+			},
+		},
+		{
+			name: "same_day_no_interests_2_give_1_over-return",
 			steps: []createTransferStep{
 				{
 					input: createTransferStepInput{
@@ -520,35 +472,42 @@ func TestCreateTransfers(t *testing.T) {
 				{
 					input: createTransferStepInput{
 						direction: models.TransferDirectionUser2Counterparty,
-						amount:    5,
+						amount:    15,
 						time:      dayHour(1, 2)},
-					expects: expects(15, 0, nil,
+					expects: expects(25, 0, nil,
 						[]transferExpectedState{
 							{isOutstanding: true, AmountReturned: 0},
 						}),
 				},
 				{
 					input: createTransferStepInput{
-						isReturn:  false, // TODO: Do we need to pass isReturn?
+						isReturn:  false,
 						direction: models.TransferDirectionCounterparty2User,
-						amount:    20,
-						time:      dayHour(1, 2)},
-					expects: expects(-5, 15,
+						amount:    30,
+						time:      dayHour(1, 3)},
+					expects: expects(-5, 25,
 						models.TransferReturns{
 							{Amount: 10},
-							{Amount: 5},
+							{Amount: 15},
 						},
 						[]transferExpectedState{
 							{stepIndex: 0, AmountReturned: 10, isOutstanding: false},
-							{stepIndex: 1, AmountReturned: 5, isOutstanding: false},
+							{stepIndex: 1, AmountReturned: 15, isOutstanding: false},
 						}),
 				},
 			},
 		},
-	} {
-		tc := testCase
+	}
+
+	for i, testCase := range testCases {
+		if testCase.name == "" {
+			t.Fatalf("Test case #%v has no name", i+1)
+		}
+		if len(testCase.steps) == 0 {
+			t.Fatalf("Test case #%v has no steps", i+1)
+		}
 		t.Run(testCase.name, func(t *testing.T) {
-			testCreateTransfer(t, tc)
+			testCreateTransfer(t, testCase)
 		})
 	}
 }
@@ -580,7 +539,7 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 	}
 
 	var (
-		i int
+		i    int
 		step createTransferStep
 	)
 
@@ -610,8 +569,14 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 			models.NewAmount(currency, step.input.amount),
 			step.input.time, step.input.TransferInterest)
 
+		// =============================================================
 		output, err := Transfers.CreateTransfer(c, newTransfer)
+		// =============================================================
 		if output, err = assert.OutputIsNilIfErr(output, err); err != nil {
+			if step.expects.isExpectedError(err) {
+				//t.Logf("step #%v: got expected error: %v", i+1, err)
+				continue
+			}
 			t.Errorf(err.Error())
 			return
 		}
@@ -620,7 +585,7 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 		testCase.steps[i].createdTransferID = output.Transfer.ID
 
 		var (
-			contact     models.Contact
+			contact models.Contact
 		)
 		switch step.input.direction {
 		case models.TransferDirectionUser2Counterparty:
@@ -647,6 +612,24 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 				i+1, step.expects.balance, balance)
 			breakSteps = true
 		}
+		{ // verify balance counts
+			var expectedBalanceCount int
+			if step.expects.balance != 0 {
+				expectedBalanceCount = 1
+			}
+
+			if balanceCount := len(userContact.Balance()); balanceCount != expectedBalanceCount {
+				t.Errorf("step #%v: Expected userContact len(balance) does not match actual: expected:%v != got:%v",
+					i+1, expectedBalanceCount, balanceCount)
+				breakSteps = true
+			}
+			if balanceCount := len(creatorUser.Balance()); balanceCount != expectedBalanceCount {
+				t.Errorf("step #%v: Expected creatorUser len(balance) does not match actual: expected:%v != got:%v",
+					i+1, expectedBalanceCount, balanceCount)
+				breakSteps = true
+			}
+		}
+
 		var dbContact models.Contact
 		if dbContact, err = GetContactByID(c, contact.ID); err != nil {
 			t.Errorf("step #%v: %v", i+1, err)
@@ -657,9 +640,9 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 				i+1, step.expects.balance, balance)
 			breakSteps = true
 		}
-		if output.Transfer.AmountInCentsReturned != step.expects.amountInCentsReturned {
+		if output.Transfer.AmountInCentsReturned != step.expects.amountReturned {
 			t.Errorf("step #%v: Expected transfer.AmountInCentsReturned does not match actual: expected:%v != got:%v",
-				i+1, step.expects.amountInCentsReturned, output.Transfer.AmountInCentsReturned)
+				i+1, step.expects.amountReturned, output.Transfer.AmountInCentsReturned)
 			breakSteps = true
 		}
 		if output.Transfer.ReturnsCount != len(step.expects.returns) {
@@ -690,6 +673,27 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 				if r.Amount != step.expects.returns[j].Amount {
 					t.Errorf("step #%v: Expected transfer.Returns[%v] does not match actual: expected:%v != got:%v",
 						i+1, j, step.expects.returns[j].Amount, r.Amount)
+					breakSteps = true
+					break
+				}
+			}
+			for j, expectedTransfer := range step.expects.transfers {
+				var previousTransfer models.Transfer
+				if previousTransfer, err = GetTransferByID(c, testCase.steps[j].createdTransferID); err != nil {
+					t.Fatalf("step #%v: %v",
+						i+1, err)
+					breakSteps = true
+					break
+				}
+				if previousTransfer.IsOutstanding != expectedTransfer.isOutstanding {
+					t.Errorf("step #%v: previous transfer from step #%v is expected to have IsOutstanding=%v but got %v",
+						i+1, j+1, expectedTransfer.isOutstanding, previousTransfer.IsOutstanding)
+					breakSteps = true
+					break
+				}
+				if previousTransfer.AmountInCentsReturned != expectedTransfer.AmountReturned {
+					t.Errorf("step #%v: previous transfer from step #%v is expected to have AmountInCentsReturned=%v but got %v",
+						i+1, j+1, expectedTransfer.AmountReturned, previousTransfer.AmountInCentsReturned)
 					breakSteps = true
 					break
 				}

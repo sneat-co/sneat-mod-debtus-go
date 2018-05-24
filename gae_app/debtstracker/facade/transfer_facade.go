@@ -305,7 +305,7 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 		}
 
 		if input.Amount.Value > transferToReturn.GetOutstandingValue(now) {
-			log.Debugf(c, "amount.Value (%v) > transferToReturn.AmountInCentsOutstanding (%v)", input.Amount.Value, transferToReturn.GetOutstandingValue(now))
+			log.Debugf(c, "amount.Value:%v > transferToReturn.GetOutstandingValue(now):%v", input.Amount.Value, transferToReturn.GetOutstandingValue(now))
 			if input.Amount.Value == transferToReturn.AmountInCents {
 				// For situations when a transfer was partially returned but user wants to mark it as fully returned.
 				log.Debugf(c, "amount.Value (%v) == transferToReturn.AmountInCents (%v)", input.Amount.Value, transferToReturn.AmountInCents)
@@ -316,7 +316,7 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 				return
 			}
 		} else if input.Amount.Value < transferToReturn.GetOutstandingValue(now) {
-			log.Debugf(c, "amount.Value < transferToReturn.AmountInCentsOutstanding")
+			log.Debugf(c, "input.Amount.Value < transferToReturn.GetOutstandingValue(now)")
 		}
 
 		returnToTransferIDs = append(returnToTransferIDs, input.ReturnToTransferID)

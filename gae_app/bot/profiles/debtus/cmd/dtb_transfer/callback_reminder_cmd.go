@@ -104,7 +104,7 @@ func rescheduleReminder(whc bots.WebhookContext, reminderID int64, remindInDurat
 			[]tgbotapi.InlineKeyboardButton{
 				{
 					Text: whc.Translate(trans.COMMAND_TEXT_REMINDER_ENABLE),
-					CallbackData: fmt.Sprintf("%v?reminder=%v&transfer=%v", ENABLE_REMINDER_AGAIN_COMMAND,
+					CallbackData: fmt.Sprintf("%v?reminder=%v&transfer=%v", commandCodeEnableReminderAgain,
 						common.EncodeID(reminderID), common.EncodeID(transfer.ID),
 					),
 				},

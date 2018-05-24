@@ -84,12 +84,12 @@ func (t *TransferEntity) From() *TransferCounterpartyInfo {
 	if t.from == nil {
 		t.from = &TransferCounterpartyInfo{}
 
-		if t.C_From != "" {
-			if err := ffjson.UnmarshalFast([]byte(t.C_From), t.from); err != nil {
+		if t.FromJson != "" {
+			if err := ffjson.UnmarshalFast([]byte(t.FromJson), t.from); err != nil {
 				panic(err.Error())
 			}
 		} else {
-			panic("C_From is empty")
+			panic("FromJson is empty")
 			// // TODO: Migration code to be deleted
 			// from := t.from
 			// switch t.DirectionObsoleteProp {
@@ -151,12 +151,12 @@ func (t *TransferEntity) From() *TransferCounterpartyInfo {
 func (t *TransferEntity) To() *TransferCounterpartyInfo {
 	if t.to == nil {
 		t.to = &TransferCounterpartyInfo{}
-		if t.C_To != "" {
-			if err := ffjson.UnmarshalFast([]byte(t.C_To), t.to); err != nil {
+		if t.ToJson != "" {
+			if err := ffjson.UnmarshalFast([]byte(t.ToJson), t.to); err != nil {
 				panic(err.Error())
 			}
 		} else { // TODO: Migration code to be deleted
-			panic("C_To is empty")
+			panic("ToJson is empty")
 			// to := t.to
 			// switch t.DirectionObsoleteProp {
 			// case TransferDirectionUser2Counterparty:
@@ -214,18 +214,18 @@ func (t *TransferEntity) onSaveSerializeJson() error {
 		if s, err := ffjson.MarshalFast(t.from); err != nil {
 			panic(errors.WithMessage(err, "Failed to marshal transfer.from"))
 		} else {
-			t.C_From = string(s)
+			t.FromJson = string(s)
 		}
-	} else if t.C_From == "" {
+	} else if t.FromJson == "" {
 		return errors.New("Transfer should have 'From' counterparty")
 	}
 	if t.to != nil {
 		if s, err := ffjson.MarshalFast(t.to); err != nil {
 			return errors.WithMessage(err, "Failed to marshal transfer.to")
 		} else {
-			t.C_To = string(s)
+			t.ToJson = string(s)
 		}
-	} else if t.C_To == "" {
+	} else if t.ToJson == "" {
 		return errors.New("Transfer should have 'To' counterparty")
 	}
 	return nil
