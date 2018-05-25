@@ -331,7 +331,7 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 	}
 
 	if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-		output, err = Transfers.createTransferWithinTransaction(c, now, input, returnToTransferIDs)
+		output, err = transferFacade.createTransferWithinTransaction(c, now, input, returnToTransferIDs)
 		return err
 	}, dal.CrossGroupTransaction); err != nil {
 		return
