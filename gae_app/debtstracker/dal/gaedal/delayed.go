@@ -77,7 +77,7 @@ func (TransferDalGae) DelayUpdateTransferWithCreatorReceiptTgMessageID(c context
 var delayedUpdateTransferWithCreatorReceiptTgMessageID = delay.Func("UpdateTransferWithCreatorReceiptTgMessageID", func(c context.Context, botCode string, transferID, creatorTgChatID, creatorTgReceiptMessageID int64) error {
 	log.Infof(c, "delayedUpdateTransferWithCreatorReceiptTgMessageID(botCode=%v, transferID=%v, creatorTgChatID=%v, creatorReceiptTgMessageID=%v)", botCode, transferID, creatorTgChatID, creatorTgReceiptMessageID)
 	return dal.DB.RunInTransaction(c, func(c context.Context) error {
-		transfer, err := facade.GetTransferByID(c, transferID)
+		transfer, err := facade.Transfers.GetTransferByID(c, transferID)
 		if err != nil {
 			log.Errorf(c, "Failed to get transfer by ID: %v", err)
 			if db.IsNotFound(err) {
@@ -389,7 +389,7 @@ func sendReceiptToCounterpartyByTelegram(c context.Context, receiptID, tgChatID 
 	}
 
 	var transfer models.Transfer
-	if transfer, err = facade.GetTransferByID(c, receipt.TransferID); err != nil {
+	if transfer, err = facade.Transfers.GetTransferByID(c, receipt.TransferID); err != nil {
 		log.Errorf(c, err.Error())
 		if db.IsNotFound(err) {
 			err = nil
@@ -562,7 +562,7 @@ var delayedCreateAndSendReceiptToCounterpartyByTelegram = delay.Func("delayedCre
 		return nil
 	}
 	localeCode := tgChat.PreferredLanguage
-	transfer, err := facade.GetTransferByID(c, transferID)
+	transfer, err := facade.Transfers.GetTransferByID(c, transferID)
 	if err != nil {
 		if db.IsNotFound(err) {
 			log.Errorf(c, err.Error())

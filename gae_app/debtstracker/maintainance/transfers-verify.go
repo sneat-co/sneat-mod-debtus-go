@@ -138,7 +138,7 @@ func (*verifyTransfers) verifyTransferCurrency(c context.Context, transfer model
 	}
 	if currency != "" {
 		if err = nds.RunInTransaction(c, func(c context.Context) error {
-			if transfer, err = facade.GetTransferByID(c, transfer.ID); err != nil {
+			if transfer, err = facade.Transfers.GetTransferByID(c, transfer.ID); err != nil {
 				return errors.WithMessage(err, "failed to get transfer by ID"+strconv.FormatInt(transfer.ID, 10))
 			}
 			if transfer.Currency != currency {

@@ -34,7 +34,7 @@ var AskEmailForReceiptCommand = bots.Command{
 		if err != nil {
 			return m, err
 		}
-		transfer, err := facade.GetTransferByID(c, transferID)
+		transfer, err := facade.Transfers.GetTransferByID(c, transferID)
 		if err != nil {
 			return m, err
 		}

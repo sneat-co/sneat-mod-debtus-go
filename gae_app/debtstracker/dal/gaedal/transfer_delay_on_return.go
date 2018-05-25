@@ -64,7 +64,7 @@ func updateTransferOnReturn(c context.Context, returnTransferID, transferID int6
 
 	var transfer, returnTransfer models.Transfer
 
-	if returnTransfer, err = facade.GetTransferByID(c, returnTransferID); err != nil {
+	if returnTransfer, err = facade.Transfers.GetTransferByID(c, returnTransferID); err != nil {
 		if db.IsNotFound(err) {
 			log.Errorf(c, errors.WithMessage(err, "return transfer not found").Error())
 			err = nil
@@ -72,7 +72,7 @@ func updateTransferOnReturn(c context.Context, returnTransferID, transferID int6
 		return
 	}
 
-	if transfer, err = facade.GetTransferByID(c, transferID); err != nil {
+	if transfer, err = facade.Transfers.GetTransferByID(c, transferID); err != nil {
 		return
 	}
 	var txOptions db.RunOptions
@@ -83,7 +83,7 @@ func updateTransferOnReturn(c context.Context, returnTransferID, transferID int6
 	}
 
 	return dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if transfer, err = facade.GetTransferByID(c, transferID); err != nil {
+		if transfer, err = facade.Transfers.GetTransferByID(c, transferID); err != nil {
 			if db.IsNotFound(err) {
 				log.Errorf(c, err.Error())
 				err = nil

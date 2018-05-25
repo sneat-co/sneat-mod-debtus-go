@@ -62,7 +62,7 @@ func InlineSendReceipt(whc bots.WebhookContext) (m bots.MessageFromBot, err erro
 		return m, err
 	}
 	var transfer models.Transfer
-	transfer, err = facade.GetTransferByID(c, transferID)
+	transfer, err = facade.Transfers.GetTransferByID(c, transferID)
 	if err != nil {
 		log.Infof(c, "Faield to get transfer by ID: %v", transferID)
 		return m, err
@@ -158,7 +158,7 @@ func OnInlineChosenCreateReceipt(whc bots.WebhookContext, inlineMessageID string
 	creator := whc.GetSender()
 	creatorName := fmt.Sprintf("%v %v", creator.GetFirstName(), creator.GetLastName())
 
-	transfer, err := facade.GetTransferByID(c, transferID)
+	transfer, err := facade.Transfers.GetTransferByID(c, transferID)
 	if err != nil {
 		return m, err
 	}

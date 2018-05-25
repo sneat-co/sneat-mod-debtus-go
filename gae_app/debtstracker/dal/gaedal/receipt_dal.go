@@ -81,7 +81,7 @@ func (receiptDalGae ReceiptDalGae) MarkReceiptAsSent(c context.Context, receiptI
 			if receipt, err = receiptDalGae.GetReceiptByID(c, receiptID); err != nil {
 				return err
 			}
-			if transfer, err = facade.GetTransferByID(c, transferID); err != nil {
+			if transfer, err = facade.Transfers.GetTransferByID(c, transferID); err != nil {
 				return err
 			}
 			transferKey = NewTransferKey(c, transferID)

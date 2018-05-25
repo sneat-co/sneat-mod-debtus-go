@@ -114,7 +114,7 @@ var AskPhoneNumberForReceiptCommand = bots.Command{
 		if transferID, err := strconv.ParseInt(awaitingUrl.Query().Get(WIZARD_PARAM_TRANSFER), 10, 64); err != nil {
 			return m, errors.WithMessage(err, fmt.Sprintf("Failed to parse transferID: %v", awaitingUrl))
 		} else {
-			transfer, err := facade.GetTransferByID(c, transferID)
+			transfer, err := facade.Transfers.GetTransferByID(c, transferID)
 			if err != nil {
 				return m, errors.WithMessage(err, "Failed to get transfer by ID")
 			}
@@ -136,7 +136,7 @@ func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact,
 	c := whc.Context()
 
 	if transfer.TransferEntity == nil {
-		if transfer, err = facade.GetTransferByID(c, transfer.ID); err != nil {
+		if transfer, err = facade.Transfers.GetTransferByID(c, transfer.ID); err != nil {
 			return m, err
 		}
 	}

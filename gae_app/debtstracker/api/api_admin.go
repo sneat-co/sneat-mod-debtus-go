@@ -139,7 +139,7 @@ var delayedChangeTransferCounterparty = delay.Func("changeTransferCounterparty",
 		return err
 	}
 	err := dal.DB.RunInTransaction(c, func(c context.Context) error {
-		transfer, err := facade.GetTransferByID(c, transferID)
+		transfer, err := facade.Transfers.GetTransferByID(c, transferID)
 		if err != nil {
 			return err
 		}

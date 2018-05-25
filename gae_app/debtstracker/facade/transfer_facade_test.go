@@ -128,7 +128,7 @@ func TestCreateTransfer(t *testing.T) {
 			t.Error("transfer.Contact().ContactName is empty string")
 		}
 
-		transfer2, err := GetTransferByID(c, transfer.ID)
+		transfer2, err := Transfers.GetTransferByID(c, transfer.ID)
 		if err != nil {
 			t.Error(errors.Wrapf(err, "Failed to get transfer by id=%v", transfer.ID))
 			return
@@ -529,7 +529,7 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 			}
 			for j, expectedTransfer := range step.expects.transfers {
 				var previousTransfer models.Transfer
-				if previousTransfer, err = GetTransferByID(c, testCase.steps[j].createdTransferID); err != nil {
+				if previousTransfer, err = Transfers.GetTransferByID(c, testCase.steps[j].createdTransferID); err != nil {
 					t.Fatalf("step #%v: %v",
 						i+1, err)
 					break

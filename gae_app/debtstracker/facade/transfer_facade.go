@@ -18,9 +18,16 @@ import (
 )
 
 const (
-	USER_BALANCE_INCREASED = 1
-	USER_BALANCE_DECREASED = -1
+	userBalanceIncreased = 1
+	userBalanceDecreased = -1
 )
+
+type TransfersFacade interface {
+	GetTransferByID(c context.Context, id int64) (transfer models.Transfer, err error)
+	SaveTransfer(c context.Context, transfer models.Transfer) error
+	CreateTransfer(c context.Context, input createTransferInput) (output createTransferOutput, err error)
+	UpdateTransferOnReturn(c context.Context, returnTransfer, transfer models.Transfer, returnedAmount decimal.Decimal64p2) (err error)
+}
 
 var (
 	ErrNotImplemented                      = errors.New("not implemented yet")
@@ -53,7 +60,7 @@ func TransferCounterparties(direction models.TransferDirection, creatorInfo mode
 type transferFacade struct {
 }
 
-var Transfers = transferFacade{}
+var Transfers TransfersFacade = transferFacade{}
 
 func (transferFacade) SaveTransfer(c context.Context, transfer models.Transfer) error {
 	return dal.DB.Update(c, &transfer)
@@ -289,7 +296,7 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 	}
 	if input.ReturnToTransferID != 0 {
 		var transferToReturn models.Transfer
-		if transferToReturn, err = GetTransferByID(c, input.ReturnToTransferID); err != nil {
+		if transferToReturn, err = Transfers.GetTransferByID(c, input.ReturnToTransferID); err != nil {
 			err = errors.Wrapf(err, "Failed to get returnToTransferID=%v", input.ReturnToTransferID)
 			return
 		}
@@ -813,7 +820,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 	return
 }
 
-func GetTransferByID(c context.Context, id int64) (transfer models.Transfer, err error) {
+func (transferFacade) GetTransferByID(c context.Context, id int64) (transfer models.Transfer, err error) {
 	transfer.ID = id
 	err = dal.DB.Get(c, &transfer)
 	return
@@ -834,29 +841,67 @@ func (transferFacade) updateUserAndCounterpartyWithTransferInfo(
 	var val decimal.Decimal64p2
 	switch user.ID {
 	case transfer.From().UserID:
-		val = amount.Value * USER_BALANCE_INCREASED
+		val = amount.Value * userBalanceIncreased
 	case transfer.To().UserID:
-		val = amount.Value * USER_BALANCE_DECREASED
+		val = amount.Value * userBalanceDecreased
 	default:
 		panic(fmt.Sprintf("user is not related to transfer: %v", user.ID))
 	}
-	curr := amount.Currency
+	log.Debugf(c, "Updating balance with [%v %v] for user #%d, contact #%d", val, amount.Currency, user.ID, contact.ID)
 
-	contact.LastTransferID = transfer.ID
-	contact.LastTransferAt = transfer.DtCreated
+	if err = updateContactWithTransferInfo(c, val, transfer, contact, closedTransferIDs); err != nil {
+		return
+	}
+	if err = updateUserWithTransferInfo(c, val, transfer, user, contact, closedTransferIDs); err != nil {
+		return
+	}
+	return
+}
 
+func updateUserWithTransferInfo(
+	c context.Context,
+	val decimal.Decimal64p2,
+	// curr models.Currency,
+	transfer models.Transfer,
+	user models.AppUser,
+	contact models.Contact,
+	// contact models.Contact,
+	closedTransferIDs []int64,
+) (err error) {
 	user.LastTransferID = transfer.ID
 	user.LastTransferAt = transfer.DtCreated
 	user.SetLastCurrency(string(transfer.Currency))
 
 	// var updateBalanceAndContactTransfersInfo = func(curr models.Currency, val decimal.Decimal64p2, user models.AppUser, contact models.Contact) (err error) {
-	log.Debugf(c, "Updating balance with [%v %v] for user #%d, contact #%d", val, curr, user.ID, contact.ID)
-	if user.ID != contact.UserID {
-		panic("user.ID != contact.UserID")
-	}
+
 	var balance models.Balance
-	if balance, err = contact.AddToBalance(curr, val); err != nil {
-		err = errors.Wrapf(err, "Failed to add (%v %v) to balance for contact #%d", curr, val, contact.ID)
+	if balance, err = user.AddToBalance(transfer.Currency, val); err != nil {
+		err = errors.WithMessage(err, fmt.Sprintf("failed to add %v=%v to balance for user %v", transfer.Currency, val, user.ID))
+		return
+	} else {
+		user.CountOfTransfers += 1
+		userBalance := user.Balance()
+		log.Debugf(c, "Updated balance to %v | %v for user #%d", balance, userBalance, user.ID)
+	}
+	log.Debugf(c, "user.ContactsJsonActive (before): %v\ncontact: %v", user.ContactsJsonActive, litter.Sdump(contact))
+	_, userContactsChanged := user.AddOrUpdateContact(contact)
+	log.Debugf(c, "user.ContactsJson (changed=%v): %v", userContactsChanged, user.ContactsJsonActive)
+	return
+}
+
+func updateContactWithTransferInfo(
+	c context.Context,
+	val decimal.Decimal64p2,
+	transfer models.Transfer,
+	contact models.Contact,
+	closedTransferIDs []int64,
+) (err error) {
+	contact.LastTransferID = transfer.ID
+	contact.LastTransferAt = transfer.DtCreated
+
+	var balance models.Balance
+	if balance, err = contact.AddToBalance(transfer.Currency, val); err != nil {
+		err = errors.Wrapf(err, "Failed to add (%v %v) to balance for contact #%d", transfer.Currency, val, contact.ID)
 		return
 	} else {
 		contact.CountOfTransfers += 1
@@ -921,18 +966,6 @@ func (transferFacade) updateUserAndCounterpartyWithTransferInfo(
 			return
 		}
 	}
-
-	if balance, err = user.AddToBalance(curr, val); err != nil {
-		err = errors.WithMessage(err, fmt.Sprintf("failed to add %v=%v to balance for user %v", curr, val, user.ID))
-		return
-	} else {
-		user.CountOfTransfers += 1
-		userBalance := user.Balance()
-		log.Debugf(c, "Updated balance to %v | %v for user #%d", balance, userBalance, user.ID)
-	}
-	log.Debugf(c, "user.ContactsJsonActive (before): %v\ncontact: %v", user.ContactsJsonActive, litter.Sdump(contact))
-	_, userContactsChanged := user.AddOrUpdateContact(contact)
-	log.Debugf(c, "user.ContactsJson (changed=%v): %v", userContactsChanged, user.ContactsJsonActive)
 	return
 }
 

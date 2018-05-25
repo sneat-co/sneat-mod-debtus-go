@@ -43,7 +43,7 @@ func ShowReceipt(whc bots.WebhookContext, receiptID int64) (m bots.MessageFromBo
 		return
 	}
 
-	transfer, err := facade.GetTransferByID(c, receipt.TransferID)
+	transfer, err := facade.Transfers.GetTransferByID(c, receipt.TransferID)
 	if err != nil {
 		return m, err
 	}
@@ -198,7 +198,7 @@ func viewReceiptCallbackAction(whc bots.WebhookContext, callbackUrl *url.URL) (m
 //			if transferID, err = invite.RelatedIntID(); err != nil {
 //				return
 //			}
-//			if transfer, err = facade.GetTransferByID(c, transferID); err != nil {
+//			if transfer, err = facade.Transfers.GetTransferByID(c, transferID); err != nil {
 //				return
 //			}
 //			sender := whc.GetSender()

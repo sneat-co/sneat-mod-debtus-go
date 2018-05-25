@@ -32,7 +32,7 @@ func CheckTransferCreatorNameAndFixIfNeeded(c context.Context, w http.ResponseWr
 		}
 
 		if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-			if transfer, err = GetTransferByID(c, transfer.ID); err != nil {
+			if transfer, err = Transfers.GetTransferByID(c, transfer.ID); err != nil {
 				return err
 			}
 			if transfer.Creator().UserName == "" {

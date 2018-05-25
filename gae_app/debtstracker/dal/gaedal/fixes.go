@@ -74,7 +74,7 @@ func (f *TransferFixter) needFixes(c context.Context) bool {
 func (f *TransferFixter) FixAllIfNeeded(c context.Context) (err error) {
 	if f.needFixes(c) {
 		err = dal.DB.RunInTransaction(c, func(tc context.Context) error {
-			transfer, err := facade.GetTransferByID(tc, f.transferKey.IntID())
+			transfer, err := facade.Transfers.GetTransferByID(tc, f.transferKey.IntID())
 			if err != nil {
 				return err
 			}

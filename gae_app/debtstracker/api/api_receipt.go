@@ -70,7 +70,7 @@ func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	transfer, err := facade.GetTransferByID(c, receipt.TransferID)
+	transfer, err := facade.Transfers.GetTransferByID(c, receipt.TransferID)
 	if hasError(c, w, err, models.TransferKind, receipt.TransferID, http.StatusInternalServerError) {
 		return
 	}
@@ -182,7 +182,7 @@ func handleSendReceipt(c context.Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	transfer, err := facade.GetTransferByID(c, receipt.TransferID)
+	transfer, err := facade.Transfers.GetTransferByID(c, receipt.TransferID)
 	if err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
@@ -219,7 +219,7 @@ func updateReceiptAndTransferOnSent(c context.Context, receiptID int64, channel,
 			return err
 		}
 		if receipt.SentVia == RECEIPT_CHANNEL_DRAFT {
-			if transfer, err = facade.GetTransferByID(c, receipt.TransferID); err != nil {
+			if transfer, err = facade.Transfers.GetTransferByID(c, receipt.TransferID); err != nil {
 				return err
 			}
 			receipt.DtSent = time.Now()
@@ -335,7 +335,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 		w.Write([]byte("Missing transfer parameter"))
 		return
 	}
-	transfer, err := facade.GetTransferByID(c, transferID)
+	transfer, err := facade.Transfers.GetTransferByID(c, transferID)
 	if err != nil {
 		if db.IsNotFound(err) {
 			w.WriteHeader(http.StatusBadRequest)

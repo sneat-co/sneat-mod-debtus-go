@@ -199,7 +199,7 @@ func processReturnCommand(whc bots.WebhookContext, returnValue decimal.Decimal64
 
 	if transferID != 0 && returnValue > 0 {
 		var transfer models.Transfer
-		if transfer, err = facade.GetTransferByID(whc.Context(), transferID); err != nil {
+		if transfer, err = facade.Transfers.GetTransferByID(whc.Context(), transferID); err != nil {
 			return
 		}
 

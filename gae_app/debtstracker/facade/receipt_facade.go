@@ -247,7 +247,7 @@ func getReceiptTransferAndUsers(c context.Context, receiptID, userID int64) (
 		return
 	}
 
-	if transfer, err = GetTransferByID(c, receipt.TransferID); err != nil {
+	if transfer, err = Transfers.GetTransferByID(c, receipt.TransferID); err != nil {
 		return
 	}
 

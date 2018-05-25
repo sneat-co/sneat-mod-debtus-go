@@ -119,7 +119,7 @@ var delayedUpdateTransferWithCounterparty = delay.Func(DELAY_UPDATE_1_TRANSFER_W
 		log.Debugf(c, "counterpartyUser: %v", *counterpartyUser.AppUserEntity)
 
 		if err := dal.DB.RunInTransaction(c, func(tc context.Context) error {
-			transfer, err := facade.GetTransferByID(tc, transferID)
+			transfer, err := facade.Transfers.GetTransferByID(tc, transferID)
 			if err != nil {
 				return err
 			}
@@ -245,7 +245,7 @@ var delayedUpdateTransfersWithCreatorName = delay.Func(UPDATE_TRANSFERS_WITH_CRE
 		go func(transferID int64) {
 			defer wg.Done()
 			err := dal.DB.RunInTransaction(c, func(c context.Context) error {
-				transfer, err := facade.GetTransferByID(c, transferID)
+				transfer, err := facade.Transfers.GetTransferByID(c, transferID)
 				if err != nil {
 					return err
 				}

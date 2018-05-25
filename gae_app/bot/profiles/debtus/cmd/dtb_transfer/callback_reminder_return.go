@@ -47,7 +47,7 @@ func ProcessReturnAnswer(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.
 	}
 
 	howMuch := q.Get("how-much")
-	transfer, err := facade.GetTransferByID(c, transferID)
+	transfer, err := facade.Transfers.GetTransferByID(c, transferID)
 	if err != nil {
 		return m, err
 	}
@@ -84,7 +84,7 @@ var EnableReminderAgainCallbackCommand = bots.NewCallbackCommand(commandCodeEnab
 		return
 	}
 
-	if transfer, err = facade.GetTransferByID(c, transfer.ID); err != nil {
+	if transfer, err = facade.Transfers.GetTransferByID(c, transfer.ID); err != nil {
 		return
 	}
 
@@ -237,7 +237,7 @@ var SetNextReminderDateCallbackCommand = bots.Command{
 		if err != nil {
 			return m, errors.Wrap(err, "Failed to get reminder by id")
 		}
-		transfer, err := facade.GetTransferByID(c, reminder.TransferID)
+		transfer, err := facade.Transfers.GetTransferByID(c, reminder.TransferID)
 		if err != nil {
 			return m, errors.Wrap(err, "Failed to get transfer by id")
 		}

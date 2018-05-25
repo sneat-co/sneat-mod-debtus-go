@@ -27,7 +27,7 @@ func (m *migrateTransfers) migrateTransfer(c context.Context, counters *asyncCou
 		return
 	}
 	if err = datastore.RunInTransaction(c, func(tc context.Context) (err error) {
-		if transfer, err = facade.GetTransferByID(c, transfer.ID); err != nil {
+		if transfer, err = facade.Transfers.GetTransferByID(c, transfer.ID); err != nil {
 			return
 		}
 		if transfer.HasObsoleteProps() {

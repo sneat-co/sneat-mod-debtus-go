@@ -163,7 +163,7 @@ func fixTransfersIsOutstanding(c context.Context, transferIDs []int64) (err erro
 
 func fixTransferIsOutstanding(c context.Context, transferID int64) (transfer models.Transfer, err error) {
 	err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-		if transfer, err = facade.GetTransferByID(c, transferID); err != nil {
+		if transfer, err = facade.Transfers.GetTransferByID(c, transferID); err != nil {
 			return err
 		}
 		if transfer.GetOutstandingValue(time.Now()) == 0 {

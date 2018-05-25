@@ -53,7 +53,7 @@ func sendReminder(c context.Context, reminderID int64) error {
 		return nil
 	}
 
-	transfer, err := facade.GetTransferByID(c, reminder.TransferID)
+	transfer, err := facade.Transfers.GetTransferByID(c, reminder.TransferID)
 	if err != nil {
 		if db.IsNotFound(err) {
 			log.Errorf(c, err.Error())

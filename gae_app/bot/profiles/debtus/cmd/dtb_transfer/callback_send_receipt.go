@@ -37,7 +37,7 @@ func CallbackSendReceipt(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.
 	if err != nil {
 		return m, errors.Wrap(err, "Faield to decode transferID to int")
 	}
-	transfer, err = facade.GetTransferByID(c, transferID)
+	transfer, err = facade.Transfers.GetTransferByID(c, transferID)
 	if err != nil {
 		return m, errors.Wrap(err, "Failed to get transfer by ID")
 	}
