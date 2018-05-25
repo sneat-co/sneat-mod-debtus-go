@@ -9,7 +9,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/crediterra/go-interest"
-	is2 "github.com/matryer/is"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/platforms/telegram"
@@ -157,200 +156,6 @@ func TestCreateTransfer(t *testing.T) {
 	}
 }
 
-func TestCreateTransfer_GaveGotAndFullReturn(t *testing.T) {
-	c := context.TODO()
-	dtmocks.SetupMocks(c)
-	assert := assertHelper{t: t}
-	is := is2.New(t)
-	currency := models.CURRENCY_EUR
-
-	const (
-		zero      int64 = 0
-		userID    int64 = 1
-		contactID int64 = 2
-	)
-
-	var (
-		output     createTransferOutput
-		t1, t2, t3 models.Transfer
-		err        error
-	)
-
-	creatorUser, err := User.GetUserByID(c, userID)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	source := dal.NewTransferSourceBot(telegram.PlatformID, "test-bot", "444")
-
-	t1val := decimal.FromInt(10)
-	{ // Create 1st "gave" transfer
-		from := &models.TransferCounterpartyInfo{
-			UserID: userID,
-		}
-
-		to := &models.TransferCounterpartyInfo{
-			ContactID: contactID,
-		}
-
-		newTransfer := NewTransferInput(strongo.EnvLocal,
-			source,
-			creatorUser,
-			"",
-			false,
-			0,
-			from, to,
-			models.NewAmount(currency, t1val),
-			time.Now().Add(time.Minute), models.NoInterest())
-
-		output, err = Transfers.CreateTransfer(c, newTransfer)
-
-		if output, err = assert.OutputIsNilIfErr(output, err); err != nil {
-			t.Fatal(err)
-		}
-		t1 = output.Transfer
-		is.True(t1.ID != 0)
-		is.True(t1.IsOutstanding)
-		is.Equal(t1.AmountInCentsReturned, decimal.Decimal64p2(0))
-		is.Equal(t1.AmountInCents, t1val)
-		is.Equal(t1.GetOutstandingValue(time.Now()), t1val)
-		is.Equal(output.From.User.ID, userID)
-		is.Equal(output.To.Contact.ID, contactID)
-		is.Equal(output.From.Contact.ID, zero)
-		is.Equal(output.To.User.ID, zero)
-		is.Equal(output.To.Contact.BalanceCount, 1)
-		is.Equal(len(output.To.Contact.Balance()), 1)
-		is.Equal(output.From.User.BalanceCount, 1)
-		is.Equal(len(output.From.User.Balance()), 1)
-		is.Equal(output.From.User.Balance()[currency], t1val)
-		is.Equal(output.To.Contact.Balance()[currency], t1val)
-
-		is.Equal(output.From.User.ContactsCountActive, 1)
-		is.Equal(len(output.From.User.ActiveContacts()), 1)
-		is.Equal(len(output.From.User.ActiveContacts()[0].Balance()), 1)
-	}
-
-	creatorUser = output.From.User
-
-	t2val := decimal.NewDecimal64p2FromFloat64(17.00)
-	{ // Create 2nd got transfer
-		from := &models.TransferCounterpartyInfo{
-			ContactID: contactID,
-		}
-
-		to := &models.TransferCounterpartyInfo{
-			UserID: userID,
-		}
-
-		newTransfer := NewTransferInput(strongo.EnvLocal,
-			source,
-			creatorUser,
-			"",
-			false,
-			0,
-			from, to,
-			models.NewAmount(currency, t2val),
-			time.Now().Add(time.Minute), models.NoInterest())
-
-		output, err = Transfers.CreateTransfer(c, newTransfer)
-
-		if output, err = assert.OutputIsNilIfErr(output, err); err != nil {
-			t.Fatal(err)
-			return
-		}
-
-		t2 = output.Transfer
-		is.True(t2.ID != zero)
-		is.Equal(output.To.Contact.ID, zero)
-		is.Equal(output.From.User.ID, zero)
-		is.True(!t1.IsOutstanding) // 1st transfer should be closed
-		is.True(t2.IsOutstanding)  // 2nd transfer should be outstanding
-		is.Equal(t2.AmountInCents, t2val)
-		is.Equal(t2.AmountInCentsReturned, t1val)
-		is.Equal(t1.AmountInCentsReturned, t1val)
-
-		{
-			toUser := output.To.User
-			is.Equal(toUser.ID, userID)
-			is.Equal(toUser.BalanceCount, 1)
-			is.Equal(len(toUser.Balance()), 1)
-			is.Equal(toUser.Balance()[currency], decimal.NewDecimal64p2FromFloat64(-7.00))
-		}
-		{
-			fromContact := output.From.Contact
-			is.Equal(fromContact.ID, contactID)
-			is.Equal(fromContact.BalanceCount, 1)
-			is.Equal(len(fromContact.Balance()), 1)
-			is.Equal(fromContact.Balance()[currency], decimal.NewDecimal64p2FromFloat64(-7.00))
-		}
-	}
-
-	if t1, err = GetTransferByID(c, t1.ID); err != nil {
-		t.Fatal(err)
-	}
-	if t2, err = GetTransferByID(c, t2.ID); err != nil {
-		t.Fatal(err)
-	}
-
-	t3val := decimal.NewDecimal64p2FromFloat64(7.00)
-	{ // Create 3d transfer - full return
-		from := &models.TransferCounterpartyInfo{
-			UserID: userID,
-		}
-
-		to := &models.TransferCounterpartyInfo{
-			ContactID: contactID,
-		}
-
-		newTransfer := NewTransferInput(strongo.EnvLocal,
-			source,
-			creatorUser,
-			"",
-			true,
-			0,
-			from, to,
-			models.NewAmount(currency, t3val),
-			time.Now().Add(time.Minute), models.NoInterest())
-
-		output, err = Transfers.CreateTransfer(c, newTransfer)
-		if output, err = assert.OutputIsNilIfErr(output, err); err != nil {
-			t.Errorf(err.Error())
-			return
-		}
-		t3 = output.Transfer
-		is.True(t3.ID != zero)
-		is.Equal(output.From.User.ID, userID)
-		is.Equal(output.To.Contact.ID, contactID)
-		is.Equal(output.From.Contact.ID, zero)
-		is.Equal(output.To.User.ID, zero)
-
-		{
-			fromUser := output.From.User
-			is.Equal(fromUser.BalanceCount, 0)
-			is.Equal(len(fromUser.Balance()), 0)
-		}
-		{
-			toContact := output.To.Contact
-			is.Equal(toContact.BalanceCount, 0)
-			is.Equal(len(toContact.Balance()), 0)
-		}
-
-		is.True(!t1.IsOutstanding)
-		is.True(!t2.IsOutstanding)
-		is.True(!t3.IsOutstanding)
-
-		is.Equal(t2.AmountInCentsReturned, t2val) // t2.AmountInCentsReturned
-		is.Equal(t2.GetOutstandingValue(time.Now()), decimal.FromInt(0))
-
-		is.Equal(t3.AmountInCentsReturned, decimal.FromInt(7)) // t3.AmountInCentsReturned
-		is.Equal(t3.GetOutstandingValue(time.Now()), decimal.FromInt(0))
-	}
-
-	// println("t1", t1.String())
-	// println("t2", t2.String())
-	// println("t3", t3.String())
-}
-
 func Test_removeClosedTransfersFromOutstandingWithInterest(t *testing.T) {
 	transfersWithInterest := []models.TransferWithInterestJson{
 		{TransferID: 1},
@@ -385,11 +190,15 @@ type createTransferStepInput struct {
 }
 
 type createTransferStepExpects struct {
-	isExpectedError func(error) bool
-	balance         decimal.Decimal64p2
-	amountReturned  decimal.Decimal64p2
-	returns         models.TransferReturns
-	transfers       []transferExpectedState
+	isExpectedError func(error) bool // in case of error rest are no validated
+
+	balance        decimal.Decimal64p2
+	amountReturned decimal.Decimal64p2
+	isOutstanding  bool
+
+	// we should have both `returns` and `transfers` properties to assert partial returns
+	returns   models.TransferReturns
+	transfers []transferExpectedState
 }
 
 type createTransferStep struct {
@@ -401,7 +210,7 @@ type createTransferStep struct {
 type transferExpectedState struct {
 	stepIndex      int
 	isOutstanding  bool
-	AmountReturned decimal.Decimal64p2
+	amountReturned decimal.Decimal64p2
 }
 
 func TestCreateTransfers(t *testing.T) {
@@ -412,12 +221,14 @@ func TestCreateTransfers(t *testing.T) {
 	expects := func(
 		balance decimal.Decimal64p2,
 		amountReturned decimal.Decimal64p2,
+		isOutstanding bool,
 		returns models.TransferReturns,
 		transfers []transferExpectedState,
 	) createTransferStepExpects {
 		return createTransferStepExpects{
 			balance:        balance,
 			amountReturned: amountReturned,
+			isOutstanding:  isOutstanding,
 			returns:        returns,
 			transfers:      transfers,
 		}
@@ -439,7 +250,7 @@ func TestCreateTransfers(t *testing.T) {
 						amount:    10,
 						time:      dayHour(1, 1),
 					},
-					expects: expects(10, 0, nil, nil),
+					expects: expects(10, 0, true, nil, nil),
 				},
 				{
 					input: createTransferStepInput{
@@ -460,23 +271,68 @@ func TestCreateTransfers(t *testing.T) {
 			},
 		},
 		{
-			name: "same_day_no_interests_2_give_1_over-return",
+			name: "Same time, full return",
+			steps: []createTransferStep{
+				{
+					input: createTransferStepInput{
+						direction: models.TransferDirectionUser2Counterparty,
+						amount:    11,
+						time:      dayHour(1, 1),
+					},
+					expects: expects(11, 0, true, nil, nil),
+				},
+				{
+					input: createTransferStepInput{
+						direction: models.TransferDirectionCounterparty2User,
+						amount:    11,
+						time:      dayHour(1, 2),
+					},
+					expects: expects(0, 11, false,
+						models.TransferReturns{
+							{Amount: 11},
+						},
+						[]transferExpectedState{
+							{stepIndex: 0, isOutstanding: false, amountReturned: 11},
+						},
+					),
+				},
+			},
+		},
+		{
+			name: "No interest: 2_gives, 1 under-return, 1 over-return",
 			steps: []createTransferStep{
 				{
 					input: createTransferStepInput{
 						direction: models.TransferDirectionUser2Counterparty,
 						amount:    10,
-						time:      dayHour(1, 1)},
-					expects: expects(10, 0, nil, nil),
+						time:      dayHour(1, 1),
+					},
+					expects: expects(10, 0, true, nil, nil),
 				},
 				{
 					input: createTransferStepInput{
 						direction: models.TransferDirectionUser2Counterparty,
 						amount:    15,
-						time:      dayHour(1, 2)},
-					expects: expects(25, 0, nil,
+						time:      dayHour(1, 2),
+					},
+					expects: expects(25, 0, true, nil,
 						[]transferExpectedState{
-							{isOutstanding: true, AmountReturned: 0},
+							{isOutstanding: true, amountReturned: 0},
+						}),
+				},
+				{
+					input: createTransferStepInput{
+						isReturn:  false,
+						direction: models.TransferDirectionCounterparty2User,
+						amount:    7,
+						time:      dayHour(1, 3),
+					},
+					expects: expects(18, 7, false,
+						models.TransferReturns{
+							{Amount: 7},
+						},
+						[]transferExpectedState{
+							{stepIndex: 0, amountReturned: 7, isOutstanding: true},
 						}),
 				},
 				{
@@ -484,15 +340,16 @@ func TestCreateTransfers(t *testing.T) {
 						isReturn:  false,
 						direction: models.TransferDirectionCounterparty2User,
 						amount:    30,
-						time:      dayHour(1, 3)},
-					expects: expects(-5, 25,
+						time:      dayHour(1, 4),
+					},
+					expects: expects(-12, 18, true,
 						models.TransferReturns{
-							{Amount: 10},
+							{Amount: 3},
 							{Amount: 15},
 						},
 						[]transferExpectedState{
-							{stepIndex: 0, AmountReturned: 10, isOutstanding: false},
-							{stepIndex: 1, AmountReturned: 15, isOutstanding: false},
+							{stepIndex: 0, amountReturned: 10, isOutstanding: false},
+							{stepIndex: 1, amountReturned: 15, isOutstanding: false},
 						}),
 				},
 			},
@@ -574,7 +431,7 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 		// =============================================================
 		if output, err = assert.OutputIsNilIfErr(output, err); err != nil {
 			if step.expects.isExpectedError(err) {
-				//t.Logf("step #%v: got expected error: %v", i+1, err)
+				// t.Logf("step #%v: got expected error: %v", i+1, err)
 				continue
 			}
 			t.Errorf(err.Error())
@@ -595,22 +452,22 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 			creatorUser = output.To.User
 			contact = output.From.Contact
 		}
-		breakSteps := false
+		if output.Transfer.IsOutstanding != step.expects.isOutstanding {
+			t.Errorf("step #%v: Expected transfer.IsOutstanding does not match actual: expected:%v != got:%v",
+				i+1, step.expects.isOutstanding, output.Transfer.IsOutstanding)
+		}
 		if balance := creatorUser.Balance()[currency]; balance != step.expects.balance {
 			t.Errorf("step #%v: Expected user balance does not match actual: expected:%v != got:%v",
 				i+1, step.expects.balance, balance)
-			breakSteps = true
 		}
 		userContact := creatorUser.ContactsByID()[contact.ID]
 		if balance := userContact.Balance()[currency]; balance != step.expects.balance {
 			t.Errorf("step #%v: Expected userContact balance does not match actual: expected:%v != got:%v",
 				i+1, step.expects.balance, balance)
-			breakSteps = true
 		}
 		if balance := contact.Balance()[currency]; balance != step.expects.balance {
 			t.Errorf("step #%v: Expected contact balance does not match actual: expected:%v != got:%v",
 				i+1, step.expects.balance, balance)
-			breakSteps = true
 		}
 		{ // verify balance counts
 			var expectedBalanceCount int
@@ -621,12 +478,10 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 			if balanceCount := len(userContact.Balance()); balanceCount != expectedBalanceCount {
 				t.Errorf("step #%v: Expected userContact len(balance) does not match actual: expected:%v != got:%v",
 					i+1, expectedBalanceCount, balanceCount)
-				breakSteps = true
 			}
 			if balanceCount := len(creatorUser.Balance()); balanceCount != expectedBalanceCount {
 				t.Errorf("step #%v: Expected creatorUser len(balance) does not match actual: expected:%v != got:%v",
 					i+1, expectedBalanceCount, balanceCount)
-				breakSteps = true
 			}
 		}
 
@@ -638,17 +493,14 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 		if balance := dbContact.Balance()[currency]; balance != step.expects.balance {
 			t.Errorf("step #%v: Expected contact balance does not match actual dbContact: expected:%v != got:%v",
 				i+1, step.expects.balance, balance)
-			breakSteps = true
 		}
 		if output.Transfer.AmountInCentsReturned != step.expects.amountReturned {
 			t.Errorf("step #%v: Expected transfer.AmountInCentsReturned does not match actual: expected:%v != got:%v",
 				i+1, step.expects.amountReturned, output.Transfer.AmountInCentsReturned)
-			breakSteps = true
 		}
 		if output.Transfer.ReturnsCount != len(step.expects.returns) {
 			t.Errorf("step #%v: Expected transfer.ReturnsCount does not match actual: expected:%v != got:%v",
 				i+1, len(step.expects.transfers), output.Transfer.ReturnsCount)
-			breakSteps = true
 		}
 		{ // Verify returns and previous transfers state
 			returns := output.Transfer.GetReturns()
@@ -668,12 +520,10 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 				if !isPreviousTransfer {
 					t.Errorf("step #%v: transfer.Returns[%v] references unknown transfer with ID=%v",
 						i+1, j, r.TransferID)
-					breakSteps = true
 				}
 				if r.Amount != step.expects.returns[j].Amount {
 					t.Errorf("step #%v: Expected transfer.Returns[%v] does not match actual: expected:%v != got:%v",
 						i+1, j, step.expects.returns[j].Amount, r.Amount)
-					breakSteps = true
 					break
 				}
 			}
@@ -682,24 +532,21 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 				if previousTransfer, err = GetTransferByID(c, testCase.steps[j].createdTransferID); err != nil {
 					t.Fatalf("step #%v: %v",
 						i+1, err)
-					breakSteps = true
 					break
 				}
 				if previousTransfer.IsOutstanding != expectedTransfer.isOutstanding {
 					t.Errorf("step #%v: previous transfer from step #%v is expected to have IsOutstanding=%v but got %v",
 						i+1, j+1, expectedTransfer.isOutstanding, previousTransfer.IsOutstanding)
-					breakSteps = true
 					break
 				}
-				if previousTransfer.AmountInCentsReturned != expectedTransfer.AmountReturned {
-					t.Errorf("step #%v: previous transfer from step #%v is expected to have AmountInCentsReturned=%v but got %v",
-						i+1, j+1, expectedTransfer.AmountReturned, previousTransfer.AmountInCentsReturned)
-					breakSteps = true
+				if previousTransfer.AmountInCentsReturned != expectedTransfer.amountReturned {
+					t.Errorf("step #%v: previous transfer from step #%v is expected to have AmountInCentsReturned=%v but got %v:\nTransfer: %+v",
+						i+1, j+1, expectedTransfer.amountReturned, previousTransfer.AmountInCentsReturned, previousTransfer)
 					break
 				}
 			}
 		}
-		if breakSteps {
+		if t.Failed() {
 			break
 		}
 	}
