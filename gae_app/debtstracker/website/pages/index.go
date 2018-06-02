@@ -45,13 +45,14 @@ var countryToLocale = map[string]string{
 var supportedLocales = []string{"ru", "es", "it", "fr", "fa", "de", "pl", "pt", "ko", "jp", "zh"}
 
 func IndexRootPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	c := appengine.NewContext(r)
+	log.Debugf(c, "IndexRootPage")
 
 	if r.URL.Path != "/" { // This handler should work just for a root path.
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	c := appengine.NewContext(r)
 
 	acceptLanguages := r.Header.Get("Accept-Language")
 	for _, acceptLanguage := range strings.Split(acceptLanguages, ";") {
@@ -91,7 +92,7 @@ func IndexRootPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) 
 		}
 	}
 
-	indexPage(appengine.NewContext(r), w, r)
+	indexPage(c, w, r)
 }
 
 var indexTmpl *template.Template
