@@ -55,7 +55,7 @@ func redirectToWebApp(w http.ResponseWriter, r *http.Request, authRequired bool,
 	for pn, pn2 := range p2p {
 		if pv := query.Get(pn); pv == "" {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Missing required parameter: " + pn))
+			w.Write([]byte("redirectToWebApp: missing required parameter: " + pn))
 			return
 		} else {
 			pv = url.QueryEscape(pv)
