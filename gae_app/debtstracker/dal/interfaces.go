@@ -287,8 +287,6 @@ type TgUserDal interface {
 //	CallDelayFunc(c context.Context, queueName, subPath, key string, f interface{}, args ...interface{}) error
 //}
 
-type ContextHandler func(c context.Context, w http.ResponseWriter, r *http.Request) // TODO: Should be somewhere else?
-
 var (
 	DB             db.Database
 	Contact        ContactDal
@@ -323,7 +321,7 @@ var (
 	HttpClient     func(c context.Context) *http.Client
 	BotHost        bots.BotHost
 	//TaskQueue		   TaskQueueDal
-	HandleWithContext func(handler ContextHandler) func(w http.ResponseWriter, r *http.Request)
+	HandleWithContext strongo.HandleWithContext
 )
 
 func InsertWithRandomStringID(c context.Context, entityHolder db.EntityHolder, idLen uint8) error {
