@@ -1070,7 +1070,7 @@ handle_ID:
 
 handle_Amount:
 
-	/* handler: j.Amount type=models.Amount kind=struct quoted=false*/
+	/* handler: j.Amount type= money.Amount kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -1832,7 +1832,7 @@ handle_Name:
 
 handle_Amount:
 
-	/* handler: j.Amount type=models.Amount kind=struct quoted=false*/
+	/* handler: j.Amount type=money.Amount kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -7815,7 +7815,7 @@ handle_Created:
 
 handle_Amount:
 
-	/* handler: j.Amount type=models.Amount kind=struct quoted=false*/
+	/* handler: j.Amount type=money.Amount kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {

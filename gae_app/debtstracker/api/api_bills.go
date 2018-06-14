@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
+	"github.com/crediterra/money"
 )
 
 func handleGetBill(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
@@ -64,7 +65,7 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 		SplitMode:     splitMode,
 		CreatorUserID: strconv.FormatInt(authInfo.UserID, 10),
 		Name:          r.PostFormValue("name"),
-		Currency:      models.Currency(r.PostFormValue("currency")),
+		Currency:      money.Currency(r.PostFormValue("currency")),
 		AmountTotal:   amount,
 	})
 
@@ -200,8 +201,8 @@ func billToResponse(c context.Context, w http.ResponseWriter, userID int64, bill
 	billDto := dto.BillDto{
 		ID:   bill.ID,
 		Name: bill.Name,
-		Amount: models.Amount{
-			Currency: models.Currency(bill.Currency),
+		Amount: money.Amount{
+			Currency: money.Currency(bill.Currency),
 			Value:    decimal.Decimal64p2(bill.AmountTotal),
 		},
 	}

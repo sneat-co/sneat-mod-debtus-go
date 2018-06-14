@@ -128,11 +128,11 @@ func (m *verifyTransfers) verifyTransferContacts(c context.Context, transfer mod
 }
 
 func (*verifyTransfers) verifyTransferCurrency(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
-	var currency models.Currency
-	if transfer.Currency == models.Currency("euro") {
-		currency = models.Currency("EUR")
+	var currency money.Currency
+	if transfer.Currency == money.Currency("euro") {
+		currency = money.Currency("EUR")
 	} else if len(transfer.Currency) == 3 {
-		if v2 := models.Currency(strings.ToUpper(string(transfer.Currency))); v2 != transfer.Currency && v2.IsMoney() {
+		if v2 := money.Currency(strings.ToUpper(string(transfer.Currency))); v2 != transfer.Currency && v2.IsMoney() {
 			currency = v2
 		}
 	}

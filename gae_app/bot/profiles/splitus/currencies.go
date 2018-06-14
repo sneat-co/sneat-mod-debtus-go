@@ -111,7 +111,7 @@ func groupSettingsSetCurrencyCommand(params shared_all.BotParams) bots.Command {
 	return bots.Command{
 		Code: GroupSettingsSetCurrencyCommandCode,
 		CallbackAction: shared_group.NewGroupCallbackAction(func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
-			currency := models.Currency(callbackUrl.Query().Get(CURRENCY_PARAM_NAME))
+			currency := money.Currency(callbackUrl.Query().Get(CURRENCY_PARAM_NAME))
 			if group.DefaultCurrency != currency {
 				c := whc.Context()
 				if err := dal.DB.RunInTransaction(c, func(c context.Context) (err error) {

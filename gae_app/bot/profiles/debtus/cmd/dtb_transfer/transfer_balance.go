@@ -33,7 +33,7 @@ func (m BalanceMessageBuilder) ByContact(c context.Context, linker common.Linker
 		return fmt.Sprintf(`<a href="%v">%v</a>`, linker.UrlToContact(userContactJson.ID), html.EscapeString(userContactJson.Name))
 	}
 
-	writeBalanceRow := func(userContactJson models.UserContactJson, b models.Balance, msg string) {
+	writeBalanceRow := func(userContactJson models.UserContactJson, b money.Balance, msg string) {
 		if len(b) > 0 {
 			amounts := b.CommaSeparatedUnsignedWithSymbols(translator)
 			msg = m.translator.Translate(msg)
@@ -81,7 +81,7 @@ func (m BalanceMessageBuilder) ByContact(c context.Context, linker common.Linker
 	return buffer.String()
 }
 
-func (m BalanceMessageBuilder) ByCurrency(isTotal bool, balance models.Balance) string {
+func (m BalanceMessageBuilder) ByCurrency(isTotal bool, balance money.Balance) string {
 	var buffer bytes.Buffer
 	translator := m.translator
 	if isTotal {
@@ -89,7 +89,7 @@ func (m BalanceMessageBuilder) ByCurrency(isTotal bool, balance models.Balance) 
 	}
 	debtByUser := balance.OnlyNegative()
 	debtToUser := balance.OnlyPositive()
-	commaSeparatedAmounts := func(prefix string, owed models.Balance) {
+	commaSeparatedAmounts := func(prefix string, owed money.Balance) {
 		if !owed.IsZero() {
 			buffer.WriteString(fmt.Sprintf(translator.Translate(prefix), owed.CommaSeparatedUnsignedWithSymbols(translator)) + "\n")
 		}
@@ -103,7 +103,7 @@ func (m BalanceMessageBuilder) ByCurrency(isTotal bool, balance models.Balance) 
 	return buffer.String()
 }
 
-func BalanceForCounterpartyWithHeader(counterpartyLink string, b models.Balance, translator strongo.SingleLocaleTranslator) string {
+func BalanceForCounterpartyWithHeader(counterpartyLink string, b money.Balance, translator strongo.SingleLocaleTranslator) string {
 	balanceMessageBuilder := NewBalanceMessageBuilder(translator)
 	header := fmt.Sprintf("<b>%v</b>: %v", translator.Translate(trans.MESSAGE_TEXT_BALANCE_HEADER), counterpartyLink)
 	return "\n" + header + common.HORIZONTAL_LINE + balanceMessageBuilder.ByCurrency(false, b) + common.HORIZONTAL_LINE

@@ -58,31 +58,31 @@ var CURRENCY_ICONS = []string{
 	emoji.SMOKING_ICON,
 }
 
-var currenciesByPriority = []models.Currency{
-	models.CURRENCY_EUR,
-	models.CURRENCY_USD,
-	models.CURRENCY_GBP,
-	models.CURRENCY_JPY,
-	models.CURRENCY_IRR,
-	models.CURRENCY_RUB,
+var currenciesByPriority = []money.Currency{
+	money.Currency_EUR,
+	money.Currency_USD,
+	money.Currency_GBP,
+	money.Currency_JPY,
+	money.Currency_IRR,
+	money.Currency_RUB,
 
-	models.CURRENCY_UAH,
-	models.CURRENCY_BYN,
-	models.CURRENCY_TJS,
-	models.CURRENCY_UZS,
-	models.Currency(emoji.CD_ICON),
-	models.Currency(emoji.BOOK_ICON),
-	models.Currency(emoji.BEER_ICON),
-	models.Currency(emoji.TEACUP_ICON),
-	models.Currency(emoji.HOURGLASS_ICON),
-	models.Currency(emoji.TAXI_ICON),
+	money.Currency_UAH,
+	money.Currency_BYN,
+	money.Currency_TJS,
+	money.Currency_UZS,
+	money.Currency(emoji.CD_ICON),
+	money.Currency(emoji.BOOK_ICON),
+	money.Currency(emoji.BEER_ICON),
+	money.Currency(emoji.TEACUP_ICON),
+	money.Currency(emoji.HOURGLASS_ICON),
+	money.Currency(emoji.TAXI_ICON),
 
-	models.Currency(emoji.BICYCLE_ICON),
-	models.Currency(emoji.HAMMER_ICON),
-	models.Currency(emoji.FORK_AND_KNIFE_ICON),
-	models.Currency(emoji.DRESS_ICON),
-	models.Currency(emoji.HIGH_HEELED_SHOES_ICON),
-	models.Currency(emoji.TSHIRT_ICON),
+	money.Currency(emoji.BICYCLE_ICON),
+	money.Currency(emoji.HAMMER_ICON),
+	money.Currency(emoji.FORK_AND_KNIFE_ICON),
+	money.Currency(emoji.DRESS_ICON),
+	money.Currency(emoji.HIGH_HEELED_SHOES_ICON),
+	money.Currency(emoji.TSHIRT_ICON),
 }
 
 func AskTransferCurrencyButtons(whc bots.WebhookContext) [][]string {
@@ -97,9 +97,9 @@ func AskTransferCurrencyButtons(whc bots.WebhookContext) [][]string {
 
 	var runesInRow int
 
-	var alreadyAddedCurrencies []models.Currency
+	var alreadyAddedCurrencies []money.Currency
 
-	addCurrencyAndNewLineIfNeeded := func(currency models.Currency) {
+	addCurrencyAndNewLineIfNeeded := func(currency money.Currency) {
 		result[row] = append(result[row], currency.SignAndCode())
 		runesInRow += utf8.RuneCountInString(currency.SignAndCode()) // TODO: Proper runes count
 		col += 1
@@ -116,12 +116,12 @@ func AskTransferCurrencyButtons(whc bots.WebhookContext) [][]string {
 	appUser := user.(*models.AppUserEntity)
 
 	for _, currency := range appUser.GetCurrencies() {
-		curr := models.Currency(currency)
+		curr := money.Currency(currency)
 		addCurrencyAndNewLineIfNeeded(curr)
 		alreadyAddedCurrencies = append(alreadyAddedCurrencies, curr)
 	}
 
-	alreadyAdded := func(currency models.Currency) bool {
+	alreadyAdded := func(currency money.Currency) bool {
 		for _, curr := range alreadyAddedCurrencies {
 			if curr == currency {
 				return true
@@ -193,7 +193,7 @@ func AskTransferAmountCommand(code, messageTextFormat string, nextCommand bots.C
 				//	if err != nil {
 				//		return m, err
 				//	}
-				//	amount := models.AmountTotal{Currency: models.Currency(params.Get("currency")), Value: amountValue}
+				//	amount :=  money.AmountTotal{Currency: money.Currency(params.Get("currency")), Value: amountValue}
 				//	messageText = fmt.Sprintf(messageText, amount)
 				//}
 				return m, fmt.Errorf("Command %v is incorrectly matched, whc.AwaitingReplyToPath(): %v", code, awaitingReplyToPath)
@@ -364,7 +364,7 @@ func listCounterpartiesAsButtons(whc bots.WebhookContext, user models.AppUser, i
 		if err != nil {
 			return m, err
 		}
-		amount := models.Amount{Currency: models.Currency(currency), Value: value}
+		amount :=  money.Amount{Currency: money.Currency(currency), Value: value}
 		m = whc.NewMessage(fmt.Sprintf(whc.Translate(messageText), amount))
 	} else {
 		m = whc.NewMessage(whc.Translate(messageText))
@@ -499,7 +499,7 @@ func TransferWizardCompletedCommand(code string) bots.Command {
 			}
 			value = value.Abs()
 			currencyCode := params.Get("currency")
-			currency := models.Currency(currencyCode)
+			currency := money.Currency(currencyCode)
 
 			var dueOn time.Time
 			due := params.Get("due")
@@ -523,7 +523,7 @@ func TransferWizardCompletedCommand(code string) bots.Command {
 				}
 			}
 
-			amount := models.Amount{Currency: currency, Value: value}
+			amount :=  money.Amount{Currency: currency, Value: value}
 
 			creatorInfo := models.TransferCounterpartyInfo{
 				UserID:      whc.AppUserIntID(),
@@ -566,7 +566,7 @@ func CreateTransferFromBot(
 	returnToTransferID int64,
 	direction models.TransferDirection,
 	creatorInfo models.TransferCounterpartyInfo,
-	amount models.Amount,
+	amount  money.Amount,
 	dueOn time.Time,
 	transferInterest models.TransferInterest,
 ) (

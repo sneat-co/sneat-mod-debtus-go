@@ -249,7 +249,7 @@ func days(t strongo.SingleLocaleTranslator, d int) string {
 	return t.Translate(messageTextToTranslate, d)
 }
 
-func (r receiptTextBuilder) translateAndFormatMessage(messageTextToTranslate string, amount models.Amount, utmParams UtmParams) string {
+func (r receiptTextBuilder) translateAndFormatMessage(messageTextToTranslate string, amount money.Amount, utmParams UtmParams) string {
 	userID := r.viewerUserID
 
 	counterpartyInfo := r.getReceiptCounterparty()

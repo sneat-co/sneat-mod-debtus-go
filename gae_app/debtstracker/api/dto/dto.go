@@ -42,7 +42,7 @@ type ApiUserDto struct {
 type ApiReceiptTransferDto struct {
 	// TODO: We are not replacing with TransferDto as it has From/To => Creator optimisation. Think if we can reuse.
 	ID             string `json:"ID"`
-	Amount         models.Amount
+	Amount          money.Amount
 	From           ContactDto
 	DtCreated      time.Time
 	To             ContactDto
@@ -77,7 +77,7 @@ type BillDto struct {
 	// TODO: Generate ffjson
 	ID      string
 	Name    string
-	Amount  models.Amount
+	Amount   money.Amount
 	Members []BillMemberDto
 }
 
@@ -123,7 +123,7 @@ type TransfersResultDto struct {
 type TransferDto struct {
 	Id            string
 	Created       time.Time
-	Amount        models.Amount
+	Amount         money.Amount
 	IsReturn      bool
 	CreatorUserID int64
 	From          *ContactDto

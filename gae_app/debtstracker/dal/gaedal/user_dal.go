@@ -36,7 +36,7 @@ func NewUserDalGae() UserDalGae {
 
 var _ dal.UserDal = (*UserDalGae)(nil)
 
-func (userDal UserDalGae) SetLastCurrency(c context.Context, userID int64, currency models.Currency) error {
+func (userDal UserDalGae) SetLastCurrency(c context.Context, userID int64, currency money.Currency) error {
 	return dal.DB.RunInTransaction(c, func(c context.Context) error {
 		user, err := facade.User.GetUserByID(c, userID)
 		if err != nil {

@@ -39,8 +39,8 @@ var StartReturnWizardCommand = bots.Command{
 	},
 }
 
-func askIfReturnedInFull(whc bots.WebhookContext, counterparty models.Contact, currency models.Currency, value decimal.Decimal64p2) (m bots.MessageFromBot, err error) {
-	amount := models.Amount{Currency: models.Currency(currency), Value: value}
+func askIfReturnedInFull(whc bots.WebhookContext, counterparty models.Contact, currency money.Currency, value decimal.Decimal64p2) (m bots.MessageFromBot, err error) {
+	amount :=  money.Amount{Currency: money.Currency(currency), Value: value}
 	var mt string
 	switch {
 	case value < 0:
@@ -88,7 +88,7 @@ var AskReturnCounterpartyCommand = CreateAskTransferCounterpartyCommand(
 		c := whc.Context()
 
 		log.Debugf(c, "StartReturnWizardCommand.onCounterpartySelectedAction(counterparty.ID=%v)", counterparty.ID)
-		var balanceWithInterest models.Balance
+		var balanceWithInterest money.Balance
 		balanceWithInterest, err = counterparty.BalanceWithInterest(c, time.Now())
 		if err != nil {
 			err = errors.WithMessage(err, fmt.Sprintf("Failed to get counterparty balance with interest: %v", err))
@@ -129,8 +129,8 @@ func askToChooseDebt(whc bots.WebhookContext, buttons [][]string) (m bots.Messag
 	return m
 }
 
-func _debtAmountButtonText(whc bots.WebhookContext, currency models.Currency, value decimal.Decimal64p2, counterparty models.Contact) string {
-	amount := models.Amount{Currency: currency, Value: value.Abs()}
+func _debtAmountButtonText(whc bots.WebhookContext, currency money.Currency, value decimal.Decimal64p2, counterparty models.Contact) string {
+	amount :=  money.Amount{Currency: currency, Value: value.Abs()}
 	var mt string
 	switch {
 	case value > 0:
@@ -195,7 +195,7 @@ func processReturnCommand(whc bots.WebhookContext, returnValue decimal.Decimal64
 	if err != nil {
 		return m, err
 	}
-	currency := models.Currency(awaitingUrl.Query().Get("currency"))
+	currency := money.Currency(awaitingUrl.Query().Get("currency"))
 
 	if transferID != 0 && returnValue > 0 {
 		var transfer models.Transfer
@@ -214,7 +214,7 @@ func processReturnCommand(whc bots.WebhookContext, returnValue decimal.Decimal64
 		if returnValue == 0 {
 			returnValue = previousBalance.Abs()
 		}
-		previousBalance := models.Amount{Currency: currency, Value: previousBalance}
+		previousBalance :=  money.Amount{Currency: currency, Value: previousBalance}
 		direction, err := getReturnDirectionFromDebtValue(previousBalance)
 		if err != nil {
 			return m, err
@@ -270,7 +270,7 @@ var AskToChooseDebtToReturnCommand = bots.Command{
 		counterpartyID, _, _ := getReturnWizardParams(whc)
 		var (
 			theCounterparty models.Contact
-			balance         models.Balance
+			balance         money.Balance
 		)
 		if counterpartyID == 0 {
 			// Let's try to get counterpartyEntity from message text
@@ -331,7 +331,7 @@ var AskToChooseDebtToReturnCommand = bots.Command{
 	},
 }
 
-func CreateReturnAndShowReceipt(whc bots.WebhookContext, returnToTransferID, counterpartyID int64, direction models.TransferDirection, returnAmount models.Amount) (m bots.MessageFromBot, err error) {
+func CreateReturnAndShowReceipt(whc bots.WebhookContext, returnToTransferID, counterpartyID int64, direction models.TransferDirection, returnAmount  money.Amount) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
 	log.Debugf(c, "CreateReturnAndShowReceipt(returnToTransferID=%d, counterpartyID=%d)", returnToTransferID, counterpartyID)
 
@@ -352,7 +352,7 @@ func CreateReturnAndShowReceipt(whc bots.WebhookContext, returnToTransferID, cou
 	return m, err
 }
 
-func getReturnDirectionFromDebtValue(currentDebt models.Amount) (models.TransferDirection, error) {
+func getReturnDirectionFromDebtValue(currentDebt  money.Amount) (models.TransferDirection, error) {
 	switch {
 	case currentDebt.Value < 0:
 		return models.TransferDirectionUser2Counterparty, nil

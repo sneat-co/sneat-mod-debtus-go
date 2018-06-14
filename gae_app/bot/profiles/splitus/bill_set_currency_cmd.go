@@ -17,7 +17,7 @@ var setBillCurrencyCommand = billCallbackCommand(setBillCurrencyCommandCode, db.
 		c := whc.Context()
 		log.Debugf(c, "setBillCurrencyCommand.CallbackAction()")
 		query := callbackUrl.Query()
-		currencyCode := models.Currency(query.Get("currency"))
+		currencyCode := money.Currency(query.Get("currency"))
 		if bill.Currency != currencyCode {
 			previousCurrency := bill.Currency
 			bill.Currency = currencyCode

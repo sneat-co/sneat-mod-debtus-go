@@ -25,7 +25,7 @@ type contactWithBalances struct {
 
 type transfersInfo struct {
 	count   int
-	balance models.Balance
+	balance money.Balance
 }
 
 func newContactWithBalances(now time.Time, contact models.Contact) contactWithBalances {
@@ -38,10 +38,10 @@ func newContactWithBalances(now time.Time, contact models.Contact) contactWithBa
 	return result
 }
 
-func newBalanceSummary(who string, balance models.Balance) (balances balancesByCurrency) {
+func newBalanceSummary(who string, balance money.Balance) (balances balancesByCurrency) {
 	balances = balancesByCurrency{
 		Mutex:      new(sync.Mutex),
-		byCurrency: make(map[models.Currency]balanceRow, len(balance)),
+		byCurrency: make(map[money.Currency]balanceRow, len(balance)),
 	}
 	for currency, value := range balance {
 		row := balances.byCurrency[currency]
@@ -105,7 +105,7 @@ func validateTransfers(c context.Context, userID int64, userBalances balances) (
 		} else {
 			byContactWithoutInterest[contactID] = transfersInfo{
 				count:   1,
-				balance: models.Balance{transferEntity.Currency: direction * transferEntity.AmountInCents},
+				balance: money.Balance{transferEntity.Currency: direction * transferEntity.AmountInCents},
 			}
 		}
 		userBalances.withoutInterest.byCurrency[transferEntity.Currency] = row
@@ -127,8 +127,8 @@ func validateContacts(c context.Context,
 	contactInfos := make([]contactWithBalances, len(userContactsJson))
 	contactInfosByID := make(map[int64]contactWithBalances, len(contactInfos))
 
-	contactsTotalWithoutInterest := make(models.Balance, len(userBalances.withoutInterest.byCurrency))
-	contactsTotalWithInterest := make(models.Balance, len(userBalances.withInterest.byCurrency))
+	contactsTotalWithoutInterest := make(money.Balance, len(userBalances.withoutInterest.byCurrency))
+	contactsTotalWithInterest := make(money.Balance, len(userBalances.withInterest.byCurrency))
 
 	updateBalance := func(contact models.Contact) (ci contactWithBalances) {
 		contactBalanceWithoutInterest := contact.Balance()

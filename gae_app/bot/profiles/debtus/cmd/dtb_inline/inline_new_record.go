@@ -25,7 +25,7 @@ func InlineNewRecord(whc bots.WebhookContext, amountMatches []string) (m bots.Me
 	inlineQuery := whc.Input().(bots.WebhookInlineQuery)
 	var (
 		amountValue    decimal.Decimal64p2
-		amountCurrency models.Currency
+		amountCurrency money.Currency
 	)
 	if amountValue, err = decimal.ParseDecimal64p2(strings.TrimRight(amountMatches[1], ".")); err != nil {
 		return
@@ -38,18 +38,18 @@ func InlineNewRecord(whc bots.WebhookContext, amountMatches []string) (m bots.Me
 		}
 		ccLow := strings.ToLower(currencyCode)
 		if ccLow == models.RUR_SIGN || ccLow == "р" || ccLow == "руб" || ccLow == "рубля" || ccLow == "рублей" || ccLow == "rub" || ccLow == "rubles" || ccLow == "ruble" || ccLow == "rubley" {
-			amountCurrency = models.CURRENCY_RUB
+			amountCurrency = money.Currency_RUB
 		} else if ccLow == "eur" || ccLow == "euro" || ccLow == models.EUR_SIGN {
-			amountCurrency = models.CURRENCY_EUR
+			amountCurrency = money.Currency_EUR
 		} else if ccLow == "гривна" || ccLow == "гривен" || ccLow == "г" || ccLow == models.UAH_SIGN {
-			amountCurrency = models.CURRENCY_UAH
+			amountCurrency = money.Currency_UAH
 		} else if ccLow == "тенге" || ccLow == "теңге" || ccLow == "т" || ccLow == models.KZT_SIGN {
-			amountCurrency = models.CURRENCY_KZT
+			amountCurrency = money.Currency_KZT
 		} else {
-			amountCurrency = models.Currency(currencyCode)
+			amountCurrency = money.Currency(currencyCode)
 		}
 	} else {
-		amountCurrency = models.CURRENCY_USD
+		amountCurrency = money.Currency_USD
 	}
 
 	amountText := html.EscapeString(models.NewAmount(amountCurrency, amountValue).String())

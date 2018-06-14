@@ -24,7 +24,7 @@ func editSplitCallbackAction(
 	editCommandPrefix, backCommandPrefix string,
 	msgTextAskToSplit string,
 	members []models.BillMemberJson,
-	totalAmount models.Amount,
+	totalAmount  money.Amount,
 	writeTitle func(buffer *bytes.Buffer) error,
 	addShares func(memberID string, addValue int) (member models.BillMemberJson, err error),
 ) (m bots.MessageFromBot, err error) {
@@ -147,7 +147,7 @@ func writeSplitInstructions(buffer *bytes.Buffer, tgUserID, memberName string) {
 	}
 }
 
-func writeSplitMembers(buffer *bytes.Buffer, members []models.BillMemberJson, currentMemberID string, currency models.Currency) {
+func writeSplitMembers(buffer *bytes.Buffer, members []models.BillMemberJson, currentMemberID string, currency money.Currency) {
 	var totalShares int
 	for _, m := range members {
 		totalShares += m.Shares
@@ -163,7 +163,7 @@ func writeSplitMembers(buffer *bytes.Buffer, members []models.BillMemberJson, cu
 		}
 		buffer.WriteString(fmt.Sprintf("     <i>Shares: %d</i> — <code>%v%%</code>", m.Shares, decimal.Decimal64p2(m.Shares*100*100/totalShares)))
 		if m.Owes != 0 {
-			buffer.WriteString(" = " + models.Amount{Currency: currency, Value: m.Owes}.String())
+			buffer.WriteString(" = " +  money.Amount{Currency: currency, Value: m.Owes}.String())
 		}
 		buffer.WriteString("\n\n")
 	}

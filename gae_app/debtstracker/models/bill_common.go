@@ -10,6 +10,7 @@ import (
 	"github.com/strongo/decimal"
 	"google.golang.org/appengine/datastore"
 	"strconv"
+	"github.com/crediterra/money"
 )
 
 type SplitMode string
@@ -41,7 +42,7 @@ type BillCommon struct {
 	DtCreated          time.Time
 	Name               string              `datastore:",noindex"`
 	AmountTotal        decimal.Decimal64p2 `datastore:"AmountTotal"`
-	Currency           Currency
+	Currency           money.Currency
 	UserIDs            []string
 	members            []BillMemberJson
 	MembersJson        string              `datastore:",noindex"`
@@ -107,8 +108,8 @@ func (entity *BillCommon) IsOkToSplit() bool {
 	return paidByMembers == entity.AmountTotal
 }
 
-func (entity *BillCommon) TotalAmount() Amount {
-	return NewAmount(Currency(entity.Currency), entity.AmountTotal)
+func (entity *BillCommon) TotalAmount() money.Amount {
+	return money.NewAmount(money.Currency(entity.Currency), entity.AmountTotal)
 }
 
 func (entity *BillCommon) GetBillMembers() (members []BillMemberJson) {

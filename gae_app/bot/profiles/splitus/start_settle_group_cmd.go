@@ -55,8 +55,8 @@ func settleGroupAskForCounterpartyAction(whc bots.WebhookContext, group models.G
 
 	var userMember models.GroupMemberJson
 
-	balanceCurrencies := func(b models.Balance) (currencies []models.Currency) {
-		currencies = make([]models.Currency, 0, len(b))
+	balanceCurrencies := func(b money.Balance) (currencies []money.Currency) {
+		currencies = make([]money.Currency, 0, len(b))
 		for currency := range b {
 			currencies = append(currencies, currency)
 		}
@@ -200,11 +200,11 @@ var settleGroupCounterpartyConfirmedCommand = shared_group.GroupCallbackCommand(
 	func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
 		q := callbackUrl.Query()
 		currency := "RUB" // q.Get("currency")
-		return settleGroupCounterpartyConfirmedAction(whc, group, q.Get("member"), models.Currency(currency))
+		return settleGroupCounterpartyConfirmedAction(whc, group, q.Get("member"), money.Currency(currency))
 	},
 )
 
-func settleGroupCounterpartyConfirmedAction(whc bots.WebhookContext, group models.Group, memberID string, currency models.Currency) (m bots.MessageFromBot, err error) {
+func settleGroupCounterpartyConfirmedAction(whc bots.WebhookContext, group models.Group, memberID string, currency money.Currency) (m bots.MessageFromBot, err error) {
 
 	var userMember, counterpartyMember models.GroupMemberJson
 
@@ -247,7 +247,7 @@ func settleGroupCounterpartyConfirmedAction(whc bots.WebhookContext, group model
 	return
 }
 
-func filterGroupMembersByBalance(members []models.GroupMemberJson, positive bool, currencies ...models.Currency) (result []models.GroupMemberJson) {
+func filterGroupMembersByBalance(members []models.GroupMemberJson, positive bool, currencies ...money.Currency) (result []models.GroupMemberJson) {
 	result = make([]models.GroupMemberJson, 0, len(members))
 	for _, m := range members {
 		for c, v := range m.Balance {

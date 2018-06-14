@@ -30,7 +30,7 @@ func (billFacade) AssignBillToGroup(c context.Context, inBill models.Bill, group
 	if bill.MembersCount == 0 {
 		{ // Get group,
 			var gc context.Context
-			if bill.Currency == models.Currency("") {
+			if bill.Currency == money.Currency("") {
 				// we don't need to get it in transaction if no currency as balance will not be changed
 				gc = dal.DB.NonTransactionalContext(c)
 			} else {
@@ -83,7 +83,7 @@ func (billFacade) AssignBillToGroup(c context.Context, inBill models.Bill, group
 			if err = bill.SetBillMembers(billMembers); err != nil {
 				return
 			}
-			if bill.Currency != models.Currency("") {
+			if bill.Currency != money.Currency("") {
 				if _, err = group.ApplyBillBalanceDifference(bill.Currency, bill.GetBalance().BillBalanceDifference(models.BillBalanceByMember{})); err != nil {
 					return
 				}
@@ -462,7 +462,7 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 //		//	false,
 //		//	0,
 //		//	from, to,
-//		//	models.AmountTotal{Currency: models.Currency(bill.Currency), Value: bill.AmountTotal},
+//		//	 money.AmountTotal{Currency: money.Currency(bill.Currency), Value: bill.AmountTotal},
 //		//	time.Time{},
 //		//)
 //		//if err != nil {

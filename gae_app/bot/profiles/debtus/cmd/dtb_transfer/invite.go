@@ -144,7 +144,7 @@ package dtb_transfer
 //			if creatorCounterpartyNamesChanged {
 //				creatorCounterparty.UpdateSearchName()
 //			}
-//			var creatorCounterpartyBalance models.Balance
+//			var creatorCounterpartyBalance money.Balance
 //			if creatorCounterpartyBalance, err = creatorCounterparty.Balance(); err != nil {
 //				return errors.Wrap(err, "Failed to get creatorCounterparty.Balance()")
 //			}

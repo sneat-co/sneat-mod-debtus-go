@@ -36,7 +36,7 @@ func TestWriteReceiptText(t *testing.T) {
 		TransferEntity: models.NewTransferEntity(
 			12,
 			false,
-			models.Amount{Currency: "EUR", Value: 98765},
+			money.Amount{Currency: "EUR", Value: 98765},
 			&models.TransferCounterpartyInfo{
 				ContactID:   23,
 				ContactName: "John White",

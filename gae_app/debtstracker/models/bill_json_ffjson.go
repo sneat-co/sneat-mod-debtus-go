@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"fmt"
 	fflib "github.com/pquerna/ffjson/fflib/v1"
+	"github.com/crediterra/money"
 )
 
 // MarshalJSON marshal bytes to json - template
@@ -462,7 +463,7 @@ handle_Total:
 
 handle_Currency:
 
-	/* handler: j.Currency type=models.Currency kind=string quoted=false*/
+	/* handler: j.Currency type=money.Currency kind=string quoted=false*/
 
 	{
 
@@ -478,7 +479,7 @@ handle_Currency:
 
 			outBuf := fs.Output.Bytes()
 
-			j.Currency = Currency(string(outBuf))
+			j.Currency = money.Currency(string(outBuf))
 
 		}
 	}

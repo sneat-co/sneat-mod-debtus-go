@@ -12,6 +12,7 @@ import (
 	"github.com/sanity-io/litter"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
+	"github.com/crediterra/money"
 )
 
 func ChangeContactStatus(c context.Context, contactID int64, newStatus string) (contact models.Contact, err error) {
@@ -89,7 +90,7 @@ func createContactWithinTransaction(
 		contact.CounterpartyUserID = counterpartyUserID
 		contact.CounterpartyCounterpartyID = counterpartyContact.ID
 		contact.TransfersJson = counterpartyContact.TransfersJson
-		contact.Balanced = models.Balanced{
+		contact.Balanced = money.Balanced{
 			CountOfTransfers: counterpartyContact.CountOfTransfers,
 			LastTransferID:   counterpartyContact.LastTransferID,
 			LastTransferAt:   counterpartyContact.LastTransferAt,

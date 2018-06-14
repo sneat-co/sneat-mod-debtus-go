@@ -119,22 +119,22 @@ func joinBillAction(whc bots.WebhookContext, bill models.Bill, memberStatus stri
 
 	billChanged := false
 	if bill.Currency == "" {
-		guessCurrency := func() models.Currency {
+		guessCurrency := func() money.Currency {
 			switch whc.Locale().Code5 {
 			case strongo.LocalCodeRuRu:
-				return models.CURRENCY_RUB
+				return money.Currency_RUB
 			case strongo.LocaleCodeDeDE:
-				return models.CURRENCY_EUR
+				return money.Currency_EUR
 			case strongo.LocaleCodeFrFR:
-				return models.CURRENCY_EUR
+				return money.Currency_EUR
 			case strongo.LocaleCodeItIT:
-				return models.CURRENCY_EUR
+				return money.Currency_EUR
 			case strongo.LocaleCodePtPT:
-				return models.CURRENCY_EUR
+				return money.Currency_EUR
 			case strongo.LocaleCodeEnUK:
-				return models.CURRENCY_GBP
+				return money.Currency_GBP
 			default:
-				return models.CURRENCY_USD
+				return money.Currency_USD
 			}
 		}
 
@@ -151,9 +151,9 @@ func joinBillAction(whc bots.WebhookContext, bill models.Bill, memberStatus stri
 				}
 			}
 		} else if user.PrimaryCurrency != "" {
-			bill.Currency = models.Currency(user.PrimaryCurrency)
+			bill.Currency = money.Currency(user.PrimaryCurrency)
 		} else if len(user.LastCurrencies) > 0 {
-			bill.Currency = models.Currency(user.LastCurrencies[0])
+			bill.Currency = money.Currency(user.LastCurrencies[0])
 		}
 		if bill.Currency == "" {
 			bill.Currency = guessCurrency()

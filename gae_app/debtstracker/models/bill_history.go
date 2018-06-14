@@ -10,6 +10,7 @@ import (
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/decimal"
 	"google.golang.org/appengine/datastore"
+	"github.com/crediterra/money"
 )
 
 const (
@@ -49,16 +50,16 @@ type BillsHistoryEntity struct {
 	StatusOld              string              `datastore:",noindex"`
 	StatusNew              string              `datastore:",noindex"`
 	Action                 BillHistoryAction   `datastore:",noindex"`
-	Currency               Currency            `datastore:",noindex"`
+	Currency               money.Currency      `datastore:",noindex"`
 	TotalAmountDiff        decimal.Decimal64p2 `datastore:",noindex"`
 	TotalAmountBefore      decimal.Decimal64p2 `datastore:",noindex"`
 	TotalAmountAfter       decimal.Decimal64p2 `datastore:",noindex"`
 	GroupIDs               []string
 	BillIDs                []string
-	BillsSettlementCount   int    `datastore:",noindex"`
-	BillsSettlementJson    string `datastore:",noindex"`
-	GroupMembersJsonBefore string `datastore:",noindex"`
-	GroupMembersJsonAfter  string `datastore:",noindex"`
+	BillsSettlementCount   int                 `datastore:",noindex"`
+	BillsSettlementJson    string              `datastore:",noindex"`
+	GroupMembersJsonBefore string              `datastore:",noindex"`
+	GroupMembersJsonAfter  string              `datastore:",noindex"`
 }
 
 func (entity *BillsHistoryEntity) BillSettlements() (billSettlements []BillSettlementJson) {
@@ -108,10 +109,10 @@ func (entity *BillsHistoryEntity) Save() (properties []datastore.Property, err e
 		err = errors.New("BillsSettlementJson is empty")
 		return
 	}
-	//if entity.Currency == "" {
-	//	err = errors.New("Currency is empty")
-	//	return
-	//}
+	// if entity.Currency == "" {
+	// 	err = errors.New("Currency is empty")
+	// 	return
+	// }
 	if len(entity.GroupIDs) == 0 {
 		err = errors.New("len(entity.GroupIDs) == 0")
 		return

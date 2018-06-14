@@ -4,6 +4,7 @@ package models
 
 import (
 	"github.com/strongo/decimal"
+	"github.com/crediterra/money"
 )
 
 type BillJson struct {
@@ -12,7 +13,7 @@ type BillJson struct {
 	Name         string              `json:"n"`
 	MembersCount int                 `json:"m"`
 	Total        decimal.Decimal64p2 `json:"t"`
-	Currency     Currency            `json:"c"`
+	Currency     money.Currency            `json:"c"`
 	UserBalance  decimal.Decimal64p2 `json:"u,omitempty"`
 }
 

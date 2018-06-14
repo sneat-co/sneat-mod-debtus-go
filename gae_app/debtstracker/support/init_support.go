@@ -254,7 +254,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Get stored user total balance
 	userBalance := user.Balance()
 
-	transfersBalanceByCounterpartyID := make(map[int64]models.Balance, len(counterpartyIDs))
+	transfersBalanceByCounterpartyID := make(map[int64]money.Balance, len(counterpartyIDs))
 
 	for i, transfer := range transferEntities {
 		var counterpartyID int64
@@ -269,11 +269,11 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		transfersCounterpartyBalance, ok := transfersBalanceByCounterpartyID[counterpartyID]
 		if !ok {
-			transfersCounterpartyBalance = make(models.Balance)
+			transfersCounterpartyBalance = make(money.Balance)
 			transfersBalanceByCounterpartyID[counterpartyID] = transfersCounterpartyBalance
 		}
 		value := transfer.GetAmount().Value
-		currency := models.Currency(transfer.Currency)
+		currency := money.Currency(transfer.Currency)
 		switch transfer.DirectionForUser(userID) {
 		case models.TransferDirectionUser2Counterparty:
 			transfersCounterpartyBalance[currency] += value
@@ -287,7 +287,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	//log.Debugf(c, "transfersBalanceByCounterpartyID: %v", transfersBalanceByCounterpartyID)
 
-	transfersTotalBalance := make(models.Balance)
+	transfersTotalBalance := make(money.Balance)
 	for _, transfersCounterpartyBalance := range transfersBalanceByCounterpartyID {
 		for currency, value := range transfersCounterpartyBalance {
 			if value == 0 {

@@ -14,7 +14,7 @@ func (t SplitMemberTotal) Balance() decimal.Decimal64p2 {
 }
 
 type SplitBalanceByMember map[string]SplitMemberTotal
-type SplitBalanceByCurrencyAndMember map[models.Currency]SplitBalanceByMember
+type SplitBalanceByCurrencyAndMember map[money.Currency]SplitBalanceByMember
 
 func (billFacade) getBalances(splitID int64, bills []models.Bill) (balanceByCurrency SplitBalanceByCurrencyAndMember) {
 	balanceByCurrency = make(SplitBalanceByCurrencyAndMember)

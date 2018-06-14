@@ -32,7 +32,7 @@ package facade
 //	contact, err := contactDal.CreateContactWithinTransaction(c, user, 1, 3, models.ContactDetails{
 //		FirstName: "Jack",
 //		LastName:  "Brown",
-//	}, models.Balanced{
+//	}, money.Balanced{
 //		BalanceCount:   1,
 //		BalanceJson:    `{"EUR":10.25}`,
 //		LastTransferID: 15,

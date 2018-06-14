@@ -19,7 +19,7 @@ type balanceRow struct {
 type balancesByCurrency struct {
 	*sync.Mutex
 	err        error
-	byCurrency map[models.Currency]balanceRow
+	byCurrency map[money.Currency]balanceRow
 }
 
 type balances struct {
@@ -27,7 +27,7 @@ type balances struct {
 	withoutInterest balancesByCurrency
 }
 
-func newBalances(who string, withoutInterest, withInterest models.Balance) balances {
+func newBalances(who string, withoutInterest, withInterest money.Balance) balances {
 	return balances{
 		withoutInterest: newBalanceSummary(who, withoutInterest),
 		withInterest:    newBalanceSummary(who, withInterest),

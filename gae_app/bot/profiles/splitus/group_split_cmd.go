@@ -31,7 +31,7 @@ var groupSplitCommand = shared_group.GroupCallbackCommand(groupSplitCommandCode,
 			shared_group.GroupCallbackCommandData(shared_all.SettingsCommandCode, group.ID),
 			trans.MESSAGE_TEXT_ASK_HOW_TO_SPLIT_IN_GROP,
 			billMembers,
-			models.Amount{},
+			 money.Amount{},
 			nil,
 			func(memberID string, addValue int) (member models.BillMemberJson, err error) {
 				err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {

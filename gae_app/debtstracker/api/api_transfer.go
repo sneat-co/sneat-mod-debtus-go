@@ -85,7 +85,7 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	amountWithCurrency := models.NewAmount(models.Currency(currency), amountValue)
+	amountWithCurrency := models.NewAmount(money.Currency(currency), amountValue)
 
 	contactID, err := strconv.ParseInt(r.PostFormValue("contactID"), 10, 64)
 	if err != nil {

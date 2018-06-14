@@ -34,7 +34,7 @@ func (mock *ContactDalMock) InsertContact(c context.Context, contactEntity *mode
 }
 
 //CreateContact(c context.Context, userID int64, contactDetails models.ContactDetails) (contact models.Contact, user models.AppUser, err error)
-//CreateContactWithinTransaction(c context.Context, user models.AppUser, contactUserID, counterpartyCounterpartyID int64, contactDetails models.ContactDetails, balanced models.Balanced) (contact models.Contact, err error)
+//CreateContactWithinTransaction(c context.Context, user models.AppUser, contactUserID, counterpartyCounterpartyID int64, contactDetails models.ContactDetails, balanced money.Balanced) (contact models.Contact, err error)
 //UpdateContact(c context.Context, contactID int64, values map[string]string) (contactEntity *models.ContactEntity, err error)
 
 func (mock *ContactDalMock) SaveContact(c context.Context, contact models.Contact) (err error) {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/crediterra/go-interest"
 	"github.com/sanity-io/litter"
+	"github.com/crediterra/money"
 )
 
 type TransferInterest struct {
@@ -115,8 +116,8 @@ func (t *TransferEntity) GetOutstandingValue(periodEnds time.Time) (outstandingV
 	return
 }
 
-func (t *TransferEntity) GetOutstandingAmount(periodEnds time.Time) Amount {
-	return Amount{Currency: t.Currency, Value: t.GetOutstandingValue(periodEnds)}
+func (t *TransferEntity) GetOutstandingAmount(periodEnds time.Time) money.Amount {
+	return money.Amount{Currency: t.Currency, Value: t.GetOutstandingValue(periodEnds)}
 }
 
 type TransferInterestCalculable interface {

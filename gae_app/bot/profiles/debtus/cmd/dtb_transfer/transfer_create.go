@@ -78,11 +78,11 @@ func CreateStartTransferWizardCommand(code, messageText string, commands []strin
 						mt = "EUR"
 					} else if len(mt) == 3 {
 						currencyCode := strings.ToUpper(mt)
-						if currencyCode != mt && models.Currency(mt).IsMoney() {
+						if currencyCode != mt && money.Currency(mt).IsMoney() {
 							mt = currencyCode
 						}
 					}
-					currency := models.Currency(mt)
+					currency := money.Currency(mt)
 					chatEntity.AddWizardParam("currency", string(currency))
 					return askTransferAmountCommand.Action(whc)
 				}

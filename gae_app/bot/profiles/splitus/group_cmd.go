@@ -87,7 +87,7 @@ var groupCommand = bots.NewCallbackCommand(groupCommandCode,
 		if groupMemberJson, err = group.GetGroupMemberByUserID(strconv.FormatInt(whc.AppUserIntID(), 10)); err != nil {
 			return
 		}
-		writeBalanceSide := func(title string, sign decimal.Decimal64p2, b models.Balance) {
+		writeBalanceSide := func(title string, sign decimal.Decimal64p2, b money.Balance) {
 			if len(b) > 0 {
 				fmt.Fprintf(buf, "\n<b>%v</b>: ", title)
 				if len(b) == 1 {

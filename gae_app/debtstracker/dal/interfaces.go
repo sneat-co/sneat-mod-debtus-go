@@ -51,7 +51,7 @@ type TransferDal interface {
 	LoadTransfersByContactID(c context.Context, contactID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error)
 	LoadTransferIDsByContactID(c context.Context, contactID int64, limit int, startCursor string) (transferIDs []int64, endCursor string, err error)
 	LoadOverdueTransfers(c context.Context, userID int64, limit int) (transfers []models.Transfer, err error)
-	LoadOutstandingTransfers(c context.Context, periodEnds time.Time, userID, contactID int64, currency models.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error)
+	LoadOutstandingTransfers(c context.Context, periodEnds time.Time, userID, contactID int64, currency money.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error)
 	LoadDueTransfers(c context.Context, userID int64, limit int) (transfers []models.Transfer, err error)
 	LoadLatestTransfers(c context.Context, offset, limit int) ([]models.Transfer, error)
 	DelayUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCode string, transferID, creatorTgChatID, creatorTgReceiptMessageID int64) error
@@ -115,7 +115,7 @@ type UserDal interface {
 	CreateUser(c context.Context, userEntity *models.AppUserEntity) (models.AppUser, error)
 	DelaySetUserPreferredLocale(c context.Context, delay time.Duration, userID int64, localeCode5 string) error
 	DelayUpdateUserHasDueTransfers(c context.Context, userID int64) error
-	SetLastCurrency(c context.Context, userID int64, currency models.Currency) error
+	SetLastCurrency(c context.Context, userID int64, currency money.Currency) error
 	DelayUpdateUserWithBill(c context.Context, userID, billID string) error
 	DelayUpdateUserWithContact(c context.Context, userID, contactID int64) error
 }
@@ -140,7 +140,7 @@ type ContactDal interface {
 	GetLatestContacts(whc bots.WebhookContext, limit, totalCount int) (contacts []models.Contact, err error)
 	InsertContact(c context.Context, contactEntity *models.ContactEntity) (contact models.Contact, err error)
 	//CreateContact(c context.Context, userID int64, contactDetails models.ContactDetails) (contact models.Contact, user models.AppUser, err error)
-	//CreateContactWithinTransaction(c context.Context, user models.AppUser, contactUserID, counterpartyCounterpartyID int64, contactDetails models.ContactDetails, balanced models.Balanced) (contact models.Contact, err error)
+	//CreateContactWithinTransaction(c context.Context, user models.AppUser, contactUserID, counterpartyCounterpartyID int64, contactDetails models.ContactDetails, balanced money.Balanced) (contact models.Contact, err error)
 	//UpdateContact(c context.Context, contactID int64, values map[string]string) (contactEntity *models.ContactEntity, err error)
 	GetContactIDsByTitle(c context.Context, userID int64, title string, caseSensitive bool) (contactIDs []int64, err error)
 	GetContactsWithDebts(c context.Context, userID int64) (contacts []models.Contact, err error)

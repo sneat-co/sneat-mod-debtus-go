@@ -99,13 +99,13 @@ func writeBillMembersList(
 	bill models.Bill,
 	selectedMemberID string,
 ) {
-	billCurrency := models.Currency(bill.Currency)
+	billCurrency := money.Currency(bill.Currency)
 	type MemberRowParams struct {
 		N          int
 		MemberName string
 		Percent    decimal.Decimal64p2
-		Owes       models.Amount
-		Paid       models.Amount
+		Owes        money.Amount
+		Paid        money.Amount
 	}
 	billMembers := bill.GetBillMembers()
 

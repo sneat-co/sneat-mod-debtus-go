@@ -779,7 +779,7 @@ handle_Starts:
 
 handle_Currency:
 
-	/* handler: j.Currency type=models.Currency kind=string quoted=false*/
+	/* handler: j.Currency type=money.Currency kind=string quoted=false*/
 
 	{
 

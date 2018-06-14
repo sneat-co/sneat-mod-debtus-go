@@ -10,6 +10,7 @@ import (
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
+	"github.com/crediterra/money"
 )
 
 func NewContactEntity(userID int64, details ContactDetails) *ContactEntity {
@@ -72,7 +73,7 @@ type ContactEntity struct {
 	//
 	Status string
 	ContactDetails
-	Balanced
+	money.Balanced
 	TransfersJson string `datastore:",noindex"`
 	SmsStats
 	//
@@ -203,7 +204,7 @@ func (entity *ContactEntity) Save() (properties []datastore.Property, err error)
 	return
 }
 
-func (entity *ContactEntity) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance Balance, err error) {
+func (entity *ContactEntity) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance money.Balance, err error) {
 	balance = entity.Balance()
 	if transferInfo := entity.GetTransfersInfo(); transferInfo != nil {
 		err = updateBalanceWithInterest(true, balance, transferInfo.OutstandingWithInterest, periodEnds)

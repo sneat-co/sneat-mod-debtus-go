@@ -11,6 +11,7 @@ import (
 	"github.com/strongo/decimal"
 	"google.golang.org/appengine/datastore"
 	"strings"
+	"github.com/crediterra/money"
 )
 
 const MaxTransferAmount = decimal.Decimal64p2(^uint64(0) >> 8)
@@ -182,7 +183,7 @@ type TransferEntity struct {
 	TransferInterest
 
 	IsOutstanding bool
-	Currency      Currency // Should be indexed for loading outstanding transfers
+	Currency      money.Currency // Should be indexed for loading outstanding transfers
 	//
 	ReceiptsSentCount int64   `datastore:",noindex,omitempty"`
 	ReceiptIDs        []int64 `datastore:",noindex"`
@@ -819,7 +820,7 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 	return
 }
 
-func NewTransferEntity(creatorUserID int64, isReturn bool, amount Amount, from *TransferCounterpartyInfo, to *TransferCounterpartyInfo) *TransferEntity {
+func NewTransferEntity(creatorUserID int64, isReturn bool, amount money.Amount, from *TransferCounterpartyInfo, to *TransferCounterpartyInfo) *TransferEntity {
 	if creatorUserID == 0 {
 		panic("creatorUserID == 0")
 	}
@@ -855,12 +856,12 @@ func NewTransferEntity(creatorUserID int64, isReturn bool, amount Amount, from *
 	return transfer
 }
 
-func (t *TransferEntity) GetAmount() Amount {
-	return Amount{Currency: t.Currency, Value: t.AmountInCents}
+func (t *TransferEntity) GetAmount() money.Amount {
+	return money.Amount{Currency: t.Currency, Value: t.AmountInCents}
 }
 
-func (t *TransferEntity) GetReturnedAmount() Amount {
-	return Amount{Currency: t.Currency, Value: t.AmountReturned()}
+func (t *TransferEntity) GetReturnedAmount() money.Amount {
+	return money.Amount{Currency: t.Currency, Value: t.AmountReturned()}
 }
 
 func ReverseTransfers(t []Transfer) {

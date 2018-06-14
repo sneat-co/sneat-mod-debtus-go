@@ -18,7 +18,7 @@ var FixBalanceCommand = bots.Command{
 				return err
 			}
 			contacts := user.Contacts()
-			balance := make(models.Balance, user.BalanceCount)
+			balance := make(money.Balance, user.BalanceCount)
 			for _, contact := range contacts {
 				b := contact.Balance()
 				for k, v := range b {

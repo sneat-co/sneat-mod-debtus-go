@@ -76,7 +76,7 @@ type createTransferInput struct {
 	// direction models.TransferDirection,
 	// creatorInfo models.TransferCounterpartyInfo,
 	From, To *models.TransferCounterpartyInfo
-	Amount   models.Amount
+	Amount    money.Amount
 	DueOn    time.Time
 	Interest models.TransferInterest
 }
@@ -201,7 +201,7 @@ func NewTransferInput(
 	billID string,
 	isReturn bool, returnToTransferID int64,
 	from, to *models.TransferCounterpartyInfo,
-	amount models.Amount,
+	amount  money.Amount,
 	dueOn time.Time,
 	transferInterest models.TransferInterest,
 ) (input createTransferInput) {
@@ -727,9 +727,9 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 
 	// Update user and counterparty entities with transfer info
 	{
-		var amountWithoutInterest models.Amount
+		var amountWithoutInterest  money.Amount
 		if returnedValue > 0 {
-			amountWithoutInterest = models.Amount{Currency: input.Amount.Currency, Value: input.Amount.Value - returnedInterest}
+			amountWithoutInterest =  money.Amount{Currency: input.Amount.Currency, Value: input.Amount.Value - returnedInterest}
 		} else if returnedValue < 0 {
 			panic(fmt.Sprintf("returnedValue < 0: %v", returnedValue))
 		} else {
@@ -828,7 +828,7 @@ func (transferFacade) GetTransferByID(c context.Context, id int64) (transfer mod
 
 func (transferFacade) updateUserAndCounterpartyWithTransferInfo(
 	c context.Context,
-	amount models.Amount,
+	amount  money.Amount,
 	transfer models.Transfer,
 	user models.AppUser,
 	contact models.Contact,
@@ -861,7 +861,7 @@ func (transferFacade) updateUserAndCounterpartyWithTransferInfo(
 func updateUserWithTransferInfo(
 	c context.Context,
 	val decimal.Decimal64p2,
-	// curr models.Currency,
+	// curr money.Currency,
 	transfer models.Transfer,
 	user models.AppUser,
 	contact models.Contact,
@@ -872,9 +872,9 @@ func updateUserWithTransferInfo(
 	user.LastTransferAt = transfer.DtCreated
 	user.SetLastCurrency(string(transfer.Currency))
 
-	// var updateBalanceAndContactTransfersInfo = func(curr models.Currency, val decimal.Decimal64p2, user models.AppUser, contact models.Contact) (err error) {
+	// var updateBalanceAndContactTransfersInfo = func(curr money.Currency, val decimal.Decimal64p2, user models.AppUser, contact models.Contact) (err error) {
 
-	var balance models.Balance
+	var balance money.Balance
 	if balance, err = user.AddToBalance(transfer.Currency, val); err != nil {
 		err = errors.WithMessage(err, fmt.Sprintf("failed to add %v=%v to balance for user %v", transfer.Currency, val, user.ID))
 		return
@@ -899,7 +899,7 @@ func updateContactWithTransferInfo(
 	contact.LastTransferID = transfer.ID
 	contact.LastTransferAt = transfer.DtCreated
 
-	var balance models.Balance
+	var balance money.Balance
 	if balance, err = contact.AddToBalance(transfer.Currency, val); err != nil {
 		err = errors.Wrapf(err, "Failed to add (%v %v) to balance for contact #%d", transfer.Currency, val, contact.ID)
 		return

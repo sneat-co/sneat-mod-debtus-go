@@ -15,6 +15,7 @@ import (
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
+	"github.com/crediterra/money"
 )
 
 const AppUserKind = "User"
@@ -94,7 +95,7 @@ type AppUserEntity struct {
 	ContactDetails
 
 	DtAccessGranted time.Time `datastore:",noindex,omitempty"`
-	Balanced
+	money.Balanced
 	TransfersWithInterestCount int `datastore:",noindex"`
 
 	SmsStats
@@ -300,7 +301,7 @@ func (u *AppUserEntity) SetContacts(contacts []UserContactJson) {
 	}
 
 	{ // update balance
-		balance := make(Balance)
+		balance := make(money.Balance)
 		for _, contact := range contacts {
 			for c, v := range contact.Balance() {
 				if newVal := balance[c] + v; newVal == 0 {
@@ -724,8 +725,8 @@ func (u *AppUserEntity) cleanProps(properties []datastore.Property) ([]datastore
 	return properties, err
 }
 
-func (u *AppUserEntity) TotalBalanceFromContacts() (balance Balance) {
-	balance = make(Balance, u.BalanceCount)
+func (u *AppUserEntity) TotalBalanceFromContacts() (balance money.Balance) {
+	balance = make(money.Balance, u.BalanceCount)
 
 	for _, contact := range u.Contacts() {
 		for currency, cv := range contact.Balance() {
@@ -808,7 +809,7 @@ func (u *AppUserEntity) Save() (properties []datastore.Property, err error) {
 	return properties, err
 }
 
-func (u *AppUserEntity) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance Balance, err error) {
+func (u *AppUserEntity) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance money.Balance, err error) {
 	if u.TransfersWithInterestCount == 0 {
 		balance = u.Balance()
 	} else if u.TransfersWithInterestCount > 0 {
@@ -816,9 +817,9 @@ func (u *AppUserEntity) BalanceWithInterest(c context.Context, periodEnds time.T
 		//	userBalance Balance
 		//)
 		//userBalance = u.Balance()
-		balance = make(Balance, u.BalanceCount)
+		balance = make(money.Balance, u.BalanceCount)
 		for _, contact := range u.Contacts() {
-			var contactBalance Balance
+			var contactBalance money.Balance
 			if contactBalance, err = contact.BalanceWithInterest(c, periodEnds); err != nil {
 				err = errors.WithMessage(err, fmt.Sprintf("failed to get balance with interest for user's contact JSON %v", contact.ID))
 				return
@@ -841,8 +842,8 @@ func (u *AppUserEntity) BalanceWithInterest(c context.Context, periodEnds time.T
 	return
 }
 
-func (entity *AppUserEntity) GetOutstandingBalance() (balance Balance) {
-	balance = make(Balance, 2)
+func (entity *AppUserEntity) GetOutstandingBalance() (balance money.Balance) {
+	balance = make(money.Balance, 2)
 	for _, bill := range entity.GetOutstandingBills() {
 		balance[bill.Currency] += bill.UserBalance
 	}

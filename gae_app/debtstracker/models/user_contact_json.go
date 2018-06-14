@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
+	"github.com/crediterra/money"
 )
 
 type LastTransfer struct {
@@ -23,7 +24,7 @@ type TransferWithInterestJson struct {
 	TransferID int64
 	Direction  TransferDirection
 	Starts     time.Time
-	Currency   Currency        `json:",omitempty"` // TODO: will be obsolete once we group outstanding by currency
+	Currency   money.Currency  `json:",omitempty"` // TODO: will be obsolete once we group outstanding by currency
 	Amount     decimal.Decimal64p2
 	Returns    TransferReturns `json:",omitempty"`
 }
@@ -97,8 +98,8 @@ func (o UserContactJson) Equal(o2 UserContactJson) bool {
 		((o.Transfers == nil && o2.Transfers == nil) || (o.Transfers != nil && o2.Transfers != nil && o.Transfers.Equal(o2.Transfers)))
 }
 
-func (o UserContactJson) Balance() (balance Balance) {
-	balance = make(Balance)
+func (o UserContactJson) Balance() (balance money.Balance) {
+	balance = make(money.Balance)
 	if o.BalanceJson == nil {
 		return
 	}
@@ -108,7 +109,7 @@ func (o UserContactJson) Balance() (balance Balance) {
 	return
 }
 
-func (o *UserContactJson) SetBalance(balance Balance) (err error) {
+func (o *UserContactJson) SetBalance(balance money.Balance) (err error) {
 	for c, v := range balance {
 		if v == 0 {
 			return errors.New("balance is zero for currency: " + string(c))
@@ -123,7 +124,7 @@ func (o *UserContactJson) SetBalance(balance Balance) (err error) {
 	return
 }
 
-func (o UserContactJson) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance Balance, err error) {
+func (o UserContactJson) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance money.Balance, err error) {
 	balance = o.Balance()
 	if o.Transfers != nil {
 		if err = updateBalanceWithInterest(false, balance, o.Transfers.OutstandingWithInterest, periodEnds); err != nil {
@@ -133,7 +134,7 @@ func (o UserContactJson) BalanceWithInterest(c context.Context, periodEnds time.
 	return
 }
 
-func NewUserContactJson(counterpartyID int64, status, name string, balanced Balanced) UserContactJson {
+func NewUserContactJson(counterpartyID int64, status, name string, balanced money.Balanced) UserContactJson {
 	result := UserContactJson{
 		ID:     counterpartyID,
 		Status: status,

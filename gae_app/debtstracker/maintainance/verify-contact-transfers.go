@@ -211,7 +211,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 	outstandingIsValid, outstandingWarningsCount := m.verifyOutstanding(c, 1, buf, contactBalance, transfersBalance)
 	warningsCount += outstandingWarningsCount
 	if !outstandingIsValid {
-		//rollingBalance := make(models.Balance, len(transfersBalance)+1)
+		//rollingBalance := make(money.Balance, len(transfersBalance)+1)
 		transfersByCurrency, transfersToSave := m.fixTransfers(c, now, buf, contact, transfers)
 
 		for currency, currencyTransfers := range transfersByCurrency {
@@ -293,7 +293,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 	return nil
 }
 
-func (m *verifyContactTransfers) assertTotals(buf *bytes.Buffer, counters *asyncCounters, contact models.Contact, transfersBalance models.Balance) (valid bool, warningsCount int) {
+func (m *verifyContactTransfers) assertTotals(buf *bytes.Buffer, counters *asyncCounters, contact models.Contact, transfersBalance money.Balance) (valid bool, warningsCount int) {
 	valid = true
 	contactBalance := contact.Balance()
 	for currency, transfersTotal := range transfersBalance {
@@ -318,7 +318,7 @@ func (m *verifyContactTransfers) assertTotals(buf *bytes.Buffer, counters *async
 	return
 }
 
-func (m *verifyContactTransfers) fixContactAndUser(c context.Context, buf *bytes.Buffer, counters *asyncCounters, contactID int64, transfersBalance models.Balance, transfersCount int, lastTransfer models.Transfer) (contact models.Contact, user models.AppUser, err error) {
+func (m *verifyContactTransfers) fixContactAndUser(c context.Context, buf *bytes.Buffer, counters *asyncCounters, contactID int64, transfersBalance money.Balance, transfersCount int, lastTransfer models.Transfer) (contact models.Contact, user models.AppUser, err error) {
 	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 		if contact, user, err = m.fixContactAndUserWithinTransaction(c, buf, counters, contactID, transfersBalance, transfersCount, lastTransfer); err != nil {
 			return
@@ -335,7 +335,7 @@ func (m *verifyContactTransfers) fixContactAndUser(c context.Context, buf *bytes
 	return
 }
 
-func (m *verifyContactTransfers) fixContactAndUserWithinTransaction(c context.Context, buf *bytes.Buffer, counters *asyncCounters, contactID int64, transfersBalance models.Balance, transfersCount int, lastTransfer models.Transfer) (contact models.Contact, user models.AppUser, err error) {
+func (m *verifyContactTransfers) fixContactAndUserWithinTransaction(c context.Context, buf *bytes.Buffer, counters *asyncCounters, contactID int64, transfersBalance money.Balance, transfersCount int, lastTransfer models.Transfer) (contact models.Contact, user models.AppUser, err error) {
 	fmt.Fprintf(buf, "Fixing contact %v...\n", contactID)
 	if contact, err = facade.GetContactByID(c, contactID); err != nil {
 		return
@@ -411,8 +411,8 @@ func (m *verifyContactTransfers) fixContactAndUserWithinTransaction(c context.Co
 	return
 }
 
-func (verifyContactTransfers) getTransfersBalance(transfers []models.Transfer, contactID int64) (totalBalance models.Balance) {
-	totalBalance = make(models.Balance)
+func (verifyContactTransfers) getTransfersBalance(transfers []models.Transfer, contactID int64) (totalBalance money.Balance) {
+	totalBalance = make(money.Balance)
 	for _, transfer := range transfers {
 		direction := transfer.DirectionForContact(contactID)
 		switch direction {
@@ -432,7 +432,7 @@ func (verifyContactTransfers) getTransfersBalance(transfers []models.Transfer, c
 	return
 }
 
-func (m *verifyContactTransfers) verifyOutstanding(c context.Context, iteration int, buf *bytes.Buffer, contactBalance models.Balance, transfersBalance models.Balance) (valid bool, warningsCount int) {
+func (m *verifyContactTransfers) verifyOutstanding(c context.Context, iteration int, buf *bytes.Buffer, contactBalance money.Balance, transfersBalance money.Balance) (valid bool, warningsCount int) {
 	fmt.Fprintf(buf, "\tverifyOutstanding(iteration=%v):\n", iteration)
 	valid = true
 
@@ -452,12 +452,12 @@ func (m *verifyContactTransfers) verifyOutstanding(c context.Context, iteration 
 }
 
 func (m *verifyContactTransfers) fixTransfers(c context.Context, now time.Time, buf *bytes.Buffer, contact models.Contact, transfers []models.Transfer) (
-	transfersByCurrency map[models.Currency][]models.Transfer,
+	transfersByCurrency map[money.Currency][]models.Transfer,
 	transfersToSave map[int64]*models.TransferEntity,
 ) {
 	fmt.Fprintln(buf, "fixTransfers()")
 
-	transfersByCurrency = make(map[models.Currency][]models.Transfer)
+	transfersByCurrency = make(map[money.Currency][]models.Transfer)
 
 	transfersToSave = make(map[int64]*models.TransferEntity)
 

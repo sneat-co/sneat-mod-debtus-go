@@ -5,11 +5,12 @@ import (
 	"github.com/pkg/errors"
 	"github.com/strongo/decimal"
 	"time"
+	"github.com/crediterra/money"
 )
 
 var ErrBalanceIsZero = errors.New("balance is zero")
 
-func updateBalanceWithInterest(failOnZeroBalance bool, b Balance, outstandingWithInterest []TransferWithInterestJson, periodEnds time.Time) (err error) {
+func updateBalanceWithInterest(failOnZeroBalance bool, b money.Balance, outstandingWithInterest []TransferWithInterestJson, periodEnds time.Time) (err error) {
 	for _, outstandingTransferWithInterest := range outstandingWithInterest {
 		if balanceValue := b[outstandingTransferWithInterest.Currency]; balanceValue == 0 && failOnZeroBalance {
 			return errors.WithMessage(ErrBalanceIsZero, fmt.Sprintf("outstanding transfer %v with currency %v is not presented in balance", outstandingTransferWithInterest.TransferID, outstandingTransferWithInterest.Currency))
