@@ -32,10 +32,10 @@ import (
 //	return m, err
 //}
 
-const CREATE_RECEIPT_IF_NO_INLINE_CHOOSEN_NOTIFICATION = "create-receipt"
+const CREATE_RECEIPT_IF_NO_INLINE_CHOSEN_NOTIFICATION = "create-receipt"
 
 var CreateReceiptIfNoInlineNotificationCommand = bots.Command{
-	Code:       CREATE_RECEIPT_IF_NO_INLINE_CHOOSEN_NOTIFICATION,
+	Code:       CREATE_RECEIPT_IF_NO_INLINE_CHOSEN_NOTIFICATION,
 	InputTypes: []bots.WebhookInputType{bots.WebhookInputCallbackQuery},
 	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		return OnInlineChosenCreateReceipt(whc, whc.Input().(bots.WebhookCallbackQuery).GetInlineMessageID(), callbackUrl)
@@ -93,7 +93,7 @@ func InlineSendReceipt(whc bots.WebhookContext) (m bots.MessageFromBot, err erro
 						{
 							{
 								Text:         whc.Translate(trans.COMMAND_TEXT_WAIT_A_SECOND),
-								CallbackData: CREATE_RECEIPT_IF_NO_INLINE_CHOOSEN_NOTIFICATION + fmt.Sprintf("?id=%v", common.EncodeID(transferID)),
+								CallbackData: CREATE_RECEIPT_IF_NO_INLINE_CHOSEN_NOTIFICATION + fmt.Sprintf("?id=%v", common.EncodeID(transferID)),
 							},
 						},
 					},
