@@ -10,6 +10,7 @@ import (
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/decimal"
 	"google.golang.org/appengine/datastore"
+	"github.com/crediterra/money"
 )
 
 const GroupKind = "Group"
@@ -356,7 +357,7 @@ func (entity *GroupEntity) validateMembers(members []GroupMemberJson, membersCou
 
 	EMPTY := Empty{}
 
-	totalBalance := make(Balance)
+	totalBalance := make(money.Balance)
 
 	userIDs := make(map[string]Empty, entity.MembersCount)
 	contactIDs := make(map[string]Empty, entity.MembersCount)

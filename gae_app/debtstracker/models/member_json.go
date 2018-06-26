@@ -5,6 +5,7 @@ package models
 import (
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
+	"github.com/crediterra/money"
 )
 
 type MemberJson struct {
@@ -35,7 +36,7 @@ func (m MemberJson) GetShares() int {
 
 type GroupMemberJson struct {
 	MemberJson
-	Balance Balance `json:",omitempty"`
+	Balance money.Balance `json:",omitempty"`
 }
 
 var _ SplitMember = (*GroupMemberJson)(nil)
@@ -45,7 +46,7 @@ func (m *GroupMemberJson) String() string {
 	return string(buffer)
 }
 
-type GroupBalanceByCurrencyAndMember map[Currency]map[string]decimal.Decimal64p2
+type GroupBalanceByCurrencyAndMember map[money.Currency]map[string]decimal.Decimal64p2
 
 type BillMemberJson struct {
 	MemberJson
