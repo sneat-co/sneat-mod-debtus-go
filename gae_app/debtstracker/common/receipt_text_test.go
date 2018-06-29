@@ -39,11 +39,11 @@ func TestWriteReceiptText(t *testing.T) {
 			money.Amount{Currency: "EUR", Value: 98765},
 			&models.TransferCounterpartyInfo{
 				ContactID:   23,
-				ContactName: "John White",
+				ContactName: "John Whites",
 			},
 			&models.TransferCounterpartyInfo{
 				UserID:   12,
-				UserName: "Anna Black",
+				UserName: "Anna Blacks",
 			},
 		)}
 
@@ -57,7 +57,7 @@ func TestWriteReceiptText(t *testing.T) {
 
 	receiptTextBuilder.WriteReceiptText(&buffer, utmParams)
 
-	re := regexp.MustCompile(`Anna Black borrowed from you <b>987.65 EUR</b>.`)
+	re := regexp.MustCompile(`Anna Blacks borrowed from you <b>987.65 EUR</b>.`)
 	if matched := re.MatchString(buffer.String()); !matched {
 		t.Errorf("Unexpected output:\nOutput:\n%v\nRegex:\n%v", buffer.String(), re.String())
 	}
