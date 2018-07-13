@@ -10,6 +10,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
+	"github.com/crediterra/money"
 )
 
 type UserMeDto struct {
@@ -42,7 +43,7 @@ type ApiUserDto struct {
 type ApiReceiptTransferDto struct {
 	// TODO: We are not replacing with TransferDto as it has From/To => Creator optimisation. Think if we can reuse.
 	ID             string `json:"ID"`
-	Amount          money.Amount
+	Amount         money.Amount
 	From           ContactDto
 	DtCreated      time.Time
 	To             ContactDto
@@ -77,7 +78,7 @@ type BillDto struct {
 	// TODO: Generate ffjson
 	ID      string
 	Name    string
-	Amount   money.Amount
+	Amount  money.Amount
 	Members []BillMemberDto
 }
 
@@ -123,7 +124,7 @@ type TransfersResultDto struct {
 type TransferDto struct {
 	Id            string
 	Created       time.Time
-	Amount         money.Amount
+	Amount        money.Amount
 	IsReturn      bool
 	CreatorUserID int64
 	From          *ContactDto
@@ -218,7 +219,7 @@ type Record struct {
 	Counterparties         []CounterpartyDto
 	Transfers              int
 	CountOfReceiptsCreated int
-	InvitedByUser          *struct {
+	InvitedByUser *struct {
 		Id   int64
 		Name string
 	} `json:",omitempty"`

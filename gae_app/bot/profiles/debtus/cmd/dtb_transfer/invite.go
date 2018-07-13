@@ -65,7 +65,7 @@ package dtb_transfer
 //				log.Debugf(c, "updateTransferWithCounterpartyDetails(counterpartyCounterpartyID=%v)", counterpartyCounterpartyID)
 //				counterpartyID = counterpartyCounterpartyID
 //				transfer.CounterpartyCounterparty().CounterpartyID = counterpartyCounterpartyID
-//				transfer.CounterpartyCounterparty().CounterpartyName = counterparty.FullName()
+//				transfer.CounterpartyCounterparty().CounterpartyName = counterparty.GetFullName()
 //				//if inlineMessageID != "" {
 //				//	transfer.CounterpartyTgReceiptInlineMessageID = inlineMessageID
 //				//}
@@ -164,7 +164,7 @@ package dtb_transfer
 //					if err = delayUpdateTransfersWithCounterparty(tc, transfer.CreatorUserID, transfer.Contact().CounterpartyID, models.TransferCounterpartyInfo{
 //						UserID:           userID,
 //						CounterpartyID:   counterpartyID,
-//						Name: counterparty.FullName(),
+//						Name: counterparty.GetFullName(),
 //					}); err != nil {
 //						return errors.Wrap(err, "Failed to queeu delayUpdateTransfersWithCounterparty()")
 //					}

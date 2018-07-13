@@ -15,6 +15,7 @@ import (
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 	"github.com/strongo/slices"
+	"github.com/crediterra/money"
 )
 
 const (
@@ -505,7 +506,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		// 	output.To.Contact = toContact
 		// 	log.Debugf(c, "Got toContact id=%d: %v", toContact.ID, toContact.ContactEntity)
 		// 	to.ContactID = toContact.ID
-		// 	to.ContactName = toContact.FullName()
+		// 	to.ContactName = toContact.GetFullName()
 		// 	from.UserID = toContact.UserID
 		// 	entities = append(entities, &toContact)
 		// }
@@ -517,7 +518,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		// 	output.From.Contact = fromCounterparty
 		// 	log.Debugf(c, "Got fromCounterparty id=%d: %v", fromCounterparty.ID, fromCounterparty.ContactEntity)
 		// 	from.ContactID = fromCounterparty.ID
-		// 	from.ContactName = fromCounterparty.FullName()
+		// 	from.ContactName = fromCounterparty.GetFullName()
 		// 	to.UserID = fromCounterparty.UserID
 		// 	entities = append(entities, &fromCounterparty)
 		// }

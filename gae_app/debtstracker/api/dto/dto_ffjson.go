@@ -8361,7 +8361,7 @@ func (j *UserMeDto) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	fflib.WriteJsonString(buf, string(j.UserID))
 	buf.WriteByte(',')
 	if len(j.FullName) != 0 {
-		buf.WriteString(`"FullName":`)
+		buf.WriteString(`"GetFullName":`)
 		fflib.WriteJsonString(buf, string(j.FullName))
 		buf.WriteByte(',')
 	}
@@ -8409,7 +8409,7 @@ const (
 
 var ffjKeyUserMeDtoUserID = []byte("UserID")
 
-var ffjKeyUserMeDtoFullName = []byte("FullName")
+var ffjKeyUserMeDtoFullName = []byte("GetFullName")
 
 var ffjKeyUserMeDtoGoogleUserID = []byte("GoogleUserID")
 
@@ -8637,7 +8637,7 @@ handle_UserID:
 
 handle_FullName:
 
-	/* handler: j.FullName type=string kind=string quoted=false*/
+	/* handler: j.GetFullName type=string kind=string quoted=false*/
 
 	{
 

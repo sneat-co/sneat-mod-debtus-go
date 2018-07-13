@@ -15,6 +15,7 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
+	"github.com/crediterra/money"
 )
 
 const BALANCE_COMMAND = "balance"
@@ -93,7 +94,7 @@ func balanceAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 
 		//if len(contacts) > 0 {
 		//	//for i, counterparty := range contacts {
-		//	//	telegramKeyboard = append(telegramKeyboard, []tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonData(counterparty.FullName(), fmt.Sprintf("transfer-history?counterparty=%v", counterpartyKeys[i].IntID()))})
+		//	//	telegramKeyboard = append(telegramKeyboard, []tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonData(counterparty.GetFullName(), fmt.Sprintf("transfer-history?counterparty=%v", counterpartyKeys[i].IntID()))})
 		//	//}
 		//	telegramKeyboard = append(telegramKeyboard, []tgbotapi.InlineKeyboardButton{
 		//		tgbotapi.NewInlineKeyboardButtonData("<", fmt.Sprintf("balance?counterparty=%v", counterpartyKeys[len(counterpartyKeys)-1].IntID())),

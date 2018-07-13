@@ -15,6 +15,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"github.com/crediterra/money"
 )
 
 var chosenInlineResultCommand = bots.Command{
@@ -98,7 +99,7 @@ func createBillFromInlineChosenResult(whc bots.WebhookContext, chosenResult bots
 		//	return
 		//}
 		//appUserEntity = user.(*models.AppUserEntity)
-		//_, _, _, _, members := bill.AddOrGetMember(userID, 0, appUserEntity.FullName())
+		//_, _, _, _, members := bill.AddOrGetMember(userID, 0, appUserEntity.GetFullName())
 		//if err = bill.setBillMembers(members); err != nil {
 		//	return
 		//}

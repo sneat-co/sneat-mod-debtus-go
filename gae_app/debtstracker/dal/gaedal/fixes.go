@@ -37,7 +37,7 @@ func (f *TransferFixter) needFixCounterpartyCounterpartyName() bool {
 //			if err != nil {
 //				return err
 //			}
-//			f.transfer.Creator().ContactName = counterpartyCounterparty.FullName()
+//			f.transfer.Creator().ContactName = counterpartyCounterparty.GetFullName()
 //			log.Debugf(c, "%v: got name from counterpartyCounterparty", f.transferKey.IntegerID())
 //			if f.transfer.Creator().ContactName == "" {
 //				log.Warningf(c, "Counterparty %v has no full name", f.transfer.Creator().CounterpartyID)
@@ -48,7 +48,7 @@ func (f *TransferFixter) needFixCounterpartyCounterpartyName() bool {
 //			if err != nil {
 //				return err
 //			}
-//			f.transfer.Creator().ContactName = user.FullName()
+//			f.transfer.Creator().ContactName = user.GetFullName()
 //			log.Debugf(c, "%v: got name from user", f.transferKey.IntegerID())
 //			if f.transfer.Creator().ContactName == "" {
 //				log.Warningf(c, "User %v has no full name", f.transfer.CreatorUserID)

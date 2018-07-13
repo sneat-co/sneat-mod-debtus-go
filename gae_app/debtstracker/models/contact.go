@@ -120,7 +120,7 @@ func (entity *ContactEntity) Info(counterpartyID int64, note, comment string) Tr
 }
 
 //func (entity *ContactEntity) UpdateSearchName() {
-//	fullName := entity.FullName()
+//	fullName := entity.GetFullName()
 //	entity.SearchName = []string{strings.ToLower(fullName)}
 //	if entity.Username != "" {
 //		username := strings.ToLower(fullName)
