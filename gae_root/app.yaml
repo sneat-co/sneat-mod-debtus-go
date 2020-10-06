@@ -1,6 +1,5 @@
-version: go111.1
 runtime: go111
-api_version: go111
+# api_version: go111
 
 #automatic_scaling:
 #  max_concurrent_requests: 80
@@ -131,34 +130,34 @@ handlers:
 
 - url: /((admin|cron|task-?queue?|support)/.*)
   login: admin
-  script: _go_app
+  script: auto
 
 - url: /_ah/.*
   login: admin
-  script: _go_app
+  script: auto
 
 - url: /apps/vk/iframe$
-  script: _go_app
+  script: auto
   secure: always
   redirect_http_response_code: 301
 
 - url: /auth/google/sign(in|ed)$
-  script: _go_app
+  script: auto
   secure: always
   redirect_http_response_code: 301
 
 - url: /Users/astec/.* # To clear logs from JS maps files like: /Users/astec/debtstracker/ionic-apps/public/www/build/3.main.js.map
-  script: _go_app
+  script: auto
 
 - url: /inspector/.*
-  script: _go_app
+  script: auto
   secure: always
   redirect_http_response_code: 301
 
 - url: /(receipt|transfer|confirm|contact|open/new-debt|test-pointer)?$|/(api|webhooks/(twilio)|bot/(tg|viber|fbm|skype|kik|line|wechat)|((\w{2})(-\w{2})?))/.*
-  script: _go_app
+  script: auto
   secure: always
   redirect_http_response_code: 301
 
 - url: /\w{2}$ # Redirects /en to /en/
-  script: _go_app
+  script: auto
