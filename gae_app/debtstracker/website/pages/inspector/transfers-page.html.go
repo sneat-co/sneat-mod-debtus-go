@@ -4,11 +4,11 @@
 package inspector
 
 import (
-	"fmt"
-	"io"
-
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"fmt"
+	"github.com/crediterra/money"
 	"github.com/shiyanhui/hero"
+	"io"
 )
 
 func renderTransfersPage(contact models.Contact, currency money.Currency, balancesWithoutInterest, balancesWithInterest balanceRow, transfers []models.Transfer, w io.Writer) {

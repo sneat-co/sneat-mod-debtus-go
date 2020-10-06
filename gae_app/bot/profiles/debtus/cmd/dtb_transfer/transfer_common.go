@@ -3,6 +3,7 @@ package dtb_transfer
 import (
 	"bytes"
 	"fmt"
+	"github.com/crediterra/money"
 	"math"
 	"net/url"
 	"regexp"
@@ -59,17 +60,17 @@ var CURRENCY_ICONS = []string{
 }
 
 var currenciesByPriority = []money.Currency{
-	money.Currency_EUR,
-	money.Currency_USD,
-	money.Currency_GBP,
-	money.Currency_JPY,
-	money.Currency_IRR,
-	money.Currency_RUB,
+	money.CURRENCY_EUR,
+	money.CURRENCY_USD,
+	money.CURRENCY_GBP,
+	money.CURRENCY_JPY,
+	money.CURRENCY_IRR,
+	money.CURRENCY_RUB,
 
-	money.Currency_UAH,
-	money.Currency_BYN,
-	money.Currency_TJS,
-	money.Currency_UZS,
+	money.CURRENCY_UAH,
+	money.CURRENCY_BYN,
+	money.CURRENCY_TJS,
+	money.CURRENCY_UZS,
 	money.Currency(emoji.CD_ICON),
 	money.Currency(emoji.BOOK_ICON),
 	money.Currency(emoji.BEER_ICON),
@@ -364,7 +365,7 @@ func listCounterpartiesAsButtons(whc bots.WebhookContext, user models.AppUser, i
 		if err != nil {
 			return m, err
 		}
-		amount :=  money.Amount{Currency: money.Currency(currency), Value: value}
+		amount := money.Amount{Currency: money.Currency(currency), Value: value}
 		m = whc.NewMessage(fmt.Sprintf(whc.Translate(messageText), amount))
 	} else {
 		m = whc.NewMessage(whc.Translate(messageText))
@@ -523,7 +524,7 @@ func TransferWizardCompletedCommand(code string) bots.Command {
 				}
 			}
 
-			amount :=  money.Amount{Currency: currency, Value: value}
+			amount := money.Amount{Currency: currency, Value: value}
 
 			creatorInfo := models.TransferCounterpartyInfo{
 				UserID:      whc.AppUserIntID(),
@@ -566,7 +567,7 @@ func CreateTransferFromBot(
 	returnToTransferID int64,
 	direction models.TransferDirection,
 	creatorInfo models.TransferCounterpartyInfo,
-	amount  money.Amount,
+	amount money.Amount,
 	dueOn time.Time,
 	transferInterest models.TransferInterest,
 ) (

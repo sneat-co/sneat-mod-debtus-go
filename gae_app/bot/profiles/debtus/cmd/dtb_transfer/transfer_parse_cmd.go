@@ -3,6 +3,7 @@ package dtb_transfer
 import (
 	"bytes"
 	"fmt"
+	"github.com/crediterra/money"
 	"strings"
 	"time"
 
@@ -45,7 +46,7 @@ var ParseTransferCommand = bots.Command{
 						valueS = v
 					case "currency":
 						if string(v) == "" {
-							currency = money.Currency_USD //TODO: Replace with user's default currency
+							currency = money.CURRENCY_USD //TODO: Replace with user's default currency
 						} else {
 							currency = money.Currency(strings.ToUpper(v))
 						}
@@ -104,7 +105,7 @@ var ParseTransferCommand = bots.Command{
 			isReturn,
 			0,
 			from, to,
-			 money.Amount{Currency: currency, Value: value},
+			money.Amount{Currency: currency, Value: value},
 			time.Time{},
 			models.NoInterest(),
 		)

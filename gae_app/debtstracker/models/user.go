@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"context"
+	"github.com/crediterra/money"
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/app"
@@ -15,7 +16,6 @@ import (
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
-	"github.com/crediterra/money"
 )
 
 const AppUserKind = "User"
@@ -160,6 +160,10 @@ type AppUserEntity struct {
 	LastUserIpAddress string    `datastore:",noindex,omitempty"`
 	LastFeedbackAt    time.Time `datastore:",noindex,omitempty"`
 	LastFeedbackRate  string    `datastore:",noindex,omitempty"`
+}
+
+func (u *AppUserEntity) GetFullName() string {
+	return u.FullName()
 }
 
 func (u *AppUserEntity) SetLastCurrency(v string) {

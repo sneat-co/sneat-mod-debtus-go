@@ -2,6 +2,7 @@ package dal
 
 import (
 	"fmt"
+	"github.com/crediterra/money"
 	"math/rand"
 	"net/http"
 	"regexp"

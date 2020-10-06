@@ -3,6 +3,7 @@ package splitus
 import (
 	"bytes"
 	"fmt"
+	"github.com/crediterra/money"
 	"net/url"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
@@ -104,8 +105,8 @@ func writeBillMembersList(
 		N          int
 		MemberName string
 		Percent    decimal.Decimal64p2
-		Owes        money.Amount
-		Paid        money.Amount
+		Owes       money.Amount
+		Paid       money.Amount
 	}
 	billMembers := bill.GetBillMembers()
 
@@ -119,8 +120,8 @@ func writeBillMembersList(
 		templateParams := MemberRowParams{
 			N:          i + 1,
 			MemberName: member.Name,
-			Owes:       models.NewAmount(billCurrency, member.Owes),
-			Paid:       models.NewAmount(billCurrency, member.Paid),
+			Owes:       money.NewAmount(billCurrency, member.Owes),
+			Paid:       money.NewAmount(billCurrency, member.Paid),
 		}
 		if totalShares == 0 {
 			templateParams.Percent = decimal.Decimal64p2(1 * 100 / len(billMembers))

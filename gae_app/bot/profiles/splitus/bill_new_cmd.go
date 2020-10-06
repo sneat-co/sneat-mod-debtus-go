@@ -2,6 +2,7 @@ package splitus
 
 import (
 	"fmt"
+	"github.com/crediterra/money"
 	"net/url"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"

@@ -2,6 +2,7 @@ package facade
 
 import (
 	"fmt"
+	"github.com/crediterra/money"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"

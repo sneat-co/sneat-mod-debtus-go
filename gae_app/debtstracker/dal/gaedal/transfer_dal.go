@@ -3,6 +3,7 @@ package gaedal
 import (
 	"bytes"
 	"fmt"
+	"github.com/crediterra/money"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"

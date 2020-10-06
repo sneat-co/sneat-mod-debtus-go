@@ -5,6 +5,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
+	"github.com/crediterra/money"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
@@ -122,19 +123,19 @@ func joinBillAction(whc bots.WebhookContext, bill models.Bill, memberStatus stri
 		guessCurrency := func() money.Currency {
 			switch whc.Locale().Code5 {
 			case strongo.LocalCodeRuRu:
-				return money.Currency_RUB
+				return money.CURRENCY_RUB
 			case strongo.LocaleCodeDeDE:
-				return money.Currency_EUR
+				return money.CURRENCY_EUR
 			case strongo.LocaleCodeFrFR:
-				return money.Currency_EUR
+				return money.CURRENCY_EUR
 			case strongo.LocaleCodeItIT:
-				return money.Currency_EUR
+				return money.CURRENCY_EUR
 			case strongo.LocaleCodePtPT:
-				return money.Currency_EUR
+				return money.CURRENCY_EUR
 			case strongo.LocaleCodeEnUK:
-				return money.Currency_GBP
+				return money.CURRENCY_GBP
 			default:
-				return money.Currency_USD
+				return money.CURRENCY_USD
 			}
 		}
 

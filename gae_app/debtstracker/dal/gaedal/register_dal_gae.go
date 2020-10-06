@@ -1,6 +1,7 @@
 package gaedal
 
 import (
+	strongo "github.com/strongo/app"
 	"net/http"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
@@ -50,7 +51,7 @@ func RegisterDal() {
 	dal.HttpClient = func(c context.Context) *http.Client {
 		return urlfetch.Client(c)
 	}
-	dal.HandleWithContext = func(handler dal.ContextHandler) func(w http.ResponseWriter, r *http.Request) {
+	dal.HandleWithContext = func(handler strongo.ContextHandler) func(w http.ResponseWriter, r *http.Request) {
 		return func(w http.ResponseWriter, r *http.Request) {
 			handler(appengine.NewContext(r), w, r)
 		}

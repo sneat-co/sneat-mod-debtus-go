@@ -2,6 +2,7 @@ package maintainance
 
 import (
 	"fmt"
+	"github.com/crediterra/money"
 	"net/http"
 	"strconv"
 	"strings"
@@ -116,7 +117,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 			for _, sourceContactID := range sourceContactIDs {
 				if contact.ID == sourceContactID {
 					for currency, value := range contact.Balance() {
-						targetContactBalance.Add(models.NewAmount(currency, value))
+						targetContactBalance.Add(money.NewAmount(currency, value))
 					}
 					var sourceContact models.Contact
 					if sourceContact, err = facade.GetContactByID(c, sourceContactID); err != nil {

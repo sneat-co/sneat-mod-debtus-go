@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/crediterra/money"
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/decimal"
 	"google.golang.org/appengine/datastore"
-	"github.com/crediterra/money"
 )
 
 const GroupKind = "Group"
@@ -45,9 +45,9 @@ var _ db.EntityHolder = (*Group)(nil)
 type GroupEntity struct {
 	CreatorUserID string
 	//IsUser2User         bool   `datastore:",noindex"`
-	Name                string   `datastore:",noindex"`
-	Note                string   `datastore:",noindex,omitempty"`
-	DefaultCurrency     Currency `datastore:",noindex,omitempty"`
+	Name                string         `datastore:",noindex"`
+	Note                string         `datastore:",noindex,omitempty"`
+	DefaultCurrency     money.Currency `datastore:",noindex,omitempty"`
 	members             []GroupMemberJson
 	MembersCount        int    `datastore:",noindex,omitempty"`
 	MembersJson         string `datastore:",noindex,omitempty"`
@@ -57,7 +57,7 @@ type GroupEntity struct {
 	billsHolder
 }
 
-func (entity *GroupEntity) ApplyBillBalanceDifference(currency Currency, diff BillBalanceDifference) (changed bool, err error) {
+func (entity *GroupEntity) ApplyBillBalanceDifference(currency money.Currency, diff BillBalanceDifference) (changed bool, err error) {
 	if currency == "" {
 		panic("currency parameter is required")
 	}
@@ -82,7 +82,7 @@ func (entity *GroupEntity) ApplyBillBalanceDifference(currency Currency, diff Bi
 			diffTotal += memberDifference
 			if diffAmount := memberDifference; diffAmount != 0 {
 				if groupMembers[i].Balance == nil || len(groupMembers) == 0 {
-					groupMembers[i].Balance = Balance{currency: diffAmount}
+					groupMembers[i].Balance = money.Balance{currency: diffAmount}
 					balanceTotal += diffAmount
 				} else {
 					groupMembers[i].Balance[currency] += diffAmount

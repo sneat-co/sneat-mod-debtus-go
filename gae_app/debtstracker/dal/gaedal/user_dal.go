@@ -1,6 +1,7 @@
 package gaedal
 
 import (
+	"github.com/crediterra/money"
 	"strconv"
 	"strings"
 	"time"

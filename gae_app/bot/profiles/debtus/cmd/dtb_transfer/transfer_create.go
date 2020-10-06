@@ -2,6 +2,7 @@ package dtb_transfer
 
 import (
 	"fmt"
+	"github.com/crediterra/money"
 	"regexp"
 	"strconv"
 	"strings"
@@ -36,8 +37,8 @@ func CreateStartTransferWizardCommand(code, messageText string, commands []strin
 			mt := strings.TrimSpace(whc.Input().(bots.WebhookTextMessage).Text())
 			chatEntity := whc.ChatEntity()
 			switch {
-			case models.HasCurrencyPrefix(mt) || IsCurrencyIcon(mt):
-				currency := models.CleanupCurrency(mt)
+			case money.HasCurrencyPrefix(mt) || IsCurrencyIcon(mt):
+				currency := money.CleanupCurrency(mt)
 				chatEntity.AddWizardParam("currency", string(currency))
 				return askTransferAmountCommand.Action(whc)
 			case mt == "...":

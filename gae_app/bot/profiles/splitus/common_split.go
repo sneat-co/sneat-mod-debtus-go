@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/crediterra/money"
 	"html"
 	"net/url"
 	"strconv"
@@ -24,7 +25,7 @@ func editSplitCallbackAction(
 	editCommandPrefix, backCommandPrefix string,
 	msgTextAskToSplit string,
 	members []models.BillMemberJson,
-	totalAmount  money.Amount,
+	totalAmount money.Amount,
 	writeTitle func(buffer *bytes.Buffer) error,
 	addShares func(memberID string, addValue int) (member models.BillMemberJson, err error),
 ) (m bots.MessageFromBot, err error) {
@@ -163,7 +164,7 @@ func writeSplitMembers(buffer *bytes.Buffer, members []models.BillMemberJson, cu
 		}
 		buffer.WriteString(fmt.Sprintf("     <i>Shares: %d</i> — <code>%v%%</code>", m.Shares, decimal.Decimal64p2(m.Shares*100*100/totalShares)))
 		if m.Owes != 0 {
-			buffer.WriteString(" = " +  money.Amount{Currency: currency, Value: m.Owes}.String())
+			buffer.WriteString(" = " + money.Amount{Currency: currency, Value: m.Owes}.String())
 		}
 		buffer.WriteString("\n\n")
 	}

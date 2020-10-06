@@ -2,12 +2,12 @@ package dtb_inline
 
 import (
 	"fmt"
+	"github.com/crediterra/money"
 	"html"
 	"net/url"
 	"regexp"
 	"strings"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
@@ -37,22 +37,22 @@ func InlineNewRecord(whc bots.WebhookContext, amountMatches []string) (m bots.Me
 			currencyCode = currencyCode[:20]
 		}
 		ccLow := strings.ToLower(currencyCode)
-		if ccLow == models.RUR_SIGN || ccLow == "р" || ccLow == "руб" || ccLow == "рубля" || ccLow == "рублей" || ccLow == "rub" || ccLow == "rubles" || ccLow == "ruble" || ccLow == "rubley" {
-			amountCurrency = money.Currency_RUB
-		} else if ccLow == "eur" || ccLow == "euro" || ccLow == models.EUR_SIGN {
-			amountCurrency = money.Currency_EUR
-		} else if ccLow == "гривна" || ccLow == "гривен" || ccLow == "г" || ccLow == models.UAH_SIGN {
-			amountCurrency = money.Currency_UAH
-		} else if ccLow == "тенге" || ccLow == "теңге" || ccLow == "т" || ccLow == models.KZT_SIGN {
-			amountCurrency = money.Currency_KZT
+		if ccLow == money.RUR_SIGN || ccLow == "р" || ccLow == "руб" || ccLow == "рубля" || ccLow == "рублей" || ccLow == "rub" || ccLow == "rubles" || ccLow == "ruble" || ccLow == "rubley" {
+			amountCurrency = money.CURRENCY_RUB
+		} else if ccLow == "eur" || ccLow == "euro" || ccLow == money.EUR_SIGN {
+			amountCurrency = money.CURRENCY_EUR
+		} else if ccLow == "гривна" || ccLow == "гривен" || ccLow == "г" || ccLow == money.UAH_SIGN {
+			amountCurrency = money.CURRENCY_UAH
+		} else if ccLow == "тенге" || ccLow == "теңге" || ccLow == "т" || ccLow == money.KZT_SIGN {
+			amountCurrency = money.CURRENCY_KZT
 		} else {
 			amountCurrency = money.Currency(currencyCode)
 		}
 	} else {
-		amountCurrency = money.Currency_USD
+		amountCurrency = money.CURRENCY_USD
 	}
 
-	amountText := html.EscapeString(models.NewAmount(amountCurrency, amountValue).String())
+	amountText := html.EscapeString(money.NewAmount(amountCurrency, amountValue).String())
 
 	newBillCallbackData := fmt.Sprintf("new-bill?v=%v&c=%v", amountMatches[1], url.QueryEscape(string(amountCurrency)))
 	m.BotMessage = telegram.InlineBotMessage(tgbotapi.InlineConfig{

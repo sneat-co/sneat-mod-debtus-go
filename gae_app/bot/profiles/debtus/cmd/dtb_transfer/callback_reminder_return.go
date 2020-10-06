@@ -2,6 +2,7 @@ package dtb_transfer
 
 import (
 	"fmt"
+	"github.com/crediterra/money"
 	"net/url"
 	"strconv"
 	"time"
@@ -100,7 +101,7 @@ func ProcessFullReturn(whc bots.WebhookContext, transfer models.Transfer) (m bot
 		return
 	}
 
-	amount := models.NewAmount(transfer.GetAmount().Currency, amountValue)
+	amount := money.NewAmount(transfer.GetAmount().Currency, amountValue)
 
 	var (
 		counterpartyID int64

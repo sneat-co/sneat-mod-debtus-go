@@ -2,6 +2,7 @@ package facade
 
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/crediterra/money"
 	"github.com/strongo/decimal"
 )
 

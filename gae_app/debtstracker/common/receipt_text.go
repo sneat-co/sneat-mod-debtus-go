@@ -3,6 +3,7 @@ package common
 import (
 	"bytes"
 	"fmt"
+	"github.com/crediterra/money"
 	"html"
 	"html/template"
 	"time"

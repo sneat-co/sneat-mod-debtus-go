@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/crediterra/money"
 	"net/http"
 	"strconv"
 	"time"
@@ -85,7 +86,7 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	amountWithCurrency := models.NewAmount(money.Currency(currency), amountValue)
+	amountWithCurrency := money.NewAmount(money.Currency(currency), amountValue)
 
 	contactID, err := strconv.ParseInt(r.PostFormValue("contactID"), 10, 64)
 	if err != nil {
