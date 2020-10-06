@@ -1,13 +1,10 @@
-application: debtstracker
-version: 14
-runtime: go
-api_version: go1.9
+version: go111.1
+runtime: go111
+api_version: go111
 
 #automatic_scaling:
 #  max_concurrent_requests: 80
 #  max_idle_instances: 0
-
-threadsafe: yes
 
 handlers:
 

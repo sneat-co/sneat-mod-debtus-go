@@ -16,7 +16,7 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"github.com/yaa110/go-persian-calendar/ptime"
+	"github.com/yaa110/go-persian-calendar"
 )
 
 const HistoryTopLimit = 5
