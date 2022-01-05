@@ -10,8 +10,9 @@ func TestIssueToken(t *testing.T) {
 	if token == "" {
 		t.Error("Token is empty")
 	}
-	vals := strings.Split(token, ".")
-	if len(vals) != 2 {
-		t.Errorf("Unexpected number of token parts: %d", len(vals))
+	parts := strings.Split(token, ".")
+	const expected = 2
+	if len(parts) != expected {
+		t.Errorf("Unexpected number of token parts: expected %d, got %d, token: %v", expected, len(parts), token)
 	}
 }

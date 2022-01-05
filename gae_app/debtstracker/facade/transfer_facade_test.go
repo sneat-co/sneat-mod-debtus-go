@@ -1,6 +1,7 @@
 package facade
 
 import (
+	"github.com/crediterra/money"
 	"testing"
 	"time"
 
@@ -14,8 +15,8 @@ import (
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/db"
 	"github.com/strongo/decimal"
-	"strings"
 	"runtime/debug"
+	"strings"
 )
 
 type assertHelper struct {
@@ -54,7 +55,7 @@ func TestCreateTransfer(t *testing.T) {
 
 	source := dal.NewTransferSourceBot(telegram.PlatformID, "test-bot", "444")
 
-	currency := money.Currency_EUR
+	currency := money.CURRENCY_EUR
 
 	const (
 		userID         = 1
@@ -89,7 +90,7 @@ func TestCreateTransfer(t *testing.T) {
 			false,
 			0,
 			from, to,
-			models.NewAmount(currency, 10),
+			money.NewAmount(currency, 10),
 			time.Now().Add(time.Minute), models.NoInterest())
 
 		output, err := assert.OutputIsNilIfErr(Transfers.CreateTransfer(c, newTransfer))
@@ -373,7 +374,7 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 	c := context.TODO()
 	dtmocks.SetupMocks(c)
 	assert := assertHelper{t: t}
-	currency := money.Currency_EUR
+	currency := money.CURRENCY_EUR
 
 	source := dal.NewTransferSourceBot(telegram.PlatformID, "test-bot", "444")
 
@@ -423,7 +424,7 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 			step.input.isReturn,
 			step.input.returnToTransferID,
 			from, to,
-			models.NewAmount(currency, step.input.amount),
+			money.NewAmount(currency, step.input.amount),
 			step.input.time, step.input.TransferInterest)
 
 		// =============================================================

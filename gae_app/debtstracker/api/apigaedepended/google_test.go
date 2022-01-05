@@ -1,6 +1,7 @@
 package apigaedepended
 
 import (
+	strongo "github.com/strongo/app"
 	"net/http"
 	"testing"
 
@@ -12,7 +13,7 @@ func TestInitApiGaeDepended(t *testing.T) {
 	handleFunc = func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
 		i += 1
 	}
-	dal.HandleWithContext = func(handler dal.ContextHandler) func(w http.ResponseWriter, r *http.Request) {
+	dal.HandleWithContext = func(handler strongo.ContextHandler) func(w http.ResponseWriter, r *http.Request) {
 		return func(w http.ResponseWriter, r *http.Request) {
 			j += 1
 		}

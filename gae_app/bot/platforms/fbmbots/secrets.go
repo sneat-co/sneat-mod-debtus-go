@@ -154,10 +154,11 @@ func FbAppAndSessionFromSignedRequest(c context.Context, r *http.Request, signed
 	log.Debugf(c, "FbAppAndSessionFromSignedRequest()")
 	return getFbAppAndSession(c, r, func(fbApp *fb.App) (fbSession *fb.Session, err error) {
 		log.Debugf(c, "FbAppAndSessionFromSignedRequest() => getSession()")
-		fbSession, err = fbApp.SessionFromSignedRequest(c, signedRequest, dal.HttpClient(c))
-		if err != nil {
-			log.Debugf(c, "FbAppAndSessionFromSignedRequest() => getSession(): %v", err.Error())
-		}
+		//fbSession, err = fbApp.SessionFromSignedRequest(c, signedRequest, dal.HttpClient(c))
+		//if err != nil {
+		//	log.Debugf(c, "FbAppAndSessionFromSignedRequest() => getSession(): %v", err.Error())
+		//}
+		panic("not implemented")
 		return
 	})
 }

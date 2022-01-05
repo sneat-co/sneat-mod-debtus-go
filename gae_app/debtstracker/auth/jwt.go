@@ -1,17 +1,15 @@
 package auth
 
 import (
+	"fmt"
+	"github.com/golang-jwt/jwt/v4"
+	"github.com/pkg/errors"
+	"github.com/strongo/log"
+	"google.golang.org/appengine"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/SermoDigital/jose/crypto"
-	"github.com/SermoDigital/jose/jws"
-	"github.com/SermoDigital/jose/jwt"
-	"github.com/pkg/errors"
-	"github.com/strongo/log"
-	"google.golang.org/appengine"
 )
 
 var secret = []byte("very-secret-abc")
@@ -22,12 +20,24 @@ func IssueToken(userID int64, issuer string, isAdmin bool) string {
 	if userID == 0 {
 		panic("IssueToken(userID == 0)")
 	}
-	claims := jws.Claims{}
-	claims.SetIssuedAt(time.Now())
-	claims.SetSubject(strconv.FormatInt(userID, 10))
-	if isAdmin {
-		claims.Set("admin", true)
+
+	// Create a new token object, specifying signing method and the claims
+	// you would like it to contain.
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"foo": "bar",
+		"nbf": time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
+	})
+
+	// Sign and get the complete encoded token as a string using the secret
+	tokenString, err := token.SignedString(secret)
+	if err != nil {
+		panic(fmt.Sprintf("faield to sign: %v", err))
 	}
+	//claims.SetIssuedAt(time.Now())
+	//claims.SetSubject(strconv.FormatInt(userID, 10))
+	//if isAdmin {
+	//	claims.Set("admin", true)
+	//}
 
 	if issuer != "" {
 		if len(issuer) > 100 {
@@ -38,15 +48,16 @@ func IssueToken(userID int64, issuer string, isAdmin bool) string {
 			}
 
 		}
-		claims.SetIssuer(issuer)
+		//claims.SetIssuer(issuer)
 	}
 
-	token := jws.NewJWT(claims, crypto.SigningMethodHS256)
-	signature, err := token.Serialize(secret)
-	if err != nil {
-		panic(err.Error())
-	}
-	return string(signature[len(SECRET_PREFIX):])
+	//token := jws.NewJWT(claims, crypto.SigningMethodHS256)
+	//signature, err := token.Serialize(secret)
+	//if err != nil {
+	//	panic(err.Error())
+	//}
+	return tokenString[len(SECRET_PREFIX):]
+	//return string(signature[len(SECRET_PREFIX):])
 }
 
 type AuthInfo struct {
@@ -57,7 +68,7 @@ type AuthInfo struct {
 
 var ErrNoToken = errors.New("No authorization token")
 
-func Authenticate(w http.ResponseWriter, r *http.Request, required bool) (authInfo AuthInfo, token jwt.JWT, err error) {
+func Authenticate(w http.ResponseWriter, r *http.Request, required bool) (authInfo AuthInfo, token *jwt.Token, err error) {
 	c := appengine.NewContext(r)
 	s := r.URL.Query().Get("secret")
 	if s == "" {
@@ -85,25 +96,33 @@ func Authenticate(w http.ResponseWriter, r *http.Request, required bool) (authIn
 
 	log.Debugf(appengine.NewContext(r), "JWT token: [%v]", s)
 
-	if token, err = jws.ParseJWT([]byte(s)); err != nil {
+	if token, err = jwt.Parse(s, func(token *jwt.Token) (interface{}, error) {
+		return nil, nil
+	}); err != nil {
 		log.Debugf(c, "Tried to parse: [%v]", s)
 		return
 	}
 
-	claims := token.Claims()
-	if sub, ok := claims.Subject(); ok {
-		if authInfo.UserID, err = strconv.ParseInt(sub, 10, 64); err == nil {
-			authInfo.IsAdmin = claims.Has("admin")
+	if err = token.Claims.Valid(); err != nil {
+		if claims, ok := token.Claims.(SneatClaims); ok {
+			if claims.Issuer != "" {
+				authInfo.Issuer = claims.Issuer
+			} else {
+				err = errors.New("JWT is missing 'issuer' claim.")
+				return
+			}
+			if authInfo.UserID, err = strconv.ParseInt(claims.Subject, 10, 64); err == nil {
+				authInfo.IsAdmin = claims.Admin
+			}
 		}
 	} else {
 		err = errors.New("JWT is missing 'sub' claim.")
 		return
 	}
-	if issuer, ok := claims.Issuer(); ok {
-		authInfo.Issuer = issuer
-	} else {
-		err = errors.New("JWT is missing 'issuer' claim.")
-		return
-	}
 	return
+}
+
+type SneatClaims struct {
+	jwt.RegisteredClaims
+	Admin bool `json:"admin"`
 }

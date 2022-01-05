@@ -65,7 +65,7 @@ var delayedUpdateTransfersWithCounterparty = delay.Func(DELAY_UPDATE_TRANSFERS_W
 				task.Delay = delayDuration
 				delayDuration += 10 * time.Microsecond
 				if _, err = gae.AddTaskToQueue(c, task, common.QUEUE_TRANSFERS); err != nil {
-					return errors.Wrapf(err, "Failed to add task for transfer %v to queue [%v]: %v", key, common.QUEUE_TRANSFERS)
+					return errors.Wrapf(err, "Failed to add task for transfer %v to queue [%v]", key, common.QUEUE_TRANSFERS)
 				}
 			}
 		}

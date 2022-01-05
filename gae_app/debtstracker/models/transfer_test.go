@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/crediterra/money"
 	"testing"
 
 	"github.com/strongo/decimal"
@@ -19,7 +20,7 @@ func TestTransfer_LoadSaver(t *testing.T) {
 		}{kind, properties})
 		return
 	}
-	rub := Currency(CURRENCY_IRR)
+	currency := money.CURRENCY_IRR
 	creator := TransferCounterpartyInfo{
 		UserID:      1,
 		ContactID:   2,
@@ -28,7 +29,7 @@ func TestTransfer_LoadSaver(t *testing.T) {
 	counterparty := TransferCounterpartyInfo{
 		ContactName: "Creator 1",
 	}
-	transfer := NewTransferEntity(creator.UserID, false, NewAmount(rub, decimal.NewDecimal64p2FromFloat64(123.45)), &creator, &counterparty)
+	transfer := NewTransferEntity(creator.UserID, false, money.NewAmount(currency, decimal.NewDecimal64p2FromFloat64(123.45)), &creator, &counterparty)
 	properties, err := transfer.Save()
 	if err != nil {
 		t.Error(err)

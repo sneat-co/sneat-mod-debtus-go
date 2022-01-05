@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/crediterra/money"
 	"testing"
 	"time"
 
@@ -82,7 +83,7 @@ func TestLastLogin_SetLastLogin(t *testing.T) {
 func TestAppUserEntity_BalanceWithInterest(t *testing.T) {
 	user := AppUserEntity{
 		TransfersWithInterestCount: 1,
-		Balanced: Balanced{
+		Balanced: money.Balanced{
 			BalanceCount: 1,
 			BalanceJson:  `{"EUR":58}`,
 		},

@@ -34,11 +34,12 @@ func (h contactPage) contactPageHandler(w http.ResponseWriter, r *http.Request, 
 	//var user, counterpartyUser models.AppUser
 	//var counterpartyContact models.Contact
 	//
-	var transfers []models.Transfer
+
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
 	go func() {
-		if transfers, err = h.verifyTransfers(c, contactID); err != nil {
+		//var transfers []models.Transfer
+		if _, err = h.verifyTransfers(c, contactID); err != nil {
 			panic(err)
 		}
 	}()

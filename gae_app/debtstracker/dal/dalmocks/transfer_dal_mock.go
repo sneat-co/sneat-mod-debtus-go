@@ -1,6 +1,7 @@
 package dalmocks
 
 import (
+	"github.com/crediterra/money"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
