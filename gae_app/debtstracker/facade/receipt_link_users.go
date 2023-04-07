@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/log"
 	"github.com/strongo/slices"
 )
@@ -36,7 +36,7 @@ func (linker *receiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID,
 	}
 	var invitedContact models.Contact
 	attempt := 0
-	err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
+	err = dtdal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
 		if attempt += 1; attempt > 1 {
 			sleepPeriod := time.Duration(attempt) * time.Second
 			log.Warningf(c, "Transaction retry will sleep for %v, invitedContact.ID: %v", attempt, invitedContact.ID)
@@ -74,14 +74,14 @@ func (linker *receiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID,
 		}
 
 		if entitiesToSave := changes.EntityHolders(); len(entitiesToSave) > 0 {
-			if err = dal.DB.UpdateMulti(c, entitiesToSave); err != nil {
+			if err = dtdal.DB.UpdateMulti(c, entitiesToSave); err != nil {
 				return
 			}
 		} else {
 			log.Debugf(c, "Receipt and transfer has not changed")
 		}
 		return
-	}, dal.CrossGroupTransaction)
+	}, dtdal.CrossGroupTransaction)
 	if err != nil {
 		return
 	}
@@ -99,7 +99,7 @@ func (linker receiptUsersLinker) linkUsersByReceiptWithinTransaction(
 	isCounterpartiesJustConnected bool,
 	err error,
 ) {
-	if !dal.DB.IsInTransaction(tc) {
+	if !dtdal.DB.IsInTransaction(tc) {
 		panic("linkUsersByReceiptWithinTransaction is called outside of transaction")
 	}
 
@@ -197,7 +197,7 @@ func (linker receiptUsersLinker) linkUsersByReceiptWithinTransaction(
 	}
 
 	if transfer.DtDueOn.After(time.Now()) {
-		if err = dal.Reminder.DelayCreateReminderForTransferUser(tc, receipt.TransferID, transfer.Counterparty().UserID); err != nil {
+		if err = dtdal.Reminder.DelayCreateReminderForTransferUser(tc, receipt.TransferID, transfer.Counterparty().UserID); err != nil {
 			err = errors.WithMessage(err, "Failed to delay creation of reminder for transfer coutnerparty")
 			return
 		}

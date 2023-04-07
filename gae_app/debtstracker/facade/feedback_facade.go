@@ -3,11 +3,10 @@ package facade
 import (
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
-	"github.com/strongo/db"
+	"errors"
 	"github.com/strongo/log"
 )
 
@@ -38,7 +37,7 @@ func SaveFeedback(c context.Context, feedbackID int64, feedbackEntity *models.Fe
 	} else {
 		user.LastTransferAt = feedbackEntity.Created
 	}
-	if err = dal.DB.UpdateMulti(c, []db.EntityHolder{&feedback, &user}); err != nil {
+	if err = dtdal.DB.UpdateMulti(c, []db.EntityHolder{&feedback, &user}); err != nil {
 		err = errors.Wrap(err, "Failed to put feedback & user entities to datastore")
 	}
 	return

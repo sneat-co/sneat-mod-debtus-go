@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 
-	"github.com/pkg/errors"
+	"errors"
 )
 
 var (

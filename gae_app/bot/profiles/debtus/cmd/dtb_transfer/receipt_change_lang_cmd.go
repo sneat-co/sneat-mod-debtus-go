@@ -4,7 +4,7 @@ import (
 	"net/url"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/bots-framework/core"
 )
 

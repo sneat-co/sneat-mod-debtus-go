@@ -1,7 +1,7 @@
 package splitus
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"fmt"
@@ -9,7 +9,6 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/db"
 	"net/url"
 )
 
@@ -51,7 +50,7 @@ var billSharesCommand = billCallbackCommand(billSharesCommandCode, db.CrossGroup
 						if err = bill.SetBillMembers(members); err != nil {
 							return
 						}
-						if err = dal.Bill.SaveBill(c, bill); err != nil {
+						if err = dtdal.Bill.SaveBill(c, bill); err != nil {
 							return
 						}
 						member = m

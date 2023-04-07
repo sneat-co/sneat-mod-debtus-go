@@ -7,11 +7,11 @@ import (
 	"strings"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/user"
 )
@@ -19,8 +19,8 @@ import (
 var handleFunc = http.HandleFunc
 
 func InitApiGaeDepended() {
-	handleFunc("/auth/google/signin", dal.HandleWithContext(handleSigninWithGoogle))
-	handleFunc("/auth/google/signed", dal.HandleWithContext(handleSignedWithGoogle))
+	handleFunc("/auth/google/signin", dtdal.HandleWithContext(handleSigninWithGoogle))
+	handleFunc("/auth/google/signed", dtdal.HandleWithContext(handleSignedWithGoogle))
 }
 
 const REDIRECT_DESTINATION_PARAM_NAME = "redirect-to"

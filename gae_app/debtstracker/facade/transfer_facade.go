@@ -5,17 +5,16 @@ import (
 	"fmt"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
+	"errors"
+	"github.com/crediterra/money"
 	"github.com/sanity-io/litter"
 	"github.com/strongo/app"
-	"github.com/strongo/db"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 	"github.com/strongo/slices"
-	"github.com/crediterra/money"
 )
 
 const (
@@ -64,12 +63,12 @@ type transferFacade struct {
 var Transfers TransfersFacade = transferFacade{}
 
 func (transferFacade) SaveTransfer(c context.Context, transfer models.Transfer) error {
-	return dal.DB.Update(c, &transfer)
+	return dtdal.DB.Update(c, &transfer)
 }
 
 type createTransferInput struct {
 	Env                strongo.Environment // TODO: I believe we don't need this
-	Source             dal.TransferSource
+	Source             dtdal.TransferSource
 	CreatorUser        models.AppUser
 	BillID             string
 	IsReturn           bool
@@ -77,7 +76,7 @@ type createTransferInput struct {
 	// direction models.TransferDirection,
 	// creatorInfo models.TransferCounterpartyInfo,
 	From, To *models.TransferCounterpartyInfo
-	Amount    money.Amount
+	Amount   money.Amount
 	DueOn    time.Time
 	Interest models.TransferInterest
 }
@@ -197,12 +196,12 @@ func (input createTransferInput) String() string {
 
 func NewTransferInput(
 	env strongo.Environment,
-	source dal.TransferSource,
+	source dtdal.TransferSource,
 	creatorUser models.AppUser,
 	billID string,
 	isReturn bool, returnToTransferID int64,
 	from, to *models.TransferCounterpartyInfo,
-	amount  money.Amount,
+	amount money.Amount,
 	dueOn time.Time,
 	transferInterest models.TransferInterest,
 ) (input createTransferInput) {
@@ -331,10 +330,10 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 		output.ReturnedTransfers = append(output.ReturnedTransfers, transferToReturn)
 	}
 
-	if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
+	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 		output, err = transferFacade.createTransferWithinTransaction(c, now, input, returnToTransferIDs)
 		return err
-	}, dal.CrossGroupTransaction); err != nil {
+	}, dtdal.CrossGroupTransaction); err != nil {
 		return
 	}
 
@@ -353,7 +352,7 @@ func (transferFacade transferFacade) checkOutstandingTransfersForReturns(c conte
 	creatorContactID := input.CreatorContactID()
 
 	reversedDirection := input.Direction().Reverse()
-	outstandingTransfers, err = dal.Transfer.LoadOutstandingTransfers(c, now, creatorUserID, creatorContactID, input.Amount.Currency, reversedDirection)
+	outstandingTransfers, err = dtdal.Transfer.LoadOutstandingTransfers(c, now, creatorUserID, creatorContactID, input.Amount.Currency, reversedDirection)
 	if err != nil {
 		err = errors.WithMessage(err, "failed to load outstanding transfers")
 		return
@@ -363,7 +362,7 @@ func (transferFacade transferFacade) checkOutstandingTransfersForReturns(c conte
 		return
 	}
 
-	log.Debugf(c, "facade.checkOutstandingTransfersForReturns() => dal.Transfer.LoadOutstandingTransfers(userID=%v, currency=%v) => %d transfers", input.CreatorUser.ID, input.Amount.Currency, len(outstandingTransfers))
+	log.Debugf(c, "facade.checkOutstandingTransfersForReturns() => dtdal.Transfer.LoadOutstandingTransfers(userID=%v, currency=%v) => %d transfers", input.CreatorUser.ID, input.Amount.Currency, len(outstandingTransfers))
 
 	if outstandingTransfersCount := len(outstandingTransfers); outstandingTransfersCount > 0 { // Assign the return to specific transfers
 		var (
@@ -434,7 +433,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		entities = append(entities, &output.To.Contact)
 	}
 
-	if err = dal.DB.GetMulti(c, entities); err != nil {
+	if err = dtdal.DB.GetMulti(c, entities); err != nil {
 		err = errors.WithMessage(err, "failed to get user & counterparty entities from datastore by keys")
 		return
 	}
@@ -574,7 +573,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		for i, returnToTransferID := range returnToTransferIDs {
 			returnToTransfers[i] = &models.Transfer{IntegerID: db.NewIntID(returnToTransferID), TransferEntity: new(models.TransferEntity)}
 		}
-		if err = dal.DB.GetMulti(c, returnToTransfers); err != nil { // TODO: This can exceed limit on TX entity groups
+		if err = dtdal.DB.GetMulti(c, returnToTransfers); err != nil { // TODO: This can exceed limit on TX entity groups
 			err = errors.WithMessage(err, fmt.Sprintf("failed to load returnToTransfers by keys (%v)", returnToTransferIDs))
 			return
 		}
@@ -654,10 +653,10 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 				// }
 			}
 			if output.From.User.ID != 0 {
-				dal.User.DelayUpdateUserHasDueTransfers(c, output.From.User.ID)
+				dtdal.User.DelayUpdateUserHasDueTransfers(c, output.From.User.ID)
 			}
 			if output.To.User.ID != 0 {
-				dal.User.DelayUpdateUserHasDueTransfers(c, output.To.User.ID)
+				dtdal.User.DelayUpdateUserHasDueTransfers(c, output.To.User.ID)
 			}
 		}
 	}
@@ -710,11 +709,11 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 	log.Infof(c, "Transfer inserted to DB with ID=%d, %+v", output.Transfer.ID, createdTransfer.TransferEntity)
 
 	if len(transferReturnInfos) > 2 {
-		transferReturnUpdates := make([]dal.TransferReturnUpdate, len(transferReturnInfos))
+		transferReturnUpdates := make([]dtdal.TransferReturnUpdate, len(transferReturnInfos))
 		for i, tri := range transferReturnInfos {
-			transferReturnUpdates[i] = dal.TransferReturnUpdate{TransferID: tri.Transfer.ID, ReturnedAmount: tri.ReturnedAmount}
+			transferReturnUpdates[i] = dtdal.TransferReturnUpdate{TransferID: tri.Transfer.ID, ReturnedAmount: tri.ReturnedAmount}
 		}
-		dal.Transfer.DelayUpdateTransfersOnReturn(c, createdTransfer.ID, transferReturnUpdates)
+		dtdal.Transfer.DelayUpdateTransfersOnReturn(c, createdTransfer.ID, transferReturnUpdates)
 	} else {
 		for _, transferReturnInfo := range transferReturnInfos {
 			if err = Transfers.UpdateTransferOnReturn(c, createdTransfer, transferReturnInfo.Transfer, transferReturnInfo.ReturnedAmount); err != nil {
@@ -728,9 +727,9 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 
 	// Update user and counterparty entities with transfer info
 	{
-		var amountWithoutInterest  money.Amount
+		var amountWithoutInterest money.Amount
 		if returnedValue > 0 {
-			amountWithoutInterest =  money.Amount{Currency: input.Amount.Currency, Value: input.Amount.Value - returnedInterest}
+			amountWithoutInterest = money.Amount{Currency: input.Amount.Currency, Value: input.Amount.Value - returnedInterest}
 		} else if returnedValue < 0 {
 			panic(fmt.Sprintf("returnedValue < 0: %v", returnedValue))
 		} else {
@@ -795,13 +794,13 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		}
 	}
 
-	if err = dal.DB.UpdateMulti(c, entities); err != nil {
+	if err = dtdal.DB.UpdateMulti(c, entities); err != nil {
 		err = errors.WithMessage(err, "failed to update entities")
 		return
 	}
 
 	if output.Transfer.Counterparty().UserID != 0 {
-		if err = dal.Receipt.DelayCreateAndSendReceiptToCounterpartyByTelegram(c, input.Env, createdTransfer.ID, createdTransfer.Counterparty().UserID); err != nil {
+		if err = dtdal.Receipt.DelayCreateAndSendReceiptToCounterpartyByTelegram(c, input.Env, createdTransfer.ID, createdTransfer.Counterparty().UserID); err != nil {
 			// TODO: Send by any available channel
 			err = errors.WithMessage(err, "failed to delay sending receipt to counterpartyEntity by Telegram")
 			return
@@ -810,8 +809,8 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		log.Debugf(c, "No receipt to counterpartyEntity: [%v]", createdTransfer.Counterparty().ContactName)
 	}
 
-	if createdTransfer.IsOutstanding && dal.Reminder != nil { // TODO: check for nil is temporary workaround for unittest
-		if err = dal.Reminder.DelayCreateReminderForTransferUser(c, createdTransfer.ID, createdTransfer.CreatorUserID); err != nil {
+	if createdTransfer.IsOutstanding && dtdal.Reminder != nil { // TODO: check for nil is temporary workaround for unittest
+		if err = dtdal.Reminder.DelayCreateReminderForTransferUser(c, createdTransfer.ID, createdTransfer.CreatorUserID); err != nil {
 			err = errors.WithMessage(err, "failed to delay reminder creation for creator")
 			return
 		}
@@ -823,13 +822,13 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 
 func (transferFacade) GetTransferByID(c context.Context, id int64) (transfer models.Transfer, err error) {
 	transfer.ID = id
-	err = dal.DB.Get(c, &transfer)
+	err = dtdal.DB.Get(c, &transfer)
 	return
 }
 
 func (transferFacade) updateUserAndCounterpartyWithTransferInfo(
 	c context.Context,
-	amount  money.Amount,
+	amount money.Amount,
 	transfer models.Transfer,
 	user models.AppUser,
 	contact models.Contact,
@@ -986,7 +985,7 @@ func removeClosedTransfersFromOutstandingWithInterest(
 
 func InsertTransfer(c context.Context, transferEntity *models.TransferEntity) (transfer models.Transfer, err error) {
 	transfer.TransferEntity = transferEntity
-	err = dal.DB.InsertWithRandomIntID(c, &transfer)
+	err = dtdal.DB.InsertWithRandomIntID(c, &transfer)
 	return
 }
 
@@ -1040,8 +1039,8 @@ func (transferFacade) UpdateTransferOnReturn(c context.Context, returnTransfer, 
 		return
 	}
 
-	if dal.Reminder != nil {
-		if err = dal.Reminder.DelayDiscardReminders(c, []int64{transfer.ID}, returnTransfer.ID); err != nil {
+	if dtdal.Reminder != nil {
+		if err = dtdal.Reminder.DelayDiscardReminders(c, []int64{transfer.ID}, returnTransfer.ID); err != nil {
 			err = errors.WithMessage(err, "failed to delay task to discard reminders")
 			return
 		}

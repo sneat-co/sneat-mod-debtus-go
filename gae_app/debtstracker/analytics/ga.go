@@ -7,7 +7,7 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"context"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/gamp"
 	"github.com/strongo/log"

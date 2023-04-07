@@ -5,15 +5,14 @@ import (
 	"testing"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtmocks"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"errors"
 	"github.com/crediterra/go-interest"
-	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/db"
 	"github.com/strongo/decimal"
 	"runtime/debug"
 	"strings"
@@ -53,7 +52,7 @@ func TestCreateTransfer(t *testing.T) {
 	c := context.Background()
 	assert := assertHelper{t: t}
 
-	source := dal.NewTransferSourceBot(telegram.PlatformID, "test-bot", "444")
+	source := dtdal.NewTransferSourceBot(telegram.PlatformID, "test-bot", "444")
 
 	currency := money.CURRENCY_EUR
 
@@ -64,7 +63,7 @@ func TestCreateTransfer(t *testing.T) {
 
 	/* Test CreateTransfer that should succeed  - new counterparty by name */
 	{
-		// counterparty, err := dal.Contact.CreateContact(c, user.ID, 0, 0, models.ContactDetails{
+		// counterparty, err := dtdal.Contact.CreateContact(c, user.ID, 0, 0, models.ContactDetails{
 		// 	FirstName: "First",
 		// 	LastName:  "Contact",
 		// })
@@ -376,7 +375,7 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 	assert := assertHelper{t: t}
 	currency := money.CURRENCY_EUR
 
-	source := dal.NewTransferSourceBot(telegram.PlatformID, "test-bot", "444")
+	source := dtdal.NewTransferSourceBot(telegram.PlatformID, "test-bot", "444")
 
 	const (
 		userID    = 1

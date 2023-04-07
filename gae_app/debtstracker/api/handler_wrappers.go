@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"context"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/log"
 )
 
@@ -53,8 +53,8 @@ func optionsHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
 	responseHeader.Set("Access-Control-Allow-Origin", origin)
 }
 
-//func getOnly(handler dal.ContextHandler) func(w http.ResponseWriter, r *http.Request) {
-//	return dal.HandleWithContext(optionsHandler(func(c context.Context, w http.ResponseWriter, r *http.Request) {
+//func getOnly(handler dtdal.ContextHandler) func(w http.ResponseWriter, r *http.Request) {
+//	return dtdal.HandleWithContext(optionsHandler(func(c context.Context, w http.ResponseWriter, r *http.Request) {
 //		if r.Method != "GET" {
 //			BadRequestMessage(c, w, "Expecting to get request method GET, got: " + r.Method)
 //			return
@@ -65,8 +65,8 @@ func optionsHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
 //	}))
 //}
 
-//func postOnly(handler dal.ContextHandler) func(w http.ResponseWriter, r *http.Request) {
-//	return dal.HandleWithContext(optionsHandler(func(c context.Context, w http.ResponseWriter, r *http.Request) {
+//func postOnly(handler dtdal.ContextHandler) func(w http.ResponseWriter, r *http.Request) {
+//	return dtdal.HandleWithContext(optionsHandler(func(c context.Context, w http.ResponseWriter, r *http.Request) {
 //		if r.Method != "POST" {
 //			BadRequestMessage(c, w, "Expecting to get request method POST, got: " + r.Method)
 //			return

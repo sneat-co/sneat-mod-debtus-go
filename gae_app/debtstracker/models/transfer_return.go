@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
 )

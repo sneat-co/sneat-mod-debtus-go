@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"errors"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 )

@@ -1,7 +1,7 @@
 package dtb_settings
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
@@ -46,7 +46,7 @@ var SetPrimaryCurrency = bots.Command{
 		log.Debugf(c, "SetPrimaryCurrency.Action()")
 		whc.ChatEntity().SetAwaitingReplyTo("")
 		primaryCurrency := whc.Input().(bots.WebhookTextMessage).Text()
-		if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+		if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 			var user models.AppUser
 			if user, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
 				return

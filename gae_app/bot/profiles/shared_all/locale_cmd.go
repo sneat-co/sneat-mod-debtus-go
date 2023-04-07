@@ -6,17 +6,16 @@ import (
 	"strings"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"context"
+	"errors"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
 )
 
@@ -140,7 +139,7 @@ func setPreferredLanguageAction(whc bots.WebhookContext, code5, mode string, bot
 			if locale.Code5 == code5 {
 				whc.SetLocale(locale.Code5)
 
-				if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+				if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 					var user models.AppUser
 					if user, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
 						return

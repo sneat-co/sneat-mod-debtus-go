@@ -6,11 +6,11 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/log"
 )
 
@@ -28,7 +28,7 @@ func handleSignInWithCode(c context.Context, w http.ResponseWriter, r *http.Requ
 		ErrorAsJson(c, w, http.StatusBadRequest, errors.New("Login code should not be 0."))
 		return
 	} else {
-		if userID, err := dal.LoginCode.ClaimLoginCode(c, int32(loginCode)); err != nil {
+		if userID, err := dtdal.LoginCode.ClaimLoginCode(c, int32(loginCode)); err != nil {
 			switch err {
 			case models.ErrLoginCodeExpired:
 				w.Write([]byte("expired"))

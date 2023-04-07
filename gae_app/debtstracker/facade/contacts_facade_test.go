@@ -1,6 +1,6 @@
 package facade
 
-//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 //"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 //"context"
 //"testing"

@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
@@ -77,7 +77,7 @@ var groupCommand = bots.NewCallbackCommand(groupCommandCode,
 
 		var group models.Group
 
-		if group, err = dal.Group.GetGroupByID(c, userGroupJson.ID); err != nil {
+		if group, err = dtdal.Group.GetGroupByID(c, userGroupJson.ID); err != nil {
 			return
 		}
 

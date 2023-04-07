@@ -11,7 +11,6 @@ import (
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/db"
 )
 
 func TestWriteReceiptText(t *testing.T) {

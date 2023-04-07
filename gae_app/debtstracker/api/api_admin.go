@@ -8,12 +8,12 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal/gaedal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/datastore"
@@ -24,7 +24,7 @@ import (
 func handleAdminFindUser(c context.Context, w http.ResponseWriter, r *http.Request, _ auth.AuthInfo) {
 
 	if userID := r.URL.Query().Get("userID"); userID != "" {
-		if user, err := dal.User.GetUserByStrID(c, userID); err != nil {
+		if user, err := dtdal.User.GetUserByStrID(c, userID); err != nil {
 			log.Errorf(c, errors.Wrapf(err, "Failed to get user by ID=%v", userID).Error())
 		} else {
 			jsonToResponse(c, w, []dto.ApiUserDto{{ID: userID, Name: user.FullName()}})
@@ -38,7 +38,7 @@ func handleAdminFindUser(c context.Context, w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		tgUsers, err := dal.TgUser.FindByUserName(c, tgUserText)
+		tgUsers, err := dtdal.TgUser.FindByUserName(c, tgUserText)
 
 		if err != nil {
 			InternalError(c, w, err)
@@ -64,7 +64,7 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 
 	log.Infof(c, "keepID: %d, deleteID: %d", keepID, deleteID)
 
-	if err := dal.DB.RunInTransaction(c, func(c context.Context) error {
+	if err := dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 		contacts, err := facade.GetContactsByIDs(c, []int64{keepID, deleteID})
 		if err != nil {
 			return err
@@ -105,7 +105,7 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 			log.Warningf(c, "Contact %d has been deleted from DB (non revocable)", deleteID)
 		}
 		return nil
-	}, dal.CrossGroupTransaction); err != nil {
+	}, dtdal.CrossGroupTransaction); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	}
@@ -138,7 +138,7 @@ var delayedChangeTransferCounterparty = delay.Func("changeTransferCounterparty",
 	if _, err := facade.GetContactByID(c, newID); err != nil {
 		return err
 	}
-	err := dal.DB.RunInTransaction(c, func(c context.Context) error {
+	err := dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 		transfer, err := facade.Transfers.GetTransferByID(c, transferID)
 		if err != nil {
 			return err
@@ -160,6 +160,6 @@ var delayedChangeTransferCounterparty = delay.Func("changeTransferCounterparty",
 			err = facade.Transfers.SaveTransfer(c, transfer)
 		}
 		return err
-	}, dal.SingleGroupTransaction)
+	}, dtdal.SingleGroupTransaction)
 	return err
 })

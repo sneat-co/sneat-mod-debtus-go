@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/website/admin"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/website/pages"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/website/redirects"
@@ -67,9 +67,9 @@ func CreateInvitePage(w http.ResponseWriter, r *http.Request, authInfo auth.Auth
 			w.Write([]byte(err.Error()))
 		}
 		inviteCode := r.Form.Get("Code")
-		if !dal.InviteCodeRegex.Match([]byte(inviteCode)) {
+		if !dtdal.InviteCodeRegex.Match([]byte(inviteCode)) {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(fmt.Sprintf("Invate code [%v] does not match pattern: %v", inviteCode, dal.InviteCodeRegex.String())))
+			w.Write([]byte(fmt.Sprintf("Invate code [%v] does not match pattern: %v", inviteCode, dtdal.InviteCodeRegex.String())))
 			return
 		}
 		maxClaimsCount, err := strconv.ParseInt(r.Form.Get("MaxClaimsCount"), 10, 32)
@@ -77,7 +77,7 @@ func CreateInvitePage(w http.ResponseWriter, r *http.Request, authInfo auth.Auth
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		invite, err := dal.Invite.GetInvite(c, inviteCode)
+		invite, err := dtdal.Invite.GetInvite(c, inviteCode)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
@@ -90,7 +90,7 @@ func CreateInvitePage(w http.ResponseWriter, r *http.Request, authInfo auth.Auth
 		}
 		translator := strongo.NewSingleMapTranslator(strongo.GetLocaleByCode5(strongo.LocaleCodeEnUS), strongo.NewMapTranslator(c, trans.TRANS))
 		ec := strongo.NewExecutionContext(c, translator)
-		if _, err = dal.Invite.CreateMassInvite(ec, userID, inviteCode, int32(maxClaimsCount), "web"); err != nil {
+		if _, err = dtdal.Invite.CreateMassInvite(ec, userID, inviteCode, int32(maxClaimsCount), "web"); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
 			return

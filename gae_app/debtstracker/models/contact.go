@@ -2,15 +2,16 @@ package models
 
 import (
 	"fmt"
+	"github.com/strongo/dalgo/dal"
+	"github.com/strongo/dalgo/record"
 	"strings"
 	"time"
 
 	"context"
+	"github.com/crediterra/money"
 	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
-	"github.com/crediterra/money"
 )
 
 func NewContactEntity(userID int64, details ContactDetails) *ContactEntity {
@@ -25,18 +26,56 @@ func NewContactEntity(userID int64, details ContactDetails) *ContactEntity {
 const ContactKind = "Counterparty" // TODO: Change value to Contact & migrated DB records
 
 type Contact struct {
-	db.IntegerID
-	*ContactEntity
+	record.WithID[int64]
+	Data *ContactEntity
 }
 
-var _ db.EntityHolder = (*Contact)(nil)
+func ContactRecords(contacts []Contact) (records []dal.Record) {
+	records = make([]dal.Record, len(contacts))
+	for i, contact := range contacts {
+		records[i] = contact.Record
+	}
+	return
+}
+
+func NewContacts(ids ...int64) (contacts []Contact) {
+	contacts = make([]Contact, len(ids))
+	for i, id := range ids {
+		if id == 0 {
+			panic(fmt.Sprintf("ids[%d] == 0", i))
+		}
+		contacts[i] = NewContact(id, nil)
+	}
+	return
+}
+
+func NewContactKey(id int64) *dal.Key {
+	return dal.NewKeyWithID(ContactKind, id)
+}
+
+func NewContact(id int64, data *ContactEntity) Contact {
+	key := NewContactKey(id)
+	if data == nil {
+		data = new(ContactEntity)
+	}
+	return Contact{
+		WithID: record.WithID[int64]{
+			ID:     id,
+			Key:    key,
+			Record: dal.NewRecordWithData(key, data),
+		},
+		Data: data,
+	}
+}
+
+//var _ db.EntityHolder = (*Contact)(nil)
 
 func (Contact) Kind() string {
 	return ContactKind
 }
 
 func (c *Contact) Entity() interface{} {
-	return c.ContactEntity
+	return c.Data
 }
 
 func (Contact) NewEntity() interface{} {
@@ -45,23 +84,19 @@ func (Contact) NewEntity() interface{} {
 
 func (c *Contact) SetEntity(entity interface{}) {
 	if entity == nil {
-		c.ContactEntity = nil
+		c.Data = nil
 	} else {
-		c.ContactEntity = entity.(*ContactEntity)
+		c.Data = entity.(*ContactEntity)
 	}
 }
 
 func (c Contact) MustMatchCounterparty(counterparty Contact) {
-	if !c.Balance().Equal(counterparty.Balance().Reversed()) {
-		panic(fmt.Sprintf("contact[%d].Balance() != counterpartyContact[%d].Balance(): %v != %v", c.ID, counterparty.ID, c.Balance(), counterparty.Balance()))
+	if !c.Data.Balance().Equal(counterparty.Data.Balance().Reversed()) {
+		panic(fmt.Sprintf("contact[%d].Balance() != counterpartyContact[%d].Balance(): %v != %v", c.ID, counterparty.ID, c.Data.Balance(), counterparty.Data.Balance()))
 	}
-	if c.BalanceCount != counterparty.BalanceCount {
-		panic(fmt.Sprintf("contact.BalanceCount != counterpartyContact.BalanceCount:  %v != %v", c.BalanceCount, counterparty.BalanceCount))
+	if c.Data.BalanceCount != counterparty.Data.BalanceCount {
+		panic(fmt.Sprintf("contact.BalanceCount != counterpartyContact.BalanceCount:  %v != %v", c.Data.BalanceCount, counterparty.Data.BalanceCount))
 	}
-}
-
-func NewContact(id int64, entity *ContactEntity) Contact {
-	return Contact{IntegerID: db.IntegerID{ID: id}, ContactEntity: entity}
 }
 
 type ContactEntity struct {
@@ -109,7 +144,7 @@ func (entity *ContactEntity) SetTransfersInfo(transfersInfo UserContactTransfers
 	}
 }
 
-func (entity *ContactEntity) Info(counterpartyID int64, note, comment string) TransferCounterpartyInfo {
+func (entity *ContactEntity) Info(counterpartyID int, note, comment string) TransferCounterpartyInfo {
 	return TransferCounterpartyInfo{
 		ContactID:   counterpartyID,
 		UserID:      entity.UserID,
@@ -199,7 +234,7 @@ func (entity *ContactEntity) Save() (properties []datastore.Property, err error)
 		return
 	}
 
-	checkHasProperties(ContactKind, properties)
+	//checkHasProperties(ContactKind, properties)
 
 	return
 }
@@ -212,10 +247,10 @@ func (entity *ContactEntity) BalanceWithInterest(c context.Context, periodEnds t
 	return
 }
 
-func ContactsByID(contacts []Contact) (contactsByID map[int64]*ContactEntity) {
-	contactsByID = make(map[int64]*ContactEntity, len(contacts))
+func ContactsByID(contacts []Contact) (contactsByID map[int]*ContactEntity) {
+	contactsByID = make(map[int]*ContactEntity, len(contacts))
 	for _, contact := range contacts {
-		contactsByID[contact.ID] = contact.ContactEntity
+		contactsByID[contact.ID] = contact.Data
 	}
 	return
 }

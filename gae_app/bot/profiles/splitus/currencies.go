@@ -3,7 +3,7 @@ package splitus
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"fmt"
@@ -11,7 +11,6 @@ import (
 	"github.com/crediterra/money"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"net/url"
 )
@@ -115,13 +114,13 @@ func groupSettingsSetCurrencyCommand(params shared_all.BotParams) bots.Command {
 			currency := money.Currency(callbackUrl.Query().Get(CURRENCY_PARAM_NAME))
 			if group.DefaultCurrency != currency {
 				c := whc.Context()
-				if err := dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-					if group, err = dal.Group.GetGroupByID(c, group.ID); err != nil {
+				if err := dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+					if group, err = dtdal.Group.GetGroupByID(c, group.ID); err != nil {
 						return
 					}
 					if group.DefaultCurrency != currency {
 						group.DefaultCurrency = currency
-						if err = dal.Group.SaveGroup(c, group); err != nil {
+						if err = dtdal.Group.SaveGroup(c, group); err != nil {
 							return
 						}
 					}

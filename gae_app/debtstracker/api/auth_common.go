@@ -4,20 +4,19 @@ import (
 	"net/http"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/app/user"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
 )
 
 func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
 	provider := r.URL.Query().Get("provider")
 
-	if err := dal.DB.RunInTransaction(c, func(c context.Context) error {
+	if err := dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 		appUser, err := facade.User.GetUserByID(c, authInfo.UserID)
 		if err != nil {
 			return err
@@ -26,12 +25,12 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 		changed := false
 
 		deleteFbUser := func(userAccount user.Account) error {
-			if userFb, err := dal.UserFacebook.GetFbUserByFbID(c, userAccount.App, userAccount.ID); err != nil {
+			if userFb, err := dtdal.UserFacebook.GetFbUserByFbID(c, userAccount.App, userAccount.ID); err != nil {
 				if err != db.ErrRecordNotFound {
 					return err
 				}
 			} else if userFb.AppUserIntID == appUser.ID {
-				if err = dal.UserFacebook.DeleteFbUser(c, userAccount.App, userAccount.ID); err != nil {
+				if err = dtdal.UserFacebook.DeleteFbUser(c, userAccount.App, userAccount.ID); err != nil {
 					return err
 				}
 			} else {
@@ -53,13 +52,13 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 			if userAccount, err = appUser.GetGoogleAccount(); err != nil {
 				return err
 			} else if userAccount != nil {
-				if userGoogle, err := dal.UserGoogle.GetUserGoogleByID(c, userAccount.ID); err != nil {
+				if userGoogle, err := dtdal.UserGoogle.GetUserGoogleByID(c, userAccount.ID); err != nil {
 					if err != db.ErrRecordNotFound {
 						return err
 					}
 				} else if userGoogle.AppUserIntID == appUser.ID {
 					userGoogle.AppUserIntID = 0
-					if err = dal.UserGoogle.DeleteUserGoogle(c, userGoogle.ID); err != nil {
+					if err = dtdal.UserGoogle.DeleteUserGoogle(c, userGoogle.ID); err != nil {
 						return err
 					}
 				} else {
@@ -97,7 +96,7 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 			}
 		}
 		return nil
-	}, dal.CrossGroupTransaction); err != nil {
+	}, dtdal.CrossGroupTransaction); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 	}
 }

@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"context"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"

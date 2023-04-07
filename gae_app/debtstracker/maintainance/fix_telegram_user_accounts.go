@@ -6,15 +6,14 @@ import (
 	"strconv"
 	"strings"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"errors"
 	"github.com/captaincodeman/datastore-mapper"
-	"github.com/pkg/errors"
 	users "github.com/strongo/app/user"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/datastore"
 )
@@ -78,11 +77,11 @@ func (m *verifyTelegramUserAccounts) dealWithIntKey(c context.Context, counters 
 		counters.Increment("empty_BotID_deleted", 1)
 	}
 	var tgChat models.TelegramChat
-	if tgChat, err = dal.TgChat.GetTgChatByID(c, tgChatEntity.BotID, tgChatEntity.TelegramUserID); err != nil {
+	if tgChat, err = dtdal.TgChat.GetTgChatByID(c, tgChatEntity.BotID, tgChatEntity.TelegramUserID); err != nil {
 		if db.IsNotFound(err) {
 			tgChat.SetID(tgChatEntity.BotID, tgChatEntity.TelegramUserID)
 			tgChat.SetEntity(tgChatEntity)
-			if err = dal.DB.Update(c, &tgChat); err != nil {
+			if err = dtdal.DB.Update(c, &tgChat); err != nil {
 				log.Errorf(c, "failed to created entity with fixed key %v: %v", tgChat.ID, err)
 				return nil
 			}
@@ -124,13 +123,13 @@ func (m *verifyTelegramUserAccounts) processTelegramChat(c context.Context, tgCh
 					return
 				}
 			}
-			if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-				if tgChat, err = dal.TgChat.GetTgChatByID(c, botID, tgUserID); err != nil {
+			if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+				if tgChat, err = dtdal.TgChat.GetTgChatByID(c, botID, tgUserID); err != nil {
 					return
 				}
 				tgChat.TelegramUserID = tgUserID
 				tgChat.BotID = botID
-				return dal.DB.Update(c, &tgChat)
+				return dtdal.DB.Update(c, &tgChat)
 			}, db.CrossGroupTransaction); err != nil {
 				log.Errorf(c, "Failed to fix TgChat(%v): %v", tgChat.ID, err)
 				err = nil
@@ -145,7 +144,7 @@ func (m *verifyTelegramUserAccounts) processTelegramChat(c context.Context, tgCh
 		log.Warningf(c, "TgChat(%v).AppUserIntID == 0", tgChat.ID)
 		return
 	}
-	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 		if user, err = facade.User.GetUserByID(c, tgChat.AppUserIntID); err != nil {
 			if db.IsNotFound(err) {
 				log.Errorf(c, "Failed to process %v: %v", tgChat.ID, err)

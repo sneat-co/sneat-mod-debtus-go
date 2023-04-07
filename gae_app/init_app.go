@@ -5,8 +5,8 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/api/apigaedepended"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/apps/vkapp"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal/gaedal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/reminders"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/support"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/webhooks"
@@ -55,12 +55,12 @@ func NotFoundSilent(w http.ResponseWriter, r *http.Request, _ httprouter.Params)
 }
 
 func InitCronHandlers(router *httprouter.Router) {
-	router.HandlerFunc("GET", "/cron/send-reminders", dal.HandleWithContext(reminders.CronSendReminders))
+	router.HandlerFunc("GET", "/cron/send-reminders", dtdal.HandleWithContext(reminders.CronSendReminders))
 }
 
 func InitTaskQueueHandlers(router *httprouter.Router) {
-	router.HandlerFunc("POST", "/taskqueu/send-reminder", dal.HandleWithContext(reminders.SendReminderHandler)) // TODO: Remove obsolete!
-	router.HandlerFunc("POST", "/task-queue/send-reminder", dal.HandleWithContext(reminders.SendReminderHandler))
+	router.HandlerFunc("POST", "/taskqueu/send-reminder", dtdal.HandleWithContext(reminders.SendReminderHandler)) // TODO: Remove obsolete!
+	router.HandlerFunc("POST", "/task-queue/send-reminder", dtdal.HandleWithContext(reminders.SendReminderHandler))
 }
 
 type TestTransferCounterparty struct {

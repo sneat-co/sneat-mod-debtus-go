@@ -2,11 +2,10 @@ package models
 
 import (
 	"fmt"
+	"github.com/strongo/dalgo/record"
 	"time"
 
-	"github.com/pkg/errors"
-	"github.com/strongo/db"
-	"github.com/strongo/db/gaedb"
+	"errors"
 	"github.com/strongo/decimal"
 	"google.golang.org/appengine/datastore"
 )
@@ -76,11 +75,11 @@ func NewBillEntity(data BillCommon) *BillEntity {
 }
 
 type Bill struct {
-	db.StringID
+	record.WithID[string]
 	*BillEntity
 }
 
-var _ db.EntityHolder = (*Bill)(nil)
+//var _ db.EntityHolder = (*Bill)(nil)
 
 func (Bill) Kind() string {
 	return BillKind
@@ -107,7 +106,7 @@ func (entity *BillEntity) Load(ps []datastore.Property) error {
 	return datastore.LoadStruct(entity, ps)
 }
 
-func (entity *BillEntity) Save() (properties []datastore.Property, err error) {
+func (entity *BillEntity) Validate() (err error) {
 	if err = entity.validateBalance(); err != nil {
 		return
 	}
@@ -123,18 +122,18 @@ func (entity *BillEntity) Save() (properties []datastore.Property, err error) {
 		}
 	}
 
-	if properties, err = datastore.SaveStruct(entity); err != nil {
+	//if properties, err = datastore.SaveStruct(entity); err != nil {
+	//	return
+	//}
+	if err = entity.BillCommon.Validate(); err != nil {
 		return
 	}
-	if properties, err = entity.BillCommon.save(properties); err != nil {
-		return
-	}
-	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"DtDueToPay":     gaedb.IsZeroTime,
-		"DtDueToCollect": gaedb.IsZeroTime,
-	}); err != nil {
-		return
-	}
+	//if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
+	//	"DtDueToPay":     gaedb.IsZeroTime,
+	//	"DtDueToCollect": gaedb.IsZeroTime,
+	//}); err != nil {
+	//	return
+	//}
 	return
 }
 
@@ -145,7 +144,7 @@ var (
 	ErrBillTotalBalanceIsNotZero        = errors.New("total bill balance is not zero")
 	ErrBillOwesDiffTotalIsNotZero       = errors.New("total bill difference of owes is not zero")
 	ErrNonGroupMember                   = errors.New("non group member")
-	GroupTotalBalanceHasNonZeroValue    = errors.New("group total balance has non zero value")
+	ErrGroupTotalBalanceHasNonZeroValue = errors.New("group total balance has non zero value")
 )
 
 func (entity *BillEntity) validateBalance() (err error) {
@@ -162,11 +161,11 @@ func (entity *BillEntity) validateBalance() (err error) {
 
 	for i, member := range members {
 		if member.Owes < 0 {
-			err = errors.WithMessage(errors.WithMessage(ErrNegativeAmount, fmt.Sprintf("members[%d]", i)), fmt.Sprintf("owes=%v", member.Owes))
+			err = fmt.Errorf("%w: members[%d] owes=%v", ErrNegativeAmount, i, member.Owes)
 			return
 		}
 		if member.Paid < 0 {
-			err = errors.WithMessage(errors.WithMessage(ErrNegativeAmount, fmt.Sprintf("members[%d]", i)), fmt.Sprintf("paid=%v", member.Paid))
+			err = fmt.Errorf("%w: members[%d] paid=%v", ErrNegativeAmount, i, member.Paid)
 			return
 		}
 		totalBalance += member.Paid - member.Owes
@@ -175,15 +174,15 @@ func (entity *BillEntity) validateBalance() (err error) {
 	}
 
 	if totalOwed != entity.AmountTotal {
-		err = errors.WithMessage(ErrTotalOwedIsNotMatchingBillAmount, fmt.Sprintf("totalOwed: %v, AmountTotal: %v", totalOwed, entity.AmountTotal))
+		err = fmt.Errorf("%w: totalOwed: %v, AmountTotal: %v", ErrTotalOwedIsNotMatchingBillAmount, totalOwed, entity.AmountTotal)
 	}
 
 	if totalPaid > entity.AmountTotal {
-		err = errors.WithMessage(ErrTotalPaidIsGreaterThenBillAmount, fmt.Sprintf("totalPaid: %v, AmountTotal: %v", totalPaid, entity.AmountTotal))
+		err = fmt.Errorf("%w: totalPaid: %v, AmountTotal: %v", ErrTotalPaidIsGreaterThenBillAmount, totalPaid, entity.AmountTotal)
 	}
 
 	if totalBalance != 0 {
-		err = errors.WithMessage(ErrBillTotalBalanceIsNotZero, fmt.Sprintf("totalBalance=%v, members: %+v", totalBalance, members))
+		err = fmt.Errorf("%w: totalBalance=%v, members: %+v", ErrBillTotalBalanceIsNotZero, totalBalance, members)
 	}
 
 	return

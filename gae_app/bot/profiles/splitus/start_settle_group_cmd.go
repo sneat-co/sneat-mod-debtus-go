@@ -2,14 +2,14 @@ package splitus
 
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal/gaedal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/crediterra/money"
-	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
@@ -41,7 +41,7 @@ func settleGroupStartAction(whc bots.WebhookContext, startParams []string) (m bo
 			group.ID = p[len("group="):]
 		}
 	}
-	if group, err = dal.Group.GetGroupByID(whc.Context(), group.ID); err != nil {
+	if group, err = dtdal.Group.GetGroupByID(whc.Context(), group.ID); err != nil {
 		return
 	}
 	return settleGroupAskForCounterpartyAction(whc, group)

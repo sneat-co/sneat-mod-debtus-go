@@ -7,7 +7,7 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/DebtsTracker/translations/trans"
@@ -35,8 +35,8 @@ var groupSplitCommand = shared_group.GroupCallbackCommand(groupSplitCommandCode,
 			money.Amount{},
 			nil,
 			func(memberID string, addValue int) (member models.BillMemberJson, err error) {
-				err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-					if group, err = dal.Group.GetGroupByID(c, group.ID); err != nil {
+				err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+					if group, err = dtdal.Group.GetGroupByID(c, group.ID); err != nil {
 						return
 					}
 					members := group.GetGroupMembers()
@@ -48,7 +48,7 @@ var groupSplitCommand = shared_group.GroupCallbackCommand(groupSplitCommandCode,
 							}
 							members[i] = m
 							group.SetGroupMembers(members)
-							if err = dal.Group.SaveGroup(c, group); err != nil {
+							if err = dtdal.Group.SaveGroup(c, group); err != nil {
 								return
 							}
 							member = models.BillMemberJson{MemberJson: m.MemberJson}
@@ -56,7 +56,7 @@ var groupSplitCommand = shared_group.GroupCallbackCommand(groupSplitCommandCode,
 						}
 					}
 					return fmt.Errorf("member not found by ID: %v", member.ID)
-				}, dal.CrossGroupTransaction)
+				}, dtdal.CrossGroupTransaction)
 				return
 			},
 		)

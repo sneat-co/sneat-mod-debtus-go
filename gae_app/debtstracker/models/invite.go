@@ -1,10 +1,10 @@
 package models
 
 import (
+	"github.com/strongo/dalgo/record"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
-	"github.com/strongo/db"
 )
 
 type InviteBy string
@@ -52,7 +52,8 @@ type InviteEntity struct {
 }
 
 type Invite struct {
-	db.NoStrID
-	ID string
+	record.WithID[string]
+	//db.NoStrID
+	//ID string
 	*InviteEntity
 }

@@ -4,14 +4,13 @@ import (
 	"strconv"
 	"strings"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/invites"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
 )
 
@@ -49,7 +48,7 @@ func sendReceiptByEmail(whc bots.WebhookContext, toEmail, toName string, transfe
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
 	})
-	receiptID, err := dal.Receipt.CreateReceipt(c, &receiptEntity)
+	receiptID, err := dtdal.Receipt.CreateReceipt(c, &receiptEntity)
 
 	emailID := ""
 	if emailID, err = invites.SendReceiptByEmail(

@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"errors"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/decimal"
@@ -287,7 +287,7 @@ var AskToChooseDebtToReturnCommand = bots.Command{
 			}
 			user := botAppUser.(*models.AppUserEntity)
 			var counterparties []models.Contact
-			if counterparties, err = dal.Contact.GetLatestContacts(whc, 0, user.TotalContactsCount()); err != nil {
+			if counterparties, err = dtdal.Contact.GetLatestContacts(whc, 0, user.TotalContactsCount()); err != nil {
 				return m, err
 			}
 			var counterpartyFound bool

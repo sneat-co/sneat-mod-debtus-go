@@ -1,13 +1,11 @@
 package models
 
 import (
-	"time"
-
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/db"
-	"github.com/strongo/db/gaedb"
+	"github.com/strongo/dalgo/record"
 	"google.golang.org/appengine/datastore"
+	"time"
 )
 
 const (
@@ -36,17 +34,17 @@ var ReminderStatuses = []string{
 
 const ReminderKind = "Reminder"
 
-var _ datastore.PropertyLoadSaver = (*ReminderEntity)(nil)
+//var _ datastore.PropertyLoadSaver = (*ReminderEntity)(nil)
 
 type Reminder struct {
-	db.IntegerID
+	record.WithID[int]
 	*ReminderEntity
 }
 
-var _ db.EntityHolder = (*Reminder)(nil)
+//var _ db.EntityHolder = (*Reminder)(nil)
 
-func NewReminder(id int64, entity *ReminderEntity) Reminder {
-	return Reminder{IntegerID: db.NewIntID(id), ReminderEntity: entity}
+func NewReminder(id int, entity *ReminderEntity) Reminder {
+	return Reminder{WithID: record.WithID[int]{ID: id}, ReminderEntity: entity}
 }
 
 func (Reminder) Kind() string {
@@ -97,40 +95,36 @@ type ReminderEntity struct {
 	ErrDetails          string    `datastore:",noindex,omitempty"`
 }
 
-func (r *ReminderEntity) Load(ps []datastore.Property) error {
-	return datastore.LoadStruct(r, ps)
-}
-
-func (r *ReminderEntity) Save() (properties []datastore.Property, err error) {
-	if err = r.validate(); err != nil {
-		return nil, err
-	}
-	r.DtUpdated = time.Now()
-	if properties, err = datastore.SaveStruct(r); err != nil {
-		return
-	}
-
-	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"DtDiscarded":      gaedb.IsZeroTime,
-		"DtNext":           gaedb.IsZeroTime,
-		"DtScheduled":      gaedb.IsZeroTime,
-		"DtSent":           gaedb.IsZeroTime,
-		"DtUsed":           gaedb.IsZeroTime,
-		"DtViewed":         gaedb.IsZeroTime,
-		"ErrDetails":       gaedb.IsEmptyString,
-		"IsAutomatic":      gaedb.IsFalse,
-		"IsRescheduled":    gaedb.IsFalse,
-		"Locale":           gaedb.IsEmptyString,
-		"MessageIntID":     gaedb.IsZeroInt,
-		"MessageStrID":     gaedb.IsEmptyString,
-		"ParentReminderID": gaedb.IsZeroInt,
-		"SentVia":          gaedb.IsEmptyString,
-	}); err != nil {
-		return
-	}
-
-	return
-}
+//func (r *ReminderEntity) Save() (properties []datastore.Property, err error) {
+//	if err = r.validate(); err != nil {
+//		return nil, err
+//	}
+//	r.DtUpdated = time.Now()
+//	if properties, err = datastore.SaveStruct(r); err != nil {
+//		return
+//	}
+//
+//	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
+//		"DtDiscarded":      gaedb.IsZeroTime,
+//		"DtNext":           gaedb.IsZeroTime,
+//		"DtScheduled":      gaedb.IsZeroTime,
+//		"DtSent":           gaedb.IsZeroTime,
+//		"DtUsed":           gaedb.IsZeroTime,
+//		"DtViewed":         gaedb.IsZeroTime,
+//		"ErrDetails":       gaedb.IsEmptyString,
+//		"IsAutomatic":      gaedb.IsFalse,
+//		"IsRescheduled":    gaedb.IsFalse,
+//		"Locale":           gaedb.IsEmptyString,
+//		"MessageIntID":     gaedb.IsZeroInt,
+//		"MessageStrID":     gaedb.IsEmptyString,
+//		"ParentReminderID": gaedb.IsZeroInt,
+//		"SentVia":          gaedb.IsEmptyString,
+//	}); err != nil {
+//		return
+//	}
+//
+//	return
+//}
 
 func (r ReminderEntity) validate() (err error) {
 	if err = validateString("Unknown reminder.Status", r.Status, ReminderStatuses); err != nil {

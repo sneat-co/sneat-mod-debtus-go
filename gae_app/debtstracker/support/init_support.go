@@ -11,13 +11,12 @@ import (
 	"strconv"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal/gaedal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"errors"
 	"github.com/julienschmidt/httprouter"
-	"github.com/pkg/errors"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"github.com/strongo/nds"
 	"google.golang.org/appengine"
@@ -162,7 +161,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	fixUserCounterparties := func() {
 		var txUser models.AppUserEntity
-		err := dal.DB.RunInTransaction(c, func(c context.Context) error {
+		err := dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 			log.Debugf(c, "Transaction started..")
 			if err := nds.Get(c, userKey, &txUser); err != nil {
 				return errors.Wrap(err, "Failed to get user by key")
@@ -228,7 +227,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 	if len(transferKeys) > 0 && user.LastTransferID == 0 {
 		if doFixes {
 			var txUser models.AppUserEntity
-			err = dal.DB.RunInTransaction(c, func(c context.Context) error {
+			err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 				if err := nds.Get(c, userKey, &txUser); err != nil {
 					return err
 				}
@@ -335,7 +334,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 		if !doFixes {
 			log.Debugf(c, "Pass fix=all to fix user balance")
 		} else {
-			err = dal.DB.RunInTransaction(c, func(c context.Context) error {
+			err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 				var txUser models.AppUserEntity
 				if err := nds.Get(c, userKey, &txUser); err != nil {
 					return errors.Wrapf(err, "Failed to get by key=%v", userKey)
@@ -378,7 +377,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 			if counterparty.BalanceCount != len(counterpartyBalance) {
 				if doFixes {
 					var txCounterparty models.ContactEntity
-					err = dal.DB.RunInTransaction(c, func(c context.Context) error {
+					err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 						if err := nds.Get(c, counterpartyKey, &txCounterparty); err != nil {
 							return err
 						}
@@ -405,7 +404,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 			log.Warningf(c, "Contact ID=%v has balance not matching transfers' balance:\n\tContact: %v\n\tTransfers: %v", counterpartyID, counterpartyBalance, transfersCounterpartyBalance)
 			if doFixes {
 				var txCounterparty models.ContactEntity
-				err := dal.DB.RunInTransaction(c, func(c context.Context) error {
+				err := dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 					if err := nds.Get(c, counterpartyKey, &txCounterparty); err != nil {
 						return errors.Wrapf(err, "Failed to get by key=%v", counterpartyKey)
 					}

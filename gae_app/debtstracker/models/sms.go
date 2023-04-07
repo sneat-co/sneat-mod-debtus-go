@@ -1,9 +1,9 @@
 package models
 
 import (
+	"github.com/strongo/dalgo/record"
 	"time"
 
-	"github.com/strongo/db"
 	"github.com/strongo/decimal"
 	"github.com/strongo/gotwilio"
 )
@@ -24,7 +24,7 @@ type Sms struct {
 const TwilioSmsKind = "TwilioSms"
 
 type TwilioSms struct {
-	db.StringID
+	record.WithID[int]
 	*TwilioSmsEntity
 }
 

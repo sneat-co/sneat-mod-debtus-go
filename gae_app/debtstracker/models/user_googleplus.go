@@ -2,7 +2,7 @@ package models
 
 import (
 	"github.com/strongo/app/user"
-	"github.com/strongo/db"
+	"github.com/strongo/dalgo/record"
 )
 
 const UserGooglePlusKind = "UserGooglePlus"
@@ -24,7 +24,7 @@ type UserGooglePlusEntity struct {
 }
 
 type UserGooglePlus struct {
-	db.StringID
+	record.WithID[string]
 	*UserGooglePlusEntity
 }
 
@@ -48,4 +48,4 @@ func (userGooglePlus *UserGooglePlus) SetEntity(entity interface{}) {
 	}
 }
 
-var _ db.EntityHolder = (*UserGooglePlus)(nil)
+//var _ db.EntityHolder = (*UserGooglePlus)(nil)

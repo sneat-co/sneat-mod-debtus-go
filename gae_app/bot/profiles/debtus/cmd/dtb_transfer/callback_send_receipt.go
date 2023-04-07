@@ -8,13 +8,13 @@ import (
 	"strings"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
+	"errors"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
@@ -137,7 +137,7 @@ func showLinkForReceiptInTelegram(whc bots.WebhookContext, transfer models.Trans
 		CreatedOnID:       whc.GetBotCode(),
 	})
 	var receiptID int64
-	if receiptID, err = dal.Receipt.CreateReceipt(whc.Context(), &receipt); err != nil {
+	if receiptID, err = dtdal.Receipt.CreateReceipt(whc.Context(), &receipt); err != nil {
 		return m, err
 	}
 	receiptUrl := GetUrlForReceiptInTelegram(whc.GetBotCode(), receiptID, whc.Locale().Code5)

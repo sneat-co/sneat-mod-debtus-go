@@ -10,7 +10,7 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
@@ -104,7 +104,7 @@ func contactToResponse(c context.Context, w http.ResponseWriter, authInfo auth.A
 		return
 	}
 
-	transfers, hasMoreTransfers, err := dal.Transfer.LoadTransfersByContactID(c, contact.ID, 0, 100)
+	transfers, hasMoreTransfers, err := dtdal.Transfer.LoadTransfersByContactID(c, contact.ID, 0, 100)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -144,7 +144,7 @@ func contactToResponse(c context.Context, w http.ResponseWriter, authInfo auth.A
 	if len(contact.GroupIDs) > 0 {
 		for _, groupID := range contact.GroupIDs {
 			var group models.Group
-			if group, err = dal.Group.GetGroupByID(c, groupID); err != nil {
+			if group, err = dtdal.Group.GetGroupByID(c, groupID); err != nil {
 				ErrorAsJson(c, w, http.StatusInternalServerError, err)
 				return
 			}

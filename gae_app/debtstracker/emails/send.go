@@ -6,12 +6,12 @@ import (
 	"strings"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/urlfetch"
@@ -20,9 +20,9 @@ import (
 func CreateEmailRecordAndQueueForSending(c context.Context, emailEntity *models.EmailEntity) (id int64, err error) {
 	var email models.Email
 
-	if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
+	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 		emailEntity.Status = "queued"
-		if email, err = dal.Email.InsertEmail(c, emailEntity); err != nil {
+		if email, err = dtdal.Email.InsertEmail(c, emailEntity); err != nil {
 			err = errors.WithMessage(err, "Failed to insert Email record")
 			return err
 		}
@@ -30,7 +30,7 @@ func CreateEmailRecordAndQueueForSending(c context.Context, emailEntity *models.
 			err = errors.WithMessage(err, "Failed to delay sending")
 		}
 		return err
-	}, dal.CrossGroupTransaction); err != nil {
+	}, dtdal.CrossGroupTransaction); err != nil {
 		return
 	}
 

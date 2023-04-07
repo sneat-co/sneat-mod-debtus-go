@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/website/pages"
 	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/app"
@@ -32,7 +32,7 @@ func ReceiptRedirect(w http.ResponseWriter, r *http.Request, _ httprouter.Params
 		return
 	}
 	log.Debugf(c, "Receipt ID: %v", receiptID)
-	receipt, err := dal.Receipt.GetReceiptByID(c, receiptID)
+	receipt, err := dtdal.Receipt.GetReceiptByID(c, receiptID)
 	switch err {
 	case nil: //pass
 	case datastore.ErrNoSuchEntity:

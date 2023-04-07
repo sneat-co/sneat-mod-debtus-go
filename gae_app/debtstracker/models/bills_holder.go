@@ -1,9 +1,8 @@
 package models
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
 	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/db/gaedb"
 )
 
 type billsHolder struct {
@@ -19,7 +18,7 @@ func (entity *billsHolder) GetOutstandingBills() (outstandingBills []BillJson) {
 		panic(err)
 	}
 	if entity.OutstandingBillsCount != len(outstandingBills) {
-		panic(errors.WithMessage(ErrJsonCountMismatch, "len([]BillJson) != OutstandingBillsCount"))
+		panic(fmt.Errorf("%w:len([]BillJson) != OutstandingBillsCount", ErrJsonCountMismatch))
 	}
 	return
 }
@@ -40,7 +39,7 @@ func (entity *billsHolder) SetOutstandingBills(outstandingBills []BillJson) (cha
 	return
 }
 
-func init() {
-	userPropertiesToClean["OutstandingBillsJson"] = gaedb.IsEmptyJSON
-	groupPropertiesToClean["OutstandingBillsJson"] = gaedb.IsEmptyJSON
-}
+//func init() {
+//	userPropertiesToClean["OutstandingBillsJson"] = gaedb.IsEmptyJSON
+//	groupPropertiesToClean["OutstandingBillsJson"] = gaedb.IsEmptyJSON
+//}

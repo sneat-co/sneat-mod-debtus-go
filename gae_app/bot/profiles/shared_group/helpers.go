@@ -4,18 +4,17 @@ import (
 	"net/url"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"strconv"
 )
@@ -31,7 +30,7 @@ func GetGroup(whc bots.WebhookContext, callbackUrl *url.URL) (group models.Group
 	}
 
 	if group.ID != "" {
-		return dal.Group.GetGroupByID(whc.Context(), group.ID)
+		return dtdal.Group.GetGroupByID(whc.Context(), group.ID)
 	}
 
 	if !whc.IsInGroup() {
@@ -97,7 +96,7 @@ func createGroupFromTelegram(whc bots.WebhookContext, chatEntity *models.DtTeleg
 	beforeGroupInsert := func(c context.Context, groupEntity *models.GroupEntity) (group models.Group, err error) {
 		log.Debugf(c, "beforeGroupInsert()")
 		var tgGroup models.TgGroup
-		if tgGroup, err = dal.TgGroup.GetTgGroupByID(c, tgChat.ID); err != nil {
+		if tgGroup, err = dtdal.TgGroup.GetTgGroupByID(c, tgChat.ID); err != nil {
 			if db.IsNotFound(err) {
 				err = nil
 			} else {
@@ -106,7 +105,7 @@ func createGroupFromTelegram(whc bots.WebhookContext, chatEntity *models.DtTeleg
 		}
 		if tgGroup.TgGroupEntity != nil && tgGroup.UserGroupID != "" {
 			hasTgGroupEntity = true
-			return dal.Group.GetGroupByID(c, tgGroup.UserGroupID)
+			return dtdal.Group.GetGroupByID(c, tgGroup.UserGroupID)
 		}
 		_, _, idx, member, members := groupEntity.AddOrGetMember(userID, "", user.FullName())
 		member.TgUserID = strconv.FormatInt(int64(whc.Input().GetSender().GetID().(int)), 10)
@@ -118,7 +117,7 @@ func createGroupFromTelegram(whc bots.WebhookContext, chatEntity *models.DtTeleg
 	afterGroupInsert := func(c context.Context, group models.Group, user models.AppUser) (err error) {
 		log.Debugf(c, "afterGroupInsert()")
 		if !hasTgGroupEntity {
-			if err = dal.TgGroup.SaveTgGroup(c, models.TgGroup{
+			if err = dtdal.TgGroup.SaveTgGroup(c, models.TgGroup{
 				IntegerID: db.NewIntID(tgChat.ID),
 				TgGroupEntity: &models.TgGroupEntity{
 					UserGroupID: group.ID,

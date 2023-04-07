@@ -5,10 +5,10 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"errors"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 )
@@ -44,9 +44,9 @@ func AcknowledgeReceipt(whc bots.WebhookContext, receiptID int64, operation stri
 
 		var operationMessage string
 		switch operation {
-		case dal.AckAccept:
+		case dtdal.AckAccept:
 			operationMessage = whc.Translate(trans.MESSAGE_TEXT_TRANSFER_ACCEPTED_BY_YOU)
-		case dal.AckDecline:
+		case dtdal.AckDecline:
 			operationMessage = whc.Translate(trans.MESSAGE_TEXT_TRANSFER_DECLINED_BY_YOU)
 		default:
 			err = errors.New("Expected accept or decline as operation, got: " + operation)

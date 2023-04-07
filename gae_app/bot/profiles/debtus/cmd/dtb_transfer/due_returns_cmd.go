@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"errors"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
@@ -33,7 +33,7 @@ func dueReturnsCallbackAction(whc bots.WebhookContext, _ *url.URL) (m bots.Messa
 
 	er := make(chan error, 2)
 	go func(er chan<- error) {
-		if overdueTransfers, err = dal.Transfer.LoadOverdueTransfers(c, userID, 5); err != nil {
+		if overdueTransfers, err = dtdal.Transfer.LoadOverdueTransfers(c, userID, 5); err != nil {
 			er <- errors.Wrap(err, "Failed to get overdue transfers")
 		} else {
 			log.Debugf(c, "Loaded %v overdue transfer", len(overdueTransfers))
@@ -41,7 +41,7 @@ func dueReturnsCallbackAction(whc bots.WebhookContext, _ *url.URL) (m bots.Messa
 		}
 	}(er)
 	go func(er chan<- error) {
-		if dueTransfers, err = dal.Transfer.LoadDueTransfers(c, userID, 5); err != nil {
+		if dueTransfers, err = dtdal.Transfer.LoadDueTransfers(c, userID, 5); err != nil {
 			er <- errors.Wrap(err, "Failed to get due transfers")
 		} else {
 			log.Debugf(c, "Loaded %v due transfer", len(dueTransfers))

@@ -7,10 +7,10 @@ import (
 	"regexp"
 	"strings"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"errors"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
@@ -82,7 +82,7 @@ func inlineQueryJoinGroup(whc bots.WebhookContext, query string) (m bots.Message
 		err = errors.New("Missing group ID")
 		return
 	}
-	if group, err = dal.Group.GetGroupByID(c, group.ID); err != nil {
+	if group, err = dtdal.Group.GetGroupByID(c, group.ID); err != nil {
 		return
 	}
 

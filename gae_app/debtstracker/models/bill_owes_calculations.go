@@ -3,7 +3,7 @@ package models
 import (
 	"fmt"
 
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/decimal"
 )
 

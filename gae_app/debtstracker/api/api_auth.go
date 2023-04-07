@@ -9,12 +9,11 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
-	"github.com/strongo/db"
+	"errors"
 	"github.com/strongo/log"
 )
 
@@ -123,7 +122,7 @@ func handleAuthLoginId(c context.Context, w http.ResponseWriter, r *http.Request
 	}
 
 	if loginID != 0 {
-		if loginPin, err := dal.LoginPin.GetLoginPinByID(c, loginID); err != nil {
+		if loginPin, err := dtdal.LoginPin.GetLoginPinByID(c, loginID); err != nil {
 			if err != db.ErrRecordNotFound {
 				InternalError(c, w, err)
 				return
@@ -153,7 +152,7 @@ func handleAuthLoginId(c context.Context, w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	if loginID, err = dal.LoginPin.CreateLoginPin(c, channel, gaClientID, authInfo.UserID); err != nil {
+	if loginID, err = dtdal.LoginPin.CreateLoginPin(c, channel, gaClientID, authInfo.UserID); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	}

@@ -6,13 +6,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/captaincodeman/datastore-mapper"
 	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/db"
 	"github.com/strongo/nds"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
@@ -89,7 +88,7 @@ func (m *verifyUsers) checkContactsExistsAndRecreateIfNeeded(c context.Context, 
 		}
 	}
 	if userChanged {
-		if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
+		if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 			if user, err = facade.User.GetUserByID(c, user.ID); err != nil {
 				return err
 			}
@@ -108,7 +107,7 @@ func (m *verifyUsers) checkContactsExistsAndRecreateIfNeeded(c context.Context, 
 
 func (m *verifyUsers) createContact(c context.Context, buf *bytes.Buffer, counters *asyncCounters, user models.AppUser, userContact models.UserContactJson) (err error) {
 	var contact models.Contact
-	if err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
+	if err = dtdal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
 		if contact, err = facade.GetContactByID(tc, userContact.ID); err != nil {
 			if db.IsNotFound(err) {
 				contact = models.NewContact(userContact.ID, &models.ContactEntity{

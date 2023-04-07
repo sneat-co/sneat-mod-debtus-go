@@ -10,7 +10,7 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/analytics"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
@@ -166,12 +166,12 @@ func OnInlineChosenCreateReceipt(whc bots.WebhookContext, inlineMessageID string
 		CreatedOnID:       whc.GetBotCode(), // TODO: Replace with method call.
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 	})
-	receiptID, err := dal.Receipt.CreateReceipt(c, &receipt)
+	receiptID, err := dtdal.Receipt.CreateReceipt(c, &receipt)
 	if err != nil {
 		return m, err
 	}
 
-	dal.Receipt.DelayedMarkReceiptAsSent(c, receiptID, transferID, time.Now())
+	dtdal.Receipt.DelayedMarkReceiptAsSent(c, receiptID, transferID, time.Now())
 	m, err = showReceiptAnnouncement(whc, receiptID, creatorName)
 
 	analytics.ReceiptSentFromBot(whc, "telegram")

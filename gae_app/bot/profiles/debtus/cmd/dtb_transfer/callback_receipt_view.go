@@ -2,16 +2,15 @@ package dtb_transfer
 
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
 	"net/url"
@@ -28,7 +27,7 @@ var ViewReceiptInTelegramCallbackCommand = bots.NewCallbackCommand(
 		if err != nil {
 			return m, err
 		}
-		receipt, err := dal.Receipt.GetReceiptByID(c, receiptID)
+		receipt, err := dtdal.Receipt.GetReceiptByID(c, receiptID)
 		if err != nil {
 			return m, err
 		}
@@ -69,7 +68,7 @@ func DelayLinkUsersByReceipt(c context.Context, receiptID, invitedUserID int64) 
 
 func delayedLinkUsersByReceipt(c context.Context, receiptID, invitedUserID int64) error {
 	log.Debugf(c, "delayedLinkUsersByReceipt(receiptID=%v, invitedUserID=%v)", receiptID, invitedUserID)
-	receipt, err := dal.Receipt.GetReceiptByID(c, receiptID)
+	receipt, err := dtdal.Receipt.GetReceiptByID(c, receiptID)
 	if err != nil {
 		if db.IsNotFound(err) {
 			log.Errorf(c, err.Error())

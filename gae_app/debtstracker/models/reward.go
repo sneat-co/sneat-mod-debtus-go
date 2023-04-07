@@ -1,17 +1,14 @@
 package models
 
 import (
+	"github.com/strongo/dalgo/record"
 	"time"
-
-	"github.com/strongo/db"
-	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/datastore"
 )
 
 const RewardKind = "Reward"
 
 type Reward struct {
-	db.IntegerID
+	record.WithID[int]
 	*RewardEntity
 }
 
@@ -35,7 +32,7 @@ func (reward *Reward) SetEntity(entity interface{}) {
 	}
 }
 
-var _ db.EntityHolder = (*Reward)(nil)
+//var _ db.EntityHolder = (*Reward)(nil)
 
 type RewardReason string
 
@@ -58,12 +55,12 @@ type UserRewardBalance struct {
 	RewardIDs      []int64 `datastore:",noindex"`
 }
 
-func (UserRewardBalance) cleanProperties(properties []datastore.Property) ([]datastore.Property, error) {
-	return gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"RewardPoints":   gaedb.IsZeroInt,
-		"RewardOptedOut": gaedb.IsZeroTime,
-	})
-}
+//func (UserRewardBalance) cleanProperties(properties []datastore.Property) ([]datastore.Property, error) {
+//	return gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
+//		"RewardPoints":   gaedb.IsZeroInt,
+//		"RewardOptedOut": gaedb.IsZeroTime,
+//	})
+//}
 
 func (rewardBalance UserRewardBalance) AddRewardPoints(rewardID int64, rewardPoints int) (changed bool) {
 	for _, id := range rewardBalance.RewardIDs {

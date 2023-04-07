@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/pkg/errors"
+	"errors"
 )
 
 const LoginCodeKind = "LoginCode"

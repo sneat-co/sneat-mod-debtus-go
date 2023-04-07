@@ -9,13 +9,13 @@ import (
 	"github.com/strongo/app"
 )
 
-func GetCounterpartyUrl(counterpartyID, currentUserID int64, locale strongo.Locale, utmParams UtmParams) string {
+func GetCounterpartyUrl(counterpartyID int, currentUserID int64, locale strongo.Locale, utmParams UtmParams) string {
 	var buffer bytes.Buffer
 	WriteCounterpartyUrl(&buffer, counterpartyID, currentUserID, locale, utmParams)
 	return buffer.String()
 }
 
-func WriteCounterpartyUrl(writer io.Writer, counterpartyID, currentUserID int64, locale strongo.Locale, utmParams UtmParams) {
+func WriteCounterpartyUrl(writer io.Writer, counterpartyID int, currentUserID int64, locale strongo.Locale, utmParams UtmParams) {
 	host := GetWebsiteHost(utmParams.Source)
 	writer.Write([]byte(fmt.Sprintf("https://%v/counterparty?id=%v&lang=%v", host, counterpartyID, locale.SiteCode())))
 	// TODO: Commented due to Telegram issue with too long URL

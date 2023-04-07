@@ -8,12 +8,11 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/fbmbots"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
-	"github.com/strongo/db"
+	"errors"
 	fb "github.com/strongo/facebook"
 	"github.com/strongo/log"
 )
@@ -92,7 +91,7 @@ func signInFbUser(c context.Context, fbAppID, fbUserID string, r *http.Request, 
 		}
 	}
 
-	if userFacebook, err = dal.UserFacebook.GetFbUserByFbID(c, fbAppID, fbUserID); err != nil && !db.IsNotFound(err) {
+	if userFacebook, err = dtdal.UserFacebook.GetFbUserByFbID(c, fbAppID, fbUserID); err != nil && !db.IsNotFound(err) {
 		err = errors.WithMessage(err, "Failed to get UserFacebook record by ID")
 		return
 	} else if !db.IsNotFound(err) && fbUserID != "" && fbUserID != userFacebook.FbUserOrPageScopeID {

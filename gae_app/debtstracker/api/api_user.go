@@ -9,12 +9,12 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal/gaedal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/log"
 )
 
@@ -52,7 +52,7 @@ func SaveUserAgent(c context.Context, userID int64, userAgent string) error {
 	if userAgent == "" {
 		return nil
 	}
-	_, err := dal.UserBrowser.SaveUserBrowser(c, userID, userAgent)
+	_, err := dtdal.UserBrowser.SaveUserBrowser(c, userID, userAgent)
 	return err
 }
 
@@ -67,7 +67,7 @@ func handleSaveVisitorData(c context.Context, w http.ResponseWriter, r *http.Req
 	userAgent := r.UserAgent()
 	ipAddress := strings.SplitN(r.RemoteAddr, ":", 1)[0]
 
-	if _, err := dal.UserGaClient.SaveGaClient(c, gaClientId, userAgent, ipAddress); err != nil {
+	if _, err := dtdal.UserGaClient.SaveGaClient(c, gaClientId, userAgent, ipAddress); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 	}
 }
@@ -115,7 +115,7 @@ func setUserName(c context.Context, w http.ResponseWriter, r *http.Request, auth
 		return
 	}
 
-	err = dal.DB.RunInTransaction(c, func(c context.Context) error {
+	err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 		user, err := facade.User.GetUserByID(c, authInfo.UserID)
 		if err != nil {
 			return err
@@ -128,7 +128,7 @@ func setUserName(c context.Context, w http.ResponseWriter, r *http.Request, auth
 			return err
 		}
 		return err
-	}, dal.SingleGroupTransaction)
+	}, dtdal.SingleGroupTransaction)
 
 	if err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)

@@ -1,7 +1,7 @@
 package api
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/reminders"
 	"github.com/julienschmidt/httprouter"
 	strongo "github.com/strongo/app"
@@ -13,8 +13,8 @@ func InitApi(router *httprouter.Router) {
 
 	HandlerFunc := func(method, path string, handler strongo.ContextHandler) {
 		// TODO: Refactor optionsHandler so it's does not handle GET requests (see AuthOnly() for example)
-		router.HandlerFunc(method, path, dal.HandleWithContext(handler))
-		router.HandlerFunc("OPTIONS", path, dal.HandleWithContext(optionsHandler))
+		router.HandlerFunc(method, path, dtdal.HandleWithContext(handler))
+		router.HandlerFunc("OPTIONS", path, dtdal.HandleWithContext(optionsHandler))
 	}
 
 	GET := func(path string, handler strongo.ContextHandler) {

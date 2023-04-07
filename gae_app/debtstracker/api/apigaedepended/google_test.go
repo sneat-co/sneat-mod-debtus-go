@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 )
 
 func TestInitApiGaeDepended(t *testing.T) {
@@ -13,7 +13,7 @@ func TestInitApiGaeDepended(t *testing.T) {
 	handleFunc = func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
 		i += 1
 	}
-	dal.HandleWithContext = func(handler strongo.ContextHandler) func(w http.ResponseWriter, r *http.Request) {
+	dtdal.HandleWithContext = func(handler strongo.ContextHandler) func(w http.ResponseWriter, r *http.Request) {
 		return func(w http.ResponseWriter, r *http.Request) {
 			j += 1
 		}

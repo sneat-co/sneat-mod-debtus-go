@@ -1,10 +1,10 @@
 package models
 
 import (
+	"github.com/strongo/dalgo/record"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
-	"github.com/strongo/db"
 )
 
 const FeedbackKind = "Feedback"
@@ -17,10 +17,10 @@ type FeedbackEntity struct {
 	Text    string `datastore:",noindex"`
 }
 
-var _ db.EntityHolder = (*Feedback)(nil)
+//var _ db.EntityHolder = (*Feedback)(nil)
 
 type Feedback struct {
-	db.IntegerID
+	record.WithID[int]
 	*FeedbackEntity
 }
 

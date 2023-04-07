@@ -6,10 +6,10 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"errors"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
@@ -66,8 +66,8 @@ func rescheduleReminder(whc bots.WebhookContext, reminderID int64, remindInDurat
 
 	var oldReminder, newReminder models.Reminder
 
-	if oldReminder, newReminder, err = dal.Reminder.RescheduleReminder(c, reminderID, remindInDuration); err != nil {
-		if err == dal.ErrReminderAlreadyRescheduled {
+	if oldReminder, newReminder, err = dtdal.Reminder.RescheduleReminder(c, reminderID, remindInDuration); err != nil {
+		if err == dtdal.ErrReminderAlreadyRescheduled {
 			m = whc.NewMessageByCode(trans.MESSAGE_TEXT_REMINDER_ALREADY_RESCHEDULED)
 			return m, nil
 		}
@@ -175,7 +175,7 @@ func rescheduleReminder(whc bots.WebhookContext, reminderID int64, remindInDurat
 //	transferKey, transfer, err := facade.Transfers.GetTransferByID(c, transferID)
 //	userID := whc.AppUserIntID()
 //	if !transfer.IsRemindersDisabled(userID) {
-//		err = dal.DB.RunInTransaction(c, func(tc context.Context) error {
+//		err = dtdal.DB.RunInTransaction(c, func(tc context.Context) error {
 //			transferKey, transfer, err = gaedal.GetTransferByID(tc, transferID)
 //			if err != nil {
 //				return err

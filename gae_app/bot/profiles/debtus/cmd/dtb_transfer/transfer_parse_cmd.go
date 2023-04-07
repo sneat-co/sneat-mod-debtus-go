@@ -13,7 +13,6 @@ import (
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/db"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 )

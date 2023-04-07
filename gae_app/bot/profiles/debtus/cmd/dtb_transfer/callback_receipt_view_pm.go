@@ -6,7 +6,7 @@ import (
 	"net/url"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/DebtsTracker/translations/trans"
@@ -29,7 +29,7 @@ func ShowReceipt(whc bots.WebhookContext, receiptID int64) (m bots.MessageFromBo
 	c := whc.Context()
 
 	var receipt models.Receipt
-	if receipt, err = dal.Receipt.GetReceiptByID(c, receiptID); err != nil {
+	if receipt, err = dtdal.Receipt.GetReceiptByID(c, receiptID); err != nil {
 		return m, err
 	}
 
@@ -103,13 +103,13 @@ func ShowReceipt(whc bots.WebhookContext, receiptID int64) (m bots.MessageFromBo
 					{
 						{
 							Text:         whc.Translate(trans.COMMAND_TEXT_ACCEPT),
-							CallbackData: fmt.Sprintf("%v?id=%v&do=%v", ACKNOWLEDGE_RECEIPT_CALLBACK_COMMAND, receiptCode, dal.AckAccept),
+							CallbackData: fmt.Sprintf("%v?id=%v&do=%v", ACKNOWLEDGE_RECEIPT_CALLBACK_COMMAND, receiptCode, dtdal.AckAccept),
 						},
 					},
 					{
 						{
 							Text:         whc.Translate(trans.COMMAND_TEXT_DECLINE),
-							CallbackData: fmt.Sprintf("%v?id=%v&do=%v", ACKNOWLEDGE_RECEIPT_CALLBACK_COMMAND, receiptCode, dal.AckDecline),
+							CallbackData: fmt.Sprintf("%v?id=%v&do=%v", ACKNOWLEDGE_RECEIPT_CALLBACK_COMMAND, receiptCode, dtdal.AckDecline),
 						},
 					},
 				},

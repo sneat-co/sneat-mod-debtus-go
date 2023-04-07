@@ -8,12 +8,11 @@ import (
 	"strings"
 	"sync"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
-	"github.com/strongo/db"
+	"errors"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
@@ -106,7 +105,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 		return
 	}
 
-	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 		if user, err = facade.User.GetUserByID(c, user.ID); err != nil {
 			return
 		}

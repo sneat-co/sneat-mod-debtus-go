@@ -2,12 +2,13 @@ package splitus
 
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"errors"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
+	"github.com/crediterra/money"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/decimal"
@@ -15,7 +16,6 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
-	"github.com/crediterra/money"
 )
 
 var chosenInlineResultCommand = bots.Command{
@@ -119,12 +119,12 @@ func createBillFromInlineChosenResult(whc bots.WebhookContext, chosenResult bots
 				panic(r)
 			}
 		}()
-		err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
+		err = dtdal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
 			if bill, err = facade.Bill.CreateBill(c, tc, bill.BillEntity); err != nil {
 				return
 			}
 			return
-		}, dal.SingleGroupTransaction)
+		}, dtdal.SingleGroupTransaction)
 		if err != nil {
 			err = errors.WithMessage(err, "Failed to call facade.Bill.CreateBill()")
 			return
@@ -223,13 +223,13 @@ var EditedBillCardHookCommand = bots.Command{ // TODO: seems to be not used anyw
 		}
 
 		changed := false
-		err = dal.DB.RunInTransaction(c, func(c context.Context) error {
+		err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 			var bill models.Bill
 			if bill, err = facade.GetBillByID(c, billID); err != nil {
 				return err
 			}
 
-			if groupID != "" && bill.UserGroupID() != groupID { // TODO: Should we check for empty bill.UserGroupID() or better fail?
+			if groupID != "" && bill.GetUserGroupID() != groupID { // TODO: Should we check for empty bill.GetUserGroupID() or better fail?
 				if bill, _, err = facade.Bill.AssignBillToGroup(c, bill, groupID, whc.AppUserStrID()); err != nil {
 					return err
 				}
@@ -237,11 +237,11 @@ var EditedBillCardHookCommand = bots.Command{ // TODO: seems to be not used anyw
 			}
 
 			if changed {
-				return dal.Bill.SaveBill(c, bill)
+				return dtdal.Bill.SaveBill(c, bill)
 			}
 
 			return err
-		}, dal.CrossGroupTransaction)
+		}, dtdal.CrossGroupTransaction)
 		if err != nil {
 			return
 		}

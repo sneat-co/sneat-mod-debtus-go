@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
@@ -26,7 +26,7 @@ var joinGroupCommand = shared_group.GroupCallbackCommand(joinGroupCommanCode,
 		userID := whc.AppUserStrID()
 		var appUser models.AppUser
 		if group.UserIsMember(userID) {
-			if appUser, err = dal.User.GetUserByStrID(c, userID); err != nil {
+			if appUser, err = dtdal.User.GetUserByStrID(c, userID); err != nil {
 				return
 			}
 			whc.LogRequest()
@@ -34,8 +34,8 @@ var joinGroupCommand = shared_group.GroupCallbackCommand(joinGroupCommanCode,
 			callbackAnswer.ShowAlert = true
 			m.BotMessage = telegram.CallbackAnswer(callbackAnswer)
 		} else {
-			err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-				if appUser, err = dal.User.GetUserByStrID(c, userID); err != nil {
+			err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
+				if appUser, err = dtdal.User.GetUserByStrID(c, userID); err != nil {
 					return err
 				}
 				_, changed, memberIndex, member, members := group.AddOrGetMember(userID, "", appUser.FullName())
@@ -69,7 +69,7 @@ var joinGroupCommand = shared_group.GroupCallbackCommand(joinGroupCommanCode,
 				if changed {
 					members[memberIndex] = member
 					group.SetGroupMembers(members)
-					if err = dal.Group.SaveGroup(c, group); err != nil {
+					if err = dtdal.Group.SaveGroup(c, group); err != nil {
 						return err
 					}
 				} else {
@@ -94,7 +94,7 @@ var joinGroupCommand = shared_group.GroupCallbackCommand(joinGroupCommanCode,
 					}
 				}
 				return err
-			}, dal.CrossGroupTransaction)
+			}, dtdal.CrossGroupTransaction)
 
 			if m, err := showGroupMembers(whc, group, true); err != nil {
 				return m, err

@@ -1,9 +1,8 @@
 package models
 
 import (
+	"github.com/strongo/dalgo/record"
 	"time"
-
-	"github.com/strongo/db"
 )
 
 const UserOneSignalKind = "UserOneSignal"
@@ -14,11 +13,11 @@ type UserOneSignalEntity struct {
 }
 
 type UserOneSignal struct {
-	db.StringID
+	record.WithID[string]
 	*UserOneSignalEntity
 }
 
-var _ db.EntityHolder = (*UserOneSignal)(nil)
+//var _ db.EntityHolder = (*UserOneSignal)(nil)
 
 func (UserOneSignal) Kind() string {
 	return UserOneSignalKind

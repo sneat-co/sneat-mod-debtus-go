@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
+	"errors"
+	"github.com/crediterra/money"
 	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/db/gaedb"
 	"github.com/strongo/decimal"
 	"google.golang.org/appengine/datastore"
 	"strconv"
-	"github.com/crediterra/money"
 )
 
 type SplitMode string
@@ -34,41 +33,43 @@ const (
 
 type BillCommon struct {
 	PayMode            PayMode
-	CreatorUserID      string              `datastore:",noindex"`
-	userGroupID        string              `datastore:"UserGroupID"`
-	TgInlineMessageIDs []string            `datastore:",noindex"`
-	SplitMode          SplitMode           `datastore:",noindex"`
+	UserGroupID        string
 	Status             string
 	DtCreated          time.Time
-	Name               string              `datastore:",noindex"`
-	AmountTotal        decimal.Decimal64p2 `datastore:"AmountTotal"`
+	AmountTotal        decimal.Decimal64p2
 	Currency           money.Currency
-	UserIDs            []string
 	members            []BillMemberJson
-	MembersJson        string              `datastore:",noindex"`
-	MembersCount       int                 `datastore:",noindex"`
-	LastMemberID       int                 `datastore:",noindex"`
-	ContactIDs         []string // Holds contact IDs so we can update names in MembersJson on contact changed
-	Shares             int                 `datastore:",noindex"`
+	UserIDs            []string
+	ContactIDs         []string  // Holds contact IDs, so we can update names in MembersJson on contact changed
+	TgInlineMessageIDs []string  `datastore:",noindex" firestore:",noindex"`
+	CreatorUserID      string    `datastore:",noindex" firestore:",noindex"`
+	Name               string    `datastore:",noindex" firestore:",noindex"`
+	SplitMode          SplitMode `datastore:",noindex" firestore:",noindex"`
+	MembersJson        string    `datastore:",noindex" firestore:",noindex"`
+	MembersCount       int       `datastore:",noindex" firestore:",noindex"`
+	LastMemberID       int       `datastore:",noindex" firestore:",noindex"`
+	Shares             int       `datastore:",noindex" firestore:",noindex"`
 }
 
-func (entity BillCommon) UserGroupID() string {
-	return entity.userGroupID
+// GetUserGroupID returns user group ID
+func (entity *BillCommon) GetUserGroupID() string {
+	return entity.UserGroupID
 }
 
 var (
 	ErrBillAlreadyAssignedToAnotherGroup = errors.New("bill already assigned to another group ")
 )
 
+// AssignToGroup assigns bill to group
 func (entity *BillCommon) AssignToGroup(groupID string) (err error) {
 	if groupID == "" {
 		err = errors.New("*BillCommon.AssignToGroup(): parameter groupID is required")
 		return
 	}
-	if entity.userGroupID == "" {
-		entity.userGroupID = groupID
-	} else if entity.userGroupID != groupID {
-		err = errors.WithMessage(ErrBillAlreadyAssignedToAnotherGroup, entity.userGroupID)
+	if entity.UserGroupID == "" {
+		entity.UserGroupID = groupID
+	} else if entity.UserGroupID != groupID {
+		err = errors.WithMessage(ErrBillAlreadyAssignedToAnotherGroup, entity.UserGroupID)
 	}
 	return
 }
@@ -209,39 +210,39 @@ Members:
 
 func (entity *BillCommon) load(ps []datastore.Property) []datastore.Property {
 	for i, p := range ps {
-		if p.Name == "UserGroupID" {
-			entity.userGroupID = p.Value.(string)
+		if p.Name == "GetUserGroupID" {
+			entity.UserGroupID = p.Value.(string)
 			return append(ps[:i], ps[i+1:]...)
 		}
 	}
 	return ps
 }
 
-func (entity *BillCommon) save(properties []datastore.Property) (filtered []datastore.Property, err error) {
+func (entity *BillCommon) Validate() (err error) {
 	if entity.CreatorUserID == "" {
 		panic("entity.CreatorUserID is empty string")
 	}
 	if entity.SplitMode == "" {
-		panic("entity.SplitMode is empty string")
+		return errors.New("entity.SplitMode is empty string")
 	}
 	if entity.Status == "" {
-		panic("entity.Status is empty string")
+		return errors.New("entity.Status is empty string")
 	}
 	if entity.DtCreated.IsZero() {
-		panic("entity.DtCreated is zero")
+		return errors.New("entity.DtCreated is zero")
 	}
-	if filtered, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"MembersCount": gaedb.IsZeroInt,
-		"MembersJson":  gaedb.IsEmptyJSON,
-		"PayMode":      gaedb.IsEmptyString,
-		"ContactName":  gaedb.IsEmptyString,
-		"SplitMode":    gaedb.IsEmptyString,
-		"Shares":       gaedb.IsZeroInt,
-	}); err != nil {
-		return
-	}
-	if entity.userGroupID != "" {
-		filtered = append(filtered, datastore.Property{Name: "UserGroupID", Value: entity.userGroupID, NoIndex: false})
+	//if filtered, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
+	//	"MembersCount": gaedb.IsZeroInt,
+	//	"MembersJson":  gaedb.IsEmptyJSON,
+	//	"PayMode":      gaedb.IsEmptyString,
+	//	"ContactName":  gaedb.IsEmptyString,
+	//	"SplitMode":    gaedb.IsEmptyString,
+	//	"Shares":       gaedb.IsZeroInt,
+	//}); err != nil {
+	//	return
+	//}
+	if entity.UserGroupID != "" {
+		filtered = append(filtered, datastore.Property{Name: "GetUserGroupID", Value: entity.UserGroupID, NoIndex: false})
 	}
 	return
 }

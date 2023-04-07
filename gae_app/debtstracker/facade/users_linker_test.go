@@ -3,7 +3,7 @@ package facade
 import (
 	"testing"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtmocks"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
@@ -44,7 +44,7 @@ func TestUsersLinker_LinkUsersWithinTransaction(t *testing.T) {
 		t.Error("inviterContact.CounterpartyCounterpartyID != 0")
 	}
 
-	err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
+	err = dtdal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
 		usersLinker = newUsersLinker(&usersLinkingDbChanges{
 			inviterUser:    &inviterUser,
 			invitedUser:    &invitedUser,
@@ -55,7 +55,7 @@ func TestUsersLinker_LinkUsersWithinTransaction(t *testing.T) {
 			return err
 		}
 		return nil
-	}, dal.CrossGroupTransaction)
+	}, dtdal.CrossGroupTransaction)
 
 	if err != nil {
 		t.Error("Unexpected error:", err)

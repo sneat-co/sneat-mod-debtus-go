@@ -15,13 +15,13 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/analytics"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"errors"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
@@ -270,7 +270,7 @@ func CreateAskTransferCounterpartyCommand(
 						return cancelTransferWizardCommandAction(whc)
 					}
 					var contactIDs []int64
-					if contactIDs, err = dal.Contact.GetContactIDsByTitle(c, whc.AppUserIntID(), mt, true); err != nil {
+					if contactIDs, err = dtdal.Contact.GetContactIDsByTitle(c, whc.AppUserIntID(), mt, true); err != nil {
 						return m, err
 					}
 					if mt == whc.Translate(trans.COMMAND_TEXT_SHOW_ALL_CONTACTS) {
@@ -309,7 +309,7 @@ func CreateAskTransferCounterpartyCommand(
 				}
 				if isReturn && user.BalanceCount <= 3 && user.TotalContactsCount() <= 3 {
 					// If there is little debts in total show selection of debts immediately
-					counterparties, err := dal.Contact.GetLatestContacts(whc, 0, user.TotalContactsCount())
+					counterparties, err := dtdal.Contact.GetLatestContacts(whc, 0, user.TotalContactsCount())
 					if err != nil {
 						return m, err
 					}
@@ -624,7 +624,7 @@ func CreateTransferFromBot(
 			buf := new(bytes.Buffer)
 			buf.WriteString(whc.Translate(trans.MT_ATTEMPT_TO_CREATE_DEBT_WITH_INTEREST_AFFECTING_OUTSTANDING) + "\n")
 			now := time.Now()
-			if outstandingTransfer, err := dal.Transfer.LoadOutstandingTransfers(c, now, appUser.ID, creatorInfo.ContactID, amount.Currency, newTransfer.Direction().Reverse()); err != nil {
+			if outstandingTransfer, err := dtdal.Transfer.LoadOutstandingTransfers(c, now, appUser.ID, creatorInfo.ContactID, amount.Currency, newTransfer.Direction().Reverse()); err != nil {
 				buf.WriteString(errors.WithMessage(err, "failed to load outstanding transfers").Error() + "\n")
 			} else if len(outstandingTransfer) == 0 {
 				return m, errors.WithMessage(err, "got facade.ErrAttemptToCreateDebtWithInterestAffectingOutstandingTransfers but no outstanding transfers found")
@@ -705,7 +705,7 @@ func CreateTransferFromBot(
 					return m, err
 				} else {
 					tgMessage := response.TelegramMessage.(tgbotapi.Message)
-					if err = dal.Transfer.DelayUpdateTransferWithCreatorReceiptTgMessageID(whc.Context(), whc.GetBotCode(), output.Transfer.ID, tgMessage.Chat.ID, int64(tgMessage.MessageID)); err != nil {
+					if err = dtdal.Transfer.DelayUpdateTransferWithCreatorReceiptTgMessageID(whc.Context(), whc.GetBotCode(), output.Transfer.ID, tgMessage.Chat.ID, int64(tgMessage.MessageID)); err != nil {
 						return m, err
 					}
 					whc.ChatEntity().SetAwaitingReplyTo("")
@@ -834,8 +834,8 @@ func createSendReceiptOptionsMessage(whc bots.WebhookContext, transfer models.Tr
 //	title: COMMAND_TEXT_TOMORROW,
 //}
 
-func GetTransferSource(whc bots.WebhookContext) dal.TransferSource {
-	return dal.NewTransferSourceBot(whc.BotPlatform().ID(), whc.GetBotCode(), whc.MustBotChatID())
+func GetTransferSource(whc bots.WebhookContext) dtdal.TransferSource {
+	return dtdal.NewTransferSourceBot(whc.BotPlatform().ID(), whc.GetBotCode(), whc.MustBotChatID())
 }
 
 //const CALLBACK_COUNTERPARTY_WITHOUT_TG = "counterparty-no-tg"

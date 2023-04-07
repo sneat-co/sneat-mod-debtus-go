@@ -2,21 +2,22 @@ package models
 
 import (
 	"fmt"
+	"github.com/strongo/dalgo/dal"
+	"github.com/strongo/dalgo/record"
+	"github.com/strongo/db"
+	"github.com/strongo/random"
+	"github.com/strongo/validation"
 	"strings"
 
 	"github.com/crediterra/money"
-	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/db"
-	"github.com/strongo/db/gaedb"
 	"github.com/strongo/decimal"
-	"google.golang.org/appengine/datastore"
 )
 
 const GroupKind = "Group"
 
 type Group struct {
-	db.StringID
+	record.WithID[string]
 	*GroupEntity
 }
 
@@ -40,7 +41,7 @@ func (group *Group) SetEntity(entity interface{}) {
 	}
 }
 
-var _ db.EntityHolder = (*Group)(nil)
+//var _ db.EntityHolder = (*Group)(nil)
 
 type GroupEntity struct {
 	CreatorUserID string
@@ -97,17 +98,17 @@ func (entity *GroupEntity) ApplyBillBalanceDifference(currency money.Currency, d
 	}
 
 	if len(diff) > 0 {
-		err = errors.WithMessage(ErrNonGroupMember, fmt.Sprintf("%v", diff))
+		err = fmt.Errorf("%w: %v", ErrNonGroupMember, diff)
 		return
 	}
 
 	if diffTotal != 0 {
-		err = errors.WithMessage(ErrBillOwesDiffTotalIsNotZero, fmt.Sprintf("diffTotal=%v, diff=%v", diffTotal, diffCopy))
+		err = fmt.Errorf("%w: diffTotal=%v, diff=%v", ErrBillOwesDiffTotalIsNotZero, diffTotal, diffCopy)
 		return
 	}
 
 	if balanceTotal != 0 {
-		err = errors.WithMessage(GroupTotalBalanceHasNonZeroValue, fmt.Sprintf("balanceTotal=%v, diff=%v", balanceTotal, diffCopy))
+		err = fmt.Errorf("%wbalanceTotal=%v, diff=%v", ErrGroupTotalBalanceHasNonZeroValue, balanceTotal, diffCopy)
 		return
 	}
 	return entity.SetGroupMembers(groupMembers), err
@@ -121,7 +122,7 @@ func (entity *GroupEntity) GetTelegramGroups() (tgGroups []GroupTgChatJson, err 
 		if err = ffjson.Unmarshal([]byte(entity.TelegramGroupsJson), &tgGroups); err != nil {
 			return
 		} else if len(tgGroups) != entity.TelegramGroupsCount {
-			err = errors.WithMessage(ErrJsonCountMismatch, "len([]GroupTgChatJson) != entity.TelegramGroupsCount")
+			err = fmt.Errorf("%w: len([]GroupTgChatJson) != entity.TelegramGroupsCount", ErrJsonCountMismatch)
 			return
 		}
 		entity.telegramGroups = tgGroups
@@ -209,15 +210,15 @@ func addOrGetMember(members []MemberJson, memberID, userID, contactID, name stri
 		UserID: userID,
 	}
 	if member.ID == "" {
+	randomID:
 		for j := 0; j < 100; j++ {
-			member.ID = db.RandomStringID(MemberIdLen)
+			member.ID = random.ID(MemberIdLen)
 			for _, m := range members {
 				if m.ID == member.ID {
-					goto duplicate
+					continue randomID
 				}
 			}
 			break
-		duplicate:
 		}
 		if member.ID == "" {
 			panic("Failed to generate random member ID")
@@ -247,26 +248,26 @@ func (entity *GroupEntity) GetGroupMembers() []GroupMemberJson {
 
 func (entity *GroupEntity) GetGroupMemberByID(id string) (GroupMemberJson, error) {
 	if id == "" {
-		return GroupMemberJson{}, errors.WithMessage(db.ErrRecordNotFound, "empty id")
+		return GroupMemberJson{}, fmt.Errorf("%w: empty id", db.ErrRecordNotFound)
 	}
 	for _, m := range entity.GetGroupMembers() {
 		if m.ID == id {
 			return m, nil
 		}
 	}
-	return GroupMemberJson{}, errors.WithMessage(db.ErrRecordNotFound, "unknown id="+id)
+	return GroupMemberJson{}, fmt.Errorf("%w: unknown id="+id, dal.ErrRecordNotFound)
 }
 
 func (entity *GroupEntity) GetGroupMemberByUserID(userID string) (GroupMemberJson, error) {
 	if userID == "" {
-		return GroupMemberJson{}, errors.WithMessage(db.ErrRecordNotFound, "empty id")
+		return GroupMemberJson{}, fmt.Errorf("%w: empty id", dal.ErrRecordNotFound)
 	}
 	for _, m := range entity.GetGroupMembers() {
 		if m.UserID == userID {
 			return m, nil
 		}
 	}
-	return GroupMemberJson{}, errors.WithMessage(db.ErrRecordNotFound, "unknown userID="+userID)
+	return GroupMemberJson{}, fmt.Errorf("%w: unknown userID=%s", dal.ErrRecordNotFound, userID)
 }
 
 func (entity *GroupEntity) GetMembers() (members []MemberJson) {
@@ -399,52 +400,52 @@ func (entity *GroupEntity) validateMembers(members []GroupMemberJson, membersCou
 	// Validate total balance is 0
 	for currency, amount := range totalBalance {
 		if amount != 0 {
-			return errors.WithMessage(GroupTotalBalanceHasNonZeroValue, fmt.Sprintf("%v=%v", currency, amount))
+			return fmt.Errorf("%w: %v=%v", ErrGroupTotalBalanceHasNonZeroValue, currency, amount)
 		}
 	}
 	return nil
 }
 
-func (entity *GroupEntity) Load(ps []datastore.Property) (err error) {
-	if ps, err = gaedb.CleanProperties(ps, map[string]gaedb.IsOkToRemove{
-		"Status": gaedb.IsObsolete,
-	}); err != nil {
-		return
-	}
-	if err = datastore.LoadStruct(entity, ps); err != nil {
-		return err
-	}
-	return nil
-}
+//func (entity *GroupEntity) Load(ps []datastore.Property) (err error) {
+//	if ps, err = gaedb.CleanProperties(ps, map[string]gaedb.IsOkToRemove{
+//		"Status": gaedb.IsObsolete,
+//	}); err != nil {
+//		return
+//	}
+//	if err = datastore.LoadStruct(entity, ps); err != nil {
+//		return err
+//	}
+//	return nil
+//}
 
-var groupPropertiesToClean = map[string]gaedb.IsOkToRemove{
-	"DefaultCurrency":       gaedb.IsEmptyString,
-	"MembersCount":          gaedb.IsZeroInt,
-	"MemberLastID":          gaedb.IsZeroInt,
-	"MembersJson":           gaedb.IsEmptyJSON,
-	"Note":                  gaedb.IsEmptyString,
-	"OutstandingBillsJson":  gaedb.IsEmptyJSON,
-	"OutstandingBillsCount": gaedb.IsZeroInt,
-	"TgGroupsCount":         gaedb.IsZeroInt,
-	"TgGroupsJson":          gaedb.IsEmptyJSON,
-}
+//var groupPropertiesToClean = map[string]gaedb.IsOkToRemove{
+//	"DefaultCurrency":       gaedb.IsEmptyString,
+//	"MembersCount":          gaedb.IsZeroInt,
+//	"MemberLastID":          gaedb.IsZeroInt,
+//	"MembersJson":           gaedb.IsEmptyJSON,
+//	"Note":                  gaedb.IsEmptyString,
+//	"OutstandingBillsJson":  gaedb.IsEmptyJSON,
+//	"OutstandingBillsCount": gaedb.IsZeroInt,
+//	"TgGroupsCount":         gaedb.IsZeroInt,
+//	"TgGroupsJson":          gaedb.IsEmptyJSON,
+//}
 
-func (entity *GroupEntity) Save() ([]datastore.Property, error) {
+func (entity *GroupEntity) Validate() error {
 	if entity.CreatorUserID == "" {
-		return nil, errors.New("*GroupEntity.CreatorUserID == 0")
+		return validation.NewErrRecordIsMissingRequiredField("CreatorUserID")
 	}
 	if strings.TrimSpace(entity.Name) == "" {
-		return nil, errors.New("strings.TrimSpace(*GroupEntity.Name) is empty string")
+		return validation.NewErrRecordIsMissingRequiredField("Name")
 	}
 	if err := entity.validateMembers(entity.GetGroupMembers(), entity.MembersCount); err != nil {
-		return nil, err
+		return err
 	}
-	ps, err := datastore.SaveStruct(entity)
-	if ps, err = gaedb.CleanProperties(ps, groupPropertiesToClean); err != nil {
-		return ps, errors.WithMessage(err, "failed to clean properties for *GroupEntity")
-	}
-	checkHasProperties(GroupKind, ps)
-	return ps, err
+	//ps, err := datastore.SaveStruct(entity)
+	//if ps, err = gaedb.CleanProperties(ps, groupPropertiesToClean); err != nil {
+	//	return ps, errors.WithMessage(err, "failed to clean properties for *GroupEntity")
+	//}
+	//checkHasProperties(GroupKind, ps)
+	return nil
 }
 
 func (entity *GroupEntity) AddBill(bill Bill) (changed bool, err error) {

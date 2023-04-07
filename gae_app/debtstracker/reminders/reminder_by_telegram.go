@@ -9,12 +9,12 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/analytics"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"errors"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/app/gaestandard"
@@ -73,8 +73,8 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 
 		messageConfig := tgbotapi.NewMessage(tgChatID, messageText)
 
-		err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
-			reminder, err := dal.Reminder.GetReminderByID(c, reminder.ID)
+		err = dtdal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
+			reminder, err := dtdal.Reminder.GetReminderByID(c, reminder.ID)
 			if err != nil {
 				return err
 			}
@@ -108,8 +108,8 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 			sent = true
 			log.Infof(c, "Sent message to telegram. MessageID: %v", message.MessageID)
 
-			if err = dal.Reminder.SetReminderIsSentInTransaction(tc, reminder, time.Now(), int64(message.MessageID), "", locale.Code5, ""); err != nil {
-				err = dal.Reminder.DelaySetReminderIsSent(tc, reminder.ID, time.Now(), int64(message.MessageID), "", locale.Code5, "")
+			if err = dtdal.Reminder.SetReminderIsSentInTransaction(tc, reminder, time.Now(), int64(message.MessageID), "", locale.Code5, ""); err != nil {
+				err = dtdal.Reminder.DelaySetReminderIsSent(tc, reminder.ID, time.Now(), int64(message.MessageID), "", locale.Code5, "")
 			}
 			//
 			return

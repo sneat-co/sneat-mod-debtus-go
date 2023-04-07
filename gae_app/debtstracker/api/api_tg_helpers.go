@@ -11,10 +11,10 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/app/gaestandard"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
@@ -76,10 +76,10 @@ func handleTgHelperCurrencySelected(c context.Context, w http.ResponseWriter, r 
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				log.Errorf(c, "panic in handleTgHelperCurrencySelected() => dal.User.SetLastCurrency(): %v", r)
+				log.Errorf(c, "panic in handleTgHelperCurrencySelected() => dtdal.User.SetLastCurrency(): %v", r)
 			}
 		}()
-		if err := dal.User.SetLastCurrency(c, authInfo.UserID, money.Currency(selectedCurrency)); err != nil {
+		if err := dtdal.User.SetLastCurrency(c, authInfo.UserID, money.Currency(selectedCurrency)); err != nil {
 			log.Errorf(c, "Failed to save user last currency: %v", err)
 		}
 		userTask.Done()
@@ -89,10 +89,10 @@ func handleTgHelperCurrencySelected(c context.Context, w http.ResponseWriter, r 
 	go func(currency string) {
 		defer func() {
 			if r := recover(); r != nil {
-				log.Errorf(c, "panic in handleTgHelperCurrencySelected() => dal.TgChat.DoSomething() => sendToTelegram(): %v", r)
+				log.Errorf(c, "panic in handleTgHelperCurrencySelected() => dtdal.TgChat.DoSomething() => sendToTelegram(): %v", r)
 			}
 		}()
-		errs <- dal.TgChat.DoSomething(c, &userTask, currency, tgChatID, authInfo, user,
+		errs <- dtdal.TgChat.DoSomething(c, &userTask, currency, tgChatID, authInfo, user,
 			func(tgChat telegram.TgChatEntityBase) error {
 				// TODO: This is some serious architecture sheet. Too sleepy to make it right, just make it working.
 				return sendToTelegram(c, user, tgChatID, tgChat, &userTask, r)
@@ -122,7 +122,7 @@ func sendToTelegram(c context.Context, user models.AppUser, tgChatID int64, tgCh
 
 	log.Debugf(c, "botSettings(%v : %v)", botSettings.Code, botSettings.Token)
 
-	tgBotApi := tgbotapi.NewBotAPIWithClient(botSettings.Token, dal.HttpClient(c))
+	tgBotApi := tgbotapi.NewBotAPIWithClient(botSettings.Token, dtdal.HttpClient(c))
 	tgBotApi.EnableDebug(c)
 
 	userTask.Wait()

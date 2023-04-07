@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
@@ -35,7 +35,7 @@ func NewApiWebhookContext(r *http.Request, appUser *models.AppUserEntity, userID
 			r,
 			common.TheAppContext,
 			telegram.Platform{},
-			*bots.NewBotContext(dal.BotHost, botSettings),
+			*bots.NewBotContext(dtdal.BotHost, botSettings),
 			nil, // webhookInput
 			bots.BotCoreStores{},
 			nil, // GaMeasurement

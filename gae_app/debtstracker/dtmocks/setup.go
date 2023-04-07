@@ -1,23 +1,27 @@
 package dtmocks
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal/dalmocks"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal/dalmocks"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"github.com/strongo/dalgo/dal"
 	"github.com/strongo/db"
 	"github.com/strongo/db/mockdb"
 )
 
 func SetupMocks(c context.Context) {
+
 	mockDB := mockdb.NewMockDB(nil, nil)
 
-	dal.Transfer = dalmocks.NewTransferDalMock(mockDB)
-	dal.User = dalmocks.NewUserDalMock()
-	dal.Contact = dalmocks.NewContactDalMock()
+	dtdal.Transfer = dalmocks.NewTransferDalMock(mockDB)
+	dtdal.User = dalmocks.NewUserDalMock()
+	dtdal.Contact = dalmocks.NewContactDalMock()
 
-	if err := mockDB.UpdateMulti(c, []db.EntityHolder{
-		&models.AppUser{IntegerID: db.IntegerID{ID: 1}, AppUserEntity: &models.AppUserEntity{ContactDetails: models.ContactDetails{FirstName: "Alfred", LastName: "Alpha"}}},
+	if err := mockDB.UpdateMulti(c, []dal.Record{
+		&models.AppUser{
+			Data: &models.AppUserEntity{ContactDetails: models.ContactDetails{FirstName: "Alfred", LastName: "Alpha"}}
+		},
 		&models.AppUser{IntegerID: db.IntegerID{ID: 3}, AppUserEntity: &models.AppUserEntity{ContactDetails: models.ContactDetails{FirstName: "Ben", LastName: "Bravo"}}},
 		&models.AppUser{IntegerID: db.IntegerID{ID: 5}, AppUserEntity: &models.AppUserEntity{ContactDetails: models.ContactDetails{FirstName: "Charles", LastName: "Cain"}}},
 	}); err != nil {
@@ -57,5 +61,5 @@ func SetupMocks(c context.Context) {
 		panic(err)
 	}
 
-	dal.DB = mockDB
+	dtdal.DB = mockDB
 }

@@ -1,9 +1,9 @@
 package auth
 
 import (
+	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/pkg/errors"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
 	"net/http"

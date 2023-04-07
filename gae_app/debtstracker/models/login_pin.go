@@ -1,19 +1,18 @@
 package models
 
 import (
+	"github.com/strongo/dalgo/record"
 	"time"
-
-	"github.com/strongo/db"
 )
 
 const LoginPinKind = "LoginPin"
 
 type LoginPin struct {
-	db.IntegerID
+	record.WithID[int]
 	*LoginPinEntity
 }
 
-var _ db.EntityHolder = (*LoginPin)(nil)
+//var _ db.EntityHolder = (*LoginPin)(nil)
 
 func (LoginPin) Kind() string {
 	return LoginPinKind

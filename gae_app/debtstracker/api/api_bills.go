@@ -7,14 +7,14 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
+	"errors"
+	"github.com/crediterra/money"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
-	"github.com/crediterra/money"
 )
 
 func handleGetBill(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
@@ -173,10 +173,10 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 	}
 
 	var bill models.Bill
-	err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
+	err = dtdal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
 		bill, err = facade.Bill.CreateBill(c, tc, billEntity)
 		return
-	}, dal.CrossGroupTransaction)
+	}, dtdal.CrossGroupTransaction)
 
 	if err != nil {
 		InternalError(c, w, err)

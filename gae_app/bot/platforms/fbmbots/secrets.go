@@ -6,10 +6,10 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"context"
+	"errors"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/fbm"
@@ -145,7 +145,7 @@ func getFbAppAndSession(c context.Context, r *http.Request, getSession func(fbAp
 func FbAppAndSessionFromAccessToken(c context.Context, r *http.Request, accessToken string) (*fb.App, *fb.Session, error) {
 	return getFbAppAndSession(c, r, func(fbApp *fb.App) (fbSession *fb.Session, err error) {
 		fbSession = fbApp.Session(accessToken)
-		fbSession.HttpClient = dal.HttpClient(c)
+		fbSession.HttpClient = dtdal.HttpClient(c)
 		return
 	})
 }
@@ -154,7 +154,7 @@ func FbAppAndSessionFromSignedRequest(c context.Context, r *http.Request, signed
 	log.Debugf(c, "FbAppAndSessionFromSignedRequest()")
 	return getFbAppAndSession(c, r, func(fbApp *fb.App) (fbSession *fb.Session, err error) {
 		log.Debugf(c, "FbAppAndSessionFromSignedRequest() => getSession()")
-		//fbSession, err = fbApp.SessionFromSignedRequest(c, signedRequest, dal.HttpClient(c))
+		//fbSession, err = fbApp.SessionFromSignedRequest(c, signedRequest, dtdal.HttpClient(c))
 		//if err != nil {
 		//	log.Debugf(c, "FbAppAndSessionFromSignedRequest() => getSession(): %v", err.Error())
 		//}

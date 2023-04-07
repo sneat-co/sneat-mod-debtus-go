@@ -8,15 +8,15 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"context"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/log"
 )
 
 func handleAdminLatestUsers(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
-	users, err := dal.Admin.LatestUsers(c)
+	users, err := dtdal.Admin.LatestUsers(c)
 	if err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return

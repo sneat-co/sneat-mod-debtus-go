@@ -3,10 +3,10 @@ package facade
 import (
 	"fmt"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/log"
 )
 
@@ -48,7 +48,7 @@ func (linker usersLinker) linkUsersWithinTransaction(
 		return
 	}
 
-	if !dal.DB.IsInTransaction(tc) {
+	if !dtdal.DB.IsInTransaction(tc) {
 		err = errors.New("usersLinker.linkUsersWithinTransaction is called outside of transaction")
 		return
 	}
@@ -326,7 +326,7 @@ func (linker usersLinker) updateInviterContact(
 	inviterUserContactFound:
 		// Queue task to update all existing transfers
 		if inviterContact.CountOfTransfers > 0 {
-			if err = dal.Transfer.DelayUpdateTransfersWithCounterparty(
+			if err = dtdal.Transfer.DelayUpdateTransfersWithCounterparty(
 				tc,
 				invitedContact.ID,
 				inviterContact.ID,

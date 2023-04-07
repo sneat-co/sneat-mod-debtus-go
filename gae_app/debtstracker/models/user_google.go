@@ -1,10 +1,9 @@
 package models
 
 import (
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/app/user"
-	"github.com/strongo/db"
-	"github.com/strongo/db/gaedb"
+	"github.com/strongo/dalgo/record"
 	"google.golang.org/appengine/datastore"
 	gaeuser "google.golang.org/appengine/user" // TODO: Get rid of dependency to GAE?
 )
@@ -38,50 +37,50 @@ func (entity *UserGoogleEntity) Load(ps []datastore.Property) error {
 	return datastore.LoadStruct(entity, ps)
 }
 
-func (entity *UserGoogleEntity) Save() (properties []datastore.Property, err error) {
+func (entity *UserGoogleEntity) Validate() (err error) {
 	if entity.AppUserIntID == 0 {
 		err = errors.New("*UserGoogleEntity.Save() => AppUserIntID == 0")
 		return
 	}
 
-	if properties, err = datastore.SaveStruct(entity); err != nil {
-		return
-	}
-
-	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"FederatedIdentity": gaedb.IsEmptyString,
-		"FederatedProvider": gaedb.IsEmptyString,
-		"AuthDomain":        gaedb.IsEmptyString,
-		"ClientID":          gaedb.IsEmptyString,
-		"ID":                gaedb.IsDuplicate,
-		"AppUserID":         gaedb.IsZeroInt,
-		"Admin":             gaedb.IsZeroBool,
-	}); err != nil {
-		return
-	}
-
-	for i, p := range properties {
-		switch p.Name {
-		case "FederatedIdentity":
-		case "FederatedProvider":
-		case "AuthDomain":
-		case "ClientID":
-		default:
-			continue
-		}
-		p.NoIndex = true
-		properties[i] = p
-	}
+	//if properties, err = datastore.SaveStruct(entity); err != nil {
+	//	return
+	//}
+	//
+	//if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
+	//	"FederatedIdentity": gaedb.IsEmptyString,
+	//	"FederatedProvider": gaedb.IsEmptyString,
+	//	"AuthDomain":        gaedb.IsEmptyString,
+	//	"ClientID":          gaedb.IsEmptyString,
+	//	"ID":                gaedb.IsDuplicate,
+	//	"AppUserID":         gaedb.IsZeroInt,
+	//	"Admin":             gaedb.IsZeroBool,
+	//}); err != nil {
+	//	return
+	//}
+	//
+	//for i, p := range properties {
+	//	switch p.Name {
+	//	case "FederatedIdentity":
+	//	case "FederatedProvider":
+	//	case "AuthDomain":
+	//	case "ClientID":
+	//	default:
+	//		continue
+	//	}
+	//	p.NoIndex = true
+	//	properties[i] = p
+	//}
 
 	return
 }
 
 type UserGoogle struct { // TODO: Move out to library?
-	db.StringID
+	record.WithID[string]
 	*UserGoogleEntity
 }
 
-var _ db.EntityHolder = (*UserGoogle)(nil)
+//var _ db.EntityHolder = (*UserGoogle)(nil)
 
 func (userGoogle UserGoogle) UserAccount() user.Account {
 	return user.Account{Provider: "google", App: "*", ID: userGoogle.ID}

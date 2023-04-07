@@ -13,17 +13,16 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/invites"
 	"context"
+	"errors"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gaestandard"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
 )
 
@@ -65,7 +64,7 @@ func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	receipt, err := dal.Receipt.GetReceiptByID(c, receiptID)
+	receipt, err := dtdal.Receipt.GetReceiptByID(c, receiptID)
 	if hasError(c, w, err, models.ReceiptKind, receiptID, http.StatusBadRequest) {
 		return
 	}
@@ -169,7 +168,7 @@ func handleSendReceipt(c context.Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	receipt, err := dal.Receipt.GetReceiptByID(c, receiptID)
+	receipt, err := dtdal.Receipt.GetReceiptByID(c, receiptID)
 
 	if err != nil {
 		var status int
@@ -214,8 +213,8 @@ func handleSendReceipt(c context.Context, w http.ResponseWriter, r *http.Request
 }
 
 func updateReceiptAndTransferOnSent(c context.Context, receiptID int64, channel, sentTo, lang string) (receipt models.Receipt, transfer models.Transfer, err error) {
-	err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-		if receipt, err = dal.Receipt.GetReceiptByID(c, receiptID); err != nil {
+	err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
+		if receipt, err = dtdal.Receipt.GetReceiptByID(c, receiptID); err != nil {
 			return err
 		}
 		if receipt.SentVia == RECEIPT_CHANNEL_DRAFT {
@@ -237,7 +236,7 @@ func updateReceiptAndTransferOnSent(c context.Context, receiptID int64, channel,
 			if !transferHasThisReceiptID {
 				transfer.ReceiptIDs = append(transfer.ReceiptIDs, receiptID)
 			}
-			if err = dal.DB.UpdateMulti(c, []db.EntityHolder{&receipt, &transfer}); err != nil {
+			if err = dtdal.DB.UpdateMulti(c, []db.EntityHolder{&receipt, &transfer}); err != nil {
 				err = errors.Wrap(err, "Failed to save receipt & transfer")
 			}
 		} else if receipt.SentVia == channel {
@@ -247,7 +246,7 @@ func updateReceiptAndTransferOnSent(c context.Context, receiptID int64, channel,
 		}
 
 		return err
-	}, dal.CrossGroupTransaction)
+	}, dtdal.CrossGroupTransaction)
 	return
 }
 
@@ -394,7 +393,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 		CreatedOnID:       r.Host,
 	})
 
-	receiptID, err := dal.Receipt.CreateReceipt(c, &receipt)
+	receiptID, err := dtdal.Receipt.CreateReceipt(c, &receipt)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Errorf(c, err.Error())

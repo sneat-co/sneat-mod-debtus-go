@@ -7,28 +7,28 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/pquerna/ffjson/ffjson"
 )
 
 type TransferCounterpartyInfo struct {
 	UserID             int64  `json:",omitempty"`
 	UserName           string `json:",omitempty"`
-	ContactID          int64  `json:",omitempty"`
+	ContactID          int    `json:",omitempty"`
 	ContactName        string `json:",omitempty"`
 	Note               string `json:",omitempty"`
 	Comment            string `json:",omitempty"`
-	ReminderID         int64  `json:",omitempty"` // TODO: Consider deletion as prone to errors if not updated on re-schedule, or find and document the reason we have it
+	ReminderID         int    `json:",omitempty"` // TODO: Consider deletion as prone to errors if not updated on re-schedule, or find and document the reason we have it
 	TgBotID            string `json:",omitempty"`
-	TgChatID           int64  `json:",omitempty"`
-	TgReceiptByTgMsgID int64  `json:",omitempty"`
+	TgChatID           int64  `json:",omitempty"` // Needs to be INT64 as it is INT64 in Telegram API
+	TgReceiptByTgMsgID int64  `json:",omitempty"` // Needs to be INT64 as it is INT64 in Telegram API
 }
 
 func NewFrom(userID int64, comment string) *TransferCounterpartyInfo {
 	return &TransferCounterpartyInfo{UserID: userID, Comment: comment}
 }
 
-func NewTo(counterpartyID int64) *TransferCounterpartyInfo {
+func NewTo(counterpartyID int) *TransferCounterpartyInfo {
 	return &TransferCounterpartyInfo{ContactID: counterpartyID}
 }
 
@@ -68,13 +68,13 @@ func (c TransferCounterpartyInfo) Name() string {
 	} else {
 		var n bytes.Buffer
 		if c.UserID != 0 {
-			n.WriteString("UserID=" + strconv.FormatInt(c.UserID, 10))
+			n.WriteString("UserID=" + strconv.FormatInt(int64(c.UserID), 10))
 		}
 		if c.ContactID != 0 {
 			if n.Len() > 0 {
 				n.WriteString("&")
 			}
-			n.WriteString("ContactID=" + strconv.FormatInt(c.ContactID, 10))
+			n.WriteString("ContactID=" + strconv.FormatInt(int64(c.ContactID), 10))
 		}
 		return n.String()
 	}

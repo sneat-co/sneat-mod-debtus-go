@@ -7,12 +7,12 @@ import (
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/urlfetch"
@@ -78,8 +78,8 @@ func sendReminderByEmail(c context.Context, reminder models.Reminder, emailTo st
 		errDetails = err.Error()
 	}
 
-	if err = dal.Reminder.SetReminderIsSent(c, reminder.ID, sentAt, 0, emailMessageID, strongo.LocaleCodeEnUS, errDetails); err != nil {
-		dal.Reminder.DelaySetReminderIsSent(c, reminder.ID, sentAt, 0, emailMessageID, strongo.LocaleCodeEnUS, errDetails)
+	if err = dtdal.Reminder.SetReminderIsSent(c, reminder.ID, sentAt, 0, emailMessageID, strongo.LocaleCodeEnUS, errDetails); err != nil {
+		dtdal.Reminder.DelaySetReminderIsSent(c, reminder.ID, sentAt, 0, emailMessageID, strongo.LocaleCodeEnUS, errDetails)
 	}
 
 	if err != nil {

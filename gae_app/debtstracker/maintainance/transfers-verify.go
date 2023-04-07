@@ -7,13 +7,12 @@ import (
 	"strconv"
 	"strings"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"errors"
 	"github.com/captaincodeman/datastore-mapper"
-	"github.com/pkg/errors"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"github.com/strongo/nds"
 	"google.golang.org/appengine/datastore"
@@ -162,7 +161,7 @@ func (*verifyTransfers) verifyReturnsToTransferIDs(c context.Context, transfer m
 		return
 	}
 	var returnToTransfers []models.Transfer
-	if returnToTransfers, err = dal.Transfer.GetTransfersByID(c, transfer.ReturnToTransferIDs); err != nil {
+	if returnToTransfers, err = dtdal.Transfer.GetTransfersByID(c, transfer.ReturnToTransferIDs); err != nil {
 		return errors.WithMessage(err, fmt.Sprintf("failed to get transfers by IDs: %v", transfer.ReturnToTransferIDs))
 	}
 	for _, returnToTransfer := range returnToTransfers {

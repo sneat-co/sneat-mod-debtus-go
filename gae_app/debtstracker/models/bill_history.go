@@ -2,15 +2,13 @@ package models
 
 import (
 	"fmt"
+	"github.com/strongo/dalgo/record"
 	"time"
 
-	"github.com/pkg/errors"
-	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/db"
-	"github.com/strongo/db/gaedb"
-	"github.com/strongo/decimal"
-	"google.golang.org/appengine/datastore"
+	"errors"
 	"github.com/crediterra/money"
+	"github.com/pquerna/ffjson/ffjson"
+	"github.com/strongo/decimal"
 )
 
 const (
@@ -18,7 +16,7 @@ const (
 )
 
 type BillsHistory struct {
-	db.StringID
+	record.WithID[string]
 	*BillsHistoryEntity
 }
 
@@ -42,7 +40,7 @@ func (record *BillsHistory) SetEntity(entity interface{}) {
 	}
 }
 
-var _ db.EntityHolder = (*BillsHistory)(nil)
+//var _ db.EntityHolder = (*BillsHistory)(nil)
 
 type BillsHistoryEntity struct {
 	DtCreated              time.Time
@@ -56,10 +54,10 @@ type BillsHistoryEntity struct {
 	TotalAmountAfter       decimal.Decimal64p2 `datastore:",noindex"`
 	GroupIDs               []string
 	BillIDs                []string
-	BillsSettlementCount   int                 `datastore:",noindex"`
-	BillsSettlementJson    string              `datastore:",noindex"`
-	GroupMembersJsonBefore string              `datastore:",noindex"`
-	GroupMembersJsonAfter  string              `datastore:",noindex"`
+	BillsSettlementCount   int    `datastore:",noindex"`
+	BillsSettlementJson    string `datastore:",noindex"`
+	GroupMembersJsonBefore string `datastore:",noindex"`
+	GroupMembersJsonAfter  string `datastore:",noindex"`
 }
 
 func (entity *BillsHistoryEntity) BillSettlements() (billSettlements []BillSettlementJson) {
@@ -93,11 +91,7 @@ func (entity *BillsHistoryEntity) SetBillSettlements(groupID string, billSettlem
 	}
 }
 
-func (entity *BillsHistoryEntity) Load(ps []datastore.Property) error {
-	return datastore.LoadStruct(entity, ps)
-}
-
-func (entity *BillsHistoryEntity) Save() (properties []datastore.Property, err error) {
+func (entity *BillsHistoryEntity) Validate() (err error) {
 	if entity.DtCreated.IsZero() {
 		entity.DtCreated = time.Now()
 	}
@@ -140,21 +134,21 @@ func (entity *BillsHistoryEntity) Save() (properties []datastore.Property, err e
 			return
 		}
 	}
-	if properties, err = datastore.SaveStruct(entity); err != nil {
-		return
-	}
-	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"Currency":               gaedb.IsEmptyString,
-		"TotalAmountDiff":        gaedb.IsZeroInt,
-		"TotalAmountBefore":      gaedb.IsZeroInt,
-		"TotalAmountAfter":       gaedb.IsZeroInt,
-		"BillsSettlementCount":   gaedb.IsZeroInt,
-		"BillsSettlementJson":    gaedb.IsEmptyJSON,
-		"GroupMembersJsonBefore": gaedb.IsEmptyJSON,
-		"GroupMembersJsonAfter":  gaedb.IsEmptyJSON,
-	}); err != nil {
-		return
-	}
+	//if properties, err = datastore.SaveStruct(entity); err != nil {
+	//	return
+	//}
+	//if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
+	//	"Currency":               gaedb.IsEmptyString,
+	//	"TotalAmountDiff":        gaedb.IsZeroInt,
+	//	"TotalAmountBefore":      gaedb.IsZeroInt,
+	//	"TotalAmountAfter":       gaedb.IsZeroInt,
+	//	"BillsSettlementCount":   gaedb.IsZeroInt,
+	//	"BillsSettlementJson":    gaedb.IsEmptyJSON,
+	//	"GroupMembersJsonBefore": gaedb.IsEmptyJSON,
+	//	"GroupMembersJsonAfter":  gaedb.IsEmptyJSON,
+	//}); err != nil {
+	//	return
+	//}
 	return
 }
 
@@ -162,10 +156,10 @@ type BillHistoryAction string
 
 const (
 	BillHistoryActionCreated     BillHistoryAction = "created"
-	BillHistoryActionDeleted     BillHistoryAction = "deleted"
-	BillHistoryActionRestored    BillHistoryAction = "restored"
 	BillHistoryActionMemberAdded BillHistoryAction = "member-added"
 	BillHistoryActionSettled     BillHistoryAction = "settled"
+	//BillHistoryActionDeleted     BillHistoryAction = "deleted"
+	//BillHistoryActionRestored    BillHistoryAction = "restored"
 )
 
 func NewBillHistoryBillCreated(bill Bill, groupEntity *GroupEntity) (record BillsHistory) {
@@ -176,7 +170,7 @@ func NewBillHistoryBillCreated(bill Bill, groupEntity *GroupEntity) (record Bill
 			TotalAmountAfter: bill.AmountTotal,
 			Action:           BillHistoryActionCreated,
 			BillIDs:          []string{bill.ID},
-			GroupIDs:         []string{bill.userGroupID},
+			GroupIDs:         []string{bill.UserGroupID},
 		},
 	}
 	if groupEntity != nil {
@@ -194,7 +188,7 @@ func NewBillHistoryMemberAdded(userID string, bill Bill, totalAboutBefore decima
 			TotalAmountAfter:  bill.AmountTotal,
 			Action:            BillHistoryActionMemberAdded,
 			BillIDs:           []string{bill.ID},
-			GroupIDs:          []string{bill.userGroupID},
+			GroupIDs:          []string{bill.UserGroupID},
 		},
 	}
 	record.GroupMembersJsonBefore = groupMemberJsonBefore
@@ -213,7 +207,7 @@ func NewBillHistoryBillDeleted(userID string, bill Bill) (record BillsHistory) {
 			TotalAmountAfter:  bill.AmountTotal,
 			Action:            BillHistoryActionMemberAdded,
 			BillIDs:           []string{bill.ID},
-			GroupIDs:          []string{bill.userGroupID},
+			GroupIDs:          []string{bill.UserGroupID},
 		},
 	}
 }
@@ -229,7 +223,7 @@ func NewBillHistoryBillRestored(userID string, bill Bill) (record BillsHistory) 
 			TotalAmountAfter:  bill.AmountTotal,
 			Action:            BillHistoryActionMemberAdded,
 			BillIDs:           []string{bill.ID},
-			GroupIDs:          []string{bill.userGroupID},
+			GroupIDs:          []string{bill.UserGroupID},
 		},
 	}
 }

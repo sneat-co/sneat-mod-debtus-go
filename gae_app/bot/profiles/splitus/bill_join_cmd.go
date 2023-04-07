@@ -2,16 +2,15 @@ package splitus
 
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"errors"
 	"github.com/DebtsTracker/translations/trans"
 	"github.com/crediterra/money"
-	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/db"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 	"net/url"
@@ -37,7 +36,7 @@ var joinBillCommand = bots.Command{
 			err = errors.New("Missing bill ID")
 			return
 		}
-		if err = dal.DB.RunInTransaction(whc.Context(), func(c context.Context) (err error) {
+		if err = dtdal.DB.RunInTransaction(whc.Context(), func(c context.Context) (err error) {
 			if bill, err = facade.GetBillByID(whc.Context(), bill.ID); err != nil {
 				return
 			}
@@ -113,7 +112,7 @@ func joinBillAction(whc bots.WebhookContext, bill models.Bill, memberStatus stri
 		return
 	}
 
-	//if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	//if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 	//if bill, err = facade.GetBillByID(c, bill.ID); err != nil {
 	//	return
 	//}
@@ -177,7 +176,7 @@ func joinBillAction(whc bots.WebhookContext, bill models.Bill, memberStatus stri
 		return
 	}
 	if billChanged = billChanged2 || billChanged; billChanged {
-		if err = dal.Bill.SaveBill(c, bill); err != nil {
+		if err = dtdal.Bill.SaveBill(c, bill); err != nil {
 			return
 		}
 		if isJoined {

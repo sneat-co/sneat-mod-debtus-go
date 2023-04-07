@@ -1,6 +1,6 @@
 package facade
 
-import "github.com/pkg/errors"
+import "errors"
 
 var (
 	ErrBadInput               = errors.New("bad data input")

@@ -5,13 +5,12 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
 )
 
@@ -53,9 +52,9 @@ func billCallbackAction(f billCallbackActionType) func(whc bots.WebhookContext, 
 		if bill, err = getBill(c, callbackUrl); err != nil {
 			return
 		}
-		if bill.UserGroupID() == "" {
+		if bill.GetUserGroupID() == "" {
 			if whc.IsInGroup() {
-				if dal.DB.IsInTransaction(c) {
+				if dtdal.DB.IsInTransaction(c) {
 					var group models.Group
 					if group.ID, err = shared_group.GetUserGroupID(whc); err != nil {
 						return
@@ -64,7 +63,7 @@ func billCallbackAction(f billCallbackActionType) func(whc bots.WebhookContext, 
 						return
 					}
 				} else {
-					log.Debugf(c, "Will not update bill.UserGroupID as not in transaction")
+					log.Debugf(c, "Will not update bill.GetUserGroupID as not in transaction")
 				}
 			} else {
 				log.Debugf(c, "Not in group")

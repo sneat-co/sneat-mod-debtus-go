@@ -5,12 +5,12 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"context"
-	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
+	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal/gaedal"
 	//"google.golang.org/appengine/datastore"
-	//"github.com/pkg/errors"
+	//"errors"
 	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	//"strconv"
-	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	//"github.com/strongo/nds"
 	//"github.com/strongo/vk"
 	//"strings"
@@ -47,7 +47,7 @@ func handleSignedWithVK(c context.Context, w http.ResponseWriter, r *http.Reques
 	//
 	//
 	//// Try to get UserVk entity by key and if it has AppUserIntID we can create and return token right away
-	//vkUser, err := dal.UserVk.GetUserVkByID(c, vkUserID)
+	//vkUser, err := dtdal.UserVk.GetUserVkByID(c, vkUserID)
 	//if err != nil {
 	//	if db.IsNotFound(err) {  // It's OK if UserVk entity not found.
 	//		log.Debugf(c, "UserVk entity not found by ID=%v", vkUserID)
@@ -81,7 +81,7 @@ func handleSignedWithVK(c context.Context, w http.ResponseWriter, r *http.Reques
 	//	return
 	//}
 	//
-	//vkApi := vk.NewApiWithAccessToken(dal.HttpClient(c), accessToken)
+	//vkApi := vk.NewApiWithAccessToken(dtdal.HttpClient(c), accessToken)
 	//
 	//vkUserInfo, err := vkApi.GetUserByIntID(c, vkUserID, "nom", vk.FieldFirstName, vk.FieldLastName, vk.FieldNickname, vk.FieldScreenName)
 	//if err != nil {
@@ -98,10 +98,10 @@ func handleSignedWithVK(c context.Context, w http.ResponseWriter, r *http.Reques
 	//vkUser.FirstName = r.PostFormValue("firstName")
 	//vkUser.LastName = r.PostFormValue("lastName")
 	//
-	//userID, user, err := dal.User.GetUserByVkUserID(c, vkUserID)
+	//userID, user, err := dtdal.User.GetUserByVkUserID(c, vkUserID)
 	//if err == nil && user.VkUserID == vkUserID {
 	//	// For some reason we have a user with VkUserID but without UserVk entity
-	//	err = dal.DB.RunInTransaction(c, func(tc context.Context) error {
+	//	err = dtdal.DB.RunInTransaction(c, func(tc context.Context) error {
 	//		if err = nds.Get(tc, vkUserKey, &vkUserEntity); err != nil {
 	//			if err == datastore.ErrNoSuchEntity {
 	//				vkUserEntity = models.UserVkEntity{
@@ -132,7 +132,7 @@ func handleSignedWithVK(c context.Context, w http.ResponseWriter, r *http.Reques
 	//updateUser := func() (err error) {
 	//	if (user.FirstName == "" && vkUser.FirstName != "") || (user.LastName == "" && vkUser.LastName != "") || (user.ScreenName == "" && vkUser.ScreenName != "") || (user.Nickname == "" && vkUser.Nickname != "") {
 	//		var changed bool
-	//		err = dal.DB.gaedb.RunInTransaction(c, func(c context.Context) error {
+	//		err = dtdal.DB.gaedb.RunInTransaction(c, func(c context.Context) error {
 	//			user, err := userDal.GetUserByID(c, userID)
 	//			if err != nil {
 	//				return err
@@ -206,7 +206,7 @@ func handleSignedWithVK(c context.Context, w http.ResponseWriter, r *http.Reques
 	//	return
 	//}
 	//
-	//createUserData := dal.CreateUserData{
+	//createUserData := dtdal.CreateUserData{
 	//	VkUserID: vkUserID,
 	//	FirstName: vkUser.FirstName,
 	//	LastName: vkUser.LastName,

@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"runtime/debug"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/captaincodeman/datastore-mapper"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/datastore"
 	"time"
@@ -60,7 +59,7 @@ func verifyAndFixMissingTransferContacts(c context.Context, transfer models.Tran
 	}
 
 	doFix := func(contactInfo *models.TransferCounterpartyInfo, counterpartyInfo *models.TransferCounterpartyInfo) (err error) {
-		err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
+		err = dtdal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
 			log.Debugf(c, "Recreating contact # %v", contactInfo.ContactID)
 			var counterpartyContact models.Contact
 			if counterpartyContact, err = facade.GetContactByID(c, counterpartyInfo.ContactID); err != nil {

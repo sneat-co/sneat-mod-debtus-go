@@ -2,7 +2,7 @@ package models
 
 import (
 	"github.com/strongo/app/user"
-	"github.com/strongo/db"
+	"github.com/strongo/dalgo/record"
 )
 
 const (
@@ -19,11 +19,11 @@ type UserVkEntity struct {
 }
 
 type UserVk struct {
-	db.IntegerID
+	record.WithID[int]
 	*UserVkEntity
 }
 
-var _ db.EntityHolder = (*UserVk)(nil)
+//var _ db.EntityHolder = (*UserVk)(nil)
 
 func (UserVk) Kind() string {
 	return UserVkKind

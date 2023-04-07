@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
@@ -17,7 +17,7 @@ func ApiCreateInvite(c context.Context, w http.ResponseWriter, r *http.Request) 
 		w.WriteHeader(http.StatusForbidden)
 	}
 
-	createUserData := &dal.CreateUserData{}
+	createUserData := &dtdal.CreateUserData{}
 	clientInfo := models.NewClientInfoFromRequest(r)
 	userEmail, _, err := facade.User.GetOrCreateEmailUser(c, gaeUser.Email, true, createUserData, clientInfo)
 	if err != nil {

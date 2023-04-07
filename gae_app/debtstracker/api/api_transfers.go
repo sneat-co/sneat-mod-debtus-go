@@ -5,13 +5,13 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 )
 
 func handleAdminLatestTransfers(c context.Context, w http.ResponseWriter, r *http.Request, _ auth.AuthInfo) {
-	transfers, err := dal.Transfer.LoadLatestTransfers(c, 0, 20)
+	transfers, err := dtdal.Transfer.LoadLatestTransfers(c, 0, 20)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(([]byte)(err.Error()))
@@ -20,7 +20,7 @@ func handleAdminLatestTransfers(c context.Context, w http.ResponseWriter, r *htt
 }
 
 func handleUserTransfers(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo, user models.AppUser) {
-	transfers, hasMore, err := dal.Transfer.LoadTransfersByUserID(c, user.ID, 0, 100)
+	transfers, hasMore, err := dtdal.Transfer.LoadTransfersByUserID(c, user.ID, 0, 100)
 	if hasError(c, w, err, "", 0, http.StatusInternalServerError) {
 		return
 	}

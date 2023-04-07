@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"context"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/log"
 )
 

@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/crediterra/money"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
-	"github.com/crediterra/money"
 )
 
 type UserMeDto struct {
@@ -63,7 +63,7 @@ type ContactDto struct {
 
 func NewContactDto(counterpartyInfo models.TransferCounterpartyInfo) ContactDto {
 	dto := ContactDto{
-		ID:      strconv.FormatInt(counterpartyInfo.ContactID, 10),
+		ID:      strconv.Itoa(counterpartyInfo.ContactID),
 		UserID:  strconv.FormatInt(counterpartyInfo.UserID, 10),
 		Name:    counterpartyInfo.Name(),
 		Comment: counterpartyInfo.Comment,
@@ -219,7 +219,7 @@ type Record struct {
 	Counterparties         []CounterpartyDto
 	Transfers              int
 	CountOfReceiptsCreated int
-	InvitedByUser *struct {
+	InvitedByUser          *struct {
 		Id   int64
 		Name string
 	} `json:",omitempty"`

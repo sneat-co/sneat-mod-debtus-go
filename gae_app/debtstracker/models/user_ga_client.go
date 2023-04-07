@@ -1,9 +1,8 @@
 package models
 
 import (
+	"github.com/strongo/dalgo/record"
 	"time"
-
-	"github.com/strongo/db"
 )
 
 const GaClientKind = "UserGaClient"
@@ -15,7 +14,7 @@ type GaClientEntity struct {
 }
 
 type GaClient struct {
-	db.StringID
+	record.WithID[string]
 	*GaClientEntity
 }
 
@@ -41,4 +40,4 @@ func (gaClient *GaClient) SetEntity(entity interface{}) {
 	}
 }
 
-var _ db.EntityHolder = (*GaClient)(nil)
+//var _ db.EntityHolder = (*GaClient)(nil)

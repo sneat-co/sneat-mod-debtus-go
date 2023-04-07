@@ -7,12 +7,12 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/invites"
+	"errors"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
@@ -35,7 +35,7 @@ func AskInviteAddress(channel, icon, commandText, messageCode, invalidMessageCod
 				email := strings.TrimSpace(whc.Input().(bots.WebhookTextMessage).Text())
 				isValid := channel == string(models.InviteByEmail) && strings.Contains(email, "@") && strings.Contains(email, ".")
 				if isValid {
-					invite, err := dal.Invite.CreatePersonalInvite(whc, whc.AppUserIntID(), models.InviteByEmail, email, whc.BotPlatform().ID(), whc.GetBotCode(), "counterparty=?")
+					invite, err := dtdal.Invite.CreatePersonalInvite(whc, whc.AppUserIntID(), models.InviteByEmail, email, whc.BotPlatform().ID(), whc.GetBotCode(), "counterparty=?")
 					if err != nil {
 						log.Errorf(whc.Context(), "Failed to call invites.CreateInvite()")
 						return m, err

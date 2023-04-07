@@ -4,11 +4,11 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
+	"errors"
 	"fmt"
-	"github.com/pkg/errors"
 	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/db"
+	"github.com/strongo/dalgo/dal"
 	"github.com/strongo/log"
 	"regexp"
 	"strconv"
@@ -17,7 +17,8 @@ import (
 
 /*
 Examples:
- receipt-{ID}-view_{LANG_CODE5}_[GA_CLIENT_ID]
+
+	receipt-{ID}-view_{LANG_CODE5}_[GA_CLIENT_ID]
 */
 var reInviteOrReceiptCodeFromStart = regexp.MustCompile(`^(invite|receipt)-(\w+)(-(view|accept|decline))?(_(\w{2}(-\w{2})?))(_(.+))?$`)
 
@@ -46,7 +47,7 @@ func startByLinkCode(whc bots.WebhookContext, matches []string) (m bots.MessageF
 		}
 		whc.SetLocale(localeCode5)
 		chatEntity.SetPreferredLanguage(localeCode5)
-		if err = dal.User.DelaySetUserPreferredLocale(c, time.Second, whc.AppUserIntID(), localeCode5); err != nil {
+		if err = dtdal.User.DelaySetUserPreferredLocale(c, time.Second, whc.AppUserIntID(), localeCode5); err != nil {
 			return
 		}
 
@@ -64,7 +65,7 @@ func startByLinkCode(whc bots.WebhookContext, matches []string) (m bots.MessageF
 
 func startInvite(whc bots.WebhookContext, inviteCode, operation, localeCode5 string) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
-	invite, err := dal.Invite.GetInvite(c, inviteCode)
+	invite, err := dtdal.Invite.GetInvite(c, inviteCode)
 	if err == nil {
 		if invite == nil {
 			m = whc.NewMessage(fmt.Sprintf("Unknown invite code: %v", inviteCode))
@@ -85,8 +86,8 @@ func startReceipt(whc bots.WebhookContext, receiptCode, operation, localeCode5 s
 	receiptID, err := strconv.ParseInt(receiptCode, 10, 64)
 	if err != nil {
 		receiptID, err = common.DecodeID(receiptCode) // TODO: remove obsolete in a while. 2017/11/19
-	} else if _, err = dal.Receipt.GetReceiptByID(c, receiptID); err != nil {
-		if db.IsNotFound(err) {
+	} else if _, err = dtdal.Receipt.GetReceiptByID(c, receiptID); err != nil {
+		if dal.IsNotFound(err) {
 			err = nil
 			if receiptID, err = common.DecodeID(receiptCode); err != nil {
 				err = errors.WithMessage(err, "failed to decode receipt ID")

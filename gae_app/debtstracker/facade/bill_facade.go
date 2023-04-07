@@ -4,16 +4,15 @@ import (
 	"fmt"
 	"github.com/crediterra/money"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/pkg/errors"
+	"errors"
 	//"github.com/strongo/app"
 	"math"
 	"strconv"
 	"time"
 
 	"context"
-	"github.com/strongo/db"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 )
@@ -33,11 +32,11 @@ func (billFacade) AssignBillToGroup(c context.Context, inBill models.Bill, group
 			var gc context.Context
 			if bill.Currency == money.Currency("") {
 				// we don't need to get it in transaction if no currency as balance will not be changed
-				gc = dal.DB.NonTransactionalContext(c)
+				gc = dtdal.DB.NonTransactionalContext(c)
 			} else {
 				gc = c
 			}
-			if group, err = dal.Group.GetGroupByID(gc, groupID); err != nil {
+			if group, err = dtdal.Group.GetGroupByID(gc, groupID); err != nil {
 				return
 			}
 		}
@@ -70,7 +69,7 @@ func (billFacade) AssignBillToGroup(c context.Context, inBill models.Bill, group
 					if user.ID, err = strconv.ParseInt(userID, 10, 64); err != nil {
 						return
 					}
-					if user, err = User.GetUserByID(dal.DB.NonTransactionalContext(c), user.ID); err != nil {
+					if user, err = User.GetUserByID(dtdal.DB.NonTransactionalContext(c), user.ID); err != nil {
 						return
 					}
 					_, _, _, groupMember, _ := group.AddOrGetMember(userID, "", user.FullName())
@@ -88,7 +87,7 @@ func (billFacade) AssignBillToGroup(c context.Context, inBill models.Bill, group
 				if _, err = group.ApplyBillBalanceDifference(bill.Currency, bill.GetBalance().BillBalanceDifference(models.BillBalanceByMember{})); err != nil {
 					return
 				}
-				if err = dal.Group.SaveGroup(c, group); err != nil {
+				if err = dtdal.Group.SaveGroup(c, group); err != nil {
 					return
 				}
 			}
@@ -367,7 +366,7 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 	}
 
 	billHistoryRecord := models.NewBillHistoryBillCreated(bill, nil)
-	if err = dal.InsertWithRandomStringID(c, &billHistoryRecord, models.BillsHistoryIdLen); err != nil {
+	if err = dtdal.InsertWithRandomStringID(c, &billHistoryRecord, models.BillsHistoryIdLen); err != nil {
 		return
 	}
 	return
@@ -407,7 +406,7 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 //}
 //
 //func (billFacade) createBillTransfer(c context.Context, billID string, creatorCounterpartyID int64) error {
-//	err := dal.DB.RunInTransaction(c, func(c context.Context) error {
+//	err := dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 //		bill, err := facade.GetBillByID(c, billID)
 //
 //		if err != nil {
@@ -442,7 +441,7 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 //		if payer == nil {
 //			return ErrBillHasNoPayer
 //		}
-//		//transferSource := dal.NewTransferSourceBot("api", "no-id", "0") // TODO: Needs refactoring! Move it out of DAL, do we really need an interface?
+//		//transferSource := dtdal.NewTransferSourceBot("api", "no-id", "0") // TODO: Needs refactoring! Move it out of DAL, do we really need an interface?
 //
 //		from := models.TransferCounterpartyInfo{
 //			UserID:    payer.UserID,
@@ -470,7 +469,7 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 //		//	return err
 //		//}
 //		return nil
-//	}, dal.CrossGroupTransaction)
+//	}, dtdal.CrossGroupTransaction)
 //	return err
 //}
 
@@ -512,7 +511,7 @@ func (billFacade) AddBillMember(
 	if bill.ID == "" {
 		panic("bill.ID is empty string")
 	}
-	if !dal.DB.IsInTransaction(c) {
+	if !dtdal.DB.IsInTransaction(c) {
 		panic("This method should be called within transaction")
 	}
 
@@ -533,8 +532,8 @@ func (billFacade) AddBillMember(
 
 	totalAboutBefore := bill.AmountTotal
 
-	if userGroupID := bill.UserGroupID(); userGroupID != "" {
-		if group, err = dal.Group.GetGroupByID(c, userGroupID); err != nil {
+	if userGroupID := bill.GetUserGroupID(); userGroupID != "" {
+		if group, err = dtdal.Group.GetGroupByID(c, userGroupID); err != nil {
 			return
 		}
 
@@ -586,7 +585,7 @@ func (billFacade) AddBillMember(
 	}
 	log.Debugf(c, "bill.GetBillMembers(): %+v", bill.GetBillMembers())
 
-	if err = dal.Bill.SaveBill(c, bill); err != nil {
+	if err = dtdal.Bill.SaveBill(c, bill); err != nil {
 		return
 	}
 
@@ -601,7 +600,7 @@ func (billFacade) AddBillMember(
 			return
 		}
 		if groupChanged {
-			if err = dal.Group.SaveGroup(c, group); err != nil {
+			if err = dtdal.Group.SaveGroup(c, group); err != nil {
 				return
 			}
 		}
@@ -613,7 +612,7 @@ func (billFacade) AddBillMember(
 		groupMembersJsonAfter = group.MembersJson
 	}
 	billHistoryRecord := models.NewBillHistoryMemberAdded(userID, bill, totalAboutBefore, groupMembersJsonBefore, groupMembersJsonAfter)
-	if err = dal.InsertWithRandomStringID(c, &billHistoryRecord, models.BillsHistoryIdLen); err != nil {
+	if err = dtdal.InsertWithRandomStringID(c, &billHistoryRecord, models.BillsHistoryIdLen); err != nil {
 		return
 	}
 
@@ -627,7 +626,7 @@ var (
 )
 
 func (billFacade) DeleteBill(c context.Context, billID string, userID int64) (bill models.Bill, err error) {
-	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 		if bill, err = GetBillByID(c, billID); err != nil {
 			return
 		}
@@ -637,17 +636,17 @@ func (billFacade) DeleteBill(c context.Context, billID string, userID int64) (bi
 		}
 		if bill.Status == models.BillStatusDraft || bill.Status == models.BillStatusOutstanding {
 			billHistoryRecord := models.NewBillHistoryBillDeleted(strconv.FormatInt(userID, 10), bill)
-			if err = dal.InsertWithRandomStringID(c, &billHistoryRecord, models.BillsHistoryIdLen); err != nil {
+			if err = dtdal.InsertWithRandomStringID(c, &billHistoryRecord, models.BillsHistoryIdLen); err != nil {
 				return
 			}
 			bill.Status = models.BillStatusDeleted
-			if err = dal.Bill.SaveBill(c, bill); err != nil {
+			if err = dtdal.Bill.SaveBill(c, bill); err != nil {
 				return
 			}
 		}
-		if groupID := bill.UserGroupID(); groupID != "" {
+		if groupID := bill.GetUserGroupID(); groupID != "" {
 			var group models.Group
-			if group, err = dal.Group.GetGroupByID(c, groupID); err != nil {
+			if group, err = dtdal.Group.GetGroupByID(c, groupID); err != nil {
 				return
 			}
 			outstandingBills := group.GetOutstandingBills()
@@ -667,7 +666,7 @@ func (billFacade) DeleteBill(c context.Context, billID string, userID int64) (bi
 						}
 					}
 					group.SetGroupMembers(groupMembers)
-					if err = dal.Group.SaveGroup(c, group); err != nil {
+					if err = dtdal.Group.SaveGroup(c, group); err != nil {
 						return
 					}
 					break
@@ -682,7 +681,7 @@ func (billFacade) DeleteBill(c context.Context, billID string, userID int64) (bi
 }
 
 func (billFacade) RestoreBill(c context.Context, billID string, userID int64) (bill models.Bill, err error) {
-	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 		if bill, err = GetBillByID(c, billID); err != nil {
 			return
 		}
@@ -697,22 +696,22 @@ func (billFacade) RestoreBill(c context.Context, billID string, userID int64) (b
 			bill.Status = models.BillStatusDraft
 		}
 		billHistoryRecord := models.NewBillHistoryBillRestored(strconv.FormatInt(userID, 10), bill)
-		if err = dal.InsertWithRandomStringID(c, &billHistoryRecord, models.BillsHistoryIdLen); err != nil {
+		if err = dtdal.InsertWithRandomStringID(c, &billHistoryRecord, models.BillsHistoryIdLen); err != nil {
 			return
 		}
-		if err = dal.Bill.SaveBill(c, bill); err != nil {
+		if err = dtdal.Bill.SaveBill(c, bill); err != nil {
 			return
 		}
-		if groupID := bill.UserGroupID(); groupID != "" {
+		if groupID := bill.GetUserGroupID(); groupID != "" {
 			var group models.Group
-			if group, err = dal.Group.GetGroupByID(c, groupID); err != nil {
+			if group, err = dtdal.Group.GetGroupByID(c, groupID); err != nil {
 				return
 			}
 			var groupChanged bool
 			if groupChanged, err = group.AddBill(bill); err != nil {
 				return
 			} else if groupChanged {
-				if err = dal.Group.SaveGroup(c, group); err != nil {
+				if err = dtdal.Group.SaveGroup(c, group); err != nil {
 					return
 				}
 			}
@@ -726,7 +725,7 @@ func (billFacade) RestoreBill(c context.Context, billID string, userID int64) (b
 
 func GetBillByID(c context.Context, billID string) (bill models.Bill, err error) {
 	bill.ID = billID
-	err = dal.DB.Get(c, &bill)
+	err = dtdal.DB.Get(c, &bill)
 	return
 }
 
@@ -744,16 +743,16 @@ func InsertBillEntity(c context.Context, billEntity *models.BillEntity) (bill mo
 	billEntity.DtCreated = time.Now()
 	bill.BillEntity = billEntity
 
-	err = dal.InsertWithRandomStringID(c, &bill, models.BillIdLen)
+	err = dtdal.InsertWithRandomStringID(c, &bill, models.BillIdLen)
 	return
 }
 
 //func (billFacade billFacade) createTransfers(c context.Context, splitID int64) error {
-//	split, err := dal.Split.GetSplitByID(c, splitID)
+//	split, err := dtdal.Split.GetSplitByID(c, splitID)
 //	if err != nil {
 //		return err
 //	}
-//	bills, err := dal.Bill.GetBillsByIDs(c, split.BillIDs)
+//	bills, err := dtdal.Bill.GetBillsByIDs(c, split.BillIDs)
 //
 //	balances := billFacade.getBalances(splitID, bills)
 //	balances = billFacade.cleanupBalances(balances)

@@ -10,13 +10,12 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
 )
 
@@ -52,7 +51,7 @@ func handlerGetGroup(c context.Context, w http.ResponseWriter, r *http.Request, 
 		BadRequestError(c, w, errors.New("Missing id parameter"))
 		return
 	}
-	group, err := dal.Group.GetGroupByID(c, groupID)
+	group, err := dtdal.Group.GetGroupByID(c, groupID)
 	if err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
@@ -141,7 +140,7 @@ func handleJoinGroups(c context.Context, w http.ResponseWriter, r *http.Request,
 	groups := make([]models.Group, len(groupIDs))
 	var user models.AppUser
 
-	err := dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	err := dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 		if user, err = facade.User.GetUserByID(c, authInfo.UserID); err != nil {
 			return
 		}
@@ -152,7 +151,7 @@ func handleJoinGroups(c context.Context, w http.ResponseWriter, r *http.Request,
 		for i, groupID := range groupIDs {
 			go func(i int, groupID string) {
 				var group models.Group
-				if group, errs[i] = dal.Group.GetGroupByID(c, groupID); errs[i] != nil {
+				if group, errs[i] = dtdal.Group.GetGroupByID(c, groupID); errs[i] != nil {
 					waitGroup.Done()
 					return
 				}
@@ -163,7 +162,7 @@ func handleJoinGroups(c context.Context, w http.ResponseWriter, r *http.Request,
 				}
 				if _, changed, _, _, members := group.AddOrGetMember(strconv.FormatInt(authInfo.UserID, 10), "", userName); changed {
 					group.SetGroupMembers(members)
-					if errs[i] = dal.Group.SaveGroup(c, group); errs[i] != nil {
+					if errs[i] = dtdal.Group.SaveGroup(c, group); errs[i] != nil {
 						waitGroup.Done()
 						return
 					}
@@ -187,7 +186,7 @@ func handleJoinGroups(c context.Context, w http.ResponseWriter, r *http.Request,
 		}
 
 		return
-	}, dal.CrossGroupTransaction)
+	}, dtdal.CrossGroupTransaction)
 
 	if err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
@@ -230,8 +229,8 @@ func handlerUpdateGroup(c context.Context, w http.ResponseWriter, r *http.Reques
 	groupName := strings.TrimSpace(r.FormValue("name"))
 	groupNote := strings.TrimSpace(r.FormValue("note"))
 
-	err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if group, err = dal.Group.GetGroupByID(c, group.ID); err != nil {
+	err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+		if group, err = dtdal.Group.GetGroupByID(c, group.ID); err != nil {
 			return
 		}
 
@@ -250,7 +249,7 @@ func handlerUpdateGroup(c context.Context, w http.ResponseWriter, r *http.Reques
 			changed = true
 		}
 		if changed {
-			if err = dal.Group.SaveGroup(c, group); err != nil {
+			if err = dtdal.Group.SaveGroup(c, group); err != nil {
 				return
 			}
 		}
@@ -267,7 +266,7 @@ func handlerUpdateGroup(c context.Context, w http.ResponseWriter, r *http.Reques
 		}
 
 		return
-	}, dal.CrossGroupTransaction)
+	}, dtdal.CrossGroupTransaction)
 
 	if err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
@@ -317,8 +316,8 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 		}
 	}
 
-	if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-		if group, err = dal.Group.GetGroupByID(c, groupID); err != nil {
+	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
+		if group, err = dtdal.Group.GetGroupByID(c, groupID); err != nil {
 			return err
 		}
 		members := group.GetGroupMembers()
@@ -377,7 +376,7 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 		}
 		if changed || len(changedContactIDs) > 0 { // Check for len(changedContactIDs) is excessive but just in case.
 			group.SetGroupMembers(members)
-			if err = dal.Group.SaveGroup(c, group); err != nil {
+			if err = dtdal.Group.SaveGroup(c, group); err != nil {
 				return err
 			}
 		}
@@ -411,7 +410,7 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 			}
 		}
 		return err
-	}, dal.CrossGroupTransaction); err != nil {
+	}, dtdal.CrossGroupTransaction); err != nil {
 		if db.IsNotFound(err) {
 			BadRequestError(c, w, err)
 			return

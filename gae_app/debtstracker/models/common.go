@@ -1,10 +1,8 @@
 package models
 
 import (
+	"errors"
 	"fmt"
-
-	"github.com/pkg/errors"
-	"google.golang.org/appengine/datastore"
 )
 
 const (
@@ -27,10 +25,10 @@ func validateString(errMess, s string, validValues []string) error {
 	return nil
 }
 
-var ErrNoProperties = errors.New("No properties")
+var ErrNoProperties = errors.New("no properties")
 
-var checkHasProperties = func(kind string, properties []datastore.Property) {
-	if len(properties) == 0 {
-		panic(errors.WithMessage(ErrNoProperties, fmt.Sprintf("kind="+kind)).Error())
-	}
-}
+//var checkHasProperties = func(kind string, properties []datastore.Property) {
+//	if len(properties) == 0 {
+//		panic(errors.WithMessage(ErrNoProperties, fmt.Sprintf("kind="+kind)).Error())
+//	}
+//}

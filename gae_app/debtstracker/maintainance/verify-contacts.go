@@ -1,13 +1,12 @@
 package maintainance
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"fmt"
 	"github.com/captaincodeman/datastore-mapper"
-	"github.com/strongo/db"
 	"github.com/strongo/nds"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
@@ -65,7 +64,7 @@ func (m *verifyContacts) verifyLinking(c context.Context, counters *asyncCounter
 
 func (m *verifyContacts) linkContacts(c context.Context, counters *asyncCounters, contact models.Contact) (err error) {
 	var counterpartyContact models.Contact
-	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 		if counterpartyContact, err = facade.GetContactByID(c, contact.CounterpartyCounterpartyID); err != nil {
 			log.Errorf(c, err.Error())
 			return

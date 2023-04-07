@@ -7,7 +7,7 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/DebtsTracker/translations/emoji"
@@ -47,7 +47,7 @@ func groupMembersCard(
 	buffer.WriteString(t.Translate(trans.MESSAGE_TEXT_MEMBERS_CARD_TITLE, group.MembersCount) + "\n\n")
 
 	if group.GroupEntity == nil {
-		if group, err = dal.Group.GetGroupByID(c, group.ID); err != nil {
+		if group, err = dtdal.Group.GetGroupByID(c, group.ID); err != nil {
 			return
 		}
 	}

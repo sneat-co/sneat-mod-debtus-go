@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/strongo/log"
@@ -31,7 +31,7 @@ func CheckTransferCreatorNameAndFixIfNeeded(c context.Context, w http.ResponseWr
 			log.Infof(c, logMessage)
 		}
 
-		if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
+		if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 			if transfer, err = Transfers.GetTransferByID(c, transfer.ID); err != nil {
 				return err
 			}

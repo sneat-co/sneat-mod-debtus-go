@@ -1,11 +1,8 @@
 package models
 
 import (
+	"github.com/strongo/dalgo/record"
 	"time"
-
-	"github.com/strongo/db"
-	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/datastore"
 )
 
 type BillScheduleStatus string
@@ -28,8 +25,8 @@ const (
 const BillScheduleKind = "BillSchedule"
 
 type BillSchedule struct {
-	db.IntegerID
-	*BillScheduleEntity
+	record.WithID[int64]
+	Data *BillScheduleEntity
 }
 
 type BillScheduleEntity struct {
@@ -51,28 +48,23 @@ type BillScheduleEntity struct {
 	DtNext     time.Time
 }
 
-func (entity *BillScheduleEntity) Load(ps []datastore.Property) error {
-	ps = entity.BillCommon.load(ps)
-	return datastore.LoadStruct(entity, ps)
-}
-
-func (entity *BillScheduleEntity) Save() (properties []datastore.Property, err error) {
-	if properties, err = datastore.SaveStruct(entity); err != nil {
+func (entity *BillScheduleEntity) Validate() (err error) {
+	//if properties, err = datastore.SaveStruct(entity); err != nil {
+	//	return
+	//}
+	if err = entity.BillCommon.Validate(); err != nil {
 		return
 	}
-	if properties, err = entity.BillCommon.save(properties); err != nil {
-		return
-	}
-	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"DtLast":            gaedb.IsZeroTime,
-		"DtNext":            gaedb.IsZeroTime,
-		"LastBillID":        gaedb.IsZeroInt,
-		"IsAutoTransfer":    gaedb.IsZeroBool,
-		"BillsCount":        gaedb.IsZeroInt,
-		"CreatedFromBillID": gaedb.IsZeroInt,
-	}); err != nil {
-		return
-	}
+	//if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
+	//	"DtLast":            gaedb.IsZeroTime,
+	//	"DtNext":            gaedb.IsZeroTime,
+	//	"LastBillID":        gaedb.IsZeroInt,
+	//	"IsAutoTransfer":    gaedb.IsZeroBool,
+	//	"BillsCount":        gaedb.IsZeroInt,
+	//	"CreatedFromBillID": gaedb.IsZeroInt,
+	//}); err != nil {
+	//	return
+	//}
 	return
 }
 
@@ -80,17 +72,17 @@ func (BillSchedule) Kind() string {
 	return BillKind
 }
 
-func (bill BillSchedule) IntID() int64 {
-	return bill.ID
-}
+//func (bill BillSchedule) IntID() int64 {
+//	return bill.ID
+//}
 
 func (bill *BillSchedule) Entity() interface{} {
-	if bill.BillScheduleEntity == nil {
-		bill.BillScheduleEntity = new(BillScheduleEntity)
+	if bill.Data == nil {
+		bill.Data = new(BillScheduleEntity)
 	}
-	return bill.BillScheduleEntity
+	return bill.Data
 }
 
 func (bill *BillSchedule) SetEntity(entity interface{}) {
-	bill.BillScheduleEntity = entity.(*BillScheduleEntity)
+	bill.Data = entity.(*BillScheduleEntity)
 }

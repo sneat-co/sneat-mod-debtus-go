@@ -2,11 +2,11 @@ package models
 
 import (
 	"encoding/base64"
+	"github.com/strongo/dalgo/record"
 	"strings"
 	"time"
 
 	"github.com/strongo/app/user"
-	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/appengine/datastore"
@@ -34,12 +34,12 @@ func (entity UserEmailEntity) ConfirmationPin() string {
 }
 
 type UserEmail struct {
-	db.StringID
+	record.WithID[string]
 	user.Names
 	*UserEmailEntity
 }
 
-var _ user.AccountRecord = (*UserEmail)(nil)
+//var _ user.AccountRecord = (*UserEmail)(nil)
 
 func (userEmail UserEmail) UserAccount() user.Account {
 	return user.Account{Provider: "email", ID: userEmail.ID}
@@ -75,7 +75,7 @@ func GetEmailID(email string) string {
 
 func NewUserEmail(email string, isConfirmed bool, provider string) UserEmail {
 	return UserEmail{
-		StringID:        db.StringID{ID: GetEmailID(email)},
+		WithID:          record.WithID[string]{ID: GetEmailID(email)},
 		UserEmailEntity: NewUserEmailEntity(0, isConfirmed, provider),
 	}
 }
@@ -91,7 +91,7 @@ func (entity *UserEmailEntity) IsEmailConfirmed() bool {
 func NewUserEmailEntity(userID int64, isConfirmed bool, provider string) *UserEmailEntity {
 	entity := &UserEmailEntity{
 		OwnedByUserWithIntID: user.NewOwnedByUserWithIntID(userID, time.Now()),
-		IsConfirmed: isConfirmed,
+		IsConfirmed:          isConfirmed,
 	}
 	entity.AddProvider(provider)
 	return entity

@@ -1,16 +1,16 @@
 package facade
 
 import (
-	// "bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
-	// "bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal/dalmocks"
+	// "bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
+	// "bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal/dalmocks"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	// "github.com/pkg/errors"
+	// "errors"
 	"strings"
 	"testing"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtmocks"
 	"context"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/decimal"
 )
 
@@ -43,7 +43,7 @@ func TestCreateBillPanicOnNilBill(t *testing.T) {
 }
 
 func TestCreateBillErrorNoMembers(t *testing.T) {
-	// dal.Bill = dalmocks.NewBillDalMock()
+	// dtdal.Bill = dalmocks.NewBillDalMock()
 	// billEntity := createGoodBillSplitByPercentage(t)
 	// billEntity.setBillMembers([]models.BillMemberJson{})
 	// bill, err := Bill.CreateBill(context.Background(), context.Background(), billEntity)

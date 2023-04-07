@@ -3,7 +3,7 @@ package dtb_transfer
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/sms"
 	//"bitbucket.org/asterus/debtstracker-server/gae_app/invites"
@@ -17,9 +17,9 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
 	"context"
+	"errors"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
@@ -67,7 +67,7 @@ var AskPhoneNumberForReceiptCommand = bots.Command{
 					log.Warningf(c, "Failed to parse contact's phone number: [%v]", phoneNumberStr)
 					err = nil
 				} else if user.PhoneNumber == 0 {
-					err = dal.DB.RunInTransaction(c, func(c context.Context) error {
+					err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 						user, err := facade.User.GetUserByID(c, whc.AppUserIntID())
 						if err != nil {
 							return err
@@ -158,7 +158,7 @@ func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact,
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
 	})
-	if receiptID, err = dal.Receipt.CreateReceipt(c, &receipt); err != nil {
+	if receiptID, err = dtdal.Receipt.CreateReceipt(c, &receipt); err != nil {
 		return m, err
 	}
 
@@ -244,7 +244,7 @@ func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact,
 		return m, errors.WithMessage(err, "Failed to parse whc.BotChatID() to int")
 	}
 
-	if lastTwilioSmsese, err := dal.Twilio.GetLastTwilioSmsesForUser(c, whc.AppUserIntID(), phoneContact.PhoneNumberAsString(), 1); err != nil {
+	if lastTwilioSmsese, err := dtdal.Twilio.GetLastTwilioSmsesForUser(c, whc.AppUserIntID(), phoneContact.PhoneNumberAsString(), 1); err != nil {
 		err = errors.Wrap(err, "Failed to check latest SMS records")
 		return m, err
 	} else if len(lastTwilioSmsese) > 0 {
@@ -288,7 +288,7 @@ func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact,
 			return
 		}
 		if counterparty.PhoneNumber == phoneContact.PhoneNumber {
-			dal.DB.RunInTransaction(whc.Context(), func(tc context.Context) error {
+			dtdal.DB.RunInTransaction(whc.Context(), func(tc context.Context) error {
 				counterparty, err := facade.GetContactByID(tc, transfer.Counterparty().ContactID)
 				if err != nil {
 					return err
@@ -314,7 +314,7 @@ func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact,
 
 	analytics.ReceiptSentFromBot(whc, "sms")
 
-	if _, err = dal.Twilio.SaveTwilioSms(
+	if _, err = dtdal.Twilio.SaveTwilioSms(
 		whc.Context(),
 		smsResponse,
 		transfer,

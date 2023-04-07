@@ -7,12 +7,11 @@ import (
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"context"
+	"errors"
 	"github.com/julienschmidt/httprouter"
-	"github.com/pkg/errors"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/user"
@@ -77,7 +76,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 					log.Infof(c, "gaeUser.Email is empty")
 				} else {
 					log.Infof(c, "gaeUser.Email: %v", gaeUser.Email)
-					err = dal.DB.RunInTransaction(c, func(tc context.Context) error {
+					err = dtdal.DB.RunInTransaction(c, func(tc context.Context) error {
 						u, err := facade.User.GetUserByID(tc, userID)
 						if err != nil {
 							return errors.Wrap(err, "Failed to load user")

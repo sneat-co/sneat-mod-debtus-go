@@ -8,7 +8,6 @@ import (
 
 	"github.com/crediterra/go-interest"
 	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/db"
 	"github.com/strongo/decimal"
 )
 

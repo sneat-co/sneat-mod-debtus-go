@@ -5,12 +5,11 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/app/user"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
 	gae_user "google.golang.org/appengine/user"
 )
@@ -24,7 +23,7 @@ var ErrEmailAlreadyRegistered = errors.New("Email already registered")
 
 func (userFacade) GetUserByID(c context.Context, userID int64) (user models.AppUser, err error) {
 	user.ID = userID
-	err = dal.DB.Get(c, &user)
+	err = dtdal.DB.Get(c, &user)
 	return
 }
 
@@ -36,7 +35,7 @@ func (userFacade) GetUsersByIDs(c context.Context, userIDs []int64) (users []*mo
 	entityHolders := db.CreateEntityHoldersWithIntIDs(userIDs, func() db.EntityHolder {
 		return new(models.AppUser)
 	})
-	if err = dal.DB.GetMulti(c, entityHolders); err != nil {
+	if err = dtdal.DB.GetMulti(c, entityHolders); err != nil {
 		return
 	}
 	users = make([]*models.AppUser, len(entityHolders))
@@ -47,7 +46,7 @@ func (userFacade) GetUsersByIDs(c context.Context, userIDs []int64) (users []*mo
 }
 
 func (userFacade) SaveUser(c context.Context, user models.AppUser) (err error) {
-	return dal.DB.Update(c, &user)
+	return dtdal.DB.Update(c, &user)
 }
 
 func (uf userFacade) CreateUserByEmail(
@@ -58,8 +57,8 @@ func (uf userFacade) CreateUserByEmail(
 	userEmail models.UserEmail,
 	err error,
 ) {
-	err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if userEmail, err = dal.UserEmail.GetUserEmailByID(c, email); err == nil {
+	err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+		if userEmail, err = dtdal.UserEmail.GetUserEmailByID(c, email); err == nil {
 			return ErrEmailAlreadyRegistered
 		} else if !db.IsNotFound(err) {
 			return
@@ -70,23 +69,23 @@ func (uf userFacade) CreateUserByEmail(
 			userEmail.ID = strings.ToLower(strings.TrimSpace(email))
 		}
 
-		userEntity := dal.CreateUserEntity(dal.CreateUserData{
+		userEntity := dtdal.CreateUserEntity(dtdal.CreateUserData{
 			ScreenName: name,
 		})
 		userEntity.AddAccount(userEmail.UserAccount())
 
-		if user, err = dal.User.CreateUser(c, userEntity); err != nil {
+		if user, err = dtdal.User.CreateUser(c, userEntity); err != nil {
 			return
 		}
 
 		userEmail.UserEmailEntity = models.NewUserEmailEntity(user.ID, false, "email")
-		if err = userEmail.SetPassword(dal.RandomCode(8)); err != nil {
+		if err = userEmail.SetPassword(dtdal.RandomCode(8)); err != nil {
 			return
 		}
 
-		err = dal.UserEmail.SaveUserEmail(c, userEmail)
+		err = dtdal.UserEmail.SaveUserEmail(c, userEmail)
 		return
-	}, dal.CrossGroupTransaction)
+	}, dtdal.CrossGroupTransaction)
 
 	return
 }
@@ -96,7 +95,7 @@ func (uf userFacade) GetOrCreateEmailUser(
 	c context.Context,
 	email string,
 	isConfirmed bool,
-	createUserData *dal.CreateUserData,
+	createUserData *dtdal.CreateUserData,
 	clientInfo models.ClientInfo,
 ) (
 	userEmail models.UserEmail,
@@ -106,12 +105,12 @@ func (uf userFacade) GetOrCreateEmailUser(
 
 	var appUser models.AppUser
 
-	if userEmail, err = dal.UserEmail.GetUserEmailByID(c, email); err == nil {
+	if userEmail, err = dtdal.UserEmail.GetUserEmailByID(c, email); err == nil {
 		return // User found
 	} else if !db.IsNotFound(err) { //
 		return // Internal error
 	}
-	err = nil // Clear dal.ErrRecordNotFound
+	err = nil // Clear dtdal.ErrRecordNotFound
 
 	now := time.Now()
 	isNewUser = true
@@ -120,15 +119,15 @@ func (uf userFacade) GetOrCreateEmailUser(
 	appUser.DtCreated = now
 	appUser.AddAccount(userEmail.UserAccount())
 
-	var to db.RunOptions = dal.CrossGroupTransaction
+	var to db.RunOptions = dtdal.CrossGroupTransaction
 
-	if err = dal.DB.RunInTransaction(c, func(tc context.Context) error {
+	if err = dtdal.DB.RunInTransaction(c, func(tc context.Context) error {
 		if err = User.SaveUser(tc, appUser); err != nil {
 			return errors.Wrap(err, "Failed to save new appUser to datastore")
 		}
 		userEmail.DtCreated = now
 
-		if err = dal.UserEmail.SaveUserEmail(c, userEmail); err != nil {
+		if err = dtdal.UserEmail.SaveUserEmail(c, userEmail); err != nil {
 			return err
 		}
 		return nil
@@ -147,7 +146,7 @@ func (uf userFacade) GetOrCreateUserGoogleOnSignIn(
 		panic("googleUser == nil")
 	}
 	getUserAccountRecordFromDB := func(c context.Context) (user.AccountRecord, error) {
-		userGoogle, err = dal.UserGoogle.GetUserGoogleByID(c, googleUser.ID)
+		userGoogle, err = dtdal.UserGoogle.GetUserGoogleByID(c, googleUser.ID)
 		return &userGoogle, err
 	}
 	newUserAccountRecord := func(c context.Context) (user.AccountRecord, error) {
@@ -191,7 +190,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 ) {
 	log.Debugf(c, "getOrCreateUserAccountRecordOnSignIn(provider=%v, userID=%d)", provider, userID)
 	var userAccountRecord user.AccountRecord
-	err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 		if userAccountRecord, err = getUserAccountRecordFromDB(c); err != nil && !db.IsNotFound(err) {
 			// Technical error
 			return err
@@ -233,7 +232,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 			userAccountRecord.SetLastLogin(now)
 			updateUser()
 
-			if err = dal.DB.UpdateMulti(c, []db.EntityHolder{userAccountRecord, &appUser}); err != nil {
+			if err = dtdal.DB.UpdateMulti(c, []db.EntityHolder{userAccountRecord, &appUser}); err != nil {
 				return errors.WithMessage(err, "Failed to update User & UserFacebook with DtLastLogin")
 			}
 			return
@@ -266,7 +265,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 		}
 
 		var userEmail models.UserEmail
-		if userEmail, err = dal.UserEmail.GetUserEmailByID(c, email); err != nil && !db.IsNotFound(err) {
+		if userEmail, err = dtdal.UserEmail.GetUserEmailByID(c, email); err != nil && !db.IsNotFound(err) {
 			return // error
 		}
 
@@ -284,7 +283,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 			updateUser()
 
 			if isNewUser {
-				if appUser, err = dal.User.CreateUser(c, appUser.AppUserEntity); err != nil {
+				if appUser, err = dtdal.User.CreateUser(c, appUser.AppUserEntity); err != nil {
 					return
 				}
 			} else if err = User.SaveUser(c, appUser); err != nil {
@@ -293,7 +292,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 
 			userAccountRecord.(user.BelongsToUserWithIntID).SetAppUserIntID(appUser.ID)
 			userEmail.AppUserIntID = appUser.ID
-			if err = dal.DB.UpdateMulti(c, []db.EntityHolder{userAccountRecord, &userEmail}); err != nil {
+			if err = dtdal.DB.UpdateMulti(c, []db.EntityHolder{userAccountRecord, &userEmail}); err != nil {
 				return
 			}
 			return
@@ -314,18 +313,18 @@ func getOrCreateUserAccountRecordOnSignIn(
 
 			if changed := userEmail.AddProvider(provider); changed || !userEmail.IsConfirmed {
 				userEmail.IsConfirmed = true
-				if err = dal.UserEmail.SaveUserEmail(c, userEmail); err != nil {
+				if err = dtdal.UserEmail.SaveUserEmail(c, userEmail); err != nil {
 					return
 				}
 			}
 			appUser.AddAccount(userAccountRecord.UserAccount())
 			updateUser()
-			if err = dal.DB.UpdateMulti(c, []db.EntityHolder{userAccountRecord, &appUser}); err != nil {
+			if err = dtdal.DB.UpdateMulti(c, []db.EntityHolder{userAccountRecord, &appUser}); err != nil {
 				return errors.WithMessage(err, "Failed to create UserFacebook & update User")
 			}
 			return
 		}
-	}, dal.CrossGroupTransaction)
+	}, dtdal.CrossGroupTransaction)
 	return
 }
 
@@ -356,7 +355,7 @@ func (uf userFacade) GetOrCreateUserFacebookOnSignIn(
 	}
 
 	getUserAccountRecordFromDB := func(c context.Context) (user.AccountRecord, error) {
-		if userFacebook, err = dal.UserFacebook.GetFbUserByFbID(c, fbAppOrPageID, fbUserOrPageScopeID); err != nil {
+		if userFacebook, err = dtdal.UserFacebook.GetFbUserByFbID(c, fbAppOrPageID, fbUserOrPageScopeID); err != nil {
 			return &userFacebook, err
 		}
 		updateNames(userFacebook.UserFacebookEntity)

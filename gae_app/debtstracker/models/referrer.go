@@ -1,19 +1,18 @@
 package models
 
 import (
+	"github.com/strongo/dalgo/record"
 	"time"
-
-	"github.com/strongo/db"
 )
 
 const RefererKind = "Referer"
 
 type Referer struct {
-	db.IntegerID
+	record.WithID[int]
 	*RefererEntity
 }
 
-var _ db.EntityHolder = (*Referer)(nil)
+//var _ db.EntityHolder = (*Referer)(nil)
 
 func (Referer) Kind() string {
 	return RefererKind

@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
-	"github.com/strongo/db"
+	"errors"
 	"github.com/strongo/log"
 )
 
@@ -67,9 +66,9 @@ func AcknowledgeReceipt(
 	log.Debugf(c, "AcknowledgeReceipt(receiptID=%d, currentUserID=%d, operation=%v)", receiptID, currentUserID, operation)
 	var transferAckStatus string
 	switch operation {
-	case dal.AckAccept:
+	case dtdal.AckAccept:
 		transferAckStatus = models.TransferAccepted
-	case dal.AckDecline:
+	case dtdal.AckDecline:
 		transferAckStatus = models.TransferDeclined
 	default:
 		err = ErrInvalidAcknowledgeType
@@ -78,7 +77,7 @@ func AcknowledgeReceipt(
 
 	var invitedContact models.Contact
 
-	err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
+	err = dtdal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
 		var inviterUser, invitedUser models.AppUser
 		var inviterContact models.Contact
 
@@ -155,7 +154,7 @@ func AcknowledgeReceipt(
 
 		if entitiesToSave := changes.EntityHolders(); len(entitiesToSave) > 0 {
 			log.Debugf(c, "%v entities to save: %+v", len(entitiesToSave), entitiesToSave)
-			if err = dal.DB.UpdateMulti(c, entitiesToSave); err != nil {
+			if err = dtdal.DB.UpdateMulti(c, entitiesToSave); err != nil {
 				return
 			}
 		} else {
@@ -173,7 +172,7 @@ func AcknowledgeReceipt(
 		//	}
 		//}
 		return
-	}, dal.CrossGroupTransaction)
+	}, dtdal.CrossGroupTransaction)
 
 	if err != nil {
 		if err == ErrSelfAcknowledgement {
@@ -200,8 +199,8 @@ func AcknowledgeReceipt(
 }
 
 func MarkReceiptAsViewed(c context.Context, receiptID, userID int64) (receipt models.Receipt, err error) {
-	err = dal.DB.RunInTransaction(c, func(tc context.Context) error {
-		receipt, err = dal.Receipt.GetReceiptByID(tc, receiptID)
+	err = dtdal.DB.RunInTransaction(c, func(tc context.Context) error {
+		receipt, err = dtdal.Receipt.GetReceiptByID(tc, receiptID)
 		if err != nil {
 			return err
 		}
@@ -212,10 +211,10 @@ func MarkReceiptAsViewed(c context.Context, receiptID, userID int64) (receipt mo
 			changed = true
 		}
 		if changed {
-			dal.Receipt.UpdateReceipt(c, receipt)
+			dtdal.Receipt.UpdateReceipt(c, receipt)
 		}
 		return err
-	}, dal.CrossGroupTransaction)
+	}, dtdal.CrossGroupTransaction)
 	return
 }
 
@@ -243,7 +242,7 @@ func getReceiptTransferAndUsers(c context.Context, receiptID, userID int64) (
 ) {
 	log.Debugf(c, "getReceiptTransferAndUsers(receiptID=%v, userID=%v)", receiptID, userID)
 
-	if receipt, err = dal.Receipt.GetReceiptByID(c, receiptID); err != nil {
+	if receipt, err = dtdal.Receipt.GetReceiptByID(c, receiptID); err != nil {
 		return
 	}
 

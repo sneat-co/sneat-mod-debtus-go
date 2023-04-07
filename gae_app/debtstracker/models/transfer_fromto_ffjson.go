@@ -408,7 +408,7 @@ handle_UserID:
 				return fs.WrapErr(err)
 			}
 
-			j.UserID = int64(tval)
+			j.UserID = tval
 
 		}
 	}
@@ -464,7 +464,7 @@ handle_ContactID:
 				return fs.WrapErr(err)
 			}
 
-			j.ContactID = int64(tval)
+			j.ContactID = int(tval)
 
 		}
 	}
@@ -572,7 +572,7 @@ handle_ReminderID:
 				return fs.WrapErr(err)
 			}
 
-			j.ReminderID = int64(tval)
+			j.ReminderID = int(tval)
 
 		}
 	}

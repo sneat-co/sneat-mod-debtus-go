@@ -6,7 +6,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/captaincodeman/datastore-mapper"
-	"github.com/strongo/db"
 	"google.golang.org/appengine/datastore"
 )
 

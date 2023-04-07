@@ -7,13 +7,13 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/sms"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/invites"
+	"errors"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
@@ -25,7 +25,7 @@ var reEmail = regexp.MustCompile("^.+@.+\\.\\w+$")
 
 func handleInviteOnStart(whc bots.WebhookContext, inviteCode string, invite *models.InviteEntity) (m bots.MessageFromBot, err error) {
 	claimAndReply := func() {
-		if _, err = dal.Invite.ClaimInvite2(whc.Context(), inviteCode, invite, whc.AppUserIntID(), whc.BotPlatform().ID(), whc.GetBotCode()); err != nil {
+		if _, err = dtdal.Invite.ClaimInvite2(whc.Context(), inviteCode, invite, whc.AppUserIntID(), whc.BotPlatform().ID(), whc.GetBotCode()); err != nil {
 			err = errors.Wrap(err, "Failed to ClaimInvite()")
 			return
 		}
@@ -187,7 +187,7 @@ func NewMistypedCommand(messageToAdd string) bots.Command {
 //		inviteCode := strings.ToUpper(whc.Input().(bots.WebhookTextMessage).Text())
 //		userID := whc.AppUserIntID()
 //
-//		if err = dal.Invite.ClaimInvite(c, userID, inviteCode, whc.BotPlatform().ID(), whc.GetBotCode()); err != nil {
+//		if err = dtdal.Invite.ClaimInvite(c, userID, inviteCode, whc.BotPlatform().ID(), whc.GetBotCode()); err != nil {
 //			if db.IsNotFound(err) {
 //				m = whc.NewMessage(emoji.NO_ENTRY_SIGN_ICON + " " + strings.TrimSpace(fmt.Sprintf(whc.Translate(trans.MESSAGE_TEXT_WRONG_INVITE_CODE), inviteCode)))
 //				m.Keyboard = tgbotapi.NewReplyKeyboardUsingStrings([][]string{
@@ -358,7 +358,7 @@ var OnboardingOnUserContactReceivedCommand = bots.Command{
 func onboardingProcessPhoneContact(whc bots.WebhookContext, contact bots.WebhookContactMessage) (m bots.MessageFromBot, err error) {
 	c := whc.Context()
 	//whc.ChatEntity().SetAwaitingReplyTo(ON_USER_CONTACT_RECEIVED_COMMAND)
-	invite, err := dal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserIntID(), models.InviteBySms, contact.PhoneNumber(), whc.BotPlatform().ID(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
+	invite, err := dtdal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserIntID(), models.InviteBySms, contact.PhoneNumber(), whc.BotPlatform().ID(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
 	if err != nil {
 		return m, err
 	}
@@ -427,7 +427,7 @@ func onboardingProcessEmail(messageText string, whc bots.WebhookContext, altCmd 
 		})
 	} else {
 		//TODO: Try to send email and handle return codes & exceptions
-		invite, err := dal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserIntID(), models.InviteByEmail, email, whc.BotPlatform().ID(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
+		invite, err := dtdal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserIntID(), models.InviteByEmail, email, whc.BotPlatform().ID(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
 		if err != nil {
 			return m, err
 		}

@@ -5,15 +5,14 @@ import (
 	"strconv"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"context"
-	"github.com/pkg/errors"
-	"github.com/strongo/db"
+	"errors"
 )
 
 func handleSignUpAnonymously(c context.Context, w http.ResponseWriter, r *http.Request) {
-	if user, err := dal.User.CreateAnonymousUser(c); err != nil {
+	if user, err := dtdal.User.CreateAnonymousUser(c); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 	} else {
 		SaveUserAgent(c, user.ID, r.UserAgent())
@@ -48,7 +47,7 @@ func handleSignInAnonymous(c context.Context, w http.ResponseWriter, r *http.Req
 }
 
 func handleLinkOneSignal(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
-	_, err := dal.UserOneSignal.SaveUserOneSignal(c, authInfo.UserID, r.PostFormValue("OneSignalUserID"))
+	_, err := dtdal.UserOneSignal.SaveUserOneSignal(c, authInfo.UserID, r.PostFormValue("OneSignalUserID"))
 	if err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 	}

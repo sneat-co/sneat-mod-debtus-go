@@ -2,17 +2,17 @@ package models
 
 import (
 	"github.com/strongo/app/user"
-	"github.com/strongo/db"
+	"github.com/strongo/dalgo/record"
 )
 
 const SplitKind = "Split"
 
 type Split struct {
-	db.IntegerID
+	record.WithID[int]
 	*SplitEntity
 }
 
-var _ db.EntityHolder = (*Split)(nil)
+//var _ db.EntityHolder = (*Split)(nil)
 
 type SplitEntity struct {
 	user.OwnedByUserWithIntID

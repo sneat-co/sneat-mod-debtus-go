@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/strongo/log"
@@ -24,7 +24,7 @@ func TwilioWebhook(w http.ResponseWriter, r *http.Request) {
 	smsSid := r.PostFormValue("SmsSid")
 	messageStatus := r.PostFormValue("MessageStatus")
 
-	err = dal.DB.RunInTransaction(c, func(tc context.Context) error {
+	err = dtdal.DB.RunInTransaction(c, func(tc context.Context) error {
 		var smsEntity models.TwilioSmsEntity
 		smsEntityKey := datastore.NewKey(tc, models.TwilioSmsKind, smsSid, 0, nil)
 		err := nds.Get(tc, smsEntityKey, &smsEntity)

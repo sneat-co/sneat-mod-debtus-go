@@ -1,11 +1,11 @@
 package models
 
 import (
+	"errors"
 	"fmt"
-	"github.com/pkg/errors"
+	"github.com/crediterra/money"
 	"github.com/strongo/decimal"
 	"time"
-	"github.com/crediterra/money"
 )
 
 var ErrBalanceIsZero = errors.New("balance is zero")

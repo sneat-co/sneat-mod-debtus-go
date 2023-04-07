@@ -7,13 +7,13 @@ import (
 	"sync"
 
 	"context"
+	"errors"
+	"fmt"
 	"github.com/captaincodeman/datastore-mapper"
-	"github.com/pkg/errors"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"net/url"
-	"fmt"
 )
 
 type asyncMapper struct {

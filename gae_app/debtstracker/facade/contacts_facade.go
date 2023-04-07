@@ -1,44 +1,44 @@
 package facade
 
 import (
-	"fmt"
-	"reflect"
-	"strconv"
-
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
-	"github.com/sanity-io/litter"
-	"github.com/strongo/db"
-	"github.com/strongo/log"
+	"errors"
+	"fmt"
 	"github.com/crediterra/money"
+	"github.com/sanity-io/litter"
+	"github.com/strongo/dalgo/dal"
+	"github.com/strongo/log"
+	"reflect"
+	"strconv"
 )
 
 func ChangeContactStatus(c context.Context, contactID int64, newStatus string) (contact models.Contact, err error) {
-	err = dal.DB.RunInTransaction(c, func(c context.Context) error {
+	err = RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
 		if contact, err = GetContactByID(c, contactID); err != nil {
 			return err
 		}
-		if contact.Status != newStatus {
-			contact.Status = newStatus
+		if contact.Data.Status != newStatus {
+			contact.Data.Status = newStatus
 			var user models.AppUser
-			if user, err = User.GetUserByID(c, contact.UserID); err != nil {
+			if user, err = User.GetUserByID(c, contact.Data.UserID); err != nil {
 				return err
 			}
 			if _, userChanged := user.AddOrUpdateContact(contact); userChanged {
-				err = dal.DB.UpdateMulti(c, []db.EntityHolder{&contact, &user})
+				err = tx.SetMulti(c, []dal.Record{contact.Record, user.Record})
 			} else {
-				err = dal.DB.Update(c, &contact)
+				err = tx.Set(c, contact.Record)
 			}
 		}
 		return err
-	}, dal.CrossGroupTransaction)
+	})
 	return
 }
 
 func createContactWithinTransaction(
 	tc context.Context,
+	tx dal.ReadwriteTransaction,
 	changes *createContactDbChanges,
 	counterpartyUserID int64,
 	contactDetails models.ContactDetails,
@@ -47,113 +47,115 @@ func createContactWithinTransaction(
 	counterpartyContact models.Contact,
 	err error,
 ) {
+	if tx == nil {
+		err = errors.New("tx == nil")
+		return
+	}
 	appUser := *changes.user
 	if changes.counterpartyContact != nil {
 		counterpartyContact = *changes.counterpartyContact
 	}
 
 	log.Debugf(tc, "createContactWithinTransaction(appUser.ID=%v, counterpartyDetails=%v)", appUser.ID, contactDetails)
-	if !dal.DB.IsInTransaction(tc) {
-		err = errors.New("createContactWithinTransaction is called outside of transaction")
-		return
-	}
 	if appUser.ID == 0 {
 		err = errors.New("appUser.ID == 0")
 		return
 	}
-	if appUser.AppUserEntity == nil {
+	if appUser.Data == nil {
 		err = errors.New("appUser.AppUserEntity == nil")
 		return
 	}
 	if appUser.ID == counterpartyUserID {
 		panic(fmt.Sprintf("appUser.ID == counterpartyUserID: %v", counterpartyUserID))
 	}
-	if counterpartyContact.ContactEntity != nil && counterpartyContact.ID == 0 {
+	if counterpartyContact.Data != nil && counterpartyContact.ID == 0 {
 		panic(fmt.Sprintf("counterpartyContact.ContactEntity != nil && counterpartyContact.ID == 0: %v", litter.Sdump(counterpartyContact)))
 	}
 
-	contact.ContactEntity = models.NewContactEntity(appUser.ID, contactDetails)
+	contact.Data = models.NewContactEntity(appUser.ID, contactDetails)
 	if counterpartyContact.ID != 0 {
-		if counterpartyContact.ContactEntity == nil {
+		if counterpartyContact.Data == nil {
 			if counterpartyContact, err = GetContactByID(tc, counterpartyContact.ID); err != nil {
 				return
 			}
 			changes.counterpartyContact = &counterpartyContact
 		}
-		if counterpartyContact.UserID != counterpartyUserID {
+		if counterpartyContact.Data.UserID != counterpartyUserID {
 			if counterpartyUserID == 0 {
-				counterpartyUserID = counterpartyContact.UserID
+				counterpartyUserID = counterpartyContact.Data.UserID
 			} else {
-				panic(fmt.Sprintf("counterpartyContact.UserID != counterpartyUserID: %v != %v", counterpartyContact.UserID, counterpartyUserID))
+				panic(fmt.Sprintf("counterpartyContact.UserID != counterpartyUserID: %v != %v", counterpartyContact.Data.UserID, counterpartyUserID))
 			}
 		}
-		contact.CounterpartyUserID = counterpartyUserID
-		contact.CounterpartyCounterpartyID = counterpartyContact.ID
-		contact.TransfersJson = counterpartyContact.TransfersJson
-		contact.Balanced = money.Balanced{
-			CountOfTransfers: counterpartyContact.CountOfTransfers,
-			LastTransferID:   counterpartyContact.LastTransferID,
-			LastTransferAt:   counterpartyContact.LastTransferAt,
+		contact.Data.CounterpartyUserID = counterpartyUserID
+		contact.Data.CounterpartyCounterpartyID = counterpartyContact.ID
+		contact.Data.TransfersJson = counterpartyContact.Data.TransfersJson
+		contact.Data.Balanced = money.Balanced{
+			CountOfTransfers: counterpartyContact.Data.CountOfTransfers,
+			LastTransferID:   counterpartyContact.Data.LastTransferID,
+			LastTransferAt:   counterpartyContact.Data.LastTransferAt,
 		}
-		invitedCounterpartyBalance := counterpartyContact.Balance().Reversed()
+		invitedCounterpartyBalance := counterpartyContact.Data.Balance().Reversed()
 		log.Debugf(tc, "invitedCounterpartyBalance: %v", invitedCounterpartyBalance)
-		contact.SetBalance(invitedCounterpartyBalance)
+		if err = contact.Data.SetBalance(invitedCounterpartyBalance); err != nil {
+			return
+		}
 		contact.MustMatchCounterparty(counterpartyContact)
 	}
 
-	if contact, err = dal.Contact.InsertContact(tc, contact.ContactEntity); err != nil {
+	if contact, err = dtdal.Contact.InsertContact(tc, contact.Data); err != nil {
 		return
 	}
 
 	if counterpartyContact.ID != 0 {
-		if counterpartyContact.CounterpartyCounterpartyID == 0 {
-			counterpartyContact.CounterpartyCounterpartyID = contact.ID
-			if counterpartyContact.CounterpartyUserID == 0 {
-				counterpartyContact.CounterpartyUserID = contact.UserID
+		if counterpartyContact.Data.CounterpartyCounterpartyID == 0 {
+			counterpartyContact.Data.CounterpartyCounterpartyID = contact.ID
+			if counterpartyContact.Data.CounterpartyUserID == 0 {
+				counterpartyContact.Data.CounterpartyUserID = contact.Data.UserID
 			} else {
-				err = fmt.Errorf("inviter contact %v already has CounterpartyUserID=%v", counterpartyContact.ID, counterpartyContact.CounterpartyUserID)
+				err = fmt.Errorf("inviter contact %v already has CounterpartyUserID=%v", counterpartyContact.ID, counterpartyContact.Data.CounterpartyUserID)
 				return
 			}
-			changes.FlagAsChanged(changes.counterpartyContact)
-		} else if counterpartyContact.CounterpartyCounterpartyID != contact.ID {
-			err = fmt.Errorf("inviter contact %v already has CounterpartyCounterpartyID=%v", counterpartyContact.ID, counterpartyContact.CounterpartyCounterpartyID)
+			changes.FlagAsChanged(changes.counterpartyContact.Record)
+		} else if counterpartyContact.Data.CounterpartyCounterpartyID != contact.ID {
+			err = fmt.Errorf("inviter contact %v already has CounterpartyCounterpartyID=%v", counterpartyContact.ID, counterpartyContact.Data.CounterpartyCounterpartyID)
 			return
 		}
 	}
 
 	if _, changed := appUser.AddOrUpdateContact(contact); changed {
-		changes.FlagAsChanged(changes.user)
+		changes.FlagAsChanged(changes.user.Record)
 	}
 
 	{ // Verifications for data integrity
-		if counterpartyContact.ContactEntity != nil {
+		if counterpartyContact.Data != nil {
 			contact.MustMatchCounterparty(counterpartyContact)
 		}
-		if contact.UserID != appUser.ID {
-			panic(fmt.Sprintf("contact.UserID != appUser.ID: %v != %v", contact.UserID, appUser.ID))
+		if contact.Data.UserID != appUser.ID {
+			panic(fmt.Sprintf("contact.UserID != appUser.ID: %v != %v", contact.Data.UserID, appUser.ID))
 		}
-		if counterpartyContact.ContactEntity != nil {
-			if counterpartyContact.UserID != counterpartyUserID {
-				panic(fmt.Sprintf("counterpartyContact.UserID != counterpartyUserID: %v != %v", counterpartyContact.UserID, counterpartyUserID))
+		if counterpartyContact.Data != nil {
+			if counterpartyContact.Data.UserID != counterpartyUserID {
+				panic(fmt.Sprintf("counterpartyContact.UserID != counterpartyUserID: %v != %v", counterpartyContact.Data.UserID, counterpartyUserID))
 			}
 			if contact.ID == counterpartyContact.ID {
 				panic(fmt.Sprintf("contact.ID == counterpartyContact.ID: %v", contact.ID))
 			}
-			if contact.UserID == counterpartyContact.UserID {
-				panic(fmt.Sprintf("contact.UserID == counterpartyContact.UserID: %v", contact.UserID))
+			if contact.Data.UserID == counterpartyContact.Data.UserID {
+				panic(fmt.Sprintf("contact.UserID == counterpartyContact.UserID: %v", contact.Data.UserID))
 			}
-			if contact.TransfersJson != counterpartyContact.TransfersJson {
-				log.Errorf(tc, "contact.TransfersJson != counterpartyContact.TransfersJson\n contact: %v\n counterpartyContact: %v", contact.TransfersJson, counterpartyContact.TransfersJson)
+			if contact.Data.TransfersJson != counterpartyContact.Data.TransfersJson {
+				log.Errorf(tc, "contact.TransfersJson != counterpartyContact.TransfersJson\n contact: %v\n counterpartyContact: %v", contact.Data.TransfersJson, counterpartyContact.Data.TransfersJson)
 			}
-			if contact.BalanceCount != counterpartyContact.BalanceCount {
-				panic(fmt.Sprintf("contact.BalanceCount != counterpartyContact.BalanceCount: %v != %v", contact.BalanceCount, counterpartyContact.BalanceCount))
+			if contact.Data.BalanceCount != counterpartyContact.Data.BalanceCount {
+				panic(fmt.Sprintf("contact.BalanceCount != counterpartyContact.BalanceCount: %v != %v", contact.Data.BalanceCount, counterpartyContact.Data.BalanceCount))
 			}
-			if cBalance, cpBalance := contact.Balance(), counterpartyContact.Balance(); !cBalance.Equal(cpBalance.Reversed()) {
+			if cBalance, cpBalance := contact.Data.Balance(), counterpartyContact.Data.Balance(); !cBalance.Equal(cpBalance.Reversed()) {
 				panic(fmt.Sprintf("!contact.Balance().Equal(counterpartyContact.Balance())\ncontact.Balance(): %v\n counterpartyContact.Balance(): %v", cBalance, cpBalance))
 			}
 		}
-		appUserContactJson := appUser.ContactByID(contact.ID)
-		if ucBalance, cBalance := appUserContactJson.Balance(), contact.Balance(); !ucBalance.Equal(cBalance) {
+		appUserContactJson := appUser.Data.ContactByID(int(contact.ID))
+		if ucBalance, cBalance := appUserContactJson.Balance(), contact.Data.Balance(); !ucBalance.Equal(cBalance) {
 			panic(fmt.Sprintf("appUserContactJson.Balance().Equal(contact.Balance())\nappUser.ContactByID(contact.ID).Balance(): %v\ncontact.Balance(): %v", ucBalance, cBalance))
 		}
 	}
@@ -161,19 +163,23 @@ func createContactWithinTransaction(
 }
 
 type createContactDbChanges struct {
-	db.Changes
+	dal.Changes
 	user                *models.AppUser
 	counterpartyContact *models.Contact
 }
 
 func CreateContact(c context.Context, userID int64, contactDetails models.ContactDetails) (contact models.Contact, user models.AppUser, err error) {
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
+	}
 	var contactIDs []int64
-	if contactIDs, err = dal.Contact.GetContactIDsByTitle(c, userID, contactDetails.Username, false); err != nil {
+	if contactIDs, err = dtdal.Contact.GetContactIDsByTitle(c, userID, contactDetails.Username, false); err != nil {
 		return
 	}
 	switch len(contactIDs) {
 	case 0:
-		err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
+		err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) (err error) {
 			if user, err = User.GetUserByID(tc, userID); err != nil {
 				return
 			}
@@ -181,31 +187,34 @@ func CreateContact(c context.Context, userID int64, contactDetails models.Contac
 				user:                &user,
 				counterpartyContact: new(models.Contact),
 			}
-			if contact, _, err = createContactWithinTransaction(tc, changes, 0, contactDetails); err != nil {
-				err = errors.WithMessage(err, "failed to create contact within transaction")
+			if contact, _, err = createContactWithinTransaction(tc, tx, changes, 0, contactDetails); err != nil {
+				err = fmt.Errorf("failed to create contact within transaction: %w", err)
 				return
 			}
 
 			if changes.HasChanges() {
-				if err = dal.DB.UpdateMulti(tc, changes.EntityHolders()); err != nil {
-					err = errors.WithMessage(err, "failed to save entity related to new contact")
+				//db, err := dtdal.DB.GetDB(tc)
+				if err = tx.SetMulti(tc, changes.EntityHolders()); err != nil {
+					err = fmt.Errorf("failed to save entity related to new contact: %w", err)
 					return
 				}
 				// TODO: move calls of delays to createContactWithinTransaction() ?
-				if err = dal.User.DelayUpdateUserWithContact(tc, userID, contact.ID); err != nil { // Just in case
+				if err = dtdal.User.DelayUpdateUserWithContact(tc, userID, contact.ID); err != nil { // Just in case
 					return
 				}
 				if changes.counterpartyContact != nil && changes.counterpartyContact.ID > 0 {
 					counterpartyContact := *changes.counterpartyContact
-					if err = dal.User.DelayUpdateUserWithContact(tc, counterpartyContact.UserID, counterpartyContact.ID); err != nil { // Just in case
+					if err = dtdal.User.DelayUpdateUserWithContact(tc, counterpartyContact.Data.UserID, counterpartyContact.ID); err != nil { // Just in case
 						return
 					}
 				}
 			}
 			return
-		}, dal.CrossGroupTransaction)
+		}, dal.TxWithCrossGroup())
 		if err != nil {
-			dal.User.DelayUpdateUserWithContact(c, contact.UserID, contact.ID)
+			if err = dtdal.User.DelayUpdateUserWithContact(c, contact.Data.UserID, contact.ID); err != nil {
+				return
+			}
 			return
 		}
 		return
@@ -222,45 +231,48 @@ func CreateContact(c context.Context, userID int64, contactDetails models.Contac
 }
 
 func UpdateContact(c context.Context, contactID int64, values map[string]string) (contactEntity *models.ContactEntity, err error) {
-	err = dal.DB.RunInTransaction(c, func(c context.Context) error {
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
+	}
+	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
 		if contact, err := GetContactByID(c, contactID); err != nil {
 			return err
 		} else {
-			contactEntity = contact.ContactEntity
 			var changed bool
 			for name, value := range values {
 				switch name {
 				case "Username":
-					if contact.Username != value {
-						contact.Username = value
+					if contact.Data.Username != value {
+						contact.Data.Username = value
 						changed = true
 					}
 				case "FirstName":
-					if contact.FirstName != value {
-						contact.FirstName = value
+					if contact.Data.FirstName != value {
+						contact.Data.FirstName = value
 						changed = true
 					}
 				case "LastName":
-					if contact.LastName != value {
-						contact.LastName = value
+					if contact.Data.LastName != value {
+						contact.Data.LastName = value
 						changed = true
 					}
 				case "ScreenName":
-					if contact.ScreenName != value {
-						contact.ScreenName = value
+					if contact.Data.ScreenName != value {
+						contact.Data.ScreenName = value
 						changed = true
 					}
 				case "EmailAddress":
-					if contact.EmailAddressOriginal != value {
-						contact.EmailAddressOriginal = value
+					if contact.Data.EmailAddressOriginal != value {
+						contact.Data.EmailAddressOriginal = value
 						changed = true
 					}
 				case "PhoneNumber":
 					if phoneNumber, err := strconv.ParseInt(value, 10, 64); err != nil {
 						return err
-					} else if contact.PhoneNumber != phoneNumber {
-						contact.PhoneNumber = phoneNumber
-						contact.PhoneNumberConfirmed = false
+					} else if contact.Data.PhoneNumber != phoneNumber {
+						contact.Data.PhoneNumber = phoneNumber
+						contact.Data.PhoneNumberConfirmed = false
 						changed = true
 					}
 				default:
@@ -268,53 +280,57 @@ func UpdateContact(c context.Context, contactID int64, values map[string]string)
 				}
 			}
 			if changed {
-				if user, err := User.GetUserByID(c, contact.UserID); err != nil {
-					return errors.Wrapf(err, "Failed to get user by ID=%v", contact.UserID)
+				if user, err := User.GetUserByID(c, contact.Data.UserID); err != nil {
+					return fmt.Errorf("failed to get user by ID=%v: %w", contact.Data.UserID, err)
 				} else {
 					user.AddOrUpdateContact(contact)
-					return dal.DB.UpdateMulti(c, []db.EntityHolder{&contact, &user})
+					return tx.SetMulti(c, []dal.Record{contact.Record, user.Record})
 				}
 			}
 		}
 		return nil
-	}, dal.CrossGroupTransaction)
+	}, dal.TxWithCrossGroup())
 	return
 }
 
-var ErrContactNotDeletable = errors.New("Contact is not deletable")
+var ErrContactIsNotDeletable = errors.New("contact is not deletable")
 
 func DeleteContact(c context.Context, contactID int64) (user models.AppUser, err error) {
 	log.Warningf(c, "ContactDalGae.DeleteContact(%d)", contactID)
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
+	}
 	var contact models.Contact
-	err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 		if contact, err = GetContactByID(c, contactID); err != nil {
-			if db.IsNotFound(err) {
+			if dal.IsNotFound(err) {
 				log.Warningf(c, "Contact not found by ID: %v", contactID)
 				err = nil
 			}
 			return
 		}
-		if contact.ContactEntity != nil && contact.CounterpartyUserID != 0 {
-			return ErrContactNotDeletable
+		if contact.Data != nil && contact.Data.CounterpartyUserID != 0 {
+			return ErrContactIsNotDeletable
 		}
-		if user, err = User.GetUserByID(c, contact.UserID); err != nil {
+		if user, err = User.GetUserByID(c, contact.Data.UserID); err != nil {
 			return
 		}
-		if userContact := user.ContactByID(contactID); userContact != nil {
+		if userContact := user.Data.ContactByID(int(contactID)); userContact != nil {
 			userContactBalance := userContact.Balance()
-			contactBalance := contact.Balance()
+			contactBalance := contact.Data.Balance()
 			if !reflect.DeepEqual(userContactBalance, contactBalance) {
 				return fmt.Errorf("Data integrity issue: userContactBalance != contactBalance\n\tuserContactBalance: %v\n\tcontactBalance: %v", userContactBalance, contactBalance)
 			}
-			if !user.RemoveContact(contactID) {
-				return errors.New("Implementation error - user not changed on removing contact")
+			if !user.Data.RemoveContact(int(contactID)) {
+				return errors.New("implementation error: user not changed on removing contact")
 			}
-			if contact.BalanceCount > 0 {
-				userBalance := user.Balance()
+			if contact.Data.BalanceCount > 0 {
+				userBalance := user.Data.Balance()
 				for k, v := range contactBalance {
 					userBalance[k] -= v
 				}
-				if err = user.SetBalance(userBalance); err != nil {
+				if err = user.Data.SetBalance(userBalance); err != nil {
 					return err
 				}
 			}
@@ -322,39 +338,40 @@ func DeleteContact(c context.Context, contactID int64) (user models.AppUser, err
 				return err
 			}
 		}
-		if err = dal.DB.Delete(c, &models.Contact{IntegerID: db.IntegerID{ID: contactID}}); err != nil {
+		key := models.NewContactKey(contactID)
+		if err = tx.Delete(c, key); err != nil {
 			return err
 		}
 		return nil
-	}, dal.CrossGroupTransaction)
+	}, dal.TxWithCrossGroup())
 	return
 }
 
 func SaveContact(c context.Context, contact models.Contact) error {
-	return dal.DB.Update(c, &contact)
+	db, err := GetDatabase(c)
+	if err != nil {
+		return err
+	}
+	return db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+		return tx.Set(c, contact.Record)
+	})
 }
 
 func GetContactsByIDs(c context.Context, contactsIDs []int64) (contacts []models.Contact, err error) {
-	count := len(contactsIDs)
-	entityHolders := make([]db.EntityHolder, count)
-	for i, contactID := range contactsIDs {
-		if contactID == 0 {
-			panic(fmt.Sprintf("contactsIDs[%d] == 0", i))
-		}
-		entityHolders[i] = &models.Contact{IntegerID: db.NewIntID(contactID)}
-	}
-	if err = dal.DB.GetMulti(c, entityHolders); err != nil {
+	contacts = models.NewContacts(contactsIDs...)
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
 		return
 	}
-	contacts = make([]models.Contact, count)
-	for i, entityHolder := range entityHolders {
-		contacts[i] = *(entityHolder.(*models.Contact))
-	}
-	return contacts, err
+	records := models.ContactRecords(contacts)
+	return contacts, db.GetMulti(c, records)
 }
 
-func GetContactByID(c context.Context, contactID int64) (contact models.Contact, err error) {
-	contact.ID = contactID
-	err = dal.DB.Get(c, &contact)
-	return
+func GetContactByID(c context.Context, contactID int64) (models.Contact, error) {
+	contact := models.NewContact(contactID, nil)
+	db, err := GetDatabase(c)
+	if err != nil {
+		return contact, err
+	}
+	return contact, db.Get(c, contact.Record)
 }

@@ -3,7 +3,7 @@ package shared_all
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
@@ -123,7 +123,7 @@ func onStartCallbackCommand(params BotParams) bots.Command {
 
 			whc.ChatEntity().SetPreferredLanguage(lang)
 
-			if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
+			if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 				if user, err := facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
 					return err
 				} else if err = user.SetPreferredLocale(lang); err != nil {

@@ -11,7 +11,7 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtmocks"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
@@ -28,7 +28,7 @@ func TestBillApiCreateBill(t *testing.T) {
 	c := context.Background()
 	dtmocks.SetupMocks(c)
 
-	if contact, err := dal.Contact.InsertContact(c, &models.ContactEntity{
+	if contact, err := dtdal.Contact.InsertContact(c, &models.ContactEntity{
 		UserID: creatorUserID,
 		ContactDetails: models.ContactDetails{
 			FirstName: "First",
@@ -38,7 +38,7 @@ func TestBillApiCreateBill(t *testing.T) {
 	} else if contact.ID != 1 {
 		t.Fatalf("contact.ID: %v", contact.ID)
 	}
-	// if contact, err := dal.Contact.InsertContact(c, &models.ContactEntity{
+	// if contact, err := dtdal.Contact.InsertContact(c, &models.ContactEntity{
 	// 	UserID: creatorUserID,
 	// 	ContactDetails: models.ContactDetails{
 	// 		FirstName: "Second",
@@ -48,7 +48,7 @@ func TestBillApiCreateBill(t *testing.T) {
 	// } else if contact.ID != 2 {
 	// 	t.Fatalf("contact.ID != 2: %v", contact.ID)
 	// }
-	// if contact, err := dal.Contact.InsertContact(c, &models.ContactEntity{
+	// if contact, err := dtdal.Contact.InsertContact(c, &models.ContactEntity{
 	// 	UserID: creatorUserID,
 	// 	ContactDetails: models.ContactDetails{
 	// 		FirstName: "Third",

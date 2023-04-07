@@ -7,14 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"errors"
 	"github.com/captaincodeman/datastore-mapper"
-	"github.com/pkg/errors"
 	"github.com/sanity-io/litter"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/datastore"
 )
@@ -233,7 +232,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 				entitiesToSave = append(entitiesToSave, &models.Transfer{IntegerID: db.NewIntID(id), TransferEntity: transfer})
 			}
 			//gaedb.LoggingEnabled = true
-			if err = dal.DB.UpdateMulti(log.NewContextWithLoggingEnabled(c), entitiesToSave); err != nil {
+			if err = dtdal.DB.UpdateMulti(log.NewContextWithLoggingEnabled(c), entitiesToSave); err != nil {
 				fmt.Fprintf(buf, "ERROR: failed to save transfers: %v\n", err)
 				hasError = true
 				return
@@ -320,7 +319,7 @@ func (m *verifyContactTransfers) assertTotals(buf *bytes.Buffer, counters *async
 }
 
 func (m *verifyContactTransfers) fixContactAndUser(c context.Context, buf *bytes.Buffer, counters *asyncCounters, contactID int64, transfersBalance money.Balance, transfersCount int, lastTransfer models.Transfer) (contact models.Contact, user models.AppUser, err error) {
-	if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 		if contact, user, err = m.fixContactAndUserWithinTransaction(c, buf, counters, contactID, transfersBalance, transfersCount, lastTransfer); err != nil {
 			return
 		}

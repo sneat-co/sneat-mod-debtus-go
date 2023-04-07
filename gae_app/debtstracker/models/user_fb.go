@@ -1,25 +1,21 @@
 package models
 
 import (
-	"github.com/pkg/errors"
 	"github.com/strongo/app/user"
-	"github.com/strongo/db"
-	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/datastore"
 )
 
 const UserFacebookKind = "UserFb"
 
 type UserFacebook struct {
-	db.NoIntID
+	// TODO: db.NoIntID - replace with DALGO
 	FbAppOrPageID       string
 	FbUserOrPageScopeID string
 	*UserFacebookEntity
 }
 
-var _ user.AccountRecord = (*UserFacebook)(nil)
+//var _ user.AccountRecord = (*UserFacebook)(nil)
 
-var _ db.EntityHolder = (*UserFacebook)(nil)
+//var _ db.EntityHolder = (*UserFacebook)(nil)
 
 func (u UserFacebook) UserAccount() user.Account {
 	return user.Account{Provider: "fb", App: u.FbAppOrPageID, ID: u.FbUserOrPageScopeID}
@@ -33,9 +29,9 @@ func (UserFacebook) Kind() string {
 	return UserFacebookKind
 }
 
-func (UserFacebook) TypeOfID() db.TypeOfID {
-	return db.IsStringID
-}
+//func (UserFacebook) TypeOfID() db.TypeOfID {
+//	return db.IsStringID
+//}
 
 func (u UserFacebook) StrID() string {
 	return UserFacebookID(u.FbAppOrPageID, u.FbUserOrPageScopeID)
@@ -84,27 +80,27 @@ func (entity UserFacebookEntity) IsEmailConfirmed() bool {
 	return entity.EmailIsConfirmed
 }
 
-func (entity *UserFacebookEntity) Load(ps []datastore.Property) error {
-	if err := datastore.LoadStruct(entity, ps); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (entity *UserFacebookEntity) Save() (properties []datastore.Property, err error) {
-	if err = entity.Validate(); err != nil {
-		return
-	}
-	if properties, err = datastore.SaveStruct(entity); err != nil {
-		err = errors.Wrap(err, "Failed to save struct to properties")
-		return
-	}
-	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"FirsName": gaedb.IsEmptyString,
-		"LastName": gaedb.IsEmptyString,
-		"NickName": gaedb.IsEmptyString,
-	}); err != nil {
-		return
-	}
-	return
-}
+//func (entity *UserFacebookEntity) Load(ps []datastore.Property) error {
+//	if err := datastore.LoadStruct(entity, ps); err != nil {
+//		return err
+//	}
+//	return nil
+//}
+//
+//func (entity *UserFacebookEntity) Save() (properties []datastore.Property, err error) {
+//	if err = entity.Validate(); err != nil {
+//		return
+//	}
+//	if properties, err = datastore.SaveStruct(entity); err != nil {
+//		err = errors.Wrap(err, "Failed to save struct to properties")
+//		return
+//	}
+//	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
+//		"FirsName": gaedb.IsEmptyString,
+//		"LastName": gaedb.IsEmptyString,
+//		"NickName": gaedb.IsEmptyString,
+//	}); err != nil {
+//		return
+//	}
+//	return
+//}

@@ -1,15 +1,17 @@
 package models
 
-import "github.com/strongo/db"
+import (
+	"github.com/strongo/dalgo/record"
+)
 
 const GroupMemberKind = "GroupMember"
 
 type GroupMember struct {
-	db.IntegerID
+	record.WithID[int]
 	*GroupMemberEntity
 }
 
-var _ db.EntityHolder = (*GroupMember)(nil)
+//var _ db.EntityHolder = (*GroupMember)(nil)
 
 func (GroupMember) Kind() string {
 	return GroupMemberKind

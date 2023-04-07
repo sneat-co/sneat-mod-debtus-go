@@ -18,7 +18,7 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/admin"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
 	"context"
 	"github.com/strongo/bots-framework/platforms/telegram"
@@ -204,12 +204,12 @@ var FeedbackCommand = bots.Command{
 			return
 		}
 		var feedback models.Feedback
-		if err = dal.DB.RunInTransaction(whc.Context(), func(c context.Context) (err error) {
+		if err = dtdal.DB.RunInTransaction(whc.Context(), func(c context.Context) (err error) {
 			if feedback, _, err = facade.SaveFeedback(c, 0, &feedbackEntity); err != nil {
 				return
 			}
 			return nil
-		}, dal.CrossGroupTransaction); err != nil {
+		}, dtdal.CrossGroupTransaction); err != nil {
 			return
 		}
 		switch like {
@@ -335,7 +335,7 @@ var FeedbackTextCommand = bots.Command{
 
 			var feedback models.Feedback
 			c := whc.Context()
-			if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+			if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 				if feedbackParam == "" {
 					feedback.FeedbackEntity = &models.FeedbackEntity{
 						Rate:   "none",
@@ -350,7 +350,7 @@ var FeedbackTextCommand = bots.Command{
 					if feedback.ID, err = strconv.ParseInt(feedbackParam, 10, 64); err != nil {
 						return
 					}
-					if feedback, err = dal.Feedback.GetFeedbackByID(c, feedback.ID); err != nil {
+					if feedback, err = dtdal.Feedback.GetFeedbackByID(c, feedback.ID); err != nil {
 						return
 					}
 					feedback.Text = mt
@@ -359,7 +359,7 @@ var FeedbackTextCommand = bots.Command{
 					return
 				}
 				return nil
-			}, dal.CrossGroupTransaction); err != nil {
+			}, dtdal.CrossGroupTransaction); err != nil {
 				return
 			}
 			m = whc.NewMessageByCode(trans.MESSAGE_TEXT_THANKS)

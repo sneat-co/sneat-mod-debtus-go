@@ -9,12 +9,11 @@ import (
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/app/gae"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/delay"
@@ -32,7 +31,7 @@ var errAlreadyReferred = errors.New("already referred")
 
 func setUserReferrer(c context.Context, userID int64, referredBy string) (err error) {
 	userChanged := false
-	if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
+	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 		user, err := User.GetUserByID(c, userID)
 		if err != nil {
 			return err
@@ -111,7 +110,7 @@ func (f refererFacade) AddTelegramReferrer(c context.Context, userID int64, tgUs
 				log.Warningf(c, "failed to get last-tg-referrers from memcache: %v", err)
 			}
 		}
-		if err := dal.DB.InsertWithRandomIntID(c, &referer); err != nil {
+		if err := dtdal.DB.InsertWithRandomIntID(c, &referer); err != nil {
 			log.Errorf(c, "failed to insert referer to DB: %v", err)
 		}
 		if item == nil {

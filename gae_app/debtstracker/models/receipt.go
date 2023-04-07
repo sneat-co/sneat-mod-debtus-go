@@ -1,13 +1,10 @@
 package models
 
 import (
-	"time"
-
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
-	"github.com/pkg/errors"
-	"github.com/strongo/db"
-	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/datastore"
+	"errors"
+	"github.com/strongo/dalgo/record"
+	"time"
 )
 
 const (
@@ -28,11 +25,11 @@ var ReceiptStatuses = [4]string{
 }
 
 type Receipt struct {
-	db.IntegerID
+	record.WithID[int]
 	*ReceiptEntity
 }
 
-var _ db.EntityHolder = (*Receipt)(nil)
+//var _ db.EntityHolder = (*Receipt)(nil)
 
 func (*Receipt) Kind() string {
 	return ReceiptKind
@@ -54,8 +51,8 @@ func (r *Receipt) SetEntity(entity interface{}) {
 	}
 }
 
-func NewReceipt(id int64, entity *ReceiptEntity) Receipt {
-	return Receipt{IntegerID: db.NewIntID(id), ReceiptEntity: entity}
+func NewReceipt(id int, entity *ReceiptEntity) Receipt {
+	return Receipt{WithID: record.WithID[int]{ID: id}, ReceiptEntity: entity}
 }
 
 const (
@@ -86,16 +83,6 @@ type ReceiptEntity struct {
 	Error          string `datastore:",noindex"` //TODO: Need a comment on when it is used
 }
 
-func (receiptEntity ReceiptEntity) Validate() (err error) {
-	if receiptEntity.TransferID == 0 {
-		return errors.New("receipt.TransferID == 0")
-	}
-	if err = validateString("Unknown receipt.Status", receiptEntity.Status, ReceiptStatuses[:]); err != nil {
-		return err
-	}
-	return nil
-}
-
 func NewReceiptEntity(creatorUserID, transferID, counterpartyUserID int64, lang, sentVia, sentTo string, createdOn general.CreatedOn) ReceiptEntity {
 	if creatorUserID == counterpartyUserID {
 		panic("creatorUserID == counterpartyUserID")
@@ -122,11 +109,17 @@ func NewReceiptEntity(creatorUserID, transferID, counterpartyUserID int64, lang,
 	}
 }
 
-func (r *ReceiptEntity) Load(ps []datastore.Property) error {
-	return datastore.LoadStruct(r, ps)
-}
+//func (r *ReceiptEntity) Load(ps []datastore.Property) error {
+//	return datastore.LoadStruct(r, ps)
+//}
 
-func (r *ReceiptEntity) Save() (properties []datastore.Property, err error) {
+func (r *ReceiptEntity) Validate() (err error) {
+	if r.TransferID == 0 {
+		return errors.New("receipt.TransferID == 0")
+	}
+	if err = validateString("Unknown receipt.Status", r.Status, ReceiptStatuses[:]); err != nil {
+		return err
+	}
 	if r.CreatorUserID == 0 {
 		err = errors.New("ReceiptEntity.CreatorUserID == 0")
 		return
@@ -156,25 +149,25 @@ func (r *ReceiptEntity) Save() (properties []datastore.Property, err error) {
 		r.DtCreated = time.Now()
 	}
 
-	if properties, err = datastore.SaveStruct(r); err != nil {
-		return
-	}
-
-	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"TgInlineMsgID":        gaedb.IsEmptyString,
-		"AcknowledgedByUserID": gaedb.IsZeroInt,
-		"CounterpartyUserID":   gaedb.IsZeroInt,
-		"DtAcknowledged":       gaedb.IsZeroTime,
-		"DtFailed":             gaedb.IsZeroTime,
-		"DtSent":               gaedb.IsZeroTime,
-		"DtViewed":             gaedb.IsZeroTime,
-		"Error":                gaedb.IsEmptyString,
-		"For":                  gaedb.IsEmptyString,
-		"SentTo":               gaedb.IsEmptyString,
-		"SentVia":              gaedb.IsEmptyString,
-	}); err != nil {
-		return
-	}
+	//if properties, err = datastore.SaveStruct(r); err != nil {
+	//	return
+	//}
+	//
+	//if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
+	//	"TgInlineMsgID":        gaedb.IsEmptyString,
+	//	"AcknowledgedByUserID": gaedb.IsZeroInt,
+	//	"CounterpartyUserID":   gaedb.IsZeroInt,
+	//	"DtAcknowledged":       gaedb.IsZeroTime,
+	//	"DtFailed":             gaedb.IsZeroTime,
+	//	"DtSent":               gaedb.IsZeroTime,
+	//	"DtViewed":             gaedb.IsZeroTime,
+	//	"Error":                gaedb.IsEmptyString,
+	//	"For":                  gaedb.IsEmptyString,
+	//	"SentTo":               gaedb.IsEmptyString,
+	//	"SentVia":              gaedb.IsEmptyString,
+	//}); err != nil {
+	//	return
+	//}
 
 	return
 }

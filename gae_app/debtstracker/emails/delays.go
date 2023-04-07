@@ -1,15 +1,15 @@
 package emails
 
 import (
+	"github.com/strongo/db"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/app/gae"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
 )
@@ -29,16 +29,16 @@ func delayedSendEmail(c context.Context, id int64) (err error) {
 
 	var email models.Email
 
-	if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-		if email, err = dal.Email.GetEmailByID(c, id); err != nil {
+	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
+		if email, err = dtdal.Email.GetEmailByID(c, id); err != nil {
 			return err
 		}
 		if email.Status != "queued" {
 			return errors.WithMessage(ErrEmailIsInWrongStatus, "Expected 'queued' got email.Status="+email.Status)
 		}
 		email.Status = "sending"
-		return dal.Email.UpdateEmail(c, email)
-	}, dal.SingleGroupTransaction); err != nil {
+		return dtdal.Email.UpdateEmail(c, email)
+	}, nil); err != nil {
 		err = errors.WithMessage(err, "Failed to update email status to 'queued'")
 		if db.IsNotFound(err) {
 			log.Warningf(c, err.Error())
@@ -55,8 +55,8 @@ func delayedSendEmail(c context.Context, id int64) (err error) {
 	if awsSesMessageID, err = SendEmail(c, email.From, email.To, email.Subject, email.BodyText, email.BodyHtml); err != nil {
 		log.Errorf(c, "Failed to send email: %v", err)
 
-		if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-			if email, err = dal.Email.GetEmailByID(c, id); err != nil {
+		if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
+			if email, err = dtdal.Email.GetEmailByID(c, id); err != nil {
 				return err
 			}
 			if email.Status != "sending" {
@@ -64,8 +64,8 @@ func delayedSendEmail(c context.Context, id int64) (err error) {
 			}
 			email.Status = "error"
 			email.Error = err.Error()
-			return dal.Email.UpdateEmail(c, email)
-		}, dal.SingleGroupTransaction); err != nil {
+			return dtdal.Email.UpdateEmail(c, email)
+		}, dtdal.SingleGroupTransaction); err != nil {
 			log.Errorf(c, err.Error())
 		}
 		return nil // Do not retry
@@ -73,8 +73,8 @@ func delayedSendEmail(c context.Context, id int64) (err error) {
 
 	log.Infof(c, "Sent email, message ID: %v", awsSesMessageID)
 
-	if err = dal.DB.RunInTransaction(c, func(c context.Context) error {
-		if email, err = dal.Email.GetEmailByID(c, id); err != nil {
+	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
+		if email, err = dtdal.Email.GetEmailByID(c, id); err != nil {
 			return err
 		}
 		if email.Status != "sending" {
@@ -83,8 +83,8 @@ func delayedSendEmail(c context.Context, id int64) (err error) {
 		email.Status = "sent"
 		email.DtSent = time.Now()
 		email.AwsSesMessageID = awsSesMessageID
-		return dal.Email.UpdateEmail(c, email)
-	}, dal.SingleGroupTransaction); err != nil {
+		return dtdal.Email.UpdateEmail(c, email)
+	}, dtdal.SingleGroupTransaction); err != nil {
 		log.Errorf(c, err.Error())
 		err = nil // Do not retry!
 	}

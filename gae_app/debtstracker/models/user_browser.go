@@ -1,9 +1,8 @@
 package models
 
 import (
+	"github.com/strongo/dalgo/record"
 	"time"
-
-	"github.com/strongo/db"
 )
 
 const UserBrowserKind = "UserBrowser"
@@ -15,11 +14,11 @@ type UserBrowserEntity struct {
 }
 
 type UserBrowser struct {
-	db.IntegerID
+	record.WithID[int]
 	*UserBrowserEntity
 }
 
-var _ db.EntityHolder = (*UserBrowser)(nil)
+//var _ db.EntityHolder = (*UserBrowser)(nil)
 
 func (UserBrowser) Kind() string {
 	return UserBrowserKind

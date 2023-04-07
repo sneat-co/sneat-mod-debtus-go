@@ -1,9 +1,5 @@
 package facade
 
-import (
-	"github.com/strongo/db"
-)
-
 func toSave(entitiesToSave []db.EntityHolder, entityHolder db.EntityHolder) []db.EntityHolder {
 	kind, intID := entityHolder.Kind(), entityHolder.IntID()
 	for _, e := range entitiesToSave {

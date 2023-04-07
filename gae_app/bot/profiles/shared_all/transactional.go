@@ -1,10 +1,9 @@
 package shared_all
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"context"
 	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/db"
 	"net/url"
 )
 
@@ -18,7 +17,7 @@ func TransactionalCallbackAction(o db.RunOptions,
 ) func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 	return func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
 		c := whc.Context()
-		err = dal.DB.RunInTransaction(c, func(tc context.Context) error {
+		err = dtdal.DB.RunInTransaction(c, func(tc context.Context) error {
 			whc.SetContext(tc)
 			m, err = f(whc, callbackUrl)
 			whc.SetContext(c)

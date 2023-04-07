@@ -1,7 +1,7 @@
 package splitus
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
@@ -19,19 +19,19 @@ var billChangeSplitModeCommand = bots.Command{
 		if bill.ID, err = GetBillID(callbackUrl); err != nil {
 			return
 		}
-		if err = dal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+		if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 			if bill, err = facade.GetBillByID(c, bill.ID); err != nil {
 				return
 			}
 			splitMode := models.SplitMode(callbackUrl.Query().Get("mode"))
 			if bill.SplitMode != splitMode {
 				bill.SplitMode = splitMode
-				if err = dal.Bill.SaveBill(c, bill); err != nil {
+				if err = dtdal.Bill.SaveBill(c, bill); err != nil {
 					return
 				}
 			}
 			return
-		}, dal.SingleGroupTransaction); err != nil {
+		}, dtdal.SingleGroupTransaction); err != nil {
 			return
 		}
 		return ShowBillCard(whc, true, bill, "")

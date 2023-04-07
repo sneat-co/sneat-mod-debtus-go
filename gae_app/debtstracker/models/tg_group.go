@@ -1,15 +1,17 @@
 package models
 
-import "github.com/strongo/db"
+import (
+	"github.com/strongo/dalgo/record"
+)
 
 const TgGroupKind = "TgGroup"
 
 type TgGroup struct {
-	db.IntegerID
+	record.WithID[string]
 	*TgGroupEntity
 }
 
-var _ db.EntityHolder = (*TgGroup)(nil)
+//var _ db.EntityHolder = (*TgGroup)(nil)
 
 type TgGroupEntity struct {
 	UserGroupID string `datastore:",noindex"`

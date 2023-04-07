@@ -13,13 +13,13 @@ func TestTransfer_LoadSaver(t *testing.T) {
 		kind       string
 		properties []datastore.Property
 	}
-	checkHasProperties = func(kind string, properties []datastore.Property) {
-		saved = append(saved, struct {
-			kind       string
-			properties []datastore.Property
-		}{kind, properties})
-		return
-	}
+	//checkHasProperties = func(kind string, properties []datastore.Property) {
+	//	saved = append(saved, struct {
+	//		kind       string
+	//		properties []datastore.Property
+	//	}{kind, properties})
+	//	return
+	//}
 	currency := money.CURRENCY_IRR
 	creator := TransferCounterpartyInfo{
 		UserID:      1,

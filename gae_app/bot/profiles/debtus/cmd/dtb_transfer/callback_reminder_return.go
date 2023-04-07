@@ -10,12 +10,12 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"errors"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/DebtsTracker/translations/trans"
-	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
@@ -40,7 +40,7 @@ func ProcessReturnAnswer(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.
 			return m, errors.Wrap(err, "Failed to decode reminder ID")
 		}
 	} else {
-		if reminder, err := dal.Reminder.SetReminderStatus(c, reminderID, 0, models.ReminderStatusUsed, time.Now()); err != nil {
+		if reminder, err := dtdal.Reminder.SetReminderStatus(c, reminderID, 0, models.ReminderStatusUsed, time.Now()); err != nil {
 			return m, err
 		} else {
 			transferID = reminder.TransferID
@@ -234,7 +234,7 @@ var SetNextReminderDateCallbackCommand = bots.Command{
 		chatEntity.SetAwaitingReplyTo(SET_NEXT_REMINDER_DATE_COMMAND)
 		chatEntity.AddWizardParam(WIZARD_PARAM_REMINDER, strconv.FormatInt(reminderID, 10))
 
-		reminder, err := dal.Reminder.GetReminderByID(c, reminderID)
+		reminder, err := dtdal.Reminder.GetReminderByID(c, reminderID)
 		if err != nil {
 			return m, errors.Wrap(err, "Failed to get reminder by id")
 		}

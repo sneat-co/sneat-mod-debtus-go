@@ -8,11 +8,11 @@ import (
 	//"encoding/json"
 	//"io/ioutil"
 	//"time"
-	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	//"github.com/pkg/errors"
+	//"errors"
 	//"github.com/pquerna/ffjson/ffjson"
-	//"github.com/strongo/db"
+	//"github.com/strongo/dalgo"
 	//"github.com/strongo/log"
 )
 
@@ -50,7 +50,7 @@ func handleSignedInWithGooglePlus(c context.Context, w http.ResponseWriter, r *h
 	//tokenData := make(map[string]string, 16)
 	//
 	//// TODO: https://developers.google.com/identity/sign-in/web/backend-auth - verify "aud" and check "sub" fields
-	//if resp, err := dal.HttpClient(c).Get("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + googleAuthData.IdToken); err != nil {
+	//if resp, err := dtdal.HttpClient(c).Get("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + googleAuthData.IdToken); err != nil {
 	//	ErrorAsJson(c, w, http.StatusBadRequest, errors.WithMessage(err, "Failed to call googleapis"))
 	//	return
 	//} else if resp.StatusCode != 200 {
@@ -84,10 +84,10 @@ func handleSignedInWithGooglePlus(c context.Context, w http.ResponseWriter, r *h
 	//	isNewUser      bool
 	//)
 	//
-	//err := dal.DB.RunInTransaction(
+	//err := dtdal.DB.RunInTransaction(
 	//	c,
 	//	func(c context.Context) (err error) {
-	//		userGooglePlus, err = dal.UserGooglePlus.GetUserGooglePlusByID(c, googleAuthData.UserId)
+	//		userGooglePlus, err = dtdal.UserGooglePlus.GetUserGooglePlusByID(c, googleAuthData.UserId)
 	//		if err != nil {
 	//			if db.IsNotFound(err) {
 	//				err = nil
@@ -115,7 +115,7 @@ func handleSignedInWithGooglePlus(c context.Context, w http.ResponseWriter, r *h
 	//		}
 	//
 	//		if userGooglePlus.AppUserIntID == 0 {
-	//			//createUserData := dal.CreateUserData{
+	//			//createUserData := dtdal.CreateUserData{
 	//			//	//GoogleUserID: googleAuthData.UserId,
 	//			//	FirstName:    userGooglePlus.NameFirst,
 	//			//	LastName:     userGooglePlus.NameLast,
@@ -160,13 +160,13 @@ func handleSignedInWithGooglePlus(c context.Context, w http.ResponseWriter, r *h
 	//
 	//		if changed {
 	//			userGooglePlus.DtUpdated = time.Now()
-	//			if err = dal.UserGooglePlus.SaveUserGooglePlusByID(c, userGooglePlus); err != nil {
+	//			if err = dtdal.UserGooglePlus.SaveUserGooglePlusByID(c, userGooglePlus); err != nil {
 	//				return
 	//			}
 	//		}
 	//		return nil
 	//	},
-	//	dal.CrossGroupTransaction,
+	//	dtdal.CrossGroupTransaction,
 	//)
 	//
 	//if err != nil {

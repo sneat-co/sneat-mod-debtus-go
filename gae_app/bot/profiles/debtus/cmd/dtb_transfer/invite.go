@@ -2,10 +2,10 @@ package dtb_transfer
 
 //
 //import (
-//	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal/gaedal"
+//	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal/gaedal"
 //	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 //	"bitbucket.org/asterus/debtstracker-server/gae_app/invites"
-//	"github.com/pkg/errors"
+//	"errors"
 //	"github.com/strongo/nds"
 //	"github.com/strongo/bots-framework/core"
 //	"context"
@@ -23,7 +23,7 @@ package dtb_transfer
 //
 //	transfer = new(models.Transfer)
 //	userID := whc.AppUserIntID()
-//	err = dal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
+//	err = dtdal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
 //		inviteKey := datastore.NewKey(tc, invites.InviteKind, inviteCode, 0, nil)
 //		invite := new(invites.Invite)
 //		err = nds.Get(tc, inviteKey, invite)
@@ -195,7 +195,7 @@ package dtb_transfer
 //			}
 //		}
 //		return err
-//	}, dal.CrossGroupTransaction)
+//	}, dtdal.CrossGroupTransaction)
 //	if err != nil {
 //		return
 //	}

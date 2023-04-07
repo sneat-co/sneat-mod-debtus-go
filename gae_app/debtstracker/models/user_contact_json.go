@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"context"
-	"github.com/pkg/errors"
+	"errors"
+	"github.com/crediterra/money"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
-	"github.com/crediterra/money"
 )
 
 type LastTransfer struct {
@@ -24,7 +24,7 @@ type TransferWithInterestJson struct {
 	TransferID int64
 	Direction  TransferDirection
 	Starts     time.Time
-	Currency   money.Currency  `json:",omitempty"` // TODO: will be obsolete once we group outstanding by currency
+	Currency   money.Currency `json:",omitempty"` // TODO: will be obsolete once we group outstanding by currency
 	Amount     decimal.Decimal64p2
 	Returns    TransferReturns `json:",omitempty"`
 }
@@ -79,10 +79,10 @@ func (o *UserContactTransfersInfo) Equal(o2 *UserContactTransfersInfo) bool {
 }
 
 type UserContactJson struct {
-	ID          int64
+	ID          int
 	Name        string
 	Status      string                    `json:",omitempty"`
-	UserID      int64                     `json:",omitempty"` // TODO: new prop, update in map reduce and change code!
+	UserID      int                       `json:",omitempty"` // TODO: new prop, update in map reduce and change code!
 	TgUserID    int64                     `json:",omitempty"`
 	BalanceJson *json.RawMessage          `json:"Balance,omitempty"`
 	Transfers   *UserContactTransfersInfo `json:",omitempty"`
@@ -134,7 +134,7 @@ func (o UserContactJson) BalanceWithInterest(c context.Context, periodEnds time.
 	return
 }
 
-func NewUserContactJson(counterpartyID int64, status, name string, balanced money.Balanced) UserContactJson {
+func NewUserContactJson(counterpartyID int, status, name string, balanced money.Balanced) UserContactJson {
 	result := UserContactJson{
 		ID:     counterpartyID,
 		Status: status,

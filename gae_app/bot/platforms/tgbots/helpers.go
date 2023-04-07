@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"context"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
@@ -13,7 +13,7 @@ import (
 
 func GetTelegramBotApiByBotCode(c context.Context, code string) *tgbotapi.BotAPI {
 	if s, ok := _bots.ByCode[code]; ok {
-		return tgbotapi.NewBotAPIWithClient(s.Token, dal.HttpClient(c))
+		return tgbotapi.NewBotAPIWithClient(s.Token, dtdal.HttpClient(c))
 	} else {
 		return nil
 	}

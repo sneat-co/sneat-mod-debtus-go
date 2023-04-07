@@ -3,7 +3,7 @@ package dtb_transfer
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_inline"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"fmt"
 	"github.com/DebtsTracker/translations/trans"
@@ -26,7 +26,7 @@ func showReceiptAnnouncement(whc bots.WebhookContext, receiptID int64, creatorNa
 
 	c := whc.Context()
 
-	receipt, err := dal.Receipt.GetReceiptByID(c, receiptID)
+	receipt, err := dtdal.Receipt.GetReceiptByID(c, receiptID)
 	if err != nil {
 		return m, err
 	}

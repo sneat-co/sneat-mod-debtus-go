@@ -3,7 +3,7 @@ package dtb_general
 import (
 	"fmt"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
@@ -32,7 +32,7 @@ var DeleteAllCommand = bots.Command{
 			return
 		}
 
-		if err = dal.Admin.DeleteAll(whc.Context(), botSettings.Code, chatID); err != nil {
+		if err = dtdal.Admin.DeleteAll(whc.Context(), botSettings.Code, chatID); err != nil {
 			return
 		}
 
