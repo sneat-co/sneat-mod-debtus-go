@@ -1,16 +1,16 @@
 package facade
 
 import (
+	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
 	"github.com/strongo/log"
 )
 
-func SaveFeedback(c context.Context, feedbackID int64, feedbackEntity *models.FeedbackEntity) (feedback models.Feedback, user models.AppUser, err error) {
+func SaveFeedback(c context.Context, tx dal.ReadwriteTransaction, feedbackID int64, feedbackEntity *models.FeedbackEntity) (feedback models.Feedback, user models.AppUser, err error) {
 	if c == nil {
 		panic("c == nil")
 	}
@@ -27,18 +27,18 @@ func SaveFeedback(c context.Context, feedbackID int64, feedbackEntity *models.Fe
 	feedback = models.Feedback{FeedbackEntity: feedbackEntity}
 	user, err = User.GetUserByID(c, feedbackEntity.UserID)
 	if err != nil {
-		err = errors.Wrapf(err, "Failed to get user by ID=%d", feedbackEntity.UserID)
+		err = fmt.Errorf("failed to get user by ID=%d: %w", feedbackEntity.UserID, err)
 	}
-	user.LastFeedbackRate = feedbackEntity.Rate
+	user.Data.LastFeedbackRate = feedbackEntity.Rate
 	if feedbackEntity.Created.IsZero() {
 		now := time.Now()
-		user.LastFeedbackAt = now
+		user.Data.LastFeedbackAt = now
 		feedbackEntity.Created = now
 	} else {
-		user.LastTransferAt = feedbackEntity.Created
+		user.Data.LastTransferAt = feedbackEntity.Created
 	}
-	if err = dtdal.DB.UpdateMulti(c, []db.EntityHolder{&feedback, &user}); err != nil {
-		err = errors.Wrap(err, "Failed to put feedback & user entities to datastore")
+	if err = tx.SetMulti(c, []dal.Record{feedback.Record, user.Record}); err != nil {
+		err = fmt.Errorf("failed to put feedback & user entities to datastore: %w", err)
 	}
 	return
 }

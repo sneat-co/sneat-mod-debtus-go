@@ -464,7 +464,7 @@ handle_ContactID:
 				return fs.WrapErr(err)
 			}
 
-			j.ContactID = int(tval)
+			j.ContactID = tval
 
 		}
 	}

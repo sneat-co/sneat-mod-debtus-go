@@ -12,7 +12,7 @@ import (
 	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	//"errors"
 	//"github.com/pquerna/ffjson/ffjson"
-	//"github.com/strongo/dalgo"
+	//"github.com/dal-go/dalgo"
 	//"github.com/strongo/log"
 )
 

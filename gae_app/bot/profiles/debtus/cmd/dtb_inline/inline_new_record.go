@@ -8,17 +8,14 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 )
 
 var ReInlineQueryAmount = regexp.MustCompile(`^\s*(\d+(?:\.\d*)?)\s*((?:\b|\B).+?)?\s*$`)
 
-func InlineNewRecord(whc bots.WebhookContext, amountMatches []string) (m bots.MessageFromBot, err error) {
+func InlineNewRecord(whc botsfw.WebhookContext, amountMatches []string) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	log.Debugf(c, "InlineNewRecord()")
 

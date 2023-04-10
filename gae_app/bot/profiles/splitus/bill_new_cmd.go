@@ -8,7 +8,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"errors"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 )
@@ -23,9 +22,9 @@ const (
 
 const newBillCommandCode = "new-bill"
 
-var newBillCommand = bots.Command{
+var newBillCommand = botsfw.Command{
 	Code: newBillCommandCode,
-	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "newBillCommand.CallbackAction(callbackUrl=%v)", callbackUrl)
 		query := callbackUrl.Query()
@@ -59,7 +58,7 @@ var newBillCommand = bots.Command{
 		tgChatMessageID := fmt.Sprintf("%v@%v@%v", whc.Input().(bots.WebhookCallbackQuery).GetInlineMessageID(), whc.GetBotCode(), whc.Locale().Code5)
 		billEntity.TgChatMessageIDs = []string{tgChatMessageID}
 
-		var appUser bots.BotAppUser
+		var appUser botsfw.BotAppUser
 		if appUser, err = whc.GetAppUser(); err != nil {
 			return
 		}

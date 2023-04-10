@@ -3,7 +3,6 @@ package models
 import (
 	"fmt"
 
-	"errors"
 	"github.com/strongo/decimal"
 )
 
@@ -17,7 +16,7 @@ func (entity *BillCommon) updateMemberOwes(members []BillMemberJson) (err error)
 	case SplitModePercentage:
 		updateMemberOwesForSplitByPercentage(entity.AmountTotal, entity.CreatorUserID, members)
 	default:
-		err = errors.WithMessage(ErrUnknownSplitMode, string(entity.SplitMode))
+		err = fmt.Errorf("%w: %s", ErrUnknownSplitMode, string(entity.SplitMode))
 	}
 	return
 }

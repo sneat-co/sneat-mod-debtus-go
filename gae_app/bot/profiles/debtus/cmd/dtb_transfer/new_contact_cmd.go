@@ -10,20 +10,17 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"errors"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 )
 
 const NEW_COUNTERPARTY_COMMAND = "new-counterparty"
 
-func NewCounterpartyCommand(nextCommand bots.Command) bots.Command {
-	return bots.Command{
+func NewCounterpartyCommand(nextCommand botsfw.Command) botsfw.Command {
+	return botsfw.Command{
 		Code:    NEW_COUNTERPARTY_COMMAND,
 		Title:   trans.COMMAND_TEXT_NEW_COUNTERPARTY,
-		Replies: []bots.Command{nextCommand},
-		Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+		Replies: []botsfw.Command{nextCommand},
+		Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 			c := whc.Context()
 
 			chatEntity := whc.ChatEntity()
@@ -44,7 +41,7 @@ func NewCounterpartyCommand(nextCommand bots.Command) bots.Command {
 				)
 
 				switch input.(type) {
-				case bots.WebhookTextMessage:
+				case botsfw.WebhookTextMessage:
 					webhookMessage := input.(bots.WebhookTextMessage)
 					mt := strings.TrimSpace(webhookMessage.Text())
 					if mt == "." {
@@ -60,7 +57,7 @@ func NewCounterpartyCommand(nextCommand bots.Command) bots.Command {
 					contactDetails = models.ContactDetails{
 						Username: mt,
 					}
-				case bots.WebhookContactMessage:
+				case botsfw.WebhookContactMessage:
 					contactMessage := input.(bots.WebhookContactMessage)
 					if contactMessage == nil {
 						return m, errors.New("failed to get WebhookContactMessage: contactMessage == nil")
@@ -82,7 +79,7 @@ func NewCounterpartyCommand(nextCommand bots.Command) bots.Command {
 					}
 
 					switch input.InputType() {
-					case bots.WebhookInputContact:
+					case botsfw.WebhookInputContact:
 						contactDetails.TelegramUserID = int64(contactMessage.UserID().(int)) // TODO: check we are on Telegram
 						if contactDetails.TelegramUserID != 0 {
 							for _, userContactJson := range user.Contacts() {
@@ -141,7 +138,7 @@ func NewCounterpartyCommand(nextCommand bots.Command) bots.Command {
 				//m = whc.NewMessageByCode(fmt.Sprintf("Contact Created: %v", counterpartyKey))
 			} else {
 				m = whc.NewMessageByCode(trans.MESSAGE_TEXT_ASK_NEW_COUNTERPARTY_NAME)
-				m.Format = bots.MessageFormatHTML
+				m.Format = botsfw.MessageFormatHTML
 				m.Keyboard = tgbotapi.NewHideKeyboard(true)
 				chatEntity.PushStepToAwaitingReplyTo(NEW_COUNTERPARTY_COMMAND)
 			}

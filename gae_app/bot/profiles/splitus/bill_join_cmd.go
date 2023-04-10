@@ -5,12 +5,9 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"errors"
-	"github.com/DebtsTracker/translations/trans"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/crediterra/money"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 	"net/url"
@@ -27,9 +24,9 @@ import (
 const joinBillCommandCode = "join_bill"
 const leaveBillCommandCode = "leave_bill"
 
-var joinBillCommand = bots.Command{
+var joinBillCommand = botsfw.Command{
 	Code: joinBillCommandCode,
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		text := whc.Input().(bots.WebhookTextMessage).Text()
 		var bill models.Bill
 		if bill.ID = strings.Replace(text, "/start join_bill-", "", 1); bill.ID == "" {
@@ -47,10 +44,10 @@ var joinBillCommand = bots.Command{
 		}
 		return
 	},
-	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		_ = whc.AppUserIntID() // Make sure we have user before transaction starts, TODO: it smells, should be refactored?
 		//
-		return shared_all.TransactionalCallbackAction(db.CrossGroupTransaction, billCallbackAction(func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
+		return shared_all.TransactionalCallbackAction(db.CrossGroupTransaction, billCallbackAction(func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 			c := whc.Context()
 			log.Debugf(c, "joinBillCommand.CallbackAction()")
 			memberStatus := callbackUrl.Query().Get("i")
@@ -59,7 +56,7 @@ var joinBillCommand = bots.Command{
 	},
 }
 
-func joinBillAction(whc bots.WebhookContext, bill models.Bill, memberStatus string, isEditMessage bool) (m bots.MessageFromBot, err error) {
+func joinBillAction(whc botsfw.WebhookContext, bill models.Bill, memberStatus string, isEditMessage bool) (m botsfw.MessageFromBot, err error) {
 	if bill.ID == "" {
 		panic("bill.ID is empty string")
 	}
@@ -67,7 +64,7 @@ func joinBillAction(whc bots.WebhookContext, bill models.Bill, memberStatus stri
 	log.Debugf(c, "joinBillAction(bill.ID=%v)", bill.ID)
 
 	userID := strconv.FormatInt(whc.AppUserIntID(), 10)
-	var appUser bots.BotAppUser
+	var appUser botsfw.BotAppUser
 	if appUser, err = whc.GetAppUser(); err != nil {
 		return
 	}
@@ -102,7 +99,7 @@ func joinBillAction(whc bots.WebhookContext, bill models.Bill, memberStatus stri
 				return m2, err
 			} else if m2.Text != update.CallbackQuery.Message.Text {
 				log.Debugf(c, "Need to update bill card")
-				if _, err = whc.Responder().SendMessage(c, m2, bots.BotAPISendMessageOverHTTPS); err != nil {
+				if _, err = whc.Responder().SendMessage(c, m2, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 					return m2, err
 				}
 			} else {

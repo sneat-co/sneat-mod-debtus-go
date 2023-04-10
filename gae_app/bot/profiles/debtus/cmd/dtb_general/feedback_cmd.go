@@ -2,16 +2,17 @@ package dtb_general
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 	"strings"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 	//"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
 	"strconv"
@@ -21,7 +22,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
 	"context"
-	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/bots-go-framework/bots-fw-telegram"
 )
 
 const (
@@ -32,7 +33,7 @@ const (
 func AskToTranslate(t strongo.SingleLocaleTranslator) string {
 	return strings.Replace(t.Translate(trans.MESSAGE_TEXT_ASK_TO_TRANSLATE),
 		"<a>",
-		`<a href="https://goo.gl/tZsqW1">`, // https://github.com/DebtsTracker/translations
+		`<a href="https://goo.gl/tZsqW1">`, // https://github.com/senat-co/debtstracker-translations
 		1)
 }
 
@@ -72,16 +73,16 @@ func ShareToTwitter() string {
 }
 
 /*
-var FeedbackCallbackCommand = bots.NewCallbackCommand(FEEDBACK_COMMAND, func(whc bots.WebhookContext, callbackUrl *url.URL) (bots.MessageFromBot, error) {
+var FeedbackCallbackCommand = botsfw.NewCallbackCommand(FEEDBACK_COMMAND, func(whc botsfw.WebhookContext, callbackUrl *url.URL) (bots.MessageFromBot, error) {
 	return FeedbackCommand.Action(whc)
 })
 
-var FeedbackCommand = bots.Command{
+var FeedbackCommand = botsfw.Command{
 	Code:     FEEDBACK_COMMAND,
 	Commands: trans.Commands(trans.COMMAND_TEXT_FEEDBACK),
 	Title:    trans.COMMAND_TEXT_HIGH_FIVE,
 	Icon:     emoji.STAR_ICON,
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		FeedbackCommand.Action(whc)
 		chatEntity := whc.ChatEntity()
 		switch chatEntity.GetAwaitingReplyTo() {
@@ -145,7 +146,7 @@ var FeedbackCommand = bots.Command{
 			if feedbackEntity.Rate == FEEDBACK_UNDECIDED {
 				return MainMenuAction(whc, "", false)
 			} else {
-				//if _, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
+				//if _, err = whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 				//	return m, err
 				//}
 				//m = whc.NewMessageByCode(trans.MESSAGE_TEXT_BACK_TO_MAIN_MENU)
@@ -158,9 +159,9 @@ var FeedbackCommand = bots.Command{
 			return showFeedbackOptions(whc, chatEntity)
 		}
 	},
-	CallbackAction: func(whc bots.WebhookContext, _ *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc botsfw.WebhookContext, _ *url.URL) (m botsfw.MessageFromBot, err error) {
 		m, err = showFeedbackOptions(whc, whc.ChatEntity())
-		if _, err = whc.Responder().SendMessage(whc.Context(), m, bots.BotAPISendMessageOverHTTPS); err != nil {
+		if _, err = whc.Responder().SendMessage(whc.Context(), m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 			return m, err
 		}
 		return HelpCommandAction(whc, false)
@@ -168,20 +169,20 @@ var FeedbackCommand = bots.Command{
 }
 */
 
-func feedbackCommandAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+func feedbackCommandAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 	m = whc.NewMessageByCode(trans.MESSAGE_TEXT_DO_YOU_LIKE_OUR_BOT)
 	m.Text = strings.Replace(m.Text, "{{bot}}", whc.GetBotCode(), 1)
 	m.Keyboard = feedbackOptionsTelegramKeyboard(whc)
 	return m, err
 }
 
-var FeedbackCommand = bots.Command{
+var FeedbackCommand = botsfw.Command{
 	Code:     FEEDBACK_COMMAND,
 	Title:    trans.COMMAND_TEXT_FEEDBACK,
 	Commands: trans.Commands(trans.COMMAND_TEXT_FEEDBACK, FEEDBACK_COMMAND, emoji.STAR_ICON),
 	Icon:     emoji.STAR_ICON,
 	Action:   feedbackCommandAction,
-	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		like := callbackUrl.Query().Get("like")
 		if like == "" {
 			m, err = feedbackCommandAction(whc)
@@ -204,12 +205,17 @@ var FeedbackCommand = bots.Command{
 			return
 		}
 		var feedback models.Feedback
-		if err = dtdal.DB.RunInTransaction(whc.Context(), func(c context.Context) (err error) {
-			if feedback, _, err = facade.SaveFeedback(c, 0, &feedbackEntity); err != nil {
+		var db dal.Database
+		db, err = facade.GetDatabase(whc.Context())
+		if err != nil {
+			return
+		}
+		if err = db.RunReadwriteTransaction(whc.Context(), func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+			if feedback, _, err = facade.SaveFeedback(c, tx, 0, &feedbackEntity); err != nil {
 				return
 			}
 			return nil
-		}, dtdal.CrossGroupTransaction); err != nil {
+		}, dal.TxWithCrossGroup()); err != nil {
 			return
 		}
 		switch like {
@@ -222,7 +228,7 @@ var FeedbackCommand = bots.Command{
 	},
 }
 
-func feedbackOptionsTelegramKeyboard(whc bots.WebhookContext) *tgbotapi.InlineKeyboardMarkup {
+func feedbackOptionsTelegramKeyboard(whc botsfw.WebhookContext) *tgbotapi.InlineKeyboardMarkup {
 	return tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{
 			{Text: whc.Translate(trans.COMMAND_TEXT_YES_EXCLAMATION, emoji.GREEN_CHECKBOX), CallbackData: FEEDBACK_COMMAND + "?like=yes"},
@@ -234,7 +240,7 @@ func feedbackOptionsTelegramKeyboard(whc bots.WebhookContext) *tgbotapi.InlineKe
 	)
 }
 
-func askIfCanRateAtStoreBot(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+func askIfCanRateAtStoreBot(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 	m, err = editTelegramMessageText(whc, "", whc.Translate(trans.MESSAGE_TEXT_CAN_YOU_RATE_AT_STOREBOT))
 	m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{
@@ -247,9 +253,9 @@ func askIfCanRateAtStoreBot(whc bots.WebhookContext) (m bots.MessageFromBot, err
 
 const CAN_YOU_RATE_COMMAND = "can-you-rate"
 
-var CanYouRateCommand = bots.Command{
+var CanYouRateCommand = botsfw.Command{
 	Code: CAN_YOU_RATE_COMMAND,
-	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		log.Debugf(whc.Context(), "CanYouRateCommand.CallbackAction): whc.ChatEntity().GetPreferredLanguage()=%v", whc.ChatEntity().GetPreferredLanguage())
 		if callbackUrl == nil || callbackUrl.RawQuery == "" {
 			m, err = askIfCanRateAtStoreBot(whc)
@@ -284,18 +290,18 @@ var CanYouRateCommand = bots.Command{
 	},
 }
 
-func askToWriteFeedback(whc bots.WebhookContext, feedbackID int64) (m bots.MessageFromBot, err error) {
+func askToWriteFeedback(whc botsfw.WebhookContext, feedbackID int) (m botsfw.MessageFromBot, err error) {
 	m = whc.NewMessageByCode(trans.MESSAGE_TEXT_ASK_TO_WRITE_FEEDBACK_WITHIN_MESSENGER)
 	//m, err = editTelegramMessageText(whc, FEEDBACK_TEXT_COMMAND, whc.Translate(trans.MESSAGE_TEXT_ASK_TO_WRITE_FEEDBACK_WITHIN_MESSENGER))
 	whc.ChatEntity().SetAwaitingReplyTo(FEEDBACK_TEXT_COMMAND)
 	if feedbackID != 0 {
-		whc.ChatEntity().AddWizardParam("feedback", strconv.FormatInt(feedbackID, 10))
+		whc.ChatEntity().AddWizardParam("feedback", strconv.FormatInt(int64(feedbackID), 10))
 	}
 	m.Keyboard = tgbotapi.NewHideKeyboard(false)
 	return
 }
 
-func editTelegramMessageText(whc bots.WebhookContext, awaitingReplyTo, text string) (m bots.MessageFromBot, err error) {
+func editTelegramMessageText(whc botsfw.WebhookContext, awaitingReplyTo, text string) (m botsfw.MessageFromBot, err error) {
 	var (
 		tgChatID int64
 		chatID   string
@@ -310,7 +316,7 @@ func editTelegramMessageText(whc bots.WebhookContext, awaitingReplyTo, text stri
 	}
 	// TODO: Does it changes locale from RU to EN?
 	messageID := whc.Input().(telegram.TgWebhookCallbackQuery).GetMessage().IntID()
-	if m, err = whc.NewEditMessage(text, bots.MessageFormatHTML); err != nil {
+	if m, err = whc.NewEditMessage(text, botsfw.MessageFormatHTML); err != nil {
 		return
 	}
 	m.EditMessageUID = telegram.NewChatMessageUID(tgChatID, int(messageID))
@@ -325,17 +331,21 @@ func editTelegramMessageText(whc bots.WebhookContext, awaitingReplyTo, text stri
 
 const FEEDBACK_TEXT_COMMAND = "feedback-text"
 
-var FeedbackTextCommand = bots.Command{
+var FeedbackTextCommand = botsfw.Command{
 	Code: FEEDBACK_TEXT_COMMAND,
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		switch whc.Input().(type) {
-		case bots.WebhookTextMessage:
-			mt := whc.Input().(bots.WebhookTextMessage).Text()
+		case botsfw.WebhookTextMessage:
+			mt := whc.Input().(botsfw.WebhookTextMessage).Text()
 			feedbackParam := whc.ChatEntity().GetWizardParam("feedback")
 
 			var feedback models.Feedback
 			c := whc.Context()
-			if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+			var db dal.Database
+			if db, err = facade.GetDatabase(c); err != nil {
+				return
+			}
+			if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 				if feedbackParam == "" {
 					feedback.FeedbackEntity = &models.FeedbackEntity{
 						Rate:   "none",
@@ -347,7 +357,7 @@ var FeedbackTextCommand = bots.Command{
 						},
 					}
 				} else {
-					if feedback.ID, err = strconv.ParseInt(feedbackParam, 10, 64); err != nil {
+					if feedback.ID, err = strconv.Atoi(feedbackParam); err != nil {
 						return
 					}
 					if feedback, err = dtdal.Feedback.GetFeedbackByID(c, feedback.ID); err != nil {
@@ -355,11 +365,11 @@ var FeedbackTextCommand = bots.Command{
 					}
 					feedback.Text = mt
 				}
-				if feedback, _, err = facade.SaveFeedback(c, 0, feedback.FeedbackEntity); err != nil {
+				if feedback, _, err = facade.SaveFeedback(c, tx, 0, feedback.FeedbackEntity); err != nil {
 					return
 				}
 				return nil
-			}, dtdal.CrossGroupTransaction); err != nil {
+			}, dal.TxWithCrossGroup()); err != nil {
 				return
 			}
 			m = whc.NewMessageByCode(trans.MESSAGE_TEXT_THANKS)
@@ -373,7 +383,7 @@ var FeedbackTextCommand = bots.Command{
 		}
 		return
 	},
-	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		return askToWriteFeedback(whc, 0)
 	},
 }

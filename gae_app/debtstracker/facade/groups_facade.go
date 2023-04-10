@@ -9,7 +9,6 @@ import (
 	"context"
 	"errors"
 	"github.com/strongo/app/gae"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 	"github.com/strongo/slices"
 	"google.golang.org/appengine/delay"
@@ -107,7 +106,7 @@ func (groupFacade groupFacade) CreateGroup(c context.Context,
 type NewUser struct {
 	Name string
 	bots.BotUser
-	ChatMember bots.WebhookActor
+	ChatMember botsfw.WebhookActor
 }
 
 func (groupFacade) AddUsersToTheGroupAndOutstandingBills(c context.Context, groupID string, newUsers []NewUser) (models.Group, []NewUser, error) {

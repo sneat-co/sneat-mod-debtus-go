@@ -1,14 +1,15 @@
 package dtb_general
 
 import (
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/emoji"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
+	bots "github.com/strongo/bots-framework/core"
 )
 
-func HelpCommandAction(whc bots.WebhookContext, showFeedbackButton bool) (m bots.MessageFromBot, err error) {
+func HelpCommandAction(whc botsfw.WebhookContext, showFeedbackButton bool) (m botsfw.MessageFromBot, err error) {
 	keyboardMarkup := tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{
 			{
@@ -33,7 +34,7 @@ func HelpCommandAction(whc bots.WebhookContext, showFeedbackButton bool) (m bots
 		m = whc.NewMessageByCode(trans.MESSAGE_TEXT_HELP)
 		m.Keyboard = keyboardMarkup
 	} else {
-		if m, err = whc.NewEditMessage("", bots.MessageFormatText); err != nil {
+		if m, err = whc.NewEditMessage("", botsfw.MessageFormatText); err != nil {
 			return
 		}
 		m.Keyboard = keyboardMarkup
@@ -69,14 +70,14 @@ func getUserReportUrl(t strongo.SingleLocaleTranslator, submit string) string {
 	}
 }
 
-func btnSubmitIdea(whc bots.WebhookContext, url string) tgbotapi.InlineKeyboardButton {
+func btnSubmitIdea(whc botsfw.WebhookContext, url string) tgbotapi.InlineKeyboardButton {
 	return tgbotapi.InlineKeyboardButton{
 		Text: emoji.BULB_ICON + " " + whc.Translate(trans.COMMAND_TEXT_SUBMIT_AN_IDEA),
 		URL:  url,
 	}
 }
 
-func btnSubmitBug(whc bots.WebhookContext, url string) tgbotapi.InlineKeyboardButton {
+func btnSubmitBug(whc botsfw.WebhookContext, url string) tgbotapi.InlineKeyboardButton {
 	return tgbotapi.InlineKeyboardButton{
 		Text: emoji.ERROR_ICON + " " + whc.Translate(trans.COMMAND_TEXT_REPORT_A_BUG),
 		URL:  url,
@@ -85,13 +86,13 @@ func btnSubmitBug(whc bots.WebhookContext, url string) tgbotapi.InlineKeyboardBu
 
 const ADS_COMMAND = "ads"
 
-var AdsCommand = bots.Command{
+var AdsCommand = botsfw.Command{
 	Code:     ADS_COMMAND,
 	Icon:     emoji.NEWSPAPER_ICON,
 	Commands: []string{emoji.NEWSPAPER_ICON, "/ads", "/реклама"},
 	Title:    trans.COMMAND_TEXT_HELP,
 	Titles:   map[string]string{bots.ShortTitle: ""},
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		chatEntity := whc.ChatEntity()
 
 		yesOption := emoji.PHONE_ICON + " " + whc.Translate(trans.COMMAND_TEXT_SUBSCRIBE_TO_APP)

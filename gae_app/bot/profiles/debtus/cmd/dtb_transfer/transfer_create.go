@@ -10,28 +10,25 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/log"
 )
 
 var BorrowingWizardCompletedCommand = TransferWizardCompletedCommand("transfer-to-completed")
 var LendingWizardCompletedCommand = TransferWizardCompletedCommand("transfer-from-completed")
 
-func CreateStartTransferWizardCommand(code, messageText string, commands []string, askTransferAmountCommand bots.Command) bots.Command {
-	return bots.Command{
+func CreateStartTransferWizardCommand(code, messageText string, commands []string, askTransferAmountCommand botsfw.Command) botsfw.Command {
+	return botsfw.Command{
 		Code:     code,
 		Commands: commands,
-		Replies:  []bots.Command{askTransferAmountCommand},
-		Matcher: func(c bots.Command, whc bots.WebhookContext) bool {
+		Replies:  []botsfw.Command{askTransferAmountCommand},
+		Matcher: func(c botsfw.Command, whc botsfw.WebhookContext) bool {
 			if m, ok := whc.Input().(bots.WebhookTextMessage); ok && IsCurrencyIcon(m.Text()) && whc.ChatEntity().GetAwaitingReplyTo() == code {
 				return true
 			}
 			return false
 		},
-		Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+		Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 			c := whc.Context()
 			log.Debugf(c, "CreateStartTransferWizardCommand(code=%v).Action()", code)
 			mt := strings.TrimSpace(whc.Input().(bots.WebhookTextMessage).Text())
@@ -95,7 +92,7 @@ func CreateStartTransferWizardCommand(code, messageText string, commands []strin
 
 var AskLendingAmountCommand = AskTransferAmountCommand("ask-lending-amount", trans.MESSAGE_TEXT_ASK_LENDING_AMOUNT,
 	CreateAskTransferCounterpartyCommand(false, "ask-lending-counterparty", "", "", trans.MESSAGE_TEXT_ASK_LENDING_COUNTERPARTY,
-		[]bots.Command{TransferAskDueDateReturnToUser},
+		[]botsfw.Command{TransferAskDueDateReturnToUser},
 		NewCounterpartyCommand(TransferAskDueDateReturnToUser),
 		_transferAskDueDate(TransferAskDueDateReturnToUser),
 	),
@@ -110,7 +107,7 @@ var StartLendingWizardCommand = CreateStartTransferWizardCommand(
 
 var AskBorrowingAmountCommand = AskTransferAmountCommand("ask-borrowing-amount", trans.MESSAGE_TEXT_ASK_BORROWING_AMOUNT,
 	CreateAskTransferCounterpartyCommand(false, "ask-borrowing-counterparty", "", "", trans.MESSAGE_TEXT_ASK_BORROWING_COUNTERPARTY,
-		[]bots.Command{TransferAskDueDateReturnByUser},
+		[]botsfw.Command{TransferAskDueDateReturnByUser},
 		NewCounterpartyCommand(TransferAskDueDateReturnByUser),
 		_transferAskDueDate(TransferAskDueDateReturnByUser),
 	),
@@ -125,9 +122,9 @@ var StartBorrowingWizardCommand = CreateStartTransferWizardCommand(
 
 const SET_DUE_DATE_COMMAND = "set-due-date"
 
-var SetDueDateCommand = bots.Command{
+var SetDueDateCommand = botsfw.Command{
 	Code: SET_DUE_DATE_COMMAND,
-	Action: func(whc bots.WebhookContext) (bots.MessageFromBot, error) {
+	Action: func(whc botsfw.WebhookContext) (bots.MessageFromBot, error) {
 		whc.ChatEntity().SetAwaitingReplyTo("")
 		m := whc.NewMessage("Due date to be saved")
 		return m, nil
@@ -136,10 +133,10 @@ var SetDueDateCommand = bots.Command{
 
 const ASK_DUE_DATE_COMMAND = "ask-due-date"
 
-//var AskDueDateCommand = bots.Command{
+//var AskDueDateCommand = botsfw.Command{
 //	Code:    ASK_DUE_DATE_COMMAND,
-//	Replies: []bots.Command{SetDueDateCommand},
-//	Action: func(whc bots.WebhookContext) (bots.MessageFromBot, error) {
+//	Replies: []botsfw.Command{SetDueDateCommand},
+//	Action: func(whc botsfw.WebhookContext) (bots.MessageFromBot, error) {
 //		m := whc.NewMessage(`<strong>When is the due date?</strong>
 //
 //Recognized inputs:
@@ -155,28 +152,28 @@ const ASK_DUE_DATE_COMMAND = "ask-due-date"
 //		awaitingReplyTo := chatEntity.GetAwaitingReplyTo()
 //		transferID := strings.Split(awaitingReplyTo, ":")[1]
 //		chatEntity.SetAwaitingReplyTo(fmt.Sprintf("asked-for-deadline:transferID=%v", transferID))
-//		m.Format = bots.MessageFormatHTML
+//		m.Format = botsfw.MessageFormatHTML
 //		m.IsReplyToInputMessage = true
 //		m.Keyboard = tgbotapi.ForceReply{ForceReply: true}
 //		return m, nil
 //	},
 //}
 
-func _transferAskDueDate(c bots.Command) _onContactSelectedAction {
-	return func(whc bots.WebhookContext, counterparty models.Contact) (m bots.MessageFromBot, err error) {
+func _transferAskDueDate(c botsfw.Command) _onContactSelectedAction {
+	return func(whc botsfw.WebhookContext, counterparty models.Contact) (m botsfw.MessageFromBot, err error) {
 		return c.Action(whc)
 	}
 }
 
 var reDate = regexp.MustCompile(`(\d{1,2})(\.|/)(\d{1,2})(\.|/)(\d+)`)
 
-func TransferAskDueDateCommand(code string, nextCommand bots.Command) bots.Command {
-	return bots.Command{
+func TransferAskDueDateCommand(code string, nextCommand botsfw.Command) botsfw.Command {
+	return botsfw.Command{
 		Code: code,
-		Replies: []bots.Command{
+		Replies: []botsfw.Command{
 			nextCommand,
 		},
-		Action: func(whc bots.WebhookContext) (bots.MessageFromBot, error) {
+		Action: func(whc botsfw.WebhookContext) (bots.MessageFromBot, error) {
 
 			c := whc.Context()
 			log.Infof(c, "TransferAskDueDateCommand(code=%v).Action()", code)
@@ -250,7 +247,7 @@ var TransferAskDueDateReturnToUser = TransferAskDueDateCommand(
 	TransferToUserAskNoteOrCommentCommand,
 )
 
-func processSetDate(whc bots.WebhookContext) (m bots.MessageFromBot, date time.Time, err error) {
+func processSetDate(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, date time.Time, err error) {
 	c := whc.Context()
 
 	mt := strings.TrimSpace(whc.Input().(bots.WebhookTextMessage).Text())

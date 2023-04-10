@@ -5,7 +5,6 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"context"
-	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/gotwilio"
 	"github.com/strongo/log"

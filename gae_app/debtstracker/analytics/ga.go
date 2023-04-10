@@ -8,7 +8,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"context"
 	"errors"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/gamp"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/urlfetch"
@@ -70,7 +69,7 @@ func ReminderSent(c context.Context, userID int64, userLanguage, platform string
 	}
 }
 
-func ReceiptSentFromBot(whc bots.WebhookContext, channel string) error {
+func ReceiptSentFromBot(whc botsfw.WebhookContext, channel string) error {
 	ga := whc.GA()
 	return ga.Queue(ga.GaEventWithLabel("receipts", "receipt-sent", channel))
 }

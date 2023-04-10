@@ -2,7 +2,7 @@ package gaedal
 
 import (
 	"context"
-	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"google.golang.org/appengine/datastore"
 )
 

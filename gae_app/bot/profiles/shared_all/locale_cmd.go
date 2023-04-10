@@ -12,10 +12,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 )
 
@@ -41,17 +38,17 @@ var localesReplyKeyboard = tgbotapi.NewReplyKeyboard(
 	},
 )
 
-func createOnboardingAskLocaleCommand(botParams BotParams) bots.Command {
-	return bots.Command{
+func createOnboardingAskLocaleCommand(botParams BotParams) botsfw.Command {
+	return botsfw.Command{
 		Code:       onboardingAskLocaleCommandCode,
 		ExactMatch: trans.ChooseLocaleIcon,
-		Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+		Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 			return onboardingAskLocaleAction(whc, "", botParams)
 		},
 	}
 }
 
-func onboardingAskLocaleAction(whc bots.WebhookContext, messagePrefix string, botParams BotParams) (m bots.MessageFromBot, err error) {
+func onboardingAskLocaleAction(whc botsfw.WebhookContext, messagePrefix string, botParams BotParams) (m botsfw.MessageFromBot, err error) {
 	chatEntity := whc.ChatEntity()
 
 	if chatEntity.IsAwaitingReplyTo(onboardingAskLocaleCommandCode) {
@@ -74,9 +71,9 @@ func onboardingAskLocaleAction(whc bots.WebhookContext, messagePrefix string, bo
 	return
 }
 
-var askPreferredLocaleFromSettingsCallback = bots.Command{
+var askPreferredLocaleFromSettingsCallback = botsfw.Command{
 	Code: SettingsLocaleListCallbackPath,
-	CallbackAction: func(whc bots.WebhookContext, _ *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc botsfw.WebhookContext, _ *url.URL) (m botsfw.MessageFromBot, err error) {
 		callbackData := fmt.Sprintf("%v?mode=settings&code5=", SettingsLocaleSetCallbackPath)
 		keyboard := tgbotapi.NewInlineKeyboardMarkup(
 			[]tgbotapi.InlineKeyboardButton{
@@ -96,7 +93,7 @@ var askPreferredLocaleFromSettingsCallback = bots.Command{
 		keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, []tgbotapi.InlineKeyboardButton{
 			{Text: whc.Translate(trans.COMMAND_TEXT_SETTING), CallbackData: SettingsCommandCode},
 		})
-		if m, err = whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_CHOOSE_UI_LANGUAGE), bots.MessageFormatHTML); err != nil {
+		if m, err = whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_CHOOSE_UI_LANGUAGE), botsfw.MessageFormatHTML); err != nil {
 			return
 		}
 		m.Keyboard = keyboard
@@ -104,16 +101,16 @@ var askPreferredLocaleFromSettingsCallback = bots.Command{
 	},
 }
 
-func setLocaleCallbackCommand(botParams BotParams) bots.Command {
-	return bots.Command{
+func setLocaleCallbackCommand(botParams BotParams) botsfw.Command {
+	return botsfw.Command{
 		Code: SettingsLocaleSetCallbackPath,
-		CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+		CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 			return setPreferredLanguageAction(whc, callbackUrl.Query().Get("code5"), callbackUrl.Query().Get("mode"), botParams)
 		},
 	}
 }
 
-func setPreferredLanguageAction(whc bots.WebhookContext, code5, mode string, botParams BotParams) (m bots.MessageFromBot, err error) {
+func setPreferredLanguageAction(whc botsfw.WebhookContext, code5, mode string, botParams BotParams) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	log.Debugf(c, "setPreferredLanguageAction(code5=%v, mode=%v)", code5, mode)
 	appUser, err := whc.GetAppUser()
@@ -183,7 +180,7 @@ func setPreferredLanguageAction(whc bots.WebhookContext, code5, mode string, bot
 		log.Debugf(c, "whc.Locale().Code5: %v", whc.Locale().Code5)
 		m = whc.NewMessageByCode(trans.MESSAGE_TEXT_YOUR_SELECTED_PREFERRED_LANGUAGE, selectedLocale.NativeTitle)
 		botParams.SetMainMenu(whc, &m)
-		if _, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
+		if _, err = whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 			log.Errorf(c, "Failed to notify userEntity about selected language: %v", err)
 			// Not critical, lets continue
 		}
@@ -191,11 +188,11 @@ func setPreferredLanguageAction(whc bots.WebhookContext, code5, mode string, bot
 	case "settings":
 		if localeChanged {
 			m, err = dtb_general.MainMenuAction(whc, whc.Translate(trans.MESSAGE_TEXT_LOCALE_CHANGED, selectedLocale.TitleWithIcon()), false)
-			if _, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
+			if _, err = whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 				return m, err
 			}
 			return SettingsMainAction(whc)
-			//if _, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
+			//if _, err = whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 			//	return m, err
 			//}
 			//return dtb_general.MainMenuAction(whc, )
@@ -212,21 +209,21 @@ const (
 	joinDrawCommandCode      = "join-draw"
 )
 
-var aboutDrawCommand = bots.Command{
+var aboutDrawCommand = botsfw.Command{
 	Commands: []string{"/draw"},
 	Code:     moreAboutDrawCommandCode,
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		return aboutDrawAction(whc, nil)
 	},
 	CallbackAction: aboutDrawAction,
 }
 
-var joinDrawCommand = bots.Command{
+var joinDrawCommand = botsfw.Command{
 	Code:           joinDrawCommandCode,
 	CallbackAction: aboutDrawAction,
 }
 
-func aboutDrawAction(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+func aboutDrawAction(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	buf := new(bytes.Buffer)
 	sender := whc.GetSender()
@@ -239,7 +236,7 @@ func aboutDrawAction(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.Mess
 	}
 	buf.WriteString(whc.Translate(trans.MESSAGE_TEXT_ABOUT_DRAW_SHORT, name))
 	buf.WriteString("\n\n")
-	m.Format = bots.MessageFormatHTML
+	m.Format = botsfw.MessageFormatHTML
 	if callbackUrl == nil {
 		buf.WriteString(whc.Translate(trans.MESSAGE_TEXT_ABOUT_DRAW_CALL_TO_ACTION))
 		m.Text = buf.String()
@@ -268,7 +265,7 @@ func aboutDrawAction(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.Mess
 			)
 			return
 		case joinDrawCommandCode:
-			if _, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
+			if _, err = whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 				log.Warningf(c, "Failed to edit message: %v", err)
 				err = nil // Not critical
 			}
@@ -282,7 +279,7 @@ func aboutDrawAction(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.Mess
 	}
 }
 
-//func LanguageOptions(whc bots.WebhookContext, mainMenu bool) tgbotapi.ReplyKeyboardMarkup {
+//func LanguageOptions(whc botsfw.WebhookContext, mainMenu bool) tgbotapi.ReplyKeyboardMarkup {
 //
 //	buttons := [][]string{}
 //	buttons = append(buttons, []string{whc.Locale().TitleWithIcon()})

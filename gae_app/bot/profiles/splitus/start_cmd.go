@@ -7,28 +7,25 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"errors"
 	"fmt"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 	"strings"
 )
 
-func startInGroupAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+func startInGroupAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	log.Debugf(c, "splitus.startInGroupAction()")
 	var group models.Group
 	if group, err = shared_group.GetGroup(whc, nil); err != nil {
 		return
 	}
-	var user bots.BotAppUser
+	var user botsfw.BotAppUser
 	if user, err = whc.GetAppUser(); err != nil {
 		return
 	}
 
 	appUser := user.(*models.AppUserEntity)
 
-	var botUser bots.BotUser
+	var botUser botsfw.BotUser
 
 	if botUser, err = whc.GetBotUserByID(c, whc.Input().GetSender().GetID()); err != nil {
 		return
@@ -48,7 +45,7 @@ func startInGroupAction(whc bots.WebhookContext) (m bots.MessageFromBot, err err
 		"\n\n" + whc.Translate(trans.SPLITUS_TEXT_HI_IN_GROUP) +
 		"\n\n<b>" + whc.Translate(trans.MESSAGE_TEXT_ASK_PRIMARY_CURRENCY_FOR_GROUP) + "</b>"
 
-	m.Format = bots.MessageFormatHTML
+	m.Format = botsfw.MessageFormatHTML
 	m.Keyboard = currenciesInlineKeyboard(
 		GroupSettingsSetCurrencyCommandCode+"?start=y&group="+group.ID,
 		[]tgbotapi.InlineKeyboardButton{
@@ -61,7 +58,7 @@ func startInGroupAction(whc bots.WebhookContext) (m bots.MessageFromBot, err err
 	return
 }
 
-func startInBotAction(whc bots.WebhookContext, startParams []string) (m bots.MessageFromBot, err error) {
+func startInBotAction(whc botsfw.WebhookContext, startParams []string) (m botsfw.MessageFromBot, err error) {
 	log.Debugf(whc.Context(), "splitus.startInBotAction() => startParams: %v", startParams)
 	if len(startParams) > 0 {
 		switch {

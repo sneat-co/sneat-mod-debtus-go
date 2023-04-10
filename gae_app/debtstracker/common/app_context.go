@@ -6,16 +6,14 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/DebtsTracker/translations/trans"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
 )
 
 type DebtsTrackerAppContext struct {
 }
 
-var _ bots.BotAppContext = (*DebtsTrackerAppContext)(nil)
+var _ botsfw.BotAppContext = (*DebtsTrackerAppContext)(nil)
 
 func (appCtx DebtsTrackerAppContext) AppUserEntityKind() string {
 	return models.AppUserKind
@@ -25,7 +23,7 @@ func (appCtx DebtsTrackerAppContext) AppUserEntityType() reflect.Type {
 	return reflect.TypeOf(&models.AppUserEntity{})
 }
 
-func (appCtx DebtsTrackerAppContext) NewBotAppUserEntity() bots.BotAppUser {
+func (appCtx DebtsTrackerAppContext) NewBotAppUserEntity() botsfw.BotAppUser {
 	return &models.AppUserEntity{
 		ContactDetails: models.ContactDetails{
 			PhoneContact: models.PhoneContact{},
@@ -34,10 +32,10 @@ func (appCtx DebtsTrackerAppContext) NewBotAppUserEntity() bots.BotAppUser {
 	}
 }
 
-func (appCtx DebtsTrackerAppContext) GetBotChatEntityFactory(platform string) func() bots.BotChat {
+func (appCtx DebtsTrackerAppContext) GetBotChatEntityFactory(platform string) func() botsfw.BotChat {
 	switch platform {
 	case "telegram":
-		return func() bots.BotChat {
+		return func() botsfw.BotChat {
 			return &models.DtTelegramChatEntity{
 				TgChatEntityBase: *telegram.NewTelegramChatEntity(),
 			}
@@ -59,6 +57,6 @@ func (appCtx DebtsTrackerAppContext) SupportedLocales() strongo.LocalesProvider 
 	return trans.DebtsTrackerLocales{}
 }
 
-var _ bots.BotAppContext = (*DebtsTrackerAppContext)(nil)
+var _ botsfw.BotAppContext = (*DebtsTrackerAppContext)(nil)
 
 var TheAppContext = DebtsTrackerAppContext{}

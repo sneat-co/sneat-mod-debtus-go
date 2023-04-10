@@ -2,14 +2,12 @@ package dtb_admin
 
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_invite"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 )
 
-var AdminCommand = bots.Command{
+var AdminCommand = botsfw.Command{
 	Code:     "admin",
 	Commands: []string{"/admin"},
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		m = whc.NewMessage("Admin menu")
 		m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
 			[]tgbotapi.InlineKeyboardButton{

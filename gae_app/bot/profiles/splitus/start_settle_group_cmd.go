@@ -8,10 +8,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/DebtsTracker/translations/trans"
 	"github.com/crediterra/money"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 	"net/url"
 	"strings"
@@ -23,17 +20,17 @@ const (
 	SettleGroupCounterpartyConfirmedCommandCode = "sttl-grp-cp-cnfrmd"
 )
 
-var settleGroupAskForCounterpartyCommand = bots.Command{
+var settleGroupAskForCounterpartyCommand = botsfw.Command{
 	Code: SettleGroupAskForCounterpartyCommandCode,
-	Action: shared_group.NewGroupAction(func(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error) {
+	Action: shared_group.NewGroupAction(func(whc botsfw.WebhookContext, group models.Group) (m botsfw.MessageFromBot, err error) {
 		return settleGroupAskForCounterpartyAction(whc, group)
 	}),
-	CallbackAction: shared_group.NewGroupCallbackAction(func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
+	CallbackAction: shared_group.NewGroupCallbackAction(func(whc botsfw.WebhookContext, callbackUrl *url.URL, group models.Group) (m botsfw.MessageFromBot, err error) {
 		return settleGroupAskForCounterpartyAction(whc, group)
 	}),
 }
 
-func settleGroupStartAction(whc bots.WebhookContext, startParams []string) (m bots.MessageFromBot, err error) {
+func settleGroupStartAction(whc botsfw.WebhookContext, startParams []string) (m botsfw.MessageFromBot, err error) {
 	var group models.Group
 	for _, p := range startParams {
 		switch {
@@ -47,7 +44,7 @@ func settleGroupStartAction(whc bots.WebhookContext, startParams []string) (m bo
 	return settleGroupAskForCounterpartyAction(whc, group)
 }
 
-func settleGroupAskForCounterpartyAction(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error) {
+func settleGroupAskForCounterpartyAction(whc botsfw.WebhookContext, group models.Group) (m botsfw.MessageFromBot, err error) {
 	isDebtor, isSponsor := false, false
 
 	groupMembers := group.GetGroupMembers()
@@ -101,7 +98,7 @@ userMemberFound:
 		//case 1:
 		//	return settleGroupCounterpartyChosenAction(whc, group, userMember.ID)
 	default:
-		membersToKeyboard := func() bots.Keyboard {
+		membersToKeyboard := func() botsfw.Keyboard {
 			keyboard := make([][]tgbotapi.InlineKeyboardButton, len(groupMembers))
 			for i, m := range groupMembers {
 				keyboard[i] = []tgbotapi.InlineKeyboardButton{
@@ -138,19 +135,19 @@ userMemberFound:
 		m.Keyboard = membersToKeyboard()
 		m.Text = buf.String()
 	}
-	m.Format = bots.MessageFormatHTML
+	m.Format = botsfw.MessageFormatHTML
 
 	return
 }
 
 var settleGroupCounterpartyChosenCommand = shared_group.GroupCallbackCommand(
 	SettleGroupCounterpartyChosenCommandCode,
-	func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, callbackUrl *url.URL, group models.Group) (m botsfw.MessageFromBot, err error) {
 		return settleGroupCounterpartyChosenAction(whc, group, callbackUrl.Query().Get("member"))
 	},
 )
 
-func settleGroupCounterpartyChosenAction(whc bots.WebhookContext, group models.Group, memberID string) (m bots.MessageFromBot, err error) {
+func settleGroupCounterpartyChosenAction(whc botsfw.WebhookContext, group models.Group, memberID string) (m botsfw.MessageFromBot, err error) {
 
 	var userMember, counterpartyMember models.GroupMemberJson
 	userID := whc.AppUserStrID()
@@ -167,7 +164,7 @@ func settleGroupCounterpartyChosenAction(whc bots.WebhookContext, group models.G
 			}
 		}
 	}
-	m.IsEdit = whc.InputType() == bots.WebhookInputCallbackQuery
+	m.IsEdit = whc.InputType() == botsfw.WebhookInputCallbackQuery
 
 	if userMember.ID == "" {
 		m.Text = "You are not a member of this group."
@@ -198,14 +195,14 @@ func settleGroupCounterpartyChosenAction(whc bots.WebhookContext, group models.G
 
 var settleGroupCounterpartyConfirmedCommand = shared_group.GroupCallbackCommand(
 	SettleGroupCounterpartyConfirmedCommandCode,
-	func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, callbackUrl *url.URL, group models.Group) (m botsfw.MessageFromBot, err error) {
 		q := callbackUrl.Query()
 		currency := "RUB" // q.Get("currency")
 		return settleGroupCounterpartyConfirmedAction(whc, group, q.Get("member"), money.Currency(currency))
 	},
 )
 
-func settleGroupCounterpartyConfirmedAction(whc bots.WebhookContext, group models.Group, memberID string, currency money.Currency) (m bots.MessageFromBot, err error) {
+func settleGroupCounterpartyConfirmedAction(whc botsfw.WebhookContext, group models.Group, memberID string, currency money.Currency) (m botsfw.MessageFromBot, err error) {
 
 	var userMember, counterpartyMember models.GroupMemberJson
 

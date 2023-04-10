@@ -2,7 +2,7 @@ package models
 
 import (
 	"fmt"
-	"github.com/strongo/dalgo/record"
+	"github.com/dal-go/dalgo/record"
 	"time"
 
 	"errors"

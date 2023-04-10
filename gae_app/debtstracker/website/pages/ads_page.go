@@ -4,7 +4,6 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/DebtsTracker/translations/trans"
 	"github.com/julienschmidt/httprouter"
 	"google.golang.org/appengine"
 )

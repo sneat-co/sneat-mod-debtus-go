@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/crediterra/money"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/sanity-io/litter"
-	"github.com/strongo/dalgo/dal"
 	"github.com/strongo/log"
 	"reflect"
 	"strconv"
@@ -154,7 +154,7 @@ func createContactWithinTransaction(
 				panic(fmt.Sprintf("!contact.Balance().Equal(counterpartyContact.Balance())\ncontact.Balance(): %v\n counterpartyContact.Balance(): %v", cBalance, cpBalance))
 			}
 		}
-		appUserContactJson := appUser.Data.ContactByID(int(contact.ID))
+		appUserContactJson := appUser.Data.ContactByID(contact.ID)
 		if ucBalance, cBalance := appUserContactJson.Balance(), contact.Data.Balance(); !ucBalance.Equal(cBalance) {
 			panic(fmt.Sprintf("appUserContactJson.Balance().Equal(contact.Balance())\nappUser.ContactByID(contact.ID).Balance(): %v\ncontact.Balance(): %v", ucBalance, cBalance))
 		}
@@ -316,13 +316,13 @@ func DeleteContact(c context.Context, contactID int64) (user models.AppUser, err
 		if user, err = User.GetUserByID(c, contact.Data.UserID); err != nil {
 			return
 		}
-		if userContact := user.Data.ContactByID(int(contactID)); userContact != nil {
+		if userContact := user.Data.ContactByID(contactID); userContact != nil {
 			userContactBalance := userContact.Balance()
 			contactBalance := contact.Data.Balance()
 			if !reflect.DeepEqual(userContactBalance, contactBalance) {
 				return fmt.Errorf("Data integrity issue: userContactBalance != contactBalance\n\tuserContactBalance: %v\n\tcontactBalance: %v", userContactBalance, contactBalance)
 			}
-			if !user.Data.RemoveContact(int(contactID)) {
+			if !user.Data.RemoveContact(contactID) {
 				return errors.New("implementation error: user not changed on removing contact")
 			}
 			if contact.Data.BalanceCount > 0 {

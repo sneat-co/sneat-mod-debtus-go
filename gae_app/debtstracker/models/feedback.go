@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/strongo/dalgo/record"
+	"github.com/dal-go/dalgo/record"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"

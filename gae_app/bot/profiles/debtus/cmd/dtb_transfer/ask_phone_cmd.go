@@ -18,12 +18,9 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
 	"context"
 	"errors"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
+	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/log"
 )
 
@@ -36,9 +33,9 @@ func cleanPhoneNumber(phoneNumebr string) string {
 	return phoneNumebr
 }
 
-var AskPhoneNumberForReceiptCommand = bots.Command{
+var AskPhoneNumberForReceiptCommand = botsfw.Command{
 	Code: ASK_PHONE_NUMBER_FOR_RECEIPT_COMMAND,
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "AskPhoneNumberForReceiptCommand.Action()")
 
@@ -132,7 +129,7 @@ var AskPhoneNumberForReceiptCommand = bots.Command{
 const SMS_STATUS_MESSAGE_ID_PARAM_NAME = "SmsStatusMessageId"
 const SMS_STATUS_MESSAGE_UPDATES_COUNT_PARAM_NAME = "SmsStatusUpdatesCount"
 
-func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact, transfer models.Transfer, counterparty models.Contact) (m bots.MessageFromBot, err error) {
+func sendReceiptBySms(whc botsfw.WebhookContext, phoneContact models.PhoneContact, transfer models.Transfer, counterparty models.Contact) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
 	if transfer.TransferEntity == nil {
@@ -197,18 +194,18 @@ func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact,
 	)
 
 	var createSmsStatusMessage = func() error {
-		var msgSmsStatus bots.MessageFromBot
+		var msgSmsStatus botsfw.MessageFromBot
 		mt := whc.Translate(trans.MESSAGE_TEXT_SMS_QUEUING_FOR_SENDING, phoneContact.PhoneNumberAsString())
-		//log.Debugf(c, "whc.InputTypes(): %v, bots.WebhookInputCallbackQuery: %v, MessageID: %v", whc.InputTypes(), bots.WebhookInputCallbackQuery, whc.InputCallbackQuery().GetMessage().IntID())
-		if whc.InputType() == bots.WebhookInputCallbackQuery {
+		//log.Debugf(c, "whc.InputTypes(): %v, botsfw.WebhookInputCallbackQuery: %v, MessageID: %v", whc.InputTypes(), botsfw.WebhookInputCallbackQuery, whc.InputCallbackQuery().GetMessage().IntID())
+		if whc.InputType() == botsfw.WebhookInputCallbackQuery {
 			//log.Debugf(c, "editMessage.MessageID: %v", editMessage.MessageID)
-			if msgSmsStatus, err = whc.NewEditMessage(mt, bots.MessageFormatHTML); err != nil {
+			if msgSmsStatus, err = whc.NewEditMessage(mt, botsfw.MessageFormatHTML); err != nil {
 				return err
 			}
 		} else {
 			msgSmsStatus = whc.NewMessage(mt)
 		}
-		smsStatusMsg, err := whc.Responder().SendMessage(c, msgSmsStatus, bots.BotAPISendMessageOverHTTPS)
+		smsStatusMsg, err := whc.Responder().SendMessage(c, msgSmsStatus, botsfw.BotAPISendMessageOverHTTPS)
 		if err != nil {
 			return err
 		}
@@ -281,7 +278,7 @@ func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact,
 		mt, tryAnotherNumber := sms.TwilioExceptionToMessage(whc, twilioException)
 		if tryAnotherNumber {
 			log.Infof(c, "Twilio identified invalid phone number, need to try another one.")
-			if m, err = whc.NewEditMessage(mt, bots.MessageFormatText); err != nil {
+			if m, err = whc.NewEditMessage(mt, botsfw.MessageFormatText); err != nil {
 				return
 			}
 			m.EditMessageUID = telegram.NewChatMessageUID(tgChatID, smsStatusMessageID)
@@ -300,7 +297,7 @@ func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact,
 				return err
 			}, nil)
 		}
-		if m, err = whc.NewEditMessage(fmt.Sprintf("<b>Exception</b>\n%v\n\n<b>SMS text</b>\n%v", twilioException, smsText), bots.MessageFormatHTML); err != nil {
+		if m, err = whc.NewEditMessage(fmt.Sprintf("<b>Exception</b>\n%v\n\n<b>SMS text</b>\n%v", twilioException, smsText), botsfw.MessageFormatHTML); err != nil {
 			return
 		}
 		m.EditMessageUID = telegram.NewChatMessageUID(tgChatID, smsStatusMessageID)
@@ -332,13 +329,13 @@ func sendReceiptBySms(whc bots.WebhookContext, phoneContact models.PhoneContact,
 		mt += "\n\n<b>SMS text</b>\n" + smsText
 	}
 
-	if m, err = whc.NewEditMessage(mt, bots.MessageFormatHTML); err != nil {
+	if m, err = whc.NewEditMessage(mt, botsfw.MessageFormatHTML); err != nil {
 		return
 	}
 	m.EditMessageUID = telegram.NewChatMessageUID(tgChatID, smsStatusMessageID)
 	m.DisableWebPagePreview = true
 
-	if _, err := whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
+	if _, err := whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 		err = errors.Wrap(err, "Failed to send bot response message over HTTPS")
 		return m, err
 	}

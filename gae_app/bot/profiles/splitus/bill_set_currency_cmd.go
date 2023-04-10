@@ -3,9 +3,9 @@ package splitus
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/DebtsTracker/translations/trans"
 	"github.com/crediterra/money"
-	"github.com/strongo/bots-framework/core"
+	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"net/url"
 )
@@ -13,7 +13,7 @@ import (
 const setBillCurrencyCommandCode = "set-bill-currency"
 
 var setBillCurrencyCommand = billCallbackCommand(setBillCurrencyCommandCode, db.CrossGroupTransaction,
-	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "setBillCurrencyCommand.CallbackAction()")
 		query := callbackUrl.Query()
@@ -47,7 +47,7 @@ var setBillCurrencyCommand = billCallbackCommand(setBillCurrencyCommandCode, db.
 		if m.Text, err = getBillCardMessageText(c, whc.GetBotCode(), whc, bill, true, whc.Translate(trans.MESSAGE_TEXT_BILL_ASK_WHO_PAID)); err != nil {
 			return
 		}
-		m.Format = bots.MessageFormatHTML
+		m.Format = botsfw.MessageFormatHTML
 		m.Keyboard = getWhoPaidInlineKeyboard(whc, bill.ID)
 		m.IsEdit = true
 

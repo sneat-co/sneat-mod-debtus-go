@@ -1,7 +1,6 @@
 package bot
 
 import (
-	"github.com/strongo/bots-framework/core"
 	"testing"
 )
 
@@ -12,6 +11,6 @@ func TestSendRefreshOrNothingChanged(t *testing.T) {
 		}
 	}()
 
-	var m bots.MessageFromBot
+	var m botsfw.MessageFromBot
 	SendRefreshOrNothingChanged(nil, m)
 }

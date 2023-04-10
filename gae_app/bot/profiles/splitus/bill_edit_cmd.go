@@ -2,7 +2,6 @@ package splitus
 
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 	"net/url"
 )
@@ -10,7 +9,7 @@ import (
 const editBillCommandCode = "edit_bill"
 
 var editBillCommand = billCallbackCommand(editBillCommandCode, nil,
-	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "editBillCommand.CallbackAction()")
 		var mt string
@@ -18,7 +17,7 @@ var editBillCommand = billCallbackCommand(editBillCommandCode, nil,
 		if mt, err = getBillCardMessageText(c, whc.GetBotCode(), whc, bill, true, ""); err != nil {
 			return
 		}
-		if m, err = whc.NewEditMessage(mt, bots.MessageFormatHTML); err != nil {
+		if m, err = whc.NewEditMessage(mt, botsfw.MessageFormatHTML); err != nil {
 			return
 		}
 		m.Keyboard = getPrivateBillCardInlineKeyboard(whc, whc.GetBotCode(), bill)

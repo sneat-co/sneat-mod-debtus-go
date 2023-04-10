@@ -10,16 +10,13 @@ import (
 	"strconv"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 )
 
 func editSplitCallbackAction(
-	whc bots.WebhookContext,
+	whc botsfw.WebhookContext,
 	callbackUrl *url.URL,
 	billID string,
 	editCommandPrefix, backCommandPrefix string,
@@ -28,7 +25,7 @@ func editSplitCallbackAction(
 	totalAmount money.Amount,
 	writeTitle func(buffer *bytes.Buffer) error,
 	addShares func(memberID string, addValue int) (member models.BillMemberJson, err error),
-) (m bots.MessageFromBot, err error) {
+) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
 	q := callbackUrl.Query()
@@ -70,7 +67,7 @@ func editSplitCallbackAction(
 	}
 
 	m.Text = buffer.String()
-	m.Format = bots.MessageFormatHTML
+	m.Format = botsfw.MessageFormatHTML
 
 	tgKeyboard := &tgbotapi.InlineKeyboardMarkup{}
 	tgKeyboard.InlineKeyboard = addEditSplitInlineKeyboardButtons(tgKeyboard.InlineKeyboard, whc,

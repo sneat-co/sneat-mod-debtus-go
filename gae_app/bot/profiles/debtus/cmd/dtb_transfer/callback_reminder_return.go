@@ -14,17 +14,14 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"errors"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 )
 
-var ReturnCallbackCommand = bots.NewCallbackCommand(dtb_common.CALLBACK_DEBT_RETURNED_PATH, ProcessReturnAnswer)
+var ReturnCallbackCommand = botsfw.NewCallbackCommand(dtb_common.CALLBACK_DEBT_RETURNED_PATH, ProcessReturnAnswer)
 
-func ProcessReturnAnswer(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+func ProcessReturnAnswer(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 	//
 	c := whc.Context()
 	log.Debugf(c, "ProcessReturnAnswer()")
@@ -68,7 +65,7 @@ func ProcessReturnAnswer(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.
 
 const commandCodeEnableReminderAgain = "enable-reminder-again"
 
-var EnableReminderAgainCallbackCommand = bots.NewCallbackCommand(commandCodeEnableReminderAgain, func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+var EnableReminderAgainCallbackCommand = botsfw.NewCallbackCommand(commandCodeEnableReminderAgain, func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	log.Debugf(c, "EnableReminderAgainCallbackCommand()")
 	q := callbackUrl.Query()
@@ -92,7 +89,7 @@ var EnableReminderAgainCallbackCommand = bots.NewCallbackCommand(commandCodeEnab
 	return askWhenToRemindAgain(whc, reminderID, transfer)
 })
 
-func ProcessFullReturn(whc bots.WebhookContext, transfer models.Transfer) (m bots.MessageFromBot, err error) {
+func ProcessFullReturn(whc botsfw.WebhookContext, transfer models.Transfer) (m botsfw.MessageFromBot, err error) {
 	amountValue := transfer.GetOutstandingValue(time.Now())
 	if amountValue == 0 {
 		return dtb_general.EditReminderMessage(whc, transfer, whc.Translate(trans.MESSAGE_TEXT_TRANSFER_ALREADY_FULLY_RETURNED))
@@ -133,7 +130,7 @@ func ProcessFullReturn(whc bots.WebhookContext, transfer models.Transfer) (m bot
 		return
 	}
 
-	if _, err = whc.Responder().SendMessage(whc.Context(), m, bots.BotAPISendMessageOverHTTPS); err != nil {
+	if _, err = whc.Responder().SendMessage(whc.Context(), m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 		return m, err
 	}
 
@@ -147,7 +144,7 @@ func ProcessFullReturn(whc bots.WebhookContext, transfer models.Transfer) (m bot
 	return m, err
 }
 
-func ProcessPartialReturn(whc bots.WebhookContext, transfer models.Transfer) (bots.MessageFromBot, error) {
+func ProcessPartialReturn(whc botsfw.WebhookContext, transfer models.Transfer) (bots.MessageFromBot, error) {
 	var counterpartyID int64
 	switch whc.AppUserIntID() {
 	case transfer.CreatorUserID:
@@ -169,7 +166,7 @@ func ProcessPartialReturn(whc bots.WebhookContext, transfer models.Transfer) (bo
 	return AskHowMuchHaveBeenReturnedCommand.Action(whc)
 }
 
-func askWhenToRemindAgain(whc bots.WebhookContext, reminderID int64, transfer models.Transfer) (m bots.MessageFromBot, err error) {
+func askWhenToRemindAgain(whc botsfw.WebhookContext, reminderID int64, transfer models.Transfer) (m botsfw.MessageFromBot, err error) {
 	if m, err = dtb_general.EditReminderMessage(whc, transfer, whc.Translate(trans.MESSAGE_TEXT_ASK_WHEN_TO_REMIND_AGAIN)); err != nil {
 		return
 	}
@@ -212,7 +209,7 @@ func askWhenToRemindAgain(whc bots.WebhookContext, reminderID int64, transfer mo
 	return
 }
 
-func ProcessNoReturn(whc bots.WebhookContext, reminderID int64, transfer models.Transfer) (m bots.MessageFromBot, err error) {
+func ProcessNoReturn(whc botsfw.WebhookContext, reminderID int64, transfer models.Transfer) (m botsfw.MessageFromBot, err error) {
 	return askWhenToRemindAgain(whc, reminderID, transfer)
 }
 
@@ -220,9 +217,9 @@ const (
 	SET_NEXT_REMINDER_DATE_COMMAND = "set-next-reminder-date"
 )
 
-var SetNextReminderDateCallbackCommand = bots.Command{
+var SetNextReminderDateCallbackCommand = botsfw.Command{
 	Code: SET_NEXT_REMINDER_DATE_COMMAND,
-	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 
 		reminderID, err := common.DecodeID(callbackUrl.Query().Get("id"))
@@ -247,7 +244,7 @@ var SetNextReminderDateCallbackCommand = bots.Command{
 			return
 		}
 
-		if _, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
+		if _, err = whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 			return m, err
 		}
 
@@ -255,7 +252,7 @@ var SetNextReminderDateCallbackCommand = bots.Command{
 
 		return m, err
 	},
-	Action: func(whc bots.WebhookContext) (bots.MessageFromBot, error) {
+	Action: func(whc botsfw.WebhookContext) (bots.MessageFromBot, error) {
 		m, date, err := processSetDate(whc)
 		if !date.IsZero() {
 			chatEntity := whc.ChatEntity()

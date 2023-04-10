@@ -1,21 +1,20 @@
 package dtb_general
 
 import (
-	"fmt"
-
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
-	"github.com/DebtsTracker/translations/emoji"
+	"fmt"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-framework/core"
 )
 
 const DELETE_ALL_COMMAND = "delete-all"
 
-var DeleteAllCommand = bots.Command{
+var DeleteAllCommand = botsfw.Command{
 	Code:     DELETE_ALL_COMMAND,
 	Icon:     emoji.MAIN_MENU_ICON,
 	Commands: []string{"/deleteall"},
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		botSettings := whc.GetBotSettings()
 		if botSettings.Env != strongo.EnvLocal && botSettings.Env != strongo.EnvDevTest {
 			return whc.NewMessage(fmt.Sprintf("This command supported just in development, got botSettings.Env: %v", botSettings.Env)), nil

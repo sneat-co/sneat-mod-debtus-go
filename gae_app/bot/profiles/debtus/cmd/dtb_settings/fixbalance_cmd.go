@@ -5,13 +5,12 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"context"
 	"github.com/crediterra/money"
-	"github.com/strongo/bots-framework/core"
 )
 
-var FixBalanceCommand = bots.Command{
+var FixBalanceCommand = botsfw.Command{
 	Code:     "fixbalance",
 	Commands: []string{"/fixbalance"},
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		if err = dtdal.DB.RunInTransaction(whc.Context(), func(c context.Context) error {
 			user, err := facade.User.GetUserByID(c, whc.AppUserIntID())
 			if err != nil {

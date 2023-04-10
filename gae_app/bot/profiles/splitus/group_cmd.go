@@ -10,24 +10,21 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
-	"github.com/DebtsTracker/translations/trans"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 )
 
 const groupCommandCode = "group"
 
-var groupCommand = bots.NewCallbackCommand(groupCommandCode,
-	func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+var groupCommand = botsfw.NewCallbackCommand(groupCommandCode,
+	func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		// we can't use GroupCallbackCommand as we have parameter id=[first|last|<id>]
 		c := whc.Context()
 		log.Debugf(c, "groupCommand.CallbackAction()")
 
-		var user bots.BotAppUser
+		var user botsfw.BotAppUser
 		if user, err = whc.GetAppUser(); err != nil {
 			return
 		}
@@ -109,7 +106,7 @@ var groupCommand = bots.NewCallbackCommand(groupCommandCode,
 		m.Text = buf.String()
 
 		m.IsEdit = true
-		m.Format = bots.MessageFormatHTML
+		m.Format = botsfw.MessageFormatHTML
 		tgKeyboard := tgbotapi.NewInlineKeyboardMarkup(groupsNavButtons(whc, groups, userGroupJson.ID))
 		tgKeyboard.InlineKeyboard = append(tgKeyboard.InlineKeyboard, []tgbotapi.InlineKeyboardButton{
 			{

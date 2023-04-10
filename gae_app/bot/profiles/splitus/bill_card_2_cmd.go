@@ -11,31 +11,28 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 )
 
 const billCardCommandCode = "bill-card"
 
-var billCardCommand = bots.Command{
+var billCardCommand = botsfw.Command{
 	Code: billCardCommandCode,
-	CallbackAction: billCallbackAction(func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
+	CallbackAction: billCallbackAction(func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		if m.Text, err = getBillCardMessageText(c, whc.GetBotCode(), whc, bill, false, ""); err != nil {
 			return
 		}
-		m.Format = bots.MessageFormatHTML
+		m.Format = botsfw.MessageFormatHTML
 		m.Keyboard = getGroupBillCardInlineKeyboard(whc, bill)
 		return
 	}),
 }
 
-func startBillAction(whc bots.WebhookContext, billParam string) (m bots.MessageFromBot, err error) {
+func startBillAction(whc botsfw.WebhookContext, billParam string) (m botsfw.MessageFromBot, err error) {
 	var bill models.Bill
 	if bill.ID = billParam[len("bill-"):]; bill.ID == "" {
 		return m, errors.New("Invalid bill parameter")
@@ -57,7 +54,7 @@ func billCallbackCommandData(command string, billID string) string {
 }
 
 var billMembersCommand = billCallbackCommand(billMembersCommandCode, nil,
-	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		var buffer bytes.Buffer
 		if err = writeBillCardTitle(whc.Context(), bill, whc.GetBotCode(), &buffer, whc); err != nil {
 			return
@@ -65,7 +62,7 @@ var billMembersCommand = billCallbackCommand(billMembersCommandCode, nil,
 		buffer.WriteString("\n\n")
 		writeBillMembersList(whc.Context(), &buffer, whc, bill, "")
 		m.Text = buffer.String()
-		m.Format = bots.MessageFormatHTML
+		m.Format = botsfw.MessageFormatHTML
 
 		m.Keyboard = &tgbotapi.InlineKeyboardMarkup{
 			InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{
@@ -174,7 +171,7 @@ const INVITE_BILL_MEMBER_COMMAND = "invite2bill"
 const INLINE_COMMAND_JOIN = "join"
 
 var inviteToBillCommand = billCallbackCommand(INVITE_BILL_MEMBER_COMMAND, nil,
-	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		m.Keyboard = &tgbotapi.InlineKeyboardMarkup{
 			InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{
 				{
@@ -195,7 +192,7 @@ var inviteToBillCommand = billCallbackCommand(INVITE_BILL_MEMBER_COMMAND, nil,
 	},
 )
 
-func ShowBillCard(whc bots.WebhookContext, isEdit bool, bill models.Bill, footer string) (m bots.MessageFromBot, err error) {
+func ShowBillCard(whc botsfw.WebhookContext, isEdit bool, bill models.Bill, footer string) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	m = whc.NewMessage("")
 	m.IsEdit = isEdit

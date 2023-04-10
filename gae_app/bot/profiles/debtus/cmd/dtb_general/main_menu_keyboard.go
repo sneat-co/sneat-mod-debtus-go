@@ -2,12 +2,9 @@ package dtb_general
 
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
+	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/bots-framework/platforms/fbm"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/bots-framework/platforms/viber"
 	"github.com/strongo/log"
 )
@@ -15,11 +12,11 @@ import (
 const INVITES_SHOT_COMMAND = emoji.PRESENT_ICON
 
 // This commands are required for main menu because of circular references
-var _lendCommand = bots.Command{Code: "lend", Title: trans.COMMAND_TEXT_GAVE, Icon: emoji.GIVE_ICON}
-var _borrowCommand = bots.Command{Code: "borrow", Title: trans.COMMAND_TEXT_GOT, Icon: emoji.TAKE_ICON}
-var _returnCommand = bots.Command{Code: "return", Title: trans.COMMAND_TEXT_RETURN, Icon: emoji.RETURN_BACK_ICON}
+var _lendCommand = botsfw.Command{Code: "lend", Title: trans.COMMAND_TEXT_GAVE, Icon: emoji.GIVE_ICON}
+var _borrowCommand = botsfw.Command{Code: "borrow", Title: trans.COMMAND_TEXT_GOT, Icon: emoji.TAKE_ICON}
+var _returnCommand = botsfw.Command{Code: "return", Title: trans.COMMAND_TEXT_RETURN, Icon: emoji.RETURN_BACK_ICON}
 
-func MainMenuKeyboardOnReceiptAck(whc bots.WebhookContext) *tgbotapi.ReplyKeyboardMarkup {
+func MainMenuKeyboardOnReceiptAck(whc botsfw.WebhookContext) *tgbotapi.ReplyKeyboardMarkup {
 	return mainMenuTelegramKeyboard(whc, getMainMenuParams(whc, true))
 }
 
@@ -28,7 +25,7 @@ type mainMenuParams struct {
 	showReturn            bool
 }
 
-func getMainMenuParams(whc bots.WebhookContext, onReceiptAck bool) (params mainMenuParams) {
+func getMainMenuParams(whc botsfw.WebhookContext, onReceiptAck bool) (params mainMenuParams) {
 	var (
 		user      *models.AppUserEntity
 		isAppUser bool
@@ -46,7 +43,7 @@ func getMainMenuParams(whc bots.WebhookContext, onReceiptAck bool) (params mainM
 	return
 }
 
-func mainMenuTelegramKeyboard(whc bots.WebhookContext, params mainMenuParams) *tgbotapi.ReplyKeyboardMarkup {
+func mainMenuTelegramKeyboard(whc botsfw.WebhookContext, params mainMenuParams) *tgbotapi.ReplyKeyboardMarkup {
 	firstRow := []string{
 		_lendCommand.DefaultTitle(whc),
 		_borrowCommand.DefaultTitle(whc),
@@ -80,7 +77,7 @@ func mainMenuTelegramKeyboard(whc bots.WebhookContext, params mainMenuParams) *t
 
 	return tgbotapi.NewReplyKeyboardUsingStrings(buttonRows)
 }
-func SetMainMenuKeyboard(whc bots.WebhookContext, m *bots.MessageFromBot) {
+func SetMainMenuKeyboard(whc botsfw.WebhookContext, m *bots.MessageFromBot) {
 	params := getMainMenuParams(whc, true)
 	switch whc.BotPlatform().ID() {
 	case telegram.PlatformID:
@@ -99,7 +96,7 @@ func SetMainMenuKeyboard(whc bots.WebhookContext, m *bots.MessageFromBot) {
 	}
 }
 
-//func mainMenuFbmAttachment(whc bots.WebhookContext, params mainMenuParams) *fbmbotapi.RequestAttachment {
+//func mainMenuFbmAttachment(whc botsfw.WebhookContext, params mainMenuParams) *fbmbotapi.RequestAttachment {
 //	attachment := &fbmbotapi.RequestAttachment{
 //		Type: fbmbotapi.RequestAttachmentTypeTemplate,
 //		Payload: fbmbotapi.NewListTemplate(
@@ -138,7 +135,7 @@ const (
 	UTM_CAMPAIGN_BOT_MAIN_MENU = "bot-main-menu"
 )
 
-//func mainMenuViberKeyboard(whc bots.WebhookContext, params mainMenuParams) *viberinterface.Keyboard {
+//func mainMenuViberKeyboard(whc botsfw.WebhookContext, params mainMenuParams) *viberinterface.Keyboard {
 //	var buttons []viberinterface.Button
 //	lendingText := _lendCommand.DefaultTitle(whc)
 //	borrowText := _borrowCommand.DefaultTitle(whc)

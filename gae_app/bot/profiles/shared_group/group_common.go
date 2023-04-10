@@ -4,19 +4,18 @@ import (
 	"net/url"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/bots-framework/core"
 )
 
 func GroupCallbackCommandData(command string, groupID string) string {
 	return command + "?group=" + groupID
 }
 
-type GroupAction func(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error)
-type GroupCallbackAction func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error)
+type GroupAction func(whc botsfw.WebhookContext, group models.Group) (m botsfw.MessageFromBot, err error)
+type GroupCallbackAction func(whc botsfw.WebhookContext, callbackUrl *url.URL, group models.Group) (m botsfw.MessageFromBot, err error)
 
-func GroupCallbackCommand(code string, f GroupCallbackAction) bots.Command {
-	return bots.NewCallbackCommand(code,
-		func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+func GroupCallbackCommand(code string, f GroupCallbackAction) botsfw.Command {
+	return botsfw.NewCallbackCommand(code,
+		func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 			var group models.Group
 			if group, err = GetGroup(whc, callbackUrl); err != nil {
 				return
@@ -26,8 +25,8 @@ func GroupCallbackCommand(code string, f GroupCallbackAction) bots.Command {
 	)
 }
 
-func NewGroupAction(f GroupAction) bots.CommandAction {
-	return func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+func NewGroupAction(f GroupAction) botsfw.CommandAction {
+	return func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		var group models.Group
 		if group, err = GetGroup(whc, nil); err != nil {
 			return
@@ -36,8 +35,8 @@ func NewGroupAction(f GroupAction) bots.CommandAction {
 	}
 }
 
-func NewGroupCallbackAction(f GroupCallbackAction) bots.CallbackAction {
-	return func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+func NewGroupCallbackAction(f GroupCallbackAction) botsfw.CallbackAction {
+	return func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		var group models.Group
 		if group, err = GetGroup(whc, nil); err != nil {
 			return

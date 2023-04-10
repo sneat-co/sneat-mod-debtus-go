@@ -5,22 +5,19 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/log"
 )
 
 const ASK_CURRENCY_SETTING_COMMAND = "ask-currency-settings"
 
-var AskCurrencySettingsCommand = bots.Command{
+var AskCurrencySettingsCommand = botsfw.Command{
 	Code:     ASK_CURRENCY_SETTING_COMMAND,
-	Replies:  []bots.Command{SetPrimaryCurrency},
+	Replies:  []botsfw.Command{SetPrimaryCurrency},
 	Commands: []string{"\xF0\x9F\x92\xB1"},
 	Icon:     emoji.CURRENCY_EXCAHNGE_ICON,
 	Title:    trans.COMMAND_TEXT_SETTINGS_PRIMARY_CURRENCY,
-	Action: func(whc bots.WebhookContext) (bots.MessageFromBot, error) {
+	Action: func(whc botsfw.WebhookContext) (bots.MessageFromBot, error) {
 		m := whc.NewMessageByCode(trans.MESSAGE_TEXT_ASK_PRIMARY_CURRENCY)
 		m.Keyboard = tgbotapi.NewReplyKeyboardUsingStrings([][]string{
 			{
@@ -39,9 +36,9 @@ var AskCurrencySettingsCommand = bots.Command{
 
 const SET_PRIMARY_CURRENCY_COMMAND = "set-primary-currency"
 
-var SetPrimaryCurrency = bots.Command{
+var SetPrimaryCurrency = botsfw.Command{
 	Code: SET_PRIMARY_CURRENCY_COMMAND,
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "SetPrimaryCurrency.Action()")
 		whc.ChatEntity().SetAwaitingReplyTo("")

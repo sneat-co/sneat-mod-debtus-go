@@ -20,12 +20,9 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
+	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/bots-framework/platforms/viber"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
@@ -86,7 +83,7 @@ var currenciesByPriority = []money.Currency{
 	money.Currency(emoji.TSHIRT_ICON),
 }
 
-func AskTransferCurrencyButtons(whc bots.WebhookContext) [][]string {
+func AskTransferCurrencyButtons(whc botsfw.WebhookContext) [][]string {
 	user, _ := whc.GetAppUser()
 	user.GetPreferredLocale()
 
@@ -143,11 +140,11 @@ func AskTransferCurrencyButtons(whc bots.WebhookContext) [][]string {
 	return result
 }
 
-func AskTransferAmountCommand(code, messageTextFormat string, nextCommand bots.Command) bots.Command {
-	return bots.Command{
+func AskTransferAmountCommand(code, messageTextFormat string, nextCommand botsfw.Command) botsfw.Command {
+	return botsfw.Command{
 		Code:    code,
-		Replies: []bots.Command{nextCommand},
-		Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+		Replies: []botsfw.Command{nextCommand},
+		Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 			c := whc.Context()
 
 			//amount := 0
@@ -155,11 +152,11 @@ func AskTransferAmountCommand(code, messageTextFormat string, nextCommand bots.C
 
 			chatEntity := whc.ChatEntity()
 			awaitingReplyTo := chatEntity.GetAwaitingReplyTo()
-			awaitingReplyToPath := bots.AwaitingReplyToPath(awaitingReplyTo)
+			awaitingReplyToPath := botsfw.AwaitingReplyToPath(awaitingReplyTo)
 			switch {
 			case chatEntity.IsAwaitingReplyTo(code):
 				switch whc.Input().(type) {
-				case bots.WebhookTextMessage:
+				case botsfw.WebhookTextMessage:
 					mt := strings.TrimSpace(whc.Input().(bots.WebhookTextMessage).Text())
 					if mt == "." || mt == "0" || strings.Index(mt, emoji.NO_ENTRY_SIGN_ICON) >= 0 {
 						return CancelTransferWizardCommand.Action(whc)
@@ -176,12 +173,12 @@ func AskTransferAmountCommand(code, messageTextFormat string, nextCommand bots.C
 						m = whc.NewMessage(emoji.NO_ENTRY_SIGN_ICON +
 							" " + whc.Translate(trans.MESSAGE_TEXT_INVALID_FLOAT) +
 							"\n\n" + whc.Translate(messageTextFormat, html.EscapeString(chatEntity.GetWizardParam("currency"))))
-						m.Format = bots.MessageFormatHTML
+						m.Format = botsfw.MessageFormatHTML
 					} else {
 						chatEntity.AddWizardParam("value", mt)
 						return nextCommand.Action(whc)
 					}
-				case bots.WebhookContactMessage:
+				case botsfw.WebhookContactMessage:
 					m.Text = whc.Translate("Please enter amount now, and then contact.")
 					return
 				default:
@@ -202,7 +199,7 @@ func AskTransferAmountCommand(code, messageTextFormat string, nextCommand bots.C
 				chatEntity.PushStepToAwaitingReplyTo(code)
 				currencyText := chatEntity.GetWizardParam("currency")
 				if currencyText == "" {
-					awaitingReplyToQuery := bots.AwaitingReplyToQuery(awaitingReplyTo)
+					awaitingReplyToQuery := botsfw.AwaitingReplyToQuery(awaitingReplyTo)
 					log.Warningf(c, "No currency in params: %v", awaitingReplyToQuery)
 				}
 				m = whc.NewMessageByCode(messageTextFormat, html.EscapeString(currencyText))
@@ -224,30 +221,30 @@ func AskTransferAmountCommand(code, messageTextFormat string, nextCommand bots.C
 					)
 				}
 			}
-			m.Format = bots.MessageFormatHTML
+			m.Format = botsfw.MessageFormatHTML
 			return m, nil
 		},
 	}
 }
 
-type _onContactSelectedAction func(whc bots.WebhookContext, counterparty models.Contact) (m bots.MessageFromBot, err error)
+type _onContactSelectedAction func(whc botsfw.WebhookContext, counterparty models.Contact) (m botsfw.MessageFromBot, err error)
 
 func CreateAskTransferCounterpartyCommand(
 	isReturn bool,
 	code, title, icon, messageText string,
-	replies []bots.Command,
-	newContactCommand bots.Command,
+	replies []botsfw.Command,
+	newContactCommand botsfw.Command,
 	onContactSelectedAction _onContactSelectedAction,
-) bots.Command {
+) botsfw.Command {
 	if newContactCommand.Code != "" {
 		replies = append(replies, newContactCommand)
 	}
-	return bots.Command{
+	return botsfw.Command{
 		Code:    code,
 		Title:   title,
 		Icon:    icon,
 		Replies: replies,
-		Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+		Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 			c := whc.Context()
 			//amount := 0
 			//whc.chatEntity.AwaitingReplyTo = fmt.Sprintf("%v>%v?%v&amount=%v", whc.AwaitingReplyToPath(), code, whc.AwaitingReplyToQuery(), amount)
@@ -255,16 +252,16 @@ func CreateAskTransferCounterpartyCommand(
 			log.Debugf(c, "AskTransferCounterpartyCommand.Action(command.code=%v)", code)
 			chatEntity := whc.ChatEntity()
 			awaitingReplyTo := chatEntity.GetAwaitingReplyTo()
-			awaitingReplyToPath := bots.AwaitingReplyToPath(awaitingReplyTo)
+			awaitingReplyToPath := botsfw.AwaitingReplyToPath(awaitingReplyTo)
 			switch {
 			case strings.HasSuffix(awaitingReplyToPath, code): // If ends with it's own code display list of counterparties
 				log.Debugf(c, "strings.HasSuffix(awaitingReplyToPath, code)")
 				input := whc.Input()
 				switch input.(type) {
-				case bots.WebhookContactMessage:
+				case botsfw.WebhookContactMessage:
 					chatEntity.PushStepToAwaitingReplyTo(newContactCommand.Code)
 					return newContactCommand.Action(whc)
-				case bots.WebhookTextMessage:
+				case botsfw.WebhookTextMessage:
 					mt := whc.Input().(bots.WebhookTextMessage).Text()
 					if mt == "." {
 						return cancelTransferWizardCommandAction(whc)
@@ -349,8 +346,8 @@ func CreateAskTransferCounterpartyCommand(
 
 const COUNTERPARTY_BUTTONS_LIMIT = 4
 
-func listCounterpartiesAsButtons(whc bots.WebhookContext, user models.AppUser, isReturn bool, messageText string, newCounterpartyCommand bots.Command,
-) (m bots.MessageFromBot, err error) {
+func listCounterpartiesAsButtons(whc botsfw.WebhookContext, user models.AppUser, isReturn bool, messageText string, newCounterpartyCommand botsfw.Command,
+) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
 	log.Debugf(c, "listCounterpartiesAsButtons")
@@ -370,7 +367,7 @@ func listCounterpartiesAsButtons(whc bots.WebhookContext, user models.AppUser, i
 	} else {
 		m = whc.NewMessage(whc.Translate(messageText))
 	}
-	m.Format = bots.MessageFormatHTML
+	m.Format = botsfw.MessageFormatHTML
 	if user.AppUserEntity == nil {
 		if user, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
 			return
@@ -441,7 +438,7 @@ type TransferWizard struct {
 	params url.Values
 }
 
-func NewTransferWizard(whc bots.WebhookContext) (TransferWizard, error) {
+func NewTransferWizard(whc botsfw.WebhookContext) (TransferWizard, error) {
 	awaitingReplyTo := whc.ChatEntity().GetAwaitingReplyTo()
 	log.Debugf(whc.Context(), "AwaitingReplyTo: %v", awaitingReplyTo)
 	params, err := url.ParseQuery(bots.AwaitingReplyToQuery(awaitingReplyTo))
@@ -465,10 +462,10 @@ func (w TransferWizard) CounterpartyID(c context.Context) int64 {
 	}
 }
 
-func TransferWizardCompletedCommand(code string) bots.Command {
-	return bots.Command{
+func TransferWizardCompletedCommand(code string) botsfw.Command {
+	return botsfw.Command{
 		Code: code,
-		Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+		Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 			c := whc.Context()
 
 			if chatEntity := whc.ChatEntity(); strings.Contains(chatEntity.GetAwaitingReplyTo(), "counterparty=0") {
@@ -562,7 +559,7 @@ func TransferWizardCompletedCommand(code string) bots.Command {
 const TRANSFER_WIZARD_DUE_DATE_FORMAT = "2006-01-02"
 
 func CreateTransferFromBot(
-	whc bots.WebhookContext,
+	whc botsfw.WebhookContext,
 	isReturn bool,
 	returnToTransferID int64,
 	direction models.TransferDirection,
@@ -571,7 +568,7 @@ func CreateTransferFromBot(
 	dueOn time.Time,
 	transferInterest models.TransferInterest,
 ) (
-	m bots.MessageFromBot,
+	m botsfw.MessageFromBot,
 	err error,
 ) {
 	c := whc.Context()
@@ -587,7 +584,7 @@ func CreateTransferFromBot(
 		},
 	)
 
-	pleaseWaitMessage, err := whc.Responder().SendMessage(c, pleaseWaitMessageConfig, bots.BotAPISendMessageOverHTTPS)
+	pleaseWaitMessage, err := whc.Responder().SendMessage(c, pleaseWaitMessageConfig, botsfw.BotAPISendMessageOverHTTPS)
 
 	if err != nil {
 		return m, err
@@ -689,19 +686,19 @@ func CreateTransferFromBot(
 
 		switch whc.BotPlatform().ID() {
 		case telegram.PlatformID:
-			var receiptMessageFromBot bots.MessageFromBot
-			if receiptMessageFromBot, err = whc.NewEditMessage(receiptMessageText, bots.MessageFormatHTML); err != nil {
+			var receiptMessageFromBot botsfw.MessageFromBot
+			if receiptMessageFromBot, err = whc.NewEditMessage(receiptMessageText, botsfw.MessageFormatHTML); err != nil {
 				return receiptMessageFromBot, err
 			}
 			receiptMessageFromBot.EditMessageUID = telegram.NewChatMessageUID(0, pleaseWaitMessage.TelegramMessage.(tgbotapi.Message).MessageID)
-			_, err = whc.Responder().SendMessage(c, receiptMessageFromBot, bots.BotAPISendMessageOverHTTPS)
+			_, err = whc.Responder().SendMessage(c, receiptMessageFromBot, botsfw.BotAPISendMessageOverHTTPS)
 			if err != nil {
 				return m, err
 			}
 			if receiptSendOptionsMessage, err := createSendReceiptOptionsMessage(whc, output.Transfer); err != nil {
 				return m, err
 			} else {
-				if response, err := whc.Responder().SendMessage(c, receiptSendOptionsMessage, bots.BotAPISendMessageOverHTTPS); err != nil {
+				if response, err := whc.Responder().SendMessage(c, receiptSendOptionsMessage, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 					return m, err
 				} else {
 					tgMessage := response.TelegramMessage.(tgbotapi.Message)
@@ -713,7 +710,7 @@ func CreateTransferFromBot(
 			}
 		case viber.PlatformID:
 			receiptMessageFromBot := whc.NewMessage(receiptMessageText)
-			whc.Responder().SendMessage(c, receiptMessageFromBot, bots.BotAPISendMessageOverHTTPS)
+			whc.Responder().SendMessage(c, receiptMessageFromBot, botsfw.BotAPISendMessageOverHTTPS)
 		default:
 			panic("Unsupported bot platform: " + whc.BotPlatform().ID())
 		}
@@ -729,7 +726,7 @@ func sendReceiptByTelegramButton(transferEncodedID string, translator strongo.Si
 	)
 }
 
-func createSendReceiptOptionsMessage(whc bots.WebhookContext, transfer models.Transfer) (m bots.MessageFromBot, err error) {
+func createSendReceiptOptionsMessage(whc botsfw.WebhookContext, transfer models.Transfer) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
 	log.Debugf(c, "createSendReceiptOptionsMessage(transferID=%v)", transfer.ID)
@@ -745,13 +742,13 @@ func createSendReceiptOptionsMessage(whc bots.WebhookContext, transfer models.Tr
 	mt = strings.Replace(mt, "<a receipt>", fmt.Sprintf(`<a href="%v">`, transferUrlForUser), 1)
 	mt = strings.Replace(mt, "<a counterparty>", fmt.Sprintf(`<a href="%v">`, common.GetCounterpartyUrl(transfer.Counterparty().ContactID, whc.AppUserIntID(), whc.Locale(), utmParams)), 1)
 
-	if whc.InputType() == bots.WebhookInputCallbackQuery {
-		if m, err = whc.NewEditMessage(mt, bots.MessageFormatHTML); err != nil {
+	if whc.InputType() == botsfw.WebhookInputCallbackQuery {
+		if m, err = whc.NewEditMessage(mt, botsfw.MessageFormatHTML); err != nil {
 			return
 		}
 	} else {
 		m = whc.NewMessage(mt)
-		m.Format = bots.MessageFormatHTML
+		m.Format = botsfw.MessageFormatHTML
 	}
 
 	transferEncodedID := common.EncodeID(transfer.ID)
@@ -834,15 +831,15 @@ func createSendReceiptOptionsMessage(whc bots.WebhookContext, transfer models.Tr
 //	title: COMMAND_TEXT_TOMORROW,
 //}
 
-func GetTransferSource(whc bots.WebhookContext) dtdal.TransferSource {
+func GetTransferSource(whc botsfw.WebhookContext) dtdal.TransferSource {
 	return dtdal.NewTransferSourceBot(whc.BotPlatform().ID(), whc.GetBotCode(), whc.MustBotChatID())
 }
 
 //const CALLBACK_COUNTERPARTY_WITHOUT_TG = "counterparty-no-tg"
 //
-//var CounterpartyNoTelegramCommand = bots.Command{
+//var CounterpartyNoTelegramCommand = botsfw.Command{
 //	ByCode: CALLBACK_COUNTERPARTY_WITHOUT_TG,
-//	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+//	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 //		q := callbackUrl.Query()
 //		transferEncodedID := q.Get(WIZARD_PARAM_TRANSFER)
 //		transferID, err := common.DecodeID(transferEncodedID)

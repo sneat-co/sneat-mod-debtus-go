@@ -2,6 +2,10 @@ package dtb_invite
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
+	bots "github.com/strongo/bots-framework/core"
 	"net/url"
 	"strings"
 
@@ -10,11 +14,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/invites"
-	"errors"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/log"
 )
 
@@ -22,13 +22,13 @@ var AskInviteAddressTelegramCommand = AskInviteAddress(string(models.InviteByTel
 var AskInviteAddressEmailCommand = AskInviteAddress(string(models.InviteByEmail), emoji.EMAIL_ICON, trans.COMMAND_TEXT_SEND_BY_EMAIL, trans.MESSAGE_TEXT_INVITE_BY_EMAIL, trans.MESSAGE_TEXT_INVALID_EMAIL)
 var AskInviteAddressSmsCommand = AskInviteAddress(string(models.InviteBySms), emoji.PHONE_ICON, trans.COMMAND_TEXT_SEND_BY_SMS, trans.MESSAGE_TEXT_INVITE_BY_SMS, trans.MESSAGE_TEXT_INVALID_PHONE_NUMBER)
 
-func AskInviteAddress(channel, icon, commandText, messageCode, invalidMessageCode string) bots.Command {
+func AskInviteAddress(channel, icon, commandText, messageCode, invalidMessageCode string) botsfw.Command {
 	code := fmt.Sprintf("ask-%v-address-for-invite", channel)
-	return bots.Command{
+	return botsfw.Command{
 		Code:  code,
 		Icon:  icon,
 		Title: commandText,
-		Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+		Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 			chatEntity := whc.ChatEntity()
 
 			if chatEntity.IsAwaitingReplyTo(code) {
@@ -71,16 +71,16 @@ func AskInviteAddress(channel, icon, commandText, messageCode, invalidMessageCod
 	}
 }
 
-var AskInviteAddressCallbackCommand = bots.Command{
+var AskInviteAddressCallbackCommand = botsfw.Command{
 	Code: "invite",
-	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		q := callbackUrl.Query()
 		echoSelection := func(mt string) error {
-			if m, err = whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_ABOUT_INVITES)+"\n\n"+mt, bots.MessageFormatHTML); err != nil {
+			if m, err = whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_ABOUT_INVITES)+"\n\n"+mt, botsfw.MessageFormatHTML); err != nil {
 				return err
 			}
-			_, err := whc.Responder().SendMessage(whc.Context(), m, bots.BotAPISendMessageOverHTTPS)
-			return errors.Wrap(err, "Failed to edit callback message")
+			_, err := whc.Responder().SendMessage(whc.Context(), m, botsfw.BotAPISendMessageOverHTTPS)
+			return fmt.Errorf("failed to edit callback message: %w", err)
 		}
 		_ = whc.ChatEntity() // To switch locale
 		switch q.Get("by") {

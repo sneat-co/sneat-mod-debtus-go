@@ -10,13 +10,11 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/splitus"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"context"
-	"github.com/DebtsTracker/translations/trans"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gaestandard"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/fbm"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/bots-framework/platforms/viber"
 )
 
@@ -24,9 +22,9 @@ func newTranslator(c context.Context) strongo.Translator {
 	return strongo.NewMapTranslator(c, trans.TRANS)
 }
 
-func InitBots(httpRouter *httprouter.Router, botHost bots.BotHost, appContext bots.BotAppContext) {
+func InitBots(httpRouter *httprouter.Router, botHost botsfw.BotHost, appContext botsfw.BotAppContext) {
 
-	driver := bots.NewBotDriver( // Orchestrate requests to appropriate handlers
+	driver := botsfw.NewBotDriver( // Orchestrate requests to appropriate handlers
 		bots.AnalyticsSettings{GaTrackingID: common.GA_TRACKING_ID}, // TODO: Refactor to list of analytics providers
 		appContext, // Holds User entity kind name, translator, etc.
 		botHost,    // Defines how to create context.Context, HttpClient, DB, etc...
@@ -49,8 +47,8 @@ func InitBots(httpRouter *httprouter.Router, botHost bots.BotHost, appContext bo
 	)
 }
 
-func telegramBotsWithRouter(c context.Context) bots.SettingsBy {
-	return tgbots.Bots(gaestandard.GetEnvironment(c), func(profile string) bots.WebhooksRouter {
+func telegramBotsWithRouter(c context.Context) botsfw.SettingsBy {
+	return tgbots.Bots(gaestandard.GetEnvironment(c), func(profile string) botsfw.WebhooksRouter {
 		switch profile {
 		case bot.ProfileDebtus:
 			return debtus.Router

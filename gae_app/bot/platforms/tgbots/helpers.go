@@ -6,8 +6,6 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"context"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 )
 
@@ -21,13 +19,13 @@ func GetTelegramBotApiByBotCode(c context.Context, code string) *tgbotapi.BotAPI
 
 var reTelegramStartCommandPrefix = regexp.MustCompile(`/start(@\w+)?\s+`)
 
-func ParseStartCommand(whc bots.WebhookContext) (startParam string, startParams []string) {
+func ParseStartCommand(whc botsfw.WebhookContext) (startParam string, startParams []string) {
 	input := whc.Input()
 
 	switch input.(type) {
-	case bots.WebhookTextMessage:
+	case botsfw.WebhookTextMessage:
 		startParam = input.(bots.WebhookTextMessage).Text()
-	case bots.WebhookReferralMessage:
+	case botsfw.WebhookReferralMessage:
 		startParam = input.(bots.WebhookReferralMessage).RefData()
 	default:
 		panic("Unknown input type")

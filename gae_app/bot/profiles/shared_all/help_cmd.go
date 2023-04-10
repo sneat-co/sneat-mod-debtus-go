@@ -8,26 +8,23 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
+	"github.com/bots-go-framework/bots-api-telegram"
 )
 
 const HELP_COMMAND = "help"
 
-func createHelpRootCommand(params BotParams) bots.Command {
-	return bots.Command{
+func createHelpRootCommand(params BotParams) botsfw.Command {
+	return botsfw.Command{
 		Code:     HELP_COMMAND,
 		Commands: []string{"/help", emoji.HELP_ICON},
-		Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+		Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 			switch whc.GetBotSettings().Profile {
 			case bot.ProfileDebtus:
 				return params.HelpCommandAction(whc)
 			}
 			return helpRootAction(whc, false)
 		},
-		CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+		CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 			_ = whc.ChatEntity()
 			q := callbackUrl.Query().Get("q")
 			switch q {
@@ -36,16 +33,16 @@ func createHelpRootCommand(params BotParams) bots.Command {
 			case trans.HELP_HOW_TO_CREATE_BILL_Q:
 				m, err = helpHowToCreateNewBill(whc)
 			}
-			m.Format = bots.MessageFormatHTML
+			m.Format = botsfw.MessageFormatHTML
 			m.IsEdit = true
 			return
 		},
 	}
 }
 
-func helpRootAction(whc bots.WebhookContext, isCallback bool) (m bots.MessageFromBot, err error) {
+func helpRootAction(whc botsfw.WebhookContext, isCallback bool) (m botsfw.MessageFromBot, err error) {
 	m.Text = whc.Translate(trans.MESSAGE_TEXT_HELP_ROOT, strings.Replace(whc.GetBotCode(), "Bot", "Group", 1))
-	m.Format = bots.MessageFormatHTML
+	m.Format = botsfw.MessageFormatHTML
 	m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{{
 			Text:         whc.Translate(trans.HELP_HOW_TO_CREATE_BILL_Q),
@@ -58,7 +55,7 @@ func helpRootAction(whc bots.WebhookContext, isCallback bool) (m bots.MessageFro
 	return
 }
 
-func helpHowToCreateNewBill(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+func helpHowToCreateNewBill(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 	var buffer bytes.Buffer
 	if err = common.HtmlTemplates.RenderTemplate(whc.Context(), &buffer, whc, trans.HELP_HOW_TO_CREATE_BILL_A, struct{ BotCode string }{whc.GetBotCode()}); err != nil {
 		return

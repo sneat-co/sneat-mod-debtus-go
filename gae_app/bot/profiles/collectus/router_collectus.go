@@ -3,14 +3,11 @@ package collectus
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 )
 
 var botParams = shared_all.BotParams{
-	InBotWelcomeMessage: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	InBotWelcomeMessage: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		var user *models.AppUserEntity
 		if user, err = shared_all.GetUser(whc); err != nil {
 			return
@@ -19,7 +16,7 @@ var botParams = shared_all.BotParams{
 			trans.MESSAGE_TEXT_HI_USERNAME, user.FirstName) + " " + whc.Translate(trans.COLLECTUS_TEXT_HI) +
 			"\n\n" + whc.Translate(trans.COLLECTUS_TEXT_ABOUT_ME_AND_CO) +
 			"\n\n" + whc.Translate(trans.COLLECTUS_TG_COMMANDS)
-		m.Format = bots.MessageFormatHTML
+		m.Format = botsfw.MessageFormatHTML
 		m.IsEdit = true
 
 		m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
@@ -37,8 +34,8 @@ var botParams = shared_all.BotParams{
 	},
 }
 
-var Router = bots.NewWebhookRouter(
-	map[bots.WebhookInputType][]bots.Command{},
+var Router = botsfw.NewWebhookRouter(
+	map[bots.WebhookInputType][]botsfw.Command{},
 	func() string { return "Please report any errors to @CollectusGroup" },
 )
 

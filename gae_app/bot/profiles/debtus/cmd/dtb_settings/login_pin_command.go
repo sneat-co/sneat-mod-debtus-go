@@ -8,21 +8,20 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"errors"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/viber"
 )
 
-var LoginPinCommand = bots.Command{
+var LoginPinCommand = botsfw.Command{
 	Code: "LoginPin",
-	Matcher: func(cmd bots.Command, whc bots.WebhookContext) bool {
-		if whc.BotPlatform().ID() == viber.PlatformID && whc.InputType() == bots.WebhookInputText {
+	Matcher: func(cmd botsfw.Command, whc botsfw.WebhookContext) bool {
+		if whc.BotPlatform().ID() == viber.PlatformID && whc.InputType() == botsfw.WebhookInputText {
 			context := whc.Input().(viber.WebhookInputConversationStarted).GetContext()
 			return strings.HasPrefix(context, "login-")
 		} else {
 			return false
 		}
 	},
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		mt := whc.Input().(bots.WebhookTextMessage).Text()
 		context := strings.Split(mt, " ")[0]
 		contextParams := strings.Split(context, "_")

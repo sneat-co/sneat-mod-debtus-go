@@ -6,15 +6,15 @@ package dtb_fbm
 //	"strings"
 //
 //	"context"
-//	"github.com/DebtsTracker/translations/emoji"
+//	"github.com/sneat-co/debtstracker-translations/emoji"
 //	"github.com/strongo/bots-api-fbm"
-//	"github.com/strongo/bots-framework/core"
+//	"github.com/bots-go-framework/bots-fw/botsfw"
 //	"github.com/strongo/log"
 //)
 //
 //var EM_SPACE = strings.Repeat("\u00A0", 2)
 //
-//func SetPersistentMenu(c context.Context, r *http.Request, bot bots.BotSettings, api fbmbotapi.GraphAPI) (err error) {
+//func SetPersistentMenu(c context.Context, r *http.Request, bot botsfw.BotSettings, api fbmbotapi.GraphAPI) (err error) {
 //	url := fmt.Sprintf("https://%v/app/#fbm%v", r.Host, bot.ID)
 //
 //	//menuItemWebUrl := func(icon, title, hash string) fbm_api.MenuItemWebURL {

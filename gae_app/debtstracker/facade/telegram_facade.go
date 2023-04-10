@@ -5,16 +5,15 @@ import (
 
 	"context"
 	"errors"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/log"
 	"github.com/strongo/nds"
 	"google.golang.org/appengine/datastore"
 )
 
 func GetLocale(c context.Context, botID string, tgChatIntID, userID int64) (locale strongo.Locale, err error) {
-	botChatKey := datastore.NewKey(c, telegram.ChatKind, bots.NewChatID(botID, strconv.FormatInt(tgChatIntID, 10)), 0, nil)
+	botChatKey := datastore.NewKey(c, telegram.ChatKind, botsfw.NewChatID(botID, strconv.FormatInt(tgChatIntID, 10)), 0, nil)
 	var tgChatEntity telegram.TgChatEntityBase
 	if err = nds.Get(c, botChatKey, &tgChatEntity); err != nil {
 		log.Debugf(c, "Failed to get TgChat entity by string ID=%v: %v", botChatKey.StringID(), err) // TODO: Replace with error once load by int ID removed

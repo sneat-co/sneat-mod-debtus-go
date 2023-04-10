@@ -2,8 +2,8 @@ package models
 
 import (
 	"errors"
-	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/dalgo/record"
+	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/dal-go/dalgo/record"
 	"google.golang.org/appengine/datastore"
 	"time"
 )

@@ -9,9 +9,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"errors"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 	//"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
@@ -29,8 +26,8 @@ import (
 	"time"
 )
 
-var RemindAgainCallbackCommand = bots.NewCallbackCommand(dtb_common.CALLBACK_REMIND_AGAIN,
-	func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+var RemindAgainCallbackCommand = botsfw.NewCallbackCommand(dtb_common.CALLBACK_REMIND_AGAIN,
+	func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		q := callbackUrl.Query()
 		var reminderID int64
 		if reminderID, err = common.DecodeID(q.Get("id")); err != nil {
@@ -61,7 +58,7 @@ var RemindAgainCallbackCommand = bots.NewCallbackCommand(dtb_common.CALLBACK_REM
 	},
 )
 
-func rescheduleReminder(whc bots.WebhookContext, reminderID int64, remindInDuration time.Duration) (m bots.MessageFromBot, err error) {
+func rescheduleReminder(whc botsfw.WebhookContext, reminderID int64, remindInDuration time.Duration) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
 	var oldReminder, newReminder models.Reminder
@@ -170,7 +167,7 @@ func rescheduleReminder(whc bots.WebhookContext, reminderID int64, remindInDurat
 //		return nil
 //	})
 
-//func disableReminders(whc bots.WebhookContext, transferID int64) (m bots.MessageFromBot, err error) {
+//func disableReminders(whc botsfw.WebhookContext, transferID int64) (m botsfw.MessageFromBot, err error) {
 //	c := whc.Context()
 //	transferKey, transfer, err := facade.Transfers.GetTransferByID(c, transferID)
 //	userID := whc.AppUserIntID()

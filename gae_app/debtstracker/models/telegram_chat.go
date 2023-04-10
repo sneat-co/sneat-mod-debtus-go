@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/bots-go-framework/bots-fw-telegram"
 )
 
 type TelegramChat struct {

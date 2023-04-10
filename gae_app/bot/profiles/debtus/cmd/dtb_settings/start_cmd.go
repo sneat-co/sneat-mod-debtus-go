@@ -7,8 +7,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"errors"
 	"fmt"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/dalgo/dal"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/log"
 	"regexp"
 	"strconv"
@@ -22,7 +21,7 @@ Examples:
 */
 var reInviteOrReceiptCodeFromStart = regexp.MustCompile(`^(invite|receipt)-(\w+)(-(view|accept|decline))?(_(\w{2}(-\w{2})?))(_(.+))?$`)
 
-func StartInBotAction(whc bots.WebhookContext, startParams []string) (m bots.MessageFromBot, err error) {
+func StartInBotAction(whc botsfw.WebhookContext, startParams []string) (m botsfw.MessageFromBot, err error) {
 	if len(startParams) == 1 {
 		if matched := reInviteOrReceiptCodeFromStart.FindStringSubmatch(startParams[0]); matched != nil {
 			return startByLinkCode(whc, matched)
@@ -32,7 +31,7 @@ func StartInBotAction(whc bots.WebhookContext, startParams []string) (m bots.Mes
 	return
 }
 
-func startByLinkCode(whc bots.WebhookContext, matches []string) (m bots.MessageFromBot, err error) {
+func startByLinkCode(whc botsfw.WebhookContext, matches []string) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	log.Debugf(c, "startByLinkCode() => matches: %v", matches)
 	chatEntity := whc.ChatEntity()
@@ -63,7 +62,7 @@ func startByLinkCode(whc bots.WebhookContext, matches []string) (m bots.MessageF
 	return
 }
 
-func startInvite(whc bots.WebhookContext, inviteCode, operation, localeCode5 string) (m bots.MessageFromBot, err error) {
+func startInvite(whc botsfw.WebhookContext, inviteCode, operation, localeCode5 string) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	invite, err := dtdal.Invite.GetInvite(c, inviteCode)
 	if err == nil {
@@ -81,7 +80,7 @@ func startInvite(whc bots.WebhookContext, inviteCode, operation, localeCode5 str
 	return m, err
 }
 
-func startReceipt(whc bots.WebhookContext, receiptCode, operation, localeCode5 string) (m bots.MessageFromBot, err error) {
+func startReceipt(whc botsfw.WebhookContext, receiptCode, operation, localeCode5 string) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	receiptID, err := strconv.ParseInt(receiptCode, 10, 64)
 	if err != nil {

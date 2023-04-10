@@ -5,14 +5,14 @@ package dtb_fbm
 //
 //	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/fbmbots"
 //	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
-//	"github.com/DebtsTracker/translations/emoji"
-//	"github.com/DebtsTracker/translations/trans"
+//	"github.com/sneat-co/debtstracker-translations/emoji"
+//	"github.com/sneat-co/debtstracker-translations/trans"
 //	"github.com/strongo/app"
 //	"github.com/strongo/bots-api-fbm"
-//	"github.com/strongo/bots-framework/core"
+//	"github.com/bots-go-framework/bots-fw/botsfw"
 //)
 //
-//func aboutCard(whc bots.WebhookContext) fbmbotapi.RequestElement {
+//func aboutCard(whc botsfw.WebhookContext) fbmbotapi.RequestElement {
 //	baseUrl := fbmAppBaseUrl(whc)
 //	return fbmbotapi.NewRequestElementWithDefaultAction(
 //		"More...",
@@ -24,7 +24,7 @@ package dtb_fbm
 //	)
 //}
 //
-//func linkAccountsCard(whc bots.WebhookContext) fbmbotapi.RequestElement {
+//func linkAccountsCard(whc botsfw.WebhookContext) fbmbotapi.RequestElement {
 //	baseUrl := fbmAppBaseUrl(whc)
 //	return fbmbotapi.NewRequestElementWithDefaultAction(
 //		"link Accounts",
@@ -34,7 +34,7 @@ package dtb_fbm
 //	)
 //}
 //
-//func mainMenuCard(whc bots.WebhookContext) fbmbotapi.RequestElement {
+//func mainMenuCard(whc botsfw.WebhookContext) fbmbotapi.RequestElement {
 //	baseUrl := fbmAppBaseUrl(whc)
 //	return fbmbotapi.NewRequestElementWithDefaultAction(
 //		"Welcome",
@@ -46,7 +46,7 @@ package dtb_fbm
 //	)
 //}
 //
-////func mainMenuCard(whc bots.WebhookContext) fbm_api.RequestAttachmentPayload {
+////func mainMenuCard(whc botsfw.WebhookContext) fbm_api.RequestAttachmentPayload {
 ////	//baseUrl := fbmAppBaseUrl(whc)
 ////	return &fbm_api.NewListTemplate(
 ////		fbm_api.TopElementStyleCompact,
@@ -61,7 +61,7 @@ package dtb_fbm
 ////	)
 ////}
 //
-//func askLanguageCard(whc bots.WebhookContext) fbmbotapi.RequestAttachmentPayload {
+//func askLanguageCard(whc botsfw.WebhookContext) fbmbotapi.RequestAttachmentPayload {
 //	fbmbotapi.NewButtonTemplate(
 //		"",
 //	)
@@ -76,7 +76,7 @@ package dtb_fbm
 //	return fbmbotapi.NewGenericTemplate(requestElement)
 //}
 //
-//func welcomeCard(whc bots.WebhookContext) fbmbotapi.RequestElement {
+//func welcomeCard(whc botsfw.WebhookContext) fbmbotapi.RequestElement {
 //	baseUrl := fbmAppBaseUrl(whc)
 //	return fbmbotapi.NewRequestElementWithDefaultAction(
 //		"Welcome!",
@@ -88,7 +88,7 @@ package dtb_fbm
 //	)
 //}
 //
-//func debtsCard(whc bots.WebhookContext) fbmbotapi.RequestElement {
+//func debtsCard(whc botsfw.WebhookContext) fbmbotapi.RequestElement {
 //	baseUrl := fbmAppBaseUrl(whc)
 //	requestElement := fbmbotapi.NewRequestElementWithDefaultAction(
 //		"Debts",
@@ -102,7 +102,7 @@ package dtb_fbm
 //	return requestElement
 //}
 //
-//func billsCard(whc bots.WebhookContext) fbmbotapi.RequestElement {
+//func billsCard(whc botsfw.WebhookContext) fbmbotapi.RequestElement {
 //	baseUrl := fbmAppBaseUrl(whc)
 //	return fbmbotapi.NewRequestElementWithDefaultAction(
 //		"Bills",
@@ -114,7 +114,7 @@ package dtb_fbm
 //	)
 //}
 //
-//func settingsCard(whc bots.WebhookContext) fbmbotapi.RequestElement {
+//func settingsCard(whc botsfw.WebhookContext) fbmbotapi.RequestElement {
 //	baseUrl := fbmAppBaseUrl(whc)
 //	return fbmbotapi.NewRequestElementWithDefaultAction(
 //		"Settings",
@@ -125,7 +125,7 @@ package dtb_fbm
 //	)
 //}
 //
-//func fbmAppBaseUrl(whc bots.WebhookContext) string {
+//func fbmAppBaseUrl(whc botsfw.WebhookContext) string {
 //	fbApp, host, err := fbmbots.GetFbAppAndHost(whc.Request())
 //	if err != nil {
 //		panic(err)

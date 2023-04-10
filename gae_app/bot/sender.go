@@ -1,16 +1,16 @@
 package bot
 
 import (
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/log"
 )
 
-func SendRefreshOrNothingChanged(whc bots.WebhookContext, m bots.MessageFromBot) (m2 bots.MessageFromBot, err error) {
+func SendRefreshOrNothingChanged(whc botsfw.WebhookContext, m botsfw.MessageFromBot) (m2 botsfw.MessageFromBot, err error) {
 	c := whc.Context()
-	if _, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
+	if _, err = whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 		log.Debugf(c, "error type: %T", err)
 		if apiResponse, ok := err.(tgbotapi.APIResponse); ok && apiResponse.ErrorCode == 400 {
 			m.BotMessage = telegram.CallbackAnswer(tgbotapi.NewCallback("", whc.Translate(trans.ALERT_TEXT_NOTHING_CHANGED)))

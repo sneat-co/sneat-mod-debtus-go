@@ -15,10 +15,8 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/app/gaestandard"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/log"
 )
 
@@ -135,7 +133,7 @@ func sendToTelegram(c context.Context, user models.AppUser, tgChatID int64, tgCh
 		&tgChat,
 	)
 
-	var messageFromBot bots.MessageFromBot
+	var messageFromBot botsfw.MessageFromBot
 	switch {
 	case strings.Contains(tgChat.AwaitingReplyTo, "lending"):
 		messageFromBot, err = dtb_transfer.AskLendingAmountCommand.Action(whc)

@@ -2,17 +2,16 @@ package dtb_settings
 
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
-	"github.com/strongo/bots-framework/core"
 	"net/url"
 )
 
 var SettingsCommand = shared_all.SettingsCommandTemplate
 
 func init() {
-	SettingsCommand.Action = func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	SettingsCommand.Action = func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		return shared_all.SettingsMainAction(whc)
 	}
-	SettingsCommand.CallbackAction = func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	SettingsCommand.CallbackAction = func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		return shared_all.SettingsMainAction(whc)
 	}
 }

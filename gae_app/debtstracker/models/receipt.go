@@ -3,7 +3,8 @@ package models
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
 	"errors"
-	"github.com/strongo/dalgo/record"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
 	"time"
 )
 
@@ -26,7 +27,7 @@ var ReceiptStatuses = [4]string{
 
 type Receipt struct {
 	record.WithID[int]
-	*ReceiptEntity
+	Data *ReceiptEntity
 }
 
 //var _ db.EntityHolder = (*Receipt)(nil)
@@ -34,25 +35,15 @@ type Receipt struct {
 func (*Receipt) Kind() string {
 	return ReceiptKind
 }
-
-func (r *Receipt) Entity() interface{} {
-	return r.ReceiptEntity
-}
-
-func (Receipt) NewEntity() interface{} {
-	return new(ReceiptEntity)
-}
-
-func (r *Receipt) SetEntity(entity interface{}) {
-	if entity == nil {
-		r.ReceiptEntity = nil
-	} else {
-		r.ReceiptEntity = entity.(*ReceiptEntity)
-	}
-}
-
-func NewReceipt(id int, entity *ReceiptEntity) Receipt {
-	return Receipt{WithID: record.WithID[int]{ID: id}, ReceiptEntity: entity}
+func NewReceipt(id int, data *ReceiptEntity) Receipt {
+	key := dal.NewKeyWithID(ReceiptKind, id)
+	return Receipt{
+		WithID: record.WithID[int]{
+			ID:     id,
+			Key:    key,
+			Record: dal.NewRecordWithData(key, data),
+		},
+		Data: data}
 }
 
 const (
@@ -64,7 +55,7 @@ type ReceiptFor string
 
 type ReceiptEntity struct {
 	Status               string
-	TransferID           int64
+	TransferID           int
 	CreatorUserID        int64      // IMPORTANT: Can be different from transfer.CreatorUserID (usually same). Think of 3d party bills
 	For                  ReceiptFor `datastore:",noindex"` // TODO: always fill. If receipt.CreatorUserID != transfer.CreatorUserID then receipt.For must be set to either "from" or "to"
 	ViewedByUserIDs      []int64
@@ -83,7 +74,7 @@ type ReceiptEntity struct {
 	Error          string `datastore:",noindex"` //TODO: Need a comment on when it is used
 }
 
-func NewReceiptEntity(creatorUserID, transferID, counterpartyUserID int64, lang, sentVia, sentTo string, createdOn general.CreatedOn) ReceiptEntity {
+func NewReceiptEntity(creatorUserID int64, transferID int, counterpartyUserID int64, lang, sentVia, sentTo string, createdOn general.CreatedOn) ReceiptEntity {
 	if creatorUserID == counterpartyUserID {
 		panic("creatorUserID == counterpartyUserID")
 	}

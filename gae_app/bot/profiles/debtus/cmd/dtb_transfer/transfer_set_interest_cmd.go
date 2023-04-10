@@ -7,15 +7,13 @@ import (
 	"strings"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/DebtsTracker/translations/trans"
 	"github.com/crediterra/go-interest"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/decimal"
 )
 
 var reInterest = regexp.MustCompile(`^\s*(?P<percent>\d+(?:[\.,]\d+)?)%?(?:/(?P<period>\d+|w(?:eek)?|y(?:ear)?|m(?:onth)?))?(?:/(?P<minimum>\d+))?(?:/(?P<grace>\d+))?(?::\s*(?P<comment>.+?))?\s*$`)
 
-func interestAction(whc bots.WebhookContext, nextAction bots.CommandAction) (m bots.MessageFromBot, err error) {
+func interestAction(whc botsfw.WebhookContext, nextAction botsfw.CommandAction) (m botsfw.MessageFromBot, err error) {
 	mt := whc.Input().(bots.WebhookTextMessage).Text()
 
 	if matches := reInterest.FindStringSubmatch(mt); len(matches) > 0 {

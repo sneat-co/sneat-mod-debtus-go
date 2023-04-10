@@ -11,9 +11,9 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/captaincodeman/datastore-mapper"
 	users "github.com/strongo/app/user"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/datastore"
 )

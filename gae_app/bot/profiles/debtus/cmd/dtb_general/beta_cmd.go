@@ -5,15 +5,14 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"github.com/strongo/bots-framework/core"
 )
 
 const BETA_COMMAND = "beta"
 
-var BetaCommand = bots.Command{
+var BetaCommand = botsfw.Command{
 	Code:     BETA_COMMAND,
 	Commands: []string{"/beta"},
-	Action: func(whc bots.WebhookContext) (bots.MessageFromBot, error) {
+	Action: func(whc botsfw.WebhookContext) (bots.MessageFromBot, error) {
 		bot := whc.GetBotSettings()
 		token := auth.IssueToken(whc.AppUserIntID(), whc.BotPlatform().ID()+":"+bot.Code, false)
 		host := common.GetWebsiteHost(bot.Code)

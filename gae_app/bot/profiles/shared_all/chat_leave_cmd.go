@@ -1,12 +1,10 @@
 package shared_all
 
-import "github.com/strongo/bots-framework/core"
-
 const CHAT_LEFT_COMMAND = "left-chat"
 
-var leftChatCommand = bots.Command{
+var leftChatCommand = botsfw.Command{
 	Code: CHAT_LEFT_COMMAND,
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		return
 	},
 }

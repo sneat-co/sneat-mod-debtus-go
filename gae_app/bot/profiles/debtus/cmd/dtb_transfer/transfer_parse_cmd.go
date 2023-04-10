@@ -9,26 +9,23 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 )
 
-var ParseTransferCommand = bots.Command{
+var ParseTransferCommand = botsfw.Command{
 	Code: "parse-transfer",
-	Matcher: func(c bots.Command, whc bots.WebhookContext) bool {
+	Matcher: func(c botsfw.Command, whc botsfw.WebhookContext) bool {
 		input := whc.Input()
 		switch input.(type) {
-		case bots.WebhookTextMessage:
+		case botsfw.WebhookTextMessage:
 			return transferRegex.MatchString(input.(bots.WebhookTextMessage).Text())
 		default:
 			return false
 		}
 	},
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		match := transferRegex.FindStringSubmatch(whc.Input().(bots.WebhookTextMessage).Text())
 		var verb, valueS, counterpartyName, when string
 		var direction models.TransferDirection
@@ -90,7 +87,7 @@ var ParseTransferCommand = bots.Command{
 
 		from, to := facade.TransferCounterparties(direction, creatorInfo)
 
-		var botUserEntity bots.BotAppUser
+		var botUserEntity botsfw.BotAppUser
 		botUserEntity, err = whc.GetAppUser()
 		creatorUser := models.AppUser{
 			IntegerID:     db.NewIntID(whc.AppUserIntID()),

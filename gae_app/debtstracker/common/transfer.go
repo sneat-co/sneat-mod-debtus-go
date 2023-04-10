@@ -10,7 +10,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-framework/core"
 	"html/template"
 )
 
@@ -82,7 +81,7 @@ func GetPathAndQueryForInvite(inviteCode string, utmParams UtmParams) string {
 	return fmt.Sprintf("ack?invite=%v#%v", template.URLQueryEscaper(inviteCode), utmParams)
 }
 
-func GetNewDebtPageUrl(whc bots.WebhookContext, direction models.TransferDirection, utmCampaign string) string {
+func GetNewDebtPageUrl(whc botsfw.WebhookContext, direction models.TransferDirection, utmCampaign string) string {
 	botID := whc.GetBotCode()
 	botPlatform := whc.BotPlatform().ID()
 	token := auth.IssueToken(whc.AppUserIntID(), formatIssuer(botPlatform, botID), false)

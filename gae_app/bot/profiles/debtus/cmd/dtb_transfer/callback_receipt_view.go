@@ -7,19 +7,19 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
+	"fmt"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/app/gae"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
 	"net/url"
 	"strings"
 )
 
-var ViewReceiptInTelegramCallbackCommand = bots.NewCallbackCommand(
+var ViewReceiptInTelegramCallbackCommand = botsfw.NewCallbackCommand(
 	VIEW_RECEIPT_IN_TELEGRAM_COMMAND,
-	func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "ViewReceiptInTelegramCallbackCommand.CallbackAction()")
 		query := callbackUrl.Query()
@@ -32,7 +32,7 @@ var ViewReceiptInTelegramCallbackCommand = bots.NewCallbackCommand(
 			return m, err
 		}
 		currentUserID := whc.AppUserIntID()
-		if receipt.CreatorUserID != currentUserID {
+		if receipt.Data.CreatorUserID != currentUserID {
 			if err = linkUsersByReceiptNowOrDelay(c, receipt, currentUserID); err != nil {
 				log.Errorf(c, err.Error())
 				err = nil // We still can create link to receipt, so log error and continue
@@ -62,7 +62,7 @@ const delayLinkUserByReceiptKeyName = "delayLinkUserByReceipt"
 
 var delayLinkUserByReceipt = delay.Func(delayLinkUserByReceiptKeyName, delayedLinkUsersByReceipt)
 
-func DelayLinkUsersByReceipt(c context.Context, receiptID, invitedUserID int64) (err error) {
+func DelayLinkUsersByReceipt(c context.Context, receiptID int, invitedUserID int64) (err error) {
 	return gae.CallDelayFunc(c, common.QUEUE_RECEIPTS, delayLinkUserByReceiptKeyName, delayLinkUserByReceipt, receiptID, invitedUserID)
 }
 
@@ -81,11 +81,11 @@ func delayedLinkUsersByReceipt(c context.Context, receiptID, invitedUserID int64
 
 func linkUsersByReceiptNowOrDelay(c context.Context, receipt models.Receipt, invitedUserID int64) (err error) {
 	if err = linkUsersByReceipt(c, receipt, invitedUserID); err != nil {
-		err = errors.WithMessage(err, "failed to link users by receipt")
+		err = fmt.Errorf("failed to link users by receipt: %w", err)
 		if strings.Contains(err.Error(), "concurrent transaction") {
 			log.Warningf(c, err.Error())
 			if err = DelayLinkUsersByReceipt(c, receipt.ID, invitedUserID); err != nil {
-				err = errors.WithMessage(err, "failed to delay linking users by receipt")
+				err = fmt.Errorf("failed to delay linking users by receipt: %w", err)
 			}
 		}
 	}
@@ -93,18 +93,18 @@ func linkUsersByReceiptNowOrDelay(c context.Context, receipt models.Receipt, inv
 }
 
 func linkUsersByReceipt(c context.Context, receipt models.Receipt, invitedUserID int64) (err error) {
-	if receipt.CounterpartyUserID == 0 {
+	if receipt.Data.CounterpartyUserID == 0 {
 		linker := facade.NewReceiptUsersLinker(nil) // TODO: Link users
 		if _, err = linker.LinkReceiptUsers(c, receipt.ID, invitedUserID); err != nil {
 			return err
 		}
-	} else if receipt.CounterpartyUserID != invitedUserID {
+	} else if receipt.Data.CounterpartyUserID != invitedUserID {
 		// TODO: Should we allow to see receipt but block from changing it?
 		log.Warningf(c, `Security issue: receipt.CreatorUserID != currentUserID && receipt.CounterpartyUserID != currentUserID
 	currentUserID: %d
 	receipt.CreatorUserID: %d
 	receipt.CounterpartyUserID: %d
-				`, invitedUserID, receipt.CreatorUserID, receipt.CounterpartyUserID)
+				`, invitedUserID, receipt.Data.CreatorUserID, receipt.Data.CounterpartyUserID)
 	} else {
 		// receipt.CounterpartyUserID == currentUserID - we are fine
 	}

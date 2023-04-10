@@ -4,7 +4,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"fmt"
-	"github.com/strongo/bots-api-telegram"
 	"google.golang.org/appengine/urlfetch"
 )
 

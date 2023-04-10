@@ -14,15 +14,12 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
 	"context"
 	"errors"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
+	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/app/gaestandard"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/hosts/appengine"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/datastore"
@@ -333,7 +330,7 @@ func editTgMessageText(c context.Context, tgBotID string, tgChatID int64, tgMsgI
 	return
 }
 
-func sendToTelegram(c context.Context, msg tgbotapi.Chattable, botSettings bots.BotSettings) (err error) { // TODO: Merge with same in API package
+func sendToTelegram(c context.Context, msg tgbotapi.Chattable, botSettings botsfw.BotSettings) (err error) { // TODO: Merge with same in API package
 	tgApi := tgbotapi.NewBotAPIWithClient(botSettings.Token, urlfetch.Client(c))
 	if _, err = tgApi.Send(msg); err != nil {
 		return

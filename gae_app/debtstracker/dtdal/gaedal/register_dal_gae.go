@@ -6,8 +6,7 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"context"
-	"github.com/strongo/bots-framework/core"
-	telegramBot "github.com/strongo/bots-framework/platforms/telegram"
+	telegramBot "github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
@@ -70,7 +69,7 @@ func (h ApiBotHost) GetHTTPClient(c context.Context) *http.Client {
 	return dtdal.HttpClient(c)
 }
 
-func (h ApiBotHost) GetBotCoreStores(platform string, appContext bots.BotAppContext, r *http.Request) bots.BotCoreStores {
+func (h ApiBotHost) GetBotCoreStores(platform string, appContext botsfw.BotAppContext, r *http.Request) botsfw.BotCoreStores {
 	panic("Not implemented")
 }
 

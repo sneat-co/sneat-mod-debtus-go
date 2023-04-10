@@ -6,14 +6,12 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"errors"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 )
 
 var ErrUnknownStartParam = errors.New("unknown start parameter")
 
-func startInBotAction(whc bots.WebhookContext, startParams []string, botParams BotParams) (m bots.MessageFromBot, err error) {
+func startInBotAction(whc botsfw.WebhookContext, startParams []string, botParams BotParams) (m botsfw.MessageFromBot, err error) {
 	log.Debugf(whc.Context(), "startInBotAction() => startParams: %v", startParams)
 	if m, err = botParams.StartInBotAction(whc, startParams); err == nil || err != ErrUnknownStartParam {
 		return
@@ -34,7 +32,7 @@ func startInBotAction(whc bots.WebhookContext, startParams []string, botParams B
 	return startInBotWelcomeAction(whc, botParams)
 }
 
-func startInBotWelcomeAction(whc bots.WebhookContext, botParams BotParams) (m bots.MessageFromBot, err error) {
+func startInBotWelcomeAction(whc botsfw.WebhookContext, botParams BotParams) (m botsfw.MessageFromBot, err error) {
 	var user *models.AppUserEntity
 	if user, err = GetUser(whc); err != nil {
 		return
@@ -53,12 +51,12 @@ func startInBotWelcomeAction(whc bots.WebhookContext, botParams BotParams) (m bo
 	buf.WriteString(whc.Translate(trans.MESSAGE_TEXT_ASK_LANG))
 	m.Text = buf.String()
 
-	m.Format = bots.MessageFormatHTML
+	m.Format = botsfw.MessageFormatHTML
 	m.Keyboard = LangKeyboard
 	return
 }
 
-func onStartCallbackInBot(whc bots.WebhookContext, params BotParams) (m bots.MessageFromBot, err error) {
+func onStartCallbackInBot(whc botsfw.WebhookContext, params BotParams) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	log.Debugf(c, "onStartCallbackInBot()")
 

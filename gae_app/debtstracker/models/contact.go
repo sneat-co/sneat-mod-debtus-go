@@ -2,8 +2,8 @@ package models
 
 import (
 	"fmt"
-	"github.com/strongo/dalgo/dal"
-	"github.com/strongo/dalgo/record"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
 	"strings"
 	"time"
 
@@ -70,25 +70,25 @@ func NewContact(id int64, data *ContactEntity) Contact {
 
 //var _ db.EntityHolder = (*Contact)(nil)
 
-func (Contact) Kind() string {
-	return ContactKind
-}
+//func (Contact) Kind() string {
+//	return ContactKind
+//}
 
-func (c *Contact) Entity() interface{} {
-	return c.Data
-}
+//func (c *Contact) Entity() interface{} {
+//	return c.Data
+//}
 
-func (Contact) NewEntity() interface{} {
-	return new(ContactEntity)
-}
+//func (Contact) NewEntity() interface{} {
+//	return new(ContactEntity)
+//}
 
-func (c *Contact) SetEntity(entity interface{}) {
-	if entity == nil {
-		c.Data = nil
-	} else {
-		c.Data = entity.(*ContactEntity)
-	}
-}
+//func (c *Contact) SetEntity(entity interface{}) {
+//	if entity == nil {
+//		c.Data = nil
+//	} else {
+//		c.Data = entity.(*ContactEntity)
+//	}
+//}
 
 func (c Contact) MustMatchCounterparty(counterparty Contact) {
 	if !c.Data.Balance().Equal(counterparty.Data.Balance().Reversed()) {
@@ -120,11 +120,11 @@ type ContactEntity struct {
 	GroupIDs            []string `datastore:",noindex"`
 }
 
-func (entity ContactEntity) String() string {
+func (entity *ContactEntity) String() string {
 	return fmt.Sprintf("Contact{UserID: %v, CounterpartyUserID: %v, CounterpartyCounterpartyID: %v, Status: %v, ContactDetails: %v, Balance: '%v', LastTransferAt: %v}", entity.UserID, entity.CounterpartyUserID, entity.CounterpartyCounterpartyID, entity.Status, entity.ContactDetails, entity.BalanceJson, entity.LastTransferAt)
 }
 
-func (entity ContactEntity) GetTransfersInfo() (transfersInfo *UserContactTransfersInfo) {
+func (entity *ContactEntity) GetTransfersInfo() (transfersInfo *UserContactTransfersInfo) {
 	if entity.TransfersJson == "" {
 		return &UserContactTransfersInfo{}
 	}
@@ -144,7 +144,7 @@ func (entity *ContactEntity) SetTransfersInfo(transfersInfo UserContactTransfers
 	}
 }
 
-func (entity *ContactEntity) Info(counterpartyID int, note, comment string) TransferCounterpartyInfo {
+func (entity *ContactEntity) Info(counterpartyID int64, note, comment string) TransferCounterpartyInfo {
 	return TransferCounterpartyInfo{
 		ContactID:   counterpartyID,
 		UserID:      entity.UserID,
@@ -247,8 +247,8 @@ func (entity *ContactEntity) BalanceWithInterest(c context.Context, periodEnds t
 	return
 }
 
-func ContactsByID(contacts []Contact) (contactsByID map[int]*ContactEntity) {
-	contactsByID = make(map[int]*ContactEntity, len(contacts))
+func ContactsByID(contacts []Contact) (contactsByID map[int64]*ContactEntity) {
+	contactsByID = make(map[int64]*ContactEntity, len(contacts))
 	for _, contact := range contacts {
 		contactsByID[contact.ID] = contact.Data
 	}

@@ -1,13 +1,14 @@
 package dtb_inline
 
 import (
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	bots "github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 )
 
-func InlineEmptyQuery(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+func InlineEmptyQuery(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 	log.Debugf(whc.Context(), "InlineEmptyQuery()")
 	inlineQuery := whc.Input().(bots.WebhookInlineQuery)
 	m.BotMessage = telegram.InlineBotMessage(tgbotapi.InlineConfig{

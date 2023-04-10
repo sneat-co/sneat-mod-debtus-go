@@ -8,23 +8,20 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 )
 
 const GROUP_BALANCE_COMMAND = "group-balance"
 
-var groupBalanceCommand = bots.Command{
+var groupBalanceCommand = botsfw.Command{
 	Code:     GROUP_BALANCE_COMMAND,
 	Commands: []string{"/balance"},
 	Action:   shared_group.NewGroupAction(groupBalanceAction),
-	CallbackAction: shared_group.NewGroupCallbackAction(func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
+	CallbackAction: shared_group.NewGroupCallbackAction(func(whc botsfw.WebhookContext, callbackUrl *url.URL, group models.Group) (m botsfw.MessageFromBot, err error) {
 		return groupBalanceAction(whc, group)
 	}),
 }
 
-func groupBalanceAction(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error) {
+func groupBalanceAction(whc botsfw.WebhookContext, group models.Group) (m botsfw.MessageFromBot, err error) {
 	var buf bytes.Buffer
 	writeMembers := func(members []models.GroupMemberJson) {
 		for i, m := range members {
@@ -56,8 +53,8 @@ func groupBalanceAction(whc bots.WebhookContext, group models.Group) (m bots.Mes
 	writeMembers(debtors)
 
 	m.Text = buf.String()
-	m.Format = bots.MessageFormatHTML
-	m.IsEdit = whc.Input().InputType() == bots.WebhookInputCallbackQuery
+	m.Format = botsfw.MessageFormatHTML
+	m.IsEdit = whc.Input().InputType() == botsfw.WebhookInputCallbackQuery
 
 	m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{

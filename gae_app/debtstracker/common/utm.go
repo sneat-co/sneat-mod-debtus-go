@@ -3,8 +3,6 @@ package common
 import (
 	"fmt"
 	"net/url"
-
-	"github.com/strongo/bots-framework/core"
 )
 
 const (
@@ -25,15 +23,15 @@ type UtmParams struct {
 	Campaign string // Identify where link is placed. For example 'receipt'
 }
 
-func NewUtmParams(whc bots.WebhookContext, campaign string) UtmParams {
+func NewUtmParams(whc botsfw.WebhookContext, campaign string) UtmParams {
 	return FillUtmParams(whc, UtmParams{Campaign: campaign})
 }
 
-func UtmSourceFromContext(whc bots.WebhookContext) string {
+func UtmSourceFromContext(whc botsfw.WebhookContext) string {
 	return whc.GetBotCode()
 }
 
-func FillUtmParams(whc bots.WebhookContext, utm UtmParams) UtmParams {
+func FillUtmParams(whc botsfw.WebhookContext, utm UtmParams) UtmParams {
 	if utm.Source == "" {
 		utm.Source = whc.GetBotCode()
 	}

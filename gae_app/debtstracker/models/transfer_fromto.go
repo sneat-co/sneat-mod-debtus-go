@@ -4,6 +4,7 @@ package models
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -14,7 +15,7 @@ import (
 type TransferCounterpartyInfo struct {
 	UserID             int64  `json:",omitempty"`
 	UserName           string `json:",omitempty"`
-	ContactID          int    `json:",omitempty"`
+	ContactID          int64  `json:",omitempty"`
 	ContactName        string `json:",omitempty"`
 	Note               string `json:",omitempty"`
 	Comment            string `json:",omitempty"`
@@ -28,7 +29,7 @@ func NewFrom(userID int64, comment string) *TransferCounterpartyInfo {
 	return &TransferCounterpartyInfo{UserID: userID, Comment: comment}
 }
 
-func NewTo(counterpartyID int) *TransferCounterpartyInfo {
+func NewTo(counterpartyID int64) *TransferCounterpartyInfo {
 	return &TransferCounterpartyInfo{ContactID: counterpartyID}
 }
 
@@ -212,7 +213,7 @@ func (t *TransferEntity) To() *TransferCounterpartyInfo {
 func (t *TransferEntity) onSaveSerializeJson() error {
 	if t.from != nil {
 		if s, err := ffjson.MarshalFast(t.from); err != nil {
-			panic(errors.WithMessage(err, "Failed to marshal transfer.from"))
+			panic(fmt.Errorf("failed to marshal transfer.from: %w", err))
 		} else {
 			t.FromJson = string(s)
 		}
@@ -221,7 +222,7 @@ func (t *TransferEntity) onSaveSerializeJson() error {
 	}
 	if t.to != nil {
 		if s, err := ffjson.MarshalFast(t.to); err != nil {
-			return errors.WithMessage(err, "Failed to marshal transfer.to")
+			return fmt.Errorf("failed to marshal transfer.to: %w", err)
 		} else {
 			t.ToJson = string(s)
 		}

@@ -7,28 +7,25 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"net/url"
 )
 
 const billsCommandCode = "bills"
 
-var billsCommand = bots.Command{
+var billsCommand = botsfw.Command{
 	Code:     billsCommandCode,
 	Commands: trans.Commands(trans.COMMAND_TEXT_BILLS, "/"+billsCommandCode),
 	Icon:     emoji.CLIPBOARD_ICON,
 	Title:    trans.COMMAND_TEXT_BILLS,
 	Action:   billsAction,
-	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		return billsAction(whc)
 	},
 }
 
-func billsAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+func billsAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	if !whc.IsInGroup() {
 		var user models.AppUser
@@ -46,7 +43,7 @@ func billsAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 			fmt.Fprintf(buf, "\n%v. %v: %v %v", i+1, billJson.Name, billJson.Total, billJson.Currency)
 		}
 		m.Text = buf.String()
-		m.Format = bots.MessageFormatHTML
+		m.Format = botsfw.MessageFormatHTML
 		keyboard := tgbotapi.NewInlineKeyboardMarkup()
 		if !whc.IsInGroup() {
 			keyboard.InlineKeyboard = append(keyboard.InlineKeyboard,
@@ -76,14 +73,14 @@ func billsAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		return
 	}
 
-	m.Format = bots.MessageFormatHTML
+	m.Format = botsfw.MessageFormatHTML
 
 	if group.OutstandingBillsCount == 0 {
 		mt := "This group has no outstanding bills"
 		switch whc.InputType() {
-		case bots.WebhookInputCallbackQuery:
+		case botsfw.WebhookInputCallbackQuery:
 			m.BotMessage = telegram.CallbackAnswer(tgbotapi.AnswerCallbackQueryConfig{Text: mt})
-		case bots.WebhookInputText:
+		case botsfw.WebhookInputText:
 			m.Text = mt
 		default:
 			err = errors.New("Unknown input type")

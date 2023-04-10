@@ -12,18 +12,15 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/sms"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/invites"
 	"errors"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
+	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/log"
 )
 
 var reEmail = regexp.MustCompile("^.+@.+\\.\\w+$")
 
-func handleInviteOnStart(whc bots.WebhookContext, inviteCode string, invite *models.InviteEntity) (m bots.MessageFromBot, err error) {
+func handleInviteOnStart(whc botsfw.WebhookContext, inviteCode string, invite *models.InviteEntity) (m botsfw.MessageFromBot, err error) {
 	claimAndReply := func() {
 		if _, err = dtdal.Invite.ClaimInvite2(whc.Context(), inviteCode, invite, whc.AppUserIntID(), whc.BotPlatform().ID(), whc.GetBotCode()); err != nil {
 			err = errors.Wrap(err, "Failed to ClaimInvite()")
@@ -58,7 +55,7 @@ func handleInviteOnStart(whc bots.WebhookContext, inviteCode string, invite *mod
 	return
 }
 
-//func OnboardingTellAboutInviteCodeAction(whc bots.WebhookContext) (bots.MessageFromBot, error) {
+//func OnboardingTellAboutInviteCodeAction(whc botsfw.WebhookContext) (bots.MessageFromBot, error) {
 //	log.Infof(whc.Context(), "onboardingTellAboutInviteCodeAction")
 //	m := whc.NewMessageByCode(trans.MESSAGE_TEXT_ONBOARDING_TELL_ABOUT_INVITES, whc.GetSender().GetFirstName())
 //	keyboard := tgbotapi.NewReplyKeyboardUsingStrings([][]string{
@@ -68,16 +65,16 @@ func handleInviteOnStart(whc bots.WebhookContext, inviteCode string, invite *mod
 //	})
 //	keyboard.ResizeKeyboard = true
 //	m.Keyboard = keyboard
-//	m.Format = bots.MessageFormatHTML
+//	m.Format = botsfw.MessageFormatHTML
 //	whc.ChatEntity().SetAwaitingReplyTo(TELL_ABOUT_INVITE_CODE_COMMAND)
 //	return m, nil
 //}
 
 //const TELL_ABOUT_INVITE_CODE_COMMAND = "tell-about-invite-code"
 //
-//var OnboardingTellAboutInviteCodeCommand = bots.Command{
+//var OnboardingTellAboutInviteCodeCommand = botsfw.Command{
 //	Code: TELL_ABOUT_INVITE_CODE_COMMAND,
-//	Replies: []bots.Command{
+//	Replies: []botsfw.Command{
 //		OnboardingAskInviteCodeCommand,
 //		OnboardingAskInviteChannelCommand,
 //		shared_all.OnboardingAskLocaleCommand,
@@ -87,20 +84,20 @@ func handleInviteOnStart(whc bots.WebhookContext, inviteCode string, invite *mod
 //
 //const ASK_INVITE_CHANNEL_COMMAND = "ask-invite-channel"
 //
-//var OnboardingAskInviteChannelCommand = bots.Command{
+//var OnboardingAskInviteChannelCommand = botsfw.Command{
 //	Code:  ASK_INVITE_CHANNEL_COMMAND,
 //	Title: trans.COMMAND_TEXT_SEND_ME_NEW_INVITE,
 //	Icon:  emoji.PACKAGE_ICON,
-//	Replies: []bots.Command{
+//	Replies: []botsfw.Command{
 //		OnboardingAskEmailCommand,
 //		OnboardingAskPhoneCommand,
 //	},
-//	Action: func(whc bots.WebhookContext) (bots.MessageFromBot, error) {
+//	Action: func(whc botsfw.WebhookContext) (bots.MessageFromBot, error) {
 //		input := whc.Input()
 //		switch input.(type) {
-//		case bots.WebhookContactMessage:
+//		case botsfw.WebhookContactMessage:
 //			return onboardingProcessPhoneContact(whc, input.(bots.WebhookContactMessage))
-//		default: //case bots.WebhookTextMessage:
+//		default: //case botsfw.WebhookTextMessage:
 //			m := whc.NewMessageByCode(trans.MESSAGE_TEXT_ASK_INVITE_CHANNEL)
 //			telegramKeyboard := &tgbotapi.ReplyKeyboardMarkup{
 //				ResizeKeyboard:  true,
@@ -134,15 +131,15 @@ func handleInviteOnStart(whc bots.WebhookContext, inviteCode string, invite *mod
 //
 //const ASK_INVITE_CODE_COMMAND = "ask-invite-code"
 //
-//var OnboardingAskInviteCodeCommand = bots.Command{
+//var OnboardingAskInviteCodeCommand = botsfw.Command{
 //	Code:       ASK_INVITE_CODE_COMMAND,
 //	Title:      trans.COMMAND_TEXT_I_HAVE_INVITE,
 //	Icon:       emoji.CLOSED_LOCK_WITH_KEY,
 //	ExactMatch: trans.COMMAND_TEXT_I_HAVE_INVITE,
-//	Replies: []bots.Command{
+//	Replies: []botsfw.Command{
 //		OnboardingCheckInviteCommand,
 //	},
-//	Action: func(whc bots.WebhookContext) (bots.MessageFromBot, error) {
+//	Action: func(whc botsfw.WebhookContext) (bots.MessageFromBot, error) {
 //		if whc.Input().(bots.WebhookTextMessage).Text() == whc.CommandText(trans.COMMAND_TEXT_I_HAVE_INVITE, emoji.CLOSED_LOCK_WITH_KEY) {
 //			chatEntity := whc.ChatEntity()
 //			chatEntity.PopStepsFromAwaitingReplyUpToSpecificParent(TELL_ABOUT_INVITE_CODE_COMMAND)
@@ -158,7 +155,7 @@ func handleInviteOnStart(whc bots.WebhookContext, inviteCode string, invite *mod
 //
 //const CHECK_INVITE_COMMAND = "check-invite"
 
-func NewMistypedCommand(messageToAdd string) bots.Command {
+func NewMistypedCommand(messageToAdd string) botsfw.Command {
 	var message []string
 	if messageToAdd == "" {
 		message = []string{trans.MESSAGE_TEXT_OK_PLEASE_TRY_AGAIN}
@@ -171,14 +168,14 @@ func NewMistypedCommand(messageToAdd string) bots.Command {
 		emoji.SORRY_ICON, emoji.THUMB_UP_ICON, true)
 }
 
-//var OnboardingCheckInviteCommand = bots.Command{
+//var OnboardingCheckInviteCommand = botsfw.Command{
 //	Code: CHECK_INVITE_COMMAND,
-//	Replies: []bots.Command{
+//	Replies: []botsfw.Command{
 //		OnboardingAskEmailCommand,
 //		OnboardingAskPhoneCommand,
 //		NewMistypedCommand(trans.MESSAGE_TEXT_PLEASE_ENTER_INVITE_CODE),
 //	},
-//	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+//	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 //		// Check for code
 //
 //		c := whc.Context()
@@ -199,8 +196,8 @@ func NewMistypedCommand(messageToAdd string) bots.Command {
 //			}
 //			return
 //		}
-//		if err = bots.SetAccessGranted(whc, true); err != nil {
-//			err = errors.Wrap(err, "Failed to call bots.SetAccessGranted(whc, true)")
+//		if err = botsfw.SetAccessGranted(whc, true); err != nil {
+//			err = errors.Wrap(err, "Failed to call botsfw.SetAccessGranted(whc, true)")
 //			return
 //		}
 //
@@ -210,13 +207,13 @@ func NewMistypedCommand(messageToAdd string) bots.Command {
 //	},
 //}
 
-func TextCommand(on string, message []string, icon, replyIcon string, hideKeyboard bool) bots.Command {
-	return bots.Command{
+func TextCommand(on string, message []string, icon, replyIcon string, hideKeyboard bool) botsfw.Command {
+	return botsfw.Command{
 		Code:       fmt.Sprintf("TextCommand(%v)", on),
 		Title:      on,
 		Icon:       icon,
 		ExactMatch: on,
-		Action: func(whc bots.WebhookContext) (bots.MessageFromBot, error) {
+		Action: func(whc botsfw.WebhookContext) (bots.MessageFromBot, error) {
 			for i, untranslated := range message {
 				message[i] = whc.Translate(untranslated)
 			}
@@ -236,16 +233,16 @@ func TextCommand(on string, message []string, icon, replyIcon string, hideKeyboa
 //	TELL_ABOUT_INVITE_CODE_COMMAND: OnboardingTellAboutInviteCode,
 //}
 
-//func askContactDetailsCommand(cmd ContactsChannelCommand, invalidMessageCode string, altCmd ContactsChannelCommand, telegramKeyboard func(bots.WebhookContext) bots.Keyboard) bots.Command {
-//	return bots.Command{
+//func askContactDetailsCommand(cmd ContactsChannelCommand, invalidMessageCode string, altCmd ContactsChannelCommand, telegramKeyboard func(bots.WebhookContext) botsfw.Keyboard) botsfw.Command {
+//	return botsfw.Command{
 //		Code:  cmd.code,
 //		Title: cmd.title,
 //		Icon:  cmd.icon,
 //		//exactMatch: cmd.exactMatch, //TODO: Fix it!
-//		Replies: []bots.Command{
+//		Replies: []botsfw.Command{
 //			NewMistypedCommand(cmd.message),
 //		},
-//		Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+//		Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 //			c := whc.Context()
 //
 //			log.Infof(c, "Command(code=%v).Action()", cmd.code)
@@ -254,9 +251,9 @@ func TextCommand(on string, message []string, icon, replyIcon string, hideKeyboa
 //
 //			input := whc.Input()
 //			switch input.(type) {
-//			case bots.WebhookContactMessage:
+//			case botsfw.WebhookContactMessage:
 //				return onboardingProcessPhoneContact(whc, input.(bots.WebhookContactMessage))
-//			default: // case bots.WebhookTextMessage:
+//			default: // case botsfw.WebhookTextMessage:
 //				message := whc.Input().(bots.WebhookTextMessage)
 //				messageText := message.Text()
 //				altOption := messageText == altCmd.title
@@ -303,7 +300,7 @@ type ContactsChannelCommand struct {
 	message string
 }
 
-func (c ContactsChannelCommand) CommandText(whc bots.WebhookContext) string {
+func (c ContactsChannelCommand) CommandText(whc botsfw.WebhookContext) string {
 	return whc.CommandText(c.title, c.icon)
 }
 
@@ -322,7 +319,7 @@ func (c ContactsChannelCommand) CommandText(whc bots.WebhookContext) string {
 //}
 
 //var OnboardingAskPhoneCommand = askContactDetailsCommand(SmsChannelCommand, trans.MESSAGE_TEXT_WRONG_PHONE_NUMBER, EmailChannelCommand,
-//	func(whc bots.WebhookContext) bots.Keyboard {
+//	func(whc botsfw.WebhookContext) botsfw.Keyboard {
 //		return &tgbotapi.ReplyKeyboardMarkup{
 //			ResizeKeyboard:  true,
 //			OneTimeKeyboard: true,
@@ -341,21 +338,21 @@ func (c ContactsChannelCommand) CommandText(whc bots.WebhookContext) string {
 //var OnboardingAskEmailCommand = askContactDetailsCommand(
 //	EmailChannelCommand,
 //	trans.MESSAGE_TEXT_WRONG_EMAIL, SmsChannelCommand,
-//	func(whc bots.WebhookContext) bots.Keyboard {
+//	func(whc botsfw.WebhookContext) botsfw.Keyboard {
 //		return tgbotapi.NewHideKeyboard(false)
 //	},
 //)
 
 const ON_USER_CONTACT_RECEIVED_COMMAND = "on-user-contact-received"
 
-var OnboardingOnUserContactReceivedCommand = bots.Command{
+var OnboardingOnUserContactReceivedCommand = botsfw.Command{
 	Code: ON_USER_CONTACT_RECEIVED_COMMAND,
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		return
 	},
 }
 
-func onboardingProcessPhoneContact(whc bots.WebhookContext, contact bots.WebhookContactMessage) (m bots.MessageFromBot, err error) {
+func onboardingProcessPhoneContact(whc botsfw.WebhookContext, contact botsfw.WebhookContactMessage) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	//whc.ChatEntity().SetAwaitingReplyTo(ON_USER_CONTACT_RECEIVED_COMMAND)
 	invite, err := dtdal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserIntID(), models.InviteBySms, contact.PhoneNumber(), whc.BotPlatform().ID(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
@@ -413,7 +410,7 @@ const EMAIL_CONFIRMATION_SENT_COMMAND = "email-confirmation-sent"
 
 const INVITE_IS_RELATED_TO_ONBOARDING = "onboarding=yes"
 
-func onboardingProcessEmail(messageText string, whc bots.WebhookContext, altCmd ContactsChannelCommand) (m bots.MessageFromBot, err error) {
+func onboardingProcessEmail(messageText string, whc botsfw.WebhookContext, altCmd ContactsChannelCommand) (m botsfw.MessageFromBot, err error) {
 
 	log.Infof(whc.Context(), "onboardingProcessEmail(messageText=%v)", messageText)
 	email := strings.TrimSpace(messageText)

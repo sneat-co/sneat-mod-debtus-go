@@ -16,14 +16,13 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/maintainance"
 	"github.com/julienschmidt/httprouter"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 )
 
 // Init initializes debts tracker server
-func Init(botHost bots.BotHost) {
+func Init(botHost botsfw.BotHost) {
 	if botHost == nil {
 		panic("botHost parameter is required")
 	}

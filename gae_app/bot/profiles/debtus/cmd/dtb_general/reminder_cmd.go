@@ -5,11 +5,9 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-framework/core"
 )
 
-func EditReminderMessage(whc bots.WebhookContext, transfer models.Transfer, message string) (m bots.MessageFromBot, err error) {
+func EditReminderMessage(whc botsfw.WebhookContext, transfer models.Transfer, message string) (m botsfw.MessageFromBot, err error) {
 	utm := common.NewUtmParams(whc, common.UTM_CAMPAIGN_REMINDER)
 	mt := fmt.Sprintf(
 		"<b>%v</b>\n%v\n\n%v",
@@ -17,13 +15,13 @@ func EditReminderMessage(whc bots.WebhookContext, transfer models.Transfer, mess
 		common.TextReceiptForTransfer(whc, transfer, whc.AppUserIntID(), common.ShowReceiptToAutodetect, utm),
 		message,
 	)
-	if whc.InputType() == bots.WebhookInputCallbackQuery {
-		if m, err = whc.NewEditMessage(mt, bots.MessageFormatHTML); err != nil {
+	if whc.InputType() == botsfw.WebhookInputCallbackQuery {
+		if m, err = whc.NewEditMessage(mt, botsfw.MessageFormatHTML); err != nil {
 			return
 		}
 	} else {
 		m = whc.NewMessage(mt)
-		m.Format = bots.MessageFormatHTML
+		m.Format = botsfw.MessageFormatHTML
 		SetMainMenuKeyboard(whc, &m)
 	}
 

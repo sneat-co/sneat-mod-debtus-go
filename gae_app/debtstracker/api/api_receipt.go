@@ -20,7 +20,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/invites"
 	"context"
 	"errors"
-	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gaestandard"
 	"github.com/strongo/log"

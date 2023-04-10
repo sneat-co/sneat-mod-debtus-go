@@ -6,27 +6,24 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"fmt"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/log"
 	"net/url"
 )
 
 const groupsCommandCode = "groups"
 
-var groupsCommand = bots.Command{
+var groupsCommand = botsfw.Command{
 	Code:       groupsCommandCode,
-	InputTypes: []bots.WebhookInputType{bots.WebhookInputText, bots.WebhookInputCallbackQuery},
+	InputTypes: []botsfw.WebhookInputType{bots.WebhookInputText, botsfw.WebhookInputCallbackQuery},
 	Commands:   trans.Commands(trans.COMMAND_TEXT_GROUPS, emoji.MAN_AND_WOMAN, "/"+groupsCommandCode),
 	Icon:       emoji.MAN_AND_WOMAN,
 	Title:      trans.COMMAND_TEXT_GROUPS,
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		return groupsAction(whc, false, 0)
 	},
-	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		query := callbackUrl.Query()
 		isRefresh := query.Get("do") == "refresh"
 		if m, err = groupsAction(whc, isRefresh || query.Get("edit") == "1", 0); err != nil {
@@ -43,7 +40,7 @@ var groupsCommand = bots.Command{
 	},
 }
 
-func groupsAction(whc bots.WebhookContext, isEdit bool, groupsMessageID int) (m bots.MessageFromBot, err error) {
+func groupsAction(whc botsfw.WebhookContext, isEdit bool, groupsMessageID int) (m botsfw.MessageFromBot, err error) {
 	if whc.IsInGroup() {
 		m.Text = "This command supported just in private chat with @" + whc.GetBotCode()
 		return
@@ -54,7 +51,7 @@ func groupsAction(whc bots.WebhookContext, isEdit bool, groupsMessageID int) (m 
 
 	fmt.Fprintf(buf, "<b>%v</b>\n\n", whc.Translate(trans.MESSAGE_TEXT_YOUR_BILL_SPLITTING_GROUPS))
 
-	var user bots.BotAppUser
+	var user botsfw.BotAppUser
 	if user, err = whc.GetAppUser(); err != nil {
 		return
 	}
@@ -126,10 +123,10 @@ func groupsAction(whc bots.WebhookContext, isEdit bool, groupsMessageID int) (m 
 
 	m.Keyboard = tgKeyboard
 	m.IsEdit = isEdit
-	m.Format = bots.MessageFormatHTML
+	m.Format = botsfw.MessageFormatHTML
 	if !isEdit {
-		var msg bots.OnMessageSentResponse
-		if msg, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
+		var msg botsfw.OnMessageSentResponse
+		if msg, err = whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 
 		}
 		return groupsAction(whc, true, msg.TelegramMessage.(tgbotapi.Message).MessageID)

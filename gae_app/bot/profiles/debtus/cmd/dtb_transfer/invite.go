@@ -7,7 +7,7 @@ package dtb_transfer
 //	"bitbucket.org/asterus/debtstracker-server/gae_app/invites"
 //	"errors"
 //	"github.com/strongo/nds"
-//	"github.com/strongo/bots-framework/core"
+//	"github.com/bots-go-framework/bots-fw/botsfw"
 //	"context"
 //	"time"
 //	"github.com/strongo/app"
@@ -200,8 +200,8 @@ package dtb_transfer
 //		return
 //	}
 //	log.Debugf(c, "Transaction completed without errors")
-//	if err = bots.SetAccessGranted(whc, true); err != nil {
-//		err = errors.Wrap(err, "Failed to call bots.SetAccessGranted(whc, true)")
+//	if err = botsfw.SetAccessGranted(whc, true); err != nil {
+//		err = errors.Wrap(err, "Failed to call botsfw.SetAccessGranted(whc, true)")
 //	}
 //	return
 //}

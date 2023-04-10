@@ -1,7 +1,7 @@
 package dtb_transfer
 
 import (
-	//"github.com/DebtsTracker/translations/emoji"
+	//"github.com/sneat-co/debtstracker-translations/emoji"
 	//"fmt"
 	"fmt"
 	"net/url"
@@ -9,9 +9,6 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"errors"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 	"golang.org/x/net/html"
 )
@@ -26,7 +23,7 @@ const (
 //	ADD_COMMENT_COMMAND = "add-comment"
 //)
 //
-//func createTransferAddNoteOrCommentCommand(code string, anotherCommand *bots.Command, nextCommand bots.Command) bots.Command {
+//func createTransferAddNoteOrCommentCommand(code string, anotherCommand *bots.Command, nextCommand botsfw.Command) botsfw.Command {
 //	var icon, title string
 //	switch code {
 //	case ADD_NOTE_COMMAND:
@@ -37,11 +34,11 @@ const (
 //		title = trans.COMMAND_TEXT_ADD_COMMENT_TO_TRANSFER
 //	}
 //
-//	return bots.Command{
+//	return botsfw.Command{
 //		Code:  code,
 //		Icon:  icon,
 //		Title: title,
-//		Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+//		Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 //
 //			log.Debugf(c, "createTransferAddNoteOrCommentCommand().Action(), code=%v", code)
 //			if code != ADD_NOTE_COMMAND && code != ADD_COMMENT_COMMAND {
@@ -86,26 +83,26 @@ const (
 //				}
 //				m.Keyboard = tgbotapi.NewHideKeyboard(true)
 //			}
-//			m.Format = bots.MessageFormatHTML
+//			m.Format = botsfw.MessageFormatHTML
 //			return m, err
 //		},
 //	}
 //}
 
-func createTransferAskNoteOrCommentCommand(code string, nextCommand bots.Command) bots.Command {
-	var addNoteCommand bots.Command
-	var addCommentCommand bots.Command
+func createTransferAskNoteOrCommentCommand(code string, nextCommand botsfw.Command) botsfw.Command {
+	var addNoteCommand botsfw.Command
+	var addCommentCommand botsfw.Command
 
 	//addNoteCommand = createTransferAddNoteOrCommentCommand(ADD_NOTE_COMMAND, &addCommentCommand, nextCommand)
 	//addCommentCommand = createTransferAddNoteOrCommentCommand(ADD_COMMENT_COMMAND, &addNoteCommand, nextCommand)
 
-	return bots.Command{
+	return botsfw.Command{
 		Code: code,
-		Replies: []bots.Command{
+		Replies: []botsfw.Command{
 			addNoteCommand,
 			addCommentCommand,
 		},
-		Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+		Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 			c := whc.Context()
 			log.Infof(c, "createTransferAskNoteOrCommentCommand().Action()")
 			chatEntity := whc.ChatEntity()
@@ -136,13 +133,13 @@ func createTransferAskNoteOrCommentCommand(code string, nextCommand bots.Command
 			}
 
 			m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_TRANSFER_ASK_FOR_INTEREST_SHORT))
-			m.Format = bots.MessageFormatHTML
+			m.Format = botsfw.MessageFormatHTML
 			m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
 				[]tgbotapi.InlineKeyboardButton{
 					tgbotapi.NewInlineKeyboardButtonData(whc.Translate(trans.COMMAND_TEXT_MORE_ABOUT_INTEREST_COMMAND), ASK_FOR_INTEREST_AND_COMMENT_COMMAND),
 				},
 			)
-			if _, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
+			if _, err = whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 				return
 			}
 
@@ -166,7 +163,7 @@ func createTransferAskNoteOrCommentCommand(code string, nextCommand bots.Command
 			})
 			replyKeyboard.OneTimeKeyboard = true
 			m.Keyboard = replyKeyboard
-			m.Format = bots.MessageFormatHTML
+			m.Format = botsfw.MessageFormatHTML
 			return
 		},
 	}
@@ -174,11 +171,11 @@ func createTransferAskNoteOrCommentCommand(code string, nextCommand bots.Command
 
 const ASK_FOR_INTEREST_AND_COMMENT_COMMAND = "ask-for-interest-and-comment-long"
 
-var AskForInterestAndCommentCallbackCommand = bots.Command{
+var AskForInterestAndCommentCallbackCommand = botsfw.Command{
 	Code: ASK_FOR_INTEREST_AND_COMMENT_COMMAND,
-	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		m.Text = whc.Translate(trans.MESSAGE_TEXT_TRANSFER_ASK_FOR_INTEREST_LONG)
-		m.Format = bots.MessageFormatHTML
+		m.Format = botsfw.MessageFormatHTML
 		m.IsEdit = true
 		return
 	},

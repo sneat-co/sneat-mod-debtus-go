@@ -9,7 +9,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
-	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
 )

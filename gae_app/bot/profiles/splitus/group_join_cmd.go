@@ -10,17 +10,14 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/log"
 )
 
 const joinGroupCommanCode = "join-group"
 
 var joinGroupCommand = shared_group.GroupCallbackCommand(joinGroupCommanCode,
-	func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, callbackUrl *url.URL, group models.Group) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 
 		userID := whc.AppUserStrID()
@@ -98,14 +95,14 @@ var joinGroupCommand = shared_group.GroupCallbackCommand(joinGroupCommanCode,
 
 			if m, err := showGroupMembers(whc, group, true); err != nil {
 				return m, err
-			} else if _, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
+			} else if _, err = whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 				return m, err
 			}
 
 			m.Text = whc.Translate(trans.MESSAGE_TEXT_USER_JOINED_GROUP, fmt.Sprintf(`<a href="tg://user?id=%v">%v</a>`, whc.MustBotChatID(), appUser.FullName()))
 		}
 
-		m.Format = bots.MessageFormatHTML
+		m.Format = botsfw.MessageFormatHTML
 		return
 	},
 )

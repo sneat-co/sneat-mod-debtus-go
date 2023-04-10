@@ -8,12 +8,10 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"errors"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 )
 
-func AcknowledgeReceipt(whc bots.WebhookContext, receiptID int64, operation string) (m bots.MessageFromBot, err error) {
+func AcknowledgeReceipt(whc botsfw.WebhookContext, receiptID int64, operation string) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
 	_, transfer, isCounterpartiesJustConnected, err := facade.AcknowledgeReceipt(c, receiptID, whc.AppUserIntID(), operation)
@@ -54,19 +52,19 @@ func AcknowledgeReceipt(whc bots.WebhookContext, receiptID int64, operation stri
 		}
 
 		utm := common.NewUtmParams(whc, common.UTM_CAMPAIGN_RECEIPT)
-		if whc.InputType() == bots.WebhookInputCallbackQuery {
-			if m, err = whc.NewEditMessage(common.TextReceiptForTransfer(whc, transfer, 0, common.ShowReceiptToCounterparty, utm)+"\n\n"+operationMessage, bots.MessageFormatHTML); err != nil {
+		if whc.InputType() == botsfw.WebhookInputCallbackQuery {
+			if m, err = whc.NewEditMessage(common.TextReceiptForTransfer(whc, transfer, 0, common.ShowReceiptToCounterparty, utm)+"\n\n"+operationMessage, botsfw.MessageFormatHTML); err != nil {
 				return
 			}
 		} else {
 			m = whc.NewMessage(operationMessage + "\n\n" + common.TextReceiptForTransfer(whc, transfer, 0, common.ShowReceiptToCounterparty, utm))
 			m.Keyboard = dtb_general.MainMenuKeyboardOnReceiptAck(whc)
-			m.Format = bots.MessageFormatHTML
+			m.Format = botsfw.MessageFormatHTML
 		}
 
 		if transfer.Creator().TgChatID != 0 {
 			askMsgToCreator := whc.NewMessage("")
-			askMsgToCreator.ToChat = bots.ChatIntID(transfer.Creator().TgChatID)
+			askMsgToCreator.ToChat = botsfw.ChatIntID(transfer.Creator().TgChatID)
 			var operationMsg string
 			counterpartyName := transfer.Counterparty().ContactName
 			switch operation {
@@ -82,7 +80,7 @@ func AcknowledgeReceipt(whc bots.WebhookContext, receiptID int64, operation stri
 			if transfer.Creator().TgBotID != whc.GetBotCode() {
 				log.Warningf(c, "TODO: transferEntity.Creator().TgBotID != whc.GetBotCode(): "+askMsgToCreator.Text)
 			} else {
-				if _, err = whc.Responder().SendMessage(c, askMsgToCreator, bots.BotAPISendMessageOverHTTPS); err != nil {
+				if _, err = whc.Responder().SendMessage(c, askMsgToCreator, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 					log.Errorf(c, "Failed to send acknowledge to creator: %v", err)
 					err = nil // This is not that critical to report the error to user
 				}
@@ -100,7 +98,7 @@ func AcknowledgeReceipt(whc bots.WebhookContext, receiptID int64, operation stri
 		//	}
 		//	updateMessage := whc.NewMessage("")
 		//	updateMessage.TelegramEditMessageText = &editMessage
-		//	_, err := whc.Responder().SendMessage(c, updateMessage, bots.BotAPISendMessageOverHTTPS)
+		//	_, err := whc.Responder().SendMessage(c, updateMessage, botsfw.BotAPISendMessageOverHTTPS)
 		//	if err != nil {
 		//		log.Errorf(c, "Failed to update counterparty receipt message: %v", err)
 		//	}

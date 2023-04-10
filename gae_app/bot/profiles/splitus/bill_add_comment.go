@@ -4,15 +4,13 @@ import (
 	"net/url"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 )
 
 const ADD_BILL_COMMENT_COMMAND = "bill_comment"
 
 var addBillComment = billCallbackCommand(ADD_BILL_COMMENT_COMMAND, db.SingleGroupTransaction,
-	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "addBillComment.CallbackAction()")
 

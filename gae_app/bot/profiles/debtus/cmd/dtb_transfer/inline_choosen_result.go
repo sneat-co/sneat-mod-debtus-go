@@ -6,19 +6,16 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"fmt"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/bots-go-framework/bots-fw-telegram"
 )
 
-func showReceiptAnnouncement(whc bots.WebhookContext, receiptID int64, creatorName string) (m bots.MessageFromBot, err error) {
+func showReceiptAnnouncement(whc botsfw.WebhookContext, receiptID int64, creatorName string) (m botsfw.MessageFromBot, err error) {
 	var inlineMessageID string
 	input := whc.Input()
 	switch input.(type) {
-	case bots.WebhookChosenInlineResult:
+	case botsfw.WebhookChosenInlineResult:
 		inlineMessageID = input.(bots.WebhookChosenInlineResult).GetInlineMessageID()
-	case bots.WebhookCallbackQuery:
+	case botsfw.WebhookCallbackQuery:
 		inlineMessageID = input.(bots.WebhookCallbackQuery).GetInlineMessageID()
 	default:
 		return m, fmt.Errorf("showReceiptAnnouncement: Unsupported InputType=%T", input)
@@ -39,7 +36,7 @@ func showReceiptAnnouncement(whc bots.WebhookContext, receiptID int64, creatorNa
 	}
 
 	messageText := getInlineReceiptMessageText(whc, whc.GetBotCode(), whc.Locale().Code5, creatorName, receiptID)
-	m, err = whc.NewEditMessage(messageText, bots.MessageFormatHTML)
+	m, err = whc.NewEditMessage(messageText, botsfw.MessageFormatHTML)
 	m.EditMessageUID = telegram.NewInlineMessageUID(inlineMessageID)
 	m.DisableWebPagePreview = true
 	kbRows := [][]tgbotapi.InlineKeyboardButton{

@@ -1,8 +1,8 @@
 package models
 
 import (
+	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/app/user"
-	"github.com/strongo/dalgo/record"
 )
 
 const UserGooglePlusKind = "UserGooglePlus"

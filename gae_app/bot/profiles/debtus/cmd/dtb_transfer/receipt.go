@@ -14,15 +14,12 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
-	"github.com/DebtsTracker/translations/trans"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/log"
 )
 
-//func InlineAcceptTransfer(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+//func InlineAcceptTransfer(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 //	inlineQuery := whc.InputInlineQuery()
 //	m.TelegramInlineCongig = &tgbotapi.InlineConfig{
 //		InlineQueryID: inlineQuery.GetInlineQueryID(),
@@ -34,15 +31,15 @@ import (
 
 const CREATE_RECEIPT_IF_NO_INLINE_CHOSEN_NOTIFICATION = "create-receipt"
 
-var CreateReceiptIfNoInlineNotificationCommand = bots.Command{
+var CreateReceiptIfNoInlineNotificationCommand = botsfw.Command{
 	Code:       CREATE_RECEIPT_IF_NO_INLINE_CHOSEN_NOTIFICATION,
-	InputTypes: []bots.WebhookInputType{bots.WebhookInputCallbackQuery},
-	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	InputTypes: []botsfw.WebhookInputType{bots.WebhookInputCallbackQuery},
+	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		return OnInlineChosenCreateReceipt(whc, whc.Input().(bots.WebhookCallbackQuery).GetInlineMessageID(), callbackUrl)
 	},
 }
 
-func InlineSendReceipt(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+func InlineSendReceipt(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	log.Debugf(c, "InlineSendReceipt()")
 	inlineQuery := whc.Input().(bots.WebhookInlineQuery)
@@ -146,7 +143,7 @@ func getInlineReceiptMessageText(t strongo.SingleLocaleTranslator, botCode, loca
 	return buf.String()
 }
 
-func OnInlineChosenCreateReceipt(whc bots.WebhookContext, inlineMessageID string, queryUrl *url.URL) (m bots.MessageFromBot, err error) {
+func OnInlineChosenCreateReceipt(whc botsfw.WebhookContext, inlineMessageID string, queryUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
 	log.Debugf(c, "OnInlineChosenCreateReceipt(queryUrl: %v)", queryUrl)
@@ -176,7 +173,7 @@ func OnInlineChosenCreateReceipt(whc bots.WebhookContext, inlineMessageID string
 
 	analytics.ReceiptSentFromBot(whc, "telegram")
 
-	//_, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS)
+	//_, err = whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverHTTPS)
 	//if err != nil {
 	//	log.Errorf(c, "Failed to send inline response: %v", err.Error())
 	//}

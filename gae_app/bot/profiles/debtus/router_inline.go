@@ -6,14 +6,13 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_inline"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_invite"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 )
 
-var InlineQueryCommand = bots.Command{
+var InlineQueryCommand = botsfw.Command{
 	Code: "inline-query",
-	//InputTypes: []bots.WebhookInputType{bots.WebhookInputInlineQuery},
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	//InputTypes: []botsfw.WebhookInputType{bots.WebhookInputInlineQuery},
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 
 		inlineQuery := whc.Input().(bots.WebhookInlineQuery)

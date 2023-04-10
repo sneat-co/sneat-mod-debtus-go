@@ -3,14 +3,11 @@ package dtb_invite
 import (
 	"fmt"
 
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/log"
 )
 
-func InlineSendInvite(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+func InlineSendInvite(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 	log.Debugf(whc.Context(), "InlineSendInvite()")
 	inlineQuery := whc.Input().(bots.WebhookInlineQuery)
 	//callbackData := "call-back1"
@@ -45,6 +42,6 @@ func InlineSendInvite(whc bots.WebhookContext) (m bots.MessageFromBot, err error
 	return m, err
 }
 
-func getMessagePleaseWaitWhileWeGenerateInviteCode(whc bots.WebhookContext) string {
+func getMessagePleaseWaitWhileWeGenerateInviteCode(whc botsfw.WebhookContext) string {
 	return "\n\n\u23F3 " + whc.Translate(trans.MESSAGE_TEXT_PLEASE_WAIT_WHILE_WE_GENERATE_INVITE_CODE)
 }

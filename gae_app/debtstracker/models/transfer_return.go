@@ -88,7 +88,7 @@ func (t *TransferEntity) AddReturn(returnTransfer TransferReturnJson) error {
 	returns = append(returns, returnTransfer)
 	returnsJson, err := ffjson.Marshal(returns) // We'll assign to t.ReturnsJson when all checks are OK
 	if err != nil {
-		return errors.WithMessage(err, "failed to marshal transfer returns")
+		return fmt.Errorf("failed to marshal transfer returns: %w", err)
 	}
 	t.ReturnsJson = string(returnsJson)
 	t.AmountInCentsReturned = returnedValue

@@ -2,6 +2,9 @@ package dtb_transfer
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"html"
 	"net/url"
 
@@ -9,23 +12,20 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/log"
 	"strings"
 )
 
-//func CancelReceiptAction(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+//func CancelReceiptAction(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 //	return whc.NewMessage("TODO: Sorry, cancel is not implemented yet..."), nil
 //}
 
 const VIEW_RECEIPT_CALLBACK_COMMAND = "view-receipt"
 
-var ViewReceiptCallbackCommand = bots.NewCallbackCommand(VIEW_RECEIPT_CALLBACK_COMMAND, viewReceiptCallbackAction)
+var ViewReceiptCallbackCommand = botsfw.NewCallbackCommand(VIEW_RECEIPT_CALLBACK_COMMAND, viewReceiptCallbackAction)
 
-func ShowReceipt(whc bots.WebhookContext, receiptID int64) (m bots.MessageFromBot, err error) {
+func ShowReceipt(whc botsfw.WebhookContext, receiptID int) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
 	var receipt models.Receipt
@@ -33,7 +33,7 @@ func ShowReceipt(whc bots.WebhookContext, receiptID int64) (m bots.MessageFromBo
 		return m, err
 	}
 
-	if receipt.CreatorUserID == whc.AppUserIntID() {
+	if receipt.Data.CreatorUserID == whc.AppUserIntID() {
 		m.Text = whc.Translate(trans.MESSAGE_TEXT_RECEIPT_ATTEMPT_TO_VIEW_OWN)
 		return
 	}
@@ -43,7 +43,7 @@ func ShowReceipt(whc bots.WebhookContext, receiptID int64) (m bots.MessageFromBo
 		return
 	}
 
-	transfer, err := facade.Transfers.GetTransferByID(c, receipt.TransferID)
+	transfer, err := facade.Transfers.GetTransferByID(c, receipt.Data.TransferID)
 	if err != nil {
 		return m, err
 	}
@@ -54,17 +54,17 @@ func ShowReceipt(whc bots.WebhookContext, receiptID int64) (m bots.MessageFromBo
 		mt           string
 		counterparty models.Contact
 	)
-	counterpartyCounterparty := transfer.Creator()
+	counterpartyCounterparty := transfer.Data.Creator()
 
 	if counterpartyCounterparty.ContactID != 0 {
 		counterparty, err = facade.GetContactByID(c, counterpartyCounterparty.ContactID)
 	} else {
-		if user, err := facade.User.GetUserByID(c, transfer.CreatorUserID); err != nil {
+		if user, err := facade.User.GetUserByID(c, transfer.Data.CreatorUserID); err != nil {
 			return m, err
 		} else {
-			counterparty.ContactEntity = &models.ContactEntity{}
-			counterparty.FirstName = user.FirstName
-			counterparty.LastName = user.LastName
+			counterparty.Data = &models.ContactEntity{}
+			counterparty.Data.FirstName = user.Data.FirstName
+			counterparty.Data.LastName = user.Data.LastName
 		}
 	}
 
@@ -78,13 +78,13 @@ func ShowReceipt(whc bots.WebhookContext, receiptID int64) (m bots.MessageFromBo
 
 	var inlineKeyboard *tgbotapi.InlineKeyboardMarkup
 
-	if receipt.CreatorUserID == whc.AppUserIntID() {
-		mt += "\n" + whc.Translate(trans.MESSAGE_TEXT_SELF_ACKNOWLEDGEMENT, html.EscapeString(transfer.Counterparty().ContactName))
+	if receipt.Data.CreatorUserID == whc.AppUserIntID() {
+		mt += "\n" + whc.Translate(trans.MESSAGE_TEXT_SELF_ACKNOWLEDGEMENT, html.EscapeString(transfer.Data.Counterparty().ContactName))
 	} else {
-		isAcknowledgedAlready := !transfer.AcknowledgeTime.IsZero()
+		isAcknowledgedAlready := !transfer.Data.AcknowledgeTime.IsZero()
 
 		if isAcknowledgedAlready {
-			switch transfer.AcknowledgeStatus {
+			switch transfer.Data.AcknowledgeStatus {
 			case models.TransferAccepted:
 				mt += "\n" + whc.Translate(trans.MESSAGE_TEXT_ALREADY_ACCEPTED_TRANSFER)
 			case models.TransferDeclined:
@@ -95,7 +95,7 @@ func ShowReceipt(whc bots.WebhookContext, receiptID int64) (m bots.MessageFromBo
 		} else {
 			mt += "\n" + whc.Translate(trans.MESSAGE_TEXT_PLEASE_ACKNOWLEDGE_TRANSFER)
 		}
-		receiptCode := common.EncodeID(receiptID)
+		receiptCode := common.EncodeID(int64(receiptID))
 
 		if !isAcknowledgedAlready {
 			inlineKeyboard = &tgbotapi.InlineKeyboardMarkup{
@@ -119,28 +119,28 @@ func ShowReceipt(whc bots.WebhookContext, receiptID int64) (m bots.MessageFromBo
 
 	log.Debugf(c, "mt: %v", mt)
 	switch whc.InputType() {
-	case bots.WebhookInputCallbackQuery:
-		if m, err = whc.NewEditMessage(mt, bots.MessageFormatHTML); err != nil {
+	case botsfw.WebhookInputCallbackQuery:
+		if m, err = whc.NewEditMessage(mt, botsfw.MessageFormatHTML); err != nil {
 			return
 		}
 		m.DisableWebPagePreview = true
 		if inlineKeyboard != nil {
 			m.Keyboard = inlineKeyboard
 		}
-	case bots.WebhookInputText:
+	case botsfw.WebhookInputText:
 		m = whc.NewMessage(mt)
 		if inlineKeyboard != nil {
 			m.Keyboard = inlineKeyboard
 		}
 	default:
-		if inputType, ok := bots.WebhookInputTypeNames[whc.InputType()]; ok {
+		if inputType, ok := botsfw.WebhookInputTypeNames[whc.InputType()]; ok {
 			log.Errorf(c, "Unknown input type: %d=%v", whc.InputType(), inputType)
 		} else {
 			log.Errorf(c, "Unknown input type: %d", whc.InputType())
 		}
 	}
 
-	if _, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
+	if _, err = whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 		if strings.Contains(err.Error(), "message is not modified") { // TODO: Can fail on different receipts for same amount
 			log.Warningf(c, fmt.Sprintf("Failed to send receipt to counterparty: %v", err))
 		} else {
@@ -150,19 +150,19 @@ func ShowReceipt(whc bots.WebhookContext, receiptID int64) (m bots.MessageFromBo
 		if m, err = whc.NewEditMessage(
 			whc.Translate(trans.MESSAGE_TEXT_RECEIPT_SENT_THROW_TELEGRAM)+"\n"+
 				whc.Translate(trans.MESSAGE_TEXT_RECEIPT_VIEWED_BY_COUNTERPARTY),
-			bots.MessageFormatHTML,
+			botsfw.MessageFormatHTML,
 		); err != nil {
 			return
 		}
-		m.EditMessageUID = telegram.NewChatMessageUID(transfer.Creator().TgChatID, int(transfer.CreatorTgReceiptByTgMsgID))
-		//if _, err := whc.Responder().SendMessage(c, editCreatorMessage, bots.BotAPISendMessageOverHTTPS); err != nil {
+		m.EditMessageUID = telegram.NewChatMessageUID(transfer.Data.Creator().TgChatID, int(transfer.Data.CreatorTgReceiptByTgMsgID))
+		//if _, err := whc.Responder().SendMessage(c, editCreatorMessage, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 		//	log.Errorf(c, "Failed to edit creator message: %v", err)
 		//}
 	}
 	return m, err
 }
 
-func viewReceiptCallbackAction(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+func viewReceiptCallbackAction(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
 	log.Debugf(c, "ViewReceiptAction(callbackUrl=%v)", callbackUrl)
@@ -181,10 +181,10 @@ func viewReceiptCallbackAction(whc bots.WebhookContext, callbackUrl *url.URL) (m
 	if err != nil {
 		return m, err
 	}
-	return ShowReceipt(whc, receiptID)
+	return ShowReceipt(whc, int(receiptID))
 }
 
-//func (viewReceiptCallback) onInvite(whc bots.WebhookContext, inviteCode string) (exit bool, transferID int64, transfer *models.Transfer, m bots.MessageFromBot, err error) {
+//func (viewReceiptCallback) onInvite(whc botsfw.WebhookContext, inviteCode string) (exit bool, transferID int64, transfer *models.Transfer, m botsfw.MessageFromBot, err error) {
 //	c := whc.Context()
 //	var invite *invites.Invite
 //	if invite, err = invites.GetInvite(c, inviteCode); err != nil {

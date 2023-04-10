@@ -8,9 +8,8 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/DebtsTracker/translations/trans"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-framework/platforms/telegram"
 )
 
 func TestWriteReceiptText(t *testing.T) {

@@ -6,17 +6,14 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 )
 
 const NEW_CHAT_MEMBERS_COMMAND = "new-chat-members"
 
-var newChatMembersCommand = bots.Command{
+var newChatMembersCommand = botsfw.Command{
 	Code: NEW_CHAT_MEMBERS_COMMAND,
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 
 		newMembersMessage := whc.Input().(bots.WebhookNewChatMembersMessage)
@@ -43,7 +40,7 @@ var newChatMembersCommand = bots.Command{
 		{ // Get or create related user records
 			for _, chatMember := range newMembers {
 				tgChatMember := chatMember.(tgbotapi.ChatMember)
-				var botUser bots.BotUser
+				var botUser botsfw.BotUser
 				if botUser, err = whc.GetBotUserByID(c, tgChatMember.ID); err != nil {
 					return
 				}
@@ -72,7 +69,7 @@ var newChatMembersCommand = bots.Command{
 			return
 		}
 
-		createWelcomeMsg := func(member bots.WebhookActor) bots.MessageFromBot {
+		createWelcomeMsg := func(member botsfw.WebhookActor) botsfw.MessageFromBot {
 			m := whc.NewMessageByCode(trans.MESSAGE_TEXT_USER_JOINED_GROUP, member.GetFirstName())
 			m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
 				[]tgbotapi.InlineKeyboardButton{
@@ -91,7 +88,7 @@ var newChatMembersCommand = bots.Command{
 			responder := whc.Responder()
 			c := whc.Context()
 			for _, newUser := range newUsers {
-				if _, err = responder.SendMessage(c, createWelcomeMsg(newUser.ChatMember), bots.BotAPISendMessageOverHTTPS); err != nil {
+				if _, err = responder.SendMessage(c, createWelcomeMsg(newUser.ChatMember), botsfw.BotAPISendMessageOverHTTPS); err != nil {
 					return
 				}
 			}

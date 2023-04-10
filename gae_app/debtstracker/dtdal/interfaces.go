@@ -2,6 +2,7 @@ package dtdal
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"github.com/strongo/db"
 	"math/rand"
@@ -14,9 +15,8 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/decimal"
 	"github.com/strongo/gotwilio"
 	"github.com/strongo/log"
@@ -62,7 +62,7 @@ type TransferDal interface {
 
 type ReceiptDal interface {
 	UpdateReceipt(c context.Context, receipt models.Receipt) error
-	GetReceiptByID(c context.Context, id int64) (models.Receipt, error)
+	GetReceiptByID(c context.Context, id int) (models.Receipt, error)
 	MarkReceiptAsSent(c context.Context, receiptID, transferID int64, sentTime time.Time) error
 	CreateReceipt(c context.Context, receipt *models.ReceiptEntity) (id int64, err error)
 	DelayedMarkReceiptAsSent(c context.Context, receiptID, transferID int64, sentTime time.Time) error
@@ -73,7 +73,7 @@ var ErrReminderAlreadyRescheduled = errors.New("Reminder already rescheduled")
 
 type ReminderDal interface {
 	DelayDiscardReminders(c context.Context, transferIDs []int64, returnTransferID int64) error
-	DelayCreateReminderForTransferUser(c context.Context, transferID, userID int64) error
+	DelayCreateReminderForTransferUser(c context.Context, transferID int, userID int64) error
 	SaveReminder(c context.Context, reminder models.Reminder) (err error)
 	GetReminderByID(c context.Context, id int64) (models.Reminder, error)
 	RescheduleReminder(c context.Context, reminderID int64, remindInDuration time.Duration) (oldReminder, newReminder models.Reminder, err error)
@@ -134,11 +134,11 @@ type EmailDal interface {
 }
 
 type FeedbackDal interface {
-	GetFeedbackByID(c context.Context, feedbackID int64) (models.Feedback, error)
+	GetFeedbackByID(c context.Context, feedbackID int) (models.Feedback, error)
 }
 
 type ContactDal interface {
-	GetLatestContacts(whc bots.WebhookContext, limit, totalCount int) (contacts []models.Contact, err error)
+	GetLatestContacts(whc botsfw.WebhookContext, limit, totalCount int) (contacts []models.Contact, err error)
 	InsertContact(c context.Context, contactEntity *models.ContactEntity) (contact models.Contact, err error)
 	//CreateContact(c context.Context, userID int64, contactDetails models.ContactDetails) (contact models.Contact, user models.AppUser, err error)
 	//CreateContactWithinTransaction(c context.Context, user models.AppUser, contactUserID, counterpartyCounterpartyID int64, contactDetails models.ContactDetails, balanced money.Balanced) (contact models.Contact, err error)
@@ -320,7 +320,7 @@ var (
 	TgChat         TgChatDal
 	TgUser         TgUserDal
 	HttpClient     func(c context.Context) *http.Client
-	BotHost        bots.BotHost
+	BotHost        botsfw.BotHost
 	//TaskQueue		   TaskQueueDal
 	HandleWithContext strongo.HandleWithContext
 )

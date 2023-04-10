@@ -2,8 +2,9 @@ package models
 
 import (
 	"fmt"
-	"github.com/strongo/dalgo/dal"
-	"github.com/strongo/dalgo/record"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
 	"net/http"
 	"strconv"
 	"time"
@@ -14,7 +15,6 @@ import (
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/app"
 	"github.com/strongo/app/user"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
 )
@@ -254,16 +254,16 @@ func (entity *AppUserEntity) FixObsolete() error {
 	return fixContactsJson()
 }
 
-func (entity *AppUserEntity) ContactIDs() (ids []int) {
+func (entity *AppUserEntity) ContactIDs() (ids []int64) {
 	contacts := entity.Contacts()
-	ids = make([]int, len(contacts))
+	ids = make([]int64, len(contacts))
 	for i, c := range contacts {
 		ids[i] = c.ID
 	}
 	return ids
 }
 
-func (entity *AppUserEntity) RemoveContact(contactID int) (changed bool) {
+func (entity *AppUserEntity) RemoveContact(contactID int64) (changed bool) {
 	contacts := entity.Contacts()
 	for i, contact := range contacts {
 		if contact.ID == contactID {
@@ -361,7 +361,7 @@ func (entity *AppUserEntity) Contacts() (contacts []UserContactJson) {
 	return append(entity.ActiveContacts(), entity.ArchivedContacts()...)
 }
 
-func (entity *AppUserEntity) ContactByID(id int) (contact *UserContactJson) {
+func (entity *AppUserEntity) ContactByID(id int64) (contact *UserContactJson) {
 	if id == 0 {
 		panic("*AppUserEntity.ContactByID() => id == 0")
 	}
@@ -378,9 +378,9 @@ func (entity *AppUserEntity) ContactByID(id int) (contact *UserContactJson) {
 	return
 }
 
-func (entity *AppUserEntity) ContactsByID() (contactsByID map[int]UserContactJson) {
+func (entity *AppUserEntity) ContactsByID() (contactsByID map[int64]UserContactJson) {
 	contacts := entity.Contacts()
-	contactsByID = make(map[int]UserContactJson, len(contacts))
+	contactsByID = make(map[int64]UserContactJson, len(contacts))
 	for _, contact := range contacts {
 		contactsByID[contact.ID] = contact
 	}
@@ -511,7 +511,7 @@ func (entity *AppUserEntity) SetActiveGroups(groups []UserGroupJson) {
 	}
 }
 
-var _ bots.BotAppUser = (*AppUserEntity)(nil)
+var _ botsfw.BotAppUser = (*AppUserEntity)(nil)
 
 func (entity *AppUserEntity) GetCurrencies() []string {
 	return entity.LastCurrencies

@@ -4,14 +4,13 @@ import (
 	"net/url"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 )
 
-var ChosenInlineResultCommand = bots.Command{
+var ChosenInlineResultCommand = botsfw.Command{
 	Code:       "inline-create-invite",
-	InputTypes: []bots.WebhookInputType{bots.WebhookInputChosenInlineResult},
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	InputTypes: []botsfw.WebhookInputType{bots.WebhookInputChosenInlineResult},
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		chosenResult := whc.Input().(bots.WebhookChosenInlineResult)
 		query := chosenResult.GetQuery()

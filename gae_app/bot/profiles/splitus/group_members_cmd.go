@@ -10,24 +10,21 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 )
 
 const GroupMembersCommandCode = "group-members"
 
-var groupMembersCommand = bots.Command{
+var groupMembersCommand = botsfw.Command{
 	Code:     GroupMembersCommandCode,
 	Commands: []string{"/members"},
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		return showGroupMembers(whc, models.Group{}, false)
 	},
-	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		var group models.Group
 		if group, err = shared_group.GetGroup(whc, callbackUrl); err != nil {
 			err = nil
@@ -86,7 +83,7 @@ func groupMembersCard(
 	return buffer.String(), nil
 }
 
-func showGroupMembers(whc bots.WebhookContext, group models.Group, isEdit bool) (m bots.MessageFromBot, err error) {
+func showGroupMembers(whc botsfw.WebhookContext, group models.Group, isEdit bool) (m botsfw.MessageFromBot, err error) {
 
 	if group.GroupEntity == nil {
 		if group, err = shared_group.GetGroup(whc, nil); err != nil {
@@ -100,7 +97,7 @@ func showGroupMembers(whc bots.WebhookContext, group models.Group, isEdit bool) 
 		return
 	}
 
-	m.Format = bots.MessageFormatHTML
+	m.Format = botsfw.MessageFormatHTML
 	tgKeyboard := tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{
 			{

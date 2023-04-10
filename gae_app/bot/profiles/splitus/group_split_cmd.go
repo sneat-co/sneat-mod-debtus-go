@@ -10,14 +10,12 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-framework/core"
 )
 
 const groupSplitCommandCode = "group-split"
 
 var groupSplitCommand = shared_group.GroupCallbackCommand(groupSplitCommandCode,
-	func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, callbackUrl *url.URL, group models.Group) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 
 		members := group.GetMembers()

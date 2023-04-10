@@ -3,7 +3,7 @@ package facade
 import (
 	"context"
 	"fmt"
-	"github.com/strongo/dalgo/dal"
+	"github.com/dal-go/dalgo/dal"
 )
 
 // GetDatabase returns debts tracker database
@@ -17,9 +17,4 @@ func RunReadwriteTransaction(ctx context.Context, f func(ctx context.Context, tx
 		return err
 	}
 	return db.RunReadwriteTransaction(ctx, f)
-}
-
-func RunReadonlyTransaction(ctx context.Context, f func(ctx context.Context, tx dal.ReadTransaction) error) error {
-	db := GetDatabase(ctx)
-	return db.RunReadonlyTransaction(ctx, f)
 }

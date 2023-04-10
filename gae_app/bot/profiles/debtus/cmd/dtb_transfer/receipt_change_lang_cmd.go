@@ -5,14 +5,13 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"errors"
-	"github.com/strongo/bots-framework/core"
 )
 
 const CHANGE_RECEIPT_LANG_COMMAND = "change-lang-receipt"
 
-var ChangeReceiptAnnouncementLangCommand = bots.NewCallbackCommand(
+var ChangeReceiptAnnouncementLangCommand = botsfw.NewCallbackCommand(
 	CHANGE_RECEIPT_LANG_COMMAND,
-	func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		query := callbackUrl.Query()
 		code5 := query.Get("locale")
 		if len(code5) != 5 {

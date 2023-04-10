@@ -3,10 +3,8 @@ package splitus
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
 )
 
 func getGroupBillCardInlineKeyboard(translator strongo.SingleLocaleTranslator, bill models.Bill) *tgbotapi.InlineKeyboardMarkup {

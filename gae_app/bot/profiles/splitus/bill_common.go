@@ -10,7 +10,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 )
 
@@ -35,18 +34,18 @@ func getBill(c context.Context, callbackUrl *url.URL) (bill models.Bill, err err
 	return
 }
 
-type billCallbackActionType func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error)
+type billCallbackActionType func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error)
 
-func billCallbackCommand(code string, txOptions db.RunOptions, f billCallbackActionType) (command bots.Command) {
-	command = bots.NewCallbackCommand(code, billCallbackAction(f))
+func billCallbackCommand(code string, txOptions db.RunOptions, f billCallbackActionType) (command botsfw.Command) {
+	command = botsfw.NewCallbackCommand(code, billCallbackAction(f))
 	if txOptions != nil {
 		command.CallbackAction = shared_all.TransactionalCallbackAction(txOptions, command.CallbackAction)
 	}
 	return
 }
 
-func billCallbackAction(f billCallbackActionType) func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
-	return func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+func billCallbackAction(f billCallbackActionType) func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
+	return func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		var bill models.Bill
 		if bill, err = getBill(c, callbackUrl); err != nil {

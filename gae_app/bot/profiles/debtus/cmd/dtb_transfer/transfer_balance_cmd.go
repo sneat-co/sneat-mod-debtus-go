@@ -10,19 +10,16 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/log"
 	"github.com/crediterra/money"
+	"github.com/sneat-co/debtstracker-translations/emoji"
+	"github.com/strongo/log"
 )
 
 const BALANCE_COMMAND = "balance"
 
-var BalanceCallbackCommand = bots.NewCallbackCommand(BALANCE_COMMAND, balanceCallbackAction)
+var BalanceCallbackCommand = botsfw.NewCallbackCommand(BALANCE_COMMAND, balanceCallbackAction)
 
-var BalanceCommand = bots.Command{ //TODO: Write unit tests!
+var BalanceCommand = botsfw.Command{ //TODO: Write unit tests!
 	Code:     BALANCE_COMMAND,
 	Title:    trans.COMMAND_TEXT_BALANCE,
 	Icon:     emoji.BALANCE_ICON,
@@ -30,11 +27,11 @@ var BalanceCommand = bots.Command{ //TODO: Write unit tests!
 	Action:   balanceAction,
 }
 
-func balanceCallbackAction(whc bots.WebhookContext, _ *url.URL) (m bots.MessageFromBot, err error) {
+func balanceCallbackAction(whc botsfw.WebhookContext, _ *url.URL) (m botsfw.MessageFromBot, err error) {
 	return balanceAction(whc)
 }
 
-func balanceAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+func balanceAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
 	log.Debugf(c, "BalanceCommand.Action()")
@@ -106,13 +103,13 @@ func balanceAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 	//buffer.WriteString(dtb_general.AdSlot(whc, "balance"))
 	const THUMB_UP = "👍"
 	buffer.WriteString(THUMB_UP + " " + whc.Translate(trans.MESSAGE_TEXT_PLEASE_HELP_MAKE_IT_BETTER))
-	if whc.InputType() == bots.WebhookInputCallbackQuery {
-		if m, err = whc.NewEditMessage(buffer.String(), bots.MessageFormatHTML); err != nil {
+	if whc.InputType() == botsfw.WebhookInputCallbackQuery {
+		if m, err = whc.NewEditMessage(buffer.String(), botsfw.MessageFormatHTML); err != nil {
 			return
 		}
 	} else {
 		m = whc.NewMessage(buffer.String())
-		m.Format = bots.MessageFormatHTML
+		m.Format = botsfw.MessageFormatHTML
 	}
 
 	m.DisableWebPagePreview = true
@@ -134,7 +131,7 @@ func balanceAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
 		)
 	}
 
-	//err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS)
+	//err = whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverHTTPS)
 	return m, err
 	//SetMainMenuKeyboard(whc, &m) - Bad idea! Need to cleanup AwaitingReplyTo
 }

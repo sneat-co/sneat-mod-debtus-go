@@ -9,10 +9,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 	"net/url"
 	"strings"
@@ -28,12 +25,12 @@ func StartBotLink(botID, command string, params ...string) string {
 	return buf.String()
 }
 
-func createStartCommand(botParams BotParams) bots.Command {
-	return bots.Command{
+func createStartCommand(botParams BotParams) botsfw.Command {
+	return botsfw.Command{
 		Code:       "start",
 		Commands:   []string{"/start"},
-		InputTypes: []bots.WebhookInputType{bots.WebhookInputInlineQuery},
-		Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+		InputTypes: []botsfw.WebhookInputType{bots.WebhookInputInlineQuery},
+		Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 			whc.LogRequest()
 			c := whc.Context()
 			text := whc.Input().(bots.WebhookTextMessage).Text()
@@ -67,7 +64,7 @@ func createStartCommand(botParams BotParams) bots.Command {
 	}
 }
 
-func startLoginGac(whc bots.WebhookContext, loginID int64) (m bots.MessageFromBot, err error) {
+func startLoginGac(whc botsfw.WebhookContext, loginID int64) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	var loginPin models.LoginPin
 	if loginPin, err = facade.AuthFacade.AssignPinCode(c, loginID, whc.AppUserIntID()); err != nil {
@@ -76,7 +73,7 @@ func startLoginGac(whc bots.WebhookContext, loginID int64) (m bots.MessageFromBo
 	return whc.NewMessageByCode(trans.MESSAGE_TEXT_LOGIN_CODE, models.LoginCodeToString(loginPin.Code)), nil
 }
 
-func startInlineHelp(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+func startInlineHelp(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 	m = whc.NewMessage("<b>Help: How to use this bot in chats</b>\n\nExplain here how to use bot's inline mode.")
 	m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{{Text: "Button 1", URL: "https://debtstracker.io/#btn=1"}},
@@ -90,8 +87,8 @@ func startInlineHelp(whc bots.WebhookContext) (m bots.MessageFromBot, err error)
 	return m, err
 }
 
-func GetUser(whc bots.WebhookContext) (userEntity *models.AppUserEntity, err error) { // TODO: Make library and use across app
-	var botAppUser bots.BotAppUser
+func GetUser(whc botsfw.WebhookContext) (userEntity *models.AppUserEntity, err error) { // TODO: Make library and use across app
+	var botAppUser botsfw.BotAppUser
 	if botAppUser, err = whc.GetAppUser(); err != nil {
 		return
 	}
@@ -114,9 +111,9 @@ var LangKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 
 const onStartCallbackCommandCode = "on-start-callback"
 
-func onStartCallbackCommand(params BotParams) bots.Command {
-	return bots.NewCallbackCommand(onStartCallbackCommandCode,
-		func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+func onStartCallbackCommand(params BotParams) botsfw.Command {
+	return botsfw.NewCallbackCommand(onStartCallbackCommandCode,
+		func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 			lang := callbackUrl.Query().Get("lang")
 			c := whc.Context()
 			log.Debugf(c, "Locale: "+lang)

@@ -5,7 +5,7 @@ package dalmocks
 // 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 // 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 // 	"context"
-// 	"github.com/strongo/dalgo"
+// 	"github.com/dal-go/dalgo"
 // )
 //
 // const NOT_IMPLEMENTED_YET = "Not implemented yet"

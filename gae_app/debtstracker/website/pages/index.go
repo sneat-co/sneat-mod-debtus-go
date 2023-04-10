@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"context"
-	"github.com/DebtsTracker/translations/trans"
 	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
@@ -52,7 +51,6 @@ func IndexRootPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) 
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-
 
 	acceptLanguages := r.Header.Get("Accept-Language")
 	for _, acceptLanguage := range strings.Split(acceptLanguages, ";") {

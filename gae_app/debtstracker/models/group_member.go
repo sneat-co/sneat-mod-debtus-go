@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/strongo/dalgo/record"
+	"github.com/dal-go/dalgo/record"
 )
 
 const GroupMemberKind = "GroupMember"

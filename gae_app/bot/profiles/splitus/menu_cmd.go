@@ -1,26 +1,23 @@
 package splitus
 
 import (
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 )
 
 const menuCommandCode = "menu"
 
-var menuCommand = bots.Command{
+var menuCommand = botsfw.Command{
 	Code:     menuCommandCode,
 	Commands: []string{"/" + menuCommandCode},
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		m.Text = whc.Translate(trans.SPLITUS_TG_COMMANDS)
-		m.Format = bots.MessageFormatHTML
+		m.Format = botsfw.MessageFormatHTML
 		setMainMenu(whc, &m)
 		return
 	},
 }
 
-func setMainMenu(whc bots.WebhookContext, m *bots.MessageFromBot) {
+func setMainMenu(whc botsfw.WebhookContext, m *bots.MessageFromBot) {
 	m.Keyboard = tgbotapi.NewReplyKeyboard(
 		[]tgbotapi.KeyboardButton{
 			{Text: groupsCommand.TitleByKey(bots.DefaultTitle, whc)},

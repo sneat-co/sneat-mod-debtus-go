@@ -3,7 +3,7 @@ package gaedal
 import (
 	"context"
 	"errors"
-	"github.com/strongo/dalgo/dal"
+	"github.com/dal-go/dalgo/dal"
 )
 
 func GetDatabase(c context.Context) (db dal.Database, err error) {

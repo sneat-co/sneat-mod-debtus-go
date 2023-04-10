@@ -7,10 +7,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"fmt"
-	"github.com/DebtsTracker/translations/trans"
 	"github.com/crediterra/money"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 	"net/url"
 )
@@ -91,7 +88,7 @@ const (
 )
 
 var groupSettingsChooseCurrencyCommand = shared_group.GroupCallbackCommand(GroupSettingsChooseCurrencyCommandCode,
-	func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, callbackUrl *url.URL, group models.Group) (m botsfw.MessageFromBot, err error) {
 		m.IsEdit = true
 		m.Text = whc.Translate(trans.MESSAGE_TEXT_ASK_PRIMARY_CURRENCY)
 		m.Keyboard = currenciesInlineKeyboard(
@@ -107,10 +104,10 @@ var groupSettingsChooseCurrencyCommand = shared_group.GroupCallbackCommand(Group
 	},
 )
 
-func groupSettingsSetCurrencyCommand(params shared_all.BotParams) bots.Command {
-	return bots.Command{
+func groupSettingsSetCurrencyCommand(params shared_all.BotParams) botsfw.Command {
+	return botsfw.Command{
 		Code: GroupSettingsSetCurrencyCommandCode,
-		CallbackAction: shared_group.NewGroupCallbackAction(func(whc bots.WebhookContext, callbackUrl *url.URL, group models.Group) (m bots.MessageFromBot, err error) {
+		CallbackAction: shared_group.NewGroupCallbackAction(func(whc botsfw.WebhookContext, callbackUrl *url.URL, group models.Group) (m botsfw.MessageFromBot, err error) {
 			currency := money.Currency(callbackUrl.Query().Get(CURRENCY_PARAM_NAME))
 			if group.DefaultCurrency != currency {
 				c := whc.Context()
@@ -140,7 +137,7 @@ func groupSettingsSetCurrencyCommand(params shared_all.BotParams) bots.Command {
 	}
 }
 
-func onStartCallbackInGroup(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error) {
+func onStartCallbackInGroup(whc botsfw.WebhookContext, group models.Group) (m botsfw.MessageFromBot, err error) {
 	// This links Telegram ChatID and ChatInstance
 	panic("not implemeted")
 	// if twhc, ok := whc.(*telegram.tgWebhookContext); ok {
@@ -151,12 +148,12 @@ func onStartCallbackInGroup(whc bots.WebhookContext, group models.Group) (m bots
 	// return inGroupWelcomeMessage(whc, group)
 }
 
-func inGroupWelcomeMessage(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error) {
+func inGroupWelcomeMessage(whc botsfw.WebhookContext, group models.Group) (m botsfw.MessageFromBot, err error) {
 	m, err = GroupSettingsAction(whc, group, false)
 	if err != nil {
 		return
 	}
-	if _, err = whc.Responder().SendMessage(whc.Context(), m, bots.BotAPISendMessageOverHTTPS); err != nil {
+	if _, err = whc.Responder().SendMessage(whc.Context(), m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 		return
 	}
 

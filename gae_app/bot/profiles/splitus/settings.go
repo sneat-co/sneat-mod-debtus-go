@@ -5,20 +5,17 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
 	"github.com/crediterra/money"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"net/url"
 )
 
-func GroupSettingsAction(whc bots.WebhookContext, group models.Group, isEdit bool) (m bots.MessageFromBot, err error) {
+func GroupSettingsAction(whc botsfw.WebhookContext, group models.Group, isEdit bool) (m botsfw.MessageFromBot, err error) {
 	var buf bytes.Buffer
 	buf.WriteString(whc.Translate(trans.MT_GROUP_LABEL, group.Name))
 	buf.WriteString("\n")
 	buf.WriteString(whc.Translate(trans.MT_TEXT_MEMBERS_COUNT, group.MembersCount))
-	m.Format = bots.MessageFormatHTML
+	m.Format = botsfw.MessageFormatHTML
 	m.Text = buf.String()
 	defaultCurrency := group.DefaultCurrency
 	if defaultCurrency == "" {
@@ -54,10 +51,10 @@ func GroupSettingsAction(whc bots.WebhookContext, group models.Group, isEdit boo
 	return
 }
 
-var settingsCommand = func() (settingsCommand bots.Command) {
+var settingsCommand = func() (settingsCommand botsfw.Command) {
 	settingsCommand = shared_all.SettingsCommandTemplate
 	settingsCommand.Action = settingsAction
-	settingsCommand.CallbackAction = func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	settingsCommand.CallbackAction = func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		m, err = settingsAction(whc)
 		m.IsEdit = true
 		return
@@ -65,9 +62,9 @@ var settingsCommand = func() (settingsCommand bots.Command) {
 	return
 }()
 
-func settingsAction(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+func settingsAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 	if whc.IsInGroup() {
-		groupAction := shared_group.NewGroupAction(func(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error) {
+		groupAction := shared_group.NewGroupAction(func(whc botsfw.WebhookContext, group models.Group) (m botsfw.MessageFromBot, err error) {
 			return GroupSettingsAction(whc, group, false)
 		})
 		return groupAction(whc)

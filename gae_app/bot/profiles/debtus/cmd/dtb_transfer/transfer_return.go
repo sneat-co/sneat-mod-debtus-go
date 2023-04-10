@@ -12,35 +12,32 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"errors"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 	"golang.org/x/net/html"
 )
 
-//var StartReturnWizardCommand = bots.Command{
+//var StartReturnWizardCommand = botsfw.Command{
 //	Code: "start-return-wizard",
-//	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+//	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 //	},
 //}
 
 const RETURN_WIZARD_COMMAND = "return-wizard"
 
-var StartReturnWizardCommand = bots.Command{
+var StartReturnWizardCommand = botsfw.Command{
 	Code:     RETURN_WIZARD_COMMAND,
 	Commands: trans.Commands(trans.COMMAND_RETURNED),
-	Replies:  []bots.Command{AskReturnCounterpartyCommand, AskToChooseDebtToReturnCommand},
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Replies:  []botsfw.Command{AskReturnCounterpartyCommand, AskToChooseDebtToReturnCommand},
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		log.Debugf(whc.Context(), "StartReturnWizardCommand.Action()")
 		whc.ChatEntity().SetAwaitingReplyTo(RETURN_WIZARD_COMMAND)
 		return AskReturnCounterpartyCommand.Action(whc)
 	},
 }
 
-func askIfReturnedInFull(whc bots.WebhookContext, counterparty models.Contact, currency money.Currency, value decimal.Decimal64p2) (m bots.MessageFromBot, err error) {
+func askIfReturnedInFull(whc botsfw.WebhookContext, counterparty models.Contact, currency money.Currency, value decimal.Decimal64p2) (m botsfw.MessageFromBot, err error) {
 	amount := money.Amount{Currency: money.Currency(currency), Value: value}
 	var mt string
 	switch {
@@ -61,7 +58,7 @@ func askIfReturnedInFull(whc bots.WebhookContext, counterparty models.Contact, c
 	m = whc.NewMessage(fmt.Sprintf(
 		whc.Translate(mt), html.EscapeString(counterparty.FullName()), amount) +
 		"\n\n" + whc.Translate(trans.MESSAGE_TEXT_IS_IT_RETURNED_IN_FULL))
-	m.Format = bots.MessageFormatHTML
+	m.Format = botsfw.MessageFormatHTML
 	m.Keyboard = tgbotapi.NewReplyKeyboardUsingStrings(
 		[][]string{
 			{whc.Translate(trans.BUTTON_TEXT_DEBT_RETURNED_FULLY)},
@@ -80,12 +77,12 @@ var AskReturnCounterpartyCommand = CreateAskTransferCounterpartyCommand(
 	trans.COMMAND_TEXT_RETURN,
 	emoji.RETURN_BACK_ICON,
 	trans.MESSAGE_TEXT_RETURN_ASK_TO_CHOOSE_COUNTERPARTY,
-	[]bots.Command{
+	[]botsfw.Command{
 		AskToChooseDebtToReturnCommand,
 		AskIfReturnedInFullCommand,
 	},
 	bots.Command{}, //newContactCommand - We do not allow to create a new contact on return
-	func(whc bots.WebhookContext, counterparty models.Contact) (m bots.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, counterparty models.Contact) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 
 		log.Debugf(c, "StartReturnWizardCommand.onCounterpartySelectedAction(counterparty.ID=%v)", counterparty.ID)
@@ -119,7 +116,7 @@ var AskReturnCounterpartyCommand = CreateAskTransferCounterpartyCommand(
 	},
 )
 
-func askToChooseDebt(whc bots.WebhookContext, buttons [][]string) (m bots.MessageFromBot) {
+func askToChooseDebt(whc botsfw.WebhookContext, buttons [][]string) (m botsfw.MessageFromBot) {
 	if len(buttons) > 0 {
 		whc.ChatEntity().PushStepToAwaitingReplyTo(ASK_TO_CHOOSE_DEBT_TO_RETURN_COMMAND)
 		m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_CHOOSE_DEBT_THAT_HAS_BEEN_RETURNED))
@@ -130,7 +127,7 @@ func askToChooseDebt(whc bots.WebhookContext, buttons [][]string) (m bots.Messag
 	return m
 }
 
-func _debtAmountButtonText(whc bots.WebhookContext, currency money.Currency, value decimal.Decimal64p2, counterparty models.Contact) string {
+func _debtAmountButtonText(whc botsfw.WebhookContext, currency money.Currency, value decimal.Decimal64p2, counterparty models.Contact) string {
 	amount := money.Amount{Currency: currency, Value: value.Abs()}
 	var mt string
 	switch {
@@ -146,10 +143,10 @@ func _debtAmountButtonText(whc bots.WebhookContext, currency money.Currency, val
 
 const ASK_IF_RETURNED_IN_FULL_COMMAND = "ask-if-return-in-full"
 
-var AskIfReturnedInFullCommand = bots.Command{
+var AskIfReturnedInFullCommand = botsfw.Command{
 	Code:    ASK_IF_RETURNED_IN_FULL_COMMAND,
-	Replies: []bots.Command{AskHowMuchHaveBeenReturnedCommand},
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Replies: []botsfw.Command{AskHowMuchHaveBeenReturnedCommand},
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		chatEntity := whc.ChatEntity()
 		if chatEntity.IsAwaitingReplyTo(ASK_IF_RETURNED_IN_FULL_COMMAND) {
 			switch whc.Input().(bots.WebhookTextMessage).Text() {
@@ -170,7 +167,7 @@ var AskIfReturnedInFullCommand = bots.Command{
 	},
 }
 
-func processReturnCommand(whc bots.WebhookContext, returnValue decimal.Decimal64p2) (m bots.MessageFromBot, err error) {
+func processReturnCommand(whc botsfw.WebhookContext, returnValue decimal.Decimal64p2) (m botsfw.MessageFromBot, err error) {
 	if returnValue < 0 {
 		panic(fmt.Sprintf("returnValue < 0: %v", returnValue))
 	}
@@ -228,9 +225,9 @@ func processReturnCommand(whc bots.WebhookContext, returnValue decimal.Decimal64
 
 const ASK_HOW_MUCH_HAVE_BEEN_RETURNED = "ask-how-much-have-been-returned"
 
-var AskHowMuchHaveBeenReturnedCommand = bots.Command{
+var AskHowMuchHaveBeenReturnedCommand = botsfw.Command{
 	Code: ASK_HOW_MUCH_HAVE_BEEN_RETURNED,
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "AskHowMuchHaveBeenReturnedCommand.Action()")
 		chatEntity := whc.ChatEntity()
@@ -245,7 +242,7 @@ var AskHowMuchHaveBeenReturnedCommand = bots.Command{
 	},
 }
 
-func TryToProcessHowMuchHasBeenReturned(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+func TryToProcessHowMuchHasBeenReturned(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 	if amountValue, err := decimal.ParseDecimal64p2(whc.Input().(bots.WebhookTextMessage).Text()); err != nil {
 		m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_INCORRECT_VALUE_NOT_A_NUMBER))
 		return m, nil
@@ -261,12 +258,12 @@ func TryToProcessHowMuchHasBeenReturned(whc bots.WebhookContext) (m bots.Message
 
 const ASK_TO_CHOOSE_DEBT_TO_RETURN_COMMAND = "ask-to-choose-debt-to-return"
 
-var AskToChooseDebtToReturnCommand = bots.Command{
+var AskToChooseDebtToReturnCommand = botsfw.Command{
 	Code: ASK_TO_CHOOSE_DEBT_TO_RETURN_COMMAND,
-	Replies: []bots.Command{
+	Replies: []botsfw.Command{
 		AskIfReturnedInFullCommand,
 	},
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		counterpartyID, _, _ := getReturnWizardParams(whc)
 		var (
@@ -280,7 +277,7 @@ var AskToChooseDebtToReturnCommand = bots.Command{
 			counterpartyTitle := strings.Join(splittedBySeparator[:len(splittedBySeparator)-1], "|")
 			counterpartyTitle = strings.TrimSpace(counterpartyTitle)
 			chatEntity := whc.ChatEntity()
-			var botAppUser bots.BotAppUser
+			var botAppUser botsfw.BotAppUser
 			botAppUser, err = whc.GetAppUser()
 			if err != nil {
 				return m, err
@@ -332,7 +329,7 @@ var AskToChooseDebtToReturnCommand = bots.Command{
 	},
 }
 
-func CreateReturnAndShowReceipt(whc bots.WebhookContext, returnToTransferID, counterpartyID int64, direction models.TransferDirection, returnAmount money.Amount) (m bots.MessageFromBot, err error) {
+func CreateReturnAndShowReceipt(whc botsfw.WebhookContext, returnToTransferID, counterpartyID int64, direction models.TransferDirection, returnAmount money.Amount) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	log.Debugf(c, "CreateReturnAndShowReceipt(returnToTransferID=%d, counterpartyID=%d)", returnToTransferID, counterpartyID)
 
@@ -363,7 +360,7 @@ func getReturnDirectionFromDebtValue(currentDebt money.Amount) (models.TransferD
 	return models.TransferDirection(""), fmt.Errorf("Zero value for currency: [%v]", currentDebt.Currency)
 }
 
-func getReturnWizardParams(whc bots.WebhookContext) (counterpartyID, transferID int64, err error) {
+func getReturnWizardParams(whc botsfw.WebhookContext) (counterpartyID, transferID int64, err error) {
 	awaitingReplyTo := whc.ChatEntity().GetAwaitingReplyTo()
 	params, err := url.ParseQuery(bots.AwaitingReplyToQuery(awaitingReplyTo))
 	if err != nil {
@@ -376,7 +373,7 @@ func getReturnWizardParams(whc bots.WebhookContext) (counterpartyID, transferID 
 	return
 }
 
-func getCounterparty(whc bots.WebhookContext, counterpartyID int64) (counterparty models.Contact, err error) {
+func getCounterparty(whc botsfw.WebhookContext, counterpartyID int64) (counterparty models.Contact, err error) {
 	//counterparty = new(models.Contact)
 	if counterparty, err = facade.GetContactByID(whc.Context(), counterpartyID); err != nil {
 		return

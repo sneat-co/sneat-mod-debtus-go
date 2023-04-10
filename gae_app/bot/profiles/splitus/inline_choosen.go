@@ -7,10 +7,8 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
-	"github.com/DebtsTracker/translations/trans"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/crediterra/money"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 	"net/url"
@@ -18,10 +16,10 @@ import (
 	"strings"
 )
 
-var chosenInlineResultCommand = bots.Command{
+var chosenInlineResultCommand = botsfw.Command{
 	Code:       "chosen-inline-result-command",
-	InputTypes: []bots.WebhookInputType{bots.WebhookInputChosenInlineResult},
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	InputTypes: []botsfw.WebhookInputType{bots.WebhookInputChosenInlineResult},
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		log.Debugf(whc.Context(), "splitus.chosenInlineResultHandler.Action()")
 		chosenResult := whc.Input().(bots.WebhookChosenInlineResult)
 		resultID := chosenResult.GetResultID()
@@ -34,7 +32,7 @@ var chosenInlineResultCommand = bots.Command{
 
 var reDecimal = regexp.MustCompile(`\d+(\.\d+)?`)
 
-func createBillFromInlineChosenResult(whc bots.WebhookContext, chosenResult bots.WebhookChosenInlineResult) (m bots.MessageFromBot, err error) {
+func createBillFromInlineChosenResult(whc botsfw.WebhookContext, chosenResult botsfw.WebhookChosenInlineResult) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	log.Debugf(c, "createBillFromInlineChosenResult()")
 
@@ -92,7 +90,7 @@ func createBillFromInlineChosenResult(whc bots.WebhookContext, chosenResult bots
 		}
 
 		//var (
-		//	user          bots.BotAppUser
+		//	user          botsfw.BotAppUser
 		//	appUserEntity *models.AppUserEntity
 		//)
 		//if user, err = whc.GetAppUser(); err != nil {
@@ -148,7 +146,7 @@ func createBillFromInlineChosenResult(whc bots.WebhookContext, chosenResult bots
 
 		log.Infof(c, "createBillFromInlineChosenResult() => suxx 1")
 
-		if m, err = whc.NewEditMessage(m.Text, bots.MessageFormatHTML); err != nil { // TODO: Unnecessary hack?
+		if m, err = whc.NewEditMessage(m.Text, botsfw.MessageFormatHTML); err != nil { // TODO: Unnecessary hack?
 			log.Infof(c, "createBillFromInlineChosenResult() => suxx 1.2")
 			log.Errorf(c, err.Error())
 			return
@@ -158,16 +156,16 @@ func createBillFromInlineChosenResult(whc bots.WebhookContext, chosenResult bots
 
 		m.Keyboard = getWhoPaidInlineKeyboard(whc, bill.ID)
 
-		var response bots.OnMessageSentResponse
+		var response botsfw.OnMessageSentResponse
 		log.Debugf(c, "createBillFromInlineChosenResult() => Sending bill card: %v", m)
 
-		if response, err = whc.Responder().SendMessage(c, m, bots.BotAPISendMessageOverHTTPS); err != nil {
+		if response, err = whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 			log.Errorf(c, "createBillFromInlineChosenResult() => %v", err)
 			return
 		}
 
 		log.Debugf(c, "response: %v", response)
-		m.Text = bots.NoMessageToSend
+		m.Text = botsfw.NoMessageToSend
 	}
 
 	return
@@ -175,7 +173,7 @@ func createBillFromInlineChosenResult(whc bots.WebhookContext, chosenResult bots
 
 var reBillUrl = regexp.MustCompile(`\?start=bill-(\d+)$`)
 
-func getBillIDFromUrlInEditedMessage(whc bots.WebhookContext) (billID string) {
+func getBillIDFromUrlInEditedMessage(whc botsfw.WebhookContext) (billID string) {
 	tgInput, ok := whc.Input().(telegram.TgWebhookInput)
 	if !ok {
 		return
@@ -201,9 +199,9 @@ func getBillIDFromUrlInEditedMessage(whc bots.WebhookContext) (billID string) {
 	return
 }
 
-var EditedBillCardHookCommand = bots.Command{ // TODO: seems to be not used anywhere
+var EditedBillCardHookCommand = botsfw.Command{ // TODO: seems to be not used anywhere
 	Code: "edited-bill-card",
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		whc.LogRequest()
 		c := whc.Context()
 		billID := getBillIDFromUrlInEditedMessage(whc)
@@ -212,7 +210,7 @@ var EditedBillCardHookCommand = bots.Command{ // TODO: seems to be not used anyw
 			panic("billID is empty string")
 		}
 
-		m.Text = bots.NoMessageToSend
+		m.Text = botsfw.NoMessageToSend
 
 		var groupID string
 		if groupID, err = shared_group.GetUserGroupID(whc); err != nil {
@@ -250,7 +248,7 @@ var EditedBillCardHookCommand = bots.Command{ // TODO: seems to be not used anyw
 		}
 		return
 	},
-	Matcher: func(command bots.Command, whc bots.WebhookContext) (result bool) {
+	Matcher: func(command botsfw.Command, whc botsfw.WebhookContext) (result bool) {
 		result = whc.IsInGroup() && getBillIDFromUrlInEditedMessage(whc) != ""
 		log.Debugf(whc.Context(), "editedBillCardHookCommand.Matcher(): %v", result)
 		return

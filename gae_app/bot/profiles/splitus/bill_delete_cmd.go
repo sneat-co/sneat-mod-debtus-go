@@ -4,15 +4,13 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"net/url"
 )
 
 const deleteBillCommandCode = "delete_bill"
 
 var deleteBillCommand = billCallbackCommand(deleteBillCommandCode, nil,
-	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		if _, err = facade.Bill.DeleteBill(c, bill.ID, whc.AppUserIntID()); err != nil {
 			if err == facade.ErrSettledBillsCanNotBeDeleted {
@@ -38,7 +36,7 @@ var deleteBillCommand = billCallbackCommand(deleteBillCommandCode, nil,
 const restoreBillCommandCode = "restore_bill"
 
 var restoreBillCommand = billCallbackCommand(restoreBillCommandCode, nil,
-	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		if _, err = facade.Bill.RestoreBill(c, bill.ID, whc.AppUserIntID()); err != nil {
 			if err == facade.ErrSettledBillsCanNotBeDeleted {
@@ -50,7 +48,7 @@ var restoreBillCommand = billCallbackCommand(restoreBillCommandCode, nil,
 		if m.Text, err = getBillCardMessageText(c, whc.GetBotCode(), whc, bill, false, "Bill has been restored"); err != nil {
 			return
 		}
-		m.Format = bots.MessageFormatHTML
+		m.Format = botsfw.MessageFormatHTML
 		m.IsEdit = true
 		return
 	},

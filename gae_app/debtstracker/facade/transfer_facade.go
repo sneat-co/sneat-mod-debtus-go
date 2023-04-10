@@ -23,7 +23,7 @@ const (
 )
 
 type TransfersFacade interface {
-	GetTransferByID(c context.Context, id int64) (transfer models.Transfer, err error)
+	GetTransferByID(c context.Context, id int) (transfer models.Transfer, err error)
 	SaveTransfer(c context.Context, transfer models.Transfer) error
 	CreateTransfer(c context.Context, input createTransferInput) (output createTransferOutput, err error)
 	UpdateTransferOnReturn(c context.Context, returnTransfer, transfer models.Transfer, returnedAmount decimal.Decimal64p2) (err error)

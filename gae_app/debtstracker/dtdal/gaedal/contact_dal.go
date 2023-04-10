@@ -11,7 +11,6 @@ import (
 	"context"
 	"errors"
 	"github.com/strongo/app/gae"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/datastore"
@@ -121,7 +120,7 @@ func (ContactDalGae) GetContactsWithDebts(c context.Context, userID int64) (coun
 	return
 }
 
-func (ContactDalGae) GetLatestContacts(whc bots.WebhookContext, limit, totalCount int) (counterparties []models.Contact, err error) {
+func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, limit, totalCount int) (counterparties []models.Contact, err error) {
 	c := whc.Context()
 	query := newContactQueryActive(whc.AppUserIntID()).Order("-LastTransferAt")
 	if limit > 0 {

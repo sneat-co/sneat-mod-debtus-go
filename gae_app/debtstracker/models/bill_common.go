@@ -69,7 +69,7 @@ func (entity *BillCommon) AssignToGroup(groupID string) (err error) {
 	if entity.UserGroupID == "" {
 		entity.UserGroupID = groupID
 	} else if entity.UserGroupID != groupID {
-		err = errors.WithMessage(ErrBillAlreadyAssignedToAnotherGroup, entity.UserGroupID)
+		err = fmt.Errorf("%w: %s", ErrBillAlreadyAssignedToAnotherGroup, entity.UserGroupID)
 	}
 	return
 }
@@ -241,8 +241,8 @@ func (entity *BillCommon) Validate() (err error) {
 	//}); err != nil {
 	//	return
 	//}
-	if entity.UserGroupID != "" {
-		filtered = append(filtered, datastore.Property{Name: "GetUserGroupID", Value: entity.UserGroupID, NoIndex: false})
-	}
+	//if entity.UserGroupID != "" {
+	//	filtered = append(filtered, datastore.Property{Name: "GetUserGroupID", Value: entity.UserGroupID, NoIndex: false})
+	//}
 	return
 }

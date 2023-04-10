@@ -4,13 +4,13 @@ package dtb_fbm
 //	"net/url"
 //
 //	"github.com/strongo/bots-api-fbm"
-//	"github.com/strongo/bots-framework/core"
+//	"github.com/bots-go-framework/bots-fw/botsfw"
 //	"github.com/strongo/log"
 //)
 //
-//var FbmGetStartedCommand = bots.Command{ // TODO: Move command to other package?
+//var FbmGetStartedCommand = botsfw.Command{ // TODO: Move command to other package?
 //	Code: "fbm-get-started",
-//	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+//	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 //		c := whc.Context()
 //		log.Debugf(c, "FbmGetStartedCommand.CallbackAction() => callbackUrl: %v", callbackUrl)
 //		//m.Text = "Welcome!"
@@ -33,9 +33,9 @@ package dtb_fbm
 //	},
 //}
 //
-//var FbmMainMenuCommand = bots.Command{
+//var FbmMainMenuCommand = botsfw.Command{
 //	Code: "fbm-main-menu",
-//	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+//	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 //		c := whc.Context()
 //		log.Debugf(c, "FbmMainMenuCommand.CallbackAction() => callbackUrl: %v", callbackUrl)
 //
@@ -53,9 +53,9 @@ package dtb_fbm
 //	},
 //}
 //
-//var FbmDebtsCommand = bots.Command{
+//var FbmDebtsCommand = botsfw.Command{
 //	Code: "fbm-debts",
-//	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+//	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 //		c := whc.Context()
 //		log.Debugf(c, "FbmDebtsCommand.CallbackAction() => callbackUrl: %v", callbackUrl)
 //
@@ -70,9 +70,9 @@ package dtb_fbm
 //	},
 //}
 //
-//var FbmBillsCommand = bots.Command{
+//var FbmBillsCommand = botsfw.Command{
 //	Code: "fbm-bills",
-//	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+//	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 //		c := whc.Context()
 //		log.Debugf(c, "FbmBillsCommand.CallbackAction() => callbackUrl: %v", callbackUrl)
 //		//m.Text = "Welcome!"
@@ -87,9 +87,9 @@ package dtb_fbm
 //	},
 //}
 //
-//var FbmSettingsCommand = bots.Command{
+//var FbmSettingsCommand = botsfw.Command{
 //	Code: "fbm-settings",
-//	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+//	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 //		c := whc.Context()
 //		log.Debugf(c, "FbmSettingsCommand.CallbackAction() => callbackUrl: %v", callbackUrl)
 //		m.FbmAttachment = &fbmbotapi.RequestAttachment{

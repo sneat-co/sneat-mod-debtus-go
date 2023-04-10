@@ -9,7 +9,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_settings"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
-	"github.com/strongo/bots-framework/core"
 )
 
 var botParams = shared_all.BotParams{
@@ -18,15 +17,15 @@ var botParams = shared_all.BotParams{
 	//DelayUpdateBillCardOnUserJoin:    delayUpdateBillCardOnUserJoin,
 	//OnAfterBillCurrencySelected:      getWhoPaidInlineKeyboard,
 	//ShowGroupMembers:                 showGroupMembers,
-	HelpCommandAction: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	HelpCommandAction: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		return dtb_general.HelpCommandAction(whc, true)
 	},
-	//InGroupWelcomeMessage: func(whc bots.WebhookContext, group models.Group) (m bots.MessageFromBot, err error) {
+	//InGroupWelcomeMessage: func(whc botsfw.WebhookContext, group models.Group) (m botsfw.MessageFromBot, err error) {
 	//	m, err = shared_all.GroupSettingsAction(whc, group, false)
 	//	if err != nil {
 	//		return
 	//	}
-	//	if _, err = whc.Responder().SendMessage(whc.Context(), m, bots.BotAPISendMessageOverHTTPS); err != nil {
+	//	if _, err = whc.Responder().SendMessage(whc.Context(), m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 	//		return
 	//	}
 	//
@@ -35,9 +34,9 @@ var botParams = shared_all.BotParams{
 	//		"\n\n"+ whc.Translate(trans.SPLITUS_TEXT_ABOUT_ME_AND_CO),
 	//		bots.MessageFormatHTML)
 	//},
-	InBotWelcomeMessage: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	InBotWelcomeMessage: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		m.Text = "Hi there"
-		m.Format = bots.MessageFormatHTML
+		m.Format = botsfw.MessageFormatHTML
 		//m.IsEdit = true
 		return
 	},
@@ -52,7 +51,7 @@ func init() {
 	shared_all.AddSharedRoutes(Router, botParams)
 }
 
-var textAndContactCommands = []bots.Command{ // TODO: Check for Action || CallbackAction and register accordingly.
+var textAndContactCommands = []botsfw.Command{ // TODO: Check for Action || CallbackAction and register accordingly.
 	//OnboardingAskInviteChannelCommand, // We need it as otherwise do not handle replies.
 	//SetPreferredLanguageCommand,
 	//OnboardingAskInviteCodeCommand,
@@ -97,7 +96,7 @@ var textAndContactCommands = []bots.Command{ // TODO: Check for Action || Callba
 	//
 }
 
-var callbackCommands = []bots.Command{
+var callbackCommands = []botsfw.Command{
 	dtb_general.MainMenuCommand,
 	dtb_general.PleaseWaitCommand,
 	//dtb_invite.InviteCommand,
@@ -137,8 +136,8 @@ var callbackCommands = []bots.Command{
 	shared_all.AddReferrerCommand,
 }
 
-var Router = bots.NewWebhookRouter(
-	map[bots.WebhookInputType][]bots.Command{
+var Router = botsfw.NewWebhookRouter(
+	map[bots.WebhookInputType][]botsfw.Command{
 		bots.WebhookInputText:          textAndContactCommands,
 		bots.WebhookInputContact:       textAndContactCommands,
 		bots.WebhookInputCallbackQuery: callbackCommands,

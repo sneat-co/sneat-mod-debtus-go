@@ -4,21 +4,21 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/strongo/bots-framework/core"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 )
 
 var _ dtdal.ContactDal = (*ContactDalMock)(nil)
 
 type ContactDalMock struct {
-	LastContactID int
-	Contacts      map[int]*models.ContactEntity
+	LastContactID int64
+	Contacts      map[int64]*models.ContactEntity
 }
 
 func NewContactDalMock() *ContactDalMock {
-	return &ContactDalMock{Contacts: make(map[int]*models.ContactEntity)}
+	return &ContactDalMock{Contacts: make(map[int64]*models.ContactEntity)}
 }
 
-func (mock *ContactDalMock) GetLatestContacts(whc bots.WebhookContext, limit, totalCount int) (contacts []models.Contact, err error) {
+func (mock *ContactDalMock) GetLatestContacts(whc botsfw.WebhookContext, limit, totalCount int) (contacts []models.Contact, err error) {
 	return
 }
 
@@ -42,7 +42,7 @@ func (mock *ContactDalMock) SaveContact(c context.Context, contact models.Contac
 	return
 }
 
-func (mock *ContactDalMock) DeleteContact(c context.Context, contactID int) (err error) {
+func (mock *ContactDalMock) DeleteContact(c context.Context, contactID int64) (err error) {
 	delete(mock.Contacts, contactID)
 	return
 }

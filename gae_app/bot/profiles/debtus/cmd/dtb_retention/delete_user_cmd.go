@@ -2,17 +2,15 @@ package dtb_retention
 
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-framework/core"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 )
 
-var DeleteUserCommand = bots.Command{
+var DeleteUserCommand = botsfw.Command{
 	Code:     "delete-user",
 	Icon:     emoji.NO_ENTRY_SIGN_ICON,
 	Commands: []string{"/deleteuser"},
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
-		err = bots.SetAccessGranted(whc, false)
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
+		err = botsfw.SetAccessGranted(whc, false)
 		if err != nil {
 			m = whc.NewMessageByCode(trans.MESSAGE_TEXT_FAILED_TO_DELETE_USER, err)
 			dtb_general.SetMainMenuKeyboard(whc, &m)

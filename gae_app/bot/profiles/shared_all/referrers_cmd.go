@@ -6,18 +6,15 @@ import (
 	"net/url"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 )
 
 const REFERRERS_COMMAND = "referrers"
 
-var ReferrersCommand = bots.Command{
+var ReferrersCommand = botsfw.Command{
 	Code:     REFERRERS_COMMAND,
 	Commands: trans.Commands(trans.COMMAND_TEXT_REFERRERS, emoji.PUBLIC_LOUDSPEAKER),
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		if m, err = topReferrersMessageText(whc); err != nil {
 			return
 		}
@@ -30,7 +27,7 @@ var ReferrersCommand = bots.Command{
 	},
 }
 
-func topReferrersMessageText(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+func topReferrersMessageText(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
 	var topTelegramReferrers []string
@@ -47,15 +44,15 @@ func topReferrersMessageText(whc bots.WebhookContext) (m bots.MessageFromBot, er
 		fmt.Fprintf(buf, "  %v. @%v\n", i+1, channel)
 	}
 	m.Text = buf.String()
-	m.Format = bots.MessageFormatHTML
+	m.Format = botsfw.MessageFormatHTML
 	return
 }
 
 const ADD_REFERRER_COMMAND = "add-referrer"
 
-var AddReferrerCommand = bots.Command{
+var AddReferrerCommand = botsfw.Command{
 	Code: ADD_REFERRER_COMMAND,
-	CallbackAction: func(whc bots.WebhookContext, _ *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc botsfw.WebhookContext, _ *url.URL) (m botsfw.MessageFromBot, err error) {
 		if m, err = topReferrersMessageText(whc); err != nil {
 			return
 		}

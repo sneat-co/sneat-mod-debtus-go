@@ -9,16 +9,14 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/invites"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 )
 
 const ASK_EMAIL_FOR_RECEIPT_COMMAND = "ask-email-for-receipt"
 
-var AskEmailForReceiptCommand = bots.Command{
+var AskEmailForReceiptCommand = botsfw.Command{
 	Code: ASK_EMAIL_FOR_RECEIPT_COMMAND,
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 
 		log.Debugf(c, "AskEmailForReceiptCommand.Action()")
@@ -42,7 +40,7 @@ var AskEmailForReceiptCommand = bots.Command{
 	},
 }
 
-func sendReceiptByEmail(whc bots.WebhookContext, toEmail, toName string, transfer models.Transfer) (m bots.MessageFromBot, err error) {
+func sendReceiptByEmail(whc botsfw.WebhookContext, toEmail, toName string, transfer models.Transfer) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	receiptEntity := models.NewReceiptEntity(whc.AppUserIntID(), transfer.ID, transfer.Counterparty().UserID, whc.Locale().Code5, string(models.InviteByEmail), toEmail, general.CreatedOn{
 		CreatedOnPlatform: whc.BotPlatform().ID(),

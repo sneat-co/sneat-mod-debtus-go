@@ -79,7 +79,7 @@ func (o *UserContactTransfersInfo) Equal(o2 *UserContactTransfersInfo) bool {
 }
 
 type UserContactJson struct {
-	ID          int
+	ID          int64
 	Name        string
 	Status      string                    `json:",omitempty"`
 	UserID      int                       `json:",omitempty"` // TODO: new prop, update in map reduce and change code!
@@ -134,7 +134,7 @@ func (o UserContactJson) BalanceWithInterest(c context.Context, periodEnds time.
 	return
 }
 
-func NewUserContactJson(counterpartyID int, status, name string, balanced money.Balanced) UserContactJson {
+func NewUserContactJson(counterpartyID int64, status, name string, balanced money.Balanced) UserContactJson {
 	result := UserContactJson{
 		ID:     counterpartyID,
 		Status: status,

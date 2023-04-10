@@ -13,17 +13,14 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
 	"errors"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/log"
 )
 
-var SendReceiptCallbackCommand = bots.NewCallbackCommand(SEND_RECEIPT_CALLBACK_PATH, CallbackSendReceipt)
+var SendReceiptCallbackCommand = botsfw.NewCallbackCommand(SEND_RECEIPT_CALLBACK_PATH, CallbackSendReceipt)
 
-func CallbackSendReceipt(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+func CallbackSendReceipt(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	q := callbackUrl.Query()
 	sendBy := q.Get("by")
@@ -57,11 +54,11 @@ func CallbackSendReceipt(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.
 		return createSendReceiptOptionsMessage(whc, transfer)
 	case RECEIPT_ACTION__DO_NOT_SEND:
 		log.Debugf(c, "CallbackSendReceipt(): do-not-send")
-		if m, err = whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_RECEIPT_WILL_NOT_BE_SENT), bots.MessageFormatHTML); err != nil {
+		if m, err = whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_RECEIPT_WILL_NOT_BE_SENT), botsfw.MessageFormatHTML); err != nil {
 			return
 		}
 
-		// TODO: do type assertion with bots.CallbackQuery interface
+		// TODO: do type assertion with botsfw.CallbackQuery interface
 		if callbackMessage := whc.Input().(telegram.TgWebhookCallbackQuery).TelegramCallbackMessage; callbackMessage != nil && callbackMessage().Text == m.Text {
 			m.Text += " (double clicked)"
 		}
@@ -83,11 +80,11 @@ func CallbackSendReceipt(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.
 		if counterparty.PhoneNumber > 0 {
 			return sendReceiptBySms(whc, counterparty.PhoneContact, transfer, counterparty)
 		} else {
-			var updateMessage bots.MessageFromBot
-			if updateMessage, err = whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_LETS_SEND_SMS), bots.MessageFormatHTML); err != nil {
+			var updateMessage botsfw.MessageFromBot
+			if updateMessage, err = whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_LETS_SEND_SMS), botsfw.MessageFormatHTML); err != nil {
 				return
 			}
-			if _, err = whc.Responder().SendMessage(c, updateMessage, bots.BotAPISendMessageOverHTTPS); err != nil {
+			if _, err = whc.Responder().SendMessage(c, updateMessage, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 				log.Errorf(c, errors.WithMessage(err, "failed to update Telegram message").Error())
 				err = nil
 			}
@@ -103,7 +100,7 @@ func CallbackSendReceipt(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.
 			//mt += "\n\n" + whc.Translate(trans.MESSAGE_TEXT_VIEW_MY_NUMBER_IN_INTERNATIONAL_FORMAT)
 
 			m = whc.NewMessage(mt)
-			m.Format = bots.MessageFormatHTML
+			m.Format = botsfw.MessageFormatHTML
 			keyboard := [][]tgbotapi.KeyboardButton{
 				{
 					{RequestContact: true, Text: whc.Translate(trans.COMMAND_TEXT_VIEW_MY_NUMBER_IN_INTERNATIONAL_FORMAT)},
@@ -131,7 +128,7 @@ func CallbackSendReceipt(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.
 	return m, err
 }
 
-func showLinkForReceiptInTelegram(whc bots.WebhookContext, transfer models.Transfer) (m bots.MessageFromBot, err error) {
+func showLinkForReceiptInTelegram(whc botsfw.WebhookContext, transfer models.Transfer) (m botsfw.MessageFromBot, err error) {
 	receipt := models.NewReceiptEntity(whc.AppUserIntID(), transfer.ID, transfer.Counterparty().UserID, whc.Locale().Code5, "link", "telegram", general.CreatedOn{
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
@@ -142,7 +139,7 @@ func showLinkForReceiptInTelegram(whc bots.WebhookContext, transfer models.Trans
 	}
 	receiptUrl := GetUrlForReceiptInTelegram(whc.GetBotCode(), receiptID, whc.Locale().Code5)
 	m.Text = "Send this link to counterparty:\n\n" + fmt.Sprintf(`<a href="%v">%v</a>`, receiptUrl, receiptUrl) + "\n\nPlease be aware that the first person opening this link will be treated as counterparty for this debt."
-	m.Format = bots.MessageFormatHTML
+	m.Format = botsfw.MessageFormatHTML
 	m.IsEdit = true
 	return
 }

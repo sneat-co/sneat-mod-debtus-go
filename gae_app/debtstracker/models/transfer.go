@@ -2,7 +2,7 @@ package models
 
 import (
 	"fmt"
-	"github.com/strongo/dalgo/record"
+	"github.com/dal-go/dalgo/record"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
@@ -45,22 +45,22 @@ const TransferKind = "Transfer"
 
 var _ datastore.PropertyLoadSaver = (*TransferEntity)(nil)
 
-func NewTransfer(id int, entity *TransferEntity) Transfer {
+func NewTransfer(id int, data *TransferEntity) Transfer {
 	if id == 0 {
 		panic("id == 0")
 	}
-	if entity == nil {
-		panic("entity == nil")
+	if data == nil {
+		panic("data == nil")
 	}
 	return Transfer{
-		WithID:         record.WithID[int]{ID: id},
-		TransferEntity: entity,
+		WithID: record.WithID[int]{ID: id},
+		Data:   data,
 	}
 }
 
 type Transfer struct {
 	record.WithID[int]
-	*TransferEntity
+	Data *TransferEntity
 }
 
 //var _ db.EntityHolder = (*Transfer)(nil)
@@ -77,17 +77,17 @@ func (Transfer) Kind() string {
 //	return t.TransferEntity
 //}
 
-func (Transfer) NewEntity() interface{} {
-	return new(TransferEntity)
-}
+//func (Transfer) NewEntity() interface{} {
+//	return new(TransferEntity)
+//}
 
-func (t *Transfer) SetEntity(entity interface{}) {
-	if entity == nil {
-		t.TransferEntity = nil
-	} else {
-		t.TransferEntity = entity.(*TransferEntity)
-	}
-}
+//func (t *Transfer) SetEntity(entity interface{}) {
+//	if entity == nil {
+//		t.Data = nil
+//	} else {
+//		t.Data = entity.(*TransferEntity)
+//	}
+//}
 
 func (t *TransferEntity) HasObsoleteProps() bool {
 	return t.hasObsoleteProps
@@ -170,7 +170,7 @@ type TransferEntity struct {
 
 	// This 2 fields are used in conjunction with .Order("-DtCreated")
 	BothUserIDs         []int64 // This is needed to show transactions by user regardless who created
-	BothCounterpartyIDs []int   // This is needed to show transactions by counterparty regardless who created
+	BothCounterpartyIDs []int64 // This is needed to show transactions by counterparty regardless who created
 	//
 	DtCreated time.Time
 	DtDueOn   time.Time `datastore:",omitempty"`
@@ -189,6 +189,7 @@ type TransferEntity struct {
 	ReceiptIDs        []int64 `datastore:",noindex"`
 }
 
+// AmountReturned returns amount returned to counterparty
 func (t *TransferEntity) AmountReturned() decimal.Decimal64p2 {
 	if t.AmountInCentsReturned > 0 {
 		return t.AmountInCentsReturned
@@ -200,14 +201,14 @@ func (t *TransferEntity) AmountReturned() decimal.Decimal64p2 {
 }
 
 func (t Transfer) String() string {
-	if t.TransferEntity == nil {
+	if t.Data == nil {
 		return fmt.Sprintf("Transfer{ID: %d, Entity: nil}", t.ID)
 	} else {
-		return fmt.Sprintf("Transfer{ID: %d, Entity: %v}", t.ID, t.TransferEntity)
+		return fmt.Sprintf("Transfer{ID: %d, Entity: %v}", t.ID, t.Data)
 	}
 }
 
-func (t TransferEntity) String() string {
+func (t *TransferEntity) String() string {
 	return fmt.Sprintf(
 		"TransferEntity{DtCreated: %v, Direction: %v, GetAmount(): %v, AmoutInCentsReturned: %v, IsReturn: %v, ReturnToTransferIDs: %v, CreatorUserID: %d, Creator: %v, Contact: %v, BothUserIDs: %v, BothCounterpartyIDs: %v, From: %v, To: %v}",
 		t.DtCreated, t.Direction(), t.GetAmount(), t.AmountInCentsReturned, t.IsReturn, t.ReturnToTransferIDs, t.CreatorUserID, t.Creator(), t.Counterparty(), t.BothUserIDs, t.BothCounterpartyIDs, t.From(), t.To())
@@ -245,7 +246,8 @@ func (t *TransferEntity) IsReverseDirection(t2 *TransferEntity) bool {
 	return t.DirectionForUser(t.CreatorUserID) == t2.DirectionForUser(t.CreatorUserID).Reverse()
 }
 
-func (t *TransferEntity) DirectionForContact(contactID int) TransferDirection {
+// DirectionForContact
+func (t *TransferEntity) DirectionForContact(contactID int64) TransferDirection {
 	switch contactID {
 	case t.From().ContactID:
 		return TransferDirectionCounterparty2User
@@ -263,7 +265,7 @@ func (t *TransferEntity) transferIsNotAssociatedWithUser(userID int64) string {
 	)
 }
 
-func (t *TransferEntity) transferIsNotAssociatedWithContact(contactID int) string {
+func (t *TransferEntity) transferIsNotAssociatedWithContact(contactID int64) string {
 	return fmt.Sprintf(
 		"Transfer is not associated with contactID=%v  (FromContactID=%v, ToContactID=%v)",
 		contactID, t.From().ContactID, t.To().ContactID,
@@ -292,7 +294,7 @@ func (t *TransferEntity) ReturnDirectionForUser(userID int64) TransferDirection 
 
 var ErrTransferNotRelatedToCreator = errors.New("Transfer is not related to creator")
 
-func (t TransferEntity) Creator() *TransferCounterpartyInfo { // TODO: Same as t.Creator()
+func (t *TransferEntity) Creator() *TransferCounterpartyInfo { // TODO: Same as t.Creator()
 	if t.CreatorUserID == 0 {
 		panic("CreatorUserID == 0")
 	}
@@ -322,7 +324,7 @@ func (t *TransferEntity) Counterparty() *TransferCounterpartyInfo {
 	}
 }
 
-func (t TransferEntity) CounterpartyInfoByUserID(userID int64) *TransferCounterpartyInfo {
+func (t *TransferEntity) CounterpartyInfoByUserID(userID int64) *TransferCounterpartyInfo {
 	switch userID {
 	case t.From().UserID:
 		return t.To()
@@ -333,7 +335,7 @@ func (t TransferEntity) CounterpartyInfoByUserID(userID int64) *TransferCounterp
 	}
 }
 
-func (t TransferEntity) UserInfoByUserID(userID int64) *TransferCounterpartyInfo {
+func (t *TransferEntity) UserInfoByUserID(userID int64) *TransferCounterpartyInfo {
 	switch userID {
 	case t.From().UserID:
 		return t.from
@@ -398,7 +400,7 @@ func (t *TransferEntity) Load(ps []datastore.Property) error {
 		creatorNote, counterpartyNote                     string
 		creatorComment, counterpartyComment               string
 		creatorUserID, counterpartyUserID                 int64
-		creatorCounterpartyID, counterpartyCounterpartyID int
+		creatorCounterpartyID, counterpartyCounterpartyID int64
 		// creatorTgReceiptByTgMsgID, counterpartyTgReceiptByTgMsgID int64
 	)
 	for _, p := range ps {
@@ -456,10 +458,10 @@ func (t *TransferEntity) Load(ps []datastore.Property) error {
 
 		case "CreatorCounterpartyID":
 			t.hasObsoleteProps = true
-			creatorCounterpartyID = p.Value.(int)
+			creatorCounterpartyID = p.Value.(int64)
 		case "CounterpartyCounterpartyID":
 			t.hasObsoleteProps = true
-			counterpartyCounterpartyID = p.Value.(int)
+			counterpartyCounterpartyID = p.Value.(int64)
 
 			// case "FromUserID": // TODO: Ignore legacy, temporary
 			// case "FromUserName": // TODO: Ignore legacy, temporary
@@ -542,7 +544,7 @@ func (t *TransferEntity) Load(ps []datastore.Property) error {
 		migrateToCounterpartyInfo := func(
 			counterparty *TransferCounterpartyInfo,
 			userID int64,
-			contactID int,
+			contactID int64,
 			reminderID int,
 			tgChatID int64,
 			tgBotID, contactName, note, comment string,
@@ -728,8 +730,8 @@ func (t *TransferEntity) BeforeSave() (err error) {
 	if from.ContactID == 0 && to.ContactID == 0 {
 		err = errors.New("from.ContactID == 0 && to.ContactID == 0")
 		return
-	} else { // Always store 2 values, even if 1 is zero so we can query such records.
-		t.BothCounterpartyIDs = []int{from.ContactID, to.ContactID}
+	} else { // Always store 2 values, even if 1 is zero, so we can query such records.
+		t.BothCounterpartyIDs = []int64{from.ContactID, to.ContactID}
 	}
 
 	if from.UserID == 0 && to.UserID == 0 {
@@ -776,7 +778,7 @@ func (t *TransferEntity) BeforeSave() (err error) {
 	return
 }
 
-func (TransferEntity) movedToJson(propName string) bool {
+func (*TransferEntity) movedToJson(propName string) bool {
 	return propName == "CounterpartyUserID" || (strings.HasPrefix(propName, "Creator") || strings.HasPrefix(propName, "Counterparty")) && (strings.HasSuffix(propName, "CounterpartyID") ||
 		strings.HasSuffix(propName, "CounterpartyName") ||
 		strings.HasSuffix(propName, "Note") ||

@@ -2,8 +2,8 @@ package models
 
 import (
 	"errors"
+	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/app/user"
-	"github.com/strongo/dalgo/record"
 	"google.golang.org/appengine/datastore"
 	gaeuser "google.golang.org/appengine/user" // TODO: Get rid of dependency to GAE?
 )

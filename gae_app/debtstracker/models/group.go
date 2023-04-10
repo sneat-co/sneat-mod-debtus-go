@@ -2,8 +2,8 @@ package models
 
 import (
 	"fmt"
-	"github.com/strongo/dalgo/dal"
-	"github.com/strongo/dalgo/record"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/db"
 	"github.com/strongo/random"
 	"github.com/strongo/validation"

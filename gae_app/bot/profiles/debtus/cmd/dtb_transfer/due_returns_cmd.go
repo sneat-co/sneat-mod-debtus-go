@@ -11,19 +11,16 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"errors"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 )
 
 const DUE_RETURNS_COMMAND = "due-returns"
 
-var DueReturnsCallbackCommand = bots.NewCallbackCommand(DUE_RETURNS_COMMAND, dueReturnsCallbackAction)
+var DueReturnsCallbackCommand = botsfw.NewCallbackCommand(DUE_RETURNS_COMMAND, dueReturnsCallbackAction)
 
-func dueReturnsCallbackAction(whc bots.WebhookContext, _ *url.URL) (m bots.MessageFromBot, err error) {
+func dueReturnsCallbackAction(whc botsfw.WebhookContext, _ *url.URL) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
 	userID := whc.AppUserIntID()
@@ -56,7 +53,7 @@ func dueReturnsCallbackAction(whc bots.WebhookContext, _ *url.URL) (m bots.Messa
 	}
 
 	if len(overdueTransfers) == 0 || len(dueTransfers) == 0 {
-		if m, err = whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_DUE_RETURNS_EMPTY), bots.MessageFormatHTML); err != nil {
+		if m, err = whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_DUE_RETURNS_EMPTY), botsfw.MessageFormatHTML); err != nil {
 			return
 		}
 	} else {
@@ -84,7 +81,7 @@ func dueReturnsCallbackAction(whc bots.WebhookContext, _ *url.URL) (m bots.Messa
 		}
 		listTransfers(trans.MESSAGE_TEXT_OVERDUE_RETURNS_HEADER, overdueTransfers)
 		listTransfers(trans.MESSAGE_TEXT_DUE_RETURNS_HEADER, dueTransfers)
-		if m, err = whc.NewEditMessage(strings.TrimSuffix(buffer.String(), "\n"), bots.MessageFormatHTML); err != nil {
+		if m, err = whc.NewEditMessage(strings.TrimSuffix(buffer.String(), "\n"), botsfw.MessageFormatHTML); err != nil {
 			return
 		}
 	}

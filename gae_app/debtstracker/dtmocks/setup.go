@@ -5,7 +5,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal/dalmocks"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/strongo/dalgo/dal"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/db"
 	"github.com/strongo/db/mockdb"
 )

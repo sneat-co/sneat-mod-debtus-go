@@ -9,9 +9,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"context"
 	"errors"
-	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/fbm"
 	fb "github.com/strongo/facebook"
 	"github.com/strongo/log"
@@ -53,11 +51,11 @@ var (
 	}
 )
 
-var _bots bots.SettingsBy
+var _bots botsfw.SettingsBy
 
-func Bots(_ context.Context) bots.SettingsBy {
+func Bots(_ context.Context) botsfw.SettingsBy {
 	if len(_bots.ByCode) == 0 {
-		_bots = bots.NewBotSettingsBy(nil,
+		_bots = botsfw.NewBotSettingsBy(nil,
 			fbm.NewFbmBot(
 				strongo.EnvProduction,
 				bot.ProfileDebtus,

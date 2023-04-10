@@ -5,14 +5,13 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 	"net/url"
 )
 
-var billChangeSplitModeCommand = bots.Command{
+var billChangeSplitModeCommand = botsfw.Command{
 	Code: "split-mode",
-	CallbackAction: func(whc bots.WebhookContext, callbackUrl *url.URL) (m bots.MessageFromBot, err error) {
+	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "billChangeSplitModeCommand.CallbackAction()")
 		var bill models.Bill

@@ -2,7 +2,7 @@ package models
 
 import (
 	"encoding/base64"
-	"github.com/strongo/dalgo/record"
+	"github.com/dal-go/dalgo/record"
 	"strings"
 	"time"
 

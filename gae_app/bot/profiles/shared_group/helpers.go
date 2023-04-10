@@ -11,15 +11,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/log"
 	"strconv"
 )
 
-func GetGroup(whc bots.WebhookContext, callbackUrl *url.URL) (group models.Group, err error) {
+func GetGroup(whc botsfw.WebhookContext, callbackUrl *url.URL) (group models.Group, err error) {
 	if callbackUrl != nil {
 		group.ID = callbackUrl.Query().Get("group")
 	}
@@ -48,7 +45,7 @@ func GetGroup(whc bots.WebhookContext, callbackUrl *url.URL) (group models.Group
 	return createGroupFromTelegram(whc, tgChatEntity, tgChat) // TODO: No need to pass tgChatEntity - need to be updated in transaction
 }
 
-func GetUserGroupID(whc bots.WebhookContext) (groupID string, err error) {
+func GetUserGroupID(whc botsfw.WebhookContext) (groupID string, err error) {
 	var tgChatEntity *models.DtTelegramChatEntity
 	if tgChatEntity, err = getTgChatEntity(whc); err != nil || tgChatEntity == nil {
 		return
@@ -59,7 +56,7 @@ func GetUserGroupID(whc bots.WebhookContext) (groupID string, err error) {
 	return
 }
 
-func createGroupFromTelegram(whc bots.WebhookContext, chatEntity *models.DtTelegramChatEntity, tgChat *tgbotapi.Chat) (group models.Group, err error) {
+func createGroupFromTelegram(whc botsfw.WebhookContext, chatEntity *models.DtTelegramChatEntity, tgChat *tgbotapi.Chat) (group models.Group, err error) {
 	c := whc.Context()
 	log.Debugf(c, "createGroupFromTelegram()")
 	var user *models.AppUserEntity
@@ -70,8 +67,8 @@ func createGroupFromTelegram(whc bots.WebhookContext, chatEntity *models.DtTeleg
 
 	if tgChat.IsSuperGroup() { // See: https://core.telegram.org/bots/api#exportchatinvitelink
 		// TODO: Do this in delayed task - Lets try to get chat  invite link
-		msg := bots.MessageFromBot{BotMessage: telegram.ExportChatInviteLink{}}
-		if tgResponse, err := whc.Responder().SendMessage(c, msg, bots.BotAPISendMessageOverHTTPS); err != nil {
+		msg := botsfw.MessageFromBot{BotMessage: telegram.ExportChatInviteLink{}}
+		if tgResponse, err := whc.Responder().SendMessage(c, msg, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 			log.Debugf(c, "Not able to export chat invite link: %v", err)
 		} else {
 			chatInviteLink = string(tgResponse.TelegramMessage.(tgbotapi.APIResponse).Result)
@@ -141,7 +138,7 @@ func createGroupFromTelegram(whc bots.WebhookContext, chatEntity *models.DtTeleg
 	return
 }
 
-func getTgChatEntity(whc bots.WebhookContext) (tgChatEntity *models.DtTelegramChatEntity, err error) {
+func getTgChatEntity(whc botsfw.WebhookContext) (tgChatEntity *models.DtTelegramChatEntity, err error) {
 	chatEntity := whc.ChatEntity()
 	if chatEntity == nil {
 		whc.LogRequest()
@@ -156,7 +153,7 @@ func getTgChatEntity(whc bots.WebhookContext) (tgChatEntity *models.DtTelegramCh
 	return tgChatEntity, nil
 }
 
-func NewGroupTelegramInlineButton(whc bots.WebhookContext, groupsMessageID int) tgbotapi.InlineKeyboardButton {
+func NewGroupTelegramInlineButton(whc botsfw.WebhookContext, groupsMessageID int) tgbotapi.InlineKeyboardButton {
 	buf := new(bytes.Buffer)
 	fmt.Fprintf(buf, "https://t.me/%v?startgroup=utm_s=%v__utm_m=%v__l=%v", whc.GetBotCode(), whc.GetBotCode(), "tgbot", whc.Locale().Code5)
 	if groupsMessageID != 0 {

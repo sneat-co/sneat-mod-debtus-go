@@ -6,7 +6,6 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-framework/core"
 )
 
 type deeplink struct {
@@ -34,7 +33,7 @@ func NewLinker(environment strongo.Environment, userID int64, locale, issuer str
 	}
 }
 
-func NewLinkerFromWhc(whc bots.WebhookContext) Linker {
+func NewLinkerFromWhc(whc botsfw.WebhookContext) Linker {
 	return NewLinker(whc.Environment(), whc.AppUserIntID(), whc.Locale().SiteCode(), formatIssuer(whc.BotPlatform().ID(), whc.GetBotCode()))
 }
 
@@ -74,6 +73,6 @@ func (l Linker) url(path, query, hash string) string {
 	return buffer.String()
 }
 
-func (l Linker) ToMainScreen(whc bots.WebhookContext) string {
+func (l Linker) ToMainScreen(whc botsfw.WebhookContext) string {
 	return l.url("/app/", "", "#")
 }

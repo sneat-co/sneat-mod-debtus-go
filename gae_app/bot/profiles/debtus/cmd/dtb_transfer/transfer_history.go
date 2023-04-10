@@ -11,11 +11,8 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/DebtsTracker/translations/emoji"
-	"github.com/DebtsTracker/translations/trans"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
 	"github.com/yaa110/go-persian-calendar"
 )
 
@@ -24,18 +21,18 @@ const HistoryMoreLimit = 10
 
 const HISTORY_COMMAND = "history"
 
-var HistoryCommand = bots.Command{
+var HistoryCommand = botsfw.Command{
 	Code:     HISTORY_COMMAND,
 	Icon:     emoji.HISTORY_ICON,
 	Title:    trans.COMMAND_TEXT_HISTORY,
 	Commands: trans.Commands(trans.COMMAND_HISTORY, emoji.HISTORY_ICON), // TODO: Check icon!
 	Titles:   map[string]string{bots.ShortTitle: emoji.HISTORY_ICON},    // TODO: Check icon!
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		return showHistoryCard(whc, HistoryTopLimit)
 	},
 }
 
-func showHistoryCard(whc bots.WebhookContext, limit int) (m bots.MessageFromBot, err error) {
+func showHistoryCard(whc botsfw.WebhookContext, limit int) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
 	transfers, hasMore, err := dtdal.Transfer.LoadTransfersByUserID(c, whc.AppUserIntID(), 0, limit)
@@ -66,7 +63,7 @@ func showHistoryCard(whc bots.WebhookContext, limit int) (m bots.MessageFromBot,
 		}
 	}
 
-	m.Format = bots.MessageFormatHTML
+	m.Format = botsfw.MessageFormatHTML
 	m.DisableWebPagePreview = true
 	return m, nil
 }
@@ -75,7 +72,7 @@ const (
 	UTM_CAMPAIGN_TRANSFER_HISTORY = "transfer-history"
 )
 
-func transferHistoryRows(whc bots.WebhookContext, transfers []models.Transfer) string {
+func transferHistoryRows(whc botsfw.WebhookContext, transfers []models.Transfer) string {
 	var s bytes.Buffer
 	for _, transfer := range transfers {
 		isCreator := whc.AppUserIntID() == transfer.CreatorUserID
@@ -109,9 +106,9 @@ func transferHistoryRows(whc bots.WebhookContext, transfers []models.Transfer) s
 	return strings.TrimSpace(s.String())
 }
 
-var TransferHistoryCallbackCommand = bots.NewCallbackCommand("transfer-history", callbackTransferHistory)
+var TransferHistoryCallbackCommand = botsfw.NewCallbackCommand("transfer-history", callbackTransferHistory)
 
-func callbackTransferHistory(whc bots.WebhookContext, _ *url.URL) (bots.MessageFromBot, error) {
+func callbackTransferHistory(whc botsfw.WebhookContext, _ *url.URL) (bots.MessageFromBot, error) {
 	return whc.NewMessage("TODO: Show more history records"), nil
 }
 

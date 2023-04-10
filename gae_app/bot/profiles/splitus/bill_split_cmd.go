@@ -5,17 +5,14 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"fmt"
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"net/url"
 )
 
 const billSharesCommandCode = "bill_shares"
 
 var billSharesCommand = billCallbackCommand(billSharesCommandCode, db.CrossGroupTransaction,
-	func(whc bots.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m bots.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		whc.LogRequest()
 		c := whc.Context()
 		members := bill.GetBillMembers()

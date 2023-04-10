@@ -9,7 +9,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/website/admin"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/website/pages"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/website/redirects"
-	"github.com/DebtsTracker/translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"

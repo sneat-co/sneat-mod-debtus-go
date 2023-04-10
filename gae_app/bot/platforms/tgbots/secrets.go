@@ -2,27 +2,27 @@ package tgbots
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"strings"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
 )
 
-var _bots bots.SettingsBy
+var _bots botsfw.SettingsBy
 
 const DEFAULT_LOCALE = strongo.LocaleCodeEnUS
 
 const DebtusBotToken = "467112035:AAG9Hij0ofnI6GGXyuc6zol0F4XGQ4OK5Tk"
 
-func Bots(environment strongo.Environment, router func(profile string) bots.WebhooksRouter) bots.SettingsBy { //TODO: Consider to do pre-deployment replace
+func Bots(environment strongo.Environment, router func(profile string) botsfw.WebhooksRouter) botsfw.SettingsBy { //TODO: Consider to do pre-deployment replace
 	if len(_bots.ByCode) == 0 || (!_bots.HasRouter && router != nil) {
 		//log.Debugf(c, "Bots() => hostname:%v, environment:%v:%v", hostname, environment, strongo.EnvironmentNames[environment])
 		switch environment {
 		case strongo.EnvProduction:
-			_bots = bots.NewBotSettingsBy(router,
+			_bots = botsfw.NewBotSettingsBy(router,
 				// Production bots
 				telegram.NewTelegramBot(strongo.EnvProduction, bot.ProfileCollectus, "CollectusBot", "458860316:AAFk_hOXK5vFWu43jp4apWgQjmHHv87CU9E", "", "", common.GA_TRACKING_ID, strongo.LocaleEnUS),
 				telegram.NewTelegramBot(strongo.EnvProduction, bot.ProfileSplitus, "SplitusBot", "345328965:AAHmM7rUCwiPBlVIv-IfhrWhYIUVSHerkpg", "", "", common.GA_TRACKING_ID, strongo.LocaleEnUS),
@@ -37,19 +37,19 @@ func Bots(environment strongo.Environment, router func(profile string) bots.Webh
 				telegram.NewTelegramBot(strongo.EnvProduction, bot.ProfileDebtus, "DebtsTrackerEsBot", "189365214:AAGnXfb8qqUou__-X5foSGSGfgOkXDm9wV4", "", "", common.GA_TRACKING_ID, strongo.LocalePtBr),
 			)
 		case strongo.EnvDevTest:
-			_bots = bots.NewBotSettingsBy(router,
+			_bots = botsfw.NewBotSettingsBy(router,
 				// Development bots
 				telegram.NewTelegramBot(strongo.EnvDevTest, bot.ProfileDebtus, "DebtsTrackerDev1Bot", "256321815:AAEmCyeWYIIL7TZhJZIqTHohtR3RP7MOOTY", "", "", common.GA_TRACKING_ID, strongo.LocaleEnUS),
 				telegram.NewTelegramBot(strongo.EnvDevTest, bot.ProfileDebtus, "DebtsTrackerDev1RuBot", "395833888:AAF-1QnJvy5tOk4LSfIan07AFuEJcldszhs", "", "", common.GA_TRACKING_ID, strongo.LocaleRuRu),
 				//telegram.NewTelegramBot(strongo.EnvDevTest, bot.ProfileDebtus, "DebtsTrackerDev2RuBot", "360514041:AAFXuT0STHBD9cOn1SFmKzTYDmalP0Rz-7M", "", "", common.GA_TRACKING_ID, strongo.LocalesByCode5[strongo.LocalCodeRuRu]),
 			)
 		case strongo.EnvStaging:
-			_bots = bots.NewBotSettingsBy(router,
+			_bots = botsfw.NewBotSettingsBy(router,
 				// Staging bots
 				telegram.NewTelegramBot(strongo.EnvStaging, bot.ProfileDebtus, "DebtsTrackerSt1Bot", "254651741:AAFY_jdNxZHZ5OEIu4VEr5tdcSPSAYnLLWE", "", "", common.GA_TRACKING_ID, strongo.LocaleEnUS),
 			)
 		case strongo.EnvLocal:
-			_bots = bots.NewBotSettingsBy(router,
+			_bots = botsfw.NewBotSettingsBy(router,
 				// Staging bots
 				telegram.NewTelegramBot(strongo.EnvLocal, bot.ProfileDebtus, "DebtsTrackerLocalBot", "334671898:AAG38EvZhGb3FTCttyCoSwtmQGFeZ20SqdQ", "", "", common.GA_TRACKING_ID, strongo.LocaleEnUS),
 				telegram.NewTelegramBot(strongo.EnvLocal, bot.ProfileSplitus, "SplitusLocalBot", "447286300:AAF6qaS1rp7zfdB3h56lkzrReAHpEWKKYLY", "", "", common.GA_TRACKING_ID, strongo.LocaleEnUS),
@@ -62,21 +62,21 @@ func Bots(environment strongo.Environment, router func(profile string) bots.Webh
 	return _bots
 }
 
-func GetBotSettingsByLang(environment strongo.Environment, profile, lang string) (bots.BotSettings, error) {
+func GetBotSettingsByLang(environment strongo.Environment, profile, lang string) (botsfw.BotSettings, error) {
 	botSettingsBy := Bots(environment, nil)
 	langLen := len(lang)
 	if langLen == 2 {
 		lang = fmt.Sprintf("%v-%v", strings.ToLower(lang), strings.ToUpper(lang))
 	} else if langLen != 5 {
-		return bots.BotSettings{}, fmt.Errorf("Invalid length of lang parameter: %v, %v", langLen, lang)
+		return botsfw.BotSettings{}, fmt.Errorf("Invalid length of lang parameter: %v, %v", langLen, lang)
 	}
-	findByProfile := func(botSettings []bots.BotSettings) (bots.BotSettings, error) {
+	findByProfile := func(botSettings []botsfw.BotSettings) (botsfw.BotSettings, error) {
 		for _, bs := range botSettings {
 			if bs.Profile == profile {
 				return bs, nil
 			}
 		}
-		return bots.BotSettings{}, fmt.Errorf("Not found by locale=%v + profile=%v", lang, profile)
+		return botsfw.BotSettings{}, fmt.Errorf("Not found by locale=%v + profile=%v", lang, profile)
 	}
 	if botSettings, ok := botSettingsBy.ByLocale[lang]; ok {
 		return findByProfile(botSettings)
@@ -85,5 +85,5 @@ func GetBotSettingsByLang(environment strongo.Environment, profile, lang string)
 			return findByProfile(botSettings)
 		}
 	}
-	return bots.BotSettings{}, fmt.Errorf("No bot setting for both %v & %v locales.", lang, DEFAULT_LOCALE)
+	return botsfw.BotSettings{}, fmt.Errorf("no bot setting for both %s & %s locales", lang, DEFAULT_LOCALE)
 }

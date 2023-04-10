@@ -1,11 +1,11 @@
 package pages
 
 import (
+	"github.com/julienschmidt/httprouter"
 	"html/template"
 	"net/http"
 
-	"github.com/DebtsTracker/translations/trans"
-	"github.com/julienschmidt/httprouter"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
 )
 

@@ -10,20 +10,17 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"errors"
-	"github.com/DebtsTracker/translations/trans"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/log"
 )
 
 var reInlineQueryNewBill = regexp.MustCompile(`^\s*(\d+(?:\.\d*)?)([^\s]*)\s+(.+?)\s*$`)
 
-var inlineQueryCommand = bots.Command{
+var inlineQueryCommand = botsfw.Command{
 	Code:       "inline-query",
-	InputTypes: []bots.WebhookInputType{bots.WebhookInputInlineQuery},
-	Action: func(whc bots.WebhookContext) (m bots.MessageFromBot, err error) {
+	InputTypes: []botsfw.WebhookInputType{bots.WebhookInputInlineQuery},
+	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		whc.LogRequest()
 		c := whc.Context()
 		if tgInput, ok := whc.Input().(telegram.TgWebhookInput); ok {
@@ -61,7 +58,7 @@ var inlineQueryCommand = bots.Command{
 	},
 }
 
-func inlineEmptyQuery(whc bots.WebhookContext, inlineQuery bots.WebhookInlineQuery) (m bots.MessageFromBot, err error) {
+func inlineEmptyQuery(whc botsfw.WebhookContext, inlineQuery botsfw.WebhookInlineQuery) (m botsfw.MessageFromBot, err error) {
 	log.Debugf(whc.Context(), "InlineEmptyQuery()")
 	m.BotMessage = telegram.InlineBotMessage(tgbotapi.InlineConfig{
 		InlineQueryID:     inlineQuery.GetInlineQueryID(),
@@ -72,7 +69,7 @@ func inlineEmptyQuery(whc bots.WebhookContext, inlineQuery bots.WebhookInlineQue
 	return
 }
 
-func inlineQueryJoinGroup(whc bots.WebhookContext, query string) (m bots.MessageFromBot, err error) {
+func inlineQueryJoinGroup(whc botsfw.WebhookContext, query string) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
 	inlineQuery := whc.Input().(bots.WebhookInlineQuery)
@@ -117,7 +114,7 @@ func inlineQueryJoinGroup(whc bots.WebhookContext, query string) (m bots.Message
 	return
 }
 
-func inlineQueryNewBill(whc bots.WebhookContext, amountNum, amountCurr, billName string) (m bots.MessageFromBot, err error) {
+func inlineQueryNewBill(whc botsfw.WebhookContext, amountNum, amountCurr, billName string) (m botsfw.MessageFromBot, err error) {
 	if len(amountCurr) == 3 {
 		amountCurr = strings.ToUpper(amountCurr)
 	}

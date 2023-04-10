@@ -4,8 +4,8 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/strongo/dalgo/dal"
-	"github.com/strongo/dalgo/record"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
 )
 
 var _ dtdal.BillScheduleDal = (*BillScheduleDalGae)(nil)
