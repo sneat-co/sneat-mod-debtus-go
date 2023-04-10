@@ -32,7 +32,7 @@ func TestWriteReceiptText(t *testing.T) {
 
 	transfer := models.Transfer{
 		IntegerID: db.IntegerID{ID: 123},
-		TransferEntity: models.NewTransferEntity(
+		TransferEntity: models.NewTransferData(
 			12,
 			false,
 			money.Amount{Currency: "EUR", Value: 98765},

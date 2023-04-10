@@ -17,7 +17,7 @@ var menuCommand = botsfw.Command{
 	},
 }
 
-func setMainMenu(whc botsfw.WebhookContext, m *bots.MessageFromBot) {
+func setMainMenu(whc botsfw.WebhookContext, m *botsfw.MessageFromBot) {
 	m.Keyboard = tgbotapi.NewReplyKeyboard(
 		[]tgbotapi.KeyboardButton{
 			{Text: groupsCommand.TitleByKey(bots.DefaultTitle, whc)},

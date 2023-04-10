@@ -13,5 +13,5 @@ type BotParams struct {
 	InBotWelcomeMessage func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error)
 
 	// Below we need for sure
-	SetMainMenu func(whc botsfw.WebhookContext, m *bots.MessageFromBot)
+	SetMainMenu func(whc botsfw.WebhookContext, m *botsfw.MessageFromBot)
 }

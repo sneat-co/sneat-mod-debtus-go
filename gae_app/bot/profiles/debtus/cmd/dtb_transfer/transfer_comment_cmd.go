@@ -23,7 +23,7 @@ const (
 //	ADD_COMMENT_COMMAND = "add-comment"
 //)
 //
-//func createTransferAddNoteOrCommentCommand(code string, anotherCommand *bots.Command, nextCommand botsfw.Command) botsfw.Command {
+//func createTransferAddNoteOrCommentCommand(code string, anotherCommand *botsfw.Command, nextCommand botsfw.Command) botsfw.Command {
 //	var icon, title string
 //	switch code {
 //	case ADD_NOTE_COMMAND:

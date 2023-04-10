@@ -250,7 +250,7 @@ handle_TransferID:
 				return fs.WrapErr(err)
 			}
 
-			j.TransferID = int64(tval)
+			j.TransferID = int(tval)
 
 		}
 	}

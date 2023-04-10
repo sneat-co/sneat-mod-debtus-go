@@ -14,7 +14,7 @@ type ApiWebhookContext struct {
 	appUserIntID int64
 	botChatID    int64
 	chatEntity   botsfw.BotChat
-	*bots.WebhookContextBase
+	*botsfw.WebhookContextBase
 }
 
 var _ botsfw.WebhookContext = (*ApiWebhookContext)(nil)
@@ -34,7 +34,7 @@ func NewApiWebhookContext(r *http.Request, appUser *models.AppUserEntity, userID
 			r,
 			common.TheAppContext,
 			telegram.Platform{},
-			*bots.NewBotContext(dtdal.BotHost, botSettings),
+			*botsfw.NewBotContext(dtdal.BotHost, botSettings),
 			nil, // webhookInput
 			bots.BotCoreStores{},
 			nil, // GaMeasurement

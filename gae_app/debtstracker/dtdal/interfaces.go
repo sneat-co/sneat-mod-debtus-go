@@ -37,7 +37,7 @@ const (
 //)
 
 type TransferReturnUpdate struct {
-	TransferID     int64
+	TransferID     int
 	ReturnedAmount decimal.Decimal64p2
 }
 
@@ -57,7 +57,7 @@ type TransferDal interface {
 	LoadLatestTransfers(c context.Context, offset, limit int) ([]models.Transfer, error)
 	DelayUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCode string, transferID, creatorTgChatID, creatorTgReceiptMessageID int64) error
 	DelayUpdateTransfersWithCounterparty(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) error
-	DelayUpdateTransfersOnReturn(c context.Context, returnTransferID int64, transferReturnUpdates []TransferReturnUpdate) (err error)
+	DelayUpdateTransfersOnReturn(c context.Context, returnTransferID int, transferReturnUpdates []TransferReturnUpdate) (err error)
 }
 
 type ReceiptDal interface {
@@ -66,13 +66,13 @@ type ReceiptDal interface {
 	MarkReceiptAsSent(c context.Context, receiptID, transferID int64, sentTime time.Time) error
 	CreateReceipt(c context.Context, receipt *models.ReceiptEntity) (id int64, err error)
 	DelayedMarkReceiptAsSent(c context.Context, receiptID, transferID int64, sentTime time.Time) error
-	DelayCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongo.Environment, transferID, userID int64) error
+	DelayCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongo.Environment, transferID int, userID int64) error
 }
 
 var ErrReminderAlreadyRescheduled = errors.New("Reminder already rescheduled")
 
 type ReminderDal interface {
-	DelayDiscardReminders(c context.Context, transferIDs []int64, returnTransferID int64) error
+	DelayDiscardReminders(c context.Context, transferIDs []int, returnTransferID int) error
 	DelayCreateReminderForTransferUser(c context.Context, transferID int, userID int64) error
 	SaveReminder(c context.Context, reminder models.Reminder) (err error)
 	GetReminderByID(c context.Context, id int64) (models.Reminder, error)

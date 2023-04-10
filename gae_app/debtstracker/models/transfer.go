@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"time"
 
@@ -45,22 +46,39 @@ const TransferKind = "Transfer"
 
 var _ datastore.PropertyLoadSaver = (*TransferEntity)(nil)
 
-func NewTransfer(id int, data *TransferEntity) Transfer {
-	if id == 0 {
-		panic("id == 0")
-	}
-	if data == nil {
-		panic("data == nil")
-	}
-	return Transfer{
-		WithID: record.WithID[int]{ID: id},
-		Data:   data,
-	}
-}
-
 type Transfer struct {
 	record.WithID[int]
 	Data *TransferEntity
+}
+
+func NewTransfers(transferIDs []int) []Transfer {
+	transfers := make([]Transfer, len(transferIDs))
+	for i, transferID := range transferIDs {
+		transfers[i] = NewTransfer(transferID, nil)
+	}
+	return transfers
+}
+
+func TransferRecords(transfers []Transfer) []dal.Record {
+	records := make([]dal.Record, len(transfers))
+	for i, transfer := range transfers {
+		records[i] = transfer.Record
+	}
+	return records
+}
+
+func NewTransfer(id int, data *TransferEntity) Transfer {
+	key := dal.NewKeyWithID(TransferKind, id)
+	if data == nil {
+		data = new(TransferEntity)
+	}
+	return Transfer{
+		WithID: record.WithID[int]{
+			ID:     id,
+			Record: dal.NewRecordWithData(key, data),
+		},
+		Data: data,
+	}
 }
 
 //var _ db.EntityHolder = (*Transfer)(nil)
@@ -116,7 +134,7 @@ type TransferEntity struct {
 	IsReturn bool `datastore:",noindex,omitempty"`
 
 	// List of transfer to which this debt is a return. Should be populated only if IsReturn=True
-	ReturnToTransferIDs []int64 `datastore:",noindex"` // TODO: to make it obsolete - move to ReturnsJson
+	ReturnToTransferIDs []int `datastore:",noindex"` // TODO: to make it obsolete - move to ReturnsJson
 	//
 	returns      TransferReturns // Deserialized cache
 	ReturnsJson  string          `datastore:",noindex,omitempty"`
@@ -824,7 +842,7 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 	return
 }
 
-func NewTransferEntity(creatorUserID int64, isReturn bool, amount money.Amount, from *TransferCounterpartyInfo, to *TransferCounterpartyInfo) *TransferEntity {
+func NewTransferData(creatorUserID int64, isReturn bool, amount money.Amount, from *TransferCounterpartyInfo, to *TransferCounterpartyInfo) *TransferEntity {
 	if creatorUserID == 0 {
 		panic("creatorUserID == 0")
 	}

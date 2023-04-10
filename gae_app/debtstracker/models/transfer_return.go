@@ -12,7 +12,7 @@ import (
 //go:generate ffjson $GOFILE
 
 type TransferReturnJson struct {
-	TransferID int64
+	TransferID int
 	Time       time.Time
 	Amount     decimal.Decimal64p2 `json:",omitempty"` // TODO: For legacy records, consider removing later
 }
@@ -61,7 +61,7 @@ func (t *TransferEntity) AddReturn(returnTransfer TransferReturnJson) error {
 		return fmt.Errorf("transfer data integrity issue: len(returns) != t.ReturnsCount => %v != %v", len(returns), t.ReturnsCount)
 	}
 	var returnedValue decimal.Decimal64p2
-	returnTransferIDs := make([]int64, 1, len(returns)+1)
+	returnTransferIDs := make([]int, 1, len(returns)+1)
 	returnTransferIDs[0] = returnTransfer.TransferID
 	for _, r := range returns {
 		for _, tID := range returnTransferIDs {

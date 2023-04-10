@@ -2,8 +2,11 @@ package dtb_general
 
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/emoji"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/bots-framework/platforms/fbm"
 	"github.com/strongo/bots-framework/platforms/viber"
 	"github.com/strongo/log"
@@ -77,7 +80,7 @@ func mainMenuTelegramKeyboard(whc botsfw.WebhookContext, params mainMenuParams) 
 
 	return tgbotapi.NewReplyKeyboardUsingStrings(buttonRows)
 }
-func SetMainMenuKeyboard(whc botsfw.WebhookContext, m *bots.MessageFromBot) {
+func SetMainMenuKeyboard(whc botsfw.WebhookContext, m *botsfw.MessageFromBot) {
 	params := getMainMenuParams(whc, true)
 	switch whc.BotPlatform().ID() {
 	case telegram.PlatformID:

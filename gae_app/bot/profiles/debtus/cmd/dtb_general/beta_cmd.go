@@ -1,18 +1,18 @@
 package dtb_general
 
 import (
-	"fmt"
-
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"fmt"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 )
 
-const BETA_COMMAND = "beta"
+const BetaCommandCode = "beta"
 
 var BetaCommand = botsfw.Command{
-	Code:     BETA_COMMAND,
+	Code:     BetaCommandCode,
 	Commands: []string{"/beta"},
-	Action: func(whc botsfw.WebhookContext) (bots.MessageFromBot, error) {
+	Action: func(whc botsfw.WebhookContext) (botsfw.MessageFromBot, error) {
 		bot := whc.GetBotSettings()
 		token := auth.IssueToken(whc.AppUserIntID(), whc.BotPlatform().ID()+":"+bot.Code, false)
 		host := common.GetWebsiteHost(bot.Code)

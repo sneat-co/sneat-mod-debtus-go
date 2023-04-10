@@ -29,7 +29,7 @@ func TestTransfer_LoadSaver(t *testing.T) {
 	counterparty := TransferCounterpartyInfo{
 		ContactName: "Creator 1",
 	}
-	transfer := NewTransferEntity(creator.UserID, false, money.NewAmount(currency, decimal.NewDecimal64p2FromFloat64(123.45)), &creator, &counterparty)
+	transfer := NewTransferData(creator.UserID, false, money.NewAmount(currency, decimal.NewDecimal64p2FromFloat64(123.45)), &creator, &counterparty)
 	properties, err := transfer.Save()
 	if err != nil {
 		t.Error(err)

@@ -15,13 +15,13 @@ import (
 )
 
 type LastTransfer struct {
-	ID int64     `datastore:"LastTransferID,noindex"`
+	ID int       `datastore:"LastTransferID,noindex"`
 	At time.Time `datastore:"LastTransferAt,noindex"`
 }
 
 type TransferWithInterestJson struct {
 	TransferInterest
-	TransferID int64
+	TransferID int
 	Direction  TransferDirection
 	Starts     time.Time
 	Currency   money.Currency `json:",omitempty"` // TODO: will be obsolete once we group outstanding by currency
@@ -154,7 +154,7 @@ func NewUserContactJson(counterpartyID int64, status, name string, balanced mone
 		result.Transfers = &UserContactTransfersInfo{
 			Count: balanced.CountOfTransfers,
 			Last: LastTransfer{
-				ID: balanced.LastTransferID,
+				ID: int(balanced.LastTransferID),
 				At: balanced.LastTransferAt,
 			},
 		}
