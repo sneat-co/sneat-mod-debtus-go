@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 type tgGroupDalGae struct {
@@ -44,7 +44,7 @@ func get(c context.Context, key *datastore.Key, entityHolder db.EntityHolder) (e
 			} else if strID := entityHolder.StrID(); strID != "" {
 				err = db.NewErrNotFoundByStrID(kind, strID, err)
 			} else {
-				err = db.ErrRecordNotFound
+				err = dal.ErrRecordNotFound
 			}
 		} else {
 			err = fmt.Errorf("failed to get entity by key=%v: %w", key, err)

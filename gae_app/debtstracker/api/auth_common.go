@@ -26,7 +26,7 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 
 		deleteFbUser := func(userAccount user.Account) error {
 			if userFb, err := dtdal.UserFacebook.GetFbUserByFbID(c, userAccount.App, userAccount.ID); err != nil {
-				if err != db.ErrRecordNotFound {
+				if err != dal.ErrRecordNotFound {
 					return err
 				}
 			} else if userFb.AppUserIntID == appUser.ID {
@@ -53,7 +53,7 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 				return err
 			} else if userAccount != nil {
 				if userGoogle, err := dtdal.UserGoogle.GetUserGoogleByID(c, userAccount.ID); err != nil {
-					if err != db.ErrRecordNotFound {
+					if err != dal.ErrRecordNotFound {
 						return err
 					}
 				} else if userGoogle.AppUserIntID == appUser.ID {

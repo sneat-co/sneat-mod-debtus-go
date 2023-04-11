@@ -5,6 +5,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/reminders"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/julienschmidt/httprouter"
+	strongo "github.com/strongo/app"
 )
 
 func InitApi(router *httprouter.Router) {

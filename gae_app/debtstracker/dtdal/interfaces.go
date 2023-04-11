@@ -1,25 +1,23 @@
 package dtdal
 
 import (
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"context"
+	"errors"
 	"fmt"
 	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/strongo/db"
+	"github.com/strongo/app"
+	"github.com/strongo/decimal"
+	"github.com/strongo/gotwilio"
 	"math/rand"
 	"net/http"
 	"regexp"
 	"sync"
 	"time"
-
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"context"
-	"errors"
-	"github.com/strongo/app"
-	"github.com/strongo/decimal"
-	"github.com/strongo/gotwilio"
 )
 
 type TransferSource interface {
@@ -147,7 +145,7 @@ type ContactDal interface {
 	GetContactsWithDebts(c context.Context, tx dal.ReadTransaction, userID int64) (contacts []models.Contact, err error)
 }
 
-type BillsHolderGetter func(c context.Context) (billsHolder db.EntityHolder, err error)
+type BillsHolderGetter func(c context.Context) (billsHolder dal.Record, err error)
 
 type BillDal interface {
 	SaveBill(c context.Context, bill models.Bill) (err error)
@@ -211,9 +209,9 @@ type UserFacebookDal interface {
 }
 
 type LoginPinDal interface {
-	GetLoginPinByID(c context.Context, loginID int64) (loginPin models.LoginPin, err error)
-	SaveLoginPin(c context.Context, loginPin models.LoginPin) (err error)
-	CreateLoginPin(c context.Context, channel, gaClientID string, createdUserID int64) (int64, error)
+	GetLoginPinByID(c context.Context, tx dal.ReadTransaction, loginID int64) (loginPin models.LoginPin, err error)
+	SaveLoginPin(c context.Context, tx dal.ReadwriteTransaction, loginPin models.LoginPin) (err error)
+	CreateLoginPin(c context.Context, tx dal.ReadwriteTransaction, channel, gaClientID string, createdUserID int64) (int64, error)
 }
 
 type LoginCodeDal interface {
@@ -289,7 +287,7 @@ type TgUserDal interface {
 //}
 
 var (
-	DB             db.Database
+	DB             dal.Database
 	Contact        ContactDal
 	User           UserDal
 	UserFacebook   UserFacebookDal

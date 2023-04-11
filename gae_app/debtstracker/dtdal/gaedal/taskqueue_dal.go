@@ -3,7 +3,7 @@ package gaedal
 //import (
 //	"context"
 //	"github.com/strongo/app/gae"
-//	"google.golang.org/appengine/delay"
+//	"google.golang.org/appengine/v2/delay"
 //)
 //
 //type TaskQueueDalGae struct {

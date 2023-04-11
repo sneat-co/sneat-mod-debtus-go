@@ -2,6 +2,8 @@ package maintainance
 
 import (
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/strongo/db"
 	"net/http"
 	"strconv"
 	"strings"
@@ -15,16 +17,16 @@ import (
 	"github.com/captaincodeman/datastore-mapper"
 	users "github.com/strongo/app/user"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 type verifyTelegramUserAccounts struct {
 	asyncMapper
-	entity *models.DtTelegramChatEntity
+	entity *models.DebtusTelegramChatData
 }
 
 func (m *verifyTelegramUserAccounts) Make() interface{} {
-	m.entity = new(models.DtTelegramChatEntity)
+	m.entity = new(models.DebtusTelegramChatData)
 	return m.entity
 }
 
@@ -56,8 +58,8 @@ func (m *verifyTelegramUserAccounts) Next(c context.Context, counters mapper.Cou
 			})
 		}
 	} else {
-		tgChat := models.TelegramChat{DtTelegramChatEntity: &entity}
-		tgChat.StringID = db.NewStrID(key.StringID())
+		tgChat := models.TelegramChat{Data: &entity}
+		tgChat.StringID = dal.NewKeyWithID("TgChat", key.StringID())
 		return m.startWorker(c, counters, func() Worker {
 			return func(counters *asyncCounters) error {
 				return m.processTelegramChat(c, tgChat, counters)
@@ -67,7 +69,7 @@ func (m *verifyTelegramUserAccounts) Next(c context.Context, counters mapper.Cou
 	return
 }
 
-func (m *verifyTelegramUserAccounts) dealWithIntKey(c context.Context, counters *asyncCounters, key *datastore.Key, tgChatEntity *models.DtTelegramChatEntity) (err error) {
+func (m *verifyTelegramUserAccounts) dealWithIntKey(c context.Context, counters *asyncCounters, key *datastore.Key, tgChatEntity *models.DebtusTelegramChatData) (err error) {
 	if tgChatEntity.BotID == "" {
 		counters.Increment("empty_BotID_count", 1)
 		if err = datastore.Delete(c, key); err != nil {
@@ -79,8 +81,8 @@ func (m *verifyTelegramUserAccounts) dealWithIntKey(c context.Context, counters 
 	var tgChat models.TelegramChat
 	if tgChat, err = dtdal.TgChat.GetTgChatByID(c, tgChatEntity.BotID, tgChatEntity.TelegramUserID); err != nil {
 		if dal.IsNotFound(err) {
-			tgChat.SetID(tgChatEntity.BotID, tgChatEntity.TelegramUserID)
-			tgChat.SetEntity(tgChatEntity)
+			//tgChat.SetID(tgChatEntity.BotID, tgChatEntity.TelegramUserID)
+			//tgChat.SetEntity(tgChatEntity)
 			if err = dtdal.DB.Update(c, &tgChat); err != nil {
 				log.Errorf(c, "failed to created entity with fixed key %v: %v", tgChat.ID, err)
 				return nil
@@ -152,7 +154,7 @@ func (m *verifyTelegramUserAccounts) processTelegramChat(c context.Context, tgCh
 			}
 			return
 		}
-		telegramAccounts := user.GetTelegramAccounts()
+		telegramAccounts := user.Data.GetTelegramAccounts()
 		tgChatStrID := strconv.FormatInt(tgChat.TelegramUserID, 10)
 		for _, ua := range telegramAccounts {
 			if ua.ID == tgChatStrID {
@@ -160,14 +162,14 @@ func (m *verifyTelegramUserAccounts) processTelegramChat(c context.Context, tgCh
 					goto userAccountFound
 				} else if ua.App == "" {
 					//log.Debugf(c, "will be fixed")
-					user.RemoveAccount(ua)
+					user.Data.RemoveAccount(ua)
 					ua.App = tgChat.BotID
-					userChanged = user.AddAccount(ua) || userChanged
+					userChanged = user.Data.AddAccount(ua) || userChanged
 					goto userAccountFound
 				}
 			}
 		}
-		userChanged = user.AddAccount(users.Account{
+		userChanged = user.Data.AddAccount(users.Account{
 			ID:       strconv.FormatInt(tgChat.TelegramUserID, 10),
 			App:      tgChat.BotID,
 			Provider: telegram.PlatformID,
@@ -181,7 +183,7 @@ func (m *verifyTelegramUserAccounts) processTelegramChat(c context.Context, tgCh
 					err = fmt.Errorf("panic on saving user %v: %v", user.ID, r)
 				}
 			}()
-			if err = facade.User.SaveUser(c, user); err != nil {
+			if err = facade.User.SaveUser(c, tx, user); err != nil {
 				return
 			}
 			//} else {

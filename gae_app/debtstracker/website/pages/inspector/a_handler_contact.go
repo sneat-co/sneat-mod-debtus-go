@@ -13,7 +13,7 @@ import (
 	"context"
 	"github.com/julienschmidt/httprouter"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 type contactPage struct {

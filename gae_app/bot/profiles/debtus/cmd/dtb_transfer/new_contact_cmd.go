@@ -2,6 +2,9 @@ package dtb_transfer
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"strconv"
 	"strings"
 
@@ -82,7 +85,7 @@ func NewCounterpartyCommand(nextCommand botsfw.Command) botsfw.Command {
 					case botsfw.WebhookInputContact:
 						contactDetails.TelegramUserID = int64(contactMessage.UserID().(int)) // TODO: check we are on Telegram
 						if contactDetails.TelegramUserID != 0 {
-							for _, userContactJson := range user.Contacts() {
+							for _, userContactJson := range user.Data.Contacts() {
 								if userContactJson.TgUserID == contactDetails.TelegramUserID {
 									log.Debugf(c, "Matched contact my TelegramUserID=%d", contactDetails.TelegramUserID)
 									existingContact = true
@@ -98,13 +101,13 @@ func NewCounterpartyCommand(nextCommand botsfw.Command) botsfw.Command {
 
 				if !existingContact {
 					var user models.AppUser
-					if user, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+					if user, err = facade.User.GetUserByID(c, tx, whc.AppUserIntID()); err != nil {
 						return
 					}
 
 					contactFullName := contactDetails.FullName()
 
-					for _, userContact := range user.Contacts() {
+					for _, userContact := range user.Data.Contacts() {
 						if userContact.Name == contactFullName {
 							m.Text = whc.Translate(trans.MESSAGE_TEXT_ALREADY_HAS_CONTACT_WITH_SUCH_NAME)
 							return
@@ -113,7 +116,7 @@ func NewCounterpartyCommand(nextCommand botsfw.Command) botsfw.Command {
 				}
 
 				if !existingContact {
-					if contact, user, err = facade.CreateContact(c, whc.AppUserIntID(), contactDetails); err != nil {
+					if contact, user, err = facade.CreateContact(c, tx, whc.AppUserIntID(), contactDetails); err != nil {
 						return m, err
 					}
 					ga := whc.GA()
@@ -122,7 +125,7 @@ func NewCounterpartyCommand(nextCommand botsfw.Command) botsfw.Command {
 						"contact-created",
 						fmt.Sprintf("user-%v", whc.AppUserIntID()),
 					))
-					if contact.PhoneNumber != 0 && contact.PhoneNumberConfirmed {
+					if contact.Data.PhoneNumber != 0 && contact.Data.PhoneNumberConfirmed {
 						ga.Queue(ga.GaEventWithLabel(
 							"contacts",
 							"contact-details-added",

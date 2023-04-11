@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
-	"github.com/strongo/db"
 	"github.com/strongo/random"
 	"github.com/strongo/validation"
 	"strings"
@@ -270,7 +269,7 @@ func (entity *GroupEntity) GetGroupMembers() []GroupMemberJson {
 
 func (entity *GroupEntity) GetGroupMemberByID(id string) (GroupMemberJson, error) {
 	if id == "" {
-		return GroupMemberJson{}, fmt.Errorf("%w: empty id", db.ErrRecordNotFound)
+		return GroupMemberJson{}, fmt.Errorf("%w: empty id", dal.ErrRecordNotFound)
 	}
 	for _, m := range entity.GetGroupMembers() {
 		if m.ID == id {

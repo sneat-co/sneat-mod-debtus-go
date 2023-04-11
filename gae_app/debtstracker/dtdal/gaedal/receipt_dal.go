@@ -13,8 +13,8 @@ import (
 	"github.com/strongo/app/gae"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/delay"
+	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/v2/delay"
 )
 
 func NewReceiptKey(c context.Context, id int64) *datastore.Key {

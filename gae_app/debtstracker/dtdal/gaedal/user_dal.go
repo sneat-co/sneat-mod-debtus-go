@@ -14,8 +14,8 @@ import (
 	"github.com/strongo/app/gae"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/delay"
+	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/v2/delay"
 )
 
 func NewAppUserKey(c context.Context, appUserId int64) *datastore.Key {
@@ -65,7 +65,7 @@ func (userDal UserDalGae) GetUserByEmail(c context.Context, email string) (model
 	email = strings.ToLower(email)
 	query := datastore.NewQuery(models.AppUserKind).Filter("EmailAddress =", email).Filter("EmailConfirmed =", true).Limit(2)
 	user, err := userDal.getUserByQuery(c, query, "EmailAddress, is confirmed")
-	if user.ID == 0 && err == db.ErrRecordNotFound {
+	if user.ID == 0 && err == dal.ErrRecordNotFound {
 		query = datastore.NewQuery(models.AppUserKind).Filter("EmailAddress =", email).Filter("EmailConfirmed =", false).Limit(2)
 		user, err = userDal.getUserByQuery(c, query, "EmailAddress, is not confirmed")
 	}
@@ -85,7 +85,7 @@ func (userDal UserDalGae) getUserByQuery(c context.Context, query *datastore.Que
 		log.Debugf(c, "getUserByQuery(%v) => %v: %v", searchCriteria, userKeys[0].IntID(), userEntities[0])
 		return models.AppUser{IntegerID: db.NewIntID(userKeys[0].IntID()), AppUserEntity: userEntities[0]}, nil
 	case 0:
-		err = db.ErrRecordNotFound
+		err = dal.ErrRecordNotFound
 		log.Debugf(c, "getUserByQuery(%v) => %v", searchCriteria, err)
 		return
 	default: // > 1

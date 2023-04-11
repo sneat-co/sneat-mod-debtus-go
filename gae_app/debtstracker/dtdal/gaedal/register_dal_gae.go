@@ -9,7 +9,7 @@ import (
 	telegramBot "github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/urlfetch"
+	"google.golang.org/appengine/v2/urlfetch"
 )
 
 func RegisterDal() {

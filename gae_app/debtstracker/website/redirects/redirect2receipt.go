@@ -13,7 +13,7 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 var receiptOpenGraphPageTmpl *template.Template

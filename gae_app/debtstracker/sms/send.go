@@ -9,7 +9,7 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/gotwilio"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/urlfetch"
+	"google.golang.org/appengine/v2/urlfetch"
 )
 
 func SendSms(c context.Context, isLive bool, toPhoneNumber, smsText string) (isTestSender bool, smsResponse *gotwilio.SmsResponse, twilioException *gotwilio.Exception, err error) {

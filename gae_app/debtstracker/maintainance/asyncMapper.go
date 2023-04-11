@@ -11,7 +11,7 @@ import (
 	"github.com/captaincodeman/datastore-mapper"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 	"net/url"
 )
 

@@ -2,6 +2,7 @@ package facade
 
 import (
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	"math/rand"
 	"time"
 
@@ -17,8 +18,12 @@ type authFacade struct {
 var AuthFacade = authFacade{}
 
 func (authFacade) AssignPinCode(c context.Context, loginID, userID int64) (loginPin models.LoginPin, err error) {
-	err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
-		if loginPin, err = dtdal.LoginPin.GetLoginPinByID(c, loginID); err != nil {
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
+	}
+	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+		if loginPin, err = dtdal.LoginPin.GetLoginPinByID(c, tx, loginID); err != nil {
 			return fmt.Errorf("failed to get LoginPin entity by ID=%s: %w", loginID, err)
 		}
 		if loginPin.UserID != 0 && loginPin.UserID != userID {
@@ -31,7 +36,7 @@ func (authFacade) AssignPinCode(c context.Context, loginID, userID int64) (login
 		loginPin.Code = random.Int31n(9000) + 1000
 		loginPin.UserID = userID
 		loginPin.Pinned = time.Now()
-		if err = dtdal.LoginPin.SaveLoginPin(c, loginPin); err != nil {
+		if err = dtdal.LoginPin.SaveLoginPin(c, tx, loginPin); err != nil {
 			return fmt.Errorf("failed to save LoginPin entity with ID=%v: %w", loginID, err)
 		}
 		return err
@@ -41,9 +46,13 @@ func (authFacade) AssignPinCode(c context.Context, loginID, userID int64) (login
 
 func (authFacade) SignInWithPin(c context.Context, loginID int64, loginPinCode int32) (userID int64, err error) {
 	_ = loginPinCode
-	var loginPin models.LoginPin
-	return userID, dtdal.DB.RunInTransaction(c, func(c context.Context) error {
-		if loginPin, err = dtdal.LoginPin.GetLoginPinByID(c, loginID); err != nil {
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
+	}
+	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+		var loginPin models.LoginPin
+		if loginPin, err = dtdal.LoginPin.GetLoginPinByID(c, tx, loginID); err != nil {
 			return fmt.Errorf("failed to get LoginPin entity by ID=%v: %w", loginID, err)
 		}
 		if !loginPin.SignedIn.IsZero() {
@@ -57,9 +66,10 @@ func (authFacade) SignInWithPin(c context.Context, loginID int64, loginPinCode i
 		}
 
 		loginPin.SignedIn = time.Now()
-		if err = dtdal.LoginPin.SaveLoginPin(c, loginPin); err != nil {
+		if err = dtdal.LoginPin.SaveLoginPin(c, tx, loginPin); err != nil {
 			return err
 		}
 		return err
 	}, nil) // dtdal.CrossGroupTransaction)
+	return
 }

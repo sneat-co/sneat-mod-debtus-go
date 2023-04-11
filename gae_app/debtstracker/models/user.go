@@ -16,7 +16,7 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/app/user"
 	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 const AppUserKind = "User"
@@ -31,6 +31,22 @@ func NewAppUser(id int64, entity *AppUserEntity) AppUser {
 		ID:  id,
 		Key: dal.NewKeyWithID(AppUserKind, id),
 	}, Data: entity}
+}
+
+func NewAppUsers(userIDs []int64) []AppUser {
+	users := make([]AppUser, len(userIDs))
+	for i, id := range userIDs {
+		users[i] = NewAppUser(id, nil)
+	}
+	return users
+}
+
+func AppUserRecords(appUsers []AppUser) (records []dal.Record) {
+	records = make([]dal.Record, len(appUsers))
+	for i, u := range appUsers {
+		records[i] = u.Record
+	}
+	return
 }
 
 //var _ db.EntityHolder = (*AppUser)(nil)

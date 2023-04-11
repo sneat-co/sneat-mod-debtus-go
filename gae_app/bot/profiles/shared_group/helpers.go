@@ -38,7 +38,7 @@ func GetGroup(whc botsfw.WebhookContext, callbackUrl *url.URL) (group models.Gro
 	}
 
 	tgChat := whc.Input().(telegram.TgWebhookInput).TgUpdate().Chat()
-	var tgChatEntity *models.DtTelegramChatEntity
+	var tgChatEntity *models.DebtusTelegramChatData
 	if tgChatEntity, err = getTgChatEntity(whc); err != nil {
 		return
 	}
@@ -46,7 +46,7 @@ func GetGroup(whc botsfw.WebhookContext, callbackUrl *url.URL) (group models.Gro
 }
 
 func GetUserGroupID(whc botsfw.WebhookContext) (groupID string, err error) {
-	var tgChatEntity *models.DtTelegramChatEntity
+	var tgChatEntity *models.DebtusTelegramChatData
 	if tgChatEntity, err = getTgChatEntity(whc); err != nil || tgChatEntity == nil {
 		return
 	}
@@ -56,7 +56,7 @@ func GetUserGroupID(whc botsfw.WebhookContext) (groupID string, err error) {
 	return
 }
 
-func createGroupFromTelegram(whc botsfw.WebhookContext, chatEntity *models.DtTelegramChatEntity, tgChat *tgbotapi.Chat) (group models.Group, err error) {
+func createGroupFromTelegram(whc botsfw.WebhookContext, chatEntity *models.DebtusTelegramChatData, tgChat *tgbotapi.Chat) (group models.Group, err error) {
 	c := whc.Context()
 	log.Debugf(c, "createGroupFromTelegram()")
 	var user *models.AppUserEntity
@@ -138,7 +138,7 @@ func createGroupFromTelegram(whc botsfw.WebhookContext, chatEntity *models.DtTel
 	return
 }
 
-func getTgChatEntity(whc botsfw.WebhookContext) (tgChatEntity *models.DtTelegramChatEntity, err error) {
+func getTgChatEntity(whc botsfw.WebhookContext) (tgChatEntity *models.DebtusTelegramChatData, err error) {
 	chatEntity := whc.ChatEntity()
 	if chatEntity == nil {
 		whc.LogRequest()
@@ -146,7 +146,7 @@ func getTgChatEntity(whc botsfw.WebhookContext) (tgChatEntity *models.DtTelegram
 		return
 	}
 	var ok bool
-	if tgChatEntity, ok = chatEntity.(*models.DtTelegramChatEntity); !ok {
+	if tgChatEntity, ok = chatEntity.(*models.DebtusTelegramChatData); !ok {
 		log.Debugf(whc.Context(), "whc.ChatEntity() is not TgChatEntityBase")
 		return
 	}

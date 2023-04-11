@@ -6,7 +6,8 @@ import (
 
 type TelegramChat struct {
 	tgstore.Chat
-	*DtTelegramChatEntity
+	//tgstore.ChatEntity
+	Data *DebtusTelegramChatData
 }
 
 //var _ db.EntityHolder = (*TelegramChat)(nil)
@@ -16,27 +17,28 @@ type TelegramChat struct {
 //}
 
 //func (tgChat TelegramChat) Entity() interface{} {
-//	return tgChat.DtTelegramChatEntity
+//	return tgChat.DebtusTelegramChatData
 //}
 
 //func (TelegramChat) NewEntity() interface{} {
-//	return new(DtTelegramChatEntity)
+//	return new(DebtusTelegramChatData)
 //}
 
 //func (tgChat *TelegramChat) SetEntity(entity interface{}) {
 //	if entity == nil {
-//		tgChat.DtTelegramChatEntity = nil
+//		tgChat.DebtusTelegramChatData = nil
 //	} else {
-//		tgChat.DtTelegramChatEntity = entity.(*DtTelegramChatEntity)
+//		tgChat.DebtusTelegramChatData = entity.(*DebtusTelegramChatData)
 //	}
 //}
 
-type DtTelegramChatEntity struct {
-	UserGroupID string `datastore:",index"` // Do index
-	tgstore.TgChatData
+// DebtusTelegramChatData is a data structure for storing debtus data related to specific telegram chat
+type DebtusTelegramChatData struct {
+	tgstore.TgChatBase
+	DebtusChatData
 }
 
-func (entity *DtTelegramChatEntity) Validate() (err error) {
+func (entity *DebtusTelegramChatData) Validate() (err error) {
 	//if properties, err = datastore.SaveStruct(entity); err != nil {
 	//	return properties, err
 	//}

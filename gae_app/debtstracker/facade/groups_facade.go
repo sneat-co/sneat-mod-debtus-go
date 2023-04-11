@@ -14,8 +14,8 @@ import (
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
 	"github.com/strongo/slices"
-	"google.golang.org/appengine/delay"
-	"google.golang.org/appengine/taskqueue"
+	"google.golang.org/appengine/v2/delay"
+	"google.golang.org/appengine/v2/taskqueue"
 )
 
 type groupFacade struct {
@@ -38,7 +38,7 @@ func (groupFacade groupFacade) CreateGroup(c context.Context,
 		if intUserID, err = strconv.ParseInt(groupEntity.CreatorUserID, 10, 64); err != nil {
 			return err
 		}
-		user, err := User.GetUserByID(c, intUserID)
+		user, err := User.GetUserByID(c, tx, intUserID)
 		if err != nil {
 			return err
 		}

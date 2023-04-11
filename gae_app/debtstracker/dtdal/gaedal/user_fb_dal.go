@@ -4,7 +4,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 func NewUserFacebookKey(c context.Context, fbAppOrPageID, fbUserOrPageScopeID string) *datastore.Key {
@@ -41,7 +41,7 @@ func (UserFacebookDalGae) DeleteFbUser(c context.Context, fbAppOrPageID, fbUserO
 }
 
 func (UserFacebookDalGae) GetFbUserByFbID(c context.Context, fbAppOrPageID, fbUserOrPageScopeID string) (fbUser models.UserFacebook, err error) {
-	var entity models.UserFacebookEntity
+	var entity models.UserFacebookData
 	if err = gaedb.Get(c, NewUserFacebookKey(c, fbAppOrPageID, fbUserOrPageScopeID), &entity); err != nil {
 		if err == datastore.ErrNoSuchEntity {
 			err = db.NewErrNotFoundByStrID(models.UserFacebookKind, fbUserOrPageScopeID, err)

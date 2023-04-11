@@ -11,7 +11,7 @@ import (
 	"context"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 func Settle2members(c context.Context, groupID, debtorID, sponsorID string, currency money.Currency, amount decimal.Decimal64p2) (err error) {

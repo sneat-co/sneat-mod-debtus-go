@@ -3,7 +3,7 @@ package gaedal
 import (
 	"context"
 	"github.com/bots-go-framework/bots-fw-telegram"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 type TgUserDalGae struct {

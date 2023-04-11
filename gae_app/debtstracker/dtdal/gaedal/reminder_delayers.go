@@ -11,8 +11,8 @@ import (
 	"context"
 	"errors"
 	"github.com/strongo/app/gae"
-	"google.golang.org/appengine/delay"
-	"google.golang.org/appengine/taskqueue"
+	"google.golang.org/appengine/v2/delay"
+	"google.golang.org/appengine/v2/taskqueue"
 )
 
 func _validateSetReminderIsSentMessageIDs(messageIntID int64, messageStrID string, sentAt time.Time) error {

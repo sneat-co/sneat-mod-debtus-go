@@ -8,11 +8,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/strongo/app/gae"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
+	"google.golang.org/appengine/v2/delay"
 	"net/url"
 	"strings"
 )
@@ -23,8 +24,9 @@ var ViewReceiptInTelegramCallbackCommand = botsfw.NewCallbackCommand(
 		c := whc.Context()
 		log.Debugf(c, "ViewReceiptInTelegramCallbackCommand.CallbackAction()")
 		query := callbackUrl.Query()
-		receiptID, err := common.DecodeID(query.Get("id"))
-		if err != nil {
+
+		var receiptID int
+		if receiptID, err = common.DecodeIntID(query.Get("id")); err != nil {
 			return m, err
 		}
 		receipt, err := dtdal.Receipt.GetReceiptByID(c, receiptID)

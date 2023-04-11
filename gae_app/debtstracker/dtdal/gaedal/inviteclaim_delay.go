@@ -8,8 +8,8 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/delay"
+	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/v2/delay"
 )
 
 func DelayUpdateInviteClaimedCount(c context.Context, claimID int64) error {

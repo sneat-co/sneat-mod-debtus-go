@@ -9,7 +9,7 @@ import (
 	"context"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 func newUserBrowserIncompleteKey(c context.Context) *datastore.Key {

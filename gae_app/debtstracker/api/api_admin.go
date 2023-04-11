@@ -16,9 +16,9 @@ import (
 	"errors"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/delay"
-	"google.golang.org/appengine/taskqueue"
+	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/v2/delay"
+	"google.golang.org/appengine/v2/taskqueue"
 )
 
 func handleAdminFindUser(c context.Context, w http.ResponseWriter, r *http.Request, _ auth.AuthInfo) {

@@ -19,6 +19,12 @@ func EncodeID(id int64) string {
 	return base64UrlEncoder.EncodeToString(b)
 }
 
+func EncodeIntID(id int) string {
+	b := make([]byte, 8)
+	endian.PutUint64(b, uint64(id))
+	return base64UrlEncoder.EncodeToString(b)
+}
+
 func DecodeID(s string) (int64, error) {
 	if s == "" {
 		return 0, ErrEmptyID

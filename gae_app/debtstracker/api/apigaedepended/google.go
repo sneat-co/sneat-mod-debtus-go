@@ -13,7 +13,7 @@ import (
 	"context"
 	"errors"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/user"
+	"google.golang.org/appengine/v2/user"
 )
 
 var handleFunc = http.HandleFunc
@@ -80,9 +80,9 @@ func handleSignedWithGoogle(c context.Context, w http.ResponseWriter, r *http.Re
 	}
 
 	if userGoogle.UserGoogleEntity == nil {
-		log.Errorf(c, "userGoogle.UserGoogleEntity == nil")
+		log.Errorf(c, "userGoogle.UserGoogleData == nil")
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("userGoogle.UserGoogleEntity == nil"))
+		w.Write([]byte("userGoogle.UserGoogleData == nil"))
 	}
 
 	log.Debugf(c, "userGoogle.AppUserIntID: %d", userGoogle.AppUserIntID)

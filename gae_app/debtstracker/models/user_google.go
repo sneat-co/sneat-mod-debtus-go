@@ -2,44 +2,44 @@ package models
 
 import (
 	"errors"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/app/user"
-	"google.golang.org/appengine/datastore"
-	gaeuser "google.golang.org/appengine/user" // TODO: Get rid of dependency to GAE?
+	gaeuser "google.golang.org/appengine/v2/user" // TODO: Get rid of dependency to GAE?
 )
 
 const UserGoogleKind = "UserGoogle"
 
-type UserGoogleEntity struct {
+type UserGoogleData struct {
 	gaeuser.User // TODO: We would want to abstract from a specific implementation
 	user.Names
 	user.LastLogin
 	user.OwnedByUserWithIntID
 }
 
-var _ user.AccountEntity = (*UserGoogle)(nil)
+var _ user.AccountData = (*UserGoogleData)(nil)
 
-func (entity UserGoogleEntity) GetEmail() string {
+func (entity *UserGoogleData) GetEmail() string {
 	return entity.Email
 }
 
-func (entity UserGoogleEntity) IsEmailConfirmed() bool {
+func (entity *UserGoogleData) IsEmailConfirmed() bool {
 	return entity.Email != ""
 }
 
-func (entity *UserGoogleEntity) Load(ps []datastore.Property) error {
-	for i, p := range ps {
-		if p.Name == "LastSignIn" {
-			p.Name = "DtLastLogin"
-			ps[i] = p
-		}
-	}
-	return datastore.LoadStruct(entity, ps)
-}
+//func (entity *UserGoogleData) Load(ps []datastore.Property) error {
+//	for i, p := range ps {
+//		if p.Name == "LastSignIn" {
+//			p.Name = "DtLastLogin"
+//			ps[i] = p
+//		}
+//	}
+//	return datastore.LoadStruct(entity, ps)
+//}
 
-func (entity *UserGoogleEntity) Validate() (err error) {
+func (entity *UserGoogleData) Validate() (err error) {
 	if entity.AppUserIntID == 0 {
-		err = errors.New("*UserGoogleEntity.Save() => AppUserIntID == 0")
+		err = errors.New("*UserGoogleData.Save() => AppUserIntID == 0")
 		return
 	}
 
@@ -75,9 +75,41 @@ func (entity *UserGoogleEntity) Validate() (err error) {
 	return
 }
 
+var _ user.AccountRecord = (*UserGoogle)(nil)
+
 type UserGoogle struct { // TODO: Move out to library?
 	record.WithID[string]
-	*UserGoogleEntity
+	Data *UserGoogleData
+}
+
+func (userGoogle UserGoogle) Key() *dal.Key {
+	return userGoogle.Key()
+}
+
+func (userGoogle UserGoogle) Record() dal.Record {
+	return userGoogle.Record()
+}
+
+func (userGoogle UserGoogle) AccountData() user.AccountData {
+	return userGoogle.Data
+}
+
+func (userGoogle UserGoogle) GetEmail() string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func NewUserGoogle(id string) UserGoogle {
+	key := dal.NewKeyWithID(UserGoogleKind, id)
+	data := new(UserGoogleData)
+	return UserGoogle{
+		WithID: record.WithID[string]{
+			ID:     id,
+			Key:    key,
+			Record: dal.NewRecordWithData(key, data),
+		},
+		Data: data,
+	}
 }
 
 //var _ db.EntityHolder = (*UserGoogle)(nil)
@@ -86,25 +118,25 @@ func (userGoogle UserGoogle) UserAccount() user.Account {
 	return user.Account{Provider: "google", App: "*", ID: userGoogle.ID}
 }
 
-func (userGoogle UserGoogle) Kind() string {
-	return UserGoogleKind
-}
+//func (userGoogle UserGoogle) Kind() string {
+//	return UserGoogleKind
+//}
+//
+//func (userGoogle *UserGoogle) SetEntity(entity interface{}) {
+//	if entity == nil {
+//		userGoogle.UserGoogleData = nil
+//	} else {
+//		userGoogle.UserGoogleData = entity.(*UserGoogleData)
+//	}
+//}
+//
+//func (userGoogle UserGoogle) Entity() interface{} {
+//	return userGoogle.UserGoogleData
+//}
 
-func (userGoogle *UserGoogle) SetEntity(entity interface{}) {
-	if entity == nil {
-		userGoogle.UserGoogleEntity = nil
-	} else {
-		userGoogle.UserGoogleEntity = entity.(*UserGoogleEntity)
-	}
-}
-
-func (userGoogle UserGoogle) Entity() interface{} {
-	return userGoogle.UserGoogleEntity
-}
-
-func (UserGoogle) NewEntity() interface{} {
-	return new(UserGoogleEntity)
-}
+//func (UserGoogle) NewEntity() interface{} {
+//	return new(UserGoogleData)
+//}
 
 //func (userGoogle *UserGoogle) SetStrID(id string) {
 //	userGoogle.ID = id

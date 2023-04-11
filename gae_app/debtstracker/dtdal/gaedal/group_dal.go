@@ -9,7 +9,7 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
+	"google.golang.org/appengine/v2/delay"
 )
 
 var _ dtdal.GroupDal = (*GroupDalGae)(nil)

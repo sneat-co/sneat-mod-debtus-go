@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/strongo/db"
+	"github.com/strongo/validation"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -53,7 +53,12 @@ func handlerGetGroup(c context.Context, w http.ResponseWriter, r *http.Request, 
 		BadRequestError(c, w, errors.New("Missing id parameter"))
 		return
 	}
-	group, err := dtdal.Group.GetGroupByID(c, groupID)
+	db, err := facade.GetDatabase(c)
+	if err != nil {
+		ErrorAsJson(c, w, http.StatusInternalServerError, err)
+		return
+	}
+	group, err := dtdal.Group.GetGroupByID(c, db, groupID)
 	if err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
@@ -86,9 +91,9 @@ func groupsToJson(groups []models.Group, user models.AppUser) (result [][]byte, 
 	for i, group := range groups {
 		groupDto := dto.GroupDto{
 			ID:           group.ID,
-			Name:         group.Name,
-			Note:         group.Note,
-			MembersCount: group.MembersCount,
+			Name:         group.Data.Name,
+			Note:         group.Data.Note,
+			MembersCount: group.Data.MembersCount,
 		}
 		if status, ok := groupStatuses[group.ID]; ok {
 			groupDto.Status = status
@@ -96,8 +101,8 @@ func groupsToJson(groups []models.Group, user models.AppUser) (result [][]byte, 
 			groupDto.Status = models.STATUS_ARCHIVED
 		}
 		contactsByID := user.Data.ContactsByID()
-		if group.MembersJson != "" {
-			for _, member := range group.GetGroupMembers() {
+		if group.Data.MembersJson != "" {
+			for _, member := range group.Data.GetGroupMembers() {
 				memberDto := dto.GroupMemberDto{
 					ID:   member.ID,
 					Name: member.Name,
@@ -149,7 +154,7 @@ func handleJoinGroups(c context.Context, w http.ResponseWriter, r *http.Request,
 	}
 
 	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
-		if user, err = facade.User.GetUserByID(c, authInfo.UserID); err != nil {
+		if user, err = facade.User.GetUserByID(c, tx, authInfo.UserID); err != nil {
 			return
 		}
 		var waitGroup sync.WaitGroup
@@ -159,7 +164,7 @@ func handleJoinGroups(c context.Context, w http.ResponseWriter, r *http.Request,
 		for i, groupID := range groupIDs {
 			go func(i int, groupID string) {
 				var group models.Group
-				if group, errs[i] = dtdal.Group.GetGroupByID(c, groupID); errs[i] != nil {
+				if group, errs[i] = dtdal.Group.GetGroupByID(c, tx, groupID); errs[i] != nil {
 					waitGroup.Done()
 					return
 				}
@@ -168,9 +173,9 @@ func handleJoinGroups(c context.Context, w http.ResponseWriter, r *http.Request,
 				if userName == models.NoName {
 					userName = ""
 				}
-				if _, changed, _, _, members := group.AddOrGetMember(strconv.FormatInt(authInfo.UserID, 10), "", userName); changed {
-					group.SetGroupMembers(members)
-					if errs[i] = dtdal.Group.SaveGroup(c, group); errs[i] != nil {
+				if _, changed, _, _, members := group.Data.AddOrGetMember(strconv.FormatInt(authInfo.UserID, 10), "", userName); changed {
+					group.Data.SetGroupMembers(members)
+					if errs[i] = dtdal.Group.SaveGroup(c, tx, group); errs[i] != nil {
 						waitGroup.Done()
 						return
 					}
@@ -237,35 +242,41 @@ func handlerUpdateGroup(c context.Context, w http.ResponseWriter, r *http.Reques
 	groupName := strings.TrimSpace(r.FormValue("name"))
 	groupNote := strings.TrimSpace(r.FormValue("note"))
 
-	err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if group, err = dtdal.Group.GetGroupByID(c, group.ID); err != nil {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		ErrorAsJson(c, w, http.StatusInternalServerError, err)
+		return
+	}
+
+	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+		if group, err = dtdal.Group.GetGroupByID(c, tx, group.ID); err != nil {
 			return
 		}
 
-		if group.CreatorUserID != strconv.FormatInt(authInfo.UserID, 10) {
+		if group.Data.CreatorUserID != strconv.FormatInt(authInfo.UserID, 10) {
 			err = fmt.Errorf("User is not authrized to edit this group")
 			return
 		}
 
 		changed := false
-		if groupName != "" && group.Name != groupName {
-			group.Name = groupName
+		if groupName != "" && group.Data.Name != groupName {
+			group.Data.Name = groupName
 			changed = true
 		}
-		if group.Note != groupNote {
-			group.Note = groupNote
+		if group.Data.Note != groupNote {
+			group.Data.Note = groupNote
 			changed = true
 		}
 		if changed {
-			if err = dtdal.Group.SaveGroup(c, group); err != nil {
+			if err = dtdal.Group.SaveGroup(c, tx, group); err != nil {
 				return
 			}
 		}
-		if user, err = facade.User.GetUserByID(c, authInfo.UserID); err != nil {
+		if user, err = facade.User.GetUserByID(c, tx, authInfo.UserID); err != nil {
 			return
 		}
 
-		if err = facade.User.UpdateUserWithGroups(c, user, []models.Group{group}, nil); err != nil {
+		if err = facade.User.UpdateUserWithGroups(c, tx, user, []models.Group{group}, nil); err != nil {
 			return
 		}
 
@@ -274,7 +285,7 @@ func handlerUpdateGroup(c context.Context, w http.ResponseWriter, r *http.Reques
 		}
 
 		return
-	}, dtdal.CrossGroupTransaction)
+	})
 
 	if err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
@@ -311,24 +322,28 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 	}
 	removeMemberIDs = strings.Split(r.FormValue("removeMemberIDs"), ",")
 
-	var contacts2add []models.Contact
-	if contacts2add, err = facade.GetContactsByIDs(c, addContactIDs); err != nil {
-		BadRequestError(c, w, err)
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	}
 
-	for _, contact := range contacts2add {
-		if contact.UserID != authInfo.UserID {
-			BadRequestError(c, w, fmt.Errorf("Contact %d does not belong to the user %d", contact.ID, authInfo.UserID))
-			return
-		}
-	}
-
-	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
-		if group, err = dtdal.Group.GetGroupByID(c, groupID); err != nil {
+	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+		var contacts2add []models.Contact
+		if contacts2add, err = facade.GetContactsByIDs(c, tx, addContactIDs); err != nil {
 			return err
 		}
-		members := group.GetGroupMembers()
+
+		for _, contact := range contacts2add {
+			if contact.Data.UserID != authInfo.UserID {
+				return validation.NewBadRequestError(fmt.Errorf("Contact %d does not belong to the user %d", contact.ID, authInfo.UserID))
+			}
+		}
+
+		if group, err = dtdal.Group.GetGroupByID(c, tx, groupID); err != nil {
+			return err
+		}
+		members := group.Data.GetGroupMembers()
 		changed := false
 		changedContactIDs := make([]int64, 0, len(addContactIDs)+len(removeMemberIDs))
 
@@ -354,7 +369,7 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 					}
 				}
 			}
-			_, isChanged, _, _, members = group.AddOrGetMember(strconv.FormatInt(contact2add.CounterpartyUserID, 10), strconv.FormatInt(contact2add.ID, 10), contact2add.FullName())
+			_, isChanged, _, _, members = group.Data.AddOrGetMember(strconv.FormatInt(contact2add.Data.CounterpartyUserID, 10), strconv.FormatInt(contact2add.ID, 10), contact2add.Data.FullName())
 			if isChanged {
 				changed = true
 				changedContactIDs = append(changedContactIDs, contact2add.ID)
@@ -383,17 +398,17 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 			}
 		}
 		if changed || len(changedContactIDs) > 0 { // Check for len(changedContactIDs) is excessive but just in case.
-			group.SetGroupMembers(members)
-			if err = dtdal.Group.SaveGroup(c, group); err != nil {
+			group.Data.SetGroupMembers(members)
+			if err = dtdal.Group.SaveGroup(c, tx, group); err != nil {
 				return err
 			}
 		}
 
 		{ // Executing this block outside of IF just in case for self-healing.
-			if user, err = facade.User.GetUserByID(c, user.ID); err != nil {
+			if user, err = facade.User.GetUserByID(c, tx, user.ID); err != nil {
 				return err
 			}
-			if err = facade.User.UpdateUserWithGroups(c, user, []models.Group{group}, []string{}); err != nil {
+			if err = facade.User.UpdateUserWithGroups(c, tx, user, []models.Group{group}, []string{}); err != nil {
 				return err
 			}
 
@@ -418,8 +433,8 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 			}
 		}
 		return err
-	}, dtdal.CrossGroupTransaction); err != nil {
-		if dal.IsNotFound(err) {
+	}); err != nil {
+		if validation.IsBadRecordError(err) {
 			BadRequestError(c, w, err)
 			return
 		}

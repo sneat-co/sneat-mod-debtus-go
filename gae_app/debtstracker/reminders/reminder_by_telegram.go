@@ -21,9 +21,9 @@ import (
 	"github.com/strongo/app/gaestandard"
 	"github.com/strongo/bots-framework/hosts/appengine"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/delay"
-	"google.golang.org/appengine/urlfetch"
+	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/v2/delay"
+	"google.golang.org/appengine/v2/urlfetch"
 )
 
 func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminder models.Reminder, tgChatID int64, tgBot string) (sent, channelDisabledByUser bool, err error) {

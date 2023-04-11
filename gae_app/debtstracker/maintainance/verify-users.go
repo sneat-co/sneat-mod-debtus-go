@@ -13,8 +13,8 @@ import (
 	"github.com/captaincodeman/datastore-mapper"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/nds"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/v2/log"
 	"time"
 )
 

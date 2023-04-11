@@ -11,7 +11,7 @@ import (
 	"github.com/strongo/gotwilio"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 type TwilioDalGae struct {
@@ -26,14 +26,14 @@ func (TwilioDalGae) GetLastTwilioSmsesForUser(c context.Context, userID int64, t
 	if to != "" {
 		query = query.Filter("To =", to)
 	}
-	entities := make([]*models.TwilioSmsEntity, 0, 1)
+	entities := make([]*models.TwilioSmsData, 0, 1)
 	keys := make([]*datastore.Key, 0, limit)
 	if keys, err = query.GetAll(c, &entities); err != nil || len(keys) == 0 {
 		return
 	}
 	result = make([]models.TwilioSms, len(keys))
 	for i, entity := range entities {
-		result[i] = models.TwilioSms{StringID: db.StringID{ID: keys[i].StringID()}, TwilioSmsEntity: entity}
+		result[i] = models.TwilioSms{StringID: db.StringID{ID: keys[i].StringID()}, TwilioSmsData: entity}
 	}
 	return
 }
@@ -47,7 +47,7 @@ func (TwilioDalGae) SaveTwilioSms(
 	tgChatID int64,
 	smsStatusMessageID int,
 ) (twilioSms models.TwilioSms, err error) {
-	var twilioSmsEntity models.TwilioSmsEntity
+	var twilioSmsEntity models.TwilioSmsData
 	if err = dtdal.DB.RunInTransaction(c, func(tc context.Context) error {
 		userKey := NewAppUserKey(c, userID)
 		transferKey := NewTransferKey(tc, transfer.ID)
@@ -109,6 +109,6 @@ func (TwilioDalGae) SaveTwilioSms(
 		err = fmt.Errorf("failed to save Twilio response to DB: %w", err)
 		return
 	}
-	twilioSms = models.TwilioSms{StringID: db.StringID{ID: smsResponse.Sid}, TwilioSmsEntity: &twilioSmsEntity}
+	twilioSms = models.TwilioSms{StringID: db.StringID{ID: smsResponse.Sid}, TwilioSmsData: &twilioSmsEntity}
 	return
 }

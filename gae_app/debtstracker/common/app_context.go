@@ -38,7 +38,7 @@ func (appCtx DebtsTrackerAppContext) GetBotChatEntityFactory(platform string) fu
 	switch platform {
 	case "telegram":
 		return func() botsfw.BotChat {
-			return &models.DtTelegramChatEntity{
+			return &models.DebtusTelegramChatData{
 				TgChatData: *tgstore.NewTelegramChatEntity(),
 			}
 		}

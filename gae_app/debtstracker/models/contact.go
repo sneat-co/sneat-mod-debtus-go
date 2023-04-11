@@ -11,7 +11,7 @@ import (
 	"github.com/crediterra/money"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 func NewContactEntity(userID int64, details ContactDetails) *ContactEntity {
@@ -230,9 +230,9 @@ func (entity *ContactEntity) Save() (properties []datastore.Property, err error)
 		return
 	}
 
-	if properties, err = gaedb.CleanProperties(properties, contactPropertiesToClean); err != nil {
-		return
-	}
+	//if properties, err = gaedb.CleanProperties(properties, contactPropertiesToClean); err != nil {
+	//	return
+	//}
 
 	//checkHasProperties(ContactKind, properties)
 

@@ -13,7 +13,7 @@ import (
 	"errors"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
+	"google.golang.org/appengine/v2/delay"
 )
 
 const SEND_EMAIL_TASK = "send-email"

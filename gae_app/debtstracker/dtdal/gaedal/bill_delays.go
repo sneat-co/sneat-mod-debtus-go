@@ -10,7 +10,7 @@ import (
 	"github.com/strongo/app/gae"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
+	"google.golang.org/appengine/v2/delay"
 	"sync"
 )
 

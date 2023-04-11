@@ -6,7 +6,7 @@ import (
 	"context"
 	"errors"
 	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 type EmailDalGae struct {

@@ -28,7 +28,11 @@ func NewReceiptUsersLinker(changes *receiptDbChanges) *ReceiptUsersLinker {
 
 func (linker *ReceiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID int, invitedUserID int64) (isJustLinked bool, err error) {
 	log.Debugf(c, "ReceiptUsersLinker.LinkReceiptUsers(receiptID=%v, invitedUserID=%v)", receiptID, invitedUserID)
-	if invitedUser, err := User.GetUserByID(c, invitedUserID); err != nil {
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return false, err
+	}
+	if invitedUser, err := User.GetUserByID(c, db, invitedUserID); err != nil {
 		// TODO: Instead pass user as a parameter? Even better if the user entity was created within following transaction.
 		return isJustLinked, err
 	} else if invitedUser.Data.DtCreated.After(time.Now().Add(-time.Second / 2)) {
@@ -37,11 +41,6 @@ func (linker *ReceiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID 
 	}
 	var invitedContact models.Contact
 	attempt := 0
-	var db dal.Database
-	db, err = GetDatabase(c)
-	if err != nil {
-		return false, err
-	}
 	err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) (err error) {
 		if attempt += 1; attempt > 1 {
 			sleepPeriod := time.Duration(attempt) * time.Second
@@ -79,7 +78,7 @@ func (linker *ReceiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID 
 			invitedContact.MustMatchCounterparty(*changes.inviterContact)
 		}
 
-		if entitiesToSave := changes.Changes.EntityHolders(); len(entitiesToSave) > 0 {
+		if entitiesToSave := changes.Changes.Records(); len(entitiesToSave) > 0 {
 			if err = tx.SetMulti(c, entitiesToSave); err != nil {
 				return
 			}
@@ -107,10 +106,6 @@ func (linker *ReceiptUsersLinker) linkUsersByReceiptWithinTransaction(
 	isCounterpartiesJustConnected bool,
 	err error,
 ) {
-	if !dtdal.DB.IsInTransaction(tc) {
-		panic("linkUsersByReceiptWithinTransaction is called outside of transaction")
-	}
-
 	changes := linker.changes
 	receipt := changes.receipt
 	transfer := changes.transfer

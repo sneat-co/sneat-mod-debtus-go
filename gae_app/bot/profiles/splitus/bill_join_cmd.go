@@ -1,10 +1,14 @@
 package splitus
 
 import (
+	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"context"
 	"errors"
+	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
@@ -12,17 +16,11 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
-	"github.com/strongo/db"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 	"net/url"
 	"strconv"
 	"strings"
-	//"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"context"
-	"fmt"
 	"time"
 )
 
@@ -56,7 +54,7 @@ var joinBillCommand = botsfw.Command{
 	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		_ = whc.AppUserIntID() // Make sure we have user before transaction starts, TODO: it smells, should be refactored?
 		//
-		return shared_all.TransactionalCallbackAction(db.CrossGroupTransaction, billCallbackAction(func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
+		return shared_all.TransactionalCallbackAction(billCallbackAction(func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 			c := whc.Context()
 			log.Debugf(c, "joinBillCommand.CallbackAction()")
 			memberStatus := callbackUrl.Query().Get("i")

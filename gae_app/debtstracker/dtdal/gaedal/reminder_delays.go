@@ -21,9 +21,9 @@ import (
 	"github.com/strongo/app/gaestandard"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/delay"
-	"google.golang.org/appengine/taskqueue"
+	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/v2/delay"
+	"google.golang.org/appengine/v2/taskqueue"
 )
 
 func (ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, transferID, userID int64) (err error) {

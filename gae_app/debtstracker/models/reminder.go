@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/dal-go/dalgo/record"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 	"time"
 )
 

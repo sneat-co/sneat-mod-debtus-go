@@ -29,15 +29,15 @@ func getEnvironment(r *http.Request) strongo.Environment {
 	}
 }
 
-func getID(c context.Context, w http.ResponseWriter, r *http.Request, idParamName string) int64 {
+func getID(c context.Context, w http.ResponseWriter, r *http.Request, idParamName string) int {
 	q := r.URL.Query()
 	if idParamName == "" {
 		panic("idParamName is not specified")
 	}
 	idParamVal := q.Get(idParamName)
-	if id, err := strconv.ParseInt(idParamVal, 10, 64); err != nil {
+	if id, err := strconv.Atoi(idParamVal); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Failed to decode to int64: '" + idParamVal + "'"))
+		_, _ = w.Write([]byte("Failed to decode to int64: '" + idParamVal + "'"))
 		return 0
 	} else {
 		log.Infof(c, "Int ID: %v", id)
@@ -45,7 +45,7 @@ func getID(c context.Context, w http.ResponseWriter, r *http.Request, idParamNam
 	}
 }
 
-func hasError(c context.Context, w http.ResponseWriter, err error, entity string, id int64, notFoundStatus int) bool {
+func hasError(c context.Context, w http.ResponseWriter, err error, entity string, id int, notFoundStatus int) bool {
 	switch {
 	case err == nil:
 		return false

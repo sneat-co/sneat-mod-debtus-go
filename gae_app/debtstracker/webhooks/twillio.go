@@ -1,20 +1,17 @@
 package webhooks
 
 import (
-	"net/http"
-	"time"
-
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/log"
-	"github.com/strongo/nds"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
+	"net/http"
+	"time"
 )
 
 func TwilioWebhook(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
+	c := r.Context()
 	err := r.ParseForm()
 	if err != nil {
 		log.Errorf(c, "Failed to parse POST form: %v", err)
@@ -24,28 +21,33 @@ func TwilioWebhook(w http.ResponseWriter, r *http.Request) {
 	smsSid := r.PostFormValue("SmsSid")
 	messageStatus := r.PostFormValue("MessageStatus")
 
-	err = dtdal.DB.RunInTransaction(c, func(tc context.Context) error {
-		var smsEntity models.TwilioSmsEntity
-		smsEntityKey := datastore.NewKey(tc, models.TwilioSmsKind, smsSid, 0, nil)
-		err := nds.Get(tc, smsEntityKey, &smsEntity)
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Errorf(c, "Failed to get database: %v", err)
+		return
+	}
+	err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) error {
+		var twilioSms = models.NewTwilioSms(smsSid, nil)
+		err := tx.Get(tc, twilioSms.Record)
 		if err != nil {
 			return err
 		}
-		if smsEntity.Status != messageStatus {
-			smsEntity.Status = messageStatus
+		if twilioSms.Data.Status != messageStatus {
+			twilioSms.Data.Status = messageStatus
 			switch messageStatus {
 			case "sent":
-				smsEntity.DtSent = time.Now()
+				twilioSms.Data.DtSent = time.Now()
 			case "delivered":
-				smsEntity.DtDelivered = time.Now()
+				twilioSms.Data.DtDelivered = time.Now()
 			}
-			nds.Put(tc, smsEntityKey, &smsEntity)
+			return tx.Set(tc, twilioSms.Record)
 		}
 		return nil
 	}, nil)
 
 	if err != nil {
-		if err == datastore.ErrNoSuchEntity {
+		if dal.IsNotFound(err) {
 			log.Infof(c, "Unknown SMS: %v", smsSid)
 		} else {
 			log.Errorf(c, "Failed to process SMS update: %v", err)

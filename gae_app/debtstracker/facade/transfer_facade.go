@@ -541,7 +541,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 			log.Debugf(c, "%v.UserID: %d, %vUser.AppUserEntity: %v", who, userID, who, appUser.Data)
 			if userID != 0 {
 				if appUser.Data == nil {
-					if appUser, err = User.GetUserByID(c, userID); err != nil {
+					if appUser, err = User.GetUserByID(c, tx, userID); err != nil {
 						err = fmt.Errorf("failed to get %vUser for linked counterparty: %w", who, err)
 						return appUser, appUser, err
 					}

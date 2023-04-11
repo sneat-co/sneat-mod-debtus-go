@@ -16,7 +16,7 @@ import (
 	"github.com/captaincodeman/datastore-mapper"
 	"github.com/sanity-io/litter"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 type verifyContactTransfers struct {

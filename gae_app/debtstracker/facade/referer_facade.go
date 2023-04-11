@@ -15,9 +15,9 @@ import (
 	"errors"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/delay"
-	"google.golang.org/appengine/memcache"
+	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/v2/delay"
+	"google.golang.org/appengine/v2/memcache"
 )
 
 type refererFacade struct {
@@ -36,7 +36,7 @@ func setUserReferrer(c context.Context, userID int64, referredBy string) (err er
 		return
 	}
 	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
-		user, err := User.GetUserByID(c, userID)
+		user, err := User.GetUserByID(c, tx, userID)
 		if err != nil {
 			return err
 		}
@@ -80,7 +80,7 @@ func (f refererFacade) AddTelegramReferrer(c context.Context, userID int64, tgUs
 			return
 		}
 		if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
-			user, err := User.GetUserByID(c, userID)
+			user, err := User.GetUserByID(c, tx, userID)
 			if err != nil {
 				log.Errorf(c, err.Error())
 				return nil

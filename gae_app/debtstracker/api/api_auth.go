@@ -3,7 +3,6 @@ package api
 import (
 	"fmt"
 	strongo "github.com/strongo/app"
-	"github.com/strongo/db"
 	"io"
 	"net/http"
 	"strings"
@@ -123,7 +122,7 @@ func handleAuthLoginId(c context.Context, w http.ResponseWriter, r *http.Request
 
 	if loginID != 0 {
 		if loginPin, err := dtdal.LoginPin.GetLoginPinByID(c, loginID); err != nil {
-			if err != db.ErrRecordNotFound {
+			if err != dal.ErrRecordNotFound {
 				InternalError(c, w, err)
 				return
 			}

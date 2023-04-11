@@ -4,7 +4,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 func NewUserGoogleKey(c context.Context, id string) *datastore.Key {
@@ -20,10 +20,10 @@ func NewUserGoogleDalGae() UserGoogleDalGae {
 
 func (UserGoogleDalGae) GetUserGoogleByID(c context.Context, googleUserID string) (userGoogle models.UserGoogle, err error) {
 	userGoogle.ID = googleUserID
-	userGoogle.UserGoogleEntity = new(models.UserGoogleEntity)
+	userGoogle.UserGoogleEntity = new(models.UserGoogleData)
 	if err = gaedb.Get(c, NewUserGoogleKey(c, googleUserID), userGoogle.UserGoogleEntity); err != nil {
 		if err == datastore.ErrNoSuchEntity {
-			err = db.ErrRecordNotFound
+			err = dal.ErrRecordNotFound
 		}
 		return
 	}
@@ -45,10 +45,10 @@ func (UserGoogleDalGae) SaveUserGoogle(c context.Context, userGoogle models.User
 }
 
 // TODO: Obsolete!
-//func (UserGoogleDalGae) CreateUserGoogle(c context.Context, user user.User, appUserID int64, onSignIn bool, userAgent, remoteAddr string) (entity *models.UserGoogleEntity, isNewGoogleUser, isNewAppUser bool, err error) {
+//func (UserGoogleDalGae) CreateUserGoogle(c context.Context, user user.User, appUserID int64, onSignIn bool, userAgent, remoteAddr string) (entity *models.UserGoogleData, isNewGoogleUser, isNewAppUser bool, err error) {
 //	err = dtdal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
 //		key := NewUserGoogleKey(tc, user.ID)
-//		entity = new(models.UserGoogleEntity)
+//		entity = new(models.UserGoogleData)
 //
 //		if err = gaedb.Get(tc, key, entity); err == nil {
 //			if onSignIn {
@@ -96,7 +96,7 @@ func (UserGoogleDalGae) SaveUserGoogle(c context.Context, userGoogle models.User
 //
 //		isNewGoogleUser = true
 //		now := time.Now()
-//		entity = &models.UserGoogleEntity{
+//		entity = &models.UserGoogleData{
 //			LastSignIn: now,
 //			User:       user,
 //			OwnedByUserWithIntID: user.OwnedByUserWithIntID{
@@ -135,7 +135,7 @@ func (UserGoogleDalGae) SaveUserGoogle(c context.Context, userGoogle models.User
 //				query = datastore.NewQuery(models.UserGoogleKind).Filter("Email =", user.Email).Limit(2)
 //				var (
 //					googleUserKeys []*datastore.Key
-//					googleUsers    []models.UserGoogleEntity
+//					googleUsers    []models.UserGoogleData
 //				)
 //				if googleUserKeys, err = query.GetAll(c, &googleUsers); err != nil {
 //					err = errors.Wrap(err, "Failed to load google users by email")

@@ -4,8 +4,7 @@ import (
 	"time"
 
 	"errors"
-	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 const EmailKind = "Email"
@@ -51,11 +50,12 @@ func (entity *EmailEntity) Save() (properties []datastore.Property, err error) {
 	if properties, err = datastore.SaveStruct(entity); err != nil {
 		return
 	}
-	return gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"DtSent":          gaedb.IsZeroTime,
-		"AwsSesMessageID": gaedb.IsEmptyString,
-		"Error":           gaedb.IsEmptyString,
-		"BodyText":        gaedb.IsEmptyString,
-		"BodyHtml":        gaedb.IsEmptyString,
-	})
+	//return gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
+	//	"DtSent":          gaedb.IsZeroTime,
+	//	"AwsSesMessageID": gaedb.IsEmptyString,
+	//	"Error":           gaedb.IsEmptyString,
+	//	"BodyText":        gaedb.IsEmptyString,
+	//	"BodyHtml":        gaedb.IsEmptyString,
+	//})
+	return nil, nil
 }

@@ -158,9 +158,9 @@ func AcknowledgeReceipt(
 		inviterUser.Data.CountOfAckTransfersByCounterparties += 1
 		invitedUser.Data.CountOfAckTransfersByUser += 1
 
-		if entitiesToSave := changes.EntityHolders(); len(entitiesToSave) > 0 {
-			log.Debugf(c, "%v entities to save: %+v", len(entitiesToSave), entitiesToSave)
-			if err = tx.SetMulti(c, entitiesToSave); err != nil {
+		if recordsToSave := changes.Records(); len(recordsToSave) > 0 {
+			log.Debugf(c, "%v entities to save: %+v", len(recordsToSave), recordsToSave)
+			if err = tx.SetMulti(c, recordsToSave); err != nil {
 				return
 			}
 		} else {
@@ -267,7 +267,7 @@ func getReceiptTransferAndUsers(c context.Context, tx dal.ReadSession, receiptID
 		return
 	}
 
-	if creatorUser, err = User.GetUserByID(c, transfer.Data.CreatorUserID); err != nil {
+	if creatorUser, err = User.GetUserByID(c, tx, transfer.Data.CreatorUserID); err != nil {
 		return
 	}
 
@@ -276,7 +276,7 @@ func getReceiptTransferAndUsers(c context.Context, tx dal.ReadSession, receiptID
 	}
 
 	if counterpartyUser.ID != 0 {
-		if counterpartyUser, err = User.GetUserByID(c, counterpartyUser.ID); err != nil {
+		if counterpartyUser, err = User.GetUserByID(c, tx, counterpartyUser.ID); err != nil {
 			return
 		}
 	}

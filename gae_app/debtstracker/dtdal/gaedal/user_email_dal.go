@@ -4,7 +4,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 func NewUserEmailKey(c context.Context, email string) *datastore.Key {
@@ -24,7 +24,7 @@ func (UserEmailGaeDal) GetUserEmailByID(c context.Context, email string) (userEm
 	userEmail.ID = key.StringID()
 	if err = gaedb.Get(c, key, userEmail.UserEmailEntity); err != nil {
 		if err == datastore.ErrNoSuchEntity {
-			err = db.ErrRecordNotFound
+			err = dal.ErrRecordNotFound
 		}
 		return
 	}

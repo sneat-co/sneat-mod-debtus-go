@@ -3,6 +3,9 @@ package dtb_transfer
 import (
 	"bytes"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"html/template"
 	"net/url"
 	"strings"
@@ -53,13 +56,13 @@ func InlineSendReceipt(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err 
 		log.Debugf(c, "Unclean receipt ID: %v, cleaned: %v", idParam, cleanID)
 		idParam = cleanID
 	}
-	transferID, err := common.DecodeID(idParam)
+	transferID, err := common.DecodeIntID(idParam)
 	if err != nil {
 		log.Warningf(c, "Failed to decode receipt?id=[%v]", idParam)
 		return m, err
 	}
 	var transfer models.Transfer
-	transfer, err = facade.Transfers.GetTransferByID(c, transferID)
+	transfer, err = facade.Transfers.GetTransferByID(c, tx, transferID)
 	if err != nil {
 		log.Infof(c, "Faield to get transfer by ID: %v", transferID)
 		return m, err
@@ -79,7 +82,7 @@ func InlineSendReceipt(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err 
 				ThumbURL:    "https://debtstracker-io.appspot.com/img/debtstracker-512x512.png", //TODO: Replace with receipt image
 				ThumbHeight: 512,
 				ThumbWidth:  512,
-				Title:       fmt.Sprintf(whc.Translate(trans.INLINE_RECEIPT_TITLE), transfer.GetAmount()),
+				Title:       fmt.Sprintf(whc.Translate(trans.INLINE_RECEIPT_TITLE), transfer.Data.GetAmount()),
 				Description: whc.Translate(trans.INLINE_RECEIPT_DESCRIPTION),
 				InputMessageContent: tgbotapi.InputTextMessageContent{
 					Text:      getInlineReceiptMessageText(whc, whc.GetBotCode(), whc.Locale().Code5, fmt.Sprintf("%v %v", creator.GetFirstName(), creator.GetLastName()), 0),
@@ -90,7 +93,7 @@ func InlineSendReceipt(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err 
 						{
 							{
 								Text:         whc.Translate(trans.COMMAND_TEXT_WAIT_A_SECOND),
-								CallbackData: CREATE_RECEIPT_IF_NO_INLINE_CHOSEN_NOTIFICATION + fmt.Sprintf("?id=%v", common.EncodeID(transferID)),
+								CallbackData: CREATE_RECEIPT_IF_NO_INLINE_CHOSEN_NOTIFICATION + fmt.Sprintf("?id=%v", common.EncodeIntID(transferID)),
 							},
 						},
 					},
@@ -119,7 +122,7 @@ func InlineSendReceipt(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err 
 	return m, err
 }
 
-func getInlineReceiptMessageText(t strongo.SingleLocaleTranslator, botCode, localeCode5, creator string, receiptID int64) string {
+func getInlineReceiptMessageText(t strongo.SingleLocaleTranslator, botCode, localeCode5, creator string, receiptID int) string {
 	data := map[string]interface{}{
 		"Creator":  creator,
 		"SiteLink": template.HTML(`<a href="https://debtstracker.io/#utm_source=telegram&utm_medium=bot&utm_campaign=receipt-inline">DebtsTracker.IO</a>`),

@@ -5,7 +5,7 @@ import (
 
 	"context"
 	"github.com/strongo/nds"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 const AuditKind = "Audit"

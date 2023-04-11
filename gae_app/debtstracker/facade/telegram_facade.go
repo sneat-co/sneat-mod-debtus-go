@@ -1,38 +1,44 @@
 package facade
 
 import (
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"fmt"
 	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
-	"github.com/strongo/nds"
-	"google.golang.org/appengine/datastore"
 	"strconv"
 )
 
 func GetLocale(c context.Context, botID string, tgChatIntID, userID int64) (locale strongo.Locale, err error) {
-	botChatKey := datastore.NewKey(c, tgstore.TgChatCollection, botsfw.NewChatID(botID, strconv.FormatInt(tgChatIntID, 10)), 0, nil)
-	var tgChatEntity tgstore.ChatEntity
-	if err = nds.Get(c, botChatKey, &tgChatEntity); err != nil {
-		log.Debugf(c, "Failed to get TgChat entity by string ID=%v: %v", botChatKey.StringID(), err) // TODO: Replace with error once load by int ID removed
-		if err == datastore.ErrNoSuchEntity {
-			if err = nds.Get(c, datastore.NewKey(c, tgstore.TgChatCollection, "", tgChatIntID, nil), &tgChatEntity); err != nil { // TODO: Remove this load by int ID
-				log.Errorf(c, "Failed to get TgChat entity by int ID=%v: %v", tgChatIntID, err)
-				return
-			}
+	chatID := botsfw.NewChatID(botID, strconv.FormatInt(tgChatIntID, 10))
+	//var tgChatEntity tgstore.ChatEntity
+	tgChat := tgstore.NewChat(chatID, new(models.DebtusTelegramChatData))
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
+	}
+	if err = db.Get(c, tgChat.Record); err != nil {
+		log.Debugf(c, "Failed to get TgChat entity by string ID=%v: %v", tgChat.ID, err) // TODO: Replace with error once load by int ID removed
+		if dal.IsNotFound(err) {
+			panic("TODO: Remove this load by int ID")
+			//if err = nds.Get(c, datastore.NewKey(c, tgstore.TgChatCollection, "", tgChatIntID, nil), &tgChatEntity); err != nil { // TODO: Remove this load by int ID
+			//	log.Errorf(c, "Failed to get TgChat entity by int ID=%v: %v", tgChatIntID, err)
+			//	return
+			//}
 		} else {
 			return
 		}
 	}
-	tgChatPreferredLanguage := tgChatEntity.PreferredLanguage
+	tgChatPreferredLanguage := tgChat.Data.BaseChatData().PreferredLanguage
 	if tgChatPreferredLanguage == "" {
 		if userID == 0 && tgChatEntity.AppUserIntID != 0 {
 			userID = tgChatEntity.AppUserIntID
 		}
 		if userID != 0 {
-			user, err := User.GetUserByID(c, userID)
+			user, err := User.GetUserByID(c, tx, userID)
 			if err != nil {
 				log.Errorf(c, fmt.Errorf("failed to get user by ID=%v: %w", userID, err).Error())
 				return locale, err

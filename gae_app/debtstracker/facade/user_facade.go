@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
-	"github.com/strongo/db"
 	"strings"
 	"time"
 
@@ -14,7 +13,7 @@ import (
 	"errors"
 	"github.com/strongo/app/user"
 	"github.com/strongo/log"
-	gae_user "google.golang.org/appengine/user"
+	gae_user "google.golang.org/appengine/v2/user"
 )
 
 type userFacade struct {
@@ -24,7 +23,7 @@ var User = userFacade{}
 
 var ErrEmailAlreadyRegistered = errors.New("Email already registered")
 
-func (userFacade) GetUserByID(c context.Context, tx dal.ReadTransaction, userID int64) (user models.AppUser, err error) {
+func (userFacade) GetUserByID(c context.Context, tx dal.ReadSession, userID int64) (user models.AppUser, err error) {
 	key := dal.NewKeyWithID(models.AppUserKind, userID)
 	user.Data = new(models.AppUserEntity)
 	user.WithID = record.WithID[int64]{
@@ -41,15 +40,11 @@ func (userFacade) GetUsersByIDs(c context.Context, userIDs []int64) (users []*mo
 	if len(userIDs) == 0 {
 		return
 	}
-	entityHolders := db.CreateEntityHoldersWithIntIDs(userIDs, func() db.EntityHolder {
-		return new(models.AppUser)
-	})
-	if err = dtdal.DB.GetMulti(c, entityHolders); err != nil {
+
+	appUsers := models.NewAppUsers(userIDs)
+	records := models.AppUserRecords(appUsers)
+	if err = dtdal.DB.GetMulti(c, records); err != nil {
 		return
-	}
-	users = make([]*models.AppUser, len(entityHolders))
-	for i, eh := range entityHolders {
-		users[i] = eh.(*models.AppUser)
 	}
 	return
 }
@@ -66,7 +61,11 @@ func (uf userFacade) CreateUserByEmail(
 	userEmail models.UserEmail,
 	err error,
 ) {
-	err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
+	}
+	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 		if userEmail, err = dtdal.UserEmail.GetUserEmailByID(c, email); err == nil {
 			return ErrEmailAlreadyRegistered
 		} else if !dal.IsNotFound(err) {
@@ -94,7 +93,7 @@ func (uf userFacade) CreateUserByEmail(
 
 		err = dtdal.UserEmail.SaveUserEmail(c, userEmail)
 		return
-	}, dtdal.CrossGroupTransaction)
+	})
 
 	return
 }
@@ -114,24 +113,28 @@ func (uf userFacade) GetOrCreateEmailUser(
 
 	var appUser models.AppUser
 
-	if userEmail, err = dtdal.UserEmail.GetUserEmailByID(c, email); err == nil {
-		return // User found
-	} else if !dal.IsNotFound(err) { //
-		return // Internal error
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
 	}
-	err = nil // Clear dtdal.ErrRecordNotFound
+	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+		if userEmail, err = dtdal.UserEmail.GetUserEmailByID(c, email); err == nil {
+			return // User found
+		} else if !dal.IsNotFound(err) { //
+			return // Internal error
+		}
+		err = nil // Clear dtdal.ErrRecordNotFound
 
-	now := time.Now()
-	isNewUser = true
-	userEmail = models.NewUserEmail(email, isConfirmed, "email")
-	appUser = models.NewUser(models.ClientInfo{})
-	appUser.Data.DtCreated = now
-	appUser.Data.AddAccount(userEmail.UserAccount())
+		now := time.Now()
+		isNewUser = true
+		userEmail = models.NewUserEmail(email, isConfirmed, "email")
+		appUser = models.NewUser(models.ClientInfo{})
+		appUser.Data.DtCreated = now
+		appUser.Data.AddAccount(userEmail.UserAccount())
 
-	var to db.RunOptions = dtdal.CrossGroupTransaction
+		//var to db.RunOptions = dtdal.CrossGroupTransaction
 
-	if err = dtdal.DB.RunInTransaction(c, func(tc context.Context) error {
-		if err = User.SaveUser(tc, appUser); err != nil {
+		if err = User.SaveUser(c, tx, appUser); err != nil {
 			return fmt.Errorf("failed to save new appUser to datastore: %w", err)
 		}
 		userEmail.DtCreated = now
@@ -140,9 +143,8 @@ func (uf userFacade) GetOrCreateEmailUser(
 			return err
 		}
 		return nil
-	}, to); err != nil {
-		return
-	}
+	})
+
 	return
 }
 
@@ -162,15 +164,9 @@ func (uf userFacade) GetOrCreateUserGoogleOnSignIn(
 		if googleUser.Email == "" {
 			return nil, errors.New("Not implemented yet: Google did not provided appUser email")
 		}
-		userGoogle = models.UserGoogle{
-			StringID: db.StringID{ID: googleUser.ID},
-			UserGoogleEntity: &models.UserGoogleEntity{
-				User: *googleUser,
-				OwnedByUserWithIntID: user.OwnedByUserWithIntID{
-					AppUserIntID: appUserID,
-				},
-			},
-		}
+		userGoogle = models.NewUserGoogle(googleUser.ID)
+		userGoogle.Data.User = *googleUser
+		userGoogle.Data.OwnedByUserWithIntID.AppUserIntID = appUserID
 		return &userGoogle, nil
 	}
 
@@ -198,8 +194,12 @@ func getOrCreateUserAccountRecordOnSignIn(
 	appUser models.AppUser, err error,
 ) {
 	log.Debugf(c, "getOrCreateUserAccountRecordOnSignIn(provider=%v, userID=%d)", provider, userID)
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
+	}
 	var userAccountRecord user.AccountRecord
-	err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 		if userAccountRecord, err = getUserAccountRecordFromDB(c); err != nil && !dal.IsNotFound(err) {
 			// Technical error
 			return err
@@ -209,13 +209,15 @@ func getOrCreateUserAccountRecordOnSignIn(
 
 		isNewUser := userID == 0
 
+		accountData := userAccountRecord.AccountData()
+
 		updateUser := func() {
 			appUser.Data.SetLastLogin(now)
 			appUser.Data.SetLastLogin(now)
-			if !appUser.Data.EmailConfirmed && userAccountRecord.IsEmailConfirmed() {
+			if !appUser.Data.EmailConfirmed && accountData.IsEmailConfirmed() {
 				appUser.Data.EmailConfirmed = true
 			}
-			names := userAccountRecord.GetNames()
+			names := accountData.GetNames()
 			if appUser.Data.FirstName == "" && names.FirstName != "" {
 				appUser.Data.FirstName = names.FirstName
 			}
@@ -228,20 +230,20 @@ func getOrCreateUserAccountRecordOnSignIn(
 		}
 
 		if err == nil { // User account record found
-			uaRecordUserID := userAccountRecord.GetAppUserID().(int64)
+			uaRecordUserID := accountData.GetAppUserID().(int64)
 			if !isNewUser && uaRecordUserID != userID {
 				panic(fmt.Sprintf("Relinking of appUser accounts us not implemented yet => userAccountRecord.GetAppUserIntID():%d != userID:%d", uaRecordUserID, userID))
 			}
-			if appUser, err = User.GetUserByID(c, uaRecordUserID); err != nil {
+			if appUser, err = User.GetUserByID(c, tx, uaRecordUserID); err != nil {
 				if dal.IsNotFound(err) {
 					err = fmt.Errorf("record UserGoogle is referencing non existing appUser: %w", err)
 				}
 				return
 			}
-			userAccountRecord.SetLastLogin(now)
+			accountData.SetLastLogin(now)
 			updateUser()
 
-			if err = dtdal.DB.UpdateMulti(c, []db.EntityHolder{userAccountRecord, &appUser}); err != nil {
+			if err = tx.SetMulti(c, []dal.Record{userAccountRecord.Record(), appUser.Record}); err != nil {
 				return fmt.Errorf("failed to update User & UserFacebook with DtLastLogin: %w", err)
 			}
 			return
@@ -265,7 +267,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 		if i, ok := userAccountRecord.(user.UpdatedTimeSetter); ok {
 			i.SetUpdatedTime(now)
 		}
-		userAccountRecord.SetLastLogin(now)
+		accountData.SetLastLogin(now)
 
 		email := models.GetEmailID(userAccountRecord.GetEmail())
 
@@ -301,7 +303,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 
 			userAccountRecord.(user.BelongsToUserWithIntID).SetAppUserIntID(appUser.ID)
 			userEmail.AppUserIntID = appUser.ID
-			if err = dtdal.DB.UpdateMulti(c, []db.EntityHolder{userAccountRecord, &userEmail}); err != nil {
+			if err = tx.SetMulti(c, []dal.Record{userAccountRecord.Record(), userEmail.Record}); err != nil {
 				return
 			}
 			return
@@ -312,7 +314,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 			}
 
 			if isNewUser {
-				if appUser, err = User.GetUserByID(c, userEmail.AppUserIntID); err != nil {
+				if appUser, err = User.GetUserByID(c, tx, userEmail.AppUserIntID); err != nil {
 					if dal.IsNotFound(err) {
 						err = fmt.Errorf("record UserEmail is referencing non existing User: %w", err)
 					}
@@ -328,12 +330,12 @@ func getOrCreateUserAccountRecordOnSignIn(
 			}
 			appUser.Data.AddAccount(userAccountRecord.UserAccount())
 			updateUser()
-			if err = dtdal.DB.UpdateMulti(c, []db.EntityHolder{userAccountRecord, &appUser}); err != nil {
+			if err = tx.SetMulti(c, []dal.Record{userAccountRecord.Record(), appUser.Record}); err != nil {
 				return fmt.Errorf("failed to create UserFacebook & update User: %w", err)
 			}
 			return
 		}
-	}, dtdal.CrossGroupTransaction)
+	})
 	return
 }
 
@@ -354,7 +356,7 @@ func (uf userFacade) GetOrCreateUserFacebookOnSignIn(
 		panic("fbUserOrPageScopeID is empty string")
 	}
 
-	updateNames := func(entity *models.UserFacebookEntity) {
+	updateNames := func(entity *models.UserFacebookData) {
 		if firstName != "" && userFacebook.FirstName != firstName {
 			userFacebook.FirstName = firstName
 		}
@@ -375,7 +377,7 @@ func (uf userFacade) GetOrCreateUserFacebookOnSignIn(
 		userFacebook = models.UserFacebook{
 			FbAppOrPageID:       fbAppOrPageID,
 			FbUserOrPageScopeID: fbUserOrPageScopeID,
-			UserFacebookEntity: &models.UserFacebookEntity{
+			UserFacebookEntity: &models.UserFacebookData{
 				Email: email,
 				Names: user.Names{
 					FirstName: firstName,

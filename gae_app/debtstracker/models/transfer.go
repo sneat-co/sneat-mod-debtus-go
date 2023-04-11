@@ -11,7 +11,7 @@ import (
 	"github.com/crediterra/money"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/decimal"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 	"strings"
 )
 
@@ -823,9 +823,9 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 	}
 
 	// To optimize storage we filter out default values
-	if properties, err = gaedb.CleanProperties(properties, transferPropertiesToClean); err != nil {
-		return
-	}
+	//if properties, err = gaedb.CleanProperties(properties, transferPropertiesToClean); err != nil {
+	//	return
+	//}
 
 	// { // Obsolete properties that were moved to JSON also should be removed
 	// 	if migratedToJson := t.FromJson != "" && t.ToJson != ""; migratedToJson {

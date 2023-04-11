@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"time"
 
@@ -24,26 +25,41 @@ type Sms struct {
 const TwilioSmsKind = "TwilioSms"
 
 type TwilioSms struct {
-	record.WithID[int]
-	*TwilioSmsEntity
+	record.WithID[string]
+	Data *TwilioSmsData
 }
 
-func (TwilioSms) Kind() string {
-	return AppUserKind
-}
-
-func (u *TwilioSms) Entity() interface{} {
-	if u.TwilioSmsEntity == nil {
-		u.TwilioSmsEntity = new(TwilioSmsEntity)
+func NewTwilioSms(smsID string, data *TwilioSmsData) TwilioSms {
+	key := dal.NewKeyWithID(TwilioSmsKind, smsID)
+	if data == nil {
+		data = new(TwilioSmsData)
 	}
-	return u.TwilioSmsEntity
+	return TwilioSms{
+		WithID: record.WithID[string]{
+			ID:     smsID,
+			Key:    key,
+			Record: dal.NewRecordWithData(key, data),
+		},
+		Data: data,
+	}
 }
 
-func (u *TwilioSms) SetEntity(entity interface{}) {
-	u.TwilioSmsEntity = entity.(*TwilioSmsEntity)
-}
+//func (TwilioSms) Kind() string {
+//	return AppUserKind
+//}
+//
+//func (u *TwilioSms) Entity() interface{} {
+//	if u.TwilioSmsData == nil {
+//		u.TwilioSmsData = new(TwilioSmsData)
+//	}
+//	return u.TwilioSmsData
+//}
+//
+//func (u *TwilioSms) SetEntity(entity interface{}) {
+//	u.TwilioSmsData = entity.(*TwilioSmsData)
+//}
 
-type TwilioSmsEntity struct {
+type TwilioSmsData struct {
 	UserID      int64
 	DtCreated   time.Time
 	DtUpdated   time.Time
@@ -66,8 +82,8 @@ type TwilioSmsEntity struct {
 	CreatorTgSmsStatusMessageID int `datastore:",noindex"`
 }
 
-func NewTwilioSmsFromSmsResponse(userID int64, response *gotwilio.SmsResponse) TwilioSmsEntity {
-	entity := TwilioSmsEntity{
+func NewTwilioSmsFromSmsResponse(userID int64, response *gotwilio.SmsResponse) TwilioSmsData {
+	entity := TwilioSmsData{
 		UserID:     userID,
 		DtCreated:  time.Now(),
 		DtUpdated:  time.Now(),

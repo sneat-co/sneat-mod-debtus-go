@@ -14,7 +14,7 @@ import (
 	"context"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 func mergeContactsHandler(w http.ResponseWriter, r *http.Request) {

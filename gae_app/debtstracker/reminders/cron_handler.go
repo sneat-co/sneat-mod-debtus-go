@@ -11,7 +11,7 @@ import (
 	"context"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 func CronSendReminders(c context.Context, w http.ResponseWriter, r *http.Request) {

@@ -18,7 +18,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 // Init initializes debts tracker server

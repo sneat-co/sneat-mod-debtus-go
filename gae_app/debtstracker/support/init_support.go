@@ -21,8 +21,8 @@ import (
 	"github.com/strongo/log"
 	"github.com/strongo/nds"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/taskqueue"
+	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/v2/taskqueue"
 )
 
 func InitSupportHandlers(router *httprouter.Router) {

@@ -11,7 +11,7 @@ import (
 	"github.com/strongo/app/gae"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
+	"google.golang.org/appengine/v2/delay"
 )
 
 func (TransferDalGae) DelayUpdateTransfersOnReturn(c context.Context, returnTransferID int64, transferReturnsUpdate []dtdal.TransferReturnUpdate) (err error) {

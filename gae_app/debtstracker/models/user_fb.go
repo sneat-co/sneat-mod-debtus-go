@@ -1,23 +1,46 @@
 package models
 
 import (
+	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/app/user"
 )
 
 const UserFacebookKind = "UserFb"
 
+var _ user.AccountData = (*UserFacebookData)(nil)
+
+var _ user.AccountRecord = (*UserFacebook)(nil)
+
 type UserFacebook struct {
 	// TODO: db.NoIntID - replace with DALGO
+	record.WithID[string]
 	FbAppOrPageID       string
 	FbUserOrPageScopeID string
-	*UserFacebookEntity
+	Data                *UserFacebookData
+}
+
+func (u *UserFacebook) GetEmail() string {
+	return u.Data.Email
+}
+
+func (u *UserFacebook) Key() *dal.Key {
+	return u.Key()
+}
+
+func (u *UserFacebook) Record() dal.Record {
+	return u.WithID.Record
+}
+
+func (u *UserFacebook) AccountData() user.AccountData {
+	return u.Data
 }
 
 //var _ user.AccountRecord = (*UserFacebook)(nil)
 
 //var _ db.EntityHolder = (*UserFacebook)(nil)
 
-func (u UserFacebook) UserAccount() user.Account {
+func (u *UserFacebook) UserAccount() user.Account {
 	return user.Account{Provider: "fb", App: u.FbAppOrPageID, ID: u.FbUserOrPageScopeID}
 }
 
@@ -25,15 +48,15 @@ func UserFacebookID(fbAppOrPageID, fbUserOrPageScopeID string) string {
 	return fbAppOrPageID + ":" + fbUserOrPageScopeID
 }
 
-func (UserFacebook) Kind() string {
-	return UserFacebookKind
-}
+//func (*UserFacebook) Kind() string {
+//	return UserFacebookKind
+//}
 
 //func (UserFacebook) TypeOfID() db.TypeOfID {
 //	return db.IsStringID
 //}
 
-func (u UserFacebook) StrID() string {
+func (u *UserFacebook) StrID() string {
 	return UserFacebookID(u.FbAppOrPageID, u.FbUserOrPageScopeID)
 }
 
@@ -50,19 +73,19 @@ func (u *UserFacebook) SetStrID(id string) {
 //	u.FbUserOrPageScopeID = vals[1]
 //}
 
-func (u *UserFacebook) Entity() interface{} {
-	return u.UserFacebookEntity
-}
+//func (u *UserFacebook) Entity() interface{} {
+//	return u.Data
+//}
+//
+//func (UserFacebook) NewEntity() interface{} {
+//	return new(UserFacebookData)
+//}
+//
+//func (u *UserFacebook) SetEntity(entity interface{}) {
+//	u.Data = entity.(*UserFacebookData)
+//}
 
-func (UserFacebook) NewEntity() interface{} {
-	return new(UserFacebookEntity)
-}
-
-func (u *UserFacebook) SetEntity(entity interface{}) {
-	u.UserFacebookEntity = entity.(*UserFacebookEntity)
-}
-
-type UserFacebookEntity struct {
+type UserFacebookData struct {
 	user.LastLogin
 	user.Names
 	Email            string `datastore:",noindex"`
@@ -70,24 +93,24 @@ type UserFacebookEntity struct {
 	user.OwnedByUserWithIntID
 }
 
-var _ user.AccountEntity = (*UserFacebookEntity)(nil)
+var _ user.AccountData = (*UserFacebookData)(nil)
 
-func (entity UserFacebookEntity) GetEmail() string {
+func (entity UserFacebookData) GetEmail() string {
 	return entity.Email
 }
 
-func (entity UserFacebookEntity) IsEmailConfirmed() bool {
+func (entity UserFacebookData) IsEmailConfirmed() bool {
 	return entity.EmailIsConfirmed
 }
 
-//func (entity *UserFacebookEntity) Load(ps []datastore.Property) error {
+//func (entity *UserFacebookData) Load(ps []datastore.Property) error {
 //	if err := datastore.LoadStruct(entity, ps); err != nil {
 //		return err
 //	}
 //	return nil
 //}
 //
-//func (entity *UserFacebookEntity) Save() (properties []datastore.Property, err error) {
+//func (entity *UserFacebookData) Save() (properties []datastore.Property, err error) {
 //	if err = entity.Validate(); err != nil {
 //		return
 //	}

@@ -50,8 +50,8 @@ func (linker usersLinker) linkUsersWithinTransaction(
 		return
 	}
 
-	if !dtdal.DB.IsInTransaction(tc) {
-		err = errors.New("usersLinker.linkUsersWithinTransaction is called outside of transaction")
+	if tx == nil {
+		err = errors.New("usersLinker.linkUsersWithinTransaction is called without transaction")
 		return
 	}
 
@@ -155,7 +155,7 @@ func (linker usersLinker) getOrCreateInvitedContactByInviterUserAndInviterContac
 	if invitedUser.Data.ContactsCount > 0 {
 		var invitedUserContacts []models.Contact
 		// Use non transaction context
-		invitedUserContacts, err = GetContactsByIDs(tc, invitedUser.Data.ContactIDs())
+		invitedUserContacts, err = GetContactsByIDs(tc, tx, invitedUser.Data.ContactIDs())
 		if err != nil {
 			err = fmt.Errorf("failed to call facade.GetContactsByIDs(): %w", err)
 			return

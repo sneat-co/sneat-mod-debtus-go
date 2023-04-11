@@ -11,8 +11,8 @@ import (
 	"github.com/strongo/app/gae"
 	"github.com/strongo/app/gaestandard"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
-	"google.golang.org/appengine/urlfetch"
+	"google.golang.org/appengine/v2/delay"
+	"google.golang.org/appengine/v2/urlfetch"
 	"strings"
 )
 

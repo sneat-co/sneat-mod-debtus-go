@@ -13,7 +13,7 @@ import (
 //	return c
 //}
 
-func TransactionalCallbackAction(o dal.TransactionOptions,
+func TransactionalCallbackAction(
 	f func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error),
 ) func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 	return func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {

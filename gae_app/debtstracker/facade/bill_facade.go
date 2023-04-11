@@ -28,17 +28,8 @@ func (billFacade) AssignBillToGroup(c context.Context, tx dal.ReadwriteTransacti
 		return
 	}
 	if bill.Data.MembersCount == 0 {
-		{ // Get group,
-			var gc context.Context
-			if bill.Data.Currency == money.Currency("") {
-				// we don't need to get it in transaction if no currency as balance will not be changed
-				gc = dtdal.DB.NonTransactionalContext(c)
-			} else {
-				gc = c
-			}
-			if group, err = dtdal.Group.GetGroupByID(gc, tx, groupID); err != nil {
-				return
-			}
+		if group, err = dtdal.Group.GetGroupByID(c, tx, groupID); err != nil {
+			return
 		}
 		if group.Data.MembersCount > 0 {
 			groupMembers := group.Data.GetGroupMembers()
@@ -69,7 +60,7 @@ func (billFacade) AssignBillToGroup(c context.Context, tx dal.ReadwriteTransacti
 					if user.ID, err = strconv.ParseInt(userID, 10, 64); err != nil {
 						return
 					}
-					if user, err = User.GetUserByID(dtdal.DB.NonTransactionalContext(c), user.ID); err != nil {
+					if user, err = User.GetUserByID(c, tx, user.ID); err != nil {
 						return
 					}
 					_, _, _, groupMember, _ := group.Data.AddOrGetMember(userID, "", user.Data.FullName())
@@ -136,235 +127,237 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 		return
 	}
 
-	billEntity.DtCreated = time.Now()
-
-	members := billEntity.GetBillMembers()
-	//if len(members) == 0 {
-	//	return bill, fmt.Errorf("len(members) == 0, MembersJson: %v", billEntity.MembersJson)
-	//}
-
-	if len(members) == 0 {
-		billEntity.SplitMode = models.SplitModeEqually
-	} else {
-		contactIDs := make([]int64, 0, len(members)-1)
-
-		var (
-			totalPercentageByMembers decimal.Decimal64p2
-			totalSharesPerMembers    int
-			totalPaidByMembers       decimal.Decimal64p2
-			totalOwedByMembers       decimal.Decimal64p2
-			payersCount              int
-			equalAmount              decimal.Decimal64p2
-			shareAmount              decimal.Decimal64p2
-		)
-
-		switch billEntity.SplitMode {
-		case models.SplitModeShare:
-			shareAmount = decimal.NewDecimal64p2FromFloat64(
-				math.Floor(billEntity.AmountTotal.AsFloat64()/float64(len(members))*100+0.5) / 100,
-			)
-		case models.SplitModeEqually:
-			amountToSplitEqually := billEntity.AmountTotal
-			var totalAdjustmentByMembers decimal.Decimal64p2
-			for i, member := range members {
-				if member.Adjustment > billEntity.AmountTotal {
-					return bill, fmt.Errorf("%w: members[%d].Adjustment > billEntity.AmountTotal", ErrBadInput, i)
-				} else if member.Adjustment < 0 && member.Adjustment < -1*billEntity.AmountTotal {
-					err = fmt.Errorf("%w: members[%d].AdjustmentInCents < 0 && AdjustmentInCents < -1*billEntity.AmountTotal", ErrBadInput, i)
-					return
-				}
-				totalAdjustmentByMembers += member.Adjustment
-			}
-			if totalAdjustmentByMembers > billEntity.AmountTotal {
-				return bill, fmt.Errorf("%w: totalAdjustmentByMembers > billEntity.AmountTotal")
-			}
-			amountToSplitEqually -= totalAdjustmentByMembers
-			equalAmount = decimal.NewDecimal64p2FromFloat64(
-				math.Floor(amountToSplitEqually.AsFloat64()/float64(len(members))*100+0.5) / 100,
-			)
-		}
-
-		// We use it to check equal split
-		amountsCountByValue := make(map[decimal.Decimal64p2]int)
-
-		// Calculate totals & initial checks
-		for i, member := range members {
-			if member.Paid != 0 {
-				payersCount += 1
-				totalPaidByMembers += member.Paid
-			}
-			totalOwedByMembers += member.Owes
-			totalSharesPerMembers += member.Shares
-
-			// Individual member checks - we can't move this checks down as it should fail first before deviation checks
-			{
-				if member.Owes < 0 {
-					err = fmt.Errorf("%w: members[%d].Owes is negative: %v", ErrBadInput, i, member.Owes)
-					return
-				}
-				if member.UserID != billEntity.CreatorUserID {
-					if len(member.ContactByUser) == 0 {
-						err = fmt.Errorf("len(members[i].ContactByUser) == 0: i==%v", i)
-						return
-					}
-					if member.UserID == "" {
-						if len(member.ContactByUser) == 0 {
-							err = errors.New("bill member is missing ContactByUser ID")
-							return
-						}
-
-						for _, counterparty := range member.ContactByUser {
-							if counterparty.ContactID == "" {
-								panic("counterparty.ContactID == 0")
-							}
-							var counterpartyContactID int64
-							counterpartyContactID, err = strconv.ParseInt(counterparty.ContactID, 10, 64)
-							if err != nil {
-								return
-							}
-							var duplicateContactID bool
-							for _, cID := range contactIDs {
-								if cID == counterpartyContactID {
-									duplicateContactID = true
-									break
-								}
-							}
-							if !duplicateContactID {
-
-								contactIDs = append(contactIDs, counterpartyContactID)
-							}
-						}
-					}
-				}
-			}
-		}
-
-		adjustmentsCount := 0
-		for i, member := range members {
-			if member.Adjustment != 0 {
-				adjustmentsCount++
-			}
-			ensureNoAdjustment := func() {
-				if member.Adjustment != 0 {
-					panic(fmt.Sprintf("Member #%d has Adjustment property not allowed with split mode %v", i, billEntity.SplitMode))
-				}
-			}
-			ensureNoShare := func() {
-				if member.Shares != 0 {
-					panic(fmt.Sprintf("Member #%d has Shares property not allowed with split mode %v", i, billEntity.SplitMode))
-				}
-			}
-			ensureEqualShare := func() {
-				if member.Shares != members[0].Shares {
-					panic(fmt.Sprintf("members[%d] has Shares not equal to members[0].Shares: %d != %d", i, member.Shares, members[i].Shares))
-				}
-			}
-
-			ensureMemberAmountDeviateWithin1cent := func() error {
-				//if totalOwedByMembers == 0 && totalOwedByMembers == 0 {
-				//	return nil
-				//}
-				switch billEntity.SplitMode {
-				case models.SplitModeShare:
-					expectedAmount := int64(shareAmount) * int64(member.Shares)
-					deviation := expectedAmount - int64(member.Owes)
-					if deviation > 1 || deviation < -1 {
-						return fmt.Errorf("%w: member #%d has amount %v deviated too much (for %v) from expected %v", ErrBadInput, i, member.Owes, decimal.Decimal64p2(deviation), decimal.Decimal64p2(expectedAmount))
-					}
-				default:
-					deviation := int64(member.Owes - member.Adjustment - equalAmount)
-					if deviation > 1 || deviation < -1 {
-						return fmt.Errorf("%w: member #%d has amount %v deviated too much (for %v) from equal %v", ErrBadInput, i, member.Owes, decimal.Decimal64p2(deviation), equalAmount)
-					}
-				}
-				return nil
-			}
-			switch billEntity.SplitMode {
-			case models.SplitModeEqually:
-				// ensureNoAdjustment()
-				ensureEqualShare()
-				if err = ensureMemberAmountDeviateWithin1cent(); err != nil {
-					return
-				}
-				amountsCountByValue[member.Owes]++
-			case models.SplitModeExactAmount:
-				ensureNoAdjustment()
-				ensureNoShare()
-			case models.SplitModePercentage:
-				totalPercentageByMembers += member.Percent
-				// ensureNoAdjustment()
-			case models.SplitModeShare:
-				if member.Shares == 0 {
-					err = fmt.Errorf("%w: member %d is missing Shares value", ErrBadInput, i)
-					return
-				}
-				// ensureNoAdjustment()
-			}
-		}
-
-		if payersCount > 1 {
-			return bill, ErrBillHasTooManyPayers
-		}
-
-		if !(billEntity.Status == models.STATUS_DRAFT && totalPaidByMembers == 0) && totalPaidByMembers != billEntity.AmountTotal {
-			err = fmt.Errorf("%w: total paid for all members should be equal to billEntity amount (%d), got %d", ErrBadInput, billEntity.AmountTotal, totalPaidByMembers)
-			return
-		}
-		switch billEntity.SplitMode {
-		case models.SplitModeEqually:
-			if len(amountsCountByValue) > 2+adjustmentsCount {
-				return bill, fmt.Errorf("%w: len(amountsCountByValue):%d > 2 + adjustmentsCount:%d", ErrBadInput, amountsCountByValue, adjustmentsCount)
-			}
-		case models.SplitModePercentage:
-			if totalPercentageByMembers != decimal.FromInt(100) {
-				err = fmt.Errorf("%w: total percentage for all members should be 100%%, got %v%%", ErrBadInput, totalPercentageByMembers)
-				return
-			}
-		case models.SplitModeShare:
-			if billEntity.Shares == 0 {
-				billEntity.Shares = totalSharesPerMembers
-			} else if billEntity.Shares != totalSharesPerMembers {
-				err = fmt.Errorf("%w: billEntity.Shares != totalSharesPerMembers", ErrBadInput)
-				return
-			}
-		}
-
-		if (totalOwedByMembers != 0 || totalPaidByMembers != 0) && totalOwedByMembers != billEntity.AmountTotal {
-			err = fmt.Errorf("totalOwedByMembers != billEntity.AmountTotal: %v != %v", totalOwedByMembers, billEntity.AmountTotal)
-			return
-		}
-
-		// Load counterparties so we can get respective userIDs
-		var counterparties []models.Contact
-		// Use non transactional context
-		counterparties, err = GetContactsByIDs(c, contactIDs)
-		if err != nil {
-			return bill, fmt.Errorf("failed to get counterparties by ID: %w", err)
-		}
-
-		// Assign userIDs from counterparty to respective member
-		for _, member := range members {
-			for _, counterparty := range counterparties {
-				// TODO: assign not just for creator?
-				if member.UserID == "" && member.ContactByUser[billEntity.CreatorUserID].ContactID == strconv.FormatInt(counterparty.ID, 10) {
-					member.UserID = strconv.FormatInt(counterparty.Data.CounterpartyUserID, 10)
-					break
-				}
-			}
-		}
-
-		billEntity.ContactIDs = make([]string, len(contactIDs))
-		for i, contactID := range contactIDs {
-			billEntity.ContactIDs[i] = strconv.FormatInt(contactID, 10)
-		}
-
-	}
-
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
+
 	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+
+		billEntity.DtCreated = time.Now()
+
+		members := billEntity.GetBillMembers()
+		//if len(members) == 0 {
+		//	return bill, fmt.Errorf("len(members) == 0, MembersJson: %v", billEntity.MembersJson)
+		//}
+
+		if len(members) == 0 {
+			billEntity.SplitMode = models.SplitModeEqually
+		} else {
+			contactIDs := make([]int64, 0, len(members)-1)
+
+			var (
+				totalPercentageByMembers decimal.Decimal64p2
+				totalSharesPerMembers    int
+				totalPaidByMembers       decimal.Decimal64p2
+				totalOwedByMembers       decimal.Decimal64p2
+				payersCount              int
+				equalAmount              decimal.Decimal64p2
+				shareAmount              decimal.Decimal64p2
+			)
+
+			switch billEntity.SplitMode {
+			case models.SplitModeShare:
+				shareAmount = decimal.NewDecimal64p2FromFloat64(
+					math.Floor(billEntity.AmountTotal.AsFloat64()/float64(len(members))*100+0.5) / 100,
+				)
+			case models.SplitModeEqually:
+				amountToSplitEqually := billEntity.AmountTotal
+				var totalAdjustmentByMembers decimal.Decimal64p2
+				for i, member := range members {
+					if member.Adjustment > billEntity.AmountTotal {
+						return fmt.Errorf("%w: members[%d].Adjustment > billEntity.AmountTotal", ErrBadInput, i)
+					} else if member.Adjustment < 0 && member.Adjustment < -1*billEntity.AmountTotal {
+						err = fmt.Errorf("%w: members[%d].AdjustmentInCents < 0 && AdjustmentInCents < -1*billEntity.AmountTotal", ErrBadInput, i)
+						return
+					}
+					totalAdjustmentByMembers += member.Adjustment
+				}
+				if totalAdjustmentByMembers > billEntity.AmountTotal {
+					return fmt.Errorf("%w: totalAdjustmentByMembers > billEntity.AmountTotal")
+				}
+				amountToSplitEqually -= totalAdjustmentByMembers
+				equalAmount = decimal.NewDecimal64p2FromFloat64(
+					math.Floor(amountToSplitEqually.AsFloat64()/float64(len(members))*100+0.5) / 100,
+				)
+			}
+
+			// We use it to check equal split
+			amountsCountByValue := make(map[decimal.Decimal64p2]int)
+
+			// Calculate totals & initial checks
+			for i, member := range members {
+				if member.Paid != 0 {
+					payersCount += 1
+					totalPaidByMembers += member.Paid
+				}
+				totalOwedByMembers += member.Owes
+				totalSharesPerMembers += member.Shares
+
+				// Individual member checks - we can't move this checks down as it should fail first before deviation checks
+				{
+					if member.Owes < 0 {
+						err = fmt.Errorf("%w: members[%d].Owes is negative: %v", ErrBadInput, i, member.Owes)
+						return
+					}
+					if member.UserID != billEntity.CreatorUserID {
+						if len(member.ContactByUser) == 0 {
+							err = fmt.Errorf("len(members[i].ContactByUser) == 0: i==%v", i)
+							return
+						}
+						if member.UserID == "" {
+							if len(member.ContactByUser) == 0 {
+								err = errors.New("bill member is missing ContactByUser ID")
+								return
+							}
+
+							for _, counterparty := range member.ContactByUser {
+								if counterparty.ContactID == "" {
+									panic("counterparty.ContactID == 0")
+								}
+								var counterpartyContactID int64
+								counterpartyContactID, err = strconv.ParseInt(counterparty.ContactID, 10, 64)
+								if err != nil {
+									return
+								}
+								var duplicateContactID bool
+								for _, cID := range contactIDs {
+									if cID == counterpartyContactID {
+										duplicateContactID = true
+										break
+									}
+								}
+								if !duplicateContactID {
+
+									contactIDs = append(contactIDs, counterpartyContactID)
+								}
+							}
+						}
+					}
+				}
+			}
+
+			adjustmentsCount := 0
+			for i, member := range members {
+				if member.Adjustment != 0 {
+					adjustmentsCount++
+				}
+				ensureNoAdjustment := func() {
+					if member.Adjustment != 0 {
+						panic(fmt.Sprintf("Member #%d has Adjustment property not allowed with split mode %v", i, billEntity.SplitMode))
+					}
+				}
+				ensureNoShare := func() {
+					if member.Shares != 0 {
+						panic(fmt.Sprintf("Member #%d has Shares property not allowed with split mode %v", i, billEntity.SplitMode))
+					}
+				}
+				ensureEqualShare := func() {
+					if member.Shares != members[0].Shares {
+						panic(fmt.Sprintf("members[%d] has Shares not equal to members[0].Shares: %d != %d", i, member.Shares, members[i].Shares))
+					}
+				}
+
+				ensureMemberAmountDeviateWithin1cent := func() error {
+					//if totalOwedByMembers == 0 && totalOwedByMembers == 0 {
+					//	return nil
+					//}
+					switch billEntity.SplitMode {
+					case models.SplitModeShare:
+						expectedAmount := int64(shareAmount) * int64(member.Shares)
+						deviation := expectedAmount - int64(member.Owes)
+						if deviation > 1 || deviation < -1 {
+							return fmt.Errorf("%w: member #%d has amount %v deviated too much (for %v) from expected %v", ErrBadInput, i, member.Owes, decimal.Decimal64p2(deviation), decimal.Decimal64p2(expectedAmount))
+						}
+					default:
+						deviation := int64(member.Owes - member.Adjustment - equalAmount)
+						if deviation > 1 || deviation < -1 {
+							return fmt.Errorf("%w: member #%d has amount %v deviated too much (for %v) from equal %v", ErrBadInput, i, member.Owes, decimal.Decimal64p2(deviation), equalAmount)
+						}
+					}
+					return nil
+				}
+				switch billEntity.SplitMode {
+				case models.SplitModeEqually:
+					// ensureNoAdjustment()
+					ensureEqualShare()
+					if err = ensureMemberAmountDeviateWithin1cent(); err != nil {
+						return
+					}
+					amountsCountByValue[member.Owes]++
+				case models.SplitModeExactAmount:
+					ensureNoAdjustment()
+					ensureNoShare()
+				case models.SplitModePercentage:
+					totalPercentageByMembers += member.Percent
+					// ensureNoAdjustment()
+				case models.SplitModeShare:
+					if member.Shares == 0 {
+						err = fmt.Errorf("%w: member %d is missing Shares value", ErrBadInput, i)
+						return
+					}
+					// ensureNoAdjustment()
+				}
+			}
+
+			if payersCount > 1 {
+				return ErrBillHasTooManyPayers
+			}
+
+			if !(billEntity.Status == models.STATUS_DRAFT && totalPaidByMembers == 0) && totalPaidByMembers != billEntity.AmountTotal {
+				err = fmt.Errorf("%w: total paid for all members should be equal to billEntity amount (%d), got %d", ErrBadInput, billEntity.AmountTotal, totalPaidByMembers)
+				return
+			}
+			switch billEntity.SplitMode {
+			case models.SplitModeEqually:
+				if len(amountsCountByValue) > 2+adjustmentsCount {
+					return fmt.Errorf("%w: len(amountsCountByValue):%d > 2 + adjustmentsCount:%d", ErrBadInput, amountsCountByValue, adjustmentsCount)
+				}
+			case models.SplitModePercentage:
+				if totalPercentageByMembers != decimal.FromInt(100) {
+					err = fmt.Errorf("%w: total percentage for all members should be 100%%, got %v%%", ErrBadInput, totalPercentageByMembers)
+					return
+				}
+			case models.SplitModeShare:
+				if billEntity.Shares == 0 {
+					billEntity.Shares = totalSharesPerMembers
+				} else if billEntity.Shares != totalSharesPerMembers {
+					err = fmt.Errorf("%w: billEntity.Shares != totalSharesPerMembers", ErrBadInput)
+					return
+				}
+			}
+
+			if (totalOwedByMembers != 0 || totalPaidByMembers != 0) && totalOwedByMembers != billEntity.AmountTotal {
+				err = fmt.Errorf("totalOwedByMembers != billEntity.AmountTotal: %v != %v", totalOwedByMembers, billEntity.AmountTotal)
+				return
+			}
+
+			// Load counterparties so we can get respective userIDs
+			var counterparties []models.Contact
+			// Use non transactional context
+			counterparties, err = GetContactsByIDs(c, tx, contactIDs)
+			if err != nil {
+				return fmt.Errorf("failed to get counterparties by ID: %w", err)
+			}
+
+			// Assign userIDs from counterparty to respective member
+			for _, member := range members {
+				for _, counterparty := range counterparties {
+					// TODO: assign not just for creator?
+					if member.UserID == "" && member.ContactByUser[billEntity.CreatorUserID].ContactID == strconv.FormatInt(counterparty.ID, 10) {
+						member.UserID = strconv.FormatInt(counterparty.Data.CounterpartyUserID, 10)
+						break
+					}
+				}
+			}
+
+			billEntity.ContactIDs = make([]string, len(contactIDs))
+			for i, contactID := range contactIDs {
+				billEntity.ContactIDs[i] = strconv.FormatInt(contactID, 10)
+			}
+
+		}
+
 		if bill, err = InsertBillEntity(tc, tx, billEntity); err != nil {
 			return
 		}
@@ -511,6 +504,9 @@ func (billFacade) AddBillMember(
 ) (
 	bill models.Bill, group models.Group, changed, isJoined bool, err error,
 ) {
+	if tx == nil {
+		panic("This method should be called within transaction")
+	}
 	log.Debugf(c, "billFacade.AddBillMember(bill.ID=%v, memberID=%v, memberUserID=%v, memberUserName=%v, paid=%v)", bill.ID, memberID, memberUserID, memberUserName, paid)
 	if paid < 0 {
 		panic("paid < 0")
@@ -518,9 +514,6 @@ func (billFacade) AddBillMember(
 	bill = inBill
 	if bill.ID == "" {
 		panic("bill.ID is empty string")
-	}
-	if !dtdal.DB.IsInTransaction(c) {
-		panic("This method should be called within transaction")
 	}
 
 	// TODO: Verify bill was obtained within transaction

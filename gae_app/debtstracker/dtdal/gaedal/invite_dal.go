@@ -1,27 +1,25 @@
 package gaedal
 
 import (
-	"fmt"
-	"github.com/dal-go/dalgo/dal"
-	"github.com/dal-go/dalgo/record"
-	"github.com/strongo/db"
-	"strconv"
-	"strings"
-	"time"
-
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
 	"context"
+	"fmt"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/app"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
+	"strconv"
+	"strings"
+	"time"
 )
 
-func NewInviteKey(c context.Context, inviteCode string) *datastore.Key {
-	return gaedb.NewKey(c, models.InviteKind, inviteCode, 0, nil)
+func NewInviteKey(inviteCode string) *dal.Key {
+	return dal.NewKeyWithID(models.InviteKind, inviteCode)
 }
 
 type InviteDalGae struct {
@@ -32,17 +30,21 @@ func NewInviteDalGae() InviteDalGae {
 }
 
 func (InviteDalGae) GetInvite(c context.Context, inviteCode string) (*models.InviteEntity, error) {
-	inviteKey := gaedb.NewKey(c, models.InviteKind, inviteCode, 0, nil)
+	inviteKey := NewInviteKey(inviteCode)
 	var inviteEntity models.InviteEntity
 	err := gaedb.Get(c, inviteKey, &inviteEntity)
-	if err == datastore.ErrNoSuchEntity {
-		return nil, db.NewErrNotFoundByStrID(models.InviteKind, inviteCode, nil)
+	if dal.IsNotFound(err) {
+		return nil, err
 	}
 	return &inviteEntity, err
 }
 
 func (InviteDalGae) ClaimInvite(c context.Context, userID int64, inviteCode, claimedOn, claimedVia string) (err error) {
-	err = gaedb.RunInTransaction(c, func(tc context.Context) error {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+	err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) error {
 		inviteKey := gaedb.NewKey(tc, models.InviteKind, inviteCode, 0, nil)
 		var invite models.InviteEntity
 
@@ -62,7 +64,7 @@ func (InviteDalGae) ClaimInvite(c context.Context, userID int64, inviteCode, cla
 			keysToPut := []*datastore.Key{inviteClaimKey, userKey}
 			entitiesToPut := []interface{}{inviteClaim, user}
 
-			if keysToPut, err := gaedb.PutMulti(tc, keysToPut, entitiesToPut); err != nil {
+			if keysToPut, err := tx.SetMulti(tc, keysToPut, entitiesToPut); err != nil {
 				return fmt.Errorf("failed to save %v entities (%v): %w", len(entitiesToPut), keysToPut, err)
 			}
 			log.Debugf(c, "inviteClaimKey.IntegerID(): %v, returned.IntegerID(): %v", inviteClaimKey.IntID(), keysToPut[0].IntID())
@@ -70,11 +72,11 @@ func (InviteDalGae) ClaimInvite(c context.Context, userID int64, inviteCode, cla
 			DelayUpdateInviteClaimedCount(tc, inviteClaimKey.IntID())
 
 			return err
-		} else if err == datastore.ErrNoSuchEntity {
-			return db.NewErrNotFoundByStrID(models.InviteKind, inviteCode, err)
+		} else if dal.IsNotFound(err) {
+			return err
 		}
 		return err
-	}, &datastore.TransactionOptions{XG: true})
+	})
 	return
 }
 

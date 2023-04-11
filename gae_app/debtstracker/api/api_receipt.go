@@ -71,14 +71,26 @@ func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	transfer, err := facade.Transfers.GetTransferByID(c, receipt.Data.TransferID)
-	if hasError(c, w, err, models.TransferKind, receipt.Data.TransferID, http.StatusInternalServerError) {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
+	var transfer models.Transfer
+	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+		transfer, err = facade.Transfers.GetTransferByID(c, tx, receipt.Data.TransferID)
+		if hasError(c, w, err, models.TransferKind, receipt.Data.TransferID, http.StatusInternalServerError) {
+			return
+		}
 
-	if transfer, err = facade.CheckTransferCreatorNameAndFixIfNeeded(c, w, transfer); hasError(c, w, err, models.TransferKind, int64(receipt.Data.TransferID), http.StatusInternalServerError) {
+		if err = facade.CheckTransferCreatorNameAndFixIfNeeded(c, tx, transfer); hasError(c, w, err, models.TransferKind, receipt.Data.TransferID, http.StatusInternalServerError) {
+			return
+		}
+		return nil
+	}); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 
@@ -106,8 +118,8 @@ func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request)
 	log.Debugf(c, "transfer.Creator(): %v", creator)
 
 	receiptDto := dto.ApiReceiptDto{
-		ID:       strconv.FormatInt(receiptID, 10),
-		Code:     common.EncodeID(receiptID),
+		ID:       strconv.Itoa(receiptID),
+		Code:     common.EncodeID(int64(receiptID)),
 		SentVia:  receipt.Data.SentVia,
 		SentTo:   sentTo,
 		Transfer: NewReceiptTransferDto(c, transfer),

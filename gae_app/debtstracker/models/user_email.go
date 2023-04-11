@@ -7,9 +7,8 @@ import (
 	"time"
 
 	"github.com/strongo/app/user"
-	"github.com/strongo/db/gaedb"
 	"golang.org/x/crypto/bcrypt"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 const UserEmailKind = "UserEmail"
@@ -23,7 +22,7 @@ type UserEmailEntity struct {
 	Providers          []string `datastore:",noindex"` // E.g. facebook, vk, user
 }
 
-var _ user.AccountEntity = (*UserEmailEntity)(nil)
+var _ user.AccountData = (*UserEmailEntity)(nil)
 
 func (entity UserEmailEntity) ConfirmationPin() string {
 	pin := base64.RawURLEncoding.EncodeToString(entity.PasswordBcryptHash)
@@ -127,11 +126,12 @@ func (entity *UserEmailEntity) Save() (properties []datastore.Property, err erro
 	if properties, err = datastore.SaveStruct(entity); err != nil {
 		return
 	}
-	return gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"DtUpdated":          gaedb.IsZeroTime,
-		"FirstName":          gaedb.IsEmptyString,
-		"LastName":           gaedb.IsEmptyString,
-		"NickName":           gaedb.IsEmptyString,
-		"PasswordBcryptHash": gaedb.IsEmptyByteArray,
-	})
+	//return gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
+	//	"DtUpdated":          gaedb.IsZeroTime,
+	//	"FirstName":          gaedb.IsEmptyString,
+	//	"LastName":           gaedb.IsEmptyString,
+	//	"NickName":           gaedb.IsEmptyString,
+	//	"PasswordBcryptHash": gaedb.IsEmptyByteArray,
+	//})
+	return nil, nil
 }

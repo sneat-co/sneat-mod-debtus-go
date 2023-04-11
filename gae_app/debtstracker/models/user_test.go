@@ -59,7 +59,7 @@ func TestLastLogin_SetLastLogin(t *testing.T) {
 	}
 
 	userGoogle := UserGoogle{
-		UserGoogleEntity: &UserGoogleEntity{},
+		UserGoogleEntity: &UserGoogleData{},
 	}
 	userGoogle.SetLastLogin(now)
 	if userGoogle.DtLastLogin != now {
@@ -71,7 +71,7 @@ func TestLastLogin_SetLastLogin(t *testing.T) {
 	}
 
 	userGoogle = UserGoogle{
-		UserGoogleEntity: &UserGoogleEntity{},
+		UserGoogleEntity: &UserGoogleData{},
 	}
 	var lastLoginSetter LastLoginSetter = userGoogle
 	lastLoginSetter.SetLastLogin(now)
