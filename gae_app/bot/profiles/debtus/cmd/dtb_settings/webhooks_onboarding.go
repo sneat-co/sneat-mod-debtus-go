@@ -2,6 +2,9 @@ package dtb_settings
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"regexp"
 	"strings"
 
@@ -23,7 +26,7 @@ var reEmail = regexp.MustCompile("^.+@.+\\.\\w+$")
 func handleInviteOnStart(whc botsfw.WebhookContext, inviteCode string, invite *models.InviteEntity) (m botsfw.MessageFromBot, err error) {
 	claimAndReply := func() {
 		if _, err = dtdal.Invite.ClaimInvite2(whc.Context(), inviteCode, invite, whc.AppUserIntID(), whc.BotPlatform().ID(), whc.GetBotCode()); err != nil {
-			err = errors.Wrap(err, "Failed to ClaimInvite()")
+			err = fmt.Errorf("failed to ClaimInvite(): %w", err)
 			return
 		}
 		m = whc.NewMessageByCode(trans.MESSAGE_TEXT_WELCOME_ONBOARDING_INVITE_ACCEPTED)

@@ -1,7 +1,9 @@
 package facade
 
 import (
+	"fmt"
 	"github.com/crediterra/money"
+	"github.com/strongo/db"
 	"testing"
 	"time"
 
@@ -9,7 +11,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtmocks"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/crediterra/go-interest"
 	"github.com/strongo/app"
@@ -110,47 +111,47 @@ func TestCreateTransfer(t *testing.T) {
 			return
 		}
 
-		if toCounterparty.ContactEntity == nil {
+		if toCounterparty.Data.ContactEntity == nil {
 			t.Error("toCounterparty.ContactEntity == nil")
 			return
 		}
-		if fromUser.AppUserEntity == nil {
+		if fromUser.Data == nil {
 			t.Error("fromUser.AppUserEntity == nil")
 			return
 		}
-		if transfer.CreatorUserID != userID {
-			t.Errorf("transfer.CreatorUserID:%v != userID:%v", transfer.CreatorUserID, userID)
+		if transfer.Data.CreatorUserID != userID {
+			t.Errorf("transfer.CreatorUserID:%v != userID:%v", transfer.Data.CreatorUserID, userID)
 		}
-		if transfer.Counterparty().ContactID != to.ContactID {
-			t.Errorf("transfer.Contact().ContactID:%v != to.ContactID:%v", transfer.Counterparty().ContactID, to.ContactID)
+		if transfer.Data.Counterparty().ContactID != to.ContactID {
+			t.Errorf("transfer.Contact().ContactID:%v != to.ContactID:%v", transfer.Data.Counterparty().ContactID, to.ContactID)
 		}
-		if transfer.Counterparty().ContactName == "" {
+		if transfer.Data.Counterparty().ContactName == "" {
 			t.Error("transfer.Contact().ContactName is empty string")
 		}
 
-		transfer2, err := Transfers.GetTransferByID(c, transfer.ID)
+		transfer2, err := Transfers.GetTransferByID(c, tx, transfer.ID)
 		if err != nil {
-			t.Error(errors.Wrapf(err, "Failed to get transfer by id=%v", transfer.ID))
+			t.Error(fmt.Errorf("failed to get transfer by id=%v: %w", transfer.ID, err))
 			return
 		}
-		if transfer.TransferEntity == nil {
+		if transfer.Data == nil {
 			t.Error("transfer == nil")
 			return
 		}
-		if len(transfer2.BothUserIDs) != 2 {
-			t.Errorf("len(transfer2.BothUserIDs):%v != 2", len(transfer2.BothUserIDs))
+		if len(transfer2.Data.BothUserIDs) != 2 {
+			t.Errorf("len(transfer2.BothUserIDs):%v != 2", len(transfer2.Data.BothUserIDs))
 			return
 		}
-		if fromUser.ID != 0 && fromUser.AppUserEntity == nil {
+		if fromUser.ID != 0 && fromUser.Data == nil {
 			t.Error("fromUser.ID != 0 && fromUser.AppUserEntity == nil")
 		}
-		if toUser.ID != 0 && toUser.AppUserEntity == nil {
+		if toUser.ID != 0 && toUser.Data == nil {
 			t.Error("toUser.ID != 0 && toUser.AppUserEntity == nil")
 		}
-		if toCounterparty.ID != 0 && toCounterparty.ContactEntity == nil {
+		if toCounterparty.ID != 0 && toCounterparty.Data == nil {
 			t.Error("fromCounterparty.ContactEntity == nil")
 		}
-		if fromCounterparty.ID != 0 && fromCounterparty.ContactEntity == nil {
+		if fromCounterparty.ID != 0 && fromCounterparty.Data == nil {
 			t.Error("fromCounterparty.ID != 0 && fromCounterparty.ContactEntity == nil")
 		}
 	}
@@ -164,11 +165,11 @@ func Test_removeClosedTransfersFromOutstandingWithInterest(t *testing.T) {
 		{TransferID: 4},
 		{TransferID: 5},
 	}
-	transfersWithInterest = removeClosedTransfersFromOutstandingWithInterest(transfersWithInterest, []int64{2, 3})
+	transfersWithInterest = removeClosedTransfersFromOutstandingWithInterest(transfersWithInterest, []int{2, 3})
 	if len(transfersWithInterest) != 3 {
 		t.Fatalf("len(transfersWithInterest) != 3: %v", transfersWithInterest)
 	}
-	for i, transferID := range []int64{1, 4, 5} {
+	for i, transferID := range []int{1, 4, 5} {
 		if transfersWithInterest[i].TransferID != transferID {
 			t.Fatalf("transfersWithInterest[%v].TransferID: %v != %v", i, transfersWithInterest[i].TransferID, transferID)
 		}

@@ -1,6 +1,8 @@
 package website
 
 import (
+	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	"net/http"
 	"strconv"
 	"strings"
@@ -10,7 +12,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"context"
-	"errors"
 	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
@@ -55,7 +56,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	if _user, err := facade.User.GetUserByID(c, userID); err != nil {
+	if _user, err := facade.User.GetUserByID(c, tx, userID); err != nil {
 		if dal.IsNotFound(err) {
 			w.WriteHeader(http.StatusNotFound)
 			log.Infof(c, err.Error())
@@ -65,7 +66,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		}
 		return
 	} else {
-		if _user.EmailAddress != "" {
+		if _user.Data.EmailAddress != "" {
 			log.Infof(c, "_user.EmailAddress: %v", _user.EmailAddress)
 		} else {
 			gaeUser := user.Current(c)
@@ -77,14 +78,14 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 				} else {
 					log.Infof(c, "gaeUser.Email: %v", gaeUser.Email)
 					err = dtdal.DB.RunInTransaction(c, func(tc context.Context) error {
-						u, err := facade.User.GetUserByID(tc, userID)
+						u, err := facade.User.GetUserByID(tc, tx, userID)
 						if err != nil {
-							return errors.Wrap(err, "Failed to load user")
+							return err
 						}
-						if u.EmailAddress == "" {
-							u.SetEmail(gaeUser.Email, true)
-							if err = facade.User.SaveUser(c, u); err != nil {
-								err = errors.Wrap(err, "Failed to save user")
+						if u.Data.EmailAddress == "" {
+							u.Data.SetEmail(gaeUser.Email, true)
+							if err = facade.User.SaveUser(c, tx, u); err != nil {
+								return fmt.Errorf("failed to save user: %w", err)
 							}
 						}
 						return err

@@ -3,7 +3,8 @@ package api
 import (
 	"fmt"
 	strongo "github.com/strongo/app"
-	"io/ioutil"
+	"github.com/strongo/db"
+	"io"
 	"net/http"
 	"strings"
 
@@ -13,7 +14,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
 	"github.com/strongo/log"
 )
 
@@ -41,7 +41,7 @@ func AuthOnlyWithUser(handler AuthHandlerWithUser) strongo.ContextHandler {
 			return
 		}
 
-		user, err := facade.User.GetUserByID(c, userID)
+		user, err := facade.User.GetUserByID(c, nil, userID)
 
 		if hasError(c, w, err, models.AppUserKind, userID, http.StatusInternalServerError) {
 			return
@@ -134,8 +134,8 @@ func handleAuthLoginId(c context.Context, w http.ResponseWriter, r *http.Request
 	}
 
 	var rBody []byte
-	if rBody, err = ioutil.ReadAll(r.Body); err != nil {
-		BadRequestError(c, w, errors.Wrap(err, "Failed to read request body"))
+	if rBody, err = io.ReadAll(r.Body); err != nil {
+		BadRequestError(c, w, fmt.Errorf("failed to read request body: %w", err))
 		return
 	}
 	gaClientID := string(rBody)

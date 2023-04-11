@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	"net/http"
 	"strconv"
 	"time"
@@ -40,7 +41,7 @@ func signInFbUser(c context.Context, fbAppID, fbUserID string, r *http.Request, 
 	// Create FB API Session
 	{
 		if signedRequest != "" && accessToken != "" {
-			err = errors.WithMessage(ErrBadRequest, "Parameters access_token & signed_request should not be passed together")
+			err = fmt.Errorf("%w: Parameters access_token & signed_request should not be passed together", ErrBadRequest)
 			return
 		} else if accessToken != "" {
 			_, fbSession, err = fbmbots.FbAppAndSessionFromAccessToken(c, r, accessToken)
@@ -59,7 +60,7 @@ func signInFbUser(c context.Context, fbAppID, fbUserID string, r *http.Request, 
 				if fbUserID == "" {
 					fbUserID = psID
 				} else if fbUserID != psID {
-					err = errors.WithMessage(ErrBadRequest, "fbUserID != psID")
+					err = fmt.Errorf("%w: fbUserID != psID", ErrBadRequest)
 					return
 				}
 				var (
@@ -82,20 +83,20 @@ func signInFbUser(c context.Context, fbAppID, fbUserID string, r *http.Request, 
 				return
 			}
 		} else {
-			err = errors.WithMessage(ErrBadRequest, "Either access_token or signed_request should be passed")
+			err = fmt.Errorf("%w: Either access_token or signed_request should be passed", ErrBadRequest)
 			return
 		}
 		if err != nil {
-			err = errors.WithMessage(ErrUnauthorized, err.Error())
+			err = fmt.Errorf("%w: %w", ErrUnauthorized, err.Error())
 			return
 		}
 	}
 
 	if userFacebook, err = dtdal.UserFacebook.GetFbUserByFbID(c, fbAppID, fbUserID); err != nil && !dal.IsNotFound(err) {
-		err = errors.WithMessage(err, "Failed to get UserFacebook record by ID")
+		err = fmt.Errorf("%w: Failed to get UserFacebook record by ID", err)
 		return
 	} else if !dal.IsNotFound(err) && fbUserID != "" && fbUserID != userFacebook.FbUserOrPageScopeID {
-		err = errors.WithMessage(ErrUnauthorized, fmt.Sprintf("fbUserID:%v != userFacebook.ID:%v", fbUserID, userFacebook.FbUserOrPageScopeID))
+		err = fmt.Errorf("%w: fbUserID:%v != userFacebook.ID:%v", ErrUnauthorized, fbUserID, userFacebook.FbUserOrPageScopeID)
 		return
 	}
 
@@ -111,7 +112,7 @@ func signInFbUser(c context.Context, fbAppID, fbUserID string, r *http.Request, 
 		return
 	} else if user.ID == 0 {
 		panic("userID == 0")
-	} else if user.AppUserEntity == nil {
+	} else if user.Data == nil {
 		panic("user.AppUserEntity == nil")
 	}
 
@@ -138,7 +139,7 @@ func getFbUserInfo(c context.Context, fbSession *fb.Session, isFbm bool, fbUserI
 	})
 
 	if err != nil {
-		err = errors.WithMessage(err, "Failed to call Facebook API")
+		err = fmt.Errorf("%w: Failed to call Facebook API", err)
 		return
 	}
 

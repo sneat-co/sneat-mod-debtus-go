@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sync"
 
@@ -11,7 +12,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"context"
-	"errors"
 	"github.com/strongo/log"
 )
 
@@ -29,22 +29,22 @@ func handleAdminLatestUsers(c context.Context, w http.ResponseWriter, r *http.Re
 	for i, user := range users {
 		records[i] = &dto.Record{
 			Id:                     user.ID,
-			Name:                   user.FullName(),
-			Transfers:              user.CountOfTransfers,
-			CountOfReceiptsCreated: user.CountOfReceiptsCreated,
-			TelegramUserIDs:        user.GetTelegramUserIDs(),
+			Name:                   user.Data.FullName(),
+			Transfers:              user.Data.CountOfTransfers,
+			CountOfReceiptsCreated: user.Data.CountOfReceiptsCreated,
+			TelegramUserIDs:        user.Data.GetTelegramUserIDs(),
 		}
-		if user.BalanceJson != "" {
-			balance := json.RawMessage(user.BalanceJson)
+		if user.Data.BalanceJson != "" {
+			balance := json.RawMessage(user.Data.BalanceJson)
 			records[i].Balance = &balance
 		}
-		userCounterpartiesIDs := user.ContactIDs()
+		userCounterpartiesIDs := user.Data.ContactIDs()
 		if len(userCounterpartiesIDs) > 0 {
 			wg.Add(1)
 			go func(i int, userCounterpartiesIDs []int64) {
 				counterparties, err := facade.GetContactsByIDs(c, userCounterpartiesIDs)
 				if err != nil {
-					log.Errorf(c, errors.Wrapf(err, "Failed to get counterparties by ids=%v", userCounterpartiesIDs).Error())
+					log.Errorf(c, fmt.Errorf("failed to get counterparties by ids=%+v: %w", userCounterpartiesIDs, err).Error())
 					wg.Done()
 					return
 				}
@@ -52,11 +52,11 @@ func handleAdminLatestUsers(c context.Context, w http.ResponseWriter, r *http.Re
 				for j, counterparty := range counterparties {
 					counterpartyDto := dto.CounterpartyDto{
 						Id:     userCounterpartiesIDs[j],
-						UserID: counterparty.CounterpartyUserID,
-						Name:   counterparty.FullName(),
+						UserID: counterparty.Data.CounterpartyUserID,
+						Name:   counterparty.Data.FullName(),
 					}
-					if counterparty.BalanceJson != "" {
-						balance := json.RawMessage(counterparty.BalanceJson)
+					if counterparty.Data.BalanceJson != "" {
+						balance := json.RawMessage(counterparty.Data.BalanceJson)
 						counterpartyDto.Balance = &balance
 					}
 					record.Counterparties = append(record.Counterparties, counterpartyDto)
@@ -65,12 +65,12 @@ func handleAdminLatestUsers(c context.Context, w http.ResponseWriter, r *http.Re
 				wg.Done()
 			}(i, userCounterpartiesIDs)
 		}
-		if user.InvitedByUserID != 0 {
+		if user.Data.InvitedByUserID != 0 {
 			wg.Add(1)
 			go func(i int, userID int64) {
-				inviter, err := facade.User.GetUserByID(c, userID)
+				inviter, err := facade.User.GetUserByID(c, tx, userID)
 				if err != nil {
-					log.Errorf(c, errors.Wrapf(err, "Failed to get user by id=%v", userID).Error())
+					log.Errorf(c, fmt.Errorf("failed to get user by id=%v: %w", userID, err).Error())
 					return
 				}
 				records[i].InvitedByUser = &struct {
@@ -78,11 +78,11 @@ func handleAdminLatestUsers(c context.Context, w http.ResponseWriter, r *http.Re
 					Name string
 				}{
 					userID,
-					inviter.FullName(),
+					inviter.Data.FullName(),
 				}
 				log.Debugf(c, "User goroutine completed.")
 				wg.Done()
-			}(i, user.InvitedByUserID)
+			}(i, user.Data.InvitedByUserID)
 		}
 	}
 

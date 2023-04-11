@@ -132,7 +132,7 @@ func (uf userFacade) GetOrCreateEmailUser(
 
 	if err = dtdal.DB.RunInTransaction(c, func(tc context.Context) error {
 		if err = User.SaveUser(tc, appUser); err != nil {
-			return errors.Wrap(err, "Failed to save new appUser to datastore")
+			return fmt.Errorf("failed to save new appUser to datastore: %w", err)
 		}
 		userEmail.DtCreated = now
 

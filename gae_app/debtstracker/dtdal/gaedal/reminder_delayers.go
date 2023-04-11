@@ -1,6 +1,7 @@
 package gaedal
 
 import (
+	"fmt"
 	"net/url"
 	"strconv"
 	"time"
@@ -31,7 +32,7 @@ func (ReminderDalGae) DelaySetReminderIsSent(c context.Context, reminderID int64
 		return err
 	}
 	if err := gae.CallDelayFunc(c, common.QUEUE_REMINDERS, "set-reminder-is-sent", delayedSetReminderIsSent, reminderID, sentAt, messageIntID, messageStrID, locale, errDetails); err != nil {
-		return errors.Wrap(err, "Failed to delay execution of setReminderIsSent")
+		return fmt.Errorf("failed to delay execution of setReminderIsSent: %w", err)
 	}
 	return nil
 }
@@ -57,7 +58,7 @@ func QueueSendReminder(c context.Context, reminderID int64, dueIn time.Duration)
 			task.Delay = dueIn + (3 * time.Second)
 		}
 		if _, err := gae.AddTaskToQueue(c, task, common.QUEUE_REMINDERS); err != nil {
-			return errors.Wrapf(err, "Failed to add task(name='%v', delay=%v) to '%v' queue", task.Name, task.Delay, common.QUEUE_REMINDERS)
+			return fmt.Errorf("failed to add task(name='%v', delay=%v) to '%v' queue: %w", task.Name, task.Delay, common.QUEUE_REMINDERS, err)
 		}
 	}
 	return nil

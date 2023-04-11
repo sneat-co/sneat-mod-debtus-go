@@ -114,7 +114,7 @@ var ErrUnknownHost = errors.New("Unknown host")
 //		}
 //	}
 //
-//	return nil, "", errors.WithMessage(ErrUnknownHost, r.Host)
+//	return nil, "", fmt.Errorf(ErrUnknownHost, r.Host)
 //}
 
 //func getFbAppAndSession(c context.Context, r *http.Request, getSession func(fbApp *fb.App) (*fb.Session, error)) (

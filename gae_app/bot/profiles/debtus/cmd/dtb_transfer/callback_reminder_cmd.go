@@ -2,6 +2,9 @@ package dtb_transfer
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
@@ -47,7 +50,7 @@ var RemindAgainCallbackCommand = botsfw.NewCallbackCommand(dtb_common.CALLBACK_R
 				if remindInDays, err := strconv.Atoi(remindIn[0 : len(remindIn)-1]); err == nil {
 					remindIn = fmt.Sprintf("%vh", remindInDays*24)
 				} else {
-					log.Errorf(whc.Context(), errors.Wrap(err, "Failed to parse duration days").Error())
+					log.Errorf(whc.Context(), fmt.Errorf("failed to parse duration days: %w", err).Error())
 				}
 			}
 			if remindInDuration, err = time.ParseDuration(remindIn); err != nil {
@@ -77,8 +80,8 @@ func rescheduleReminder(whc botsfw.WebhookContext, reminderID int64, remindInDur
 		return m, err
 	}
 	var transfer models.Transfer
-	if transfer, err = facade.Transfers.GetTransferByID(c, oldReminder.TransferID); err != nil {
-		return m, errors.Wrap(err, "Failed to get transferEntity by id")
+	if transfer, err = facade.Transfers.GetTransferByID(c, tx, oldReminder.TransferID); err != nil {
+		return m, fmt.Errorf("failed to get transferEntity by id: %w", err)
 	}
 	var messageText string
 	if remindInDuration == time.Duration(0) {

@@ -9,7 +9,7 @@ import (
 
 var ChosenInlineResultCommand = botsfw.Command{
 	Code:       "inline-create-invite",
-	InputTypes: []botsfw.WebhookInputType{bots.WebhookInputChosenInlineResult},
+	InputTypes: []botsfw.WebhookInputType{botsfw.WebhookInputChosenInlineResult},
 	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		chosenResult := whc.Input().(botsfw.WebhookChosenInlineResult)

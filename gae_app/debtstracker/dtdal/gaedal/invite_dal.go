@@ -2,6 +2,9 @@ package gaedal
 
 import (
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
+	"github.com/strongo/db"
 	"strconv"
 	"strings"
 	"time"
@@ -11,7 +14,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
 	"context"
-	"errors"
 	"github.com/strongo/app"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
@@ -61,7 +63,7 @@ func (InviteDalGae) ClaimInvite(c context.Context, userID int64, inviteCode, cla
 			entitiesToPut := []interface{}{inviteClaim, user}
 
 			if keysToPut, err := gaedb.PutMulti(tc, keysToPut, entitiesToPut); err != nil {
-				return errors.Wrapf(err, "Failed to save %v entities (%v)", len(entitiesToPut), keysToPut)
+				return fmt.Errorf("failed to save %v entities (%v): %w", len(entitiesToPut), keysToPut, err)
 			}
 			log.Debugf(c, "inviteClaimKey.IntegerID(): %v, returned.IntegerID(): %v", inviteClaimKey.IntID(), keysToPut[0].IntID())
 			inviteClaimKey = keysToPut[0]
@@ -176,7 +178,7 @@ func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, inviteEnt
 		userKey := NewAppUserKey(tc, claimedByUserID)
 		var user models.AppUserEntity
 		if err = gaedb.GetMulti(tc, []*datastore.Key{inviteKey, userKey}, []interface{}{inviteEntity, &user}); err != nil {
-			return errors.WithMessage(err, fmt.Sprintf("Failed to get entities by keys (%v)", []*datastore.Key{inviteKey, userKey}))
+			return fmt.Errorf("failed to get entities by keys (%v): %w", []*datastore.Key{inviteKey, userKey}, err)
 		}
 
 		inviteEntity.ClaimedCount += 1
@@ -203,21 +205,21 @@ func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, inviteEnt
 			var counterparties []*models.ContactEntity
 			counterpartiesKeys, err := counterpartyQuery.Limit(1).GetAll(c, &counterparties) // Use out-of-transaction context
 			if err != nil {
-				return errors.Wrap(err, "Failed to load counterparty by CounterpartyUserID")
+				return fmt.Errorf("failed to load counterparty by CounterpartyUserID: %w", err)
 			}
 			if len(counterpartiesKeys) == 0 {
 				counterpartyKey := NewContactIncompleteKey(tc)
-				inviteCreator, err := facade.User.GetUserByID(c, inviteEntity.CreatedByUserID)
+				inviteCreator, err := facade.User.GetUserByID(c, tx, inviteEntity.CreatedByUserID)
 				if err != nil {
-					return errors.Wrap(err, "Failed to get invite creator user")
+					return fmt.Errorf("ailed to get invite creator user: %w", err)
 				}
 
 				counterparty := models.NewContactEntity(claimedByUserID, models.ContactDetails{
-					FirstName:    inviteCreator.FirstName,
-					LastName:     inviteCreator.LastName,
-					Username:     inviteCreator.Username,
-					EmailContact: inviteCreator.EmailContact,
-					PhoneContact: inviteCreator.PhoneContact,
+					FirstName:    inviteCreator.Data.FirstName,
+					LastName:     inviteCreator.Data.LastName,
+					Username:     inviteCreator.Data.Username,
+					EmailContact: inviteCreator.Data.EmailContact,
+					PhoneContact: inviteCreator.Data.PhoneContact,
 				})
 
 				keys = append(keys, counterpartyKey)
@@ -232,7 +234,6 @@ func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, inviteEnt
 
 		keys, err = gaedb.PutMulti(tc, keys, entities)
 		if err != nil {
-			err = errors.Wrapf(err, "Failed to put %v entities", len(keys))
 			return err
 		}
 		inviteClaimKey = keys[0]
@@ -242,7 +243,15 @@ func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, inviteEnt
 	if err != nil {
 		return
 	}
-	invite = models.Invite{ID: inviteClaimKey.StringID(), InviteEntity: inviteEntity}
+	invite.ID = inviteClaimKey.StringID()
+	key := dal.NewKeyWithID(models.InviteKind, invite.ID)
+	invite = models.Invite{
+		WithID: record.WithID[string]{
+			ID:     invite.ID,
+			Record: dal.NewRecordWithData(key, inviteEntity),
+		},
+		InviteEntity: inviteEntity,
+	}
 	return
 }
 

@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"context"
-	"errors"
 	"fmt"
 	"github.com/captaincodeman/datastore-mapper"
 	"github.com/strongo/log"
@@ -91,7 +90,7 @@ func filterByIntID(c context.Context, q *mapper.Query, kind, paramVal string) (q
 	}
 	var id int64
 	if id, err = strconv.ParseInt(paramVal, 10, 64); err != nil {
-		err = errors.WithMessage(err, "failed to filter by ID")
+		err = fmt.Errorf("%w: failed to filter by ID", err)
 		return
 	}
 	query = query.Filter("__key__ =", datastore.NewKey(c, kind, "", id, nil))

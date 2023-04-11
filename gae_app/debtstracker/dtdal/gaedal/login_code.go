@@ -1,6 +1,7 @@
 package gaedal
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -40,24 +41,24 @@ func (LoginCodeDalGae) NewLoginCode(c context.Context, userID int64) (int32, err
 						UserID:  userID,
 					}
 					if _, err = gaedb.Put(c, key, &entity); err != nil {
-						log.Errorf(c, errors.Wrapf(err, "Failed to save %v", key).Error())
+						log.Errorf(c, fmt.Errorf("failed to save %v: %w", key, err).Error())
 					}
 					created = true
 					return nil
 				} else if err != nil {
-					return errors.Wrap(err, "Failed to get entity within transaction")
+					return fmt.Errorf("failed to get entity within transaction: %w", err)
 				} else {
 					log.Warningf(c, "This logic code already creted outside of the current transaction")
 					return nil
 				}
 			}, nil)
 			if err != nil {
-				log.Errorf(c, errors.WithMessage(err, "transaction failed").Error())
+				log.Errorf(c, fmt.Errorf("%w: transaction failed", err).Error())
 			} else if created {
 				return int32(code), nil
 			}
 		} else if err != nil {
-			log.Errorf(c, errors.Wrap(err, "Failed to get entity").Error())
+			log.Errorf(c, fmt.Errorf("failed to get entity: %w", err).Error())
 		}
 	}
 	return 0, errors.New("Failed to create new loginc code")
@@ -71,7 +72,7 @@ func (LoginCodeDalGae) ClaimLoginCode(c context.Context, code int32) (userID int
 			if err == datastore.ErrNoSuchEntity {
 				return err
 			} else {
-				return errors.Wrapf(err, "Failed to get %v", key)
+				return fmt.Errorf("failed to get %v: %w", key, err)
 			}
 		}
 		if entity.Created.Add(time.Minute).Before(time.Now()) {
@@ -83,7 +84,7 @@ func (LoginCodeDalGae) ClaimLoginCode(c context.Context, code int32) (userID int
 		}
 		entity.Claimed = time.Now()
 		if _, err := gaedb.Put(c, key, &entity); err != nil {
-			return errors.Wrapf(err, "Failed to save %v", key)
+			return fmt.Errorf("failed to save %v: %w", key, err)
 		}
 		userID = entity.UserID
 		return nil

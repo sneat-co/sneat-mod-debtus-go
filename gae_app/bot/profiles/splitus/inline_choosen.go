@@ -7,8 +7,12 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
+	"fmt"
 	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 	"net/url"
@@ -18,7 +22,7 @@ import (
 
 var chosenInlineResultCommand = botsfw.Command{
 	Code:       "chosen-inline-result-command",
-	InputTypes: []botsfw.WebhookInputType{bots.WebhookInputChosenInlineResult},
+	InputTypes: []botsfw.WebhookInputType{botsfw.WebhookInputChosenInlineResult},
 	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		log.Debugf(whc.Context(), "splitus.chosenInlineResultHandler.Action()")
 		chosenResult := whc.Input().(botsfw.WebhookChosenInlineResult)
@@ -74,7 +78,7 @@ func createBillFromInlineChosenResult(whc botsfw.WebhookContext, chosenResult bo
 			return
 		}
 		bill := models.Bill{
-			BillEntity: &models.BillEntity{
+			Data: &models.BillEntity{
 				BillCommon: models.BillCommon{
 
 					TgInlineMessageIDs: []string{chosenResult.GetInlineMessageID()},
@@ -117,14 +121,19 @@ func createBillFromInlineChosenResult(whc botsfw.WebhookContext, chosenResult bo
 				panic(r)
 			}
 		}()
-		err = dtdal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
-			if bill, err = facade.Bill.CreateBill(c, tc, bill.BillEntity); err != nil {
+
+		var db dal.Database
+		if db, err = facade.GetDatabase(c); err != nil {
+			return
+		}
+		err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) (err error) {
+			if bill, err = facade.Bill.CreateBill(c, tc, bill.Data); err != nil {
 				return
 			}
 			return
-		}, dtdal.SingleGroupTransaction)
+		})
 		if err != nil {
-			err = errors.WithMessage(err, "Failed to call facade.Bill.CreateBill()")
+			err = fmt.Errorf("failed to call facade.Bill.CreateBill(): %w", err)
 			return
 		}
 		log.Infof(c, "createBillFromInlineChosenResult() => Bill created")
@@ -221,14 +230,19 @@ var EditedBillCardHookCommand = botsfw.Command{ // TODO: seems to be not used an
 		}
 
 		changed := false
-		err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
+
+		var db dal.Database
+		if db, err = facade.GetDatabase(c); err != nil {
+			return
+		}
+		err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) (err error) {
 			var bill models.Bill
-			if bill, err = facade.GetBillByID(c, billID); err != nil {
+			if bill, err = facade.GetBillByID(c, tx, billID); err != nil {
 				return err
 			}
 
-			if groupID != "" && bill.GetUserGroupID() != groupID { // TODO: Should we check for empty bill.GetUserGroupID() or better fail?
-				if bill, _, err = facade.Bill.AssignBillToGroup(c, bill, groupID, whc.AppUserStrID()); err != nil {
+			if groupID != "" && bill.Data.GetUserGroupID() != groupID { // TODO: Should we check for empty bill.GetUserGroupID() or better fail?
+				if bill, _, err = facade.Bill.AssignBillToGroup(c, tx, bill, groupID, whc.AppUserStrID()); err != nil {
 					return err
 				}
 				changed = true
@@ -239,7 +253,7 @@ var EditedBillCardHookCommand = botsfw.Command{ // TODO: seems to be not used an
 			}
 
 			return err
-		}, dtdal.CrossGroupTransaction)
+		})
 		if err != nil {
 			return
 		}

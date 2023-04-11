@@ -64,7 +64,7 @@ func updateUserWithBill(c context.Context, billID, userID string) (err error) {
 		}
 		wg.Wait()
 		if billErr != nil {
-			return errors.WithMessage(billErr, "failed to get bill")
+			return fmt.Errorf("%w: failed to get bill", billErr)
 		} else if bill.BillEntity == nil {
 			return errors.New("bill.BillEntity == nil")
 		}

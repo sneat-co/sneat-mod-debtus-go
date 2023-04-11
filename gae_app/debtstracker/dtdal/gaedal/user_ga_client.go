@@ -1,12 +1,12 @@
 package gaedal
 
 import (
+	"fmt"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
 	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
 )
@@ -24,14 +24,14 @@ func (UserGaClientDalGae) SaveGaClient(c context.Context, gaClientId, userAgent,
 		key := gaedb.NewKey(c, models.GaClientKind, gaClientId, 0, nil)
 		err := gaedb.Get(c, key, &entity)
 		if err != nil && err != datastore.ErrNoSuchEntity {
-			return errors.Wrap(err, "Failed to get UserGaClient by ID")
+			return fmt.Errorf("failed to get UserGaClient by ID: %w", err)
 		}
 		if entity.UserAgent != userAgent || entity.IpAddress != ipAddress {
 			entity.UserAgent = userAgent
 			entity.IpAddress = ipAddress
 			entity.Created = time.Now()
 			if _, err = gaedb.Put(c, key, entity); err != nil {
-				err = errors.Wrap(err, "Failed to save UserGaClient")
+				err = fmt.Errorf("failed to save UserGaClient: %w", err)
 				return err
 			}
 		}

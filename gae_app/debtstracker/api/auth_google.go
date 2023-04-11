@@ -51,7 +51,7 @@ func handleSignedInWithGooglePlus(c context.Context, w http.ResponseWriter, r *h
 	//
 	//// TODO: https://developers.google.com/identity/sign-in/web/backend-auth - verify "aud" and check "sub" fields
 	//if resp, err := dtdal.HttpClient(c).Get("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + googleAuthData.IdToken); err != nil {
-	//	ErrorAsJson(c, w, http.StatusBadRequest, errors.WithMessage(err, "Failed to call googleapis"))
+	//	ErrorAsJson(c, w, http.StatusBadRequest, fmt.Errorf("%w: Failed to call googleapis", err))
 	//	return
 	//} else if resp.StatusCode != 200 {
 	//	defer resp.Body.Close()

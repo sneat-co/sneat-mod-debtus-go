@@ -3,12 +3,12 @@ package gaedal
 import (
 	"fmt"
 	"github.com/crediterra/money"
+	"github.com/strongo/db"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/datastore"
@@ -38,23 +38,23 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 			group                     models.Group
 			groupDebtor, groupSponsor models.GroupMemberJson
 		)
-		if group, err = dtdal.Group.GetGroupByID(c, groupID); err != nil {
+		if group, err = dtdal.Group.GetGroupByID(c, tx, groupID); err != nil {
 			return
 		}
 
 		billsSettlement := models.BillsHistory{
-			BillsHistoryEntity: &models.BillsHistoryEntity{
+			Data: &models.BillsHistoryEntity{
 				Action:                 models.BillHistoryActionSettled,
 				Currency:               currency,
-				GroupMembersJsonBefore: group.MembersJson,
+				GroupMembersJsonBefore: group.Data.MembersJson,
 			},
 		}
 
-		if groupDebtor, err = group.GetGroupMemberByID(debtorID); err != nil {
-			return errors.WithMessage(err, "unknown debtor ID="+debtorID)
+		if groupDebtor, err = group.Data.GetGroupMemberByID(debtorID); err != nil {
+			return fmt.Errorf("unknown debtorID=%s: %w", debtorID, err)
 		}
-		if groupSponsor, err = group.GetGroupMemberByID(sponsorID); err != nil {
-			return errors.WithMessage(err, "Unknown sponsor ID="+sponsorID)
+		if groupSponsor, err = group.Data.GetGroupMemberByID(sponsorID); err != nil {
+			return fmt.Errorf("unknown sponsorID=%s: %w", sponsorID, err)
 		}
 
 		if v, ok := groupDebtor.Balance[currency]; !ok {
@@ -84,7 +84,7 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 			if bill, err = facade.GetBillByID(c, k.StringID()); err != nil {
 				return
 			}
-			billMembers := bill.GetBillMembers()
+			billMembers := bill.Data.GetBillMembers()
 			var debtor, sponsor *models.BillMemberJson
 			var debtorInvertedBalance, diff decimal.Decimal64p2
 			for i := range billMembers {
@@ -128,7 +128,7 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 
 			log.Debugf(c, "diff: %v", diff)
 			amount -= diff
-			billsSettlement.TotalAmountDiff += diff
+			billsSettlement.Data.TotalAmountDiff += diff
 
 			debtor.Paid += diff
 			sponsor.Paid -= diff
@@ -142,7 +142,7 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 				delete(groupSponsor.Balance, currency)
 			}
 
-			if err = bill.SetBillMembers(billMembers); err != nil {
+			if err = bill.Data.SetBillMembers(billMembers); err != nil {
 				return
 			}
 
@@ -162,18 +162,18 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 		}
 
 		if len(billsToSave) > 0 {
-			billsSettlement.SetBillSettlements(groupID, settlementBills)
+			billsSettlement.Data.SetBillSettlements(groupID, settlementBills)
 			if err = dtdal.InsertWithRandomStringID(c, &billsSettlement, 6); err != nil {
 				return
 			}
 			toSave := make([]db.EntityHolder, len(billsToSave)+1)
 			toSave[0] = &group
 			for i, bill := range billsToSave {
-				bill.SettlementIDs = append(bill.SettlementIDs, billsSettlement.ID)
+				bill.Data.SettlementIDs = append(bill.Data.SettlementIDs, billsSettlement.ID)
 				toSave[i+1] = &bill
 			}
 
-			groupMembers := group.GetGroupMembers()
+			groupMembers := group.Data.GetGroupMembers()
 			for i, m := range groupMembers {
 				switch m.ID {
 				case debtorID:
@@ -182,13 +182,13 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 					groupMembers[i] = groupSponsor
 				}
 			}
-			if changed := group.SetGroupMembers(groupMembers); !changed {
+			if changed := group.Data.SetGroupMembers(groupMembers); !changed {
 				panic("Group members not changed - something wrong")
 			}
 			if err = dtdal.DB.UpdateMulti(c, toSave); err != nil {
 				return
 			}
-			billsSettlement.GroupMembersJsonAfter = group.MembersJson
+			billsSettlement.Data.GroupMembersJsonAfter = group.Data.MembersJson
 			if err = dtdal.DB.Update(c, &billsSettlement); err != nil {
 				return
 			}

@@ -3,7 +3,8 @@ package gaedal
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
+	"fmt"
+	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
 )
@@ -46,7 +47,7 @@ func get(c context.Context, key *datastore.Key, entityHolder db.EntityHolder) (e
 				err = db.ErrRecordNotFound
 			}
 		} else {
-			err = errors.Wrapf(err, "failed to get entity by key=%v", key)
+			err = fmt.Errorf("failed to get entity by key=%v: %w", key, err)
 		}
 	}
 	return

@@ -84,7 +84,7 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 		if member.ContactID != "" {
 			contactID, err := strconv.ParseInt(member.ContactID, 10, 64)
 			if err != nil {
-				BadRequestError(c, w, errors.WithMessage(err, "ContactID is not an integer"))
+				BadRequestError(c, w, fmt.Errorf("%w: ContactID is not an integer", err))
 				return
 			}
 			contactIDs = append(contactIDs, contactID)
@@ -92,7 +92,7 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 		if member.UserID != "" {
 			memberUserID, err := strconv.ParseInt(member.UserID, 10, 64)
 			if err != nil {
-				BadRequestError(c, w, errors.WithMessage(err, "memberUserID is not an integer"))
+				BadRequestError(c, w, fmt.Errorf("%w: memberUserID is not an integer", err))
 				return
 			}
 			memberUserIDs = append(memberUserIDs, memberUserID)

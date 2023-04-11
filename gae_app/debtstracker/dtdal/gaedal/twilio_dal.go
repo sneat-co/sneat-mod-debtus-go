@@ -4,7 +4,8 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
+	"fmt"
+	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/decimal"
 	"github.com/strongo/gotwilio"
@@ -105,7 +106,7 @@ func (TwilioDalGae) SaveTwilioSms(
 		}
 		return nil
 	}, dtdal.CrossGroupTransaction); err != nil {
-		err = errors.Wrap(err, "Failed to save Twilio response to DB")
+		err = fmt.Errorf("failed to save Twilio response to DB: %w", err)
 		return
 	}
 	twilioSms = models.TwilioSms{StringID: db.StringID{ID: smsResponse.Sid}, TwilioSmsEntity: &twilioSmsEntity}

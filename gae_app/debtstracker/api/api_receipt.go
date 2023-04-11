@@ -2,6 +2,9 @@ package api
 
 import (
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/db"
 	"net/http"
 	"strconv"
 	"strings"
@@ -26,14 +29,14 @@ import (
 )
 
 func NewReceiptTransferDto(c context.Context, transfer models.Transfer) dto.ApiReceiptTransferDto {
-	creator := transfer.Creator()
+	creator := transfer.Data.Creator()
 	transferDto := dto.ApiReceiptTransferDto{
-		ID:             strconv.FormatInt(transfer.ID, 10),
-		From:           dto.NewContactDto(*transfer.From()),
-		To:             dto.NewContactDto(*transfer.To()),
-		Amount:         transfer.GetAmount(),
-		IsOutstanding:  transfer.IsOutstanding,
-		DtCreated:      transfer.DtCreated,
+		ID:             strconv.Itoa(transfer.ID),
+		From:           dto.NewContactDto(*transfer.Data.From()),
+		To:             dto.NewContactDto(*transfer.Data.To()),
+		Amount:         transfer.Data.GetAmount(),
+		IsOutstanding:  transfer.Data.IsOutstanding,
+		DtCreated:      transfer.Data.DtCreated,
 		CreatorComment: creator.Comment,
 		Creator: dto.ApiUserDto{ // TODO: Rename field - it can be not a creator in case of bill created by 3d party (paid by not by bill creator)
 			ID:   strconv.FormatInt(creator.UserID, 10),
@@ -41,10 +44,10 @@ func NewReceiptTransferDto(c context.Context, transfer models.Transfer) dto.ApiR
 		},
 	}
 	// Set acknowledge info if presented
-	if !transfer.AcknowledgeTime.IsZero() {
+	if !transfer.Data.AcknowledgeTime.IsZero() {
 		transferDto.Acknowledge = &dto.ApiAcknowledgeDto{
-			Status:   transfer.AcknowledgeStatus,
-			UnixTime: transfer.AcknowledgeTime.Unix(),
+			Status:   transfer.Data.AcknowledgeStatus,
+			UnixTime: transfer.Data.AcknowledgeTime.Unix(),
 		}
 	}
 	if transferDto.From.Name == "" {
@@ -68,22 +71,22 @@ func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	transfer, err := facade.Transfers.GetTransferByID(c, receipt.TransferID)
-	if hasError(c, w, err, models.TransferKind, receipt.TransferID, http.StatusInternalServerError) {
+	transfer, err := facade.Transfers.GetTransferByID(c, receipt.Data.TransferID)
+	if hasError(c, w, err, models.TransferKind, receipt.Data.TransferID, http.StatusInternalServerError) {
 		return
 	}
 
-	if transfer, err = facade.CheckTransferCreatorNameAndFixIfNeeded(c, w, transfer); hasError(c, w, err, models.TransferKind, receipt.TransferID, http.StatusInternalServerError) {
+	if transfer, err = facade.CheckTransferCreatorNameAndFixIfNeeded(c, w, transfer); hasError(c, w, err, models.TransferKind, int64(receipt.Data.TransferID), http.StatusInternalServerError) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
 	}
 
-	sentTo := receipt.SentTo
-	if receipt.SentVia == "telegram" {
+	sentTo := receipt.Data.SentTo
+	if receipt.Data.SentVia == "telegram" {
 		lang := r.URL.Query().Get("lang")
 		if lang == "" {
-			lang = receipt.Lang
+			lang = receipt.Data.Lang
 		}
 		env := gaestandard.GetEnvironmentFromHost(r.Host)
 		if env == strongo.EnvUnknown {
@@ -93,19 +96,19 @@ func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request)
 		botSettings, err := tgbots.GetBotSettingsByLang(gaestandard.GetEnvironment(c), bot.ProfileDebtus, lang)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			log.Errorf(c, errors.Wrap(err, "Failed to get bot settings by lang").Error())
+			log.Errorf(c, fmt.Errorf("failed to get bot settings by lang: %w", err).Error())
 		}
 		sentTo = botSettings.Code
 	}
 
-	creator := transfer.Creator()
+	creator := transfer.Data.Creator()
 
 	log.Debugf(c, "transfer.Creator(): %v", creator)
 
 	receiptDto := dto.ApiReceiptDto{
 		ID:       strconv.FormatInt(receiptID, 10),
 		Code:     common.EncodeID(receiptID),
-		SentVia:  receipt.SentVia,
+		SentVia:  receipt.Data.SentVia,
 		SentTo:   sentTo,
 		Transfer: NewReceiptTransferDto(c, transfer),
 	}
@@ -136,7 +139,7 @@ func handleSendReceipt(c context.Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	receiptID, err := strconv.ParseInt(r.FormValue("receipt"), 10, 64)
+	receiptID, err := strconv.Atoi(r.FormValue("receipt"))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Invalid receipt parameter: " + err.Error()))
@@ -180,25 +183,25 @@ func handleSendReceipt(c context.Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	transfer, err := facade.Transfers.GetTransferByID(c, receipt.TransferID)
+	transfer, err := facade.Transfers.GetTransferByID(c, tx, receipt.Data.TransferID)
 	if err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	}
 
-	if transfer.CreatorUserID != authInfo.UserID && transfer.Counterparty().UserID != authInfo.UserID {
+	if transfer.Data.CreatorUserID != authInfo.UserID && transfer.Data.Counterparty().UserID != authInfo.UserID {
 		ErrorAsJson(c, w, http.StatusUnauthorized, errors.New("This transfer does not belong to the current user"))
 		return
 	}
 
-	locale := strongo.GetLocaleByCode5(user.GetPreferredLocale()) // TODO: Get language from request
+	locale := strongo.GetLocaleByCode5(user.Data.GetPreferredLocale()) // TODO: Get language from request
 	translator := strongo.NewSingleMapTranslator(locale, common.TheAppContext.GetTranslator(c))
 	ec := strongo.NewExecutionContext(c, translator)
 
-	if _, err = invites.SendReceiptByEmail(ec, receipt, user.FullName(), transfer.Counterparty().ContactName, toAddress); err != nil {
+	if _, err = invites.SendReceiptByEmail(ec, receipt, user.Data.FullName(), transfer.Data.Counterparty().ContactName, toAddress); err != nil {
 		log.Errorf(c, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
-		err = errors.Wrap(err, "Failed to send receipt by email")
+		err = fmt.Errorf("failed to send receipt by email: %w", err)
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -216,32 +219,32 @@ func updateReceiptAndTransferOnSent(c context.Context, receiptID int64, channel,
 		if receipt, err = dtdal.Receipt.GetReceiptByID(c, receiptID); err != nil {
 			return err
 		}
-		if receipt.SentVia == RECEIPT_CHANNEL_DRAFT {
-			if transfer, err = facade.Transfers.GetTransferByID(c, receipt.TransferID); err != nil {
+		if receipt.Data.SentVia == RECEIPT_CHANNEL_DRAFT {
+			if transfer, err = facade.Transfers.GetTransferByID(c, tx, receipt.Data.TransferID); err != nil {
 				return err
 			}
-			receipt.DtSent = time.Now()
-			receipt.SentVia = channel
-			receipt.SentTo = sentTo
-			receipt.Lang = lang
-			transfer.ReceiptsSentCount += 1
+			receipt.Data.DtSent = time.Now()
+			receipt.Data.SentVia = channel
+			receipt.Data.SentTo = sentTo
+			receipt.Data.Lang = lang
+			transfer.Data.ReceiptsSentCount += 1
 			transferHasThisReceiptID := false
-			for _, rID := range transfer.ReceiptIDs {
+			for _, rID := range transfer.Data.ReceiptIDs {
 				if rID == receiptID {
 					transferHasThisReceiptID = true
 					break
 				}
 			}
 			if !transferHasThisReceiptID {
-				transfer.ReceiptIDs = append(transfer.ReceiptIDs, receiptID)
+				transfer.Data.ReceiptIDs = append(transfer.Data.ReceiptIDs, receiptID)
 			}
 			if err = dtdal.DB.UpdateMulti(c, []db.EntityHolder{&receipt, &transfer}); err != nil {
-				err = errors.Wrap(err, "Failed to save receipt & transfer")
+				err = fmt.Errorf("failed to save receipt & transfer: %w", err)
 			}
-		} else if receipt.SentVia == channel {
+		} else if receipt.Data.SentVia == channel {
 			log.Infof(c, "Receipt already has channel '%v'", channel)
 		} else {
-			log.Warningf(c, "An attempt to set receipt channel to '%v' when it's alreay '%v'", channel, receipt.SentVia)
+			log.Warningf(c, "An attempt to set receipt channel to '%v' when it's alreay '%v'", channel, receipt.Data.SentVia)
 		}
 
 		return err
@@ -259,7 +262,7 @@ func handleSetReceiptChannel(c context.Context, w http.ResponseWriter, r *http.R
 
 	receiptID, err := strconv.ParseInt(r.FormValue("receipt"), 10, 64)
 	if err != nil {
-		err = errors.Wrap(err, "Invalid receipt parameter")
+		err = fmt.Errorf("invalid receipt parameter: %w", err)
 		log.Debugf(c, err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
@@ -357,9 +360,9 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 		}
 		return
 	}
-	creatorUserID := transfer.CreatorUserID // TODO: Get from session?
+	creatorUserID := transfer.Data.CreatorUserID // TODO: Get from session?
 
-	lang := user.PreferredLanguage
+	lang := user.Data.PreferredLanguage
 	if lang == "" {
 		if acceptLanguage := r.Header.Get("Accept-Language"); acceptLanguage != "" {
 			for _, set1 := range strings.Split(acceptLanguage, ";") {
@@ -410,7 +413,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 	var messageToSend string
 
 	if channel == "telegram" {
-		tgBotID := transfer.Creator().TgBotID
+		tgBotID := transfer.Data.Creator().TgBotID
 		if tgBotID == "" {
 			if strings.Contains(r.URL.Host, "dev") {
 				tgBotID = "DebtsTrackerDev1Bot"
@@ -420,7 +423,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 		}
 		messageToSend = fmt.Sprintf("https://telegram.me/%v?start=send-receipt_%v", tgBotID, common.EncodeID(receiptID)) // TODO:
 	} else {
-		locale := strongo.GetLocaleByCode5(user.GetPreferredLocale())
+		locale := strongo.GetLocaleByCode5(user.Data.GetPreferredLocale())
 		translator := strongo.NewSingleMapTranslator(locale, common.TheAppContext.GetTranslator(c))
 		//ec := strongo.NewExecutionContext(c, translator)
 
@@ -434,7 +437,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 		messageToSend, err = common.TextTemplates.RenderTemplate(c, translator, trans.MESSENGER_RECEIPT_TEXT, templateParams) // TODO: Consider using just ExecutionContext instead of (c, translator)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			err = errors.Wrap(err, "Failed to render message template")
+			err = fmt.Errorf("failed to render message template: %w", err)
 			log.Errorf(c, err.Error())
 			w.Write([]byte(err.Error()))
 		}

@@ -47,7 +47,7 @@ type RewardDal interface {
 }
 
 type TransferDal interface {
-	GetTransfersByID(c context.Context, transferIDs []int64) ([]models.Transfer, error)
+	GetTransfersByID(c context.Context, tx dal.ReadTransaction, transferIDs []int) ([]models.Transfer, error)
 	LoadTransfersByUserID(c context.Context, userID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error)
 	LoadTransfersByContactID(c context.Context, contactID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error)
 	LoadTransferIDsByContactID(c context.Context, contactID int64, limit int, startCursor string) (transferIDs []int, endCursor string, err error)
@@ -63,7 +63,7 @@ type TransferDal interface {
 type ReceiptDal interface {
 	UpdateReceipt(c context.Context, receipt models.Receipt) error
 	GetReceiptByID(c context.Context, id int) (models.Receipt, error)
-	MarkReceiptAsSent(c context.Context, receiptID, transferID int64, sentTime time.Time) error
+	MarkReceiptAsSent(c context.Context, receiptID, transferID int, sentTime time.Time) error
 	CreateReceipt(c context.Context, receipt *models.ReceiptEntity) (id int64, err error)
 	DelayedMarkReceiptAsSent(c context.Context, receiptID, transferID int64, sentTime time.Time) error
 	DelayCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongo.Environment, transferID int, userID int64) error
@@ -75,9 +75,9 @@ type ReminderDal interface {
 	DelayDiscardReminders(c context.Context, transferIDs []int, returnTransferID int) error
 	DelayCreateReminderForTransferUser(c context.Context, transferID int, userID int64) error
 	SaveReminder(c context.Context, reminder models.Reminder) (err error)
-	GetReminderByID(c context.Context, id int64) (models.Reminder, error)
+	GetReminderByID(c context.Context, id int) (models.Reminder, error)
 	RescheduleReminder(c context.Context, reminderID int64, remindInDuration time.Duration) (oldReminder, newReminder models.Reminder, err error)
-	SetReminderStatus(c context.Context, reminderID, returnTransferID int64, status string, when time.Time) (reminder models.Reminder, err error)
+	SetReminderStatus(c context.Context, reminderID int64, returnTransferID int, status string, when time.Time) (reminder models.Reminder, err error)
 	DelaySetReminderIsSent(c context.Context, reminderID int64, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error
 	SetReminderIsSent(c context.Context, reminderID int64, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error
 	SetReminderIsSentInTransaction(c context.Context, reminder models.Reminder, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) (err error)

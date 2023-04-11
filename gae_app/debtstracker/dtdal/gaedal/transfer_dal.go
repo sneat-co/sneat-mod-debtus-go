@@ -272,7 +272,7 @@ func (transferDalGae TransferDalGae) loadTransfers(c context.Context, q *datasto
 		transferEntities []*models.TransferEntity
 	)
 	if transferKeys, err = q.GetAll(c, &transferEntities); err != nil {
-		err = errors.Wrap(err, "Failed to loadTransfers()")
+		err = fmt.Errorf("failed to loadTransfers(): %w", err)
 		return
 	}
 	log.Debugf(c, "loadTransfers(): %v", transferKeys)

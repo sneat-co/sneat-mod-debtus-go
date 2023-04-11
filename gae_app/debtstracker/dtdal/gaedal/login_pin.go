@@ -44,8 +44,8 @@ func (loginPinDalGae LoginPinDalGae) CreateLoginPin(c context.Context, channel, 
 		return 0, fmt.Errorf("Unknown channel: %v", channel)
 	}
 	if createdUserID != 0 {
-		if _, err := facade.User.GetUserByID(c, createdUserID); err != nil {
-			return 0, errors.Wrapf(err, "Unknown user ID: %d", createdUserID)
+		if _, err := facade.User.GetUserByID(c, tx, createdUserID); err != nil {
+			return 0, fmt.Errorf("unknown createdUserID=%d: %w", createdUserID, err)
 		}
 	}
 

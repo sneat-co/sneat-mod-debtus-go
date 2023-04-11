@@ -1,12 +1,14 @@
 package gaedal
 
 import (
+	"fmt"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/strongo/db"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
 	"github.com/strongo/bots-framework/hosts/appengine"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
@@ -17,11 +19,11 @@ func NewReminderIncompleteKey(c context.Context) *datastore.Key {
 	return datastore.NewIncompleteKey(c, models.ReminderKind, nil)
 }
 
-func NewReminderKey(c context.Context, reminderID int64) *datastore.Key {
+func NewReminderKey(reminderID int64) *dal.Key {
 	if reminderID == 0 {
 		panic("reminderID == 0")
 	}
-	return gaedb.NewKey(c, models.ReminderKind, "", reminderID, nil)
+	return dal.NewKeyWithID(models.ReminderKind, reminderID)
 }
 
 type ReminderDalGae struct {
@@ -33,19 +35,19 @@ func NewReminderDalGae() ReminderDalGae {
 
 var _ dtdal.ReminderDal = (*ReminderDalGae)(nil)
 
-func (reminderDalGae ReminderDalGae) GetReminderByID(c context.Context, id int64) (models.Reminder, error) {
+func (reminderDalGae ReminderDalGae) GetReminderByID(c context.Context, id int64) (reminder models.Reminder, err error) {
 	var reminderEntity models.ReminderEntity
-	err := gaedb.Get(c, NewReminderKey(c, id), &reminderEntity)
+	err = gaedb.Get(c, NewReminderKey(id), &reminderEntity)
 	if err == datastore.ErrNoSuchEntity {
 		err = db.NewErrNotFoundByIntID(models.ReminderKind, id, err)
 	} else if err != nil {
-		err = errors.Wrapf(err, "Failed to get reminder by id=%v", id)
+		return
 	}
 	return models.NewReminder(id, &reminderEntity), err
 }
 
 func (reminderDalGae ReminderDalGae) SaveReminder(c context.Context, reminder models.Reminder) (err error) {
-	_, err = gaedb.Put(c, NewReminderKey(c, reminder.ID), reminder.ReminderEntity)
+	_, err = gaedb.Put(c, NewReminderKey(reminder.ID), reminder.ReminderEntity)
 	return
 }
 
@@ -55,7 +57,7 @@ func (reminderDalGae ReminderDalGae) GetSentReminderIDsByTransferID(c context.Co
 	q = q.Filter("Status =", models.ReminderStatusSent)
 	q = q.KeysOnly()
 	if keys, err := q.GetAll(c, nil); err != nil {
-		return nil, errors.Wrapf(err, "Failed to get sent reminders by transfer id=%v", transferID)
+		return nil, fmt.Errorf("failed to get sent reminders by transfer id=%v: %w", transferID, err)
 	} else {
 		reminderIDs := make([]int64, len(keys))
 		for i, key := range keys {
@@ -71,7 +73,7 @@ func (reminderDalGae ReminderDalGae) GetActiveReminderIDsByTransferID(c context.
 	q = q.Filter("DtNext >", time.Time{})
 	q = q.KeysOnly()
 	if keys, err := q.GetAll(c, nil); err != nil {
-		return nil, errors.Wrapf(err, "Failed to get active reminders by transfer id=%v", transferID)
+		return nil, fmt.Errorf("failed to get active reminders by transfer id=%v: %w", transferID, err)
 	} else {
 		reminderIDs := make([]int64, len(keys))
 		for i, key := range keys {
@@ -99,7 +101,7 @@ func (reminderDalGae ReminderDalGae) SetReminderIsSentInTransaction(c context.Co
 			if err == datastore.ErrNoSuchEntity {
 				return nil
 			}
-			return errors.Wrap(err, "Failed to get reminder by ID")
+			return fmt.Errorf("failed to get reminder by ID: %w", err)
 		}
 	}
 	if reminder.Status != models.ReminderStatusSending {
@@ -118,8 +120,8 @@ func (reminderDalGae ReminderDalGae) SetReminderIsSentInTransaction(c context.Co
 		if messageStrID != "" {
 			reminder.MessageStrID = messageStrID
 		}
-		if _, err = gaedb.Put(c, NewReminderKey(c, reminder.ID), reminder.ReminderEntity); err != nil {
-			err = errors.Wrap(err, "Failed to save reminder to datastore")
+		if _, err = gaedb.Put(c, NewReminderKey(reminder.ID), reminder.ReminderEntity); err != nil {
+			err = fmt.Errorf("failed to save reminder to datastore: %w", err)
 		}
 		return err
 	}
@@ -133,7 +135,7 @@ func (reminderDalGae ReminderDalGae) RescheduleReminder(c context.Context, remin
 	err = dtdal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
 		oldReminder, err = reminderDalGae.GetReminderByID(c, reminderID)
 		if err != nil {
-			return errors.Wrap(err, "Failed to get oldReminder by id")
+			return fmt.Errorf("failed to get oldReminder by id: %w", err)
 		}
 		if oldReminder.IsRescheduled {
 			err = dtdal.ErrReminderAlreadyRescheduled
@@ -150,7 +152,7 @@ func (reminderDalGae ReminderDalGae) RescheduleReminder(c context.Context, remin
 			newReminderKey = NewReminderIncompleteKey(tc)
 			keys, err := gaedb.PutMulti(tc, []*datastore.Key{reminderKey, newReminderKey}, []interface{}{oldReminder.ReminderEntity, newReminderEntity})
 			if err != nil {
-				err = errors.Wrap(err, "Failed to reschedule oldReminder")
+				err = fmt.Errorf("failed to reschedule oldReminder: %w", err)
 			}
 			newReminderKey = keys[1]
 			if err = QueueSendReminder(tc, newReminderKey.IntID(), remindInDuration); err != nil { // TODO: Should be outside of DAL?

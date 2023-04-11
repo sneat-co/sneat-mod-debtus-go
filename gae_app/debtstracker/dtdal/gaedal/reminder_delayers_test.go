@@ -1,12 +1,12 @@
 package gaedal
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
 
 	"context"
-	"errors"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gae"
 	"google.golang.org/appengine/delay"
@@ -56,7 +56,7 @@ func TestDelaySetReminderIsSent(t *testing.T) {
 		return nil
 	}
 	if err = reminderDal.DelaySetReminderIsSent(context.TODO(), 1, time.Now(), 1, "", strongo.LocaleCodeEnUS, ""); err != nil {
-		t.Error(errors.Wrap(err, "Should NOT fail").Error())
+		t.Error(fmt.Errorf("should NOT fail: %w", err).Error())
 	}
 	if countOfCallsToDelay != 1 {
 		t.Errorf("Expeted to get 1 call to delay, got: %v", countOfCallsToDelay)

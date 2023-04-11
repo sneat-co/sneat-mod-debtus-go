@@ -11,7 +11,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"context"
-	"errors"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
 )
@@ -116,7 +115,7 @@ func setPreferredLanguageAction(whc botsfw.WebhookContext, code5, mode string, b
 	appUser, err := whc.GetAppUser()
 	if err != nil {
 		log.Errorf(c, ": %v", err)
-		return m, errors.WithMessage(err, "failed to load userEntity")
+		return m, fmt.Errorf("%w: failed to load userEntity", err)
 	}
 	userEntity, ok := appUser.(*models.AppUserEntity)
 	if !ok {
@@ -142,7 +141,7 @@ func setPreferredLanguageAction(whc botsfw.WebhookContext, code5, mode string, b
 						return
 					}
 					if err = user.SetPreferredLocale(locale.Code5); err != nil {
-						err = errors.WithMessage(err, "failed to set preferred locale for user")
+						err = fmt.Errorf("%w: failed to set preferred locale for user", err)
 					}
 					chatEntity.SetPreferredLanguage(locale.Code5)
 					chatEntity.SetAwaitingReplyTo("")

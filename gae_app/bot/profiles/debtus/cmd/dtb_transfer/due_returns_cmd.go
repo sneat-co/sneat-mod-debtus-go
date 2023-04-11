@@ -3,6 +3,9 @@ package dtb_transfer
 import (
 	"bytes"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"html"
 	"net/url"
 	"strings"
@@ -10,7 +13,6 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"errors"
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
@@ -31,7 +33,7 @@ func dueReturnsCallbackAction(whc botsfw.WebhookContext, _ *url.URL) (m botsfw.M
 	er := make(chan error, 2)
 	go func(er chan<- error) {
 		if overdueTransfers, err = dtdal.Transfer.LoadOverdueTransfers(c, userID, 5); err != nil {
-			er <- errors.Wrap(err, "Failed to get overdue transfers")
+			er <- fmt.Errorf("failed to get overdue transfers: %w", err)
 		} else {
 			log.Debugf(c, "Loaded %v overdue transfer", len(overdueTransfers))
 			er <- nil
@@ -39,7 +41,7 @@ func dueReturnsCallbackAction(whc botsfw.WebhookContext, _ *url.URL) (m botsfw.M
 	}(er)
 	go func(er chan<- error) {
 		if dueTransfers, err = dtdal.Transfer.LoadDueTransfers(c, userID, 5); err != nil {
-			er <- errors.Wrap(err, "Failed to get due transfers")
+			er <- fmt.Errorf("failed to get due transfers: %w", err)
 		} else {
 			log.Debugf(c, "Loaded %v due transfer", len(dueTransfers))
 			er <- nil
@@ -67,11 +69,11 @@ func dueReturnsCallbackAction(whc botsfw.WebhookContext, _ *url.URL) (m botsfw.M
 			buffer.WriteString(whc.Translate(header))
 			buffer.WriteString("\n\n")
 			for i, transfer := range transfers {
-				switch transfer.Direction() {
+				switch transfer.Data.Direction() {
 				case models.TransferDirectionCounterparty2User:
-					buffer.WriteString(whc.Translate(trans.MESSAGE_TEXT_DUE_RETURNS_ROW_BY_USER, html.EscapeString(transfer.Counterparty().ContactName), transfer.GetAmount(), DurationToString(transfer.DtDueOn.Sub(now), whc)))
+					buffer.WriteString(whc.Translate(trans.MESSAGE_TEXT_DUE_RETURNS_ROW_BY_USER, html.EscapeString(transfer.Data.Counterparty().ContactName), transfer.Data.GetAmount(), DurationToString(transfer.Data.DtDueOn.Sub(now), whc)))
 				case models.TransferDirectionUser2Counterparty:
-					buffer.WriteString(whc.Translate(trans.MESSAGE_TEXT_DUE_RETURNS_ROW_BY_COUNTERPARTY, html.EscapeString(transfer.Counterparty().ContactName), transfer.GetAmount(), DurationToString(transfer.DtDueOn.Sub(now), whc)))
+					buffer.WriteString(whc.Translate(trans.MESSAGE_TEXT_DUE_RETURNS_ROW_BY_COUNTERPARTY, html.EscapeString(transfer.Data.Counterparty().ContactName), transfer.Data.GetAmount(), DurationToString(transfer.Data.DtDueOn.Sub(now), whc)))
 				default:
 					panic(fmt.Sprintf("Unknown direction for transfer id=%v: %v", transfers[i].ID, transfer))
 				}

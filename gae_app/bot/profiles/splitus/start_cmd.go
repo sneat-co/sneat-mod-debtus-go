@@ -5,7 +5,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"errors"
 	"fmt"
 	"github.com/strongo/log"
 	"strings"
@@ -38,7 +37,7 @@ func startInGroupAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err
 			ChatMember: whc.Input().GetSender(),
 		},
 	}); err != nil {
-		err = errors.WithMessage(err, "failed to add user to the group")
+		err = fmt.Errorf("%w: failed to add user to the group", err)
 		return
 	}
 	m.Text = whc.Translate(trans.MESSAGE_TEXT_HI) +

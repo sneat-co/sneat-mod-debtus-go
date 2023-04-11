@@ -10,7 +10,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/strongo/app"
@@ -85,7 +84,7 @@ func sendReminderByEmail(c context.Context, reminder models.Reminder, emailTo st
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the ByCode and
 		// Message from an error.
-		return errors.Wrap(err, "Failed to send email using AWS SES")
+		return fmt.Errorf("failed to send email using AWS SES: %w", err)
 	}
 
 	// Pretty-print the response data.

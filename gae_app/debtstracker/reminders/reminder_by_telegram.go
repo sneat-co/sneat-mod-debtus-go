@@ -2,6 +2,8 @@ package reminders
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/http"
 	"time"
 
@@ -13,7 +15,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gae"
@@ -100,7 +101,7 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 					return nil // Do not pass error up
 				} else {
 					log.Debugf(c, "messageConfig.Text: %v", messageConfig.Text)
-					return errors.Wrap(err, "Failed in call to Telegram API")
+					return fmt.Errorf("Failed in call to Telegram API: %w", err)
 				}
 			}
 			sent = true
@@ -114,7 +115,7 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 		}, nil)
 
 		if err != nil {
-			log.Errorf(c, errors.Wrapf(err, "Error while sending by Telegram").Error())
+			log.Errorf(c, fmt.Errorf("error while sending by Telegram: %w", err).Error())
 			return
 		}
 		if sent {

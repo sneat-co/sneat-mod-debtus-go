@@ -25,9 +25,9 @@ func handleAdminFindUser(c context.Context, w http.ResponseWriter, r *http.Reque
 
 	if userID := r.URL.Query().Get("userID"); userID != "" {
 		if user, err := dtdal.User.GetUserByStrID(c, userID); err != nil {
-			log.Errorf(c, errors.Wrapf(err, "Failed to get user by ID=%v", userID).Error())
+			log.Errorf(c, fmt.Errorf("failed to get user by ID=%v: %w", userID, err).Error())
 		} else {
-			jsonToResponse(c, w, []dto.ApiUserDto{{ID: userID, Name: user.FullName()}})
+			jsonToResponse(c, w, []dto.ApiUserDto{{ID: userID, Name: user.Data.FullName()}})
 		}
 		return
 	} else {
@@ -74,20 +74,20 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 		}
 		contactToKeep := contacts[0]
 		contactToDelete := contacts[1]
-		if contactToKeep.UserID != contactToDelete.UserID {
+		if contactToKeep.Data.UserID != contactToDelete.Data.UserID {
 			return errors.New("contactToKeep.UserID != contactToDelete.UserID")
 		}
-		if contactToDelete.CounterpartyUserID != 0 && contactToKeep.CounterpartyUserID == 0 {
+		if contactToDelete.Data.CounterpartyUserID != 0 && contactToKeep.Data.CounterpartyUserID == 0 {
 			return errors.New("contactToDelete.CounterpartyUserID != 0 && contactToKeep.CounterpartyUserID == 0")
 		}
-		user, err := facade.User.GetUserByID(c, contactToKeep.UserID)
+		user, err := facade.User.GetUserByID(c, contactToKeep.Data.UserID)
 		if err != nil {
 			return err
 		}
 		if user.ID != 0 {
 			return errors.New("Not implemented yet: Need to update counterparty & user balances + last transfer info")
 		}
-		if userChanged := user.RemoveContact(deleteID); userChanged {
+		if userChanged := user.Data.RemoveContact(deleteID); userChanged {
 			if err = facade.User.SaveUser(c, user); err != nil {
 				return err
 			}
@@ -144,17 +144,17 @@ var delayedChangeTransferCounterparty = delay.Func("changeTransferCounterparty",
 			return err
 		}
 		changed := false
-		for i, contactID := range transfer.BothCounterpartyIDs {
+		for i, contactID := range transfer.Data.BothCounterpartyIDs {
 			if contactID == oldID {
-				transfer.BothCounterpartyIDs[i] = newID
+				transfer.Data.BothCounterpartyIDs[i] = newID
 				changed = true
 				break
 			}
 		}
 		if changed {
-			if from := transfer.From(); from.ContactID == oldID {
+			if from := transfer.Data.From(); from.ContactID == oldID {
 				from.ContactID = newID
-			} else if to := transfer.To(); to.ContactID == oldID {
+			} else if to := transfer.Data.To(); to.ContactID == oldID {
 				to.ContactID = newID
 			}
 			err = facade.Transfers.SaveTransfer(c, transfer)

@@ -16,7 +16,7 @@ const groupsCommandCode = "groups"
 
 var groupsCommand = botsfw.Command{
 	Code:       groupsCommandCode,
-	InputTypes: []botsfw.WebhookInputType{bots.WebhookInputText, botsfw.WebhookInputCallbackQuery},
+	InputTypes: []botsfw.WebhookInputType{botsfw.WebhookInputText, botsfw.WebhookInputCallbackQuery},
 	Commands:   trans.Commands(trans.COMMAND_TEXT_GROUPS, emoji.MAN_AND_WOMAN, "/"+groupsCommandCode),
 	Icon:       emoji.MAN_AND_WOMAN,
 	Title:      trans.COMMAND_TEXT_GROUPS,

@@ -511,7 +511,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		// if from.ContactID != 0 && fromContact.CounterpartyCounterpartyID != 0 && to.ContactID == 0 {
 		// 	// Get toCounterparty and fill to.Contact* fields
 		// 	if toContact, err = GetContactByID(c, fromContact.CounterpartyCounterpartyID); err != nil {
-		// 		err = errors.WithMessage(err, "Failed to get 'To' counterparty by 'fromCounterparty.CounterpartyCounterpartyID'")
+		// 		err = fmt.Errorf("%w: Failed to get 'To' counterparty by 'fromCounterparty.CounterpartyCounterpartyID'", err)
 		// 		return
 		// 	}
 		// 	output.To.Contact = toContact
@@ -523,7 +523,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		// }
 		// if to.ContactID != 0 && toCounterparty.CounterpartyCounterpartyID != 0 && from.ContactID == 0 {
 		// 	if fromCounterparty, err = GetContactByID(c, toCounterparty.CounterpartyCounterpartyID); err != nil {
-		// 		err = errors.WithMessage(err, fmt.Sprintf("Failed to get 'From' counterparty by 'toCounterparty.CounterpartyCounterpartyID' == %d", fromCounterparty.CounterpartyCounterpartyID))
+		// 		err = fmt.Errorf("failed to get 'From' counterparty by 'toCounterparty.CounterpartyCounterpartyID' == %d: %w", fromCounterparty.CounterpartyCounterpartyID, err)
 		// 		return
 		// 	}
 		// 	output.From.Contact = fromCounterparty

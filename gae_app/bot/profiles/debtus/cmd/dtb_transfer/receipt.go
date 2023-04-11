@@ -33,7 +33,7 @@ const CREATE_RECEIPT_IF_NO_INLINE_CHOSEN_NOTIFICATION = "create-receipt"
 
 var CreateReceiptIfNoInlineNotificationCommand = botsfw.Command{
 	Code:       CREATE_RECEIPT_IF_NO_INLINE_CHOSEN_NOTIFICATION,
-	InputTypes: []botsfw.WebhookInputType{bots.WebhookInputCallbackQuery},
+	InputTypes: []botsfw.WebhookInputType{botsfw.WebhookInputCallbackQuery},
 	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		return OnInlineChosenCreateReceipt(whc, whc.Input().(botsfw.WebhookCallbackQuery).GetInlineMessageID(), callbackUrl)
 	},

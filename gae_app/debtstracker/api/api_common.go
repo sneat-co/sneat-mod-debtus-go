@@ -1,11 +1,11 @@
 package api
 
 import (
+	"github.com/dal-go/dalgo/dal"
 	"net/http"
 	"strconv"
 
 	"context"
-	"errors"
 	//"encoding/json"
 	"fmt"
 
@@ -58,7 +58,7 @@ func hasError(c context.Context, w http.ResponseWriter, err error, entity string
 		log.Infof(c, m)
 		w.Write([]byte(m))
 	default:
-		err = errors.Wrapf(err, "Failed to get entity %v by id=%v", entity, id)
+		err = fmt.Errorf("failed to get entity %v by id=%v: %w", entity, id, err)
 		log.Errorf(c, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))

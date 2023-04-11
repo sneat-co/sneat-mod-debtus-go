@@ -12,7 +12,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
@@ -175,7 +174,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 		}
 		return
 	}, db.CrossGroupTransaction); err != nil {
-		return errors.WithMessage(err, "failed to update user entity")
+		return fmt.Errorf("%w: failed to update user entity", err)
 	}
 
 	return

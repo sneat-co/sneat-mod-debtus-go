@@ -2,8 +2,10 @@ package dtb_transfer
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	bots "github.com/strongo/bots-framework/core"
 	"net/url"
 	"strconv"
@@ -58,7 +60,7 @@ func askIfReturnedInFull(whc botsfw.WebhookContext, counterparty models.Contact,
 	chatEntity.AddWizardParam("currency", string(currency))
 	amount.Value = amount.Value.Abs()
 	m = whc.NewMessage(fmt.Sprintf(
-		whc.Translate(mt), html.EscapeString(counterparty.FullName()), amount) +
+		whc.Translate(mt), html.EscapeString(counterparty.Data.FullName()), amount) +
 		"\n\n" + whc.Translate(trans.MESSAGE_TEXT_IS_IT_RETURNED_IN_FULL))
 	m.Format = botsfw.MessageFormatHTML
 	m.Keyboard = tgbotapi.NewReplyKeyboardUsingStrings(
@@ -89,9 +91,9 @@ var AskReturnCounterpartyCommand = CreateAskTransferCounterpartyCommand(
 
 		log.Debugf(c, "StartReturnWizardCommand.onCounterpartySelectedAction(counterparty.ID=%v)", counterparty.ID)
 		var balanceWithInterest money.Balance
-		balanceWithInterest, err = counterparty.BalanceWithInterest(c, time.Now())
+		balanceWithInterest, err = counterparty.Data.BalanceWithInterest(c, time.Now())
 		if err != nil {
-			err = errors.WithMessage(err, fmt.Sprintf("Failed to get counterparty balance with interest: %v", err))
+			err = fmt.Errorf("failed to get counterparty balance with interest: %w", err)
 			return
 		}
 		//TODO: Display MESSAGE_TEXT_COUNTERPARTY_OWES_YOU_SINGLE_DEBT or MESSAGE_TEXT_YOU_OWE_TO_COUNTERPARTY_SINGLE_DEBT
@@ -140,7 +142,7 @@ func _debtAmountButtonText(whc botsfw.WebhookContext, currency money.Currency, v
 	default:
 		mt = "ERROR (%v) - zero value: %v"
 	}
-	return fmt.Sprintf(whc.Translate(mt), counterparty.FullName(), amount)
+	return fmt.Sprintf(whc.Translate(mt), counterparty.Data.FullName(), amount)
 }
 
 const ASK_IF_RETURNED_IN_FULL_COMMAND = "ask-if-return-in-full"
@@ -177,7 +179,7 @@ func processReturnCommand(whc botsfw.WebhookContext, returnValue decimal.Decimal
 	chatEntity := whc.ChatEntity()
 	var (
 		counterpartyID int64
-		transferID     int64
+		transferID     int
 	)
 	if counterpartyID, transferID, err = getReturnWizardParams(whc); err != nil {
 		return m, err
@@ -186,9 +188,9 @@ func processReturnCommand(whc botsfw.WebhookContext, returnValue decimal.Decimal
 	if err != nil {
 		return m, err
 	}
-	counterpartyBalanceWithInterest, err := counterparty.BalanceWithInterest(c, time.Now())
+	counterpartyBalanceWithInterest, err := counterparty.Data.BalanceWithInterest(c, time.Now())
 	if err != nil {
-		err = errors.WithMessage(err, fmt.Sprintf("Failed to get balance with interest for contact %v: %v", counterparty.ID, err))
+		err = fmt.Errorf("failed to get balance with interest for contact %v: %v", counterparty.ID, err)
 		return
 	}
 	awaitingUrl, err := url.Parse(chatEntity.GetAwaitingReplyTo())
@@ -199,12 +201,12 @@ func processReturnCommand(whc botsfw.WebhookContext, returnValue decimal.Decimal
 
 	if transferID != 0 && returnValue > 0 {
 		var transfer models.Transfer
-		if transfer, err = facade.Transfers.GetTransferByID(whc.Context(), transferID); err != nil {
+		if transfer, err = facade.Transfers.GetTransferByID(whc.Context(), tx, transferID); err != nil {
 			return
 		}
 
 		returnAmount := money.NewAmount(currency, returnValue)
-		if outstandingAmount := transfer.GetOutstandingAmount(time.Now()); outstandingAmount.Value < returnValue {
+		if outstandingAmount := transfer.Data.GetOutstandingAmount(time.Now()); outstandingAmount.Value < returnValue {
 			m.Text = whc.Translate(trans.MESSAGE_TEXT_RETURN_IS_TOO_BIG, returnAmount, outstandingAmount, outstandingAmount.Value)
 			return
 		}
@@ -292,10 +294,10 @@ var AskToChooseDebtToReturnCommand = botsfw.Command{
 			var counterpartyFound bool
 			now := time.Now()
 			for _, counterpartyItem := range counterparties {
-				counterpartyItemTitle := counterpartyItem.FullName()
+				counterpartyItemTitle := counterpartyItem.Data.FullName()
 				if counterpartyItemTitle == counterpartyTitle {
-					if balance, err = counterpartyItem.BalanceWithInterest(c, now); err != nil {
-						err = errors.WithMessage(err, fmt.Sprintf("Failed to get balance with interest for contact %v", counterpartyItem.ID))
+					if balance, err = counterpartyItem.Data.BalanceWithInterest(c, now); err != nil {
+						err = fmt.Errorf("failed to get balance with interest for contact %v: %w", counterpartyItem.ID, err)
 						return
 					}
 					theCounterparty = counterpartyItem
@@ -311,8 +313,8 @@ var AskToChooseDebtToReturnCommand = botsfw.Command{
 		} else {
 			var counterparty models.Contact
 			counterparty, err = getCounterparty(whc, counterpartyID)
-			if balance, err = counterparty.BalanceWithInterest(c, time.Now()); err != nil {
-				err = errors.WithMessage(err, fmt.Sprintf("Failed to get balance with interest for contact %v", counterparty.ID))
+			if balance, err = counterparty.Data.BalanceWithInterest(c, time.Now()); err != nil {
+				err = fmt.Errorf("failed to get balance with interest for contact %v: %w", counterparty.ID, err)
 				return
 			}
 			theCounterparty = counterparty
@@ -362,16 +364,16 @@ func getReturnDirectionFromDebtValue(currentDebt money.Amount) (models.TransferD
 	return models.TransferDirection(""), fmt.Errorf("Zero value for currency: [%v]", currentDebt.Currency)
 }
 
-func getReturnWizardParams(whc botsfw.WebhookContext) (counterpartyID, transferID int64, err error) {
+func getReturnWizardParams(whc botsfw.WebhookContext) (counterpartyID int64, transferID int, err error) {
 	awaitingReplyTo := whc.ChatEntity().GetAwaitingReplyTo()
 	params, err := url.ParseQuery(botsfw.AwaitingReplyToQuery(awaitingReplyTo))
 	if err != nil {
-		return counterpartyID, transferID, errors.Wrap(err, "Failed in AwaitingReplyToQuery()")
+		return counterpartyID, transferID, fmt.Errorf("failed in AwaitingReplyToQuery(): %w", err)
 	}
 	if counterpartyID, err = strconv.ParseInt(params.Get(WIZARD_PARAM_COUNTERPARTY), 10, 64); err != nil {
-		return counterpartyID, transferID, errors.Wrap(err, "Failed to get counterparty ID")
+		return counterpartyID, transferID, fmt.Errorf("failed to get counterparty ID: %w", err)
 	}
-	transferID, _ = strconv.ParseInt(params.Get(WIZARD_PARAM_TRANSFER), 10, 64)
+	transferID, _ = strconv.Atoi(params.Get(WIZARD_PARAM_TRANSFER))
 	return
 }
 

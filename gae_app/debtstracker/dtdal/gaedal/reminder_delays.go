@@ -2,6 +2,9 @@ package gaedal
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"strings"
 	"time"
 
@@ -34,11 +37,11 @@ func (ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, tran
 		panic("This function should be called within transaction")
 	}
 	if task, err := gae.CreateDelayTask(common.QUEUE_REMINDERS, "create-reminder-4-transfer-user", delayCreateReminderForTransferUser, transferID, userID); err != nil {
-		return errors.WithMessage(err, fmt.Sprintf("Failed to create a task for reminder creation. transferID=%v, userID=%v", transferID, userID))
+		return fmt.Errorf("failed to create a task for reminder creation. transferID=%v, userID=%v: %w", transferID, userID, err)
 	} else {
 		task.Delay = time.Duration(time.Second)
 		if _, err = gae.AddTaskToQueue(c, task, common.QUEUE_REMINDERS); err != nil {
-			return errors.WithMessage(err, fmt.Sprintf("Failed to add a task for reminder creation, transfer id=%v", transferID))
+			return fmt.Errorf("failed to add a task for reminder creation, transfer id=%v: %w", transferID, err)
 		}
 		log.Debugf(c, "Added task(%v) to create reminder for transfer id=%v", task.Path, transferID)
 	}
@@ -60,15 +63,15 @@ func createReminderForTransferUser(c context.Context, transferID, userID int64) 
 
 	return dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 		var transfer models.Transfer
-		transfer, err = facade.Transfers.GetTransferByID(c, transferID)
+		transfer, err = facade.Transfers.GetTransferByID(c, tx, transferID)
 		if err != nil {
 			if dal.IsNotFound(err) {
-				log.Errorf(c, errors.WithMessage(err, "Not able to create reminder for specified transfer").Error())
+				log.Errorf(c, fmt.Errorf("not able to create reminder for specified transfer: %w", err).Error())
 				return
 			}
-			return errors.WithMessage(err, "failed to get transfer by id")
+			return fmt.Errorf("failed to get transfer by id: %w", err)
 		}
-		transferUserInfo := transfer.UserInfoByUserID(userID)
+		transferUserInfo := transfer.Data.UserInfoByUserID(userID)
 		if transferUserInfo.UserID != userID {
 			panic("transferUserInfo.UserID != userID")
 		}
@@ -84,10 +87,10 @@ func createReminderForTransferUser(c context.Context, transferID, userID int64) 
 		}
 
 		reminderKey := NewReminderIncompleteKey(c)
-		next := transfer.DtDueOn
+		next := transfer.Data.DtDueOn
 		isAutomatic := next.IsZero()
 		if isAutomatic {
-			if strings.Contains(strings.ToLower(transfer.CreatedOnID), "dev") {
+			if strings.Contains(strings.ToLower(transfer.Data.CreatedOnID), "dev") {
 				next = time.Now().Add(2 * time.Minute)
 			} else {
 				next = time.Now().Add(7 * 24 * time.Hour)
@@ -95,16 +98,16 @@ func createReminderForTransferUser(c context.Context, transferID, userID int64) 
 		}
 		reminder := models.NewReminderViaTelegram(transferUserInfo.TgBotID, transferUserInfo.TgChatID, userID, transferID, isAutomatic, next)
 		if reminderKey, err = gaedb.Put(c, reminderKey, &reminder); err != nil {
-			return errors.WithMessage(err, "failed to save reminder to datastore")
+			return fmt.Errorf("failed to save reminder to db: %w", err)
 		}
 		log.Infof(c, "Created reminder id=%v", reminderKey.IntID())
 		if err = QueueSendReminder(c, reminderKey.IntID(), next.Sub(time.Now())); err != nil {
-			return errors.WithMessage(err, "failed to queue reminder for sending")
+			return fmt.Errorf("failed to queue reminder for sending: %w", err)
 		}
 		transferUserInfo.ReminderID = reminderKey.IntID()
 
-		if err = facade.Transfers.SaveTransfer(c, transfer); err != nil {
-			return errors.WithMessage(err, "failed to save transfer to datastore")
+		if err = facade.Transfers.SaveTransfer(c, tx, transfer); err != nil {
+			return fmt.Errorf("failed to save transfer to db: %w", err)
 		}
 
 		return
@@ -131,13 +134,13 @@ func discardReminders(c context.Context, transferIDs []int64, returnTransferID i
 	tasks := make([]*taskqueue.Task, len(transferIDs))
 	for i, transferID := range transferIDs {
 		if task, err := gae.CreateDelayTask(queueName, "discard-reminders-for-transfer", delayDiscardRemindersForTransfer, transferID, returnTransferID); err != nil {
-			return errors.Wrapf(err, "Failed to create delay task to dicard reminder for transfer id=%v", transferID)
+			return fmt.Errorf("failed to create delay task to dicard reminder for transfer id=%v: %w", transferID, err)
 		} else {
 			tasks[i] = task
 		}
 	}
 	if _, err := taskqueue.AddMulti(c, tasks, queueName); err != nil {
-		return errors.Wrapf(err, "Failed to add %v task(s) to queue '%v'", len(tasks), queueName)
+		return fmt.Errorf("failed to add %v task(s) to queue '%v': %w", len(tasks), queueName, err)
 	}
 	return nil
 }
@@ -162,7 +165,7 @@ func discardRemindersForTransfer(c context.Context, transferID, returnTransferID
 			log.Debugf(c, loadedFormat, len(reminderIDs), transferID)
 			for _, reminderID := range reminderIDs {
 				if task, err := gae.CreateDelayTask(common.QUEUE_REMINDERS, "discard-reminder", delayDiscardReminder, reminderID, transferID, returnTransferID); err != nil {
-					return errors.Wrapf(err, "Failed to create a task for reminder %v", reminderID)
+					return fmt.Errorf("failed to create a task for reminder ID=%v: %w", reminderID, err)
 				} else {
 					task.Delay = delayDuration
 					tasks = append(tasks, task)
@@ -182,7 +185,7 @@ func discardRemindersForTransfer(c context.Context, transferID, returnTransferID
 	}
 	if len(tasks) > 0 {
 		if _, err := taskqueue.AddMulti(c, tasks, common.QUEUE_REMINDERS); err != nil {
-			return errors.Wrapf(err, "Failed to put %v tasks to queue", len(tasks))
+			return fmt.Errorf("failed to put tasks to queue: %d tasks: %w", len(tasks), err)
 		}
 	}
 	return nil
@@ -202,11 +205,11 @@ func delayedDiscardReminder(c context.Context, reminderID, transferID, returnTra
 	return err
 }
 
-func discardReminder(c context.Context, reminderID, transferID, returnTransferID int64) (err error) {
+func discardReminder(c context.Context, reminderID int64, transferID, returnTransferID int) (err error) {
 	log.Debugf(c, "discardReminder(reminderID=%v, transferID=%v, returnTransferID=%v)", reminderID, transferID, returnTransferID)
 
 	reminderKey := NewReminderKey(c, reminderID)
-	transferKey := NewTransferKey(c, transferID)
+	transferKey := models.NewTransferKey(transferID)
 
 	var (
 		transferEntity models.TransferEntity
@@ -214,16 +217,16 @@ func discardReminder(c context.Context, reminderID, transferID, returnTransferID
 	)
 
 	if returnTransferID > 0 {
-		returnTransferKey := NewTransferKey(c, returnTransferID)
+		returnTransferKey := models.NewTransferKey(returnTransferID)
 		var returnTransfer models.TransferEntity
 		keys := []*datastore.Key{reminderKey, transferKey, returnTransferKey}
 		if err = gaedb.GetMulti(c, keys, []interface{}{reminder.ReminderEntity, &transferEntity, &returnTransfer}); err != nil {
-			return errors.Wrapf(err, "Failed to get entities from datastore by keys=%v", keys)
+			return err
 		}
 	} else {
 		keys := []*datastore.Key{reminderKey, transferKey}
 		if err = gaedb.GetMulti(c, keys, []interface{}{reminder.ReminderEntity, &transferEntity}); err != nil {
-			return errors.Wrapf(err, "Failed to get entities from datastore by keys=%v", keys)
+			return err
 		}
 	}
 
@@ -250,9 +253,9 @@ func discardReminder(c context.Context, reminderID, transferID, returnTransferID
 		if reminder.Locale == "" {
 			log.Errorf(c, "reminder.Locale == ''")
 			if user, err := facade.User.GetUserByID(c, reminder.UserID); err != nil {
-				return errors.Wrapf(err, "Failed to get user by id=%v", reminder.UserID)
-			} else if user.PreferredLanguage != "" {
-				reminder.Locale = user.PreferredLanguage
+				return err
+			} else if user.Data.PreferredLanguage != "" {
+				reminder.Locale = user.Data.PreferredLanguage
 			} else if s, ok := tgbots.Bots(gaestandard.GetEnvironment(c), nil).ByCode[reminder.BotID]; ok {
 				reminder.Locale = s.Locale.Code5
 			}
@@ -286,7 +289,7 @@ func discardReminder(c context.Context, reminderID, transferID, returnTransferID
 		tgMessage := tgbotapi.NewEditMessageText(reminder.ChatIntID, int(reminder.MessageIntID), "", receiptMessageText)
 		tgMessage.ParseMode = "HTML"
 		if _, err = tgBotApi.Send(tgMessage); err != nil {
-			return errors.Wrap(err, "Failed to send message to Telegram")
+			return fmt.Errorf("failed to send message to Telegram: %w", err)
 		}
 
 	default:
@@ -341,7 +344,7 @@ func (ReminderDalGae) SetReminderStatus(c context.Context, reminderID, returnTra
 			if changed {
 				reminder.Status = status
 				if _, err = gaedb.Put(c, NewReminderKey(c, reminderID), reminder.ReminderEntity); err != nil {
-					err = errors.Wrapf(err, "Failed to save reminder to db (id=%v)", reminderID)
+					err = fmt.Errorf("failed to save reminder to db (id=%v): %w", reminderID, err)
 				}
 			}
 			return

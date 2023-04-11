@@ -14,7 +14,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
 	"github.com/strongo/log"
 )
 
@@ -111,7 +110,7 @@ func setUserName(c context.Context, w http.ResponseWriter, r *http.Request, auth
 	}
 
 	if len(body) == 0 {
-		ErrorAsJson(c, w, http.StatusBadRequest, errors.WithMessage(ErrBadRequest, "User name is required"))
+		ErrorAsJson(c, w, http.StatusBadRequest, fmt.Errorf("%w: User name is required", ErrBadRequest))
 		return
 	}
 

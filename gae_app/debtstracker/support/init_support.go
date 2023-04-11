@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/crediterra/money"
+	"github.com/strongo/db"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -164,7 +165,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 		err := dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 			log.Debugf(c, "Transaction started..")
 			if err := nds.Get(c, userKey, &txUser); err != nil {
-				return errors.Wrap(err, "Failed to get user by key")
+				return err
 			}
 			if txUser.SavedCounter != user.SavedCounter {
 				return fmt.Errorf("User changed since last load: txUser.SavedCounter:%v != user.SavedCounter:%v", txUser.SavedCounter, user.SavedCounter)
@@ -184,7 +185,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 				models.AppUser{IntegerID: db.NewIntID(userID), AppUserEntity: &txUser}.AddOrUpdateContact(models.NewContact(counterpartyID, counterpartyEntity))
 			}
 			if _, err = nds.Put(c, userKey, &txUser); err != nil {
-				return errors.Wrap(err, "Failed to save fixed user")
+				return fmt.Errorf("failed to save fixed user: %w", err)
 			}
 			return nil
 		}, nil)
@@ -337,10 +338,10 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 			err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 				var txUser models.AppUserEntity
 				if err := nds.Get(c, userKey, &txUser); err != nil {
-					return errors.Wrapf(err, "Failed to get by key=%v", userKey)
+					return err
 				}
 				if !reflect.DeepEqual(txUser.BalanceJson, user.BalanceJson) {
-					return errors.New("User changed: !reflect.DeepEqual(txUser.Balance(), user.Balance())")
+					return errors.New("user changed: !reflect.DeepEqual(txUser.Balance(), user.Balance())")
 				}
 
 				if balanceJson, err := json.Marshal(transfersTotalBalance); err != nil {
@@ -349,13 +350,13 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 					txUser.BalanceJson = string(balanceJson)
 					txUser.BalanceCount = len(transfersTotalBalance)
 					if _, err = nds.Put(c, userKey, &txUser); err != nil {
-						return errors.Wrap(err, "Failed to save user with fixed balance")
+						return fmt.Errorf("failed to save user with fixed balance: %w", err)
 					}
 				}
 				return nil
 			}, nil)
 			if err != nil {
-				err = errors.Wrap(err, "Failed to fix user balance")
+				err = fmt.Errorf("failed to fix user balance: %w", err)
 				log.Errorf(c, err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(err.Error()))
@@ -406,19 +407,19 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 				var txCounterparty models.ContactEntity
 				err := dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 					if err := nds.Get(c, counterpartyKey, &txCounterparty); err != nil {
-						return errors.Wrapf(err, "Failed to get by key=%v", counterpartyKey)
+						return err
 					}
 					if !reflect.DeepEqual(txCounterparty.BalanceJson, counterparty.BalanceJson) {
 						return errors.New("Contact changed since check: !reflect.DeepEqual(txCounterparty.Balance(), counterparty.Balance())")
 					}
 
 					if balanceJson, err := json.Marshal(transfersCounterpartyBalance); err != nil {
-						return errors.Wrap(err, "Failed to json.Marshal(transfersCounterpartyBalance)")
+						return fmt.Errorf("failed to json.Marshal(transfersCounterpartyBalance): %w", err)
 					} else {
 						txCounterparty.BalanceJson = string(balanceJson)
 						txCounterparty.BalanceCount = len(transfersCounterpartyBalance)
 						if _, err := nds.Put(c, counterpartyKey, &txCounterparty); err != nil {
-							return errors.Wrapf(err, "Failed to save counterparty with ID=%v", counterpartyID)
+							return fmt.Errorf("failed to save counterparty with ID=%v: %w", counterpartyID, err)
 						}
 					}
 					return nil

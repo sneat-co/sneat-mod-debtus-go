@@ -4,7 +4,8 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
+	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/datastore"
@@ -20,11 +21,11 @@ var delayedUpdateInviteClaimedCount = delay.Func("UpdateInviteClaimedCount", fun
 	var claim models.InviteClaim
 	err := gaedb.Get(c, NewInviteClaimKey(c, claimID), &claim)
 	if err != nil {
-		if err == datastore.ErrNoSuchEntity {
+		if dal.IsNotFound(err) {
 			log.Errorf(c, "Claim not found by id: %v", claimID)
 			return nil
 		}
-		return errors.Wrapf(err, "Failed to get InviteClaim by id=%v", claimID)
+		return fmt.Errorf("failed to get InviteClaim by id=%v: %w", claimID, err)
 	}
 	err = gaedb.RunInTransaction(c, func(tc context.Context) error {
 		invite, err := dtdal.Invite.GetInvite(c, claim.InviteCode)
@@ -51,7 +52,7 @@ var delayedUpdateInviteClaimedCount = delay.Func("UpdateInviteClaimedCount", fun
 		}
 		_, err = gaedb.Put(tc, NewInviteKey(tc, claim.InviteCode), invite)
 		if err != nil {
-			err = errors.Wrap(err, "Failed to save invite to DB")
+			err = fmt.Errorf("failed to save invite to DB: %w", err)
 		}
 		return err
 	}, nil)

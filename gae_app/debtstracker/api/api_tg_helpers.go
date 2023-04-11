@@ -2,6 +2,8 @@ package api
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"net/http"
 	"strconv"
@@ -14,7 +16,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/app/gaestandard"
 	"github.com/strongo/log"
@@ -127,7 +128,7 @@ func sendToTelegram(c context.Context, user models.AppUser, tgChatID int64, tgCh
 
 	whc := NewApiWebhookContext(
 		r,
-		user.AppUserEntity,
+		user.Data,
 		user.ID,
 		tgChatID,
 		&tgChat,
@@ -143,7 +144,7 @@ func sendToTelegram(c context.Context, user models.AppUser, tgChatID int64, tgCh
 		return fmt.Errorf("tgChat.AwaitingReplyTo has unexpected value: %v", tgChat.AwaitingReplyTo)
 	}
 	if err != nil {
-		return errors.Wrap(err, "Failed to create message from bot")
+		return fmt.Errorf("failed to create message from bot: %w", err)
 	}
 
 	messageConfig := tgbotapi.NewMessage(tgChatID, messageFromBot.Text)
@@ -151,7 +152,7 @@ func sendToTelegram(c context.Context, user models.AppUser, tgChatID int64, tgCh
 	messageConfig.ParseMode = "HTML"
 
 	if _, err = tgBotApi.Send(messageConfig); err != nil {
-		return errors.Wrapf(err, "Failed to send message to Telegram chat=%v", tgChatID)
+		return fmt.Errorf("failed to send message to Telegram chat=%d: %w", tgChatID, err)
 	}
 	return nil
 }

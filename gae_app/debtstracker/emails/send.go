@@ -2,6 +2,7 @@ package emails
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -9,7 +10,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/strongo/app"
@@ -23,11 +23,11 @@ func CreateEmailRecordAndQueueForSending(c context.Context, emailEntity *models.
 	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 		emailEntity.Status = "queued"
 		if email, err = dtdal.Email.InsertEmail(c, emailEntity); err != nil {
-			err = errors.WithMessage(err, "Failed to insert Email record")
+			err = fmt.Errorf("%w: Failed to insert Email record", err)
 			return err
 		}
 		if err = DelaySendEmail(c, email.ID); err != nil {
-			err = errors.WithMessage(err, "Failed to delay sending")
+			err = fmt.Errorf("%w: Failed to delay sending", err)
 		}
 		return err
 	}, dtdal.CrossGroupTransaction); err != nil {
@@ -108,7 +108,7 @@ func SendEmail(c context.Context, from, to, subject, bodyText, bodyHtml string) 
 			}
 		} else {
 			log.Errorf(c, "Failed to send email using AWS SES: %v", err)
-			return "", errors.Wrap(err, "Failed to send email")
+			return "", fmt.Errorf("failed to send email: %w", err)
 		}
 	}
 

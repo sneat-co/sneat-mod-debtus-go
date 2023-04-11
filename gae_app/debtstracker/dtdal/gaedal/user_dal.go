@@ -11,7 +11,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
@@ -51,7 +50,7 @@ func (userDal UserDalGae) SetLastCurrency(c context.Context, userID int64, curre
 func (userDal UserDalGae) GetUserByStrID(c context.Context, userID string) (user models.AppUser, err error) {
 	var intUserID int64
 	if intUserID, err = strconv.ParseInt(userID, 10, 64); err != nil {
-		err = errors.WithMessage(err, "UserDalGae.GetUserByStrID()")
+		err = fmt.Errorf("%w: UserDalGae.GetUserByStrID()", err)
 		return
 	}
 	return facade.User.GetUserByID(c, intUserID)

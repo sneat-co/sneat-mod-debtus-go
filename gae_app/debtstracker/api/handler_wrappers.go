@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"context"
-	"errors"
 	"github.com/strongo/log"
 )
 
@@ -115,7 +114,7 @@ func (hashedWriter HashedResponseWriter) Header() http.Header {
 
 func (hashedWriter HashedResponseWriter) Write(b []byte) (int, error) {
 	if _, err := hashedWriter.hash.Write(b); err != nil {
-		return 0, errors.Wrap(err, "Failed to write to MD5 hash")
+		return 0, fmt.Errorf("failed to write to hash: %w", err)
 	}
 	return hashedWriter.buffer.Write(b)
 }
@@ -128,7 +127,7 @@ func (hashedWriter HashedResponseWriter) WriteHeader(v int) {
 func (hashedWriter HashedResponseWriter) flush(w http.ResponseWriter) (int, error) {
 	i, err := w.Write(hashedWriter.buffer.Bytes())
 	if err != nil {
-		err = errors.Wrap(err, "Failed to flush buffer to response writer")
+		err = fmt.Errorf("failed to flush buffer to response writer: %w", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		i2, _ := w.Write([]byte(err.Error()))
 		i += i2

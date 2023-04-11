@@ -1,6 +1,7 @@
 package gaedal
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 
@@ -8,7 +9,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
@@ -41,7 +41,7 @@ func (TgChatDalGae) /* TODO: rename properly! */ DoSomething(c context.Context,
 		var tgChat telegram.TgChatEntityBase
 
 		if err = gaedb.Get(tc, tgChatKey, &tgChat); err != nil {
-			return errors.Wrapf(err, "Failed to get Telegram chat entity by key=%v", tgChatKey)
+			return fmt.Errorf("failed to get Telegram chat entity by key=%v: %w", tgChatKey, err)
 		}
 		if tgChat.BotID == "" {
 			log.Errorf(c, "Data inconsistency issue - TgChat(%v).BotID is empty string", tgChatID)
@@ -62,11 +62,11 @@ func (TgChatDalGae) /* TODO: rename properly! */ DoSomething(c context.Context,
 			isSentToTelegram = true
 		}
 		if _, err = gaedb.Put(tc, tgChatKey, &tgChat); err != nil {
-			return errors.Wrap(err, "Failed to save Telegram chat entity to datastore")
+			return fmt.Errorf("failed to save Telegram chat entity to datastore: %w", err)
 		}
 		return err
 	}, nil); err != nil {
-		err = errors.Wrap(err, "TgChatDalGae.DoSomething() transaction failed")
+		err = fmt.Errorf("method TgChatDalGae.DoSomething() transaction failed: %w", err)
 	}
 	return
 }

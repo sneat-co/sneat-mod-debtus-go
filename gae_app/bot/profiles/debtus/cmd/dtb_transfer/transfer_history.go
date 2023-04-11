@@ -26,7 +26,7 @@ var HistoryCommand = botsfw.Command{
 	Icon:     emoji.HISTORY_ICON,
 	Title:    trans.COMMAND_TEXT_HISTORY,
 	Commands: trans.Commands(trans.COMMAND_HISTORY, emoji.HISTORY_ICON), // TODO: Check icon!
-	Titles:   map[string]string{bots.ShortTitle: emoji.HISTORY_ICON},    // TODO: Check icon!
+	Titles:   map[string]string{botsfw.ShortTitle: emoji.HISTORY_ICON},  // TODO: Check icon!
 	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		return showHistoryCard(whc, HistoryTopLimit)
 	},

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -35,7 +36,7 @@ func handleSignInWithCode(c context.Context, w http.ResponseWriter, r *http.Requ
 			case models.ErrLoginCodeAlreadyClaimed:
 				w.Write([]byte("claimed"))
 			default:
-				err = errors.Wrap(err, "Failed to claim code")
+				err = fmt.Errorf("failed to claim code: %w", err)
 				ErrorAsJson(c, w, http.StatusInternalServerError, err)
 			}
 		} else {
@@ -51,7 +52,7 @@ func handleSignInWithCode(c context.Context, w http.ResponseWriter, r *http.Requ
 func handleSignInWithPin(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
 	loginID, err := common.DecodeID(r.PostFormValue("loginID"))
 	if err != nil {
-		BadRequestError(c, w, errors.Wrap(err, "Parameter 'loginID' is not an integer."))
+		BadRequestError(c, w, fmt.Errorf("parameter 'loginID' is not an integer: %w", err))
 		return
 	}
 
@@ -69,7 +70,7 @@ func handleSignInWithPin(c context.Context, w http.ResponseWriter, r *http.Reque
 			case facade.ErrLoginAlreadySigned:
 				w.Write([]byte("claimed"))
 			default:
-				err = errors.Wrap(err, "Failed to claim loginCode")
+				err = fmt.Errorf("failed to claim loginCode: %w", err)
 				ErrorAsJson(c, w, http.StatusInternalServerError, err)
 			}
 		} else {

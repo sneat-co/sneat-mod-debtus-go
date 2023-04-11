@@ -10,7 +10,6 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtmocks"
 	"context"
-	"errors"
 	"github.com/strongo/decimal"
 )
 
@@ -283,7 +282,7 @@ func createGoodBillSplitByPercentage(t *testing.T) (billEntity *models.BillEntit
 		{Percent: 2500, MemberJson: models.MemberJson{ID: "3", Shares: percent, UserID: "5", Name: "Fifth user", ContactByUser: models.MemberContactsJsonByUser{"1": models.MemberContactJson{ContactID: "4", ContactName: "Forth contact"}}}},
 		{Percent: 2500, MemberJson: models.MemberJson{ID: "4", Shares: percent, Name: "12th contact", ContactByUser: models.MemberContactsJsonByUser{"5": models.MemberContactJson{ContactID: "12", ContactName: "12th contact"}}}},
 	}); err != nil {
-		t.Error(errors.WithMessage(err, "Failed to set members"))
+		t.Error(fmt.Errorf("%w: Failed to set members", err))
 		return
 	}
 	return
@@ -302,7 +301,7 @@ func createGoodBillSplitEqually(t *testing.T) (billEntity *models.BillEntity, er
 		{Owes: 212, MemberJson: models.MemberJson{ID: "2", Name: "Second", ContactByUser: models.MemberContactsJsonByUser{"1": models.MemberContactJson{ContactID: "2"}}}},
 		{Owes: 212, MemberJson: models.MemberJson{ID: "3", Name: "Forth", ContactByUser: models.MemberContactsJsonByUser{"1": models.MemberContactJson{ContactID: "4"}}}},
 	}); err != nil {
-		err = errors.WithMessage(err, "Failed to set members")
+		err = fmt.Errorf("%w: Failed to set members", err)
 		return
 	}
 	return
@@ -353,7 +352,7 @@ func createGoodBillSplitByShare(t *testing.T) (billEntity *models.BillEntity, er
 		{MemberJson: models.MemberJson{ID: "2", Shares: 1, Name: "Second", ContactByUser: models.MemberContactsJsonByUser{"1": models.MemberContactJson{ContactID: "2"}}}},
 		{MemberJson: models.MemberJson{ID: "3", Shares: 3, Name: "Forth", ContactByUser: models.MemberContactsJsonByUser{"1": models.MemberContactJson{ContactID: "4"}}}},
 	}); err != nil {
-		t.Error(errors.WithMessage(err, "Failed to set members"))
+		t.Error(fmt.Errorf("%w: Failed to set members", err))
 		return
 	}
 	members := billEntity.GetBillMembers()

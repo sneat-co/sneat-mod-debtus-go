@@ -11,7 +11,7 @@ import (
 
 var InlineQueryCommand = botsfw.Command{
 	Code: "inline-query",
-	//InputTypes: []botsfw.WebhookInputType{bots.WebhookInputInlineQuery},
+	//InputTypes: []botsfw.WebhookInputType{botsfw.WebhookInputInlineQuery},
 	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 

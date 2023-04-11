@@ -1,6 +1,8 @@
 package gaedal
 
 import (
+	"github.com/dal-go/dalgo/dal"
+	"github.com/strongo/db"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
@@ -8,7 +10,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
@@ -42,9 +43,9 @@ func (receiptDalGae ReceiptDalGae) GetReceiptByID(c context.Context, id int64) (
 	receiptEntity := new(models.ReceiptEntity)
 	err := gaedb.Get(c, gaedb.NewKey(c, models.ReceiptKind, "", id, nil), receiptEntity)
 	if err == datastore.ErrNoSuchEntity {
-		err = db.NewErrNotFoundByIntID(models.ReceiptKind, id, err)
+		err = dal.NewErrNotFoundByIntID(models.ReceiptKind, id, err)
 	} else if err != nil {
-		err = errors.Wrapf(err, "Failed to get receipt by id=%v", id)
+		return models.Receipt{}, err
 	}
 	return models.Receipt{IntegerID: db.NewIntID(id), ReceiptEntity: receiptEntity}, err
 }
@@ -56,7 +57,7 @@ func (receiptDalGae ReceiptDalGae) CreateReceipt(c context.Context, receipt *mod
 		if err != nil {
 			return err
 		}
-		user.CountOfReceiptsCreated += 1
+		user.Data.CountOfReceiptsCreated += 1
 		if keys, err := gaedb.PutMulti(c, []*datastore.Key{receiptKey, NewAppUserKey(c, receipt.CreatorUserID)}, []interface{}{receipt, user}); err != nil {
 			return err
 		} else {

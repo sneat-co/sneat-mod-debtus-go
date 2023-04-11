@@ -464,7 +464,7 @@ func (entity *GroupEntity) Validate() error {
 	}
 	//ps, err := datastore.SaveStruct(entity)
 	//if ps, err = gaedb.CleanProperties(ps, groupPropertiesToClean); err != nil {
-	//	return ps, errors.WithMessage(err, "failed to clean properties for *GroupEntity")
+	//	return ps, fmt.Errorf("%w: failed to clean properties for *GroupEntity", err)
 	//}
 	//checkHasProperties(GroupKind, ps)
 	return nil
