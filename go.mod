@@ -10,7 +10,7 @@ require (
 	github.com/captaincodeman/datastore-mapper v0.0.0-20170320145307-cb380a4c4d13
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85
 	github.com/crediterra/money v0.0.1
-	github.com/dal-go/dalgo v0.2.3
+	github.com/dal-go/dalgo v0.2.4
 	github.com/golang-jwt/jwt/v4 v4.2.0
 	github.com/gorilla/sessions v1.2.1
 	github.com/julienschmidt/httprouter v1.3.0
@@ -20,7 +20,7 @@ require (
 	github.com/sendgrid/sendgrid-go v3.10.4+incompatible
 	github.com/shiyanhui/hero v0.0.2
 	github.com/sneat-co/debtstracker-translations v0.0.2
-	github.com/strongo/app v0.0.2
+	github.com/strongo/app v0.0.3
 	github.com/strongo/bots-framework v0.2.0
 	github.com/strongo/db v0.0.0-20210908182344-952d1cfe3eb0
 	github.com/strongo/decimal v0.0.0-20180523215323-a1521d8f65fa
@@ -35,7 +35,7 @@ require (
 	github.com/strongo/validation v0.0.1
 	github.com/yaa110/go-persian-calendar v1.0.2
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
-	golang.org/x/net v0.0.0-20211209124913-491a49abca63
+	golang.org/x/net v0.0.0-20220708220712-1185a9018129
 	google.golang.org/appengine v1.6.7
 )
 
@@ -74,6 +74,7 @@ require (
 	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/api v0.63.0 // indirect
+	google.golang.org/appengine/v2 v2.0.2 // indirect
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
 	google.golang.org/grpc v1.40.1 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect

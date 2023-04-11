@@ -6,7 +6,6 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	bots "github.com/strongo/bots-framework/core"
 	"net/url"
 	"strconv"
 	"strings"
@@ -85,7 +84,7 @@ var AskReturnCounterpartyCommand = CreateAskTransferCounterpartyCommand(
 		AskToChooseDebtToReturnCommand,
 		AskIfReturnedInFullCommand,
 	},
-	bots.Command{}, //newContactCommand - We do not allow to create a new contact on return
+	botsfw.Command{}, //newContactCommand - We do not allow to create a new contact on return
 	func(whc botsfw.WebhookContext, counterparty models.Contact) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 
@@ -103,7 +102,7 @@ var AskReturnCounterpartyCommand = CreateAskTransferCounterpartyCommand(
 				return askIfReturnedInFull(whc, counterparty, currency, value)
 			}
 		case 0:
-			errorMessage := whc.Translate(trans.MESSAGE_TEXT_COUNTERPARTY_HAS_EMPTY_BALANCE, counterparty.FullName())
+			errorMessage := whc.Translate(trans.MESSAGE_TEXT_COUNTERPARTY_HAS_EMPTY_BALANCE, counterparty.Data.FullName())
 			log.Debugf(c, "Balance is empty: "+errorMessage)
 			m = whc.NewMessage(errorMessage)
 		default:
