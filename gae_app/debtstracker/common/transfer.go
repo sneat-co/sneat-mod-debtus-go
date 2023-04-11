@@ -3,6 +3,7 @@ package common
 import (
 	"bytes"
 	"fmt"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"io"
 	"strconv"
 	"strings"
@@ -36,17 +37,17 @@ func getUrlForUser(userID int64, locale strongo.Locale, page, createdOnPlatform,
 	return url + fmt.Sprintf("&lang=%v&secret=%v", locale.SiteCode(), token)
 }
 
-func GetTransferUrlForUser(transferID, userID int64, locale strongo.Locale, utmParams UtmParams) string {
+func GetTransferUrlForUser(transferID int, userID int64, locale strongo.Locale, utmParams UtmParams) string {
 	var buffer bytes.Buffer
 	WriteTransferUrlForUser(&buffer, transferID, userID, locale, utmParams)
 	return buffer.String()
 }
 
-func WriteTransferUrlForUser(writer io.Writer, transferID, userID int64, locale strongo.Locale, utmParams UtmParams) {
+func WriteTransferUrlForUser(writer io.Writer, transferID int, userID int64, locale strongo.Locale, utmParams UtmParams) {
 	host := GetWebsiteHost(utmParams.Source)
 	writer.Write([]byte(fmt.Sprintf(
 		"https://%v/transfer?id=%v&lang=%v",
-		host, strconv.FormatInt(transferID, 10), locale.SiteCode(),
+		host, strconv.Itoa(transferID), locale.SiteCode(),
 	)))
 	if !utmParams.IsEmpty() {
 		writer.Write([]byte(fmt.Sprintf("&%v", utmParams.ShortString())))

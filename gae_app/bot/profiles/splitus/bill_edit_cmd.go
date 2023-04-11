@@ -2,13 +2,14 @@ package splitus
 
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/strongo/log"
 	"net/url"
 )
 
 const editBillCommandCode = "edit_bill"
 
-var editBillCommand = billCallbackCommand(editBillCommandCode, nil,
+var editBillCommand = billCallbackCommand(editBillCommandCode,
 	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "editBillCommand.CallbackAction()")

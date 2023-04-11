@@ -6,7 +6,6 @@ import (
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
-	bots "github.com/strongo/bots-framework/core"
 )
 
 func HelpCommandAction(whc botsfw.WebhookContext, showFeedbackButton bool) (m botsfw.MessageFromBot, err error) {
@@ -91,7 +90,7 @@ var AdsCommand = botsfw.Command{
 	Icon:     emoji.NEWSPAPER_ICON,
 	Commands: []string{emoji.NEWSPAPER_ICON, "/ads", "/реклама"},
 	Title:    trans.COMMAND_TEXT_HELP,
-	Titles:   map[string]string{bots.ShortTitle: ""},
+	Titles:   map[string]string{botsfw.ShortTitle: ""},
 	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		chatEntity := whc.ChatEntity()
 
@@ -107,7 +106,7 @@ var AdsCommand = botsfw.Command{
 				[]tgbotapi.KeyboardButton{tgbotapi.NewKeyboardButton(MainMenuCommand.DefaultTitle(whc))},
 			)
 		} else {
-			switch whc.Input().(bots.WebhookTextMessage).Text() {
+			switch whc.Input().(botsfw.WebhookTextMessage).Text() {
 			case yesOption:
 				m = whc.NewMessageByCode(trans.MESSAGE_TEXT_SUBSCRIBED_TO_APP)
 				SetMainMenuKeyboard(whc, &m)

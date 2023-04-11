@@ -51,7 +51,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 	)
 
 	if targetContact, err = facade.GetContactByID(c, targetContactID); err != nil {
-		if db.IsNotFound(err) && len(sourceContactIDs) == 1 {
+		if dal.IsNotFound(err) && len(sourceContactIDs) == 1 {
 			if targetContact, err = facade.GetContactByID(c, sourceContactIDs[0]); err != nil {
 				return
 			}
@@ -75,7 +75,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 		}
 		var sourceContact models.Contact
 		if sourceContact, err = facade.GetContactByID(c, sourceContactID); err != nil {
-			if db.IsNotFound(err) {
+			if dal.IsNotFound(err) {
 				continue
 			}
 			return
@@ -120,7 +120,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 					}
 					var sourceContact models.Contact
 					if sourceContact, err = facade.GetContactByID(c, sourceContactID); err != nil {
-						if db.IsNotFound(err) {
+						if dal.IsNotFound(err) {
 							err = nil
 						} else {
 							return
@@ -134,7 +134,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 						if sourceContact.CounterpartyCounterpartyID != 0 {
 							var counterpartyContact models.Contact
 							if counterpartyContact, err = facade.GetContactByID(c, sourceContact.CounterpartyCounterpartyID); err != nil {
-								if db.IsNotFound(err) {
+								if dal.IsNotFound(err) {
 									err = nil
 								} else {
 									return

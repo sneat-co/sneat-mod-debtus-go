@@ -58,7 +58,7 @@ func (whc ApiWebhookContext) ChatEntity() botsfw.BotChat {
 	return whc.chatEntity
 }
 
-func (whc ApiWebhookContext) GetAppUser() (bots.BotAppUser, error) {
+func (whc ApiWebhookContext) GetAppUser() (botsfw.BotAppUser, error) {
 	return whc.appUser, nil
 }
 

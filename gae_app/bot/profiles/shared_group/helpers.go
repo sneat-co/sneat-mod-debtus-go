@@ -94,7 +94,7 @@ func createGroupFromTelegram(whc botsfw.WebhookContext, chatEntity *models.DtTel
 		log.Debugf(c, "beforeGroupInsert()")
 		var tgGroup models.TgGroup
 		if tgGroup, err = dtdal.TgGroup.GetTgGroupByID(c, tgChat.ID); err != nil {
-			if db.IsNotFound(err) {
+			if dal.IsNotFound(err) {
 				err = nil
 			} else {
 				return

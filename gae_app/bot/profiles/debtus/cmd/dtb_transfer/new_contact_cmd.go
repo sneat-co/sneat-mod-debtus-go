@@ -42,7 +42,7 @@ func NewCounterpartyCommand(nextCommand botsfw.Command) botsfw.Command {
 
 				switch input.(type) {
 				case botsfw.WebhookTextMessage:
-					webhookMessage := input.(bots.WebhookTextMessage)
+					webhookMessage := input.(botsfw.WebhookTextMessage)
 					mt := strings.TrimSpace(webhookMessage.Text())
 					if mt == "." {
 						return dtb_general.MainMenuAction(whc, "", false)
@@ -58,7 +58,7 @@ func NewCounterpartyCommand(nextCommand botsfw.Command) botsfw.Command {
 						Username: mt,
 					}
 				case botsfw.WebhookContactMessage:
-					contactMessage := input.(bots.WebhookContactMessage)
+					contactMessage := input.(botsfw.WebhookContactMessage)
 					if contactMessage == nil {
 						return m, errors.New("failed to get WebhookContactMessage: contactMessage == nil")
 					}

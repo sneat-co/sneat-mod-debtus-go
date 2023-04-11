@@ -1,12 +1,14 @@
 package common
 
 import (
+	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"reflect"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/app"
 )
 
@@ -37,7 +39,7 @@ func (appCtx DebtsTrackerAppContext) GetBotChatEntityFactory(platform string) fu
 	case "telegram":
 		return func() botsfw.BotChat {
 			return &models.DtTelegramChatEntity{
-				TgChatEntityBase: *telegram.NewTelegramChatEntity(),
+				TgChatData: *tgstore.NewTelegramChatEntity(),
 			}
 		}
 	default:

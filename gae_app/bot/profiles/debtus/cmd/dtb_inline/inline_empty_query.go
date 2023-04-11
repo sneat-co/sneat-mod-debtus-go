@@ -4,13 +4,12 @@ import (
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
-	bots "github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 )
 
 func InlineEmptyQuery(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 	log.Debugf(whc.Context(), "InlineEmptyQuery()")
-	inlineQuery := whc.Input().(bots.WebhookInlineQuery)
+	inlineQuery := whc.Input().(botsfw.WebhookInlineQuery)
 	m.BotMessage = telegram.InlineBotMessage(tgbotapi.InlineConfig{
 		InlineQueryID:     inlineQuery.GetInlineQueryID(),
 		CacheTime:         60,

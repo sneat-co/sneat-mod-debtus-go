@@ -141,7 +141,7 @@ func updateUserWithBill(c context.Context, billID, userID string) (err error) {
 		}
 		return
 	}, db.SingleGroupTransaction); err != nil {
-		if db.IsNotFound(err) {
+		if dal.IsNotFound(err) {
 			log.Errorf(c, err.Error())
 			err = nil
 		}

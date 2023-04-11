@@ -3,7 +3,9 @@ package splitus
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/sneat-co/debtstracker-translations/emoji"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
 )
 
@@ -22,7 +24,7 @@ func getGroupBillCardInlineKeyboard(translator strongo.SingleLocaleTranslator, b
 			},
 			{
 				{
-					Text:         translator.Translate(trans.BUTTON_TEXT_SPLIT_MODE, translator.Translate(string(bill.SplitMode))),
+					Text:         translator.Translate(trans.BUTTON_TEXT_SPLIT_MODE, translator.Translate(string(bill.Data.SplitMode))),
 					CallbackData: billCallbackCommandData(billSharesCommandCode, bill.ID),
 				},
 			},

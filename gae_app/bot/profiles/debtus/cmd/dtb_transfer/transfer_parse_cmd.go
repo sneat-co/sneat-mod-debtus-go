@@ -20,13 +20,13 @@ var ParseTransferCommand = botsfw.Command{
 		input := whc.Input()
 		switch input.(type) {
 		case botsfw.WebhookTextMessage:
-			return transferRegex.MatchString(input.(bots.WebhookTextMessage).Text())
+			return transferRegex.MatchString(input.(botsfw.WebhookTextMessage).Text())
 		default:
 			return false
 		}
 	},
 	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
-		match := transferRegex.FindStringSubmatch(whc.Input().(bots.WebhookTextMessage).Text())
+		match := transferRegex.FindStringSubmatch(whc.Input().(botsfw.WebhookTextMessage).Text())
 		var verb, valueS, counterpartyName, when string
 		var direction models.TransferDirection
 		var currency money.Currency

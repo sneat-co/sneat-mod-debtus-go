@@ -5,7 +5,6 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/strongo/bots-framework/platforms/fbm"
 	"github.com/strongo/log"
 	"net/url"
 )
@@ -27,13 +26,13 @@ var MainMenuCommand = botsfw.Command{
 
 func MainMenuAction(whc botsfw.WebhookContext, messageText string, showHint bool) (m botsfw.MessageFromBot, err error) {
 	if messageText == "" {
-		if whc.BotPlatform().ID() != fbm.PlatformID {
-			if showHint {
-				messageText = fmt.Sprintf("%v\n\n%v", whc.Translate(trans.MESSAGE_TEXT_WHATS_NEXT), whc.Translate(trans.MESSAGE_TEXT_DEBTUS_COMMANDS))
-			} else {
-				messageText = whc.Translate(trans.MESSAGE_TEXT_WHATS_NEXT)
-			}
+		//if whc.BotPlatform().ID() != fbm.PlatformID {
+		if showHint {
+			messageText = fmt.Sprintf("%v\n\n%v", whc.Translate(trans.MESSAGE_TEXT_WHATS_NEXT), whc.Translate(trans.MESSAGE_TEXT_DEBTUS_COMMANDS))
+		} else {
+			messageText = whc.Translate(trans.MESSAGE_TEXT_WHATS_NEXT)
 		}
+		//}
 	}
 	log.Infof(whc.Context(), "MainMenuCommand.Action()")
 	whc.ChatEntity().SetAwaitingReplyTo("")

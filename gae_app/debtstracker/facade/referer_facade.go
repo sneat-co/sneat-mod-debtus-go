@@ -3,13 +3,13 @@ package facade
 import (
 	"bytes"
 	"encoding/binary"
+	"github.com/dal-go/dalgo/dal"
 	"math/rand"
 	"sort"
 	"strings"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
@@ -31,19 +31,23 @@ var errAlreadyReferred = errors.New("already referred")
 
 func setUserReferrer(c context.Context, userID int64, referredBy string) (err error) {
 	userChanged := false
-	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
+	}
+	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
 		user, err := User.GetUserByID(c, userID)
 		if err != nil {
 			return err
 		}
-		if user.ReferredBy != "" {
+		if user.Data.ReferredBy != "" {
 			log.Debugf(c, "already referred")
 			return nil
 		}
-		user.ReferredBy = referredBy
+		user.Data.ReferredBy = referredBy
 		userChanged = true
-		return User.SaveUser(c, user)
-	}, db.CrossGroupTransaction); err != nil {
+		return User.SaveUser(c, tx, user)
+	}); err != nil {
 		log.Errorf(c, "failed to check & update user: %v", err)
 		return err
 	}
@@ -70,72 +74,83 @@ func (f refererFacade) AddTelegramReferrer(c context.Context, userID int64, tgUs
 				log.Errorf(c, "panic in refererFacade.AddTelegramReferrer(): %v", r)
 			}
 		}()
-		user, err := User.GetUserByID(c, userID)
-		if err != nil {
-			log.Errorf(c, err.Error())
+		var db dal.Database
+		var err error
+		if db, err = GetDatabase(c); err != nil {
 			return
 		}
-		if user.ReferredBy != "" {
-			log.Debugf(c, "AddTelegramReferrer() => already referred")
-			return
-		}
-
-		referer := models.Referer{
-			RefererEntity: &models.RefererEntity{
-				Platform:   "tg",
-				ReferredTo: botID,
-				DtCreated:  now,
-				ReferredBy: tgUsername,
-			},
-		}
-
-		referredBy := "tg:" + tgUsername
-
-		if err = delaySetUserReferrer(c, userID, referredBy); err != nil {
-			log.Errorf(c, "Failed to delay set user referrer: %v", err)
-			if err = setUserReferrer(c, userID, referredBy); err != nil {
-				log.Errorf(c, "Failed to set user referrer: %v", err)
-				return
+		if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+			user, err := User.GetUserByID(c, userID)
+			if err != nil {
+				log.Errorf(c, err.Error())
+				return nil
 			}
-		}
+			if user.Data.ReferredBy != "" {
+				log.Debugf(c, "AddTelegramReferrer() => already referred")
+				return nil
+			}
 
-		var isLocked bool
-		item, err := memcache.Get(c, lastTgReferrers)
-		if err != nil {
-			if err == memcache.ErrCacheMiss {
-				item = f.lockMemcacheItem(c)
-				isLocked = true
-				err = nil
-			} else {
-				log.Warningf(c, "failed to get last-tg-referrers from memcache: %v", err)
+			referer := models.Referer{
+				Data: &models.RefererEntity{
+					Platform:   "tg",
+					ReferredTo: botID,
+					DtCreated:  now,
+					ReferredBy: tgUsername,
+				},
 			}
-		}
-		if err := dtdal.DB.InsertWithRandomIntID(c, &referer); err != nil {
-			log.Errorf(c, "failed to insert referer to DB: %v", err)
-		}
-		if item == nil {
-			if err = memcache.Delete(c, lastTgReferrers); err != nil {
-				log.Warningf(c, "Failed to clear memcache item: %v", err) // TODO: add a queue task to remove?
-				return
-			}
-		} else {
-			var tgUsernames []string
-			if isLocked {
-				tgUsernames = []string{tgUsername}
-			} else {
-				tgUsernames = append(strings.Split(string(item.Value), ","), tgUsername)
-				if len(tgUsernames) > 100 {
-					tgUsernames = tgUsernames[:100]
+
+			referredBy := "tg:" + tgUsername
+
+			if err = delaySetUserReferrer(c, userID, referredBy); err != nil {
+				log.Errorf(c, "Failed to delay set user referrer: %v", err)
+				if err = setUserReferrer(c, userID, referredBy); err != nil {
+					log.Errorf(c, "Failed to set user referrer: %v", err)
+					return nil
 				}
 			}
-			item.Value = []byte(strings.Join(tgUsernames, ","))
-			item.Expiration = topReferralsCacheTime
-			if err = memcache.CompareAndSwap(c, item); err != nil {
+
+			var isLocked bool
+			item, err := memcache.Get(c, lastTgReferrers)
+			if err != nil {
+				if err == memcache.ErrCacheMiss {
+					item = f.lockMemcacheItem(c)
+					isLocked = true
+					err = nil
+				} else {
+					log.Warningf(c, "failed to get last-tg-referrers from memcache: %v", err)
+				}
+			}
+			if err := tx.Insert(c, referer.Record); err != nil {
+				log.Errorf(c, "failed to insert referer to DB: %v", err)
+			}
+			if item == nil {
 				if err = memcache.Delete(c, lastTgReferrers); err != nil {
-					log.Warningf(c, "failed to delete '%v' from memcache", lastTgReferrers)
+					log.Warningf(c, "Failed to clear memcache item: %v", err) // TODO: add a queue task to remove?
+					return nil
+				}
+			} else {
+				var tgUsernames []string
+				if isLocked {
+					tgUsernames = []string{tgUsername}
+				} else {
+					tgUsernames = append(strings.Split(string(item.Value), ","), tgUsername)
+					if len(tgUsernames) > 100 {
+						tgUsernames = tgUsernames[:100]
+					}
+				}
+				item.Value = []byte(strings.Join(tgUsernames, ","))
+				item.Expiration = topReferralsCacheTime
+				if err = memcache.CompareAndSwap(c, item); err != nil {
+					if err = memcache.Delete(c, lastTgReferrers); err != nil {
+						log.Warningf(c, "failed to delete '%v' from memcache", lastTgReferrers)
+					}
 				}
 			}
+			return nil
+		}); err != nil {
+			panic(err)
 		}
+
 	}()
 }
 

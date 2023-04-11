@@ -169,7 +169,7 @@ func validateContacts(c context.Context,
 	for i, userContactInfo := range userContactsJson {
 		var contact models.Contact
 		if contact, err = facade.GetContactByID(c, userContactInfo.ID); err != nil {
-			if db.IsNotFound(err) {
+			if dal.IsNotFound(err) {
 				contactInfosNotFoundInDb = append(contactInfosNotFoundInDb, userContactInfo)
 			} else {
 				panic(err)

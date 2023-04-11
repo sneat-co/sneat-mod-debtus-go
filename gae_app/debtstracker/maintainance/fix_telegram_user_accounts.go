@@ -78,7 +78,7 @@ func (m *verifyTelegramUserAccounts) dealWithIntKey(c context.Context, counters 
 	}
 	var tgChat models.TelegramChat
 	if tgChat, err = dtdal.TgChat.GetTgChatByID(c, tgChatEntity.BotID, tgChatEntity.TelegramUserID); err != nil {
-		if db.IsNotFound(err) {
+		if dal.IsNotFound(err) {
 			tgChat.SetID(tgChatEntity.BotID, tgChatEntity.TelegramUserID)
 			tgChat.SetEntity(tgChatEntity)
 			if err = dtdal.DB.Update(c, &tgChat); err != nil {
@@ -146,7 +146,7 @@ func (m *verifyTelegramUserAccounts) processTelegramChat(c context.Context, tgCh
 	}
 	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 		if user, err = facade.User.GetUserByID(c, tgChat.AppUserIntID); err != nil {
-			if db.IsNotFound(err) {
+			if dal.IsNotFound(err) {
 				log.Errorf(c, "Failed to process %v: %v", tgChat.ID, err)
 				err = nil
 			}

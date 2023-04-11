@@ -1,28 +1,28 @@
 package dtb_settings
 
 import (
-	"fmt"
-	"strconv"
-	"strings"
-
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"errors"
-	"github.com/strongo/bots-framework/platforms/viber"
+	"fmt"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"strconv"
+	"strings"
 )
 
 var LoginPinCommand = botsfw.Command{
 	Code: "LoginPin",
 	Matcher: func(cmd botsfw.Command, whc botsfw.WebhookContext) bool {
-		if whc.BotPlatform().ID() == viber.PlatformID && whc.InputType() == botsfw.WebhookInputText {
-			context := whc.Input().(viber.WebhookInputConversationStarted).GetContext()
-			return strings.HasPrefix(context, "login-")
-		} else {
-			return false
-		}
+		return false
+		//if whc.BotPlatform().ID() == viber.PlatformID && whc.InputType() == botsfw.WebhookInputText {
+		//	context := whc.Input().(viber.WebhookInputConversationStarted).GetContext()
+		//	return strings.HasPrefix(context, "login-")
+		//} else {
+		//	return false
+		//}
 	},
 	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
-		mt := whc.Input().(bots.WebhookTextMessage).Text()
+		mt := whc.Input().(botsfw.WebhookTextMessage).Text()
 		context := strings.Split(mt, " ")[0]
 		contextParams := strings.Split(context, "_")
 		var (

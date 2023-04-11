@@ -91,10 +91,10 @@ func signInFbUser(c context.Context, fbAppID, fbUserID string, r *http.Request, 
 		}
 	}
 
-	if userFacebook, err = dtdal.UserFacebook.GetFbUserByFbID(c, fbAppID, fbUserID); err != nil && !db.IsNotFound(err) {
+	if userFacebook, err = dtdal.UserFacebook.GetFbUserByFbID(c, fbAppID, fbUserID); err != nil && !dal.IsNotFound(err) {
 		err = errors.WithMessage(err, "Failed to get UserFacebook record by ID")
 		return
-	} else if !db.IsNotFound(err) && fbUserID != "" && fbUserID != userFacebook.FbUserOrPageScopeID {
+	} else if !dal.IsNotFound(err) && fbUserID != "" && fbUserID != userFacebook.FbUserOrPageScopeID {
 		err = errors.WithMessage(ErrUnauthorized, fmt.Sprintf("fbUserID:%v != userFacebook.ID:%v", fbUserID, userFacebook.FbUserOrPageScopeID))
 		return
 	}

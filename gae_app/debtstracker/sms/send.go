@@ -1,6 +1,7 @@
 package sms
 
 import (
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"strings"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"

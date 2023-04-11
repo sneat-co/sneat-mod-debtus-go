@@ -20,7 +20,7 @@ var AskEmailForReceiptCommand = botsfw.Command{
 		c := whc.Context()
 
 		log.Debugf(c, "AskEmailForReceiptCommand.Action()")
-		email := whc.Input().(bots.WebhookTextMessage).Text()
+		email := whc.Input().(botsfw.WebhookTextMessage).Text()
 		if strings.Index(email, "@") < 0 {
 			return whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_INVALID_EMAIL)), nil
 		}

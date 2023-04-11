@@ -5,9 +5,14 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"errors"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
+	"github.com/strongo/db"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 	"net/url"
@@ -27,19 +32,23 @@ const leaveBillCommandCode = "leave_bill"
 var joinBillCommand = botsfw.Command{
 	Code: joinBillCommandCode,
 	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
-		text := whc.Input().(bots.WebhookTextMessage).Text()
+		text := whc.Input().(botsfw.WebhookTextMessage).Text()
 		var bill models.Bill
 		if bill.ID = strings.Replace(text, "/start join_bill-", "", 1); bill.ID == "" {
 			err = errors.New("Missing bill ID")
 			return
 		}
-		if err = dtdal.DB.RunInTransaction(whc.Context(), func(c context.Context) (err error) {
-			if bill, err = facade.GetBillByID(whc.Context(), bill.ID); err != nil {
+		var db dal.Database
+		if db, err = facade.GetDatabase(whc.Context()); err != nil {
+			return
+		}
+		if err = db.RunReadwriteTransaction(whc.Context(), func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+			if bill, err = facade.GetBillByID(whc.Context(), tx, bill.ID); err != nil {
 				return
 			}
-			m, err = joinBillAction(whc, bill, "", false)
+			m, err = joinBillAction(whc, tx, bill, "", false)
 			return
-		}, db.CrossGroupTransaction); err != nil {
+		}, dal.TxWithCrossGroup()); err != nil {
 			return
 		}
 		return
@@ -51,12 +60,12 @@ var joinBillCommand = botsfw.Command{
 			c := whc.Context()
 			log.Debugf(c, "joinBillCommand.CallbackAction()")
 			memberStatus := callbackUrl.Query().Get("i")
-			return joinBillAction(whc, bill, memberStatus, true)
+			return joinBillAction(whc, tx, bill, memberStatus, true)
 		}))(whc, callbackUrl)
 	},
 }
 
-func joinBillAction(whc botsfw.WebhookContext, bill models.Bill, memberStatus string, isEditMessage bool) (m botsfw.MessageFromBot, err error) {
+func joinBillAction(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, bill models.Bill, memberStatus string, isEditMessage bool) (m botsfw.MessageFromBot, err error) {
 	if bill.ID == "" {
 		panic("bill.ID is empty string")
 	}
@@ -71,7 +80,7 @@ func joinBillAction(whc botsfw.WebhookContext, bill models.Bill, memberStatus st
 	user := appUser.(*models.AppUserEntity)
 
 	isAlreadyMember := func(members []models.BillMemberJson) (member models.BillMemberJson, isMember bool) {
-		for _, member = range bill.GetBillMembers() {
+		for _, member = range bill.Data.GetBillMembers() {
 			if isMember = member.UserID == userID; isMember {
 				return
 			}
@@ -79,7 +88,7 @@ func joinBillAction(whc botsfw.WebhookContext, bill models.Bill, memberStatus st
 		return
 	}
 
-	_, isMember := isAlreadyMember(bill.GetBillMembers())
+	_, isMember := isAlreadyMember(bill.Data.GetBillMembers())
 
 	userName := user.FullName()
 
@@ -115,7 +124,7 @@ func joinBillAction(whc botsfw.WebhookContext, bill models.Bill, memberStatus st
 	//}
 
 	billChanged := false
-	if bill.Currency == "" {
+	if bill.Data.Currency == "" {
 		guessCurrency := func() money.Currency {
 			switch whc.Locale().Code5 {
 			case strongo.LocalCodeRuRu:
@@ -140,20 +149,20 @@ func joinBillAction(whc botsfw.WebhookContext, bill models.Bill, memberStatus st
 			if group, err = shared_group.GetGroup(whc, nil); err != nil {
 				return
 			}
-			if group.GroupEntity != nil {
-				if group.DefaultCurrency != "" {
-					bill.Currency = group.DefaultCurrency
+			if group.Data != nil {
+				if group.Data.DefaultCurrency != "" {
+					bill.Data.Currency = group.Data.DefaultCurrency
 				} else {
-					bill.Currency = guessCurrency()
+					bill.Data.Currency = guessCurrency()
 				}
 			}
 		} else if user.PrimaryCurrency != "" {
-			bill.Currency = money.Currency(user.PrimaryCurrency)
+			bill.Data.Currency = money.Currency(user.PrimaryCurrency)
 		} else if len(user.LastCurrencies) > 0 {
-			bill.Currency = money.Currency(user.LastCurrencies[0])
+			bill.Data.Currency = money.Currency(user.LastCurrencies[0])
 		}
-		if bill.Currency == "" {
-			bill.Currency = guessCurrency()
+		if bill.Data.Currency == "" {
+			bill.Data.Currency = guessCurrency()
 		}
 		billChanged = true
 	}
@@ -163,13 +172,13 @@ func joinBillAction(whc botsfw.WebhookContext, bill models.Bill, memberStatus st
 	var paid decimal.Decimal64p2
 	switch memberStatus {
 	case "paid":
-		paid = bill.AmountTotal
+		paid = bill.Data.AmountTotal
 	case "owe":
 	default:
 	}
 
 	billChanged2 := false
-	if bill, _, billChanged2, isJoined, err = facade.Bill.AddBillMember(c, userID, bill, "", userID, userName, paid); err != nil {
+	if bill, _, billChanged2, isJoined, err = facade.Bill.AddBillMember(c, tx, userID, bill, "", userID, userName, paid); err != nil {
 		return
 	}
 	if billChanged = billChanged2 || billChanged; billChanged {

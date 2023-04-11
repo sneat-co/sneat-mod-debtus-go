@@ -24,11 +24,11 @@ func (billFacade) getBalances(splitID int64, bills []models.Bill) (balanceByCurr
 			balanceByMember SplitBalanceByMember
 			ok              bool
 		)
-		if balanceByMember, ok = balanceByCurrency[bill.Currency]; !ok {
+		if balanceByMember, ok = balanceByCurrency[bill.Data.Currency]; !ok {
 			balanceByMember = make(SplitBalanceByMember)
-			balanceByCurrency[bill.Currency] = balanceByMember
+			balanceByCurrency[bill.Data.Currency] = balanceByMember
 		}
-		for memberID, memberBalance := range bill.GetBalance() {
+		for memberID, memberBalance := range bill.Data.GetBalance() {
 			memberTotal := balanceByMember[memberID]
 			memberTotal.Paid += memberBalance.Paid
 			memberTotal.Owes += memberBalance.Owes

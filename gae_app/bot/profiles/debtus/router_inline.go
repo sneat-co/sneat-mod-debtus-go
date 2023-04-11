@@ -15,7 +15,7 @@ var InlineQueryCommand = botsfw.Command{
 	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 
-		inlineQuery := whc.Input().(bots.WebhookInlineQuery)
+		inlineQuery := whc.Input().(botsfw.WebhookInlineQuery)
 		query := inlineQuery.GetQuery()
 		log.Debugf(c, "InlineQueryCommand.Action(query=%v)", query)
 		switch {

@@ -89,7 +89,7 @@ func handleSignedInWithGooglePlus(c context.Context, w http.ResponseWriter, r *h
 	//	func(c context.Context) (err error) {
 	//		userGooglePlus, err = dtdal.UserGooglePlus.GetUserGooglePlusByID(c, googleAuthData.UserId)
 	//		if err != nil {
-	//			if db.IsNotFound(err) {
+	//			if dal.IsNotFound(err) {
 	//				err = nil
 	//				userGooglePlus.DtCreated = time.Now()
 	//			} else {

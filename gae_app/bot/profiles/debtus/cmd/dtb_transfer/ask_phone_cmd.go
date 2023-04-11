@@ -6,6 +6,10 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/sms"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
+
 	//"bitbucket.org/asterus/debtstracker-server/gae_app/invites"
 	"encoding/json"
 	"fmt"
@@ -47,37 +51,37 @@ var AskPhoneNumberForReceiptCommand = botsfw.Command{
 			phoneNumber    int64
 		)
 
-		contact, isContactMessage := input.(bots.WebhookContactMessage)
+		contact, isContactMessage := input.(botsfw.WebhookContactMessage)
 
 		if isContactMessage {
 			if contact == nil {
 				m = whc.NewMessageByCode(trans.MESSAGE_TEXT_INVALID_PHONE_NUMBER)
 				return m, nil
 			}
-			user, err := facade.User.GetUserByID(c, whc.AppUserIntID())
+			user, err := facade.User.GetUserByID(c, tx, whc.AppUserIntID())
 			if err != nil {
 				return m, err
 			}
-			if user.FirstName == contact.FirstName() && user.LastName == contact.LastName() {
+			if user.Data.FirstName == contact.FirstName() && user.Data.LastName == contact.LastName() {
 				phoneNumberStr = cleanPhoneNumber(contact.PhoneNumber())
 				if phoneNumber, err = strconv.ParseInt(phoneNumberStr, 10, 64); err != nil {
 					log.Warningf(c, "Failed to parse contact's phone number: [%v]", phoneNumberStr)
 					err = nil
-				} else if user.PhoneNumber == 0 {
+				} else if user.Data.PhoneNumber == 0 {
 					err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 						user, err := facade.User.GetUserByID(c, whc.AppUserIntID())
 						if err != nil {
 							return err
 						}
-						if user.PhoneNumber == 0 {
-							user.PhoneNumber = phoneNumber
-							user.PhoneNumberConfirmed = true
-							return facade.User.SaveUser(c, user)
+						if user.Data.PhoneNumber == 0 {
+							user.Data.PhoneNumber = phoneNumber
+							user.Data.PhoneNumberConfirmed = true
+							return facade.User.SaveUser(c, tx, user)
 						}
 						return nil
 					}, nil)
 					if err != nil {
-						log.Errorf(c, errors.Wrap(err, "Failed to update user with phone number").Error())
+						log.Errorf(c, fmt.Errorf("failed to update user with phone number: %w", err).Error())
 						err = nil
 					}
 				}
@@ -86,7 +90,7 @@ var AskPhoneNumberForReceiptCommand = botsfw.Command{
 			}
 			mt = contact.PhoneNumber()
 		} else {
-			mt = whc.Input().(bots.WebhookTextMessage).Text()
+			mt = whc.Input().(botsfw.WebhookTextMessage).Text()
 		}
 
 		if twilioTestNumber, ok := common.TwilioTestNumbers[mt]; ok {
@@ -105,19 +109,19 @@ var AskPhoneNumberForReceiptCommand = botsfw.Command{
 
 		awaitingUrl, err := url.Parse(chatEntity.GetAwaitingReplyTo())
 		if err != nil {
-			return m, errors.WithMessage(err, "Failed to parse chat state as URL")
+			return m, fmt.Errorf("failed to parse chat state as URL: %w", err)
 		}
 
 		if transferID, err := strconv.ParseInt(awaitingUrl.Query().Get(WIZARD_PARAM_TRANSFER), 10, 64); err != nil {
-			return m, errors.WithMessage(err, fmt.Sprintf("Failed to parse transferID: %v", awaitingUrl))
+			return m, fmt.Errorf("failed to parse transferID=%v: %w", awaitingUrl, err)
 		} else {
-			transfer, err := facade.Transfers.GetTransferByID(c, transferID)
+			transfer, err := facade.Transfers.GetTransferByID(c, tx, transferID)
 			if err != nil {
-				return m, errors.WithMessage(err, "Failed to get transfer by ID")
+				return m, fmt.Errorf("failed to get transfer by ID: %w", err)
 			}
-			counterparty, err := facade.GetContactByID(c, transfer.Counterparty().ContactID)
+			counterparty, err := facade.GetContactByID(c, transfer.Data.Counterparty().ContactID)
 			if err != nil {
-				return m, errors.WithMessage(err, "Failed to get contact by ID")
+				return m, err
 			}
 			phoneContact := models.PhoneContact{PhoneNumber: phoneNumber, PhoneNumberConfirmed: false}
 
@@ -132,8 +136,8 @@ const SMS_STATUS_MESSAGE_UPDATES_COUNT_PARAM_NAME = "SmsStatusUpdatesCount"
 func sendReceiptBySms(whc botsfw.WebhookContext, phoneContact models.PhoneContact, transfer models.Transfer, counterparty models.Contact) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
-	if transfer.TransferEntity == nil {
-		if transfer, err = facade.Transfers.GetTransferByID(c, transfer.ID); err != nil {
+	if transfer.Data == nil {
+		if transfer, err = facade.Transfers.GetTransferByID(c, tx, transfer.ID); err != nil {
 			return m, err
 		}
 	}
@@ -151,7 +155,7 @@ func sendReceiptBySms(whc botsfw.WebhookContext, phoneContact models.PhoneContac
 		//inviteCode string
 	)
 
-	receipt := models.NewReceiptEntity(whc.AppUserIntID(), transfer.ID, transfer.Counterparty().UserID, whc.Locale().Code5, "sms", strconv.FormatInt(phoneContact.PhoneNumber, 10), general.CreatedOn{
+	receipt := models.NewReceiptEntity(whc.AppUserIntID(), transfer.ID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, "sms", strconv.FormatInt(phoneContact.PhoneNumber, 10), general.CreatedOn{
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
 	})
@@ -161,7 +165,7 @@ func sendReceiptBySms(whc botsfw.WebhookContext, phoneContact models.PhoneContac
 
 	receiptUrl := common.GetReceiptUrl(receiptID, common.GetWebsiteHost(receipt.CreatedOnID))
 
-	if counterparty.CounterpartyUserID == 0 {
+	if counterparty.Data.CounterpartyUserID == 0 {
 		//related := fmt.Sprintf("%v=%v", models.TransferKind, transferID)
 		//inviteKey, invite, err := invites.CreatePersonalInvite(whc, whc.AppUserIntID(), invites.InviteBySms, strconv.FormatInt(phoneContact.PhoneNumber, 10), whc.BotPlatform().ID(), whc.GetBotCode(), related)
 		//if err != nil {
@@ -176,13 +180,13 @@ func sendReceiptBySms(whc botsfw.WebhookContext, phoneContact models.PhoneContac
 	// You've got $10 from Jack
 	// You've given $10 to Jack
 
-	switch transfer.Direction() {
+	switch transfer.Data.Direction() {
 	case models.TransferDirectionUser2Counterparty:
-		smsText = fmt.Sprintf(whc.Translate(trans.SMS_RECEIPT_YOU_GOT), transfer.GetAmount(), user.FullName())
+		smsText = fmt.Sprintf(whc.Translate(trans.SMS_RECEIPT_YOU_GOT), transfer.Data.GetAmount(), user.FullName())
 	case models.TransferDirectionCounterparty2User:
-		smsText = fmt.Sprintf(whc.Translate(trans.SMS_RECEIPT_YOU_GAVE), transfer.GetAmount(), user.FullName())
+		smsText = fmt.Sprintf(whc.Translate(trans.SMS_RECEIPT_YOU_GAVE), transfer.Data.GetAmount(), user.FullName())
 	default:
-		return m, errors.New("Unknown direction: " + string(transfer.Direction()))
+		return m, errors.New("Unknown direction: " + string(transfer.Data.Direction()))
 	}
 	smsText += "\n\n" + whc.Translate(trans.SMS_CLICK_TO_CONFIRM_OR_DECLINE, receiptUrl)
 
@@ -238,11 +242,11 @@ func sendReceiptBySms(whc botsfw.WebhookContext, phoneContact models.PhoneContac
 	tgChatID, err := strconv.ParseInt(whc.MustBotChatID(), 10, 64)
 
 	if err != nil {
-		return m, errors.WithMessage(err, "Failed to parse whc.BotChatID() to int")
+		return m, fmt.Errorf("failed to parse whc.BotChatID() to int: %w", err)
 	}
 
 	if lastTwilioSmsese, err := dtdal.Twilio.GetLastTwilioSmsesForUser(c, whc.AppUserIntID(), phoneContact.PhoneNumberAsString(), 1); err != nil {
-		err = errors.Wrap(err, "Failed to check latest SMS records")
+		err = fmt.Errorf("failed to check latest SMS records: %w", err)
 		return m, err
 	} else if len(lastTwilioSmsese) > 0 {
 		smsRecord := lastTwilioSmsese[0]
@@ -257,7 +261,7 @@ func sendReceiptBySms(whc botsfw.WebhookContext, phoneContact models.PhoneContac
 
 	isTestSender, smsResponse, twilioException, err := sms.SendSms(whc.Context(), whc.GetBotSettings().Env == strongo.EnvProduction, phoneContact.PhoneNumberAsString(), smsText)
 	if err != nil {
-		return m, errors.WithMessage(err, "Failed to send SMS")
+		return m, fmt.Errorf("failed to send SMS: %w", err)
 	}
 	//sms := common.Sms{
 	//	DtCreated: smsResponse.DateCreated,
@@ -284,14 +288,14 @@ func sendReceiptBySms(whc botsfw.WebhookContext, phoneContact models.PhoneContac
 			m.EditMessageUID = telegram.NewChatMessageUID(tgChatID, smsStatusMessageID)
 			return
 		}
-		if counterparty.PhoneNumber == phoneContact.PhoneNumber {
+		if counterparty.Data.PhoneNumber == phoneContact.PhoneNumber {
 			dtdal.DB.RunInTransaction(whc.Context(), func(tc context.Context) error {
-				counterparty, err := facade.GetContactByID(tc, transfer.Counterparty().ContactID)
+				counterparty, err := facade.GetContactByID(tc, transfer.Data.Counterparty().ContactID)
 				if err != nil {
 					return err
 				}
-				if counterparty.PhoneNumber != phoneContact.PhoneNumber {
-					counterparty.PhoneNumber = phoneContact.PhoneNumber
+				if counterparty.Data.PhoneNumber != phoneContact.PhoneNumber {
+					counterparty.Data.PhoneNumber = phoneContact.PhoneNumber
 					err = facade.SaveContact(c, counterparty)
 				}
 				return err
@@ -336,7 +340,7 @@ func sendReceiptBySms(whc botsfw.WebhookContext, phoneContact models.PhoneContac
 	m.DisableWebPagePreview = true
 
 	if _, err := whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
-		err = errors.Wrap(err, "Failed to send bot response message over HTTPS")
+		err = fmt.Errorf("failed to send bot response message over HTTPS: %w", err)
 		return m, err
 	}
 

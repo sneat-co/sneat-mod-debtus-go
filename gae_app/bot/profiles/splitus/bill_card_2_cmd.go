@@ -3,7 +3,10 @@ package splitus
 import (
 	"bytes"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
@@ -37,7 +40,7 @@ func startBillAction(whc botsfw.WebhookContext, billParam string) (m botsfw.Mess
 	if bill.ID = billParam[len("bill-"):]; bill.ID == "" {
 		return m, errors.New("Invalid bill parameter")
 	}
-	if bill, err = facade.GetBillByID(whc.Context(), bill.ID); err != nil {
+	if bill, err = facade.GetBillByID(whc.Context(), nil, bill.ID); err != nil {
 		return
 	}
 	return ShowBillCard(whc, false, bill, "")
@@ -53,7 +56,7 @@ func billCallbackCommandData(command string, billID string) string {
 	return command + "?bill=" + billID
 }
 
-var billMembersCommand = billCallbackCommand(billMembersCommandCode, nil,
+var billMembersCommand = billCallbackCommand(billMembersCommandCode,
 	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		var buffer bytes.Buffer
 		if err = writeBillCardTitle(whc.Context(), bill, whc.GetBotCode(), &buffer, whc); err != nil {
@@ -97,7 +100,7 @@ func writeBillMembersList(
 	bill models.Bill,
 	selectedMemberID string,
 ) {
-	billCurrency := money.Currency(bill.Currency)
+	billCurrency := money.Currency(bill.Data.Currency)
 	type MemberRowParams struct {
 		N          int
 		MemberName string
@@ -105,7 +108,7 @@ func writeBillMembersList(
 		Owes       money.Amount
 		Paid       money.Amount
 	}
-	billMembers := bill.GetBillMembers()
+	billMembers := bill.Data.GetBillMembers()
 
 	totalShares := 0
 
@@ -113,7 +116,7 @@ func writeBillMembersList(
 		totalShares += member.Shares
 	}
 
-	for i, member := range bill.GetBillMembers() {
+	for i, member := range bill.Data.GetBillMembers() {
 		templateParams := MemberRowParams{
 			N:          i + 1,
 			MemberName: member.Name,
@@ -130,14 +133,14 @@ func writeBillMembersList(
 			templateName string
 			err          error
 		)
-		if member.Paid == bill.AmountTotal {
+		if member.Paid == bill.Data.AmountTotal {
 			buffer.WriteString("<b>")
 		}
 		if err = common.HtmlTemplates.RenderTemplate(c, buffer, translator, trans.MESSAGE_TEXT_BILL_CARD_MEMBER_TITLE, templateParams); err != nil {
 			log.Errorf(c, "Failed to render template")
 			return
 		}
-		if member.Paid == bill.AmountTotal {
+		if member.Paid == bill.Data.AmountTotal {
 			buffer.WriteString("</b>")
 		}
 
@@ -170,7 +173,7 @@ const INVITE_BILL_MEMBER_COMMAND = "invite2bill"
 
 const INLINE_COMMAND_JOIN = "join"
 
-var inviteToBillCommand = billCallbackCommand(INVITE_BILL_MEMBER_COMMAND, nil,
+var inviteToBillCommand = billCallbackCommand(INVITE_BILL_MEMBER_COMMAND,
 	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		m.Keyboard = &tgbotapi.InlineKeyboardMarkup{
 			InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{
@@ -209,12 +212,12 @@ func ShowBillCard(whc botsfw.WebhookContext, isEdit bool, bill models.Bill, foot
 
 func writeBillCardTitle(c context.Context, bill models.Bill, botID string, buffer *bytes.Buffer, translator strongo.SingleLocaleTranslator) error {
 	var amount interface{}
-	if bill.Currency == "" {
-		amount = bill.AmountTotal
+	if bill.Data.Currency == "" {
+		amount = bill.Data.AmountTotal
 	} else {
-		amount = bill.TotalAmount()
+		amount = bill.Data.TotalAmount()
 	}
-	titleWithLink := fmt.Sprintf(`<a href="https://t.me/%v?start=bill-%v">%v</a>`, botID, bill.ID, bill.Name)
+	titleWithLink := fmt.Sprintf(`<a href="https://t.me/%v?start=bill-%v">%v</a>`, botID, bill.ID, bill.Data.Name)
 	log.Debugf(c, "titleWithLink: %v", titleWithLink)
 	header := translator.Translate(trans.MESSAGE_TEXT_BILL_CARD_HEADER, amount, titleWithLink)
 	log.Debugf(c, "header: %v", header)
@@ -226,7 +229,7 @@ func writeBillCardTitle(c context.Context, bill models.Bill, botID string, buffe
 }
 
 func getBillCardMessageText(c context.Context, botID string, translator strongo.SingleLocaleTranslator, bill models.Bill, showMembers bool, footer string) (string, error) {
-	log.Debugf(c, "getBillCardMessageText() => bill.BillEntity: %v", bill.BillEntity)
+	log.Debugf(c, "getBillCardMessageText() => bill.BillEntity: %v", bill.Data)
 
 	var buffer bytes.Buffer
 	log.Debugf(c, "Will write bill header...")
@@ -236,7 +239,7 @@ func getBillCardMessageText(c context.Context, botID string, translator strongo.
 	}
 	//buffer.WriteString("\n" + strings.Repeat("―", 15))
 
-	buffer.WriteString("\n" + translator.Translate(trans.MT_TEXT_MEMBERS_COUNT, bill.MembersCount))
+	buffer.WriteString("\n" + translator.Translate(trans.MT_TEXT_MEMBERS_COUNT, bill.Data.MembersCount))
 
 	if showMembers {
 		//buffer.WriteString("\n")
@@ -250,7 +253,7 @@ func getBillCardMessageText(c context.Context, botID string, translator strongo.
 	}
 
 	if footer != "" {
-		if !showMembers || bill.MembersCount == 0 {
+		if !showMembers || bill.Data.MembersCount == 0 {
 			buffer.WriteString("\n\n")
 		}
 		buffer.WriteString(footer)

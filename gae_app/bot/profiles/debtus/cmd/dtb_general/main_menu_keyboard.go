@@ -7,8 +7,6 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/strongo/bots-framework/platforms/fbm"
-	"github.com/strongo/bots-framework/platforms/viber"
 	"github.com/strongo/log"
 )
 
@@ -85,15 +83,15 @@ func SetMainMenuKeyboard(whc botsfw.WebhookContext, m *botsfw.MessageFromBot) {
 	switch whc.BotPlatform().ID() {
 	case telegram.PlatformID:
 		m.Keyboard = mainMenuTelegramKeyboard(whc, params)
-	case viber.PlatformID:
-		panic("not implemented")
-		//m.Keyboard = mainMenuViberKeyboard(whc, params)
-	case fbm.PlatformID:
-		panic("not implemented")
-		//if m.Text != "" {
-		//	panic("FBM does not support message text and attachments in the same request.")
-		//}
-		//m.FbmAttachment = mainMenuFbmAttachment(whc, params)
+	//case viber.PlatformID:
+	//	panic("not implemented")
+	//m.Keyboard = mainMenuViberKeyboard(whc, params)
+	//case fbm.PlatformID:
+	//	panic("not implemented")
+	//if m.Text != "" {
+	//	panic("FBM does not support message text and attachments in the same request.")
+	//}
+	//m.FbmAttachment = mainMenuFbmAttachment(whc, params)
 	default:
 		panic("Unsupported platform id=" + whc.BotPlatform().ID())
 	}

@@ -1,162 +1,155 @@
 package fbmbots
 
 import (
-	"net/http"
-	"strings"
-
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"context"
 	"errors"
-	"github.com/strongo/app"
-	"github.com/strongo/bots-framework/platforms/fbm"
-	fb "github.com/strongo/facebook"
-	"github.com/strongo/log"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 )
 
 const (
-	fbmProdPageAccessToken  = "CAAGdsU6rzXgBAIVVFCQKsmZCue0PUpzuZA4BaZA80UfhxnRH2Nbf5Ri9K66tkXwkLuPa2WhN53MsiAngUUcE2wZBuhb5ZBO0DV5hVAQbOFuCuL5rP35FFQuf2NCkSs0IVwmhpkXkeAAt3a4yn4ZCnBkfearPByE4gbvSD4WfswvZBb6GrtTJ2ZAEgvawDfUWKKdcm8yXsuz2ZBAZDZD"
-	fbmTestPageAccessToken  = "EAAIOtyFmtbsBAA4CuLiZALf4R4voPZBg3AySB63XB8SdRsid7FB2dWwHJgAgONJ0olWEGcOEVYXEjsZBeQ1M124keNAWhgWj3XwIDJ4mfYCl1m1DUuwaZCaOZCm7BZCY6TWwAKTRL5Uv0BSilWVhwGZBDcVmUg8Cm5na19KrFUVOAZDZD"
-	fbmLocalPageAccessToken = "EAAGgOpi8kU8BADaJYHciKTZAgVnvewxXZCGVsoeRZBHN2o3mXj1sEXsQwfrQMGHZCGprtRY61TRwpX15ZAqYRXmbMpDjPhcts4M1fnWwWbZA9ZCVYEAW0htPj6XFZAX1AWHOlm9CirI8qx2G5k9Hg62hK7VZCNdvZCtPICAj8BwbAnegZDZD"
-
-	fbmSplitBillProdPageAccessToken = "EAAFzhuSvVPIBAIo4R2oBtrhfHEXOYUOqA4I6ogBqkHhOeJmb6SDWtptIcAe40J0Nbliqwh32omjjPQrxbPydsnwGZBxCEx7QEfQXEGsfs9JLLKFlZCqEDeO35pAoZCLriDRVjIAc6oMbxWOwMgNd4xxdJfSio88okNxo88imAZDZD"
+// fbmProdPageAccessToken  = "TODO_DO_NOT_STORE_IN_GIT"
+// fbmTestPageAccessToken  = "TODO_DO_NOT_STORE_IN_GIT"
+// fbmLocalPageAccessToken = "TODO_DO_NOT_STORE_IN_GIT"
+//
+// fbmSplitBillProdPageAccessToken = "TODO_DO_NOT_STORE_IN_GIT"
 )
 
 type fbAppSecrets struct {
 	AppID     string
 	AppSecret string
-	app       *fb.App
+	//app       *fb.App
 }
 
-func (s *fbAppSecrets) App() *fb.App {
-	if s.app == nil {
-		s.app = fb.New(s.AppID, s.AppSecret)
-	}
-	return s.app
-}
+//func (s *fbAppSecrets) App() *fb.App {
+//	if s.app == nil {
+//		s.app = fb.New(s.AppID, s.AppSecret)
+//	}
+//	return s.app
+//}
 
 var (
-	fbLocal = fbAppSecrets{
-		AppID:     "457648507752783",
-		AppSecret: "23ceb7a7f53516119fd60b19a309cb14",
-	}
-	fbDev = fbAppSecrets{
-		AppID:     "579129655604667",
-		AppSecret: "0e3ee2d65e8abae458f121e874950b73",
-	}
-	fbProd = fbAppSecrets{
-		AppID:     "454859831364984",
-		AppSecret: "72f6f7382dda3235d48e6a7d60bb4a6a",
-	}
+//	fbLocal = fbAppSecrets{
+//		AppID:     "457648507752783",
+//		AppSecret: "23ceb7a7f53516119fd60b19a309cb14",
+//	}
+//
+//	fbDev = fbAppSecrets{
+//		AppID:     "579129655604667",
+//		AppSecret: "0e3ee2d65e8abae458f121e874950b73",
+//	}
+//
+//	fbProd = fbAppSecrets{
+//		AppID:     "454859831364984",
+//		AppSecret: "72f6f7382dda3235d48e6a7d60bb4a6a",
+//	}
 )
 
 var _bots botsfw.SettingsBy
 
 func Bots(_ context.Context) botsfw.SettingsBy {
-	if len(_bots.ByCode) == 0 {
-		_bots = botsfw.NewBotSettingsBy(nil,
-			fbm.NewFbmBot(
-				strongo.EnvProduction,
-				bot.ProfileDebtus,
-				"debtstracker",
-				"1587055508253137",
-				fbmProdPageAccessToken,
-				"d6087a01-c728-4fdf-983c-1695d76236dc",
-				common.GA_TRACKING_ID,
-				trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
-			),
-			fbm.NewFbmBot(
-				strongo.EnvProduction,
-				bot.ProfileSplitus,
-				"splitbill.co",
-				"286238251784027",
-				fbmSplitBillProdPageAccessToken,
-				"e8535dd1-df3b-4c3f-bd2c-d4a822509bb3",
-				common.GA_TRACKING_ID,
-				trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
-			),
-			fbm.NewFbmBot(
-				strongo.EnvDevTest,
-				bot.ProfileDebtus,
-				"debtstracker.dev",
-				"942911595837341",
-				fbmTestPageAccessToken,
-				"4afb645e-b592-48e6-882c-89f0ec126fbb",
-				"",
-				trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
-			),
-			fbm.NewFbmBot(
-				strongo.EnvLocal,
-				bot.ProfileDebtus,
-				"debtstracker.local",
-				"300392587037950",
-				fbmLocalPageAccessToken,
-				"4afb645e-b592-48e6-882c-89f0ec126fbb",
-				"",
-				trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
-			),
-		)
-	}
+	//if len(_bots.ByCode) == 0 {
+	//	_bots = botsfw.NewBotSettingsBy(nil,
+	//		fbm.NewFbmBot(
+	//			strongo.EnvProduction,
+	//			bot.ProfileDebtus,
+	//			"debtstracker",
+	//			"1587055508253137",
+	//			fbmProdPageAccessToken,
+	//			"d6087a01-c728-4fdf-983c-1695d76236dc",
+	//			common.GA_TRACKING_ID,
+	//			trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
+	//		),
+	//		fbm.NewFbmBot(
+	//			strongo.EnvProduction,
+	//			bot.ProfileSplitus,
+	//			"splitbill.co",
+	//			"286238251784027",
+	//			fbmSplitBillProdPageAccessToken,
+	//			"e8535dd1-df3b-4c3f-bd2c-d4a822509bb3",
+	//			common.GA_TRACKING_ID,
+	//			trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
+	//		),
+	//		fbm.NewFbmBot(
+	//			strongo.EnvDevTest,
+	//			bot.ProfileDebtus,
+	//			"debtstracker.dev",
+	//			"942911595837341",
+	//			fbmTestPageAccessToken,
+	//			"4afb645e-b592-48e6-882c-89f0ec126fbb",
+	//			"",
+	//			trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
+	//		),
+	//		fbm.NewFbmBot(
+	//			strongo.EnvLocal,
+	//			bot.ProfileDebtus,
+	//			"debtstracker.local",
+	//			"300392587037950",
+	//			fbmLocalPageAccessToken,
+	//			"4afb645e-b592-48e6-882c-89f0ec126fbb",
+	//			"",
+	//			trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
+	//		),
+	//	)
+	//}
 	return _bots
 }
 
 var ErrUnknownHost = errors.New("Unknown host")
 
-func GetFbAppAndHost(r *http.Request) (fbApp *fb.App, host string, err error) {
-	switch r.Host {
-	case "debtstracker.io":
-		return fbProd.App(), r.Host, nil
-	case "debtstracker-io.appspot.com":
-		return fbProd.App(), "debtstracker.io", nil
-	case "debtstracker-dev1.appspot.com":
-		return fbDev.App(), r.Host, nil
-	case "debtstracker.local":
-		return fbLocal.App(), r.Host, nil
-	case "localhost":
-		return fbLocal.App(), "debtstracker.local", nil
-	default:
-		if strings.HasSuffix(r.Host, ".ngrok.io") {
-			return fbLocal.App(), "debtstracker.local", nil
-		}
-	}
+//func GetFbAppAndHost(r *http.Request) (fbApp *fb.App, host string, err error) {
+//	switch r.Host {
+//	case "debtstracker.io":
+//		return fbProd.App(), r.Host, nil
+//	case "debtstracker-io.appspot.com":
+//		return fbProd.App(), "debtstracker.io", nil
+//	case "debtstracker-dev1.appspot.com":
+//		return fbDev.App(), r.Host, nil
+//	case "debtstracker.local":
+//		return fbLocal.App(), r.Host, nil
+//	case "localhost":
+//		return fbLocal.App(), "debtstracker.local", nil
+//	default:
+//		if strings.HasSuffix(r.Host, ".ngrok.io") {
+//			return fbLocal.App(), "debtstracker.local", nil
+//		}
+//	}
+//
+//	return nil, "", errors.WithMessage(ErrUnknownHost, r.Host)
+//}
 
-	return nil, "", errors.WithMessage(ErrUnknownHost, r.Host)
-}
+//func getFbAppAndSession(c context.Context, r *http.Request, getSession func(fbApp *fb.App) (*fb.Session, error)) (
+//	fbApp *fb.App, fbSession *fb.Session, err error,
+//) {
+//	log.Debugf(c, "getFbAppAndSession()")
+//	if fbApp, _, err = GetFbAppAndHost(r); err != nil {
+//		log.Errorf(c, "getFbAppAndSession() => Failed to get app")
+//		return nil, nil, err
+//	}
+//	if fbSession, err = getSession(fbApp); err != nil {
+//		log.Errorf(c, "getFbAppAndSession() => Failed to get session")
+//		return nil, nil, err
+//	}
+//	log.Debugf(c, "getFbAppAndSession() => AppId: %v", fbApp.AppId)
+//	return fbApp, fbSession, err
+//}
 
-func getFbAppAndSession(c context.Context, r *http.Request, getSession func(fbApp *fb.App) (*fb.Session, error)) (
-	fbApp *fb.App, fbSession *fb.Session, err error,
-) {
-	log.Debugf(c, "getFbAppAndSession()")
-	if fbApp, _, err = GetFbAppAndHost(r); err != nil {
-		log.Errorf(c, "getFbAppAndSession() => Failed to get app")
-		return nil, nil, err
-	}
-	if fbSession, err = getSession(fbApp); err != nil {
-		log.Errorf(c, "getFbAppAndSession() => Failed to get session")
-		return nil, nil, err
-	}
-	log.Debugf(c, "getFbAppAndSession() => AppId: %v", fbApp.AppId)
-	return fbApp, fbSession, err
-}
-
-func FbAppAndSessionFromAccessToken(c context.Context, r *http.Request, accessToken string) (*fb.App, *fb.Session, error) {
-	return getFbAppAndSession(c, r, func(fbApp *fb.App) (fbSession *fb.Session, err error) {
-		fbSession = fbApp.Session(accessToken)
-		fbSession.HttpClient = dtdal.HttpClient(c)
-		return
-	})
-}
-
-func FbAppAndSessionFromSignedRequest(c context.Context, r *http.Request, signedRequest string) (*fb.App, *fb.Session, error) {
-	log.Debugf(c, "FbAppAndSessionFromSignedRequest()")
-	return getFbAppAndSession(c, r, func(fbApp *fb.App) (fbSession *fb.Session, err error) {
-		log.Debugf(c, "FbAppAndSessionFromSignedRequest() => getSession()")
-		//fbSession, err = fbApp.SessionFromSignedRequest(c, signedRequest, dtdal.HttpClient(c))
-		//if err != nil {
-		//	log.Debugf(c, "FbAppAndSessionFromSignedRequest() => getSession(): %v", err.Error())
-		//}
-		panic("not implemented")
-		return
-	})
-}
+//func FbAppAndSessionFromAccessToken(c context.Context, r *http.Request, accessToken string) (*fb.App, *fb.Session, error) {
+//	return getFbAppAndSession(c, r, func(fbApp *fb.App) (fbSession *fb.Session, err error) {
+//		fbSession = fbApp.Session(accessToken)
+//		fbSession.HttpClient = dtdal.HttpClient(c)
+//		return
+//	})
+//}
+//
+//func FbAppAndSessionFromSignedRequest(c context.Context, r *http.Request, signedRequest string) (*fb.App, *fb.Session, error) {
+//	log.Debugf(c, "FbAppAndSessionFromSignedRequest()")
+//	return getFbAppAndSession(c, r, func(fbApp *fb.App) (fbSession *fb.Session, err error) {
+//		log.Debugf(c, "FbAppAndSessionFromSignedRequest() => getSession()")
+//		//fbSession, err = fbApp.SessionFromSignedRequest(c, signedRequest, dtdal.HttpClient(c))
+//		//if err != nil {
+//		//	log.Debugf(c, "FbAppAndSessionFromSignedRequest() => getSession(): %v", err.Error())
+//		//}
+//		panic("not implemented")
+//		return
+//	})
+//}

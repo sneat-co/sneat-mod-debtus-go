@@ -49,7 +49,7 @@ func hasError(c context.Context, w http.ResponseWriter, err error, entity string
 	switch {
 	case err == nil:
 		return false
-	case db.IsNotFound(err):
+	case dal.IsNotFound(err):
 		if notFoundStatus == 0 {
 			notFoundStatus = http.StatusNotFound
 		}

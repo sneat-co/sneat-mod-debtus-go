@@ -2,7 +2,9 @@ package dtb_transfer
 
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/emoji"
+	"github.com/sneat-co/debtstracker-translations/trans"
 )
 
 const CANCEL_TRANSFER_WIZARD_COMMAND = "cancel-transfer-wizard"
@@ -13,7 +15,7 @@ var CancelTransferWizardCommand = botsfw.Command{
 	Action:   cancelTransferWizardCommandAction,
 }
 
-func cancelTransferWizardCommandAction(whc botsfw.WebhookContext) (bots.MessageFromBot, error) {
+func cancelTransferWizardCommandAction(whc botsfw.WebhookContext) (botsfw.MessageFromBot, error) {
 	whc.ChatEntity().SetAwaitingReplyTo("")
 	var m botsfw.MessageFromBot
 	//userKey, _, err := whc.GetUser()

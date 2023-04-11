@@ -41,7 +41,7 @@ var delayedUpdateBillDependencies = delay.Func("delayedUpdateBillDependencies", 
 	log.Debugf(c, "delayedUpdateBillDependencies(billID=%d)", billID)
 	var bill models.Bill
 	if bill, err = facade.GetBillByID(c, billID); err != nil {
-		if db.IsNotFound(err) {
+		if dal.IsNotFound(err) {
 			log.Warningf(c, err.Error())
 			err = nil
 		}

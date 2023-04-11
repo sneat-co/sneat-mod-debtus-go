@@ -23,7 +23,7 @@ func CreateStartTransferWizardCommand(code, messageText string, commands []strin
 		Commands: commands,
 		Replies:  []botsfw.Command{askTransferAmountCommand},
 		Matcher: func(c botsfw.Command, whc botsfw.WebhookContext) bool {
-			if m, ok := whc.Input().(bots.WebhookTextMessage); ok && IsCurrencyIcon(m.Text()) && whc.ChatEntity().GetAwaitingReplyTo() == code {
+			if m, ok := whc.Input().(botsfw.WebhookTextMessage); ok && IsCurrencyIcon(m.Text()) && whc.ChatEntity().GetAwaitingReplyTo() == code {
 				return true
 			}
 			return false
@@ -31,7 +31,7 @@ func CreateStartTransferWizardCommand(code, messageText string, commands []strin
 		Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 			c := whc.Context()
 			log.Debugf(c, "CreateStartTransferWizardCommand(code=%v).Action()", code)
-			mt := strings.TrimSpace(whc.Input().(bots.WebhookTextMessage).Text())
+			mt := strings.TrimSpace(whc.Input().(botsfw.WebhookTextMessage).Text())
 			chatEntity := whc.ChatEntity()
 			switch {
 			case money.HasCurrencyPrefix(mt) || IsCurrencyIcon(mt):
@@ -124,7 +124,7 @@ const SET_DUE_DATE_COMMAND = "set-due-date"
 
 var SetDueDateCommand = botsfw.Command{
 	Code: SET_DUE_DATE_COMMAND,
-	Action: func(whc botsfw.WebhookContext) (bots.MessageFromBot, error) {
+	Action: func(whc botsfw.WebhookContext) (botsfw.MessageFromBot, error) {
 		whc.ChatEntity().SetAwaitingReplyTo("")
 		m := whc.NewMessage("Due date to be saved")
 		return m, nil
@@ -136,7 +136,7 @@ const ASK_DUE_DATE_COMMAND = "ask-due-date"
 //var AskDueDateCommand = botsfw.Command{
 //	Code:    ASK_DUE_DATE_COMMAND,
 //	Replies: []botsfw.Command{SetDueDateCommand},
-//	Action: func(whc botsfw.WebhookContext) (bots.MessageFromBot, error) {
+//	Action: func(whc botsfw.WebhookContext) (botsfw.MessageFromBot, error) {
 //		m := whc.NewMessage(`<strong>When is the due date?</strong>
 //
 //Recognized inputs:
@@ -173,14 +173,14 @@ func TransferAskDueDateCommand(code string, nextCommand botsfw.Command) botsfw.C
 		Replies: []botsfw.Command{
 			nextCommand,
 		},
-		Action: func(whc botsfw.WebhookContext) (bots.MessageFromBot, error) {
+		Action: func(whc botsfw.WebhookContext) (botsfw.MessageFromBot, error) {
 
 			c := whc.Context()
 			log.Infof(c, "TransferAskDueDateCommand(code=%v).Action()", code)
 			m := whc.NewMessageByCode(trans.MESSAGE_TEXT_ASK_DUE)
 			chatEntity := whc.ChatEntity()
 			if chatEntity.IsAwaitingReplyTo(code) {
-				mt := strings.TrimSpace(whc.Input().(bots.WebhookTextMessage).Text())
+				mt := strings.TrimSpace(whc.Input().(botsfw.WebhookTextMessage).Text())
 				log.Debugf(c, "Chat is awating reply to %v", code)
 				var duration time.Duration
 				switch mt {
@@ -250,7 +250,7 @@ var TransferAskDueDateReturnToUser = TransferAskDueDateCommand(
 func processSetDate(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, date time.Time, err error) {
 	c := whc.Context()
 
-	mt := strings.TrimSpace(whc.Input().(bots.WebhookTextMessage).Text())
+	mt := strings.TrimSpace(whc.Input().(botsfw.WebhookTextMessage).Text())
 	if match := reDate.FindStringSubmatch(mt); match != nil && len(match) > 0 {
 		if match[2] != match[4] {
 			m = whc.NewMessageByCode(trans.MESSAGE_TEXT_INVALID_DATE)

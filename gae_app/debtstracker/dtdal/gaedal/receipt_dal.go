@@ -130,7 +130,7 @@ var delayedMarkReceiptAsSent = delay.Func("delayedMarkReceiptAsSent", func(c con
 		return nil
 	}
 
-	if err = dtdal.Receipt.MarkReceiptAsSent(c, receiptID, transferID, sentTime); db.IsNotFound(err) {
+	if err = dtdal.Receipt.MarkReceiptAsSent(c, receiptID, transferID, sentTime); dal.IsNotFound(err) {
 		log.Errorf(c, err.Error())
 		return nil
 	}

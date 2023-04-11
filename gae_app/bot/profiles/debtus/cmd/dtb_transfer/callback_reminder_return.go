@@ -2,7 +2,10 @@ package dtb_transfer
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 	"strconv"
 	"time"
@@ -13,7 +16,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"errors"
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
@@ -31,10 +33,10 @@ func ProcessReturnAnswer(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 	if err != nil {
 		if q.Get("reminder") == "" { // TODO: Remove this obsolete branch
 			if transferID, err = common.DecodeID(q.Get("id")); err != nil {
-				return m, errors.Wrap(err, "Failed to decode transfer ID")
+				return m, fmt.Errorf("failed to decode transfer ID: %w", err)
 			}
 		} else {
-			return m, errors.Wrap(err, "Failed to decode reminder ID")
+			return m, fmt.Errorf("failed to decode reminder ID: %w", err)
 		}
 	} else {
 		if reminder, err := dtdal.Reminder.SetReminderStatus(c, reminderID, 0, models.ReminderStatusUsed, time.Now()); err != nil {
@@ -45,7 +47,7 @@ func ProcessReturnAnswer(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 	}
 
 	howMuch := q.Get("how-much")
-	transfer, err := facade.Transfers.GetTransferByID(c, transferID)
+	transfer, err := facade.Transfers.GetTransferByID(c, tx, transferID)
 	if err != nil {
 		return m, err
 	}
@@ -74,15 +76,15 @@ var EnableReminderAgainCallbackCommand = botsfw.NewCallbackCommand(commandCodeEn
 		transfer   models.Transfer
 	)
 	if reminderID, err = common.DecodeID(q.Get("reminder")); err != nil {
-		err = errors.WithMessage(err, "Can't decode parameter 'reminder'")
+		err = fmt.Errorf("can't decode parameter 'reminder': %w", err)
 		return
 	}
-	if transfer.ID, err = common.DecodeID(q.Get("transfer")); err != nil {
-		err = errors.WithMessage(err, "Can't decode parameter 'transfer'")
+	if transfer.ID, err = common.DecodeIntID(q.Get("transfer")); err != nil {
+		err = fmt.Errorf("can't decode parameter 'transfer': %w", err)
 		return
 	}
 
-	if transfer, err = facade.Transfers.GetTransferByID(c, transfer.ID); err != nil {
+	if transfer, err = facade.Transfers.GetTransferByID(c, tx, transfer.ID); err != nil {
 		return
 	}
 
@@ -90,7 +92,7 @@ var EnableReminderAgainCallbackCommand = botsfw.NewCallbackCommand(commandCodeEn
 })
 
 func ProcessFullReturn(whc botsfw.WebhookContext, transfer models.Transfer) (m botsfw.MessageFromBot, err error) {
-	amountValue := transfer.GetOutstandingValue(time.Now())
+	amountValue := transfer.Data.GetOutstandingValue(time.Now())
 	if amountValue == 0 {
 		return dtb_general.EditReminderMessage(whc, transfer, whc.Translate(trans.MESSAGE_TEXT_TRANSFER_ALREADY_FULLY_RETURNED))
 	} else if amountValue < 0 {
@@ -98,32 +100,32 @@ func ProcessFullReturn(whc botsfw.WebhookContext, transfer models.Transfer) (m b
 		return
 	}
 
-	amount := money.NewAmount(transfer.GetAmount().Currency, amountValue)
+	amount := money.NewAmount(transfer.Data.GetAmount().Currency, amountValue)
 
 	var (
 		counterpartyID int64
 		direction      models.TransferDirection
 	)
 	userID := whc.AppUserIntID()
-	if transfer.CreatorUserID == userID {
-		counterpartyID = transfer.Counterparty().ContactID
-		switch transfer.Direction() {
+	if transfer.Data.CreatorUserID == userID {
+		counterpartyID = transfer.Data.Counterparty().ContactID
+		switch transfer.Data.Direction() {
 		case models.TransferDirectionCounterparty2User:
 			direction = models.TransferDirectionUser2Counterparty
 		case models.TransferDirectionUser2Counterparty:
 			direction = models.TransferDirectionCounterparty2User
 		default:
-			return m, fmt.Errorf("Transfer %v has unknown direction '%v'.", transfer.ID, transfer.Direction())
+			return m, fmt.Errorf("transfer %v has unknown direction '%v'", transfer.ID, transfer.Data.Direction())
 		}
-	} else if transfer.Counterparty().UserID == userID {
-		switch transfer.Direction() {
+	} else if transfer.Data.Counterparty().UserID == userID {
+		switch transfer.Data.Direction() {
 		case models.TransferDirectionCounterparty2User:
 		case models.TransferDirectionUser2Counterparty:
 		default:
-			return m, fmt.Errorf("Transfer %v has unknown direction '%v'.", transfer.ID, transfer.Direction())
+			return m, fmt.Errorf("transfer %v has unknown direction '%v'.", transfer.ID, transfer.Data.Direction())
 		}
-		counterpartyID = transfer.Creator().ContactID
-		direction = transfer.Direction()
+		counterpartyID = transfer.Data.Creator().ContactID
+		direction = transfer.Data.Direction()
 	}
 
 	if m, err = dtb_general.EditReminderMessage(whc, transfer, whc.Translate(trans.MESSAGE_TEXT_REPLIED_DEBT_RETURNED_FULLY)); err != nil {
@@ -144,22 +146,22 @@ func ProcessFullReturn(whc botsfw.WebhookContext, transfer models.Transfer) (m b
 	return m, err
 }
 
-func ProcessPartialReturn(whc botsfw.WebhookContext, transfer models.Transfer) (bots.MessageFromBot, error) {
+func ProcessPartialReturn(whc botsfw.WebhookContext, transfer models.Transfer) (botsfw.MessageFromBot, error) {
 	var counterpartyID int64
 	switch whc.AppUserIntID() {
-	case transfer.CreatorUserID:
-		counterpartyID = transfer.Counterparty().ContactID
-	case transfer.Counterparty().UserID:
-		counterpartyID = transfer.Creator().ContactID
+	case transfer.Data.CreatorUserID:
+		counterpartyID = transfer.Data.Counterparty().ContactID
+	case transfer.Data.Counterparty().UserID:
+		counterpartyID = transfer.Data.Creator().ContactID
 	default:
 		panic(fmt.Sprintf("whc.whc.AppUserIntID()=%v not in (transfer.Counterparty().ContactID=%v, transfer.Creator().ContactID=%v)",
-			whc.AppUserIntID(), transfer.Counterparty().ContactID, transfer.Creator().ContactID))
+			whc.AppUserIntID(), transfer.Data.Counterparty().ContactID, transfer.Data.Creator().ContactID))
 	}
 	chatEntity := whc.ChatEntity()
 	chatEntity.SetAwaitingReplyTo("")
 	chatEntity.AddWizardParam(WIZARD_PARAM_COUNTERPARTY, strconv.FormatInt(counterpartyID, 10))
-	chatEntity.AddWizardParam(WIZARD_PARAM_TRANSFER, strconv.FormatInt(transfer.ID, 10))
-	chatEntity.AddWizardParam("currency", string(transfer.Currency))
+	chatEntity.AddWizardParam(WIZARD_PARAM_TRANSFER, strconv.Itoa(transfer.ID))
+	chatEntity.AddWizardParam("currency", string(transfer.Data.Currency))
 
 	reportReminderIsActed(whc, "reminder-acted-returned-partially")
 
@@ -224,7 +226,7 @@ var SetNextReminderDateCallbackCommand = botsfw.Command{
 
 		reminderID, err := common.DecodeID(callbackUrl.Query().Get("id"))
 		if err != nil {
-			return m, errors.Wrapf(err, "Failed to decode transfer id")
+			return m, fmt.Errorf("failed to decode transfer id: %w", err)
 		}
 
 		chatEntity := whc.ChatEntity()
@@ -233,11 +235,11 @@ var SetNextReminderDateCallbackCommand = botsfw.Command{
 
 		reminder, err := dtdal.Reminder.GetReminderByID(c, reminderID)
 		if err != nil {
-			return m, errors.Wrap(err, "Failed to get reminder by id")
+			return m, fmt.Errorf("failed to get reminder by id: %w", err)
 		}
 		transfer, err := facade.Transfers.GetTransferByID(c, reminder.TransferID)
 		if err != nil {
-			return m, errors.Wrap(err, "Failed to get transfer by id")
+			return m, fmt.Errorf("failed to get transfer by id: %w", err)
 		}
 
 		if m, err = dtb_general.EditReminderMessage(whc, transfer, whc.Translate(trans.MESSAGE_TEXT_ASK_WHEN_TO_REMIND_AGAIN)); err != nil {
@@ -252,7 +254,7 @@ var SetNextReminderDateCallbackCommand = botsfw.Command{
 
 		return m, err
 	},
-	Action: func(whc botsfw.WebhookContext) (bots.MessageFromBot, error) {
+	Action: func(whc botsfw.WebhookContext) (botsfw.MessageFromBot, error) {
 		m, date, err := processSetDate(whc)
 		if !date.IsZero() {
 			chatEntity := whc.ChatEntity()
@@ -260,7 +262,7 @@ var SetNextReminderDateCallbackCommand = botsfw.Command{
 			encodedReminderID := chatEntity.GetWizardParam(WIZARD_PARAM_REMINDER)
 			reminderID, err := strconv.ParseInt(encodedReminderID, 10, 64)
 			if err != nil {
-				return m, errors.Wrap(err, "Failed to decode reminder id")
+				return m, fmt.Errorf("failed to decode reminder id: %w", err)
 			}
 			now := time.Now()
 			sinceToday := now.Sub(now.Truncate(24 * time.Hour))

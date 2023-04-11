@@ -2,7 +2,10 @@ package dtb_inline
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"html"
 	"net/url"
 	"regexp"
@@ -19,7 +22,7 @@ func InlineNewRecord(whc botsfw.WebhookContext, amountMatches []string) (m botsf
 	c := whc.Context()
 	log.Debugf(c, "InlineNewRecord()")
 
-	inlineQuery := whc.Input().(bots.WebhookInlineQuery)
+	inlineQuery := whc.Input().(botsfw.WebhookInlineQuery)
 	var (
 		amountValue    decimal.Decimal64p2
 		amountCurrency money.Currency

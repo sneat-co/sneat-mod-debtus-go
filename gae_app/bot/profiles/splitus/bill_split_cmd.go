@@ -5,23 +5,26 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 )
 
 const billSharesCommandCode = "bill_shares"
 
-var billSharesCommand = billCallbackCommand(billSharesCommandCode, db.CrossGroupTransaction,
+var billSharesCommand = billCallbackCommand(billSharesCommandCode,
 	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		whc.LogRequest()
 		c := whc.Context()
-		members := bill.GetBillMembers()
-		if bill.Currency == "" {
+		members := bill.Data.GetBillMembers()
+		if bill.Data.Currency == "" {
 			m.BotMessage = telegram.CallbackAnswer(tgbotapi.NewCallback("", whc.Translate(trans.MESSAGE_TEXT_ASK_BILL_CURRENCY)))
 			return
 		}
 		var billID string
-		if bill.MembersCount <= 1 {
+		if bill.Data.MembersCount <= 1 {
 			billID = bill.ID
 		}
 		return editSplitCallbackAction(
@@ -31,7 +34,7 @@ var billSharesCommand = billCallbackCommand(billSharesCommandCode, db.CrossGroup
 			billCardCallbackCommandData(bill.ID),
 			trans.MESSAGE_TEXT_ASK_HOW_TO_SPLIT_IN_GROP,
 			members,
-			bill.TotalAmount(),
+			bill.Data.TotalAmount(),
 			func(buffer *bytes.Buffer) error {
 				return writeBillCardTitle(c, bill, whc.GetBotCode(), buffer, whc)
 			},
@@ -43,8 +46,8 @@ var billSharesCommand = billCallbackCommand(billSharesCommandCode, db.CrossGroup
 							m.Shares = 0
 						}
 						members[i] = m
-						bill.SplitMode = models.SplitModeShare
-						if err = bill.SetBillMembers(members); err != nil {
+						bill.Data.SplitMode = models.SplitModeShare
+						if err = bill.Data.SetBillMembers(members); err != nil {
 							return
 						}
 						if err = dtdal.Bill.SaveBill(c, bill); err != nil {

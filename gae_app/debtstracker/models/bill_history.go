@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"time"
 
@@ -17,28 +18,28 @@ const (
 
 type BillsHistory struct {
 	record.WithID[string]
-	*BillsHistoryEntity
+	Data *BillsHistoryEntity
 }
 
 func (BillsHistory) Kind() string {
 	return BillsHistoryKind
 }
 
-func (record BillsHistory) Entity() interface{} {
-	return record.BillsHistoryEntity
-}
-
-func (BillsHistory) NewEntity() interface{} {
-	return new(BillsHistoryEntity)
-}
-
-func (record *BillsHistory) SetEntity(entity interface{}) {
-	if entity == nil {
-		record.BillsHistoryEntity = nil
-	} else {
-		record.BillsHistoryEntity = entity.(*BillsHistoryEntity)
-	}
-}
+//func (record BillsHistory) Entity() interface{} {
+//	return record.BillsHistoryEntity
+//}
+//
+//func (BillsHistory) NewEntity() interface{} {
+//	return new(BillsHistoryEntity)
+//}
+//
+//func (record *BillsHistory) SetEntity(entity interface{}) {
+//	if entity == nil {
+//		record.BillsHistoryEntity = nil
+//	} else {
+//		record.BillsHistoryEntity = entity.(*BillsHistoryEntity)
+//	}
+//}
 
 //var _ db.EntityHolder = (*BillsHistory)(nil)
 
@@ -162,68 +163,75 @@ const (
 	//BillHistoryActionRestored    BillHistoryAction = "restored"
 )
 
-func NewBillHistoryBillCreated(bill Bill, groupEntity *GroupEntity) (record BillsHistory) {
-	record = BillsHistory{
-		BillsHistoryEntity: &BillsHistoryEntity{
-			Currency:         bill.Currency,
-			UserID:           bill.CreatorUserID,
-			TotalAmountAfter: bill.AmountTotal,
-			Action:           BillHistoryActionCreated,
-			BillIDs:          []string{bill.ID},
-			GroupIDs:         []string{bill.UserGroupID},
+func NewBillHistoryBillCreated(bill Bill, groupEntity *GroupEntity) (bh BillsHistory) {
+	key := dal.NewKey(BillsHistoryKind, dal.WithRandomStringID(BillsHistoryIdLen))
+	data := &BillsHistoryEntity{
+		Currency:         bill.Data.Currency,
+		UserID:           bill.Data.CreatorUserID,
+		TotalAmountAfter: bill.Data.AmountTotal,
+		Action:           BillHistoryActionCreated,
+		BillIDs:          []string{bill.ID},
+		GroupIDs:         []string{bill.Data.UserGroupID},
+	}
+	bh = BillsHistory{
+		WithID: record.WithID[string]{
+			Key:    key,
+			Record: dal.NewRecordWithData(key, data),
 		},
+		Data: data,
 	}
 	if groupEntity != nil {
-		record.GroupMembersJsonAfter = groupEntity.MembersJson
+		bh.Data.GroupMembersJsonAfter = groupEntity.MembersJson
 	}
 	return
 }
 
-func NewBillHistoryMemberAdded(userID string, bill Bill, totalAboutBefore decimal.Decimal64p2, groupMemberJsonBefore, groupMemberJsonAfter string) (record BillsHistory) {
-	record = BillsHistory{
-		BillsHistoryEntity: &BillsHistoryEntity{
+func NewBillHistoryMemberAdded(userID string, bill Bill, totalAboutBefore decimal.Decimal64p2, groupMemberJsonBefore, groupMemberJsonAfter string) (bh BillsHistory) {
+	bh = BillsHistory{
+		Data: &BillsHistoryEntity{
 			UserID:            userID,
-			Currency:          bill.Currency,
+			Currency:          bill.Data.Currency,
 			TotalAmountBefore: totalAboutBefore,
-			TotalAmountAfter:  bill.AmountTotal,
+			TotalAmountAfter:  bill.Data.AmountTotal,
 			Action:            BillHistoryActionMemberAdded,
 			BillIDs:           []string{bill.ID},
-			GroupIDs:          []string{bill.UserGroupID},
+			GroupIDs:          []string{bill.Data.UserGroupID},
 		},
 	}
-	record.GroupMembersJsonBefore = groupMemberJsonBefore
-	record.GroupMembersJsonAfter = groupMemberJsonAfter
+	bh.Data.GroupMembersJsonBefore = groupMemberJsonBefore
+	bh.Data.GroupMembersJsonAfter = groupMemberJsonAfter
 	return
 }
 
 func NewBillHistoryBillDeleted(userID string, bill Bill) (record BillsHistory) {
-	return BillsHistory{
-		BillsHistoryEntity: &BillsHistoryEntity{
-			StatusOld:         bill.Status,
-			StatusNew:         BillStatusDeleted,
-			UserID:            userID,
-			Currency:          bill.Currency,
-			TotalAmountBefore: bill.AmountTotal,
-			TotalAmountAfter:  bill.AmountTotal,
-			Action:            BillHistoryActionMemberAdded,
-			BillIDs:           []string{bill.ID},
-			GroupIDs:          []string{bill.UserGroupID},
-		},
-	}
+	panic("TODO: create key with random ID using dalgo insert options")
+	//return BillsHistory{
+	//	Data: &BillsHistoryEntity{
+	//		StatusOld:         bill.Data.Status,
+	//		StatusNew:         BillStatusDeleted,
+	//		UserID:            userID,
+	//		Currency:          bill.Data.Currency,
+	//		TotalAmountBefore: bill.Data.AmountTotal,
+	//		TotalAmountAfter:  bill.Data.AmountTotal,
+	//		Action:            BillHistoryActionMemberAdded,
+	//		BillIDs:           []string{bill.ID},
+	//		GroupIDs:          []string{bill.Data.UserGroupID},
+	//	},
+	//}
 }
 
 func NewBillHistoryBillRestored(userID string, bill Bill) (record BillsHistory) {
 	return BillsHistory{
-		BillsHistoryEntity: &BillsHistoryEntity{
+		Data: &BillsHistoryEntity{
 			StatusOld:         BillStatusDeleted,
-			StatusNew:         bill.Status,
+			StatusNew:         bill.Data.Status,
 			UserID:            userID,
-			Currency:          bill.Currency,
-			TotalAmountBefore: bill.AmountTotal,
-			TotalAmountAfter:  bill.AmountTotal,
+			Currency:          bill.Data.Currency,
+			TotalAmountBefore: bill.Data.AmountTotal,
+			TotalAmountAfter:  bill.Data.AmountTotal,
 			Action:            BillHistoryActionMemberAdded,
 			BillIDs:           []string{bill.ID},
-			GroupIDs:          []string{bill.UserGroupID},
+			GroupIDs:          []string{bill.Data.UserGroupID},
 		},
 	}
 }

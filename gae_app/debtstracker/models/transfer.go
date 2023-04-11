@@ -67,8 +67,15 @@ func TransferRecords(transfers []Transfer) []dal.Record {
 	return records
 }
 
+func NewTransferKey(id int) *dal.Key {
+	if id == 0 {
+		panic("id == 0")
+	}
+	return dal.NewKeyWithID(TransferKind, id)
+}
+
 func NewTransfer(id int, data *TransferEntity) Transfer {
-	key := dal.NewKeyWithID(TransferKind, id)
+	key := NewTransferKey(id)
 	if data == nil {
 		data = new(TransferEntity)
 	}

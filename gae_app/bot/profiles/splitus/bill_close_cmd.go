@@ -1,6 +1,7 @@
 package splitus
 
 import (
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"net/url"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
@@ -9,7 +10,7 @@ import (
 
 const CLOSE_BILL_COMMAND = "close-bill"
 
-var closeBillCommand = billCallbackCommand(CLOSE_BILL_COMMAND, nil,
+var closeBillCommand = billCallbackCommand(CLOSE_BILL_COMMAND,
 	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "closeBillCommand.CallbackAction()")

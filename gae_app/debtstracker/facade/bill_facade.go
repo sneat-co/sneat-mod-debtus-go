@@ -1,12 +1,12 @@
 package facade
 
 import (
-	"fmt"
-	"github.com/crediterra/money"
-
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"errors"
+	"fmt"
+	"github.com/crediterra/money"
+	"github.com/dal-go/dalgo/dal"
 	//"github.com/strongo/app"
 	"math"
 	"strconv"
@@ -22,26 +22,26 @@ type billFacade struct {
 
 var Bill = billFacade{}
 
-func (billFacade) AssignBillToGroup(c context.Context, inBill models.Bill, groupID, userID string) (bill models.Bill, group models.Group, err error) {
+func (billFacade) AssignBillToGroup(c context.Context, tx dal.ReadwriteTransaction, inBill models.Bill, groupID, userID string) (bill models.Bill, group models.Group, err error) {
 	bill = inBill
-	if err = bill.AssignToGroup(groupID); err != nil {
+	if err = bill.Data.AssignToGroup(groupID); err != nil {
 		return
 	}
-	if bill.MembersCount == 0 {
+	if bill.Data.MembersCount == 0 {
 		{ // Get group,
 			var gc context.Context
-			if bill.Currency == money.Currency("") {
+			if bill.Data.Currency == money.Currency("") {
 				// we don't need to get it in transaction if no currency as balance will not be changed
 				gc = dtdal.DB.NonTransactionalContext(c)
 			} else {
 				gc = c
 			}
-			if group, err = dtdal.Group.GetGroupByID(gc, groupID); err != nil {
+			if group, err = dtdal.Group.GetGroupByID(gc, tx, groupID); err != nil {
 				return
 			}
 		}
-		if group.MembersCount > 0 {
-			groupMembers := group.GetGroupMembers()
+		if group.Data.MembersCount > 0 {
+			groupMembers := group.Data.GetGroupMembers()
 
 			billMembers := make([]models.BillMemberJson, len(groupMembers))
 			paidIsSet := false
@@ -50,15 +50,15 @@ func (billFacade) AssignBillToGroup(c context.Context, inBill models.Bill, group
 					MemberJson: gm.MemberJson,
 				}
 				billMembers[i].AddedByUserID = userID
-				if gm.UserID == bill.CreatorUserID {
-					billMembers[i].Paid = bill.AmountTotal
+				if gm.UserID == bill.Data.CreatorUserID {
+					billMembers[i].Paid = bill.Data.AmountTotal
 					paidIsSet = true
 				}
 			}
 			if !paidIsSet {
 				for i, bm := range billMembers {
 					if bm.UserID == userID {
-						billMembers[i].Paid = bill.AmountTotal
+						billMembers[i].Paid = bill.Data.AmountTotal
 						paidIsSet = true
 						break
 					}
@@ -72,26 +72,26 @@ func (billFacade) AssignBillToGroup(c context.Context, inBill models.Bill, group
 					if user, err = User.GetUserByID(dtdal.DB.NonTransactionalContext(c), user.ID); err != nil {
 						return
 					}
-					_, _, _, groupMember, _ := group.AddOrGetMember(userID, "", user.FullName())
+					_, _, _, groupMember, _ := group.Data.AddOrGetMember(userID, "", user.Data.FullName())
 
 					billMembers = append(billMembers, models.BillMemberJson{
 						MemberJson: groupMember.MemberJson,
-						Paid:       bill.AmountTotal,
+						Paid:       bill.Data.AmountTotal,
 					})
 				}
 			}
-			if err = bill.SetBillMembers(billMembers); err != nil {
+			if err = bill.Data.SetBillMembers(billMembers); err != nil {
 				return
 			}
-			if bill.Currency != money.Currency("") {
-				if _, err = group.ApplyBillBalanceDifference(bill.Currency, bill.GetBalance().BillBalanceDifference(models.BillBalanceByMember{})); err != nil {
+			if bill.Data.Currency != money.Currency("") {
+				if _, err = group.Data.ApplyBillBalanceDifference(bill.Data.Currency, bill.Data.GetBalance().BillBalanceDifference(models.BillBalanceByMember{})); err != nil {
 					return
 				}
-				if err = dtdal.Group.SaveGroup(c, group); err != nil {
+				if err = dtdal.Group.SaveGroup(c, tx, group); err != nil {
 					return
 				}
 			}
-			log.Debugf(c, "bill.GetBillMembers(): %+v", bill.GetBillMembers())
+			log.Debugf(c, "bill.GetBillMembers(): %+v", bill.Data.GetBillMembers())
 		}
 	}
 	return
@@ -112,27 +112,27 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 		panic(fmt.Sprintf("billEntity.SplitMode has unknown value: %v", billEntity.SplitMode))
 	}
 	if billEntity.CreatorUserID == "" {
-		err = errors.Wrap(ErrBadInput, "billEntity.CreatorUserID == 0")
+		err = fmt.Errorf("%w: billEntity.CreatorUserID == 0", ErrBadInput)
 		return
 	}
 	if billEntity.SplitMode == "" {
-		err = errors.Wrap(ErrBadInput, "Missing required property SplitMode")
+		err = fmt.Errorf("%w: Missing required property SplitMode", ErrBadInput)
 		return
 	}
 	if billEntity.AmountTotal == 0 {
-		err = errors.Wrap(ErrBadInput, "billEntity.AmountTotal == 0")
+		err = fmt.Errorf("%w: billEntity.AmountTotal == 0", ErrBadInput)
 		return
 	}
 	if billEntity.AmountTotal < 0 {
-		err = errors.WithMessage(ErrBadInput, fmt.Sprintf("billEntity.AmountTotal < 0: %v", billEntity.AmountTotal))
+		err = fmt.Errorf("%w: billEntity.AmountTotal < 0: %v", ErrBadInput, billEntity.AmountTotal)
 		return
 	}
 	if billEntity.Status == "" {
-		err = errors.Wrap(ErrBadInput, "billEntity.Status property is required")
+		err = fmt.Errorf("%w: billEntity.Status property is required")
 		return
 	}
 	if !models.IsValidBillStatus(billEntity.Status) {
-		err = errors.Wrapf(ErrBadInput, "Invalid status: %v, expected one of %v", billEntity.Status, models.BillStatuses)
+		err = fmt.Errorf("%w: invalid status: %v, expected one of %v", ErrBadInput, billEntity.Status, models.BillStatuses)
 		return
 	}
 
@@ -168,16 +168,15 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 			var totalAdjustmentByMembers decimal.Decimal64p2
 			for i, member := range members {
 				if member.Adjustment > billEntity.AmountTotal {
-					return bill, errors.WithMessage(ErrBadInput, fmt.Sprintf("members[%d].Adjustment > billEntity.AmountTotal", i))
+					return bill, fmt.Errorf("%w: members[%d].Adjustment > billEntity.AmountTotal", ErrBadInput, i)
 				} else if member.Adjustment < 0 && member.Adjustment < -1*billEntity.AmountTotal {
-					err = errors.WithMessage(ErrBadInput,
-						fmt.Sprintf("members[%d].AdjustmentInCents < 0 && AdjustmentInCents < -1*billEntity.AmountTotal", i))
+					err = fmt.Errorf("%w: members[%d].AdjustmentInCents < 0 && AdjustmentInCents < -1*billEntity.AmountTotal", ErrBadInput, i)
 					return
 				}
 				totalAdjustmentByMembers += member.Adjustment
 			}
 			if totalAdjustmentByMembers > billEntity.AmountTotal {
-				return bill, errors.Wrap(ErrBadInput, "totalAdjustmentByMembers > billEntity.AmountTotal")
+				return bill, fmt.Errorf("%w: totalAdjustmentByMembers > billEntity.AmountTotal")
 			}
 			amountToSplitEqually -= totalAdjustmentByMembers
 			equalAmount = decimal.NewDecimal64p2FromFloat64(
@@ -200,7 +199,7 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 			// Individual member checks - we can't move this checks down as it should fail first before deviation checks
 			{
 				if member.Owes < 0 {
-					err = errors.Wrapf(ErrBadInput, "members[%d].Owes is negative: %v", i, member.Owes)
+					err = fmt.Errorf("%w: members[%d].Owes is negative: %v", ErrBadInput, i, member.Owes)
 					return
 				}
 				if member.UserID != billEntity.CreatorUserID {
@@ -210,7 +209,7 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 					}
 					if member.UserID == "" {
 						if len(member.ContactByUser) == 0 {
-							err = errors.New("Bill member is missing ContactByUser ID.")
+							err = errors.New("bill member is missing ContactByUser ID")
 							return
 						}
 
@@ -270,12 +269,12 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 					expectedAmount := int64(shareAmount) * int64(member.Shares)
 					deviation := expectedAmount - int64(member.Owes)
 					if deviation > 1 || deviation < -1 {
-						return errors.Wrapf(ErrBadInput, "Member #%d has amount %v deviated too much (for %v) from expected %v.", i, member.Owes, decimal.Decimal64p2(deviation), decimal.Decimal64p2(expectedAmount))
+						return fmt.Errorf("%w: member #%d has amount %v deviated too much (for %v) from expected %v", ErrBadInput, i, member.Owes, decimal.Decimal64p2(deviation), decimal.Decimal64p2(expectedAmount))
 					}
 				default:
 					deviation := int64(member.Owes - member.Adjustment - equalAmount)
 					if deviation > 1 || deviation < -1 {
-						return errors.Wrapf(ErrBadInput, "Member #%d has amount %v deviated too much (for %v) from equal %v.", i, member.Owes, decimal.Decimal64p2(deviation), equalAmount)
+						return fmt.Errorf("%w: member #%d has amount %v deviated too much (for %v) from equal %v", ErrBadInput, i, member.Owes, decimal.Decimal64p2(deviation), equalAmount)
 					}
 				}
 				return nil
@@ -296,7 +295,7 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 				// ensureNoAdjustment()
 			case models.SplitModeShare:
 				if member.Shares == 0 {
-					err = errors.Wrapf(ErrBadInput, "Member %d is missing Shares value", i)
+					err = fmt.Errorf("%w: member %d is missing Shares value", ErrBadInput, i)
 					return
 				}
 				// ensureNoAdjustment()
@@ -308,24 +307,24 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 		}
 
 		if !(billEntity.Status == models.STATUS_DRAFT && totalPaidByMembers == 0) && totalPaidByMembers != billEntity.AmountTotal {
-			err = errors.WithMessage(ErrBadInput, fmt.Sprintf("Total paid for all members should be equal to billEntity amount (%v), got %v", billEntity.AmountTotal, totalPaidByMembers))
+			err = fmt.Errorf("%w: total paid for all members should be equal to billEntity amount (%d), got %d", ErrBadInput, billEntity.AmountTotal, totalPaidByMembers)
 			return
 		}
 		switch billEntity.SplitMode {
 		case models.SplitModeEqually:
 			if len(amountsCountByValue) > 2+adjustmentsCount {
-				return bill, errors.Wrapf(ErrBadInput, "len(amountsCountByValue):%v > 2 + adjustmentsCount:%v", amountsCountByValue, adjustmentsCount)
+				return bill, fmt.Errorf("%w: len(amountsCountByValue):%d > 2 + adjustmentsCount:%d", ErrBadInput, amountsCountByValue, adjustmentsCount)
 			}
 		case models.SplitModePercentage:
 			if totalPercentageByMembers != decimal.FromInt(100) {
-				err = errors.WithMessage(ErrBadInput, fmt.Sprintf("Total percentage for all members should be 100%%, got %v%%", totalPercentageByMembers))
+				err = fmt.Errorf("%w: total percentage for all members should be 100%%, got %v%%", ErrBadInput, totalPercentageByMembers)
 				return
 			}
 		case models.SplitModeShare:
 			if billEntity.Shares == 0 {
 				billEntity.Shares = totalSharesPerMembers
 			} else if billEntity.Shares != totalSharesPerMembers {
-				err = errors.WithMessage(ErrBadInput, fmt.Sprintf("billEntity.Shares != totalSharesPerMembers"))
+				err = fmt.Errorf("%w: billEntity.Shares != totalSharesPerMembers", ErrBadInput)
 				return
 			}
 		}
@@ -340,7 +339,7 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 		// Use non transactional context
 		counterparties, err = GetContactsByIDs(c, contactIDs)
 		if err != nil {
-			return bill, errors.Wrap(err, "Failed to get counterparties by ID.")
+			return bill, fmt.Errorf("failed to get counterparties by ID: %w", err)
 		}
 
 		// Assign userIDs from counterparty to respective member
@@ -348,7 +347,7 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 			for _, counterparty := range counterparties {
 				// TODO: assign not just for creator?
 				if member.UserID == "" && member.ContactByUser[billEntity.CreatorUserID].ContactID == strconv.FormatInt(counterparty.ID, 10) {
-					member.UserID = strconv.FormatInt(counterparty.CounterpartyUserID, 10)
+					member.UserID = strconv.FormatInt(counterparty.Data.CounterpartyUserID, 10)
 					break
 				}
 			}
@@ -361,12 +360,21 @@ func (billFacade) CreateBill(c, tc context.Context, billEntity *models.BillEntit
 
 	}
 
-	if bill, err = InsertBillEntity(tc, billEntity); err != nil {
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
 		return
 	}
+	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+		if bill, err = InsertBillEntity(tc, tx, billEntity); err != nil {
+			return
+		}
 
-	billHistoryRecord := models.NewBillHistoryBillCreated(bill, nil)
-	if err = dtdal.InsertWithRandomStringID(c, &billHistoryRecord, models.BillsHistoryIdLen); err != nil {
+		billHistory := models.NewBillHistoryBillCreated(bill, nil)
+		if err = dtdal.InsertWithRandomStringID(c, tx, billHistory.Record); err != nil {
+			return
+		}
+		return err
+	}); err != nil {
 		return
 	}
 	return
@@ -481,7 +489,7 @@ type BillMemberUserInfo struct {
 func (billFacade) GetBillMembersUserInfo(c context.Context, bill models.Bill, forUserID int64) (billMembersUserInfo []BillMemberUserInfo, err error) {
 	sUserID := strconv.FormatInt(forUserID, 10)
 
-	for i, member := range bill.GetBillMembers() {
+	for i, member := range bill.Data.GetBillMembers() {
 		var (
 			billMemberContactJson models.MemberContactJson
 			ok                    bool
@@ -499,7 +507,7 @@ func (billFacade) GetBillMembersUserInfo(c context.Context, bill models.Bill, fo
 }
 
 func (billFacade) AddBillMember(
-	c context.Context, userID string, inBill models.Bill, memberID, memberUserID string, memberUserName string, paid decimal.Decimal64p2,
+	c context.Context, tx dal.ReadwriteTransaction, userID string, inBill models.Bill, memberID, memberUserID string, memberUserName string, paid decimal.Decimal64p2,
 ) (
 	bill models.Bill, group models.Group, changed, isJoined bool, err error,
 ) {
@@ -517,7 +525,7 @@ func (billFacade) AddBillMember(
 
 	// TODO: Verify bill was obtained within transaction
 
-	previousBalance := bill.GetBalance()
+	previousBalance := bill.Data.GetBalance()
 
 	var (
 		//isNew bool
@@ -530,30 +538,30 @@ func (billFacade) AddBillMember(
 		groupMembersJsonBefore string
 	)
 
-	totalAboutBefore := bill.AmountTotal
+	totalAboutBefore := bill.Data.AmountTotal
 
-	if userGroupID := bill.GetUserGroupID(); userGroupID != "" {
-		if group, err = dtdal.Group.GetGroupByID(c, userGroupID); err != nil {
+	if userGroupID := bill.Data.GetUserGroupID(); userGroupID != "" {
+		if group, err = dtdal.Group.GetGroupByID(c, tx, userGroupID); err != nil {
 			return
 		}
 
-		groupMembersJsonBefore = group.MembersJson
+		groupMembersJsonBefore = group.Data.MembersJson
 
-		if _, groupChanged, _, groupMember, groupMembers = group.AddOrGetMember(memberUserID, "", memberUserName); groupChanged {
-			group.SetGroupMembers(groupMembers)
+		if _, groupChanged, _, groupMember, groupMembers = group.Data.AddOrGetMember(memberUserID, "", memberUserName); groupChanged {
+			group.Data.SetGroupMembers(groupMembers)
 		} else {
 			log.Debugf(c, "Group billMembers not changed, groupMember.ID: "+groupMember.ID)
 		}
 	}
 
-	_, changed, index, billMember, billMembers = bill.AddOrGetMember(groupMember.ID, memberUserID, "", memberUserName)
+	_, changed, index, billMember, billMembers = bill.Data.AddOrGetMember(groupMember.ID, memberUserID, "", memberUserName)
 
 	log.Debugf(c, "billMember.ID: "+billMember.ID)
 
 	if paid > 0 {
 		if billMember.Paid == paid {
 			// Already set
-		} else if paid == bill.AmountTotal {
+		} else if paid == bill.Data.AmountTotal {
 			for i := range billMembers {
 				billMembers[i].Paid = 0
 			}
@@ -564,7 +572,7 @@ func (billFacade) AddBillMember(
 			for _, bm := range billMembers {
 				paidTotal += bm.Paid
 			}
-			if paidTotal <= bill.AmountTotal {
+			if paidTotal <= bill.Data.AmountTotal {
 				billMember.Paid = paid
 				changed = true
 			} else {
@@ -580,27 +588,27 @@ func (billFacade) AddBillMember(
 	billMembers[index] = billMember
 
 	log.Debugf(c, "billMembers: %+v", billMembers)
-	if err = bill.SetBillMembers(billMembers); err != nil {
+	if err = bill.Data.SetBillMembers(billMembers); err != nil {
 		return
 	}
-	log.Debugf(c, "bill.GetBillMembers(): %+v", bill.GetBillMembers())
+	log.Debugf(c, "bill.GetBillMembers(): %+v", bill.Data.GetBillMembers())
 
 	if err = dtdal.Bill.SaveBill(c, bill); err != nil {
 		return
 	}
 
-	log.Debugf(c, "bill.GetBillMembers() after save: %v", bill.GetBillMembers())
+	log.Debugf(c, "bill.GetBillMembers() after save: %v", bill.Data.GetBillMembers())
 
-	currentBalance := bill.GetBalance()
+	currentBalance := bill.Data.GetBalance()
 
 	if balanceDifference := currentBalance.BillBalanceDifference(previousBalance); balanceDifference.IsNoDifference() {
 		log.Debugf(c, "Bill balanceDifference: %v", balanceDifference)
-		if groupChanged, err = group.ApplyBillBalanceDifference(bill.Currency, balanceDifference); err != nil {
-			err = errors.WithMessage(err, "Failed to apply bill difference")
+		if groupChanged, err = group.Data.ApplyBillBalanceDifference(bill.Data.Currency, balanceDifference); err != nil {
+			err = fmt.Errorf("failed to apply bill difference: %w", err)
 			return
 		}
 		if groupChanged {
-			if err = dtdal.Group.SaveGroup(c, group); err != nil {
+			if err = dtdal.Group.SaveGroup(c, tx, group); err != nil {
 				return
 			}
 		}
@@ -608,11 +616,12 @@ func (billFacade) AddBillMember(
 
 	log.Debugf(c, "group: %+v", group)
 	var groupMembersJsonAfter string
-	if group.GroupEntity != nil {
-		groupMembersJsonAfter = group.MembersJson
+	if group.Data != nil {
+		groupMembersJsonAfter = group.Data.MembersJson
 	}
-	billHistoryRecord := models.NewBillHistoryMemberAdded(userID, bill, totalAboutBefore, groupMembersJsonBefore, groupMembersJsonAfter)
-	if err = dtdal.InsertWithRandomStringID(c, &billHistoryRecord, models.BillsHistoryIdLen); err != nil {
+	billHistory := models.NewBillHistoryMemberAdded(userID, bill, totalAboutBefore, groupMembersJsonBefore, groupMembersJsonAfter)
+
+	if err = tx.Insert(c, billHistory.Record); err != nil {
 		return
 	}
 
@@ -626,47 +635,53 @@ var (
 )
 
 func (billFacade) DeleteBill(c context.Context, billID string, userID int64) (bill models.Bill, err error) {
-	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if bill, err = GetBillByID(c, billID); err != nil {
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
+	}
+	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+		if bill, err = GetBillByID(c, nil, billID); err != nil {
 			return
 		}
-		if bill.Status == models.BillStatusSettled {
+		if bill.Data.Status == models.BillStatusSettled {
 			err = ErrSettledBillsCanNotBeDeleted
 			return
 		}
-		if bill.Status == models.BillStatusDraft || bill.Status == models.BillStatusOutstanding {
-			billHistoryRecord := models.NewBillHistoryBillDeleted(strconv.FormatInt(userID, 10), bill)
-			if err = dtdal.InsertWithRandomStringID(c, &billHistoryRecord, models.BillsHistoryIdLen); err != nil {
+		if bill.Data.Status == models.BillStatusDraft || bill.Data.Status == models.BillStatusOutstanding {
+			billHistory := models.NewBillHistoryBillDeleted(strconv.FormatInt(userID, 10), bill)
+			if err = tx.Insert(c, billHistory.Record); err != nil {
 				return
 			}
-			bill.Status = models.BillStatusDeleted
+			bill.Data.Status = models.BillStatusDeleted
 			if err = dtdal.Bill.SaveBill(c, bill); err != nil {
 				return
 			}
 		}
-		if groupID := bill.GetUserGroupID(); groupID != "" {
+		if groupID := bill.Data.GetUserGroupID(); groupID != "" {
 			var group models.Group
-			if group, err = dtdal.Group.GetGroupByID(c, groupID); err != nil {
+			if group, err = dtdal.Group.GetGroupByID(c, tx, groupID); err != nil {
 				return
 			}
-			outstandingBills := group.GetOutstandingBills()
+			outstandingBills := group.Data.GetOutstandingBills()
 			for i, billJson := range outstandingBills {
 				if billJson.ID == billID {
 					outstandingBills = append(outstandingBills[:i], outstandingBills[i+1:]...)
-					group.SetOutstandingBills(outstandingBills)
-					groupMembers := group.GetGroupMembers()
-					billMembers := bill.GetBillMembers()
+					if _, err = group.Data.SetOutstandingBills(outstandingBills); err != nil {
+						return err
+					}
+					groupMembers := group.Data.GetGroupMembers()
+					billMembers := bill.Data.GetBillMembers()
 					for j, groupMember := range groupMembers {
 						for _, billMember := range billMembers {
 							if billMember.ID == groupMember.ID {
-								groupMember.Balance[bill.Currency] -= billMember.Balance()
+								groupMember.Balance[bill.Data.Currency] -= billMember.Balance()
 								groupMembers[j] = groupMember
 								break
 							}
 						}
 					}
-					group.SetGroupMembers(groupMembers)
-					if err = dtdal.Group.SaveGroup(c, group); err != nil {
+					group.Data.SetGroupMembers(groupMembers)
+					if err = dtdal.Group.SaveGroup(c, tx, group); err != nil {
 						return
 					}
 					break
@@ -674,62 +689,72 @@ func (billFacade) DeleteBill(c context.Context, billID string, userID int64) (bi
 			}
 		}
 		return
-	}, db.CrossGroupTransaction); err != nil {
+	}, dal.TxWithCrossGroup()); err != nil {
 		return
 	}
 	return
 }
 
 func (billFacade) RestoreBill(c context.Context, billID string, userID int64) (bill models.Bill, err error) {
-	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if bill, err = GetBillByID(c, billID); err != nil {
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
+	}
+	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+		if bill, err = GetBillByID(c, nil, billID); err != nil {
 			return
 		}
-		if bill.Status != models.BillStatusDeleted {
+		if bill.Data.Status != models.BillStatusDeleted {
 			err = ErrOnlyDeletedBillsCanBeRestored
 			return
 		}
 
-		if bill.MembersCount > 1 {
-			bill.Status = models.BillStatusOutstanding
+		if bill.Data.MembersCount > 1 {
+			bill.Data.Status = models.BillStatusOutstanding
 		} else {
-			bill.Status = models.BillStatusDraft
+			bill.Data.Status = models.BillStatusDraft
 		}
-		billHistoryRecord := models.NewBillHistoryBillRestored(strconv.FormatInt(userID, 10), bill)
-		if err = dtdal.InsertWithRandomStringID(c, &billHistoryRecord, models.BillsHistoryIdLen); err != nil {
+		billHistory := models.NewBillHistoryBillRestored(strconv.FormatInt(userID, 10), bill)
+		if err = tx.Insert(c, billHistory.Record); err != nil {
 			return
 		}
 		if err = dtdal.Bill.SaveBill(c, bill); err != nil {
 			return
 		}
-		if groupID := bill.GetUserGroupID(); groupID != "" {
+		if groupID := bill.Data.GetUserGroupID(); groupID != "" {
 			var group models.Group
-			if group, err = dtdal.Group.GetGroupByID(c, groupID); err != nil {
+			if group, err = dtdal.Group.GetGroupByID(c, tx, groupID); err != nil {
 				return
 			}
 			var groupChanged bool
-			if groupChanged, err = group.AddBill(bill); err != nil {
+			if groupChanged, err = group.Data.AddBill(bill); err != nil {
 				return
 			} else if groupChanged {
-				if err = dtdal.Group.SaveGroup(c, group); err != nil {
+				if err = dtdal.Group.SaveGroup(c, tx, group); err != nil {
 					return
 				}
 			}
 		}
 		return
-	}, db.CrossGroupTransaction); err != nil {
+	}, dal.TxWithCrossGroup()); err != nil {
 		return
 	}
 	return
 }
 
-func GetBillByID(c context.Context, billID string) (bill models.Bill, err error) {
+func GetBillByID(c context.Context, tx dal.ReadSession, billID string) (bill models.Bill, err error) {
+	if tx == nil {
+		tx, err = GetDatabase(c)
+	}
 	bill.ID = billID
-	err = dtdal.DB.Get(c, &bill)
+	bill.Key = dal.NewKeyWithID(models.BillKind, billID)
+	bill.Data = new(models.BillEntity)
+	bill.Record = dal.NewRecordWithData(bill.Key, bill.Data)
+	err = tx.Get(c, bill.Record)
 	return
 }
 
-func InsertBillEntity(c context.Context, billEntity *models.BillEntity) (bill models.Bill, err error) {
+func InsertBillEntity(c context.Context, tx dal.ReadwriteTransaction, billEntity *models.BillEntity) (bill models.Bill, err error) {
 	if billEntity == nil {
 		panic("billEntity == nil")
 	}
@@ -741,9 +766,9 @@ func InsertBillEntity(c context.Context, billEntity *models.BillEntity) (bill mo
 	}
 
 	billEntity.DtCreated = time.Now()
-	bill.BillEntity = billEntity
+	bill.Data = billEntity
 
-	err = dtdal.InsertWithRandomStringID(c, &bill, models.BillIdLen)
+	err = tx.Insert(c, bill.Record)
 	return
 }
 

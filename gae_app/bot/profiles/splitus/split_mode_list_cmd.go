@@ -3,11 +3,14 @@ package splitus
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/log"
 	"net/url"
 )
 
-var billSplitModesListCommand = billCallbackCommand("split-modes", nil,
+var billSplitModesListCommand = billCallbackCommand("split-modes",
 	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "billSplitModesListCommand.CallbackAction()")

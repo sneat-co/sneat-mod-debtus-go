@@ -1,6 +1,8 @@
 package tgbots
 
 import (
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"regexp"
 	"strings"
 
@@ -24,9 +26,9 @@ func ParseStartCommand(whc botsfw.WebhookContext) (startParam string, startParam
 
 	switch input.(type) {
 	case botsfw.WebhookTextMessage:
-		startParam = input.(bots.WebhookTextMessage).Text()
+		startParam = input.(botsfw.WebhookTextMessage).Text()
 	case botsfw.WebhookReferralMessage:
-		startParam = input.(bots.WebhookReferralMessage).RefData()
+		startParam = input.(botsfw.WebhookReferralMessage).RefData()
 	default:
 		panic("Unknown input type")
 	}

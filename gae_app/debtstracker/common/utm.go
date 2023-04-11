@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"net/url"
 )
 

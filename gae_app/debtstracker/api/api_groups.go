@@ -2,6 +2,8 @@ package api
 
 import (
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/strongo/db"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -77,7 +79,7 @@ func groupsToJson(groups []models.Group, user models.AppUser) (result [][]byte, 
 
 	groupStatuses := make(map[string]string, len(groups))
 
-	for _, group := range user.ActiveGroups() {
+	for _, group := range user.Data.ActiveGroups() {
 		groupStatuses[group.ID] = models.STATUS_ACTIVE
 	}
 
@@ -93,7 +95,7 @@ func groupsToJson(groups []models.Group, user models.AppUser) (result [][]byte, 
 		} else {
 			groupDto.Status = models.STATUS_ARCHIVED
 		}
-		contactsByID := user.ContactsByID()
+		contactsByID := user.Data.ContactsByID()
 		if group.MembersJson != "" {
 			for _, member := range group.GetGroupMembers() {
 				memberDto := dto.GroupMemberDto{
@@ -140,7 +142,13 @@ func handleJoinGroups(c context.Context, w http.ResponseWriter, r *http.Request,
 	groups := make([]models.Group, len(groupIDs))
 	var user models.AppUser
 
-	err := dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	db, err := facade.GetDatabase(c)
+	if err != nil {
+		ErrorAsJson(c, w, http.StatusInternalServerError, err)
+		return
+	}
+
+	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 		if user, err = facade.User.GetUserByID(c, authInfo.UserID); err != nil {
 			return
 		}
@@ -156,7 +164,7 @@ func handleJoinGroups(c context.Context, w http.ResponseWriter, r *http.Request,
 					return
 				}
 				groups[i] = group
-				userName := user.FullName()
+				userName := user.Data.FullName()
 				if userName == models.NoName {
 					userName = ""
 				}
@@ -181,12 +189,12 @@ func handleJoinGroups(c context.Context, w http.ResponseWriter, r *http.Request,
 			}
 		}
 
-		if err = facade.User.UpdateUserWithGroups(c, user, groups, []string{}); err != nil {
+		if err = facade.User.UpdateUserWithGroups(c, tx, user, groups, []string{}); err != nil {
 			return
 		}
 
 		return
-	}, dtdal.CrossGroupTransaction)
+	}, dal.TxWithCrossGroup())
 
 	if err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
@@ -411,7 +419,7 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 		}
 		return err
 	}, dtdal.CrossGroupTransaction); err != nil {
-		if db.IsNotFound(err) {
+		if dal.IsNotFound(err) {
 			BadRequestError(c, w, err)
 			return
 		}

@@ -56,7 +56,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 
 	if _user, err := facade.User.GetUserByID(c, userID); err != nil {
-		if db.IsNotFound(err) {
+		if dal.IsNotFound(err) {
 			w.WriteHeader(http.StatusNotFound)
 			log.Infof(c, err.Error())
 		} else {

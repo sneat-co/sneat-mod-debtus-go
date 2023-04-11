@@ -5,8 +5,8 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
-	"errors"
 	"fmt"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/log"
 	"regexp"
@@ -89,7 +89,7 @@ func startReceipt(whc botsfw.WebhookContext, receiptCode, operation, localeCode5
 		if dal.IsNotFound(err) {
 			err = nil
 			if receiptID, err = common.DecodeID(receiptCode); err != nil {
-				err = errors.WithMessage(err, "failed to decode receipt ID")
+				err = fmt.Errorf("failed to decode receipt ID: %w", err)
 				return
 			}
 		} else {

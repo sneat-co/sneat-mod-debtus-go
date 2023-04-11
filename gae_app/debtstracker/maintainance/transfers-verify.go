@@ -53,7 +53,7 @@ func (m *verifyTransfers) verifyTransfer(c context.Context, counters *asyncCount
 func (m *verifyTransfers) verifyTransferUsers(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
 	for _, userID := range transfer.BothUserIDs {
 		if userID != 0 {
-			if _, err2 := facade.User.GetUserByID(c, userID); db.IsNotFound(err2) {
+			if _, err2 := facade.User.GetUserByID(c, userID); dal.IsNotFound(err2) {
 				counters.Increment(fmt.Sprintf("User:%d", userID), 1)
 				fmt.Fprintf(buf, "Unknown user %d\n", userID)
 			} else if err2 != nil {
@@ -68,7 +68,7 @@ func (m *verifyTransfers) verifyTransferUsers(c context.Context, transfer models
 func (m *verifyTransfers) verifyTransferContacts(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
 	for _, contactID := range transfer.BothCounterpartyIDs {
 		if contactID != 0 {
-			if _, err2 := facade.GetContactByID(c, contactID); db.IsNotFound(err2) {
+			if _, err2 := facade.GetContactByID(c, contactID); dal.IsNotFound(err2) {
 				counters.Increment(fmt.Sprintf("Contact:%d", contactID), 1)
 				fmt.Fprintf(buf, "Unknown contact %d\n", contactID)
 			} else if err2 != nil {

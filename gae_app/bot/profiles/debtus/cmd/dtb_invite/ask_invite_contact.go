@@ -5,7 +5,6 @@ import (
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	bots "github.com/strongo/bots-framework/core"
 	"net/url"
 	"strings"
 
@@ -32,7 +31,7 @@ func AskInviteAddress(channel, icon, commandText, messageCode, invalidMessageCod
 			chatEntity := whc.ChatEntity()
 
 			if chatEntity.IsAwaitingReplyTo(code) {
-				email := strings.TrimSpace(whc.Input().(bots.WebhookTextMessage).Text())
+				email := strings.TrimSpace(whc.Input().(botsfw.WebhookTextMessage).Text())
 				isValid := channel == string(models.InviteByEmail) && strings.Contains(email, "@") && strings.Contains(email, ".")
 				if isValid {
 					invite, err := dtdal.Invite.CreatePersonalInvite(whc, whc.AppUserIntID(), models.InviteByEmail, email, whc.BotPlatform().ID(), whc.GetBotCode(), "counterparty=?")

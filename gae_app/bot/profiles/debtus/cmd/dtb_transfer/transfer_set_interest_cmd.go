@@ -14,7 +14,7 @@ import (
 var reInterest = regexp.MustCompile(`^\s*(?P<percent>\d+(?:[\.,]\d+)?)%?(?:/(?P<period>\d+|w(?:eek)?|y(?:ear)?|m(?:onth)?))?(?:/(?P<minimum>\d+))?(?:/(?P<grace>\d+))?(?::\s*(?P<comment>.+?))?\s*$`)
 
 func interestAction(whc botsfw.WebhookContext, nextAction botsfw.CommandAction) (m botsfw.MessageFromBot, err error) {
-	mt := whc.Input().(bots.WebhookTextMessage).Text()
+	mt := whc.Input().(botsfw.WebhookTextMessage).Text()
 
 	if matches := reInterest.FindStringSubmatch(mt); len(matches) > 0 {
 		chatEntity := whc.ChatEntity()

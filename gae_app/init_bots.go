@@ -2,20 +2,18 @@ package gaeapp
 
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/fbmbots"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/viberbots"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/collectus"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/splitus"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"context"
 	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/julienschmidt/httprouter"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gaestandard"
-	"github.com/strongo/bots-framework/platforms/fbm"
-	"github.com/strongo/bots-framework/platforms/viber"
 )
 
 func newTranslator(c context.Context) strongo.Translator {
@@ -25,7 +23,7 @@ func newTranslator(c context.Context) strongo.Translator {
 func InitBots(httpRouter *httprouter.Router, botHost botsfw.BotHost, appContext botsfw.BotAppContext) {
 
 	driver := botsfw.NewBotDriver( // Orchestrate requests to appropriate handlers
-		bots.AnalyticsSettings{GaTrackingID: common.GA_TRACKING_ID}, // TODO: Refactor to list of analytics providers
+		botsfw.AnalyticsSettings{GaTrackingID: common.GA_TRACKING_ID}, // TODO: Refactor to list of analytics providers
 		appContext, // Holds User entity kind name, translator, etc.
 		botHost,    // Defines how to create context.Context, HttpClient, DB, etc...
 		"Please report any issues to @DebtsTrackerGroup", // Is it wrong place? Router has similar.
@@ -36,14 +34,14 @@ func InitBots(httpRouter *httprouter.Router, botHost botsfw.BotHost, appContext 
 			telegramBotsWithRouter, // Maps of bots by code, language, token, etc...
 			newTranslator,          // Creates translator that gets a context.Context (for logging purpose)
 		),
-		viber.NewViberWebhookHandler(
-			viberbots.Bots,
-			newTranslator,
-		),
-		fbm.NewFbmWebhookHandler(
-			fbmbots.Bots,
-			newTranslator,
-		),
+		//viber.NewViberWebhookHandler(
+		//	viberbots.Bots,
+		//	newTranslator,
+		//),
+		//fbm.NewFbmWebhookHandler(
+		//	fbmbots.Bots,
+		//	newTranslator,
+		//),
 	)
 }
 

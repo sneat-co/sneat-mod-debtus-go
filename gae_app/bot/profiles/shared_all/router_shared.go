@@ -3,14 +3,14 @@ package shared_all
 func AddSharedRoutes(router botsfw.WebhooksRouter, botParams BotParams) {
 	startCommand := createStartCommand(botParams)
 	helpRootCommand := createHelpRootCommand(botParams)
-	router.AddCommands(bots.WebhookInputText, []botsfw.Command{
+	router.AddCommands(botsfw.WebhookInputText, []botsfw.Command{
 		startCommand,
 		helpRootCommand,
 		ReferrersCommand,
 		createOnboardingAskLocaleCommand(botParams),
 		aboutDrawCommand,
 	})
-	router.AddCommands(bots.WebhookInputCallbackQuery, []botsfw.Command{
+	router.AddCommands(botsfw.WebhookInputCallbackQuery, []botsfw.Command{
 		onStartCallbackCommand(botParams),
 		helpRootCommand,
 		joinDrawCommand,
@@ -18,16 +18,16 @@ func AddSharedRoutes(router botsfw.WebhooksRouter, botParams BotParams) {
 		askPreferredLocaleFromSettingsCallback,
 		setLocaleCallbackCommand(botParams),
 	})
-	router.AddCommands(bots.WebhookInputLeftChatMembers, []botsfw.Command{
+	router.AddCommands(botsfw.WebhookInputLeftChatMembers, []botsfw.Command{
 		leftChatCommand,
 	})
-	router.AddCommands(bots.WebhookInputSticker, []botsfw.Command{
+	router.AddCommands(botsfw.WebhookInputSticker, []botsfw.Command{
 		bots.IgnoreCommand,
 	})
-	router.AddCommands(bots.WebhookInputReferral, []botsfw.Command{
+	router.AddCommands(botsfw.WebhookInputReferral, []botsfw.Command{
 		startCommand,
 	})
-	router.AddCommands(bots.WebhookInputConversationStarted, []botsfw.Command{
+	router.AddCommands(botsfw.WebhookInputConversationStarted, []botsfw.Command{
 		startCommand,
 	})
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/crediterra/money"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"html"
 	"html/template"
 	"time"
@@ -53,23 +54,23 @@ func newReceiptTextBuilder(ec strongo.ExecutionContext, transfer models.Transfer
 	}
 	switch showReceiptTo {
 	case ShowReceiptToCreator:
-		r.viewerUserID = transfer.CreatorUserID
+		r.viewerUserID = transfer.Data.CreatorUserID
 	case ShowReceiptToCounterparty:
-		r.viewerUserID = transfer.Counterparty().UserID
+		r.viewerUserID = transfer.Data.Counterparty().UserID
 	default:
 		panic(fmt.Sprintf("Unknown showReceiptTo: %v", showReceiptTo))
 	}
-	if (showReceiptTo == ShowReceiptToCreator && r.transfer.Direction() == models.TransferDirectionCounterparty2User) ||
-		(showReceiptTo == ShowReceiptToCounterparty && r.transfer.Direction() == models.TransferDirectionUser2Counterparty) {
+	if (showReceiptTo == ShowReceiptToCreator && r.transfer.Data.Direction() == models.TransferDirectionCounterparty2User) ||
+		(showReceiptTo == ShowReceiptToCounterparty && r.transfer.Data.Direction() == models.TransferDirectionUser2Counterparty) {
 		r.partyAction = ReceiptPartyGot
-	} else if (showReceiptTo == ShowReceiptToCounterparty && r.transfer.Direction() == models.TransferDirectionCounterparty2User) ||
-		(showReceiptTo == ShowReceiptToCreator && r.transfer.Direction() == models.TransferDirectionUser2Counterparty) {
+	} else if (showReceiptTo == ShowReceiptToCounterparty && r.transfer.Data.Direction() == models.TransferDirectionCounterparty2User) ||
+		(showReceiptTo == ShowReceiptToCreator && r.transfer.Data.Direction() == models.TransferDirectionUser2Counterparty) {
 		r.partyAction = ReceiptPartyGive
 	} else {
 		if showReceiptTo != ShowReceiptToCreator && showReceiptTo != ShowReceiptToCounterparty {
 			panic(fmt.Sprintf("Unknown ShowReceiptTo: %v", r.showReceiptTo))
 		}
-		panic(fmt.Sprintf("Invalid direction (%v) or showReceiptTo (%v)", r.transfer.Direction(), showReceiptTo))
+		panic(fmt.Sprintf("Invalid direction (%v) or showReceiptTo (%v)", r.transfer.Data.Direction(), showReceiptTo))
 	}
 	return r
 }
@@ -79,20 +80,20 @@ func (r receiptTextBuilder) validateRequiredParams() {
 
 func (r receiptTextBuilder) receiptCommonFooter(buffer *bytes.Buffer) {
 	transfer := r.transfer
-	if r.showReceiptTo == ShowReceiptToCreator && transfer.Creator().Note != "" {
-		buffer.WriteString("\n" + fmt.Sprintf(emoji.MEMO_ICON+" <b>%v</b>: %v", r.Translate(trans.MESSAGE_TEXT_NOTE), html.EscapeString(transfer.Creator().Note)))
+	if r.showReceiptTo == ShowReceiptToCreator && transfer.Data.Creator().Note != "" {
+		buffer.WriteString("\n" + fmt.Sprintf(emoji.MEMO_ICON+" <b>%v</b>: %v", r.Translate(trans.MESSAGE_TEXT_NOTE), html.EscapeString(transfer.Data.Creator().Note)))
 	}
-	if r.showReceiptTo == ShowReceiptToCounterparty && transfer.Counterparty().Note != "" {
-		buffer.WriteString("\n" + fmt.Sprintf(emoji.MEMO_ICON+" <b>%v</b>: %v", r.Translate(trans.MESSAGE_TEXT_NOTE), html.EscapeString(transfer.Counterparty().Note)))
+	if r.showReceiptTo == ShowReceiptToCounterparty && transfer.Data.Counterparty().Note != "" {
+		buffer.WriteString("\n" + fmt.Sprintf(emoji.MEMO_ICON+" <b>%v</b>: %v", r.Translate(trans.MESSAGE_TEXT_NOTE), html.EscapeString(transfer.Data.Counterparty().Note)))
 	}
 
-	if transfer.Creator().Comment != "" {
+	if transfer.Data.Creator().Comment != "" {
 		label := r.Translate(trans.MESSAGE_TEXT_COMMENT)
-		buffer.WriteString("\n" + fmt.Sprintf(emoji.NEWSPAPER_ICON+" <b>%v</b>: %v", label, html.EscapeString(transfer.Creator().Comment)))
+		buffer.WriteString("\n" + fmt.Sprintf(emoji.NEWSPAPER_ICON+" <b>%v</b>: %v", label, html.EscapeString(transfer.Data.Creator().Comment)))
 	}
-	if transfer.Counterparty().Comment != "" {
+	if transfer.Data.Counterparty().Comment != "" {
 		label := r.Translate(trans.MESSAGE_TEXT_COMMENT)
-		buffer.WriteString("\n" + fmt.Sprintf(emoji.NEWSPAPER_ICON+" <b>%v</b>: %v", label, html.EscapeString(transfer.Counterparty().Comment)))
+		buffer.WriteString("\n" + fmt.Sprintf(emoji.NEWSPAPER_ICON+" <b>%v</b>: %v", label, html.EscapeString(transfer.Data.Counterparty().Comment)))
 	}
 
 	//if r.counterpartyID > 0 {
@@ -134,7 +135,7 @@ func TextReceiptForTransfer(ec strongo.ExecutionContext, transfer models.Transfe
 	if transfer.ID == 0 {
 		panic("transferID == 0")
 	}
-	if transfer.TransferEntity == nil {
+	if transfer.Data == nil {
 		panic("transferID == 0")
 	}
 
@@ -142,21 +143,21 @@ func TextReceiptForTransfer(ec strongo.ExecutionContext, transfer models.Transfe
 
 	switch showReceiptTo {
 	case ShowReceiptToCreator:
-		if showToUserID != 0 && showToUserID != transfer.CreatorUserID {
+		if showToUserID != 0 && showToUserID != transfer.Data.CreatorUserID {
 			panic("showToUserID != 0 && showToUserID != transferEntity.CreatorUserID")
 		}
 	case ShowReceiptToCounterparty:
-		if showToUserID != 0 && transfer.Counterparty().UserID != 0 && showToUserID != transfer.Counterparty().UserID {
+		if showToUserID != 0 && transfer.Data.Counterparty().UserID != 0 && showToUserID != transfer.Data.Counterparty().UserID {
 			panic("showToUserID != 0 && showToUserID != transferEntity.Counterparty().UserID")
 		}
 	case ShowReceiptToAutodetect:
 		switch showToUserID {
-		case transfer.CreatorUserID:
+		case transfer.Data.CreatorUserID:
 			showReceiptTo = ShowReceiptToCreator
-		case transfer.Counterparty().UserID:
+		case transfer.Data.Counterparty().UserID:
 			showReceiptTo = ShowReceiptToCounterparty
 		default:
-			if transfer.Counterparty().UserID == 0 {
+			if transfer.Data.Counterparty().UserID == 0 {
 				showReceiptTo = ShowReceiptToCounterparty
 			} else {
 				panic(fmt.Sprintf("Parameter showToUserID=%v is not related to transferEntity with id=%v", showToUserID, transfer.ID))
@@ -175,9 +176,9 @@ func TextReceiptForTransfer(ec strongo.ExecutionContext, transfer models.Transfe
 func (r receiptTextBuilder) getReceiptCounterparty() *models.TransferCounterpartyInfo {
 	switch r.showReceiptTo {
 	case ShowReceiptToCreator:
-		return r.transfer.Counterparty()
+		return r.transfer.Data.Counterparty()
 	case ShowReceiptToCounterparty:
-		return r.transfer.Creator()
+		return r.transfer.Data.Creator()
 	default:
 		panic(fmt.Sprintf("Unknown ShowReceiptTo: %v", r.showReceiptTo))
 	}
@@ -185,12 +186,12 @@ func (r receiptTextBuilder) getReceiptCounterparty() *models.TransferCounterpart
 
 func (r receiptTextBuilder) receiptOnReturn(utmParams UtmParams) string {
 	var messageTextToTranslate string
-	return r.translateAndFormatMessage(messageTextToTranslate, r.transfer.GetAmount(), utmParams)
+	return r.translateAndFormatMessage(messageTextToTranslate, r.transfer.Data.GetAmount(), utmParams)
 }
 
 func (r receiptTextBuilder) WriteReceiptText(buffer *bytes.Buffer, utmParams UtmParams) {
 	var messageTextToTranslate string
-	if r.transfer.IsReturn {
+	if r.transfer.Data.IsReturn {
 		switch r.partyAction {
 		case ReceiptPartyGive:
 			messageTextToTranslate = trans.MESSAGE_TEXT_RECEIPT_RETURN_FROM_USER
@@ -210,30 +211,30 @@ func (r receiptTextBuilder) WriteReceiptText(buffer *bytes.Buffer, utmParams Utm
 		}
 	}
 
-	buffer.WriteString(r.translateAndFormatMessage(messageTextToTranslate, r.transfer.GetAmount(), utmParams))
+	buffer.WriteString(r.translateAndFormatMessage(messageTextToTranslate, r.transfer.Data.GetAmount(), utmParams))
 
-	if r.transfer.HasInterest() {
+	if r.transfer.Data.HasInterest() {
 		buffer.WriteString("\n")
 		WriteTransferInterest(buffer, r.transfer, r)
 	}
 
-	if !r.transfer.DtDueOn.IsZero() {
-		buffer.WriteString("\n" + emoji.ALARM_CLOCK_ICON + " " + fmt.Sprintf(r.Translate(trans.MESSAGE_TEXT_DUE_ON), r.transfer.DtDueOn.Format("2006-01-02 15:04")))
+	if !r.transfer.Data.DtDueOn.IsZero() {
+		buffer.WriteString("\n" + emoji.ALARM_CLOCK_ICON + " " + fmt.Sprintf(r.Translate(trans.MESSAGE_TEXT_DUE_ON), r.transfer.Data.DtDueOn.Format("2006-01-02 15:04")))
 	}
 
-	if amountReturned := r.transfer.AmountReturned(); amountReturned > 0 && amountReturned != r.transfer.AmountInCents {
-		buffer.WriteString("\n" + r.translateAndFormatMessage(trans.MESSAGE_TEXT_RECEIPT_ALREADY_RETURNED_AMOUNT, r.transfer.GetReturnedAmount(), utmParams))
+	if amountReturned := r.transfer.Data.AmountReturned(); amountReturned > 0 && amountReturned != r.transfer.Data.AmountInCents {
+		buffer.WriteString("\n" + r.translateAndFormatMessage(trans.MESSAGE_TEXT_RECEIPT_ALREADY_RETURNED_AMOUNT, r.transfer.Data.GetReturnedAmount(), utmParams))
 	}
 
-	if outstandingAmount := r.transfer.GetOutstandingAmount(time.Now()); outstandingAmount.Value > 0 && outstandingAmount.Value != r.transfer.AmountInCents {
+	if outstandingAmount := r.transfer.Data.GetOutstandingAmount(time.Now()); outstandingAmount.Value > 0 && outstandingAmount.Value != r.transfer.Data.AmountInCents {
 		buffer.WriteString("\n" + r.translateAndFormatMessage(trans.MESSAGE_TEXT_RECEIPT_OUTSTANDING_AMOUNT, outstandingAmount, utmParams))
 	}
 }
 
 func WriteTransferInterest(buffer *bytes.Buffer, transfer models.Transfer, translator strongo.SingleLocaleTranslator) {
-	buffer.WriteString(translator.Translate(trans.MESSAGE_TEXT_INTEREST, transfer.InterestPercent, days(translator, int(transfer.InterestPeriod))))
-	if transfer.InterestMinimumPeriod > 1 {
-		buffer.WriteString(", " + translator.Translate(trans.MESSAGE_TEXT_INTEREST_MIN_PERIOD, days(translator, transfer.InterestMinimumPeriod)))
+	buffer.WriteString(translator.Translate(trans.MESSAGE_TEXT_INTEREST, transfer.Data.InterestPercent, days(translator, int(transfer.Data.InterestPeriod))))
+	if transfer.Data.InterestMinimumPeriod > 1 {
+		buffer.WriteString(", " + translator.Translate(trans.MESSAGE_TEXT_INTEREST_MIN_PERIOD, days(translator, transfer.Data.InterestMinimumPeriod)))
 	}
 }
 

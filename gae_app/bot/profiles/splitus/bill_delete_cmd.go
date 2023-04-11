@@ -4,12 +4,14 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"net/url"
 )
 
 const deleteBillCommandCode = "delete_bill"
 
-var deleteBillCommand = billCallbackCommand(deleteBillCommandCode, nil,
+var deleteBillCommand = billCallbackCommand(deleteBillCommandCode,
 	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		if _, err = facade.Bill.DeleteBill(c, bill.ID, whc.AppUserIntID()); err != nil {
@@ -35,7 +37,7 @@ var deleteBillCommand = billCallbackCommand(deleteBillCommandCode, nil,
 
 const restoreBillCommandCode = "restore_bill"
 
-var restoreBillCommand = billCallbackCommand(restoreBillCommandCode, nil,
+var restoreBillCommand = billCallbackCommand(restoreBillCommandCode,
 	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		if _, err = facade.Bill.RestoreBill(c, bill.ID, whc.AppUserIntID()); err != nil {

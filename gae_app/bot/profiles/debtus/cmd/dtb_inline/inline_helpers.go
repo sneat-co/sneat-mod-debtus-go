@@ -2,6 +2,8 @@ package dtb_inline
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/sneat-co/debtstracker-translations/trans"
 )
 
 func GetChooseLangInlineKeyboard(format string, currentLocaleCode5 string) (kbRows [][]tgbotapi.InlineKeyboardButton) {

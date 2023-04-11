@@ -19,7 +19,7 @@ var AuthFacade = authFacade{}
 func (authFacade) AssignPinCode(c context.Context, loginID, userID int64) (loginPin models.LoginPin, err error) {
 	err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 		if loginPin, err = dtdal.LoginPin.GetLoginPinByID(c, loginID); err != nil {
-			return errors.WithMessage(err, fmt.Sprintf("Failed to get LoginPin entity by ID: %v", loginID))
+			return fmt.Errorf("failed to get LoginPin entity by ID=%s: %w", loginID, err)
 		}
 		if loginPin.UserID != 0 && loginPin.UserID != userID {
 			return errors.New("LoginPin.UserID != userID")
@@ -32,7 +32,7 @@ func (authFacade) AssignPinCode(c context.Context, loginID, userID int64) (login
 		loginPin.UserID = userID
 		loginPin.Pinned = time.Now()
 		if err = dtdal.LoginPin.SaveLoginPin(c, loginPin); err != nil {
-			return errors.Wrapf(err, "Failed to save LoginPin entity with ID: %v", loginID)
+			return fmt.Errorf("failed to save LoginPin entity with ID=%v: %w", loginID, err)
 		}
 		return err
 	}, nil)
@@ -40,10 +40,11 @@ func (authFacade) AssignPinCode(c context.Context, loginID, userID int64) (login
 }
 
 func (authFacade) SignInWithPin(c context.Context, loginID int64, loginPinCode int32) (userID int64, err error) {
+	_ = loginPinCode
 	var loginPin models.LoginPin
-	err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
+	return userID, dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 		if loginPin, err = dtdal.LoginPin.GetLoginPinByID(c, loginID); err != nil {
-			return errors.WithMessage(err, fmt.Sprintf("Failed to get LoginPin entity by ID: %v", loginID))
+			return fmt.Errorf("failed to get LoginPin entity by ID=%v: %w", loginID, err)
 		}
 		if !loginPin.SignedIn.IsZero() {
 			return ErrLoginAlreadySigned
@@ -61,5 +62,4 @@ func (authFacade) SignInWithPin(c context.Context, loginID int64, loginPinCode i
 		}
 		return err
 	}, nil) // dtdal.CrossGroupTransaction)
-	return
 }

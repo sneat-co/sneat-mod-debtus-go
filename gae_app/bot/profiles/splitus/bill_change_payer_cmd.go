@@ -2,13 +2,16 @@ package splitus
 
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/log"
 	"net/url"
 )
 
 const CHANGE_BILL_PAYER_COMMAND = "change-bill-payer"
 
-var changeBillPayerCommand = billCallbackCommand(CHANGE_BILL_PAYER_COMMAND, nil,
+var changeBillPayerCommand = billCallbackCommand(CHANGE_BILL_PAYER_COMMAND,
 	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "changeBillPayerCommand.CallbackAction()")
@@ -24,7 +27,7 @@ var changeBillPayerCommand = billCallbackCommand(CHANGE_BILL_PAYER_COMMAND, nil,
 		}
 		markup := tgbotapi.NewInlineKeyboardMarkup()
 
-		for _, member := range bill.GetBillMembers() {
+		for _, member := range bill.Data.GetBillMembers() {
 			s := member.Name
 			if member.Paid > 0 {
 				s = "✔ " + s

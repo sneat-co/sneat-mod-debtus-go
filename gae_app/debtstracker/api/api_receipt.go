@@ -171,7 +171,7 @@ func handleSendReceipt(c context.Context, w http.ResponseWriter, r *http.Request
 
 	if err != nil {
 		var status int
-		if db.IsNotFound(err) {
+		if dal.IsNotFound(err) {
 			status = http.StatusBadRequest
 		} else {
 			status = http.StatusInternalServerError
@@ -288,7 +288,7 @@ func handleSetReceiptChannel(c context.Context, w http.ResponseWriter, r *http.R
 	}
 
 	if _, _, err = updateReceiptAndTransferOnSent(c, receiptID, channel, "", ""); err != nil {
-		if db.IsNotFound(err) {
+		if dal.IsNotFound(err) {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("Receipt not found by ID"))
 		} else {
@@ -335,7 +335,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 	}
 	transfer, err := facade.Transfers.GetTransferByID(c, transferID)
 	if err != nil {
-		if db.IsNotFound(err) {
+		if dal.IsNotFound(err) {
 			w.WriteHeader(http.StatusBadRequest)
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)

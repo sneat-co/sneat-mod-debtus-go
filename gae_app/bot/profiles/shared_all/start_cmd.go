@@ -9,6 +9,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
 	"net/url"
@@ -29,11 +32,11 @@ func createStartCommand(botParams BotParams) botsfw.Command {
 	return botsfw.Command{
 		Code:       "start",
 		Commands:   []string{"/start"},
-		InputTypes: []botsfw.WebhookInputType{bots.WebhookInputInlineQuery},
+		InputTypes: []botsfw.WebhookInputType{botsfw.WebhookInputInlineQuery},
 		Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 			whc.LogRequest()
 			c := whc.Context()
-			text := whc.Input().(bots.WebhookTextMessage).Text()
+			text := whc.Input().(botsfw.WebhookTextMessage).Text()
 			log.Debugf(c, "createStartCommand.Action() => text: "+text)
 
 			startParam, startParams := tgbots.ParseStartCommand(whc)
@@ -123,7 +126,7 @@ func onStartCallbackCommand(params BotParams) botsfw.Command {
 			if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 				if user, err := facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
 					return err
-				} else if err = user.SetPreferredLocale(lang); err != nil {
+				} else if err = user.Data.SetPreferredLocale(lang); err != nil {
 					return err
 				} else if err = facade.User.SaveUser(c, user); err != nil {
 					return err

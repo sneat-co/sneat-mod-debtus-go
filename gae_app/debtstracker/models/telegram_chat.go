@@ -1,39 +1,39 @@
 package models
 
 import (
-	"github.com/bots-go-framework/bots-fw-telegram"
+	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
 )
 
 type TelegramChat struct {
-	telegram.TgChatBase
+	tgstore.Chat
 	*DtTelegramChatEntity
 }
 
 //var _ db.EntityHolder = (*TelegramChat)(nil)
 
-func (TelegramChat) Kind() string {
-	return telegram.ChatKind
-}
+//func (TelegramChat) Kind() string {
+//	return telegram.ChatKind
+//}
 
-func (tgChat TelegramChat) Entity() interface{} {
-	return tgChat.DtTelegramChatEntity
-}
+//func (tgChat TelegramChat) Entity() interface{} {
+//	return tgChat.DtTelegramChatEntity
+//}
 
-func (TelegramChat) NewEntity() interface{} {
-	return new(DtTelegramChatEntity)
-}
+//func (TelegramChat) NewEntity() interface{} {
+//	return new(DtTelegramChatEntity)
+//}
 
-func (tgChat *TelegramChat) SetEntity(entity interface{}) {
-	if entity == nil {
-		tgChat.DtTelegramChatEntity = nil
-	} else {
-		tgChat.DtTelegramChatEntity = entity.(*DtTelegramChatEntity)
-	}
-}
+//func (tgChat *TelegramChat) SetEntity(entity interface{}) {
+//	if entity == nil {
+//		tgChat.DtTelegramChatEntity = nil
+//	} else {
+//		tgChat.DtTelegramChatEntity = entity.(*DtTelegramChatEntity)
+//	}
+//}
 
 type DtTelegramChatEntity struct {
 	UserGroupID string `datastore:",index"` // Do index
-	telegram.TgChatEntityBase
+	tgstore.TgChatData
 }
 
 func (entity *DtTelegramChatEntity) Validate() (err error) {

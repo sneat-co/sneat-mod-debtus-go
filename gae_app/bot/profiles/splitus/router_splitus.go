@@ -4,7 +4,10 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/emoji"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
 )
 
@@ -48,8 +51,8 @@ var botParams = shared_all.BotParams{
 }
 
 var Router = botsfw.NewWebhookRouter(
-	map[bots.WebhookInputType][]botsfw.Command{
-		bots.WebhookInputText: {
+	map[botsfw.WebhookInputType][]botsfw.Command{
+		botsfw.WebhookInputText: {
 			EditedBillCardHookCommand,
 			billsCommand,
 			groupBalanceCommand,
@@ -60,7 +63,7 @@ var Router = botsfw.NewWebhookRouter(
 			settleBillsCommand,
 			outstandingBalanceCommand,
 		},
-		bots.WebhookInputCallbackQuery: {
+		botsfw.WebhookInputCallbackQuery: {
 			joinBillCommand,
 			closeBillCommand,
 			editBillCommand,
@@ -96,13 +99,13 @@ var Router = botsfw.NewWebhookRouter(
 			settleGroupCounterpartyConfirmedCommand,
 			settleBillsCommand,
 		},
-		bots.WebhookInputInlineQuery: {
+		botsfw.WebhookInputInlineQuery: {
 			inlineQueryCommand,
 		},
-		bots.WebhookInputChosenInlineResult: {
+		botsfw.WebhookInputChosenInlineResult: {
 			chosenInlineResultCommand,
 		},
-		bots.WebhookInputNewChatMembers: {
+		botsfw.WebhookInputNewChatMembers: {
 			newChatMembersCommand,
 		},
 	},

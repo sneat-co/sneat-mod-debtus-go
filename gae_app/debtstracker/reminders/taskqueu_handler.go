@@ -31,7 +31,7 @@ func SendReminderHandler(c context.Context, w http.ResponseWriter, r *http.Reque
 	}
 	if err = sendReminder(c, reminderID); err != nil {
 		log.Errorf(c, err.Error())
-		if !db.IsNotFound(err) {
+		if !dal.IsNotFound(err) {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	}
@@ -54,7 +54,7 @@ func sendReminder(c context.Context, reminderID int64) error {
 
 	transfer, err := facade.Transfers.GetTransferByID(c, reminder.TransferID)
 	if err != nil {
-		if db.IsNotFound(err) {
+		if dal.IsNotFound(err) {
 			log.Errorf(c, err.Error())
 			if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 				if reminder, err = dtdal.Reminder.GetReminderByID(c, reminderID); err != nil {
@@ -143,7 +143,7 @@ func sendReminderToUser(c context.Context, reminderID int64, transfer models.Tra
 			var tgChat *telegram.TgChatEntityBase
 			_, tgChat, err = gaedal.GetTelegramChatByUserID(c, reminder.UserID) // TODO: replace with DAL method
 			if err != nil {
-				if db.IsNotFound(err) { // TODO: Get rid of datastore reference
+				if dal.IsNotFound(err) { // TODO: Get rid of datastore reference
 					err = errors.WithMessage(err, fmt.Sprintf("failed to call gaedal.GetTelegramChatByUserID(userID=%v)", reminder.UserID))
 					return
 				}

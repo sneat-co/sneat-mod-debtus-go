@@ -114,7 +114,7 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 	//}
 	if isReturn {
 		if counterparty, err := facade.GetContactByID(c, contactID); err != nil {
-			if db.IsNotFound(err) {
+			if dal.IsNotFound(err) {
 				BadRequestError(c, w, err)
 			} else {
 				InternalError(c, w, err)

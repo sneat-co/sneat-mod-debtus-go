@@ -2,6 +2,9 @@ package dtb_transfer
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"html"
 	"net/url"
 	"strconv"
@@ -32,19 +35,19 @@ func CallbackSendReceipt(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 	)
 	transferID, err = common.DecodeID(q.Get(WIZARD_PARAM_TRANSFER))
 	if err != nil {
-		return m, errors.Wrap(err, "Faield to decode transferID to int")
+		return m, fmt.Errorf("failed to decode transferID to int: %w", err)
 	}
-	transfer, err = facade.Transfers.GetTransferByID(c, transferID)
+	transfer, err = facade.Transfers.GetTransferByID(c, tx, transferID)
 	if err != nil {
-		return m, errors.Wrap(err, "Failed to get transfer by ID")
+		return m, fmt.Errorf("failed to get transfer by ID: %w", err)
 	}
 	//chatEntity := whc.ChatEntity() //TODO: Need this to get appUser, has to be refactored
 	//appUser, err := whc.GetAppUser()
-	counterparty, err := facade.GetContactByID(c, transfer.Counterparty().ContactID)
+	counterparty, err := facade.GetContactByID(c, transfer.Data.Counterparty().ContactID)
 	if err != nil {
 		return m, err
 	}
-	if IsTransferNotificationsBlockedForChannel(counterparty.ContactEntity, sendBy) {
+	if IsTransferNotificationsBlockedForChannel(counterparty.Data, sendBy) {
 		m = whc.NewMessage(trans.MESSAGE_TEXT_USER_BLOCKED_TRANSFER_NOTIFICATIONS_BY)
 		return m, err
 	}
@@ -77,22 +80,22 @@ func CallbackSendReceipt(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 		return showLinkForReceiptInTelegram(whc, transfer)
 	case string(models.InviteBySms):
 
-		if counterparty.PhoneNumber > 0 {
-			return sendReceiptBySms(whc, counterparty.PhoneContact, transfer, counterparty)
+		if counterparty.Data.PhoneNumber > 0 {
+			return sendReceiptBySms(whc, counterparty.Data.PhoneContact, transfer, counterparty)
 		} else {
 			var updateMessage botsfw.MessageFromBot
 			if updateMessage, err = whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_LETS_SEND_SMS), botsfw.MessageFormatHTML); err != nil {
 				return
 			}
 			if _, err = whc.Responder().SendMessage(c, updateMessage, botsfw.BotAPISendMessageOverHTTPS); err != nil {
-				log.Errorf(c, errors.WithMessage(err, "failed to update Telegram message").Error())
+				log.Errorf(c, fmt.Errorf("failed to update Telegram message: %w", err).Error())
 				err = nil
 			}
 
 			chatEntity.SetAwaitingReplyTo(ASK_PHONE_NUMBER_FOR_RECEIPT_COMMAND)
 			chatEntity.AddWizardParam(WIZARD_PARAM_TRANSFER, strconv.FormatInt(transferID, 10))
 			mt := strings.Join([]string{
-				whc.Translate(trans.MESSAGE_TEXT_ASK_PHONE_NUMBER_OF_COUNTERPARTY, html.EscapeString(transfer.Counterparty().ContactName)),
+				whc.Translate(trans.MESSAGE_TEXT_ASK_PHONE_NUMBER_OF_COUNTERPARTY, html.EscapeString(transfer.Data.Counterparty().ContactName)),
 				whc.Translate(trans.MESSAGE_TEXT_USE_CONTACT_TO_SEND_PHONE_NUMBER, emoji.PAPERCLIP_ICON),
 				whc.Translate(trans.MESSAGE_TEXT_ABOUT_PHONE_NUMBER_FORMAT),
 				whc.Translate(trans.MESSAGE_TEXT_THIS_NUMBER_WILL_BE_USED_TO_SEND_RECEIPT),
@@ -120,7 +123,7 @@ func CallbackSendReceipt(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 	case string(models.InviteByEmail):
 		chatEntity.SetAwaitingReplyTo(ASK_EMAIL_FOR_RECEIPT_COMMAND)
 		chatEntity.AddWizardParam(WIZARD_PARAM_TRANSFER, strconv.FormatInt(transferID, 10))
-		m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_INVITE_ASK_EMAIL_FOR_RECEIPT, transfer.Counterparty().ContactName))
+		m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_INVITE_ASK_EMAIL_FOR_RECEIPT, transfer.Data.Counterparty().ContactName))
 	default:
 		err = errors.New("Unknown channel to send receipt: " + sendBy)
 		log.Errorf(c, err.Error())
@@ -129,7 +132,7 @@ func CallbackSendReceipt(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 }
 
 func showLinkForReceiptInTelegram(whc botsfw.WebhookContext, transfer models.Transfer) (m botsfw.MessageFromBot, err error) {
-	receipt := models.NewReceiptEntity(whc.AppUserIntID(), transfer.ID, transfer.Counterparty().UserID, whc.Locale().Code5, "link", "telegram", general.CreatedOn{
+	receipt := models.NewReceiptEntity(whc.AppUserIntID(), transfer.ID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, "link", "telegram", general.CreatedOn{
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
 	})

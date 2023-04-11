@@ -171,7 +171,7 @@ func updateUserWithContact(c context.Context, userID, contactID int64) (err erro
 		if user, err = facade.User.GetUserByID(c, userID); err != nil {
 			return
 		}
-		if db.IsNotFound(err) {
+		if dal.IsNotFound(err) {
 			log.Errorf(c, err.Error())
 			err = nil
 		}

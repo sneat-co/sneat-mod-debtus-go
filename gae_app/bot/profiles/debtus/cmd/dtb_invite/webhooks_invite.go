@@ -14,7 +14,7 @@ var InviteCommand = botsfw.Command{
 		AskInviteAddressEmailCommand,
 		AskInviteAddressSmsCommand,
 	},
-	Action: func(whc botsfw.WebhookContext) (bots.MessageFromBot, error) {
+	Action: func(whc botsfw.WebhookContext) (botsfw.MessageFromBot, error) {
 		m := whc.NewMessageByCode(trans.MESSAGE_TEXT_ABOUT_INVITES)
 		m.Keyboard = &tgbotapi.InlineKeyboardMarkup{
 			InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{

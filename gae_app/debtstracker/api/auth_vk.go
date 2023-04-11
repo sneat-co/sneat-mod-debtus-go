@@ -49,7 +49,7 @@ func handleSignedWithVK(c context.Context, w http.ResponseWriter, r *http.Reques
 	//// Try to get UserVk entity by key and if it has AppUserIntID we can create and return token right away
 	//vkUser, err := dtdal.UserVk.GetUserVkByID(c, vkUserID)
 	//if err != nil {
-	//	if db.IsNotFound(err) {  // It's OK if UserVk entity not found.
+	//	if dal.IsNotFound(err) {  // It's OK if UserVk entity not found.
 	//		log.Debugf(c, "UserVk entity not found by ID=%v", vkUserID)
 	//	} else {  // For other errors fail gracefully.
 	//		InternalError(c, hashedWriter, err)

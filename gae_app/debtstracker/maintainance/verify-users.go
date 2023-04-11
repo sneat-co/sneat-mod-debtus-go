@@ -64,7 +64,7 @@ func (m *verifyUsers) checkContactsExistsAndRecreateIfNeeded(c context.Context, 
 		contactID := userContact.ID
 		var contact models.Contact
 		if contact, err = facade.GetContactByID(c, contactID); err != nil {
-			if db.IsNotFound(err) {
+			if dal.IsNotFound(err) {
 				if err = m.createContact(c, buf, counters, user, userContact); err != nil {
 					log.Errorf(c, "Failed to create contact %v", userContact.ID)
 					err = nil
@@ -109,7 +109,7 @@ func (m *verifyUsers) createContact(c context.Context, buf *bytes.Buffer, counte
 	var contact models.Contact
 	if err = dtdal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
 		if contact, err = facade.GetContactByID(tc, userContact.ID); err != nil {
-			if db.IsNotFound(err) {
+			if dal.IsNotFound(err) {
 				contact = models.NewContact(userContact.ID, &models.ContactEntity{
 					UserID:    user.ID,
 					DtCreated: time.Now(),

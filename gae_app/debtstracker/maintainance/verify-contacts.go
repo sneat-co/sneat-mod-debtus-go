@@ -22,7 +22,7 @@ func (m *verifyContacts) Next(c context.Context, counters mapper.Counters, key *
 }
 
 func (m *verifyContacts) processContact(c context.Context, counters *asyncCounters, contact models.Contact) (err error) {
-	if _, err = facade.User.GetUserByID(c, contact.UserID); db.IsNotFound(err) {
+	if _, err = facade.User.GetUserByID(c, contact.UserID); dal.IsNotFound(err) {
 		counters.Increment("wrong_UserID", 1)
 		log.Warningf(c, "Contact %d reference unknown user %d", contact.ID, contact.UserID)
 	} else if err != nil {

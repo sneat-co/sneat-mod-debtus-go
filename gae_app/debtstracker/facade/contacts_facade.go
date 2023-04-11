@@ -334,7 +334,7 @@ func DeleteContact(c context.Context, contactID int64) (user models.AppUser, err
 					return err
 				}
 			}
-			if err = User.SaveUser(c, user); err != nil {
+			if err = User.SaveUser(c, tx, user); err != nil {
 				return err
 			}
 		}

@@ -2,7 +2,9 @@ package dtb_transfer
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
+	bots "github.com/strongo/bots-framework/core"
 	"net/url"
 	"strconv"
 	"strings"
@@ -149,7 +151,7 @@ var AskIfReturnedInFullCommand = botsfw.Command{
 	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		chatEntity := whc.ChatEntity()
 		if chatEntity.IsAwaitingReplyTo(ASK_IF_RETURNED_IN_FULL_COMMAND) {
-			switch whc.Input().(bots.WebhookTextMessage).Text() {
+			switch whc.Input().(botsfw.WebhookTextMessage).Text() {
 			case whc.Translate(trans.BUTTON_TEXT_DEBT_RETURNED_FULLY):
 				m, err = processReturnCommand(whc, 0)
 				//common.CreateTransfer(whc.Context(), whc.AppUserIntID(), )
@@ -243,7 +245,7 @@ var AskHowMuchHaveBeenReturnedCommand = botsfw.Command{
 }
 
 func TryToProcessHowMuchHasBeenReturned(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
-	if amountValue, err := decimal.ParseDecimal64p2(whc.Input().(bots.WebhookTextMessage).Text()); err != nil {
+	if amountValue, err := decimal.ParseDecimal64p2(whc.Input().(botsfw.WebhookTextMessage).Text()); err != nil {
 		m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_INCORRECT_VALUE_NOT_A_NUMBER))
 		return m, nil
 	} else {
@@ -272,7 +274,7 @@ var AskToChooseDebtToReturnCommand = botsfw.Command{
 		)
 		if counterpartyID == 0 {
 			// Let's try to get counterpartyEntity from message text
-			mt := whc.Input().(bots.WebhookTextMessage).Text()
+			mt := whc.Input().(botsfw.WebhookTextMessage).Text()
 			splittedBySeparator := strings.Split(mt, "|")
 			counterpartyTitle := strings.Join(splittedBySeparator[:len(splittedBySeparator)-1], "|")
 			counterpartyTitle = strings.TrimSpace(counterpartyTitle)
@@ -316,7 +318,7 @@ var AskToChooseDebtToReturnCommand = botsfw.Command{
 			theCounterparty = counterparty
 		}
 
-		mt := whc.Input().(bots.WebhookTextMessage).Text()
+		mt := whc.Input().(botsfw.WebhookTextMessage).Text()
 		for currency, value := range balance {
 			if mt == _debtAmountButtonText(whc, currency, value, theCounterparty) {
 				return askIfReturnedInFull(whc, theCounterparty, currency, value)
@@ -329,7 +331,7 @@ var AskToChooseDebtToReturnCommand = botsfw.Command{
 	},
 }
 
-func CreateReturnAndShowReceipt(whc botsfw.WebhookContext, returnToTransferID, counterpartyID int64, direction models.TransferDirection, returnAmount money.Amount) (m botsfw.MessageFromBot, err error) {
+func CreateReturnAndShowReceipt(whc botsfw.WebhookContext, returnToTransferID int, counterpartyID int64, direction models.TransferDirection, returnAmount money.Amount) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	log.Debugf(c, "CreateReturnAndShowReceipt(returnToTransferID=%d, counterpartyID=%d)", returnToTransferID, counterpartyID)
 
@@ -362,7 +364,7 @@ func getReturnDirectionFromDebtValue(currentDebt money.Amount) (models.TransferD
 
 func getReturnWizardParams(whc botsfw.WebhookContext) (counterpartyID, transferID int64, err error) {
 	awaitingReplyTo := whc.ChatEntity().GetAwaitingReplyTo()
-	params, err := url.ParseQuery(bots.AwaitingReplyToQuery(awaitingReplyTo))
+	params, err := url.ParseQuery(botsfw.AwaitingReplyToQuery(awaitingReplyTo))
 	if err != nil {
 		return counterpartyID, transferID, errors.Wrap(err, "Failed in AwaitingReplyToQuery()")
 	}

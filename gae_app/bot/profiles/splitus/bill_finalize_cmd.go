@@ -2,13 +2,15 @@ package splitus
 
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"net/url"
 )
 
 const finalizeBillCommandCode = "finalize_bill"
 
-var finalizeBillCommand = billCallbackCommand(finalizeBillCommandCode, nil,
+var finalizeBillCommand = billCallbackCommand(finalizeBillCommandCode,
 	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		footer := "<b>Are you ready to split the bill?</b>" +
 			"\n" + "You won't be able to add/remove participants or change total once the bill is finalized."

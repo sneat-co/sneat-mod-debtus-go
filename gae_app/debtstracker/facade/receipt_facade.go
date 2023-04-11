@@ -87,7 +87,7 @@ func AcknowledgeReceipt(
 		var inviterUser, invitedUser models.AppUser
 		var inviterContact models.Contact
 
-		receipt, transfer, inviterUser, invitedUser, err = getReceiptTransferAndUsers(tc, receiptID, currentUserID)
+		receipt, transfer, inviterUser, invitedUser, err = getReceiptTransferAndUsers(tc, tx, receiptID, currentUserID)
 		if err != nil {
 			return
 		}
@@ -168,7 +168,7 @@ func AcknowledgeReceipt(
 		}
 
 		//if _, err = GetContactByID(c, invitedContact.ID); err != nil {
-		//	if db.IsNotFound(err) {
+		//	if dal.IsNotFound(err) {
 		//		log.Errorf(c, "Invited contact is not found by ID, let's try to re-insert.")
 		//		if err = facade.SaveContact(c, invitedContact); err != nil {
 		//			return
@@ -245,7 +245,7 @@ func markReceiptAsViewed(receipt *models.ReceiptEntity, userID int64) (changed b
 	return
 }
 
-func getReceiptTransferAndUsers(c context.Context, receiptID int, userID int64) (
+func getReceiptTransferAndUsers(c context.Context, tx dal.ReadSession, receiptID int, userID int64) (
 	receipt models.Receipt,
 	transfer models.Transfer,
 	creatorUser models.AppUser,
@@ -258,12 +258,12 @@ func getReceiptTransferAndUsers(c context.Context, receiptID int, userID int64) 
 		return
 	}
 
-	if transfer, err = Transfers.GetTransferByID(c, receipt.Data.TransferID); err != nil {
+	if transfer, err = Transfers.GetTransferByID(c, tx, receipt.Data.TransferID); err != nil {
 		return
 	}
 
 	if receipt.Data.CreatorUserID != transfer.Data.CreatorUserID {
-		err = errors.New("Data integrity issue: receipt.CreatorUserID != transfer.CreatorUserID")
+		err = errors.New("data integrity issue: receipt.CreatorUserID != transfer.CreatorUserID")
 		return
 	}
 

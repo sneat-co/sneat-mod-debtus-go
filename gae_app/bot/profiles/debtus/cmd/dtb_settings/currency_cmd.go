@@ -17,7 +17,7 @@ var AskCurrencySettingsCommand = botsfw.Command{
 	Commands: []string{"\xF0\x9F\x92\xB1"},
 	Icon:     emoji.CURRENCY_EXCAHNGE_ICON,
 	Title:    trans.COMMAND_TEXT_SETTINGS_PRIMARY_CURRENCY,
-	Action: func(whc botsfw.WebhookContext) (bots.MessageFromBot, error) {
+	Action: func(whc botsfw.WebhookContext) (botsfw.MessageFromBot, error) {
 		m := whc.NewMessageByCode(trans.MESSAGE_TEXT_ASK_PRIMARY_CURRENCY)
 		m.Keyboard = tgbotapi.NewReplyKeyboardUsingStrings([][]string{
 			{
@@ -42,7 +42,7 @@ var SetPrimaryCurrency = botsfw.Command{
 		c := whc.Context()
 		log.Debugf(c, "SetPrimaryCurrency.Action()")
 		whc.ChatEntity().SetAwaitingReplyTo("")
-		primaryCurrency := whc.Input().(bots.WebhookTextMessage).Text()
+		primaryCurrency := whc.Input().(botsfw.WebhookTextMessage).Text()
 		if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
 			var user models.AppUser
 			if user, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
@@ -53,6 +53,6 @@ var SetPrimaryCurrency = botsfw.Command{
 		}, nil); err != nil {
 			return
 		}
-		return whc.NewMessageByCode(trans.MESSAGE_TEXT_PRIMARY_CURRENCY_IS_SET_TO, whc.Input().(bots.WebhookTextMessage).Text()), nil
+		return whc.NewMessageByCode(trans.MESSAGE_TEXT_PRIMARY_CURRENCY_IS_SET_TO, whc.Input().(botsfw.WebhookTextMessage).Text()), nil
 	},
 }

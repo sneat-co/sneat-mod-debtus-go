@@ -9,7 +9,7 @@ import (
 
 func InlineSendInvite(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 	log.Debugf(whc.Context(), "InlineSendInvite()")
-	inlineQuery := whc.Input().(bots.WebhookInlineQuery)
+	inlineQuery := whc.Input().(botsfw.WebhookInlineQuery)
 	//callbackData := "call-back1"
 	//url := fmt.Sprintf("https://telegram.me/%v?start=invite-%v", whc.GetBotCode(), "some-code")
 	botCode := whc.GetBotCode()

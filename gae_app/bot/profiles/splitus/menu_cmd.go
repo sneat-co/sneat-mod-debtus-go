@@ -20,8 +20,8 @@ var menuCommand = botsfw.Command{
 func setMainMenu(whc botsfw.WebhookContext, m *botsfw.MessageFromBot) {
 	m.Keyboard = tgbotapi.NewReplyKeyboard(
 		[]tgbotapi.KeyboardButton{
-			{Text: groupsCommand.TitleByKey(bots.DefaultTitle, whc)},
-			{Text: billsCommand.TitleByKey(bots.DefaultTitle, whc)},
+			{Text: groupsCommand.TitleByKey(botsfw.DefaultTitle, whc)},
+			{Text: billsCommand.TitleByKey(botsfw.DefaultTitle, whc)},
 		},
 		[]tgbotapi.KeyboardButton{
 			{Text: emoji.SETTINGS_ICON + " " + whc.Translate(trans.COMMAND_TEXT_SETTING)},

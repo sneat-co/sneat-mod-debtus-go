@@ -16,7 +16,7 @@ var newChatMembersCommand = botsfw.Command{
 	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 
-		newMembersMessage := whc.Input().(bots.WebhookNewChatMembersMessage)
+		newMembersMessage := whc.Input().(botsfw.WebhookNewChatMembersMessage)
 
 		newMembers := newMembersMessage.NewChatMembers()
 

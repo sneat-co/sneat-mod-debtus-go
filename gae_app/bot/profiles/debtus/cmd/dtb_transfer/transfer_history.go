@@ -108,7 +108,7 @@ func transferHistoryRows(whc botsfw.WebhookContext, transfers []models.Transfer)
 
 var TransferHistoryCallbackCommand = botsfw.NewCallbackCommand("transfer-history", callbackTransferHistory)
 
-func callbackTransferHistory(whc botsfw.WebhookContext, _ *url.URL) (bots.MessageFromBot, error) {
+func callbackTransferHistory(whc botsfw.WebhookContext, _ *url.URL) (botsfw.MessageFromBot, error) {
 	return whc.NewMessage("TODO: Show more history records"), nil
 }
 

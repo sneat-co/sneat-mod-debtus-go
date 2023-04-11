@@ -70,7 +70,7 @@ func delayedLinkUsersByReceipt(c context.Context, receiptID, invitedUserID int64
 	log.Debugf(c, "delayedLinkUsersByReceipt(receiptID=%v, invitedUserID=%v)", receiptID, invitedUserID)
 	receipt, err := dtdal.Receipt.GetReceiptByID(c, receiptID)
 	if err != nil {
-		if db.IsNotFound(err) {
+		if dal.IsNotFound(err) {
 			log.Errorf(c, err.Error())
 			err = nil
 		}

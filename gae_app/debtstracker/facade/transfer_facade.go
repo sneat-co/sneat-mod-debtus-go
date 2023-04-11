@@ -733,7 +733,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		}
 	} else {
 		for _, transferReturnInfo := range transferReturnInfos {
-			if err = Transfers.UpdateTransferOnReturn(c, createdTransfer, transferReturnInfo.Transfer, transferReturnInfo.ReturnedAmount); err != nil {
+			if err = Transfers.UpdateTransferOnReturn(c, tx, createdTransfer, transferReturnInfo.Transfer, transferReturnInfo.ReturnedAmount); err != nil {
 				return
 			}
 			if !transferReturnInfo.Transfer.Data.IsOutstanding {
@@ -1006,7 +1006,7 @@ func InsertTransfer(c context.Context, tx dal.ReadwriteTransaction, transferEnti
 	return
 }
 
-func (transferFacade) UpdateTransferOnReturn(c context.Context, returnTransfer, transfer models.Transfer, returnedAmount decimal.Decimal64p2) (err error) {
+func (transferFacade) UpdateTransferOnReturn(c context.Context, tx dal.ReadwriteTransaction, returnTransfer, transfer models.Transfer, returnedAmount decimal.Decimal64p2) (err error) {
 	log.Debugf(c, "UpdateTransferOnReturn(\n\treturnTransfer=%v,\n\ttransfer=%v,\n\treturnedAmount=%v)", litter.Sdump(returnTransfer), litter.Sdump(transfer), returnedAmount)
 
 	if returnTransfer.Data.Currency != transfer.Data.Currency {

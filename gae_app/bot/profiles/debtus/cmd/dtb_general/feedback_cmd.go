@@ -73,7 +73,7 @@ func ShareToTwitter() string {
 }
 
 /*
-var FeedbackCallbackCommand = botsfw.NewCallbackCommand(FEEDBACK_COMMAND, func(whc botsfw.WebhookContext, callbackUrl *url.URL) (bots.MessageFromBot, error) {
+var FeedbackCallbackCommand = botsfw.NewCallbackCommand(FEEDBACK_COMMAND, func(whc botsfw.WebhookContext, callbackUrl *url.URL) (botsfw.MessageFromBot, error) {
 	return FeedbackCommand.Action(whc)
 })
 
@@ -89,7 +89,7 @@ var FeedbackCommand = botsfw.Command{
 		//case "":
 		//	return showFeedbackOptions(whc, chatEntity)
 		case FEEDBACK_COMMAND:
-			mt := whc.Input().(bots.WebhookTextMessage).Text()
+			mt := whc.Input().(botsfw.WebhookTextMessage).Text()
 			words := strings.SplitN(mt, " ", 2)
 			feedbackEntity := models.FeedbackEntity{
 				UserID: whc.AppUserIntID(),

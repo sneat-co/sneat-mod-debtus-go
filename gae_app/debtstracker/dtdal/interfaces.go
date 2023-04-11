@@ -2,8 +2,10 @@ package dtdal
 
 import (
 	"fmt"
+	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/db"
 	"math/rand"
 	"net/http"
@@ -15,11 +17,9 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
-	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/app"
 	"github.com/strongo/decimal"
 	"github.com/strongo/gotwilio"
-	"github.com/strongo/log"
 )
 
 type TransferSource interface {
@@ -50,12 +50,12 @@ type TransferDal interface {
 	GetTransfersByID(c context.Context, transferIDs []int64) ([]models.Transfer, error)
 	LoadTransfersByUserID(c context.Context, userID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error)
 	LoadTransfersByContactID(c context.Context, contactID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error)
-	LoadTransferIDsByContactID(c context.Context, contactID int64, limit int, startCursor string) (transferIDs []int64, endCursor string, err error)
+	LoadTransferIDsByContactID(c context.Context, contactID int64, limit int, startCursor string) (transferIDs []int, endCursor string, err error)
 	LoadOverdueTransfers(c context.Context, userID int64, limit int) (transfers []models.Transfer, err error)
 	LoadOutstandingTransfers(c context.Context, periodEnds time.Time, userID, contactID int64, currency money.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error)
 	LoadDueTransfers(c context.Context, userID int64, limit int) (transfers []models.Transfer, err error)
 	LoadLatestTransfers(c context.Context, offset, limit int) ([]models.Transfer, error)
-	DelayUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCode string, transferID, creatorTgChatID, creatorTgReceiptMessageID int64) error
+	DelayUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCode string, transferID int, creatorTgChatID, creatorTgReceiptMessageID int64) error
 	DelayUpdateTransfersWithCounterparty(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) error
 	DelayUpdateTransfersOnReturn(c context.Context, returnTransferID int, transferReturnUpdates []TransferReturnUpdate) (err error)
 }
@@ -69,7 +69,7 @@ type ReceiptDal interface {
 	DelayCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongo.Environment, transferID int, userID int64) error
 }
 
-var ErrReminderAlreadyRescheduled = errors.New("Reminder already rescheduled")
+var ErrReminderAlreadyRescheduled = errors.New("reminder already rescheduled")
 
 type ReminderDal interface {
 	DelayDiscardReminders(c context.Context, transferIDs []int, returnTransferID int) error
@@ -129,7 +129,7 @@ type PasswordResetDal interface {
 
 type EmailDal interface {
 	InsertEmail(c context.Context, entity *models.EmailEntity) (models.Email, error)
-	UpdateEmail(c context.Context, email models.Email) error
+	UpdateEmail(c context.Context, tx dal.ReadwriteTransaction, email models.Email) error
 	GetEmailByID(c context.Context, id int64) (models.Email, error)
 }
 
@@ -139,12 +139,12 @@ type FeedbackDal interface {
 
 type ContactDal interface {
 	GetLatestContacts(whc botsfw.WebhookContext, limit, totalCount int) (contacts []models.Contact, err error)
-	InsertContact(c context.Context, contactEntity *models.ContactEntity) (contact models.Contact, err error)
+	InsertContact(c context.Context, tx dal.ReadwriteTransaction, contactEntity *models.ContactEntity) (contact models.Contact, err error)
 	//CreateContact(c context.Context, userID int64, contactDetails models.ContactDetails) (contact models.Contact, user models.AppUser, err error)
 	//CreateContactWithinTransaction(c context.Context, user models.AppUser, contactUserID, counterpartyCounterpartyID int64, contactDetails models.ContactDetails, balanced money.Balanced) (contact models.Contact, err error)
 	//UpdateContact(c context.Context, contactID int64, values map[string]string) (contactEntity *models.ContactEntity, err error)
-	GetContactIDsByTitle(c context.Context, userID int64, title string, caseSensitive bool) (contactIDs []int64, err error)
-	GetContactsWithDebts(c context.Context, userID int64) (contacts []models.Contact, err error)
+	GetContactIDsByTitle(c context.Context, tx dal.ReadTransaction, userID int64, title string, caseSensitive bool) (contactIDs []int64, err error)
+	GetContactsWithDebts(c context.Context, tx dal.ReadTransaction, userID int64) (contacts []models.Contact, err error)
 }
 
 type BillsHolderGetter func(c context.Context) (billsHolder db.EntityHolder, err error)
@@ -171,9 +171,9 @@ type BillScheduleDal interface {
 }
 
 type GroupDal interface {
-	GetGroupByID(c context.Context, groupID string) (group models.Group, err error)
-	InsertGroup(c context.Context, groupEntity *models.GroupEntity) (group models.Group, err error)
-	SaveGroup(c context.Context, group models.Group) (err error)
+	GetGroupByID(c context.Context, tx dal.ReadSession, groupID string) (group models.Group, err error)
+	InsertGroup(c context.Context, tx dal.ReadwriteTransaction, groupEntity *models.GroupEntity) (group models.Group, err error)
+	SaveGroup(c context.Context, tx dal.ReadwriteTransaction, group models.Group) (err error)
 	DelayUpdateGroupWithBill(c context.Context, groupID, billID string) error
 }
 
@@ -277,11 +277,11 @@ type TgChatDal interface {
 	GetTgChatByID(c context.Context, tgBotID string, tgChatID int64) (tgChat models.TelegramChat, err error)
 	DoSomething(c context.Context, // TODO: WTF name?
 		userTask *sync.WaitGroup, currency string, tgChatID int64, authInfo auth.AuthInfo, user models.AppUser,
-		sendToTelegram func(tgChat telegram.TgChatEntityBase) error) (err error)
+		sendToTelegram func(tgChat tgstore.ChatEntity) error) (err error)
 }
 
 type TgUserDal interface {
-	FindByUserName(c context.Context, userName string) (tgUsers []telegram.TgUser, err error)
+	FindByUserName(c context.Context, userName string) (tgUsers []tgstore.TgUser, err error)
 }
 
 //type TaskQueueDal interface {
@@ -325,22 +325,7 @@ var (
 	HandleWithContext strongo.HandleWithContext
 )
 
-func InsertWithRandomStringID(c context.Context, entityHolder db.EntityHolder, idLen uint8) error {
-	log.Debugf(c, "InsertWithRandomStringID(entityHolder.Entity(): %v)", entityHolder.Entity())
-	entity := entityHolder.Entity()
-	if entity == nil {
-		panic("entity == nil")
-	}
-	for i := 1; i <= 10; i++ {
-		id := db.RandomStringID(idLen)
-		entityHolder.SetStrID(id)
-		if err := DB.Get(c, entityHolder); err != nil {
-			if db.IsNotFound(err) {
-				entityHolder.SetEntity(entity)
-				return DB.Update(c, entityHolder)
-			}
-		}
-	}
-	entityHolder.SetStrID("")
-	return errors.New("too many attempts to create record with random string id")
+func InsertWithRandomStringID(c context.Context, tx dal.ReadwriteTransaction, record dal.Record) error {
+	_, _, _ = c, tx, record
+	return errors.New("TODO: use dalgo")
 }

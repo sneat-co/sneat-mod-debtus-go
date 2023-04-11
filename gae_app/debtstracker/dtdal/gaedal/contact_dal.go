@@ -2,6 +2,8 @@ package gaedal
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
 	"strings"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
@@ -9,7 +11,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
@@ -66,32 +67,40 @@ func delayDeleteContactTransfers(c context.Context, contactID int64, cursor stri
 func delayedDeleteContactTransfers(c context.Context, contactID int64, cursor string) (err error) {
 	log.Debugf(c, "delayedDeleteContactTransfers(contactID=%d, cursor=%v", contactID, cursor)
 	const limit = 100
-	var transferIDs []int64
+	var transferIDs []int
 	transferIDs, cursor, err = dtdal.Transfer.LoadTransferIDsByContactID(c, contactID, limit, cursor)
 	if err != nil {
 		return
 	}
-	keys := make([]*datastore.Key, len(transferIDs))
+	keys := make([]*dal.Key, len(transferIDs))
 	for i, transferID := range transferIDs {
-		keys[i] = NewTransferKey(c, transferID)
+		keys[i] = models.NewTransferKey(transferID)
 	}
-	if err = gaedb.DeleteMulti(c, keys); err != nil {
-		return err
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
 	}
-	if len(transferIDs) == limit {
-		if err = delayDeleteContactTransfers(c, contactID, cursor); err != nil {
+	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+		if err = tx.DeleteMulti(c, keys); err != nil {
 			return err
 		}
+		if len(transferIDs) == limit {
+			if err = delayDeleteContactTransfers(c, contactID, cursor); err != nil {
+				return err
+			}
+		}
+		return nil
+	}); err != nil {
+		return
 	}
-	return nil
+	return
 }
 
-func (ContactDalGae) SaveContact(c context.Context, contact models.Contact) error {
-	_, err := gaedb.Put(c, NewContactKey(c, contact.ID), contact.ContactEntity)
-	if err != nil {
-		err = errors.Wrap(err, "Failed to SaveContact()")
+func (ContactDalGae) SaveContact(c context.Context, tx dal.ReadwriteTransaction, contact models.Contact) error {
+	if err := tx.Set(c, contact.Record); err != nil {
+		err = fmt.Errorf("failed to SaveContact(): %w", err)
 	}
-	return err
+	return nil
 }
 
 func newContactQueryActive(userID int64) *datastore.Query {
@@ -113,7 +122,7 @@ func (ContactDalGae) GetContactsWithDebts(c context.Context, userID int64) (coun
 		counterpartyEntities []*models.ContactEntity
 	)
 	if counterpartyKeys, err = query.GetAll(c, &counterpartyEntities); err != nil {
-		err = errors.Wrap(err, "ContactDalGae.GetContactsWithDebts() failed to execute query.GetAll()")
+		err = fmt.Errorf("method ContactDalGae.GetContactsWithDebts() failed to execute query.GetAll(): %w", err)
 		return
 	}
 	counterparties = zipCounterparty(counterpartyKeys, counterpartyEntities)
@@ -129,7 +138,7 @@ func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, limit, totalCo
 	var keys []*datastore.Key
 	var entities []*models.ContactEntity
 	if keys, err = query.GetAll(c, &entities); err != nil {
-		err = errors.Wrap(err, "ContactDalGae.GetLatestContacts() failed 1")
+		err = fmt.Errorf("method ContactDalGae.GetLatestContacts() failed: %w", err)
 		return
 	}
 	var contactsCount = len(keys)
@@ -141,7 +150,7 @@ func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, limit, totalCo
 			query = query.Limit(limit)
 		}
 		if keys2, err := query.GetAll(c, &entities); err != nil {
-			err = errors.Wrap(err, "ContactDalGae.GetLatestContacts() failed 2")
+			err = fmt.Errorf("ContactDalGae.GetLatestContacts() failed: %w", err)
 			return nil, err
 		} else {
 			keys = append(keys, keys2...)
@@ -152,20 +161,20 @@ func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, limit, totalCo
 	return
 }
 
-func (contactDalGae ContactDalGae) GetContactIDsByTitle(c context.Context, userID int64, title string, caseSensitive bool) (contactIDs []int64, err error) {
+func (contactDalGae ContactDalGae) GetContactIDsByTitle(c context.Context, tx dal.ReadTransaction, userID int64, title string, caseSensitive bool) (contactIDs []int64, err error) {
 	var user models.AppUser
 	if user, err = facade.User.GetUserByID(c, userID); err != nil {
 		return
 	}
 	if caseSensitive {
-		for _, contact := range user.Contacts() {
+		for _, contact := range user.Data.Contacts() {
 			if contact.Name == title {
 				contactIDs = append(contactIDs, contact.ID)
 			}
 		}
 	} else {
 		title = strings.ToLower(title)
-		for _, contact := range user.Contacts() {
+		for _, contact := range user.Data.Contacts() {
 			if strings.ToLower(contact.Name) == title {
 				contactIDs = append(contactIDs, contact.ID)
 			}
@@ -185,10 +194,13 @@ func zipCounterparty(keys []*datastore.Key, entities []*models.ContactEntity) (c
 	return
 }
 
-func (contactDalGae ContactDalGae) InsertContact(c context.Context, contactEntity *models.ContactEntity) (
+func (contactDalGae ContactDalGae) InsertContact(c context.Context, tx dal.ReadwriteTransaction, contactEntity *models.ContactEntity) (
 	contact models.Contact, err error,
 ) {
-	contact.ContactEntity = contactEntity
-	err = dtdal.DB.InsertWithRandomIntID(c, &contact)
+	contact.Data = contactEntity
+	if err = tx.Insert(c, contact.Record); err != nil {
+		return
+	}
+	contact.ID = contact.Key.ID.(int64)
 	return
 }

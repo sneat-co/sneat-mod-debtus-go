@@ -12,7 +12,7 @@ var ChosenInlineResultCommand = botsfw.Command{
 	InputTypes: []botsfw.WebhookInputType{bots.WebhookInputChosenInlineResult},
 	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
-		chosenResult := whc.Input().(bots.WebhookChosenInlineResult)
+		chosenResult := whc.Input().(botsfw.WebhookChosenInlineResult)
 		query := chosenResult.GetQuery()
 		log.Debugf(c, "ChosenInlineResultCommand.Action() => query: %v", query)
 

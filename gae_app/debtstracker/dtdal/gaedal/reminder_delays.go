@@ -62,7 +62,7 @@ func createReminderForTransferUser(c context.Context, transferID, userID int64) 
 		var transfer models.Transfer
 		transfer, err = facade.Transfers.GetTransferByID(c, transferID)
 		if err != nil {
-			if db.IsNotFound(err) {
+			if dal.IsNotFound(err) {
 				log.Errorf(c, errors.WithMessage(err, "Not able to create reminder for specified transfer").Error())
 				return
 			}

@@ -3,7 +3,10 @@ package dtb_transfer
 import (
 	"bytes"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"math"
 	"net/url"
 	"regexp"
@@ -23,7 +26,6 @@ import (
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-framework/platforms/viber"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 	"golang.org/x/net/html"
@@ -157,7 +159,7 @@ func AskTransferAmountCommand(code, messageTextFormat string, nextCommand botsfw
 			case chatEntity.IsAwaitingReplyTo(code):
 				switch whc.Input().(type) {
 				case botsfw.WebhookTextMessage:
-					mt := strings.TrimSpace(whc.Input().(bots.WebhookTextMessage).Text())
+					mt := strings.TrimSpace(whc.Input().(botsfw.WebhookTextMessage).Text())
 					if mt == "." || mt == "0" || strings.Index(mt, emoji.NO_ENTRY_SIGN_ICON) >= 0 {
 						return CancelTransferWizardCommand.Action(whc)
 					}
@@ -262,7 +264,7 @@ func CreateAskTransferCounterpartyCommand(
 					chatEntity.PushStepToAwaitingReplyTo(newContactCommand.Code)
 					return newContactCommand.Action(whc)
 				case botsfw.WebhookTextMessage:
-					mt := whc.Input().(bots.WebhookTextMessage).Text()
+					mt := whc.Input().(botsfw.WebhookTextMessage).Text()
 					if mt == "." {
 						return cancelTransferWizardCommandAction(whc)
 					}
@@ -304,9 +306,9 @@ func CreateAskTransferCounterpartyCommand(
 				if user, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
 					return
 				}
-				if isReturn && user.BalanceCount <= 3 && user.TotalContactsCount() <= 3 {
+				if isReturn && user.Data.BalanceCount <= 3 && user.Data.TotalContactsCount() <= 3 {
 					// If there is little debts in total show selection of debts immediately
-					counterparties, err := dtdal.Contact.GetLatestContacts(whc, 0, user.TotalContactsCount())
+					counterparties, err := dtdal.Contact.GetLatestContacts(whc, 0, user.Data.TotalContactsCount())
 					if err != nil {
 						return m, err
 					}
@@ -315,10 +317,10 @@ func CreateAskTransferCounterpartyCommand(
 					var isTooManyRows bool
 					now := time.Now()
 					for _, counterparty := range counterparties {
-						balance, err := counterparty.BalanceWithInterest(c, now)
+						balance, err := counterparty.Data.BalanceWithInterest(c, now)
 						if err != nil {
 							log.Errorf(c, "Failed to get balance with interest for contact %v: %v", counterparty.ID, err)
-							buttons = append(buttons, []string{emoji.ERROR_ICON + " ERROR: " + counterparty.FullName()})
+							buttons = append(buttons, []string{emoji.ERROR_ICON + " ERROR: " + counterparty.Data.FullName()})
 							continue
 						}
 						if (len(buttons) + len(balance)) > 4 {
@@ -351,7 +353,7 @@ func listCounterpartiesAsButtons(whc botsfw.WebhookContext, user models.AppUser,
 	c := whc.Context()
 
 	log.Debugf(c, "listCounterpartiesAsButtons")
-	queryString, err := url.ParseQuery(bots.AwaitingReplyToQuery(whc.ChatEntity().GetAwaitingReplyTo()))
+	queryString, err := url.ParseQuery(botsfw.AwaitingReplyToQuery(whc.ChatEntity().GetAwaitingReplyTo()))
 	if err != nil {
 		return m, err
 	}
@@ -368,7 +370,7 @@ func listCounterpartiesAsButtons(whc botsfw.WebhookContext, user models.AppUser,
 		m = whc.NewMessage(whc.Translate(messageText))
 	}
 	m.Format = botsfw.MessageFormatHTML
-	if user.AppUserEntity == nil {
+	if user.Data == nil {
 		if user, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
 			return
 		}
@@ -381,7 +383,7 @@ func listCounterpartiesAsButtons(whc botsfw.WebhookContext, user models.AppUser,
 			buttons = append(buttons, []string{counterparty.Name})
 		}
 		var controlButtons []string
-		if !isShowingAll && len(counterparties) < user.TotalContactsCount() {
+		if !isShowingAll && len(counterparties) < user.Data.TotalContactsCount() {
 			controlButtons = append(controlButtons, showAllContactsText)
 		}
 		if newCounterpartyCommand.Code != "" {
@@ -391,22 +393,22 @@ func listCounterpartiesAsButtons(whc botsfw.WebhookContext, user models.AppUser,
 			buttons = append(buttons, controlButtons)
 		}
 	}
-	if webhookMessage, ok := whc.Input().(bots.WebhookTextMessage); ok && webhookMessage.Text() == showAllContactsText {
-		counterparties2buttons(user.Contacts(), true)
+	if webhookMessage, ok := whc.Input().(botsfw.WebhookTextMessage); ok && webhookMessage.Text() == showAllContactsText {
+		counterparties2buttons(user.Data.Contacts(), true)
 	} else {
-		switch user.BalanceCount {
+		switch user.Data.BalanceCount {
 		case 0: // User have no active debts
-			if user.TotalContactsCount() > 0 {
-				counterparties := user.LatestCounterparties(COUNTERPARTY_BUTTONS_LIMIT)
+			if user.Data.TotalContactsCount() > 0 {
+				counterparties := user.Data.LatestCounterparties(COUNTERPARTY_BUTTONS_LIMIT)
 				counterparties2buttons(counterparties, false)
 			} else {
 				return newCounterpartyCommand.Action(whc)
 			}
 		default: // User have active debts (balance is not 0.
 
-			counterpartiesToShow := user.ActiveContactsWithBalance()
+			counterpartiesToShow := user.Data.ActiveContactsWithBalance()
 			if len(counterpartiesToShow) <= COUNTERPARTY_BUTTONS_LIMIT {
-				latestCounterparties := user.LatestCounterparties(COUNTERPARTY_BUTTONS_LIMIT)
+				latestCounterparties := user.Data.LatestCounterparties(COUNTERPARTY_BUTTONS_LIMIT)
 				for _, latestCounterparty := range latestCounterparties {
 					var isInWithDebts bool
 					for _, counterpartyToShow := range counterpartiesToShow {
@@ -441,7 +443,7 @@ type TransferWizard struct {
 func NewTransferWizard(whc botsfw.WebhookContext) (TransferWizard, error) {
 	awaitingReplyTo := whc.ChatEntity().GetAwaitingReplyTo()
 	log.Debugf(whc.Context(), "AwaitingReplyTo: %v", awaitingReplyTo)
-	params, err := url.ParseQuery(bots.AwaitingReplyToQuery(awaitingReplyTo))
+	params, err := url.ParseQuery(botsfw.AwaitingReplyToQuery(awaitingReplyTo))
 	return TransferWizard{params: params}, err
 }
 
@@ -504,7 +506,7 @@ func TransferWizardCompletedCommand(code string) botsfw.Command {
 			if due != "" {
 				if strings.Count(due, "-") == 2 {
 					if dueOn, err = time.Parse(TRANSFER_WIZARD_DUE_DATE_FORMAT, due); err != nil {
-						return m, errors.Wrap(err, "Failed to parse due date")
+						return m, fmt.Errorf("failed to parse due date: %w", err)
 					}
 					hour := time.Now().Hour()
 					if hour <= 22 {
@@ -514,7 +516,7 @@ func TransferWizardCompletedCommand(code string) botsfw.Command {
 					dueOn = dueOn.Add(hours)
 				} else {
 					if dueIn, err := time.ParseDuration(due); err != nil {
-						return m, errors.Wrap(err, "Fauled to parse due duration")
+						return m, fmt.Errorf("failed to parse due duration: %w", err)
 					} else if dueIn > time.Duration(0) {
 						dueOn = time.Now().Add(dueIn)
 					}
@@ -561,7 +563,7 @@ const TRANSFER_WIZARD_DUE_DATE_FORMAT = "2006-01-02"
 func CreateTransferFromBot(
 	whc botsfw.WebhookContext,
 	isReturn bool,
-	returnToTransferID int64,
+	returnToTransferID int,
 	direction models.TransferDirection,
 	creatorInfo models.TransferCounterpartyInfo,
 	amount money.Amount,
@@ -622,37 +624,37 @@ func CreateTransferFromBot(
 			buf.WriteString(whc.Translate(trans.MT_ATTEMPT_TO_CREATE_DEBT_WITH_INTEREST_AFFECTING_OUTSTANDING) + "\n")
 			now := time.Now()
 			if outstandingTransfer, err := dtdal.Transfer.LoadOutstandingTransfers(c, now, appUser.ID, creatorInfo.ContactID, amount.Currency, newTransfer.Direction().Reverse()); err != nil {
-				buf.WriteString(errors.WithMessage(err, "failed to load outstanding transfers").Error() + "\n")
+				buf.WriteString(fmt.Errorf("failed to load outstanding transfers: %w", err).Error() + "\n")
 			} else if len(outstandingTransfer) == 0 {
-				return m, errors.WithMessage(err, "got facade.ErrAttemptToCreateDebtWithInterestAffectingOutstandingTransfers but no outstanding transfers found")
+				return m, errors.New("got facade.ErrAttemptToCreateDebtWithInterestAffectingOutstandingTransfers but no outstanding transfers found")
 			} else {
 				for _, ot := range outstandingTransfer {
-					fmt.Fprintf(buf, "\tDebt #%v for %v => outstanding: %v\n", ot.ID, ot.GetAmount(), ot.GetOutstandingAmount(now))
+					_, _ = fmt.Fprintf(buf, "\tDebt #%v for %v => outstanding: %v\n", ot.ID, ot.Data.GetAmount(), ot.Data.GetOutstandingAmount(now))
 				}
 			}
 			m.Text = buf.String()
 			return m, err
 		}
 		log.Errorf(c, "Failed to create transfer: %v", err)
-		if errors.Cause(err) == facade.ErrNotImplemented {
+		if errors.Is(err, facade.ErrNotImplemented) {
 			m.Text = whc.Translate(trans.MESSAGE_TEXT_NOT_IMPLEMENTED_YET) + "\n\n" + err.Error()
 			err = nil
 		}
 		return m, err
 	}
 
-	log.Debugf(c, "isReturn: %v, transfer.IsReturn: %v", isReturn, output.Transfer.IsReturn)
+	log.Debugf(c, "isReturn: %v, transfer.IsReturn: %v", isReturn, output.Transfer.Data.IsReturn)
 
 	{ // Reporting to Google Analytics
 		ga := whc.GA()
 
-		gaEventLabel := string(output.Transfer.Currency)
+		gaEventLabel := string(output.Transfer.Data.Currency)
 		if len([]rune(gaEventLabel)) > 16 {
-			gaEventLabel = string([]rune(string(output.Transfer.Currency))[:16])
+			gaEventLabel = string([]rune(string(output.Transfer.Data.Currency))[:16])
 		}
 		var action string
 		if isReturn {
-			if len(output.ReturnedTransfers) == 1 && !output.ReturnedTransfers[0].IsOutstanding {
+			if len(output.ReturnedTransfers) == 1 && !output.ReturnedTransfers[0].Data.IsOutstanding {
 				action = "debt-returned-fully"
 			} else {
 				action = "debt-returned-partially"
@@ -661,7 +663,7 @@ func CreateTransferFromBot(
 			action = "debt-new-created"
 		}
 		gaEvent := ga.GaEventWithLabel(analytics.EventCategoryTransfers, action, gaEventLabel)
-		gaEvent.Value = uint(math.Abs(output.Transfer.AmountInCents.AsFloat64()) + 0.5)
+		gaEvent.Value = uint(math.Abs(output.Transfer.Data.AmountInCents.AsFloat64()) + 0.5)
 
 		if gaErr := ga.Queue(gaEvent); gaErr != nil {
 			log.Warningf(c, "Failed to log event: %v", gaErr)
@@ -669,7 +671,7 @@ func CreateTransferFromBot(
 			log.Infof(c, "GA event queued: %v", gaEvent)
 		}
 
-		if !output.Transfer.DtDueOn.IsZero() {
+		if !output.Transfer.Data.DtDueOn.IsZero() {
 			gaEvent = ga.GaEvent(analytics.EventCategoryTransfers, analytics.EventActionDebtDueDateSet)
 			//Do not set event value!: gaEvent.Value = uint(transfer.DtDueOn.Sub(time.Now()) / time.Hour)
 			if gaErr := ga.Queue(gaEvent); gaErr != nil {
@@ -708,9 +710,9 @@ func CreateTransferFromBot(
 					whc.ChatEntity().SetAwaitingReplyTo("")
 				}
 			}
-		case viber.PlatformID:
-			receiptMessageFromBot := whc.NewMessage(receiptMessageText)
-			whc.Responder().SendMessage(c, receiptMessageFromBot, botsfw.BotAPISendMessageOverHTTPS)
+		//case viber.PlatformID:
+		//	receiptMessageFromBot := whc.NewMessage(receiptMessageText)
+		//	whc.Responder().SendMessage(c, receiptMessageFromBot, botsfw.BotAPISendMessageOverHTTPS)
 		default:
 			panic("Unsupported bot platform: " + whc.BotPlatform().ID())
 		}
@@ -730,9 +732,9 @@ func createSendReceiptOptionsMessage(whc botsfw.WebhookContext, transfer models.
 	c := whc.Context()
 
 	log.Debugf(c, "createSendReceiptOptionsMessage(transferID=%v)", transfer.ID)
-	mt := whc.Translate(trans.MESSAGE_TEXT_YOU_CAN_SEND_RECEIPT, html.EscapeString(transfer.Counterparty().ContactName))
+	mt := whc.Translate(trans.MESSAGE_TEXT_YOU_CAN_SEND_RECEIPT, html.EscapeString(transfer.Data.Counterparty().ContactName))
 	var utmCampaign string
-	if transfer.IsReturn {
+	if transfer.Data.IsReturn {
 		utmCampaign = common.UTM_CAMPAIGN_DEBT_RETURNED
 	} else {
 		utmCampaign = common.UTM_CAMPAIGN_DEBT_CREATED
@@ -740,7 +742,7 @@ func createSendReceiptOptionsMessage(whc botsfw.WebhookContext, transfer models.
 	utmParams := common.NewUtmParams(whc, utmCampaign)
 	transferUrlForUser := common.GetTransferUrlForUser(transfer.ID, whc.AppUserIntID(), whc.Locale(), utmParams)
 	mt = strings.Replace(mt, "<a receipt>", fmt.Sprintf(`<a href="%v">`, transferUrlForUser), 1)
-	mt = strings.Replace(mt, "<a counterparty>", fmt.Sprintf(`<a href="%v">`, common.GetCounterpartyUrl(transfer.Counterparty().ContactID, whc.AppUserIntID(), whc.Locale(), utmParams)), 1)
+	mt = strings.Replace(mt, "<a counterparty>", fmt.Sprintf(`<a href="%v">`, common.GetCounterpartyUrl(transfer.Data.Counterparty().ContactID, whc.AppUserIntID(), whc.Locale(), utmParams)), 1)
 
 	if whc.InputType() == botsfw.WebhookInputCallbackQuery {
 		if m, err = whc.NewEditMessage(mt, botsfw.MessageFormatHTML); err != nil {
@@ -751,12 +753,12 @@ func createSendReceiptOptionsMessage(whc botsfw.WebhookContext, transfer models.
 		m.Format = botsfw.MessageFormatHTML
 	}
 
-	transferEncodedID := common.EncodeID(transfer.ID)
+	transferEncodedID := common.EncodeID(int64(transfer.ID))
 	transferDecodedID, err := common.DecodeID(transferEncodedID)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to decode transferEncodedID:%v that was encoded from %v", transferEncodedID, transfer.ID))
 	}
-	if transferDecodedID != transfer.ID {
+	if transferDecodedID != int64(transfer.ID) {
 		panic("transferDecodedID != transferRawID")
 	}
 	log.Debugf(c, "transferID: %v, transferEncodedID: %v", transfer.ID, transferEncodedID)
@@ -764,20 +766,20 @@ func createSendReceiptOptionsMessage(whc botsfw.WebhookContext, transfer models.
 	m.DisableWebPagePreview = true
 	var telegramKeyboard tgbotapi.InlineKeyboardMarkup
 	var isCounterpartyUserHasTelegram bool
-	if transfer.Creator().ContactID != 0 {
-		if user, err := facade.User.GetUserByID(c, transfer.Counterparty().UserID); err != nil {
-			err = errors.Wrapf(err, "Failed to get counterparty user by ID=%v", transfer.Counterparty().UserID)
+	if transfer.Data.Creator().ContactID != 0 {
+		if user, err := facade.User.GetUserByID(c, transfer.Data.Counterparty().UserID); err != nil {
+			err = fmt.Errorf("failed to get counterparty user by ID=%v: %w", transfer.Data.Counterparty().UserID, err)
 			return m, err
 		} else {
-			isCounterpartyUserHasTelegram = user.HasTelegramAccount()
-			log.Debugf(c, "isCounterpartyUserHasTelegram: %v, transfer.Creator().ContactID: %v, user.GetTelegramUserIDs(): %v", isCounterpartyUserHasTelegram, transfer.Creator().ContactID, user.GetTelegramUserIDs())
+			isCounterpartyUserHasTelegram = user.Data.HasTelegramAccount()
+			log.Debugf(c, "isCounterpartyUserHasTelegram: %v, transfer.Creator().ContactID: %v, user.GetTelegramUserIDs(): %v", isCounterpartyUserHasTelegram, transfer.Data.Creator().ContactID, user.Data.GetTelegramUserIDs())
 		}
 	} else {
-		log.Debugf(c, "isCounterpartyUserHasTelegram: %v, transfer.Creator().ContactID: %v", isCounterpartyUserHasTelegram, transfer.Creator().ContactID)
+		log.Debugf(c, "isCounterpartyUserHasTelegram: %v, transfer.Creator().ContactID: %v", isCounterpartyUserHasTelegram, transfer.Data.Creator().ContactID)
 	}
 
 	if isCounterpartyUserHasTelegram {
-		m.Text = emoji.HOURGLASS_ICON + " " + fmt.Sprintf(whc.Translate(trans.MESSAGE_TEXT_RECEIPT_IS_SENDING_BY_TELEGRAM), transfer.Counterparty().ContactName)
+		m.Text = emoji.HOURGLASS_ICON + " " + fmt.Sprintf(whc.Translate(trans.MESSAGE_TEXT_RECEIPT_IS_SENDING_BY_TELEGRAM), transfer.Data.Counterparty().ContactName)
 	} else {
 		telegramKeyboard.InlineKeyboard = [][]tgbotapi.InlineKeyboardButton{
 			{sendReceiptByTelegramButton(transferEncodedID, whc)},

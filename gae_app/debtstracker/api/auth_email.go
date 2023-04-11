@@ -44,7 +44,7 @@ func handleSignUpWithEmail(c context.Context, w http.ResponseWriter, r *http.Req
 	}
 
 	if _, err := dtdal.UserEmail.GetUserEmailByID(c, email); err != nil {
-		if !db.IsNotFound(err) {
+		if !dal.IsNotFound(err) {
 			ErrorAsJson(c, w, http.StatusInternalServerError, err)
 			return
 		}
@@ -86,7 +86,7 @@ func handleSignInWithEmail(c context.Context, w http.ResponseWriter, r *http.Req
 
 	userEmail, err := dtdal.UserEmail.GetUserEmailByID(c, email)
 	if err != nil {
-		if db.IsNotFound(err) {
+		if dal.IsNotFound(err) {
 			ErrorAsJson(c, w, http.StatusForbidden, errors.New("Unknown email"))
 		} else {
 			ErrorAsJson(c, w, http.StatusInternalServerError, err)
@@ -104,7 +104,7 @@ func handleSignInWithEmail(c context.Context, w http.ResponseWriter, r *http.Req
 func handleRequestPasswordReset(c context.Context, w http.ResponseWriter, r *http.Request) {
 	email := r.PostFormValue("email")
 	userEmail, err := dtdal.UserEmail.GetUserEmailByID(c, email)
-	if db.IsNotFound(err) {
+	if dal.IsNotFound(err) {
 		ErrorAsJson(c, w, http.StatusForbidden, errors.New("Unknown email"))
 		return
 	}
@@ -141,7 +141,7 @@ func handleChangePasswordAndSignIn(c context.Context, w http.ResponseWriter, r *
 	}
 
 	if passwordReset, err = dtdal.PasswordReset.GetPasswordResetByID(c, passwordReset.ID); err != nil {
-		if db.IsNotFound(err) {
+		if dal.IsNotFound(err) {
 			ErrorAsJson(c, w, http.StatusForbidden, errors.New("Unknown pin"))
 			return
 		}
@@ -242,7 +242,7 @@ func handleConfirmEmailAndSignIn(c context.Context, w http.ResponseWriter, r *ht
 		}
 		return err
 	}, dtdal.CrossGroupTransaction); err != nil {
-		if db.IsNotFound(err) {
+		if dal.IsNotFound(err) {
 			ErrorAsJson(c, w, http.StatusBadRequest, err)
 			return
 		} else if err == errInvalidEmailConformationPin {

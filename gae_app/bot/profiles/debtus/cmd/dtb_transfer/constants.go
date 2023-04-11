@@ -21,8 +21,8 @@ type SendReceipt struct {
 	By         string
 }
 
-func SendReceiptCallbackData(transferID int64, by string) string {
-	return fmt.Sprintf("%v?by=%v&transfer=%v", SEND_RECEIPT_CALLBACK_PATH, by, common.EncodeID(transferID))
+func SendReceiptCallbackData(transferID int, by string) string {
+	return fmt.Sprintf("%v?by=%v&transfer=%v", SEND_RECEIPT_CALLBACK_PATH, by, common.EncodeID(int64(transferID)))
 }
 
 func SendReceiptUrl(transferID int64, by string) string {

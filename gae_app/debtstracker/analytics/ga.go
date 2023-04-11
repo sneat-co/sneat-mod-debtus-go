@@ -2,6 +2,8 @@ package analytics
 
 import (
 	"bytes"
+	"fmt"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"net/http"
 	"strconv"
 
@@ -65,7 +67,7 @@ func getGaCommon(r *http.Request, userID int64, userLanguage, platform string) g
 func ReminderSent(c context.Context, userID int64, userLanguage, platform string) {
 	gaCommon := getGaCommon(nil, userID, userLanguage, platform)
 	if err := SendSingleMessage(c, gamp.NewEvent(EventCategoryReminders, EventActionReminderSent, gaCommon)); err != nil {
-		log.Errorf(c, errors.Wrap(err, "Failed to send even to GA").Error())
+		log.Errorf(c, fmt.Errorf("failed to send even to GA: %w", err).Error())
 	}
 }
 
@@ -76,7 +78,7 @@ func ReceiptSentFromBot(whc botsfw.WebhookContext, channel string) error {
 
 func ReceiptSentFromApi(c context.Context, r *http.Request, userID int64, userLanguage, platform, channel string) {
 	gaCommon := getGaCommon(r, userID, userLanguage, platform)
-	SendSingleMessage(c, gamp.NewEventWithLabel(
+	_ = SendSingleMessage(c, gamp.NewEventWithLabel(
 		"receipts",
 		"receipt-sent",
 		channel,

@@ -18,28 +18,50 @@ const GroupKind = "Group"
 
 type Group struct {
 	record.WithID[string]
-	*GroupEntity
+	Data *GroupEntity
 }
 
-func (Group) Kind() string {
-	return GroupKind
-}
-
-func (group Group) Entity() interface{} {
-	return group.GroupEntity
-}
-
-func (Group) NewEntity() interface{} {
-	return new(GroupEntity)
-}
-
-func (group *Group) SetEntity(entity interface{}) {
-	if entity == nil {
-		group.GroupEntity = nil
-	} else {
-		group.GroupEntity = entity.(*GroupEntity)
+func NewGroup(id string, data *GroupEntity) Group {
+	key := NewGroupKey(id)
+	if data == nil {
+		data = new(GroupEntity)
+	}
+	return Group{
+		WithID: record.WithID[string]{
+			ID:     id,
+			Key:    key,
+			Record: dal.NewRecordWithData(key, data),
+		},
+		Data: data,
 	}
 }
+
+func NewGroupKey(id string) *dal.Key {
+	if id == "" {
+		return dal.NewKey(GroupKind, dal.WithRandomStringID(GroupIdLen))
+	}
+	return dal.NewKeyWithID(GroupKind, id)
+}
+
+//func (Group) Kind() string {
+//	return GroupKind
+//}
+
+//func (group Group) Entity() interface{} {
+//	return group.GroupEntity
+//}
+//
+//func (Group) NewEntity() interface{} {
+//	return new(GroupEntity)
+//}
+//
+//func (group *Group) SetEntity(entity interface{}) {
+//	if entity == nil {
+//		group.GroupEntity = nil
+//	} else {
+//		group.GroupEntity = entity.(*GroupEntity)
+//	}
+//}
 
 //var _ db.EntityHolder = (*Group)(nil)
 
@@ -453,16 +475,16 @@ func (entity *GroupEntity) AddBill(bill Bill) (changed bool, err error) {
 
 	for i, b := range outstandingBills {
 		if b.ID == bill.ID {
-			if b.Name != bill.Name {
-				outstandingBills[i].Name = bill.Name
+			if b.Name != bill.Data.Name {
+				outstandingBills[i].Name = bill.Data.Name
 				changed = true
 			}
-			if b.MembersCount != bill.MembersCount {
-				outstandingBills[i].MembersCount = bill.MembersCount
+			if b.MembersCount != bill.Data.MembersCount {
+				outstandingBills[i].MembersCount = bill.Data.MembersCount
 				changed = true
 			}
-			if b.Total != bill.AmountTotal {
-				outstandingBills[i].Total = bill.AmountTotal
+			if b.Total != bill.Data.AmountTotal {
+				outstandingBills[i].Total = bill.Data.AmountTotal
 				changed = true
 			}
 			goto addedOrUpdatedOrNotChanged
@@ -470,10 +492,10 @@ func (entity *GroupEntity) AddBill(bill Bill) (changed bool, err error) {
 	}
 	outstandingBills = append(outstandingBills, BillJson{
 		ID:           bill.ID,
-		Name:         bill.Name,
-		MembersCount: bill.MembersCount,
-		Total:        bill.AmountTotal,
-		Currency:     bill.Currency,
+		Name:         bill.Data.Name,
+		MembersCount: bill.Data.MembersCount,
+		Total:        bill.Data.AmountTotal,
+		Currency:     bill.Data.Currency,
 	})
 addedOrUpdatedOrNotChanged:
 	if changed {
@@ -481,11 +503,11 @@ addedOrUpdatedOrNotChanged:
 			return
 		}
 		groupMembers := entity.GetGroupMembers()
-		billMembers := bill.GetBillMembers()
+		billMembers := bill.Data.GetBillMembers()
 		for j, groupMember := range groupMembers {
 			for _, billMember := range billMembers {
 				if billMember.ID == groupMember.ID {
-					groupMember.Balance[bill.Currency] += billMember.Balance()
+					groupMember.Balance[bill.Data.Currency] += billMember.Balance()
 					groupMembers[j] = groupMember
 					break
 				}

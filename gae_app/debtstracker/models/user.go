@@ -453,10 +453,10 @@ func (entity *AppUserEntity) AddGroup(group Group, tgBot string) (changed bool) 
 	groups := entity.ActiveGroups()
 	for i, g := range groups {
 		if g.ID == group.ID {
-			if g.Name != group.Name || g.Note != group.Note || g.MembersCount != group.MembersCount {
-				g.Name = group.Name
-				g.Note = group.Note
-				g.MembersCount = group.MembersCount
+			if g.Name != group.Data.Name || g.Note != group.Data.Note || g.MembersCount != group.Data.MembersCount {
+				g.Name = group.Data.Name
+				g.Note = group.Data.Note
+				g.MembersCount = group.Data.MembersCount
 				groups[i] = g
 				changed = true
 			}
@@ -475,9 +475,9 @@ func (entity *AppUserEntity) AddGroup(group Group, tgBot string) (changed bool) 
 	}
 	g := UserGroupJson{
 		ID:           group.ID,
-		Name:         group.Name,
-		Note:         group.Note,
-		MembersCount: group.MembersCount,
+		Name:         group.Data.Name,
+		Note:         group.Data.Note,
+		MembersCount: group.Data.MembersCount,
 	}
 	if tgBot != "" {
 		g.TgBots = []string{tgBot}

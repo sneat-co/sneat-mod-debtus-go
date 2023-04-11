@@ -1,6 +1,9 @@
 package facade
 
 import (
+	"fmt"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
 	"strconv"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
@@ -26,7 +29,11 @@ func (groupFacade groupFacade) CreateGroup(c context.Context,
 	beforeGroupInsert func(tc context.Context, groupEntity *models.GroupEntity) (group models.Group, err error),
 	afterGroupInsert func(c context.Context, group models.Group, user models.AppUser) (err error),
 ) (group models.Group, groupMember models.GroupMember, err error) {
-	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
+	}
+	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
 		var intUserID int64
 		if intUserID, err = strconv.ParseInt(groupEntity.CreatorUserID, 10, 64); err != nil {
 			return err
@@ -35,7 +42,7 @@ func (groupFacade groupFacade) CreateGroup(c context.Context,
 		if err != nil {
 			return err
 		}
-		existingGroups := user.ActiveGroups()
+		existingGroups := user.Data.ActiveGroups()
 
 		if beforeGroupInsert != nil {
 			if group, err = beforeGroupInsert(c, groupEntity); err != nil {
@@ -44,7 +51,7 @@ func (groupFacade groupFacade) CreateGroup(c context.Context,
 		}
 
 		var groupMembersChanged bool
-		groupMembersChanged, _, memberIndex, member, members := groupEntity.AddOrGetMember(groupEntity.CreatorUserID, "", user.FullName())
+		groupMembersChanged, _, memberIndex, member, members := groupEntity.AddOrGetMember(groupEntity.CreatorUserID, "", user.Data.FullName())
 		member.Shares = 1
 		members[memberIndex] = member
 		groupEntity.SetGroupMembers(members)
@@ -55,20 +62,20 @@ func (groupFacade groupFacade) CreateGroup(c context.Context,
 					return errors.New("Duplicate group name")
 				}
 			}
-			if group, err = dtdal.Group.InsertGroup(c, groupEntity); err != nil {
+			if group, err = dtdal.Group.InsertGroup(c, tx, groupEntity); err != nil {
 				return err
 			}
 		} else if groupMembersChanged {
-			if err = dtdal.Group.SaveGroup(c, group); err != nil {
+			if err = dtdal.Group.SaveGroup(c, tx, group); err != nil {
 				return err
 			}
 		}
 
 		groupJson := models.UserGroupJson{
 			ID:           group.ID,
-			Name:         group.Name,
-			Note:         group.Note,
-			MembersCount: group.MembersCount,
+			Name:         group.Data.Name,
+			Note:         group.Data.Note,
+			MembersCount: group.Data.MembersCount,
 		}
 
 		if tgBotCode != "" {
@@ -81,7 +88,7 @@ func (groupFacade groupFacade) CreateGroup(c context.Context,
 		botFound:
 		}
 
-		user.SetActiveGroups(append(existingGroups, groupJson))
+		user.Data.SetActiveGroups(append(existingGroups, groupJson))
 
 		if afterGroupInsert != nil {
 			if err = afterGroupInsert(c, group, user); err != nil {
@@ -89,14 +96,14 @@ func (groupFacade groupFacade) CreateGroup(c context.Context,
 			}
 		}
 
-		if err = User.SaveUser(c, user); err != nil {
+		if err = User.SaveUser(c, tx, user); err != nil {
 			return err
 		}
 		if err = groupFacade.DelayUpdateGroupUsers(c, group.ID); err != nil {
 			return err
 		}
 		return err
-	}, dtdal.CrossGroupTransaction); err != nil {
+	}, dal.TxWithCrossGroup()); err != nil {
 		return
 	}
 	log.Infof(c, "Group created, ID=%v", group.ID)
@@ -105,7 +112,7 @@ func (groupFacade groupFacade) CreateGroup(c context.Context,
 
 type NewUser struct {
 	Name string
-	bots.BotUser
+	botsfw.BotUser
 	ChatMember botsfw.WebhookActor
 }
 
@@ -118,26 +125,31 @@ func (groupFacade) AddUsersToTheGroupAndOutstandingBills(c context.Context, grou
 		panic("len(newUsers) == 0")
 	}
 	var group models.Group
-	if err := dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	var db dal.Database
+	var err error
+	if db, err = GetDatabase(c); err != nil {
+		return group, nil, err
+	}
+	if err := db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 		changed := false
-		if group, err = dtdal.Group.GetGroupByID(c, groupID); err != nil {
+		if group, err = dtdal.Group.GetGroupByID(c, tx, groupID); err != nil {
 			return
 		}
-		log.Debugf(c, "group: %+v", group.GroupEntity)
+		log.Debugf(c, "group: %+v", group.Data)
 		j := 0
 		for _, newUser := range newUsers {
-			_, isChanged, _, _, groupMembers := group.AddOrGetMember(strconv.FormatInt(newUser.GetAppUserIntID(), 10), "", newUser.Name)
+			_, isChanged, _, _, groupMembers := group.Data.AddOrGetMember(strconv.FormatInt(newUser.GetAppUserIntID(), 10), "", newUser.Name)
 			changed = changed || isChanged
 			if isChanged {
-				group.SetGroupMembers(groupMembers)
+				group.Data.SetGroupMembers(groupMembers)
 				newUsers[j] = newUser
 				j += 1
 			}
 		}
 		newUsers = newUsers[:j]
 		if changed {
-			log.Debugf(c, "group: %+v", group.GroupEntity)
-			if err = dtdal.Group.SaveGroup(c, group); err != nil {
+			log.Debugf(c, "group: %+v", group.Data)
+			if err = dtdal.Group.SaveGroup(c, tx, group); err != nil {
 				return
 			}
 			if err = Group.DelayUpdateGroupUsers(c, group.ID); err != nil {
@@ -145,10 +157,10 @@ func (groupFacade) AddUsersToTheGroupAndOutstandingBills(c context.Context, grou
 			}
 		}
 		return
-	}, db.SingleGroupTransaction); err != nil {
+	}); err != nil {
 		return group, newUsers, err
 	}
-	return group, newUsers, nil
+	return group, newUsers, err
 }
 
 var delayUpdateGroupUsers = delay.Func("updateGroupUsers", updateGroupUsers)
@@ -160,28 +172,37 @@ func (groupFacade) DelayUpdateGroupUsers(c context.Context, groupID string) erro
 	return gae.CallDelayFunc(c, common.QUEUE_USERS, "update-group-users", delayUpdateGroupUsers, groupID)
 }
 
-func updateGroupUsers(c context.Context, groupID string) error {
+func updateGroupUsers(c context.Context, groupID string) (err error) {
 	if groupID == "" {
 		log.Criticalf(c, "groupID is empty string")
 		return nil
 	}
 
 	log.Debugf(c, "updateGroupUsers(groupID=%v)", groupID)
-	group, err := dtdal.Group.GetGroupByID(c, groupID)
-	if err != nil {
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
 		return err
 	}
-	var tasks []*taskqueue.Task
-	for _, member := range group.GetGroupMembers() {
-		if member.UserID != "" {
-			task, err := gae.CreateDelayTask(common.QUEUE_USERS, "update-user-with-groups", delayUpdateUserWithGroups, member.UserID, []string{groupID}, []string{})
-			if err != nil {
-				return err
-			}
-			tasks = append(tasks, task)
+	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+		group, err := dtdal.Group.GetGroupByID(c, tx, groupID)
+		if err != nil {
+			return err
 		}
+		var tasks []*taskqueue.Task
+		for _, member := range group.Data.GetGroupMembers() {
+			if member.UserID != "" {
+				task, err := gae.CreateDelayTask(common.QUEUE_USERS, "update-user-with-groups", delayUpdateUserWithGroups, member.UserID, []string{groupID}, []string{})
+				if err != nil {
+					return err
+				}
+				tasks = append(tasks, task)
+			}
+		}
+		_, err = taskqueue.AddMulti(c, tasks, common.QUEUE_USERS)
+		return err
+	}); err != nil {
+		return err
 	}
-	_, err = taskqueue.AddMulti(c, tasks, common.QUEUE_USERS)
 	return err
 }
 
@@ -189,31 +210,35 @@ var delayUpdateUserWithGroups = delay.Func("UpdateUserWithGroups", delayedUpdate
 
 func delayedUpdateUserWithGroups(c context.Context, userID string, groupIDs2add, groupIDs2remove []string) (err error) {
 	log.Debugf(c, "delayedUpdateUserWithGroups(userID=%d, groupIDs2add=%v, groupIDs2remove=%v)", userID, groupIDs2add, groupIDs2remove)
-	groups2add := make([]models.Group, len(groupIDs2add))
-	for i, groupID := range groupIDs2add {
-		if groups2add[i], err = dtdal.Group.GetGroupByID(c, groupID); err != nil {
-			return
-		}
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
 	}
-	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+		groups2add := make([]models.Group, len(groupIDs2add))
+		for i, groupID := range groupIDs2add {
+			if groups2add[i], err = dtdal.Group.GetGroupByID(c, tx, groupID); err != nil {
+				return
+			}
+		}
 		var user models.AppUser
 		if user, err = dtdal.User.GetUserByStrID(c, userID); err != nil {
 			return
 		}
-		return User.UpdateUserWithGroups(c, user, groups2add, groupIDs2remove)
-	}, dtdal.SingleGroupTransaction); err != nil {
+		return User.UpdateUserWithGroups(c, tx, user, groups2add, groupIDs2remove)
+	}); err != nil {
 		return err
 	}
 	return err
 }
 
-func (userFacade) UpdateUserWithGroups(c context.Context, user models.AppUser, groups2add []models.Group, groups2remove []string) (err error) {
+func (userFacade) UpdateUserWithGroups(c context.Context, tx dal.ReadwriteTransaction, user models.AppUser, groups2add []models.Group, groups2remove []string) (err error) {
 	log.Debugf(c, "updateUserWithGroup(user.ID=%d, len(groups2add)=%d, groups2remove=%v)", user.ID, len(groups2add), groups2remove)
-	groups := user.ActiveGroups()
+	groups := user.Data.ActiveGroups()
 	updated := false
 	if groups2add != nil {
 		for _, group2add := range groups2add {
-			updated = user.AddGroup(group2add, "") || updated
+			updated = user.Data.AddGroup(group2add, "") || updated
 		}
 	}
 	if groups2remove != nil {
@@ -231,8 +256,8 @@ func (userFacade) UpdateUserWithGroups(c context.Context, user models.AppUser, g
 		log.Debugf(c, "User is not update with groups")
 		return
 	}
-	user.SetActiveGroups(groups)
-	if err = User.SaveUser(c, user); err != nil {
+	user.Data.SetActiveGroups(groups)
+	if err = User.SaveUser(c, tx, user); err != nil {
 		return
 	}
 	return
@@ -246,12 +271,17 @@ func (userFacade) DelayUpdateContactWithGroups(c context.Context, contactID int6
 
 func delayedUpdateContactWithGroup(c context.Context, contactID int64, addGroupIDs, removeGroupIDs []string) (err error) {
 	log.Debugf(c, "delayedUpdateContactWithGroup(contactID=%d, addGroupIDs=%v, removeGroupIDs=%v)", contactID, addGroupIDs, removeGroupIDs)
-	if _, err = GetContactByID(c, contactID); err != nil {
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
 		return
 	}
-	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
+
+	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+		if _, err = GetContactByID(c, contactID); err != nil {
+			return err
+		}
 		return User.UpdateContactWithGroups(c, contactID, addGroupIDs, removeGroupIDs)
-	}, dtdal.SingleGroupTransaction); err != nil {
+	}); err != nil {
 		return
 	}
 	return
@@ -263,9 +293,9 @@ func (userFacade) UpdateContactWithGroups(c context.Context, contactID int64, ad
 		return err
 	} else {
 		var isAdded bool
-		contact.GroupIDs, isAdded = slices.MergeStrings(contact.GroupIDs, addGroupIDs)
+		contact.Data.GroupIDs, isAdded = slices.MergeStrings(contact.Data.GroupIDs, addGroupIDs)
 		var removedCount int
-		contact.GroupIDs, removedCount = slices.RemoveStrings(contact.GroupIDs, removeGroupIDs)
+		contact.Data.GroupIDs, removedCount = slices.RemoveStrings(contact.Data.GroupIDs, removeGroupIDs)
 		if isAdded || removedCount > 0 {
 			return SaveContact(c, contact)
 		}
@@ -276,12 +306,16 @@ func (userFacade) UpdateContactWithGroups(c context.Context, contactID int64, ad
 var ErrAttemptToLeaveUnsettledGroup = errors.New("an attept to leave unsettled group")
 
 func (groupFacade) LeaveGroup(c context.Context, groupID string, userID string) (group models.Group, user models.AppUser, err error) {
-	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
+	}
+	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 		group.ID = groupID
 		if user.ID, err = strconv.ParseInt(userID, 10, 64); err != nil {
-			return errors.WithMessage(err, "failed to parse userID to int64")
+			return fmt.Errorf("failed to parse userID to int64: %w", err)
 		}
-		if err = dtdal.DB.GetMulti(c, []db.EntityHolder{&group, &user}); err != nil {
+		if err = tx.GetMulti(c, []dal.Record{group.Record, user.Record}); err != nil {
 			return
 		}
 		//if group, err = dtdal.Group.GetGroupByID(c, groupID); err != nil {
@@ -292,7 +326,7 @@ func (groupFacade) LeaveGroup(c context.Context, groupID string, userID string) 
 		//}
 
 		{ // Update group
-			members := group.GetGroupMembers()
+			members := group.Data.GetGroupMembers()
 			for i, m := range members {
 				if m.UserID == userID {
 					if len(m.Balance) != 0 {
@@ -300,15 +334,15 @@ func (groupFacade) LeaveGroup(c context.Context, groupID string, userID string) 
 						return
 					}
 					members = append(members[:i], members[i+1:]...)
-					group.SetGroupMembers(members)
-					if err = dtdal.Group.SaveGroup(c, group); err != nil {
+					group.Data.SetGroupMembers(members)
+					if err = dtdal.Group.SaveGroup(c, tx, group); err != nil {
 						return
 					}
 					break
 				}
 			}
 		}
-		groups := user.ActiveGroups()
+		groups := user.Data.ActiveGroups()
 		userChanged := false
 		for i, g := range groups {
 			if g.ID == groupID {
@@ -318,8 +352,8 @@ func (groupFacade) LeaveGroup(c context.Context, groupID string, userID string) 
 			}
 		}
 		if userChanged {
-			user.SetActiveGroups(groups)
-			if err = User.SaveUser(c, user); err != nil {
+			user.Data.SetActiveGroups(groups)
+			if err = User.SaveUser(c, tx, user); err != nil {
 				return
 			}
 		}
@@ -327,7 +361,7 @@ func (groupFacade) LeaveGroup(c context.Context, groupID string, userID string) 
 			return
 		}
 		return
-	}, db.CrossGroupTransaction); err != nil {
+	}, dal.TxWithCrossGroup()); err != nil {
 		return
 	}
 	return

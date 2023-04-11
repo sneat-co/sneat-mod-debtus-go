@@ -30,7 +30,7 @@ func handleSignInAnonymous(c context.Context, w http.ResponseWriter, r *http.Req
 	userEntity, err := facade.User.GetUserByID(c, userID)
 
 	if err != nil {
-		if db.IsNotFound(err) {
+		if dal.IsNotFound(err) {
 			ErrorAsJson(c, w, http.StatusBadRequest, err)
 		} else {
 			ErrorAsJson(c, w, http.StatusInternalServerError, err)

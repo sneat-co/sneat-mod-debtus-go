@@ -76,7 +76,20 @@ func NewBillEntity(data BillCommon) *BillEntity {
 
 type Bill struct {
 	record.WithID[string]
-	*BillEntity
+	Data *BillEntity
+}
+
+func NewBill(id string, billCommon *BillCommon) Bill {
+	var data *BillEntity
+	if billCommon != nil {
+		data = NewBillEntity(*billCommon)
+	} else {
+		data = new(BillEntity)
+	}
+	return Bill{
+		WithID: record.WithID[string]{ID: id},
+		Data:   data,
+	}
 }
 
 //var _ db.EntityHolder = (*Bill)(nil)
@@ -85,21 +98,21 @@ func (Bill) Kind() string {
 	return BillKind
 }
 
-func (bill *Bill) Entity() interface{} {
-	return bill.BillEntity
-}
+//func (bill *Bill) Entity() interface{} {
+//	return bill.Data
+//}
+//
+//func (Bill) NewEntity() interface{} {
+//	return new(BillEntity)
+//}
 
-func (Bill) NewEntity() interface{} {
-	return new(BillEntity)
-}
-
-func (bill *Bill) SetEntity(entity interface{}) {
-	if entity == nil {
-		bill.BillEntity = nil
-	} else {
-		bill.BillEntity = entity.(*BillEntity)
-	}
-}
+//func (bill *Bill) SetEntity(entity interface{}) {
+//	if entity == nil {
+//		bill.BillEntity = nil
+//	} else {
+//		bill.BillEntity = entity.(*BillEntity)
+//	}
+//}
 
 func (entity *BillEntity) Load(ps []datastore.Property) error {
 	ps = entity.BillCommon.load(ps)

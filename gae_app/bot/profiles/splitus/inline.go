@@ -39,7 +39,7 @@ var inlineQueryCommand = botsfw.Command{
 				}
 			}
 		}
-		inlineQuery := whc.Input().(bots.WebhookInlineQuery)
+		inlineQuery := whc.Input().(botsfw.WebhookInlineQuery)
 		query := strings.TrimSpace(inlineQuery.GetQuery())
 		log.Debugf(c, "inlineQueryCommand.Action(query=%v)", query)
 		switch {
@@ -72,7 +72,7 @@ func inlineEmptyQuery(whc botsfw.WebhookContext, inlineQuery botsfw.WebhookInlin
 func inlineQueryJoinGroup(whc botsfw.WebhookContext, query string) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
-	inlineQuery := whc.Input().(bots.WebhookInlineQuery)
+	inlineQuery := whc.Input().(botsfw.WebhookInlineQuery)
 
 	var group models.Group
 	if group.ID = query[len(joinGroupCommanCode+"?id="):]; group.ID == "" {
@@ -121,7 +121,7 @@ func inlineQueryNewBill(whc botsfw.WebhookContext, amountNum, amountCurr, billNa
 
 	m.Text = fmt.Sprintf("Amount: %v %v, Bill name: %v", amountNum, amountCurr, billName)
 
-	inlineQuery := whc.Input().(bots.WebhookInlineQuery)
+	inlineQuery := whc.Input().(botsfw.WebhookInlineQuery)
 
 	params := fmt.Sprintf("amount=%v&lang=%v", url.QueryEscape(amountNum+amountCurr), whc.Locale().Code5)
 

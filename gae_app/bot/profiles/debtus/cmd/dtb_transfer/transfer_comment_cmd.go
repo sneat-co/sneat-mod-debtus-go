@@ -48,7 +48,7 @@ const (
 //			if chatEntity.IsAwaitingReplyTo(code) {
 //				switch code {
 //				case ADD_NOTE_COMMAND:
-//					chatEntity.AddWizardParam(TRANSFER_WIZARD_PARAM_NOTE, whc.Input().(bots.WebhookTextMessage).Text())
+//					chatEntity.AddWizardParam(TRANSFER_WIZARD_PARAM_NOTE, whc.Input().(botsfw.WebhookTextMessage).Text())
 //					if chatEntity.GetWizardParam(TRANSFER_WIZARD_PARAM_COMMENT) != "" {
 //						return nextCommand.Action(whc)
 //					}
@@ -58,7 +58,7 @@ const (
 //						[]tgbotapi.KeyboardButton{tgbotapi.NewKeyboardButton(whc.Translate(trans.COMMAND_TEXT_NO_COMMENT_FOR_TRANSFER))},
 //					)
 //				case ADD_COMMENT_COMMAND:
-//					chatEntity.AddWizardParam(TRANSFER_WIZARD_PARAM_COMMENT, whc.Input().(bots.WebhookTextMessage).Text())
+//					chatEntity.AddWizardParam(TRANSFER_WIZARD_PARAM_COMMENT, whc.Input().(botsfw.WebhookTextMessage).Text())
 //					if chatEntity.GetWizardParam(TRANSFER_WIZARD_PARAM_NOTE) != "" {
 //						return nextCommand.Action(whc)
 //					}
@@ -111,7 +111,7 @@ func createTransferAskNoteOrCommentCommand(code string, nextCommand botsfw.Comma
 				if m, err = interestAction(whc, nextCommand.Action); err != nil || m.Text != "" {
 					return
 				}
-				mt := whc.Input().(bots.WebhookTextMessage).Text()
+				mt := whc.Input().(botsfw.WebhookTextMessage).Text()
 				switch mt {
 				//case whc.Translate(trans.COMMAND_TEXT_ADD_NOTE_TO_TRANSFER):
 				//	return addNoteCommand.Action(whc)

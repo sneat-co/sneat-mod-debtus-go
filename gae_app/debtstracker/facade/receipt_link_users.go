@@ -55,7 +55,7 @@ func (linker *ReceiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID 
 			inviterUser models.AppUser
 			invitedUser models.AppUser
 		)
-		if receipt, transfer, inviterUser, invitedUser, err = getReceiptTransferAndUsers(tc, receiptID, invitedUserID); err != nil {
+		if receipt, transfer, inviterUser, invitedUser, err = getReceiptTransferAndUsers(tc, tx, receiptID, invitedUserID); err != nil {
 			return
 		}
 		changes.receipt = &receipt

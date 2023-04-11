@@ -98,7 +98,7 @@ var delayedUpdateTransferWithCounterparty = delay.Func(DELAY_UPDATE_1_TRANSFER_W
 		counterpartyCounterparty, err := facade.GetContactByID(c, counterpartyCounterpartyID)
 		if err != nil {
 			log.Errorf(c, err.Error())
-			if db.IsNotFound(err) {
+			if dal.IsNotFound(err) {
 				return nil
 			}
 			return err
@@ -109,7 +109,7 @@ var delayedUpdateTransferWithCounterparty = delay.Func(DELAY_UPDATE_1_TRANSFER_W
 		counterpartyUser, err := facade.User.GetUserByID(c, counterpartyCounterparty.UserID)
 		if err != nil {
 			log.Errorf(c, err.Error())
-			if db.IsNotFound(err) {
+			if dal.IsNotFound(err) {
 				return nil
 			}
 			return err
@@ -217,7 +217,7 @@ var delayedUpdateTransfersWithCreatorName = delay.Func(UPDATE_TRANSFERS_WITH_CRE
 	user, err := facade.User.GetUserByID(c, userID)
 	if err != nil {
 		log.Errorf(c, err.Error())
-		if db.IsNotFound(err) {
+		if dal.IsNotFound(err) {
 			err = nil
 		}
 		return err

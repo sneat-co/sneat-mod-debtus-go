@@ -9,30 +9,30 @@ const RefererKind = "Referer"
 
 type Referer struct {
 	record.WithID[int]
-	*RefererEntity
+	Data *RefererEntity
 }
 
 //var _ db.EntityHolder = (*Referer)(nil)
 
-func (Referer) Kind() string {
-	return RefererKind
-}
+//func (Referer) Kind() string {
+//	return RefererKind
+//}
 
-func (r Referer) Entity() interface{} {
-	return r.RefererEntity
-}
-
-func (Referer) NewEntity() interface{} {
-	return new(RefererEntity)
-}
-
-func (r *Referer) SetEntity(entity interface{}) {
-	if entity == nil {
-		r.RefererEntity = nil
-	} else {
-		r.RefererEntity = entity.(*RefererEntity)
-	}
-}
+//func (r Referer) Entity() interface{} {
+//	return r.RefererEntity
+//}
+//
+//func (Referer) NewEntity() interface{} {
+//	return new(RefererEntity)
+//}
+//
+//func (r *Referer) SetEntity(entity interface{}) {
+//	if entity == nil {
+//		r.RefererEntity = nil
+//	} else {
+//		r.RefererEntity = entity.(*RefererEntity)
+//	}
+//}
 
 type RefererEntity struct {
 	Platform   string    `datastore:"p"`

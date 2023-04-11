@@ -40,7 +40,7 @@ func verifyAndFixMissingTransferContacts(c context.Context, transfer models.Tran
 	isMissingAndCanBeFixed := func(contactID, contactUserID, counterpartyContactID int64) (bool, error) {
 		if contactID != 0 && contactUserID != 0 && counterpartyContactID != 0 {
 			if _, err := facade.GetContactByID(c, contactID); err != nil {
-				if db.IsNotFound(err) {
+				if dal.IsNotFound(err) {
 					if user, err := facade.User.GetUserByID(c, contactUserID); err != nil {
 						return false, err
 					} else {

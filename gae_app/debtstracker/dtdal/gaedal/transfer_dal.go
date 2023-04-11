@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/crediterra/money"
+	"github.com/strongo/db"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
@@ -13,22 +14,10 @@ import (
 	"context"
 	"errors"
 	"github.com/strongo/app/gae"
-	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/delay"
 )
-
-func NewTransferKey(c context.Context, transferID int64) *datastore.Key {
-	if transferID == 0 {
-		panic("transferID == 0")
-	}
-	return gaedb.NewKey(c, models.TransferKind, "", transferID, nil)
-}
-
-func NewTransferIncompleteKey(c context.Context) *datastore.Key {
-	return datastore.NewIncompleteKey(c, models.TransferKind, nil)
-}
 
 type TransferDalGae struct {
 }

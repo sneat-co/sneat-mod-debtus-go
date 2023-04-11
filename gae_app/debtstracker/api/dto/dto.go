@@ -63,7 +63,7 @@ type ContactDto struct {
 
 func NewContactDto(counterpartyInfo models.TransferCounterpartyInfo) ContactDto {
 	dto := ContactDto{
-		ID:      strconv.Itoa(counterpartyInfo.ContactID),
+		ID:      strconv.FormatInt(counterpartyInfo.ContactID, 10),
 		UserID:  strconv.FormatInt(counterpartyInfo.UserID, 10),
 		Name:    counterpartyInfo.Name(),
 		Comment: counterpartyInfo.Comment,
@@ -157,16 +157,16 @@ type CreateTransferResponse struct {
 
 func TransferToDto(userID int64, transfer models.Transfer) *TransferDto {
 	transferDto := TransferDto{
-		Id:            strconv.FormatInt(transfer.ID, 10),
-		Amount:        transfer.GetAmount(),
-		Created:       transfer.DtCreated,
-		CreatorUserID: transfer.CreatorUserID,
-		IsReturn:      transfer.IsReturn,
-		Due:           transfer.DtDueOn,
+		Id:            strconv.Itoa(transfer.ID),
+		Amount:        transfer.Data.GetAmount(),
+		Created:       transfer.Data.DtCreated,
+		CreatorUserID: transfer.Data.CreatorUserID,
+		IsReturn:      transfer.Data.IsReturn,
+		Due:           transfer.Data.DtDueOn,
 	}
 
-	from := NewContactDto(*transfer.From())
-	to := NewContactDto(*transfer.To())
+	from := NewContactDto(*transfer.Data.From())
+	to := NewContactDto(*transfer.Data.To())
 
 	switch strconv.FormatInt(userID, 10) {
 	case "0":

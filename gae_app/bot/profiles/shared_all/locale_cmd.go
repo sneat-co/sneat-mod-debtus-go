@@ -52,7 +52,7 @@ func onboardingAskLocaleAction(whc botsfw.WebhookContext, messagePrefix string, 
 	chatEntity := whc.ChatEntity()
 
 	if chatEntity.IsAwaitingReplyTo(onboardingAskLocaleCommandCode) {
-		messageText := whc.Input().(bots.WebhookTextMessage).Text()
+		messageText := whc.Input().(botsfw.WebhookTextMessage).Text()
 		for _, locale := range trans.SupportedLocales {
 			if locale.TitleWithIcon() == messageText {
 				return setPreferredLanguageAction(whc, locale.Code5, "onboarding", botParams)
