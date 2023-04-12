@@ -31,13 +31,13 @@ func redirectToWebApp(w http.ResponseWriter, r *http.Request, authRequired bool,
 	lang := query.Get("lang")
 	if lang == "" {
 		if authInfo.UserID != 0 {
-			user, err := facade.User.GetUserByID(c, authInfo.UserID)
+			user, err := facade.User.GetUserByID(c, tx, authInfo.UserID)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(err.Error()))
 				return
 			}
-			lang = strings.ToLower(user.GetPreferredLocale()[:2])
+			lang = strings.ToLower(user.Data.GetPreferredLocale()[:2])
 		} else {
 			lang = "en" // TODO: Bad to hard-code. Try to get from receipt?
 		}

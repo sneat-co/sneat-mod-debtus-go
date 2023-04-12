@@ -1,6 +1,7 @@
 package pages
 
 import (
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"html/template"
 	"net/http"
 

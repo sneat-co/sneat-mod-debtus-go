@@ -54,7 +54,7 @@ func (h transfersPage) transfersPageHandler(w http.ResponseWriter, r *http.Reque
 			fmt.Fprint(w, err)
 			return
 		}
-		if user, err = facade.User.GetUserByID(c, contact.UserID); err != nil {
+		if user, err = facade.User.GetUserByID(c, tx, contact.Data.UserID); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(w, err)
 			return
@@ -74,18 +74,18 @@ func (h transfersPage) transfersPageHandler(w http.ResponseWriter, r *http.Reque
 	wg.Wait()
 
 	balancesWithoutInterest := balanceRow{
-		user:      user.ContactByID(contactID).Balance()[currency],
-		contacts:  contact.Balance()[currency],
+		user:      user.Data.ContactByID(contactID).Balance()[currency],
+		contacts:  contact.Data.Balance()[currency],
 		transfers: transfersTotalWithoutInterest,
 	}
 
 	balancesWithInterest := balanceRow{}
-	if balance, err := user.ContactByID(contactID).BalanceWithInterest(c, now); err == nil {
+	if balance, err := user.Data.ContactByID(contactID).BalanceWithInterest(c, now); err == nil {
 		balancesWithInterest.user = balance[currency]
 	} else {
 		balancesWithInterest.userContactBalanceErr = err
 	}
-	if balance, err := contact.BalanceWithInterest(c, now); err == nil {
+	if balance, err := contact.Data.BalanceWithInterest(c, now); err == nil {
 		balancesWithInterest.contacts = balance[currency]
 	} else {
 		balancesWithInterest.contactBalanceErr = err
@@ -119,13 +119,13 @@ func (h transfersPage) processTransfers(c context.Context, contactID int64, curr
 		transfer := models.NewTransfer(key.IntID(), transferEntity)
 		transfers = append(transfers, transfer)
 		switch contactID {
-		case transfer.From().ContactID:
-			balanceWithoutInterest -= transfer.AmountInCents
-		case transfer.To().ContactID:
-			balanceWithoutInterest += transfer.AmountInCents
+		case transfer.Data.From().ContactID:
+			balanceWithoutInterest -= transfer.Data.AmountInCents
+		case transfer.Data.To().ContactID:
+			balanceWithoutInterest += transfer.Data.AmountInCents
 		default:
 			panic(fmt.Sprintf("contactID != from && contactID != to: contactID=%v, from=%v, to=%v",
-				contactID, transfer.From().ContactID, transfer.To().ContactID))
+				contactID, transfer.Data.From().ContactID, transfer.Data.To().ContactID))
 		}
 	}
 

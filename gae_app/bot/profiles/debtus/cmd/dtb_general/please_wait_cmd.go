@@ -1,6 +1,8 @@
 package dtb_general
 
 import (
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 )
 

@@ -79,14 +79,14 @@ func handleSignedWithGoogle(c context.Context, w http.ResponseWriter, r *http.Re
 		w.Write([]byte(err.Error()))
 	}
 
-	if userGoogle.UserGoogleEntity == nil {
+	if userGoogle.Data == nil {
 		log.Errorf(c, "userGoogle.UserGoogleData == nil")
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("userGoogle.UserGoogleData == nil"))
 	}
 
-	log.Debugf(c, "userGoogle.AppUserIntID: %d", userGoogle.AppUserIntID)
-	token := auth.IssueToken(userGoogle.AppUserIntID, "web", userGoogle.Email == "alexander.trakhimenok@gmail.com")
+	log.Debugf(c, "userGoogle.AppUserIntID: %d", userGoogle.Data.AppUserIntID)
+	token := auth.IssueToken(userGoogle.Data.AppUserIntID, "web", userGoogle.Data.Email == "alexander.trakhimenok@gmail.com")
 	destinationUrl := r.URL.Query().Get(REDIRECT_DESTINATION_PARAM_NAME)
 
 	var delimiter string

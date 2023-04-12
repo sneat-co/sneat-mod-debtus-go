@@ -12,7 +12,7 @@ import (
 type deeplink struct {
 }
 
-func (deeplink) AppHashPathToReceipt(receiptID int64) string {
+func (deeplink) AppHashPathToReceipt(receiptID int) string {
 	return fmt.Sprintf("receipt=%d", receiptID)
 }
 

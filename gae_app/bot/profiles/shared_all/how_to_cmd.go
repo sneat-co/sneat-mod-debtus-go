@@ -1,5 +1,7 @@
 package shared_all
 
+import "github.com/bots-go-framework/bots-fw/botsfw"
+
 const howToCommandCode = "how-to"
 
 var howToCommand = botsfw.Command{

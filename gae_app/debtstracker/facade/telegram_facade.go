@@ -34,11 +34,15 @@ func GetLocale(c context.Context, botID string, tgChatIntID, userID int64) (loca
 	}
 	tgChatPreferredLanguage := tgChat.Data.BaseChatData().PreferredLanguage
 	if tgChatPreferredLanguage == "" {
-		if userID == 0 && tgChatEntity.AppUserIntID != 0 {
-			userID = tgChatEntity.AppUserIntID
+		if userID == 0 && tgChat.Data.BaseChatData().AppUserIntID != 0 {
+			userID = tgChat.Data.BaseChatData().AppUserIntID
 		}
 		if userID != 0 {
-			user, err := User.GetUserByID(c, tx, userID)
+			var db dal.Database
+			if db, err = GetDatabase(c); err != nil {
+				return
+			}
+			user, err := User.GetUserByID(c, db, userID)
 			if err != nil {
 				log.Errorf(c, fmt.Errorf("failed to get user by ID=%v: %w", userID, err).Error())
 				return locale, err

@@ -59,19 +59,19 @@ func renderUserPage(
             <tbody>
             <tr>
                 <td>`)
-	hero.EscapeHTML(user.FirstName, _buffer)
+	hero.EscapeHTML(user.Data.FirstName, _buffer)
 	_buffer.WriteString(`</td>
                 <td>`)
-	hero.EscapeHTML(user.LastName, _buffer)
+	hero.EscapeHTML(userData.LastName, _buffer)
 	_buffer.WriteString(`</td>
                 <td>`)
-	hero.EscapeHTML(user.Nickname, _buffer)
+	hero.EscapeHTML(user.Data.Nickname, _buffer)
 	_buffer.WriteString(`</td>
                 <td>`)
-	hero.EscapeHTML(user.ScreenName, _buffer)
+	hero.EscapeHTML(user.Data.ScreenName, _buffer)
 	_buffer.WriteString(`</td>
                 <td>`)
-	hero.EscapeHTML(user.FullName(), _buffer)
+	hero.EscapeHTML(user.Data.FullName(), _buffer)
 	_buffer.WriteString(`</td>
             </tr>
             </tbody>

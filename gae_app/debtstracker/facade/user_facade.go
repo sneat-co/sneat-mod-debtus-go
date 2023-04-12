@@ -357,11 +357,11 @@ func (uf userFacade) GetOrCreateUserFacebookOnSignIn(
 	}
 
 	updateNames := func(entity *models.UserFacebookData) {
-		if firstName != "" && userFacebook.FirstName != firstName {
-			userFacebook.FirstName = firstName
+		if firstName != "" && userFacebook.Data.FirstName != firstName {
+			userFacebook.Data.FirstName = firstName
 		}
-		if lastName != "" && userFacebook.LastName != lastName {
-			userFacebook.LastName = lastName
+		if lastName != "" && userFacebook.Data.LastName != lastName {
+			userFacebook.Data.LastName = lastName
 		}
 	}
 
@@ -369,7 +369,7 @@ func (uf userFacade) GetOrCreateUserFacebookOnSignIn(
 		if userFacebook, err = dtdal.UserFacebook.GetFbUserByFbID(c, fbAppOrPageID, fbUserOrPageScopeID); err != nil {
 			return &userFacebook, err
 		}
-		updateNames(userFacebook.UserFacebookEntity)
+		updateNames(userFacebook.Data)
 		return &userFacebook, err
 	}
 
@@ -377,7 +377,7 @@ func (uf userFacade) GetOrCreateUserFacebookOnSignIn(
 		userFacebook = models.UserFacebook{
 			FbAppOrPageID:       fbAppOrPageID,
 			FbUserOrPageScopeID: fbUserOrPageScopeID,
-			UserFacebookEntity: &models.UserFacebookData{
+			Data: &models.UserFacebookData{
 				Email: email,
 				Names: user.Names{
 					FirstName: firstName,
@@ -389,7 +389,7 @@ func (uf userFacade) GetOrCreateUserFacebookOnSignIn(
 				},
 			},
 		}
-		updateNames(userFacebook.UserFacebookEntity)
+		updateNames(userFacebook.Data)
 		return &userFacebook, nil
 	}
 	if appUser, err = getOrCreateUserAccountRecordOnSignIn(

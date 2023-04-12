@@ -3,6 +3,7 @@ package dtb_general
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"fmt"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"strings"
 )

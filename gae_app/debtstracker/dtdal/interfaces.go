@@ -275,7 +275,7 @@ type TgChatDal interface {
 	GetTgChatByID(c context.Context, tgBotID string, tgChatID int64) (tgChat models.TelegramChat, err error)
 	DoSomething(c context.Context, // TODO: WTF name?
 		userTask *sync.WaitGroup, currency string, tgChatID int64, authInfo auth.AuthInfo, user models.AppUser,
-		sendToTelegram func(tgChat tgstore.ChatEntity) error) (err error)
+		sendToTelegram func(tgChat tgstore.Chat) error) (err error)
 }
 
 type TgUserDal interface {

@@ -3,6 +3,9 @@ package shared_all
 import (
 	"bytes"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"

@@ -3,6 +3,8 @@ package maintainance
 import (
 	"fmt"
 	"github.com/crediterra/money"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/strongo/db"
 	"net/http"
 	"strconv"
 	"strings"
@@ -63,7 +65,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 		}
 	}
 
-	if user, err = facade.User.GetUserByID(c, targetContact.UserID); err != nil {
+	if user, err = facade.User.GetUserByID(c, tx, targetContact.Data.UserID); err != nil {
 		return
 	}
 
@@ -79,8 +81,9 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 			}
 			return
 		}
-		if sourceContact.UserID != targetContact.UserID {
-			err = fmt.Errorf("sourceContact.UserID != targetContact.UserID: %v != %v", sourceContact.UserID, targetContact.UserID)
+		if sourceContact.Data.UserID != targetContact.Data.UserID {
+			err = fmt.Errorf("sourceContact.UserID != targetContact.UserID: %v != %v",
+				sourceContact.Data.UserID, targetContact.Data.UserID)
 			return
 		}
 	}
@@ -105,12 +108,12 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 	}
 
 	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if user, err = facade.User.GetUserByID(c, user.ID); err != nil {
+		if user, err = facade.User.GetUserByID(c, tx, user.ID); err != nil {
 			return
 		}
 		var contacts []models.UserContactJson
-		userContacts := user.Contacts()
-		targetContactBalance := targetContact.Balance()
+		userContacts := user.Data.Contacts()
+		targetContactBalance := targetContact.Data.Balance()
 		for _, contact := range userContacts {
 			for _, sourceContactID := range sourceContactIDs {
 				if contact.ID == sourceContactID {
@@ -125,12 +128,12 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 							return
 						}
 					} else {
-						targetContact.CountOfTransfers += sourceContact.CountOfTransfers
-						if targetContact.LastTransferAt.Before(sourceContact.LastTransferAt) {
-							targetContact.LastTransferAt = sourceContact.LastTransferAt
-							targetContact.LastTransferID = sourceContact.LastTransferID
+						targetContact.Data.CountOfTransfers += sourceContact.Data.CountOfTransfers
+						if targetContact.Data.LastTransferAt.Before(sourceContact.Data.LastTransferAt) {
+							targetContact.Data.LastTransferAt = sourceContact.Data.LastTransferAt
+							targetContact.Data.LastTransferID = sourceContact.Data.LastTransferID
 						}
-						if sourceContact.CounterpartyCounterpartyID != 0 {
+						if sourceContact.Data.CounterpartyCounterpartyID != 0 {
 							var counterpartyContact models.Contact
 							if counterpartyContact, err = facade.GetContactByID(c, sourceContact.CounterpartyCounterpartyID); err != nil {
 								if dal.IsNotFound(err) {
@@ -138,15 +141,15 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 								} else {
 									return
 								}
-							} else if counterpartyContact.CounterpartyCounterpartyID == sourceContactID {
-								counterpartyContact.CounterpartyCounterpartyID = targetContactID
+							} else if counterpartyContact.Data.CounterpartyCounterpartyID == sourceContactID {
+								counterpartyContact.Data.CounterpartyCounterpartyID = targetContactID
 								if err = facade.SaveContact(c, counterpartyContact); err != nil {
 									return
 								}
-							} else if counterpartyContact.CounterpartyCounterpartyID != 0 && counterpartyContact.CounterpartyCounterpartyID != targetContactID {
+							} else if counterpartyContact.Data.CounterpartyCounterpartyID != 0 && counterpartyContact.Data.CounterpartyCounterpartyID != targetContactID {
 								err = fmt.Errorf(
 									"data integrity issue : counterpartyContact(id=%v).CounterpartyCounterpartyID != sourceContactID: %v != %v",
-									counterpartyContact.ID, counterpartyContact.CounterpartyCounterpartyID, sourceContactID)
+									counterpartyContact.ID, counterpartyContact.Data.CounterpartyCounterpartyID, sourceContactID)
 								return
 							}
 						}
@@ -164,12 +167,12 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 				if err = contacts[i].SetBalance(targetContactBalance); err != nil {
 					return
 				}
-				user.SetContacts(contacts)
+				user.Data.SetContacts(contacts)
 				break
 			}
 		}
 
-		if err = facade.User.SaveUser(c, user); err != nil {
+		if err = facade.User.SaveUser(c, tx, user); err != nil {
 			return
 		}
 		return
@@ -192,8 +195,8 @@ func mergeContactTransfers(c context.Context, wg *sync.WaitGroup, targetContactI
 		transfer models.Transfer
 	)
 	for {
-		transfer.TransferEntity = new(models.TransferEntity)
-		if key, err = transfers.Next(transfer.TransferEntity); err != nil {
+		transfer.Data = new(models.TransferEntity)
+		if key, err = transfers.Next(transfer.Data); err != nil {
 			if err == datastore.Done {
 				err = nil
 				break
@@ -202,18 +205,18 @@ func mergeContactTransfers(c context.Context, wg *sync.WaitGroup, targetContactI
 		}
 		transfer.ID = key.IntID()
 		switch sourceContactID {
-		case transfer.From().ContactID:
-			transfer.From().ContactID = targetContactID
-		case transfer.To().ContactID:
-			transfer.To().ContactID = targetContactID
+		case transfer.Data.From().ContactID:
+			transfer.Data.From().ContactID = targetContactID
+		case transfer.Data.To().ContactID:
+			transfer.Data.To().ContactID = targetContactID
 		}
 		switch sourceContactID {
-		case transfer.BothCounterpartyIDs[0]:
-			transfer.BothCounterpartyIDs[0] = targetContactID
-		case transfer.BothCounterpartyIDs[1]:
-			transfer.BothCounterpartyIDs[1] = targetContactID
+		case transfer.Data.BothCounterpartyIDs[0]:
+			transfer.Data.BothCounterpartyIDs[0] = targetContactID
+		case transfer.Data.BothCounterpartyIDs[1]:
+			transfer.Data.BothCounterpartyIDs[1] = targetContactID
 		}
-		if err = facade.Transfers.SaveTransfer(c, transfer); err != nil {
+		if err = facade.Transfers.SaveTransfer(c, tx, transfer); err != nil {
 			log.Errorf(c, "Failed to save transfer #%v: %v", transfer.ID, err)
 		}
 	}

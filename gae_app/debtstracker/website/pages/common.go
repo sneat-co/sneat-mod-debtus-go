@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/md5"
 	"fmt"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"html/template"
 	"net/http"
 	"strings"

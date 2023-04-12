@@ -1,5 +1,7 @@
 package shared_all
 
+import "github.com/bots-go-framework/bots-fw/botsfw"
+
 type BotParams struct {
 	HelpCommandAction  botsfw.CommandAction
 	StartInGroupAction func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error)

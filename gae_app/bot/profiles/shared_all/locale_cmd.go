@@ -2,6 +2,10 @@ package shared_all
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/db"
 	"net/url"
 	"strings"
 

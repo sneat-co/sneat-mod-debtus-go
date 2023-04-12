@@ -2,6 +2,8 @@ package inspector
 
 import (
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/where"
 	"net/http"
 	"strconv"
 	//"sync"
@@ -27,7 +29,7 @@ func (h contactPage) contactPageHandler(w http.ResponseWriter, r *http.Request, 
 	var contact models.Contact
 
 	if contact, err = facade.GetContactByID(c, contactID); err != nil {
-		fmt.Fprint(w, err)
+		_, _ = fmt.Fprint(w, err)
 		return
 	}
 
@@ -76,20 +78,36 @@ func (h contactPage) contactPageHandler(w http.ResponseWriter, r *http.Request, 
 func (contactPage) verifyTransfers(c context.Context, contactID int64) (
 	transfers []models.Transfer, err error,
 ) {
-	query := datastore.NewQuery(models.TransferKind).Filter("BothCounterpartyIDs=", contactID)
 
-	iterator := query.Run(c)
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+	//select := dal.Select{
+	//	From: &dal.CollectionRef{Name: models.TransferKind},
+	//}
+	query := dal.From(models.TransferKind,
+		where.Field("BothCounterpartyIDs").EqualTo(contactID)).
+		SelectInto(func() dal.Record {
+			return dal.NewRecordWithoutKey(new(models.TransferEntity))
+		})
+
+	iterator, err := db.Select(c, query)
 
 	for {
-		transferEntity := new(models.TransferEntity)
-		var key *datastore.Key
-		if key, err = iterator.Next(transferEntity); err != nil {
+		//transferEntity := new(models.TransferEntity)
+		//var key *datastore.Key
+		var record dal.Record
+		if record, err = iterator.Next(); err != nil {
 			if err == datastore.Done {
 				break
 			}
 			panic(err)
 		}
-		transfers = append(transfers, models.NewTransfer(key.IntID(), transferEntity))
+		transfers = append(transfers, models.NewTransfer(
+			record.Key().ID.(int),
+			record.Data().(*models.TransferEntity),
+		))
 	}
 
 	return

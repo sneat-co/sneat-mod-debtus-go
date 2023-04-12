@@ -26,7 +26,7 @@ func ReceiptRedirect(w http.ResponseWriter, r *http.Request, _ httprouter.Params
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	receiptID, err := common.DecodeID(receiptCode)
+	receiptID, err := common.DecodeIntID(receiptCode)
 	if err != nil || receiptID == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -48,7 +48,7 @@ func ReceiptRedirect(w http.ResponseWriter, r *http.Request, _ httprouter.Params
 
 	lang := query.Get("lang")
 	if lang == "" {
-		lang = receipt.Lang
+		lang = receipt.Data.Lang
 	}
 
 	if strings.HasPrefix(r.UserAgent(), "facebookexternalhit/") || query.Get("for") == "fb" {

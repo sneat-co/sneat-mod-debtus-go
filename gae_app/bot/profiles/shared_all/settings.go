@@ -2,8 +2,11 @@ package shared_all
 
 import (
 	"errors"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/emoji"
+	"github.com/sneat-co/debtstracker-translations/trans"
 )
 
 const SettingsCommandCode = "settings"

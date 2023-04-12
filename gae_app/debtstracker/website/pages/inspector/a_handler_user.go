@@ -3,6 +3,7 @@ package inspector
 import (
 	"context"
 	"github.com/crediterra/money"
+	"github.com/dal-go/dalgo/dal"
 	"net/http"
 	"strconv"
 	"sync"
@@ -29,10 +30,10 @@ type transfersInfo struct {
 }
 
 func newContactWithBalances(now time.Time, contact models.Contact) contactWithBalances {
-	balanceWithInterest, err := contact.BalanceWithInterest(nil, now)
+	balanceWithInterest, err := contact.Data.BalanceWithInterest(nil, now)
 	result := contactWithBalances{
 		Contact:  contact,
-		balances: newBalances("contact", contact.Balance(), balanceWithInterest),
+		balances: newBalances("contact", contact.Data.Balance(), balanceWithInterest),
 	}
 	result.balances.withInterest.err = err
 	return result
@@ -123,7 +124,7 @@ func validateContacts(c context.Context,
 	contactInfosNotFoundInDb []models.UserContactJson,
 	err error,
 ) {
-	userContactsJson := user.Contacts()
+	userContactsJson := user.Data.Contacts()
 	contactInfos := make([]contactWithBalances, len(userContactsJson))
 	contactInfosByID := make(map[int64]contactWithBalances, len(contactInfos))
 
@@ -131,8 +132,8 @@ func validateContacts(c context.Context,
 	contactsTotalWithInterest := make(money.Balance, len(userBalances.withInterest.byCurrency))
 
 	updateBalance := func(contact models.Contact) (ci contactWithBalances) {
-		contactBalanceWithoutInterest := contact.Balance()
-		contactBalanceWithInterest, err := contact.BalanceWithInterest(c, now)
+		contactBalanceWithoutInterest := contact.Data.Balance()
+		contactBalanceWithInterest, err := contact.Data.BalanceWithInterest(c, now)
 		if err == nil {
 
 		}
@@ -255,7 +256,7 @@ func userPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		contactsMissingInJson, contactsMissedByQuery, matchedContacts []contactWithBalances
 		contactInfosNotFoundInDb                                      []models.UserContactJson
 	)
-	if user, err = facade.User.GetUserByID(c, userID); err != nil {
+	if user, err = facade.User.GetUserByID(c, tx, userID); err != nil {
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -264,8 +265,8 @@ func userPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	now := time.Now()
 
-	userBalanceWithInterest, err := user.BalanceWithInterest(c, now)
-	userBalances := newBalances("user", user.Balance(), userBalanceWithInterest)
+	userBalanceWithInterest, err := user.Data.BalanceWithInterest(c, now)
+	userBalances := newBalances("user", user.Data.Balance(), userBalanceWithInterest)
 	if err != nil {
 		userBalances.withInterest.err = err
 	}

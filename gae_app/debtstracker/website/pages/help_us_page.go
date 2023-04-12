@@ -1,6 +1,7 @@
 package pages
 
 import (
+	"github.com/julienschmidt/httprouter"
 	"html/template"
 	"net/http"
 

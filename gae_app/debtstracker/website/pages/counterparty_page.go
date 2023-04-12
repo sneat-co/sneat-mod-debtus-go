@@ -47,5 +47,5 @@ func CounterpartyPage(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 	<small style="color:grey">2016 &copy; Powered by <a href="https://golang.org/" target="_blank">Go lang</a> & <a href="https://cloud.google.com/appengine/" target="_blank">AppEngine</a></small>
 	</footer>
 	%v
-	</body></html>`, html.EscapeString(counterparty.FullName()), encodedCounterpartyID, html.EscapeString(counterparty.FullName()), html.EscapeString(counterparty.FullName()), GA_CODE)))
+	</body></html>`, html.EscapeString(counterparty.Data.FullName()), encodedCounterpartyID, html.EscapeString(counterparty.Data.FullName()), html.EscapeString(counterparty.Data.FullName()), GA_CODE)))
 }

@@ -122,51 +122,51 @@ func renderTransfersPage(contact models.Contact, currency money.Currency, balanc
 		hero.FormatInt(int64(transfer.ID), _buffer)
 		_buffer.WriteString(`</a></td>
             <td>`)
-		hero.EscapeHTML(fmt.Sprintf("%v", transfer.DtCreated), _buffer)
+		hero.EscapeHTML(fmt.Sprintf("%v", transfer.Data.DtCreated), _buffer)
 		_buffer.WriteString(`</td>
             <td>
                 `)
-		if transfer.CreatedOnPlatform == "telegram" {
+		if transfer.Data.CreatedOnPlatform == "telegram" {
 			_buffer.WriteString(`
                 <a href="https://t.me/`)
-			hero.EscapeHTML(transfer.CreatedOnID, _buffer)
+			hero.EscapeHTML(transfer.Data.CreatedOnID, _buffer)
 			_buffer.WriteString(`">@`)
-			hero.EscapeHTML(transfer.CreatedOnID, _buffer)
+			hero.EscapeHTML(transfer.Data.CreatedOnID, _buffer)
 			_buffer.WriteString(`</a>
                 `)
 		}
-		if transfer.CreatedOnPlatform != "telegram" {
-			hero.EscapeHTML(transfer.CreatedOnID, _buffer)
+		if transfer.Data.CreatedOnPlatform != "telegram" {
+			hero.EscapeHTML(transfer.Data.CreatedOnID, _buffer)
 			_buffer.WriteString(`@`)
-			hero.EscapeHTML(transfer.CreatedOnPlatform, _buffer)
+			hero.EscapeHTML(transfer.Data.CreatedOnPlatform, _buffer)
 		}
 		_buffer.WriteString(`
             </td>
             <td>`)
-		hero.EscapeHTML(transfer.From().Name(), _buffer)
+		hero.EscapeHTML(transfer.Data.From().Name(), _buffer)
 		_buffer.WriteString(`</td>
             <td>`)
-		hero.EscapeHTML(transfer.To().Name(), _buffer)
+		hero.EscapeHTML(transfer.Data.To().Name(), _buffer)
 		_buffer.WriteString(`</td>
             <td>`)
-		hero.FormatBool(transfer.IsReturn, _buffer)
+		hero.FormatBool(transfer.Data.IsReturn, _buffer)
 		_buffer.WriteString(`</td>
             <td>`)
-		hero.FormatBool(transfer.IsOutstanding, _buffer)
+		hero.FormatBool(transfer.Data.IsOutstanding, _buffer)
 		_buffer.WriteString(`</td>
             <td>
                 `)
-		if transfer.InterestPercent != 0 {
-			hero.EscapeHTML(fmt.Sprintf("%v", transfer.InterestPercent), _buffer)
+		if transfer.Data.InterestPercent != 0 {
+			hero.EscapeHTML(fmt.Sprintf("%v", transfer.Data.InterestPercent), _buffer)
 			_buffer.WriteString(`%
                 per `)
-			hero.FormatInt(int64(transfer.InterestPeriod), _buffer)
+			hero.FormatInt(int64(transfer.Data.InterestPeriod), _buffer)
 			_buffer.WriteString(` days
                 `)
-			if transfer.InterestMinimumPeriod > 1 {
+			if transfer.Data.InterestMinimumPeriod > 1 {
 				_buffer.WriteString(`
                 minimum for `)
-				hero.FormatInt(int64(transfer.InterestMinimumPeriod), _buffer)
+				hero.FormatInt(int64(transfer.Data.InterestMinimumPeriod), _buffer)
 				_buffer.WriteString(` days
                 `)
 			}
@@ -174,10 +174,10 @@ func renderTransfersPage(contact models.Contact, currency money.Currency, balanc
 		_buffer.WriteString(`
             </td>
             <td class=d>`)
-		hero.EscapeHTML(fmt.Sprintf("%v", transfer.AmountInCents), _buffer)
+		hero.EscapeHTML(fmt.Sprintf("%v", transfer.Data.AmountInCents), _buffer)
 		_buffer.WriteString(`</td>
             <td class=d>`)
-		hero.EscapeHTML(fmt.Sprintf("%v", transfer.AmountReturned()), _buffer)
+		hero.EscapeHTML(fmt.Sprintf("%v", transfer.Data.AmountReturned()), _buffer)
 		_buffer.WriteString(`</td>
         </tr>
         `)

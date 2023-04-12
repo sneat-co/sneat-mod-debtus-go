@@ -29,7 +29,7 @@ func (m *contactsAsyncJob) Contact(key *datastore.Key) (contact models.Contact) 
 	contact = models.NewContact(key.IntID(), nil)
 	if m.entity != nil {
 		entity := *m.entity
-		contact.ContactEntity = &entity
+		contact.Data = &entity
 	}
 	return
 }

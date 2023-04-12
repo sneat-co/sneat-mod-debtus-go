@@ -1,5 +1,10 @@
 package shared_all
 
+import (
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	bots "github.com/strongo/bots-framework/core"
+)
+
 func AddSharedRoutes(router botsfw.WebhooksRouter, botParams BotParams) {
 	startCommand := createStartCommand(botParams)
 	helpRootCommand := createHelpRootCommand(botParams)
