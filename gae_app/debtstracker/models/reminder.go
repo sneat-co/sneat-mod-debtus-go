@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/dal-go/dalgo/record"
-	"google.golang.org/appengine/v2/datastore"
 	"time"
 )
 
@@ -38,35 +37,13 @@ const ReminderKind = "Reminder"
 
 type Reminder struct {
 	record.WithID[int]
-	*ReminderEntity
+	Data *ReminderEntity
 }
 
 //var _ db.EntityHolder = (*Reminder)(nil)
 
 func NewReminder(id int, entity *ReminderEntity) Reminder {
-	return Reminder{WithID: record.WithID[int]{ID: id}, ReminderEntity: entity}
-}
-
-func (Reminder) Kind() string {
-	return ReminderKind
-}
-
-func (r Reminder) Entity() interface{} {
-	return r.ReminderEntity
-}
-func (Reminder) NewEntity() interface{} {
-	return new(ReminderEntity)
-}
-func (r *Reminder) SetEntity(entity interface{}) {
-	r.ReminderEntity = entity.(*ReminderEntity)
-}
-
-func (r *Reminder) Load(ps []datastore.Property) error {
-	panic("Not supported")
-}
-
-func (r *Reminder) Save() ([]datastore.Property, error) {
-	panic("Not supported")
+	return Reminder{WithID: record.WithID[int]{ID: id}, Data: entity}
 }
 
 type ReminderEntity struct {

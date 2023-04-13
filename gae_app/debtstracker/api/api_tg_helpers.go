@@ -1,8 +1,10 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"net/http"
@@ -16,52 +18,48 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/app/gaestandard"
 	"github.com/strongo/log"
 )
 
+func handleError(w http.ResponseWriter, statusCode int, err error) {
+	w.WriteHeader(statusCode)
+	_, _ = w.Write([]byte(err.Error()))
+}
 func handleTgHelperCurrencySelected(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
 	if err := r.ParseForm(); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		handleError(w, http.StatusInternalServerError, err)
 		return
 	}
 	selectedCurrency := r.FormValue("currency")
 	if selectedCurrency == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Missing required parameter 'currency'"))
+		handleError(w, http.StatusBadRequest, errors.New("missing required parameter 'currency'"))
 		return
 	}
 	if len(selectedCurrency) != 3 {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Wrong lengths of parameter 'currency'"))
+		handleError(w, http.StatusBadRequest, errors.New("wrong lengths of parameter 'currency'"))
 		return
 	}
 	if strings.ToUpper(selectedCurrency) != selectedCurrency {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Wrong currency code"))
+		handleError(w, http.StatusBadRequest, errors.New("wrong currency code"))
 		return
 	}
 
 	tgChatKeyID := r.Form.Get("tg-chat")
 	if tgChatKeyID == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Missing required parameter chat ID."))
+		handleError(w, http.StatusBadRequest, errors.New("missing required parameter chat ID"))
 		return
 	}
 
 	if !strings.Contains(tgChatKeyID, ":") {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Wrong foramt of Telegram chat ID parameter"))
+		handleError(w, http.StatusBadRequest, errors.New("wrong format of Telegram chat ID parameter"))
 		return
 	}
 
 	tgChatID, err := strconv.ParseInt(strings.Split(tgChatKeyID, ":")[1], 10, 64)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Telegram chat ID should be integer"))
-		w.Write([]byte(err.Error()))
+		handleError(w, http.StatusBadRequest, fmt.Errorf("value of Telegram chat ID should be integer: %w", err))
+		return
 	}
 	log.Debugf(c, "AppUserIntID: %v, tgChatKeyID: %v", authInfo.UserID, tgChatKeyID)
 
@@ -92,7 +90,7 @@ func handleTgHelperCurrencySelected(c context.Context, w http.ResponseWriter, r 
 			}
 		}()
 		errs <- dtdal.TgChat.DoSomething(c, &userTask, currency, tgChatID, authInfo, user,
-			func(tgChat telegram.TgChatEntityBase) error {
+			func(tgChat tgstore.Chat) error {
 				// TODO: This is some serious architecture sheet. Too sleepy to make it right, just make it working.
 				return sendToTelegram(c, user, tgChatID, tgChat, &userTask, r)
 			},
@@ -112,11 +110,13 @@ func handleTgHelperCurrencySelected(c context.Context, w http.ResponseWriter, r 
 }
 
 // TODO: This is some serious architecture sheet. Too sleepy to make it right, just make it working.
-func sendToTelegram(c context.Context, user models.AppUser, tgChatID int64, tgChat telegram.TgChatEntityBase, userTask *sync.WaitGroup, r *http.Request) (err error) {
+func sendToTelegram(c context.Context, user models.AppUser, tgChatID int64, tgChat tgstore.Chat, userTask *sync.WaitGroup, r *http.Request) (err error) {
 	telegramBots := tgbots.Bots(gaestandard.GetEnvironment(c), nil)
-	botSettings, ok := telegramBots.ByCode[tgChat.BotID]
+	baseChatData := tgChat.Data.BaseChatData()
+	botID := baseChatData.BotID
+	botSettings, ok := telegramBots.ByCode[botID]
 	if !ok {
-		return fmt.Errorf("ReferredTo settings not found by tgChat.BotID=%v, out of %v items", tgChat.BotID, len(telegramBots.ByCode))
+		return fmt.Errorf("ReferredTo settings not found by tgChat.BotID=%v, out of %v items", botID, len(telegramBots.ByCode))
 	}
 
 	log.Debugf(c, "botSettings(%v : %v)", botSettings.Code, botSettings.Token)
@@ -131,17 +131,17 @@ func sendToTelegram(c context.Context, user models.AppUser, tgChatID int64, tgCh
 		user.Data,
 		user.ID,
 		tgChatID,
-		&tgChat,
+		baseChatData,
 	)
 
 	var messageFromBot botsfw.MessageFromBot
 	switch {
-	case strings.Contains(tgChat.AwaitingReplyTo, "lending"):
+	case strings.Contains(baseChatData.AwaitingReplyTo, "lending"):
 		messageFromBot, err = dtb_transfer.AskLendingAmountCommand.Action(whc)
-	case strings.Contains(tgChat.AwaitingReplyTo, "borrowing"):
+	case strings.Contains(baseChatData.AwaitingReplyTo, "borrowing"):
 		messageFromBot, err = dtb_transfer.AskBorrowingAmountCommand.Action(whc)
 	default:
-		return fmt.Errorf("tgChat.AwaitingReplyTo has unexpected value: %v", tgChat.AwaitingReplyTo)
+		return fmt.Errorf("tgChat.AwaitingReplyTo has unexpected value: %v", baseChatData.AwaitingReplyTo)
 	}
 	if err != nil {
 		return fmt.Errorf("failed to create message from bot: %w", err)

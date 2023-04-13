@@ -48,7 +48,7 @@ func (m *verifyTelegramUserAccounts) Next(c context.Context, counters mapper.Cou
 			})
 		}
 	} else {
-		tgChat := models.TelegramChat{Data: &entity}
+		tgChat := models.DebtusTelegramChat{Data: &entity}
 		tgChat.Key = dal.NewKeyWithID("TgChat", key.StringID())
 		return m.startWorker(c, counters, func() Worker {
 			return func(counters *asyncCounters) error {
@@ -69,7 +69,7 @@ func (m *verifyTelegramUserAccounts) dealWithIntKey(c context.Context, counters 
 	//	}
 	//	counters.Increment("empty_BotID_deleted", 1)
 	//}
-	//var tgChat models.TelegramChat
+	//var tgChat models.DebtusTelegramChat
 	//if tgChat, err = dtdal.TgChat.GetTgChatByID(c, tgChatEntity.BotID, tgChatEntity.TelegramUserID); err != nil {
 	//	if dal.IsNotFound(err) {
 	//		//tgChat.SetID(tgChatEntity.BotID, tgChatEntity.TelegramUserID)
@@ -101,7 +101,7 @@ func (m *verifyTelegramUserAccounts) dealWithIntKey(c context.Context, counters 
 	//return
 }
 
-func (m *verifyTelegramUserAccounts) processTelegramChat(c context.Context, tgChat models.TelegramChat, counters *asyncCounters) (err error) {
+func (m *verifyTelegramUserAccounts) processTelegramChat(c context.Context, tgChat models.DebtusTelegramChat, counters *asyncCounters) (err error) {
 	panic("TODO: implement")
 	//var (
 	//	user        models.AppUser

@@ -4,27 +4,27 @@ import (
 	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
 )
 
-type TelegramChat struct {
+type DebtusTelegramChat struct {
 	tgstore.Chat
 	//tgstore.ChatEntity
 	Data *DebtusTelegramChatData
 }
 
-//var _ db.EntityHolder = (*TelegramChat)(nil)
+//var _ db.EntityHolder = (*DebtusTelegramChat)(nil)
 
-//func (TelegramChat) Kind() string {
+//func (DebtusTelegramChat) Kind() string {
 //	return telegram.ChatKind
 //}
 
-//func (tgChat TelegramChat) Entity() interface{} {
+//func (tgChat DebtusTelegramChat) Entity() interface{} {
 //	return tgChat.DebtusTelegramChatData
 //}
 
-//func (TelegramChat) NewEntity() interface{} {
+//func (DebtusTelegramChat) NewEntity() interface{} {
 //	return new(DebtusTelegramChatData)
 //}
 
-//func (tgChat *TelegramChat) SetEntity(entity interface{}) {
+//func (tgChat *DebtusTelegramChat) SetEntity(entity interface{}) {
 //	if entity == nil {
 //		tgChat.DebtusTelegramChatData = nil
 //	} else {

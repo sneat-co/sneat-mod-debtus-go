@@ -101,7 +101,7 @@ func (f *TransferFixer) FixAllIfNeeded(c context.Context) (err error) {
 
 func FixTransfers(c context.Context) (loadedCount int, fixedCount int, failedCount int, err error) {
 	query := dal.From(models.TransferKind).SelectInto(func() dal.Record {
-		return dal.NewRecordWithoutKey(new(models.TransferData))
+		return models.NewTransferWithIncompleteKey(nil).Record
 	})
 	//query.Limit = 50
 	var db dal.Database

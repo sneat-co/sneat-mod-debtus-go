@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
+	"reflect"
 	"time"
 )
 
@@ -11,6 +12,20 @@ const InviteClaimKind = "InviteClaim"
 type InviteClaim struct {
 	record.WithID[int64]
 	Data *InviteClaimData
+}
+
+func NewInviteClaimWithoutID(data *InviteClaimData) InviteClaim {
+	return InviteClaim{
+		WithID: record.NewWithID[int64](0, NewInviteClaimIncompleteKey(), data),
+		Data:   data,
+	}
+}
+
+func NewInviteClaim(id int64, data *InviteClaimData) InviteClaim {
+	return InviteClaim{
+		WithID: record.NewWithID(id, NewInviteClaimKey(id), data),
+		Data:   data,
+	}
 }
 
 type InviteClaimData struct {
@@ -22,14 +37,17 @@ type InviteClaimData struct {
 }
 
 func NewInviteClaimIncompleteKey() *dal.Key {
-	return dal.NewKey(InviteClaimKind)
+	return dal.NewIncompleteKey(InviteClaimKind, reflect.Int64, nil)
 }
 
 func NewInviteClaimKey(claimID int64) *dal.Key {
+	if claimID == 0 {
+		return dal.NewIncompleteKey(InviteClaimKind, reflect.Int64, nil)
+	}
 	return dal.NewKeyWithID(InviteClaimKind, claimID)
 }
 
-func NewInviteClaim(inviteCode string, userID int64, claimedOn, claimedVia string) *InviteClaimData {
+func NewInviteClaimData(inviteCode string, userID int64, claimedOn, claimedVia string) *InviteClaimData {
 	return &InviteClaimData{
 		InviteCode: inviteCode,
 		UserID:     userID,

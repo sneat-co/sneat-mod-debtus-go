@@ -193,7 +193,7 @@ func onReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transf
 		return
 	}
 	var mt string
-	var receipt models.ReceiptEntity
+	var receipt models.ReceiptData
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
 		return
@@ -305,7 +305,7 @@ func onReceiptSendFail(c context.Context, receiptID int, tgChatID int64, tgMsgID
 // 		err = errors.New("user.TelegramUserID == 0")
 // 		return
 // 	}
-// 	var tgChat models.TelegramChat
+// 	var tgChat models.DebtusTelegramChat
 // 	if tgChat, err = dtdal.TgChat.GetTgChatByID(c, user.TelegramUserID); err != nil {
 // 		return
 // 	}
@@ -422,7 +422,7 @@ func sendReceiptToCounterpartyByTelegram(c context.Context, receiptID int, tgCha
 		}
 
 		var (
-			tgChat         models.TelegramChat
+			tgChat         models.DebtusTelegramChat
 			failedToSend   bool
 			chatsForbidden bool
 		)
@@ -494,7 +494,7 @@ func sendReceiptToCounterpartyByTelegram(c context.Context, receiptID int, tgCha
 	return err
 }
 
-func sendReceiptToTelegramChat(c context.Context, receipt models.Receipt, transfer models.Transfer, tgChat models.TelegramChat) (err error) {
+func sendReceiptToTelegramChat(c context.Context, receipt models.Receipt, transfer models.Transfer, tgChat models.DebtusTelegramChat) (err error) {
 	var messageToTranslate string
 	switch transfer.Data.Direction() {
 	case models.TransferDirectionUser2Counterparty:

@@ -1,15 +1,14 @@
 package gaedal
 
 import (
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	"math/rand"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
-	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/v2/datastore"
 )
@@ -21,27 +20,25 @@ func NewLoginCodeDalGae() LoginCodeDalGae {
 	return LoginCodeDalGae{}
 }
 
-func NewLoginCodeKey(c context.Context, code int32) *datastore.Key {
-	return gaedb.NewKey(c, models.LoginCodeKind, "", int64(code), nil)
-}
-
-func (LoginCodeDalGae) NewLoginCode(c context.Context, userID int64) (int32, error) {
-	var code int32
+func (LoginCodeDalGae) NewLoginCode(c context.Context, userID int64) (code int, err error) {
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
 	for i := 1; i < 20; i++ {
-		code = random.Int31n(99999) + 1
-		key := NewLoginCodeKey(c, code)
-		if err := gaedb.Get(c, key, &models.LoginCodeEntity{}); err == datastore.ErrNoSuchEntity {
+		code = random.Intn(99999) + 1
+		loginCode := models.NewLoginCode(code, nil)
+		if err = db.Get(c, loginCode.Record); dal.IsNotFound(err) {
 			var created bool
-			err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
-				var entity models.LoginCodeEntity
-				if err := gaedb.Get(c, key, &entity); err == datastore.ErrNoSuchEntity || entity.Created.Add(time.Hour).Before(time.Now()) {
-					entity = models.LoginCodeEntity{
-						Created: time.Now(),
-						UserID:  userID,
-					}
-					if _, err = gaedb.Put(c, key, &entity); err != nil {
-						log.Errorf(c, fmt.Errorf("failed to save %v: %w", key, err).Error())
+			err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+				if err := tx.Get(c, loginCode.Record); dal.IsNotFound(err) || err == nil && loginCode.Data.Created.Add(time.Hour).Before(time.Now()) {
+					loginCode.Data.Created = time.Now()
+					loginCode.Data.UserID = userID
+					loginCode.Data.Claimed = time.Time{}
+					if err = tx.Set(c, loginCode.Record); err != nil {
+						log.Errorf(c, err.Error())
+						return err
 					}
 					created = true
 					return nil
@@ -55,38 +52,41 @@ func (LoginCodeDalGae) NewLoginCode(c context.Context, userID int64) (int32, err
 			if err != nil {
 				log.Errorf(c, fmt.Errorf("%w: transaction failed", err).Error())
 			} else if created {
-				return int32(code), nil
+				return code, nil
 			}
 		} else if err != nil {
-			log.Errorf(c, fmt.Errorf("failed to get entity: %w", err).Error())
+			return
 		}
 	}
-	return 0, errors.New("Failed to create new loginc code")
+	return 0, fmt.Errorf("failed to create new login code: %w", err)
 }
 
-func (LoginCodeDalGae) ClaimLoginCode(c context.Context, code int32) (userID int64, err error) {
-	err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
-		key := NewLoginCodeKey(c, code)
-		var entity models.LoginCodeEntity
-		if err := gaedb.Get(c, key, &entity); err != nil {
+func (LoginCodeDalGae) ClaimLoginCode(c context.Context, code int) (userID int64, err error) {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+		loginCode := models.NewLoginCode(code, nil)
+		if err = tx.Get(c, loginCode.Record); err != nil {
 			if err == datastore.ErrNoSuchEntity {
 				return err
 			} else {
-				return fmt.Errorf("failed to get %v: %w", key, err)
+				return err
 			}
 		}
-		if entity.Created.Add(time.Minute).Before(time.Now()) {
+		if loginCode.Data.Created.Add(time.Minute).Before(time.Now()) {
 			return models.ErrLoginCodeExpired
 		}
 		var emptyTime time.Time
-		if entity.Claimed == emptyTime {
+		if loginCode.Data.Claimed == emptyTime {
 			return models.ErrLoginCodeAlreadyClaimed
 		}
-		entity.Claimed = time.Now()
-		if _, err := gaedb.Put(c, key, &entity); err != nil {
-			return fmt.Errorf("failed to save %v: %w", key, err)
+		loginCode.Data.Claimed = time.Now()
+		if err = tx.Set(c, loginCode.Record); err != nil {
+			return fmt.Errorf("failed to save %v: %w", err)
 		}
-		userID = entity.UserID
+		userID = loginCode.Data.UserID
 		return nil
 	}, nil)
 	return

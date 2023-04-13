@@ -8,9 +8,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/app"
-	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/v2/datastore"
 	"strconv"
@@ -35,43 +33,37 @@ func (InviteDalGae) GetInvite(c context.Context, tx dal.ReadSession, inviteCode 
 	return invite, tx.Get(c, invite.Record)
 }
 
+// ClaimInvite claims invite by user - TODO compare with ClaimInvite2 and get rid of one of them
 func (InviteDalGae) ClaimInvite(c context.Context, userID int64, inviteCode, claimedOn, claimedVia string) (err error) {
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
 	err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) error {
-		inviteKey := gaedb.NewKey(tc, models.InviteKind, inviteCode, 0, nil)
-		var invite models.InviteData
+		invite := models.NewInvite(inviteCode, nil)
 
-		if err = gaedb.Get(tc, inviteKey, &invite); err == nil {
-			log.Debugf(c, "Invite found")
-			// TODO: Check invite.For
-			inviteClaim := models.NewInviteClaim(inviteCode, userID, claimedOn, claimedVia)
-			//invite.ClaimedCount += 1
-			inviteClaimKey := models.NewInviteClaimIncompleteKey()
-			userKey := gaedb.NewKey(tc, models.AppUserKind, "", userID, nil)
-			user := new(models.AppUserData)
-			if err = gaedb.Get(tc, userKey, user); err != nil {
-				return err
-			}
-			user.InvitedByUserID = invite.CreatedByUserID
-
-			keysToPut := []*dal.Key{inviteClaimKey, userKey}
-			entitiesToPut := []interface{}{inviteClaim, user}
-
-			if keysToPut, err := tx.SetMulti(tc, keysToPut, entitiesToPut); err != nil {
-				return fmt.Errorf("failed to save %v entities (%v): %w", len(entitiesToPut), keysToPut, err)
-			}
-			log.Debugf(c, "inviteClaimKey.IntegerID(): %v, returned.IntegerID(): %v", inviteClaimKey.IntID(), keysToPut[0].IntID())
-			inviteClaimKey = keysToPut[0]
-			DelayUpdateInviteClaimedCount(tc, inviteClaimKey.IntID())
-
-			return err
-		} else if dal.IsNotFound(err) {
+		if err = tx.Get(tc, invite.Record); err != nil {
 			return err
 		}
-		return err
+		log.Debugf(c, "Invite found")
+		// TODO: Check invite.For
+		inviteClaim := models.NewInviteClaimWithoutID(models.NewInviteClaimData(inviteCode, userID, claimedOn, claimedVia))
+		//invite.ClaimedCount += 1
+		user := models.NewAppUser(userID, nil)
+		if err = tx.Get(tc, user.Record); err != nil {
+			return err
+		}
+		user.Data.InvitedByUserID = invite.Data.CreatedByUserID
+
+		if err = tx.Insert(c, inviteClaim.Record); err != nil {
+			return fmt.Errorf("failed to insert invite claim: %w", err)
+		}
+		if err := tx.Set(tc, user.Record); err != nil {
+			return fmt.Errorf("failed to save user: %w", err)
+		}
+		inviteClaimID := inviteClaim.Key.ID.(int64)
+		log.Debugf(c, "inviteClaimKey.IntegerID(): %v", inviteClaimID)
+		return DelayUpdateInviteClaimedCount(tc, inviteClaimID)
 	})
 	return
 }
@@ -102,7 +94,7 @@ func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, use
 	c := ec.Context()
 
 	dtCreated := time.Now()
-	inviteEntity := models.InviteData{
+	invite = models.NewInvite(inviteCode, &models.InviteData{
 		Type:    string(inviteType),
 		Channel: string(inviteBy),
 		CreatedOn: general.CreatedOn{
@@ -115,8 +107,7 @@ func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, use
 		MaxClaimsCount:  maxClaimsCount,
 		DtActiveFrom:    dtCreated,
 		DtActiveTill:    dtCreated.AddDate(100, 0, 0), // By default is active for 100 years
-	}
-	invite.Data = &inviteEntity
+	})
 	switch inviteBy {
 	case models.InviteByEmail:
 		if inviteToAddress == "" {
@@ -125,7 +116,7 @@ func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, use
 		if strings.Index(inviteToAddress, "@") <= 0 || strings.Index(inviteToAddress, ".") <= 0 {
 			panic("Invalid email address")
 		}
-		inviteEntity.ToEmail = strings.ToLower(inviteToAddress)
+		invite.Data.ToEmail = strings.ToLower(inviteToAddress)
 		if inviteToAddress != strings.ToLower(inviteToAddress) {
 			invite.Data.ToEmailOriginal = inviteToAddress
 		}
@@ -135,31 +126,32 @@ func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, use
 		if err != nil {
 			return
 		}
-		inviteEntity.ToPhoneNumber = phoneNumber
+		invite.Data.ToPhoneNumber = phoneNumber
 	}
-	err = gaedb.RunInTransaction(c, func(tc context.Context) error {
-		var inviteKey *dal.Key
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+	err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) error {
 		if inviteCode != AUTO_GENERATE_INVITE_CODE {
-			inviteKey = models.NewInviteKey(inviteCode)
+			//inviteKey = models.NewInviteKey(inviteCode)
 		} else {
 			for {
 				if inviteCodeLen == 0 {
 					inviteCodeLen = INVITE_CODE_LENGTH
 				}
 				inviteCode = dtdal.RandomCode(inviteCodeLen)
-				inviteKey = models.NewInviteKey(inviteCode)
-				var existingInvite models.InviteData
-				err := gaedb.Get(c, inviteKey, existingInvite)
-				if err == datastore.ErrNoSuchEntity {
-					log.Debugf(c, "New invite code: %v", inviteCode)
+				existingInvite := models.NewInvite(inviteCode, nil)
+
+				if err := tx.Get(c, existingInvite.Record); err == datastore.ErrNoSuchEntity {
+					//log.Debugf(c, "New invite code: %v", inviteCode)
 					break
 				} else {
-					log.Warningf(c, "Already existign invide code: %v", inviteCode)
+					log.Warningf(c, "Already existing invite code: %v", inviteCode)
 				}
 			}
 		}
-		inviteKey, err = gaedb.Put(c, inviteKey, &invite)
-		return err
+		return tx.Set(c, invite.Record)
 	}, nil)
 	if err == nil {
 		log.Infof(c, "Invite created with code: %v", inviteCode)
@@ -169,99 +161,96 @@ func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, use
 	return
 }
 
-func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, inviteEntity *models.InviteData, claimedByUserID int64, claimedOn, claimedVia string) (invite models.Invite, err error) {
-	var inviteClaimKey *dal.Key
-	err = gaedb.RunInTransaction(c, func(tc context.Context) error {
-		inviteKey := models.NewInviteKey(inviteCode)
-		userKey := models.NewAppUserKey(claimedByUserID)
-		var user models.AppUserData
-		if err = gaedb.GetMulti(tc, []*dal.Key{inviteKey, userKey}, []interface{}{inviteEntity, &user}); err != nil {
-			return fmt.Errorf("failed to get entities by keys (%v): %w", []*datastore.Key{inviteKey, userKey}, err)
+// ClaimInvite2 claims invite by user - TODO compare with ClaimInvite and get rid of one of them
+func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, invite models.Invite, claimedByUserID int64, claimedOn, claimedVia string) (err error) {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return fmt.Errorf("failed to create database: %w", err)
+	}
+
+	err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) error {
+		//userKey := models.NewAppUserKey(claimedByUserID)
+		user := models.NewAppUser(claimedByUserID, nil)
+		if err = tx.GetMulti(tc, []dal.Record{invite.Record, user.Record}); err != nil {
+			return err
 		}
 
-		inviteEntity.ClaimedCount += 1
-		if inviteEntity.MaxClaimsCount > 0 && inviteEntity.ClaimedCount > inviteEntity.MaxClaimsCount {
-			return fmt.Errorf("invite.ClaimedCount > invite.MaxClaimsCount: %v > %v", inviteEntity.ClaimedCount, inviteEntity.MaxClaimsCount)
+		invite.Data.ClaimedCount += 1
+		if invite.Data.MaxClaimsCount > 0 && invite.Data.ClaimedCount > invite.Data.MaxClaimsCount {
+			return fmt.Errorf("invite.ClaimedCount > invite.MaxClaimsCount: %v > %v", invite.Data.ClaimedCount, invite.Data.MaxClaimsCount)
 		}
-		inviteClaimKey = models.NewInviteClaimIncompleteKey()
-		inviteClaim := models.NewInviteClaim(inviteCode, claimedByUserID, claimedOn, claimedVia)
-		keys := []*datastore.Key{inviteClaimKey, inviteKey}
-		entities := []interface{}{inviteClaim, inviteEntity}
+		inviteClaimData := models.NewInviteClaimData(inviteCode, claimedByUserID, claimedOn, claimedVia)
+		inviteClaim := models.NewInviteClaim(0, inviteClaimData)
+		if err = tx.Insert(c, inviteClaim.Record); err != nil {
+			return err
+		}
+		recordsToUpdate := []dal.Record{invite.Record}
 
-		userChanged := updateUserContactDetails(&user, inviteEntity)
+		userChanged := updateUserContactDetails(user.Data, *invite.Data)
 
-		if user.DtAccessGranted.IsZero() {
-			user.DtAccessGranted = time.Now()
+		if user.Data.DtAccessGranted.IsZero() {
+			user.Data.DtAccessGranted = time.Now()
 			userChanged = true
 		}
-		if inviteEntity.MaxClaimsCount == 1 {
-			user.InvitedByUserID = inviteEntity.CreatedByUserID
+		if invite.Data.MaxClaimsCount == 1 {
+			user.Data.InvitedByUserID = invite.Data.CreatedByUserID
 			userChanged = true
 			counterpartyQuery := datastore.NewQuery(models.ContactKind)
 			counterpartyQuery = counterpartyQuery.Filter("UserID =", claimedByUserID)
-			counterpartyQuery = counterpartyQuery.Filter("CounterpartyUserID =", inviteEntity.CreatedByUserID)
+			counterpartyQuery = counterpartyQuery.Filter("CounterpartyUserID =", invite.Data.CreatedByUserID)
 			var counterparties []*models.ContactData
 			counterpartiesKeys, err := counterpartyQuery.Limit(1).GetAll(c, &counterparties) // Use out-of-transaction context
 			if err != nil {
 				return fmt.Errorf("failed to load counterparty by CounterpartyUserID: %w", err)
 			}
 			if len(counterpartiesKeys) == 0 {
-				counterpartyKey := NewContactIncompleteKey(tc)
-				inviteCreator, err := facade.User.GetUserByID(c, tx, inviteEntity.CreatedByUserID)
+				//counterpartyKey := NewContactIncompleteKey(tc)
+				inviteCreator, err := facade.User.GetUserByID(c, tx, invite.Data.CreatedByUserID)
 				if err != nil {
 					return fmt.Errorf("ailed to get invite creator user: %w", err)
 				}
 
-				counterparty := models.NewContactEntity(claimedByUserID, models.ContactDetails{
+				counterparty := models.NewContact(0, models.NewContactEntity(claimedByUserID, models.ContactDetails{
 					FirstName:    inviteCreator.Data.FirstName,
 					LastName:     inviteCreator.Data.LastName,
 					Username:     inviteCreator.Data.Username,
 					EmailContact: inviteCreator.Data.EmailContact,
 					PhoneContact: inviteCreator.Data.PhoneContact,
-				})
+				}))
 
-				keys = append(keys, counterpartyKey)
-				entities = append(entities, counterparty)
+				if err = tx.Insert(c, counterparty.Record); err != nil {
+					return fmt.Errorf("failed to insert counterparty: %w", err)
+				}
 			}
 		}
 
 		if userChanged {
-			keys = append(keys, userKey)
-			entities = append(entities, &user)
+			recordsToUpdate = append(recordsToUpdate, user.Record)
 		}
 
-		keys, err = gaedb.PutMulti(tc, keys, entities)
+		err = tx.SetMulti(tc, recordsToUpdate)
 		if err != nil {
 			return err
 		}
-		inviteClaimKey = keys[0]
 
 		return err
-	}, &datastore.TransactionOptions{XG: true})
+	})
 	if err != nil {
 		return
 	}
-	invite.ID = inviteClaimKey.StringID()
-	key := dal.NewKeyWithID(models.InviteKind, invite.ID)
-	invite = models.Invite{
-		WithID: record.WithID[string]{
-			ID:     invite.ID,
-			Record: dal.NewRecordWithData(key, inviteEntity),
-		},
-		InviteEntity: inviteEntity,
-	}
+	//invite.ID = inviteClaimKey.StringID()
 	return
 }
 
-func updateUserContactDetails(user *models.AppUserData, invite *models.InviteData) (changed bool) {
-	switch models.InviteBy(invite.Channel) {
+func updateUserContactDetails(user *models.AppUserData, inviteData models.InviteData) (changed bool) {
+	switch models.InviteBy(inviteData.Channel) {
 	case models.InviteByEmail:
 		changed = !user.EmailConfirmed
-		user.SetEmail(invite.ToEmail, true)
+		user.SetEmail(inviteData.ToEmail, true)
 	case models.InviteBySms:
-		if invite.ToPhoneNumber != 0 {
+		if inviteData.ToPhoneNumber != 0 {
 			changed = !user.PhoneNumberConfirmed
-			user.PhoneNumber = invite.ToPhoneNumber
+			user.PhoneNumber = inviteData.ToPhoneNumber
 			user.PhoneNumberConfirmed = true
 		}
 	}

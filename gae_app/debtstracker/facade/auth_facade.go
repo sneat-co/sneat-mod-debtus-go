@@ -17,7 +17,7 @@ type authFacade struct {
 
 var AuthFacade = authFacade{}
 
-func (authFacade) AssignPinCode(c context.Context, loginID, userID int64) (loginPin models.LoginPin, err error) {
+func (authFacade) AssignPinCode(c context.Context, loginID int, userID int64) (loginPin models.LoginPin, err error) {
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
 		return
@@ -26,16 +26,16 @@ func (authFacade) AssignPinCode(c context.Context, loginID, userID int64) (login
 		if loginPin, err = dtdal.LoginPin.GetLoginPinByID(c, tx, loginID); err != nil {
 			return fmt.Errorf("failed to get LoginPin entity by ID=%s: %w", loginID, err)
 		}
-		if loginPin.UserID != 0 && loginPin.UserID != userID {
+		if loginPin.Data.UserID != 0 && loginPin.Data.UserID != userID {
 			return errors.New("LoginPin.UserID != userID")
 		}
-		if !loginPin.SignedIn.IsZero() {
+		if !loginPin.Data.SignedIn.IsZero() {
 			return errors.New("LoginPin.SignedIn.IsZero(): false")
 		}
 		random := rand.New(rand.NewSource(time.Now().UnixNano()))
-		loginPin.Code = random.Int31n(9000) + 1000
-		loginPin.UserID = userID
-		loginPin.Pinned = time.Now()
+		loginPin.Data.Code = random.Int31n(9000) + 1000
+		loginPin.Data.UserID = userID
+		loginPin.Data.Pinned = time.Now()
 		if err = dtdal.LoginPin.SaveLoginPin(c, tx, loginPin); err != nil {
 			return fmt.Errorf("failed to save LoginPin entity with ID=%v: %w", loginID, err)
 		}
@@ -44,7 +44,7 @@ func (authFacade) AssignPinCode(c context.Context, loginID, userID int64) (login
 	return
 }
 
-func (authFacade) SignInWithPin(c context.Context, loginID int64, loginPinCode int32) (userID int64, err error) {
+func (authFacade) SignInWithPin(c context.Context, loginID int, loginPinCode int32) (userID int64, err error) {
 	_ = loginPinCode
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
@@ -55,17 +55,17 @@ func (authFacade) SignInWithPin(c context.Context, loginID int64, loginPinCode i
 		if loginPin, err = dtdal.LoginPin.GetLoginPinByID(c, tx, loginID); err != nil {
 			return fmt.Errorf("failed to get LoginPin entity by ID=%v: %w", loginID, err)
 		}
-		if !loginPin.SignedIn.IsZero() {
+		if !loginPin.Data.SignedIn.IsZero() {
 			return ErrLoginAlreadySigned
 		}
-		if loginPin.Created.Add(time.Hour).Before(time.Now()) {
+		if loginPin.Data.Created.Add(time.Hour).Before(time.Now()) {
 			return ErrLoginExpired
 		}
-		if userID = loginPin.UserID; userID == 0 {
+		if userID = loginPin.Data.UserID; userID == 0 {
 			return errors.New("LoginPin.UserID == 0")
 		}
 
-		loginPin.SignedIn = time.Now()
+		loginPin.Data.SignedIn = time.Now()
 		if err = dtdal.LoginPin.SaveLoginPin(c, tx, loginPin); err != nil {
 			return err
 		}

@@ -6,6 +6,7 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"net/http"
+	"reflect"
 	"strconv"
 	"time"
 
@@ -22,11 +23,10 @@ import (
 const AppUserKind = "User"
 
 func NewAppUserKey(appUserId int64) *dal.Key {
+	if appUserId == 0 {
+		return dal.NewIncompleteKey(AppUserKind, reflect.Int64, nil)
+	}
 	return dal.NewKeyWithID(AppUserKind, appUserId)
-}
-
-func NewAppUserIncompleteKey(c context.Context) *dal.Key {
-	return dal.NewKey(AppUserKind)
 }
 
 type AppUser struct {
@@ -34,11 +34,15 @@ type AppUser struct {
 	Data *AppUserData
 }
 
-func NewAppUser(id int64, entity *AppUserData) AppUser {
-	return AppUser{WithID: record.WithID[int64]{
-		ID:  id,
-		Key: dal.NewKeyWithID(AppUserKind, id),
-	}, Data: entity}
+func NewAppUser(id int64, data *AppUserData) AppUser {
+	key := NewAppUserKey(id)
+	if data == nil {
+		data = new(AppUserData)
+	}
+	return AppUser{
+		WithID: record.NewWithID[int64](id, key, data),
+		Data:   data,
+	}
 }
 
 func NewAppUsers(userIDs []int64) []AppUser {
@@ -55,30 +59,6 @@ func AppUserRecords(appUsers []AppUser) (records []dal.Record) {
 		records[i] = u.Record
 	}
 	return
-}
-
-//var _ db.EntityHolder = (*AppUser)(nil)
-
-func (*AppUser) Kind() string {
-	return AppUserKind
-}
-
-func (u *AppUser) Entity() interface{} {
-	return u.Data
-}
-
-// NewEntity creates new entity for the user
-func (*AppUser) NewEntity() interface{} {
-	return new(AppUserData)
-}
-
-// SetEntity sets entity to the user
-func (u *AppUser) SetEntity(entity interface{}) {
-	if entity == nil {
-		u.Data = nil
-	} else {
-		u.Data = entity.(*AppUserData)
-	}
 }
 
 func IsKnownUserAccountProvider(p string) bool {

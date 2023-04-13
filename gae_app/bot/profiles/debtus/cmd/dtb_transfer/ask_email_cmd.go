@@ -48,12 +48,12 @@ func sendReceiptByEmail(whc botsfw.WebhookContext, toEmail, toName string, trans
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
 	})
-	receiptID, err := dtdal.Receipt.CreateReceipt(c, receiptEntity)
+	receipt, err := dtdal.Receipt.CreateReceipt(c, receiptEntity)
 
 	emailID := ""
 	if emailID, err = invites.SendReceiptByEmail(
 		whc.ExecutionContext(),
-		models.NewReceipt(receiptID, receiptEntity),
+		receipt,
 		whc.GetSender().GetFirstName(),
 		toName,
 		toEmail,

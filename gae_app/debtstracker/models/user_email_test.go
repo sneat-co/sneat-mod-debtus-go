@@ -11,11 +11,11 @@ func TestUserEmail(t *testing.T) {
 }
 
 func TestUserEmailEntity(t *testing.T) {
-	var _ user.AccountEntity = (*UserEmailEntity)(nil)
+	var _ user.AccountEntity = (*UserEmailData)(nil)
 }
 
 func TestUserEmailEntity_AddProvider(t *testing.T) {
-	entity := new(UserEmailEntity)
+	entity := new(UserEmailData)
 
 	if changed := entity.AddProvider("facebook"); !changed {
 		t.Error("Should return changed=true")

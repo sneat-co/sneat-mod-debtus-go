@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 )
 
@@ -8,7 +9,15 @@ const TgGroupKind = "TgGroup"
 
 type TgGroup struct {
 	record.WithID[int64]
-	*TgGroupData
+	Data *TgGroupData
+}
+
+func NewTgGroup(id int64, data *TgGroupData) TgGroup {
+	key := dal.NewKeyWithID(TgGroupKind, id)
+	return TgGroup{
+		WithID: record.NewWithID(id, key, data),
+		Data:   data,
+	}
 }
 
 //var _ db.EntityHolder = (*TgGroup)(nil)

@@ -42,7 +42,7 @@ func ProcessReturnAnswer(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 		if reminder, err := dtdal.Reminder.SetReminderStatus(c, reminderID, 0, models.ReminderStatusUsed, time.Now()); err != nil {
 			return m, err
 		} else {
-			transferID = reminder.TransferID
+			transferID = reminder.Data.TransferID
 		}
 	}
 
@@ -237,7 +237,7 @@ var SetNextReminderDateCallbackCommand = botsfw.Command{
 		if err != nil {
 			return m, fmt.Errorf("failed to get reminder by id: %w", err)
 		}
-		transfer, err := facade.Transfers.GetTransferByID(c, nil, reminder.TransferID)
+		transfer, err := facade.Transfers.GetTransferByID(c, nil, reminder.Data.TransferID)
 		if err != nil {
 			return m, fmt.Errorf("failed to get transfer by id: %w", err)
 		}

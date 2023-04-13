@@ -17,8 +17,7 @@ func NewEmailDalGae() EmailDalGae {
 var _ dtdal.EmailDal = (*EmailDalGae)(nil)
 
 func (EmailDalGae) InsertEmail(c context.Context, tx dal.ReadwriteTransaction, data *models.EmailData) (email models.Email, err error) {
-	key := dal.NewKey(models.EmailKind)
-	email.Record = dal.NewRecordWithData(key, data)
+	email = models.NewEmail(0, data)
 	if err = tx.Insert(c, email.Record); err != nil {
 		return
 	}

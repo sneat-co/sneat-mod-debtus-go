@@ -111,7 +111,7 @@ func handleRequestPasswordReset(c context.Context, w http.ResponseWriter, r *htt
 
 	now := time.Now()
 
-	pwdResetEntity := models.PasswordResetEntity{
+	pwdResetEntity := models.PasswordResetData{
 		Email:                userEmail.ID,
 		Status:               "created",
 		OwnedByUserWithIntID: user.NewOwnedByUserWithIntID(userEmail.AppUserIntID, now),
@@ -159,8 +159,8 @@ func handleChangePasswordAndSignIn(c context.Context, w http.ResponseWriter, r *
 			AppUserEntity: new(models.AppUserData),
 		}
 		userEmail := models.UserEmail{
-			StringID:        db.StringID{ID: models.GetEmailID(passwordReset.Email)},
-			UserEmailEntity: new(models.UserEmailEntity),
+			StringID:      db.StringID{ID: models.GetEmailID(passwordReset.Email)},
+			UserEmailData: new(models.UserEmailData),
 		}
 
 		entities := []db.EntityHolder{&user, &userEmail, &passwordReset}

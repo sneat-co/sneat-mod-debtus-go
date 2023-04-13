@@ -42,28 +42,6 @@ func NewGroupKey(id string) *dal.Key {
 	return dal.NewKeyWithID(GroupKind, id)
 }
 
-//func (Group) Kind() string {
-//	return GroupKind
-//}
-
-//func (group Group) Entity() interface{} {
-//	return group.GroupEntity
-//}
-//
-//func (Group) NewEntity() interface{} {
-//	return new(GroupEntity)
-//}
-//
-//func (group *Group) SetEntity(entity interface{}) {
-//	if entity == nil {
-//		group.GroupEntity = nil
-//	} else {
-//		group.GroupEntity = entity.(*GroupEntity)
-//	}
-//}
-
-//var _ db.EntityHolder = (*Group)(nil)
-
 type GroupEntity struct {
 	CreatorUserID string
 	//IsUser2User         bool   `datastore:",noindex"`

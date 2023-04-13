@@ -43,10 +43,10 @@ func (reminderDalGae ReminderDalGae) SaveReminder(c context.Context, tx dal.Read
 	return tx.Set(c, reminder.Record)
 }
 
-func (reminderDalGae ReminderDalGae) GetSentReminderIDsByTransferID(c context.Context, tx dal.ReadTransaction, transferID int) ([]int, error) {
+func (reminderDalGae ReminderDalGae) GetSentReminderIDsByTransferID(c context.Context, tx dal.ReadSession, transferID int) ([]int, error) {
 	q := dal.From(models.ReminderKind).Where(
-		dal.FieldCondition("TransferID", dal.Equal, transferID),
-		dal.FieldCondition("Status", dal.Equal, models.ReminderStatusSent),
+		dal.WhereField("TransferID", dal.Equal, transferID),
+		dal.WhereField("Status", dal.Equal, models.ReminderStatusSent),
 	).SelectKeysOnly()
 
 	records, err := tx.SelectAll(c, q)
@@ -60,10 +60,10 @@ func (reminderDalGae ReminderDalGae) GetSentReminderIDsByTransferID(c context.Co
 	return reminderIDs, nil
 }
 
-func (reminderDalGae ReminderDalGae) GetActiveReminderIDsByTransferID(c context.Context, tx dal.ReadTransaction, transferID int) ([]int, error) {
+func (reminderDalGae ReminderDalGae) GetActiveReminderIDsByTransferID(c context.Context, tx dal.ReadSession, transferID int) ([]int, error) {
 	q := dal.From(models.ReminderKind).Where(
-		dal.FieldCondition("TransferID", dal.Equal, transferID),
-		dal.FieldCondition("DtNext", dal.GreaterThen, time.Time{}),
+		dal.WhereField("TransferID", dal.Equal, transferID),
+		dal.WhereField("DtNext", dal.GreaterThen, time.Time{}),
 	).SelectKeysOnly()
 	records, err := tx.SelectAll(c, q)
 	if err != nil {
@@ -92,7 +92,7 @@ func (reminderDalGae ReminderDalGae) SetReminderIsSent(c context.Context, remind
 }
 
 func (reminderDalGae ReminderDalGae) SetReminderIsSentInTransaction(c context.Context, tx dal.ReadwriteTransaction, reminder models.Reminder, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) (err error) {
-	if reminder.ReminderEntity == nil {
+	if reminder.Data == nil {
 		reminder, err = reminderDalGae.GetReminderByID(c, tx, reminder.ID)
 		if err != nil {
 			if err == datastore.ErrNoSuchEntity {
@@ -101,21 +101,21 @@ func (reminderDalGae ReminderDalGae) SetReminderIsSentInTransaction(c context.Co
 			return fmt.Errorf("failed to get reminder by ID: %w", err)
 		}
 	}
-	if reminder.Status != models.ReminderStatusSending {
-		log.Errorf(c, "reminder.Status:%v != models.ReminderStatusSending:%v", reminder.Status, models.ReminderStatusSending)
+	if reminder.Data.Status != models.ReminderStatusSending {
+		log.Errorf(c, "reminder.Status:%v != models.ReminderStatusSending:%v", reminder.Data.Status, models.ReminderStatusSending)
 		return nil
 	} else {
-		reminder.Status = models.ReminderStatusSent
-		reminder.DtSent = sentAt
-		reminder.DtScheduled = reminder.DtNext
-		reminder.DtNext = time.Time{}
-		reminder.ErrDetails = errDetails
-		reminder.Locale = locale
+		reminder.Data.Status = models.ReminderStatusSent
+		reminder.Data.DtSent = sentAt
+		reminder.Data.DtScheduled = reminder.Data.DtNext
+		reminder.Data.DtNext = time.Time{}
+		reminder.Data.ErrDetails = errDetails
+		reminder.Data.Locale = locale
 		if messageIntID != 0 {
-			reminder.MessageIntID = messageIntID
+			reminder.Data.MessageIntID = messageIntID
 		}
 		if messageStrID != "" {
-			reminder.MessageStrID = messageStrID
+			reminder.Data.MessageStrID = messageStrID
 		}
 		if err = tx.Set(c, reminder.Record); err != nil {
 			err = fmt.Errorf("failed to save reminder to datastore: %w", err)

@@ -1,50 +1,76 @@
 package models
 
 import (
+	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/app/user"
+	"reflect"
 )
 
 const PasswordResetKind = "PwdRst"
 
 type PasswordReset struct {
 	record.WithID[int]
-	*PasswordResetEntity
+	Data *PasswordResetData
 }
 
 //var _ db.EntityHolder = (*PasswordReset)(nil)
 
-type PasswordResetEntity struct {
+type PasswordResetData struct {
 	Email  string
 	Status string
 	user.OwnedByUserWithIntID
 }
 
-func (PasswordReset) Kind() string {
-	return PasswordResetKind
-}
-
-//func (record PasswordReset) IntID() int64 {
-//	return record.ID
-//}
-
-func (record PasswordReset) Entity() interface{} {
-	return record.PasswordResetEntity
-}
-
-func (PasswordReset) NewEntity() interface{} {
-	return new(PasswordResetEntity)
-}
-
-func (record *PasswordReset) SetEntity(entity interface{}) {
-	if entity == nil {
-		record.PasswordResetEntity = nil
+func NewPasswordReset(id int, data *PasswordResetData) PasswordReset {
+	var key *dal.Key
+	if id == 0 {
+		key = NewPasswordResetIncompleteKey()
 	} else {
-		record.PasswordResetEntity = entity.(*PasswordResetEntity)
+		key = NewPasswordResetKey(id)
+	}
+	if data == nil {
+		data = new(PasswordResetData)
+	}
+	return PasswordReset{
+		WithID: record.NewWithID(id, key, data),
+		Data:   data,
 	}
 }
 
-//func (entity *PasswordResetEntity) Save() (properties []datastore.Property, err error) {
+func NewPasswordResetKey(id int) *dal.Key {
+	return dal.NewKeyWithID(PasswordResetKind, id)
+}
+
+func NewPasswordResetIncompleteKey() *dal.Key {
+	return dal.NewIncompleteKey(PasswordResetKind, reflect.Int, nil)
+}
+
+//func (PasswordReset) Kind() string {
+//	return PasswordResetKind
+//}
+//
+////func (record PasswordReset) IntID() int64 {
+////	return record.ID
+////}
+//
+//func (record PasswordReset) Entity() interface{} {
+//	return record.PasswordResetData
+//}
+//
+//func (PasswordReset) NewEntity() interface{} {
+//	return new(PasswordResetData)
+//}
+//
+//func (record *PasswordReset) SetEntity(entity interface{}) {
+//	if entity == nil {
+//		record.PasswordResetData = nil
+//	} else {
+//		record.PasswordResetData = entity.(*PasswordResetData)
+//	}
+//}
+
+//func (entity *PasswordResetData) Save() (properties []datastore.Property, err error) {
 //	if properties, err = datastore.SaveStruct(entity); err != nil {
 //		return
 //	}

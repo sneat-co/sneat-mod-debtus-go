@@ -19,9 +19,7 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/app/gaestandard"
-	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/datastore"
 	"google.golang.org/appengine/v2/delay"
 	"google.golang.org/appengine/v2/taskqueue"
 )
@@ -130,7 +128,7 @@ func (ReminderDalGae) DelayDiscardReminders(c context.Context, transferIDs []int
 
 var delayDiscardReminders = delay.MustRegister("discardReminders", discardReminders)
 
-func discardReminders(c context.Context, transferIDs []int, returntransferID int) error {
+func discardReminders(c context.Context, transferIDs []int, returnTransferID int) error {
 	log.Debugf(c, "discardReminders(transferIDs=%v, returnTransferID=%returnTransferID)", transferIDs, returnTransferID)
 	if len(transferIDs) == 0 {
 		return errors.New("len(transferIDs) == 0")
@@ -161,10 +159,10 @@ func discardRemindersForTransfer(c context.Context, transferID, returnTransferID
 	var tasks []*taskqueue.Task
 	delayDuration := time.Millisecond * 10
 	var _discard = func(
-		getIDs func(context.Context, int) ([]int, error),
+		getIDs func(context.Context, dal.ReadSession, int) ([]int, error),
 		loadedFormat, notLoadedFormat string,
 	) error {
-		if reminderIDs, err := getIDs(c, transferID); err != nil {
+		if reminderIDs, err := getIDs(c, nil, transferID); err != nil {
 			return err
 		} else if len(reminderIDs) > 0 {
 			log.Debugf(c, loadedFormat, len(reminderIDs), transferID)
@@ -199,38 +197,46 @@ func discardRemindersForTransfer(c context.Context, transferID, returnTransferID
 var delayDiscardReminder = delay.MustRegister("DiscardReminder", delayedDiscardReminder)
 
 func DiscardReminder(c context.Context, reminderID, transferID, returnTransferID int) (err error) {
-	return discardReminder(c, reminderID, transferID, returnTransferID)
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return err
+	}
+	return db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+		return discardReminder(c, tx, reminderID, transferID, returnTransferID)
+	})
 }
 
 func delayedDiscardReminder(c context.Context, reminderID, transferID, returnTransferID int) (err error) {
-	if discardReminder(c, reminderID, transferID, returnTransferID); err == ErrDuplicateAttemptToDiscardReminder {
-		log.Errorf(c, err.Error())
-		return nil
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return err
 	}
-	return err
+	return db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+		if err = discardReminder(c, tx, reminderID, transferID, returnTransferID); err == ErrDuplicateAttemptToDiscardReminder {
+			log.Errorf(c, err.Error())
+			return nil
+		}
+		return err
+	})
 }
 
-func discardReminder(c context.Context, reminderID, transferID, returnTransferID int) (err error) {
+func discardReminder(c context.Context, tx dal.ReadwriteTransaction, reminderID, transferID, returnTransferID int) (err error) {
 	log.Debugf(c, "discardReminder(reminderID=%v, transferID=%v, returnTransferID=%v)", reminderID, transferID, returnTransferID)
 
-	reminderKey := NewReminderKey(reminderID)
-	transferKey := models.NewTransferKey(transferID)
-
 	var (
-		transferEntity models.TransferData
-		reminder       = models.NewReminder(reminderID, new(models.ReminderEntity))
+		transfer = models.NewTransfer(transferID, nil)
+		reminder = models.NewReminder(reminderID, new(models.ReminderEntity))
 	)
 
 	if returnTransferID > 0 {
-		returnTransferKey := models.NewTransferKey(returnTransferID)
-		var returnTransfer models.TransferData
-		keys := []*datastore.Key{reminderKey, transferKey, returnTransferKey}
-		if err = gaedb.GetMulti(c, keys, []interface{}{reminder.ReminderEntity, &transferEntity, &returnTransfer}); err != nil {
+		//returnTransferKey := models.NewTransferKey(returnTransferID)
+		returnTransfer := models.NewTransfer(returnTransferID, nil)
+		//keys := []*datastore.Key{reminderKey, transferKey, returnTransferKey}
+		if err = tx.GetMulti(c, []dal.Record{reminder.Record, transfer.Record, returnTransfer.Record}); err != nil {
 			return err
 		}
 	} else {
-		keys := []*datastore.Key{reminderKey, transferKey}
-		if err = gaedb.GetMulti(c, keys, []interface{}{reminder.ReminderEntity, &transferEntity}); err != nil {
+		if err = tx.GetMulti(c, []dal.Record{reminder.Record, transfer.Record}); err != nil {
 			return err
 		}
 	}
@@ -239,34 +245,34 @@ func discardReminder(c context.Context, reminderID, transferID, returnTransferID
 		return err // DO NOT WRAP as there is check in delayedDiscardReminder() errors.Wrapf(err, "Failed to set reminder status to '%v'", models.ReminderStatusDiscarded)
 	}
 
-	switch reminder.SentVia {
+	switch reminder.Data.SentVia {
 	case telegram.PlatformID: // We need to update a reminder message if it was already sent out
-		if reminder.BotID == "" {
+		if reminder.Data.BotID == "" {
 			log.Errorf(c, "reminder.BotID == ''")
 			return nil
 		}
-		if reminder.MessageIntID == 0 {
+		if reminder.Data.MessageIntID == 0 {
 			//log.Infof(c, "No need to update reminder message in Telegram as a reminder is not sent yet")
 			return nil
 		}
-		log.Infof(c, "Will try to update a reminder message as it was already sent to user, reminder.MessageIntID: %v", reminder.MessageIntID)
-		tgBotApi := tgbots.GetTelegramBotApiByBotCode(c, reminder.BotID)
+		log.Infof(c, "Will try to update a reminder message as it was already sent to user, reminder.MessageIntID: %v", reminder.Data.MessageIntID)
+		tgBotApi := tgbots.GetTelegramBotApiByBotCode(c, reminder.Data.BotID)
 		if tgBotApi == nil {
-			return fmt.Errorf("Not able to create API client as there no settings for telegram bot with id '%v'", reminder.BotID)
+			return fmt.Errorf("not able to create API client as there no settings for telegram bot with id '%v'", reminder.Data.BotID)
 		}
 
-		if reminder.Locale == "" {
+		if reminder.Data.Locale == "" {
 			log.Errorf(c, "reminder.Locale == ''")
-			if user, err := facade.User.GetUserByID(c, nil, reminder.UserID); err != nil {
+			if user, err := facade.User.GetUserByID(c, nil, reminder.Data.UserID); err != nil {
 				return err
 			} else if user.Data.PreferredLanguage != "" {
-				reminder.Locale = user.Data.PreferredLanguage
-			} else if s, ok := tgbots.Bots(gaestandard.GetEnvironment(c), nil).ByCode[reminder.BotID]; ok {
-				reminder.Locale = s.Locale.Code5
+				reminder.Data.Locale = user.Data.PreferredLanguage
+			} else if s, ok := tgbots.Bots(gaestandard.GetEnvironment(c), nil).ByCode[reminder.Data.BotID]; ok {
+				reminder.Data.Locale = s.Locale.Code5
 			}
 		}
 
-		executionContext := GetExecutionContextForReminder(c, reminder.ReminderEntity)
+		executionContext := GetExecutionContextForReminder(c, reminder.Data)
 
 		utmParams := common.UtmParams{
 			Source:   "TODO", // TODO: Get bot ID
@@ -276,29 +282,29 @@ func discardReminder(c context.Context, reminderID, transferID, returnTransferID
 
 		receiptMessageText := common.TextReceiptForTransfer(
 			executionContext,
-			models.NewTransfer(transferID, &transferEntity),
-			reminder.UserID,
+			transfer,
+			reminder.Data.UserID,
 			common.ShowReceiptToAutodetect,
 			utmParams,
 		)
 
-		locale := strongo.GetLocaleByCode5(reminder.Locale) // TODO: Check for supported locales
+		locale := strongo.GetLocaleByCode5(reminder.Data.Locale) // TODO: Check for supported locales
 
-		transferUrlForUser := common.GetTransferUrlForUser(transferID, reminder.UserID, locale, utmParams)
+		transferUrlForUser := common.GetTransferUrlForUser(transferID, reminder.Data.UserID, locale, utmParams)
 
 		receiptMessageText += "\n\n" + strings.Join([]string{
 			executionContext.Translate(trans.MESSAGE_TEXT_DEBT_IS_RETURNED),
 			fmt.Sprintf(`<a href="%v">%v</a>`, transferUrlForUser, executionContext.Translate(trans.MESSAGE_TEXT_DETAILS_ARE_HERE)),
 		}, "\n")
 
-		tgMessage := tgbotapi.NewEditMessageText(reminder.ChatIntID, int(reminder.MessageIntID), "", receiptMessageText)
+		tgMessage := tgbotapi.NewEditMessageText(reminder.Data.ChatIntID, int(reminder.Data.MessageIntID), "", receiptMessageText)
 		tgMessage.ParseMode = "HTML"
 		if _, err = tgBotApi.Send(tgMessage); err != nil {
 			return fmt.Errorf("failed to send message to Telegram: %w", err)
 		}
 
 	default:
-		return errors.New("Unknown reminder channel: %v" + reminder.SentVia)
+		return errors.New("Unknown reminder channel: %v" + reminder.Data.SentVia)
 	}
 
 	return err
@@ -326,32 +332,32 @@ func (ReminderDalGae) SetReminderStatus(c context.Context, reminderID, returnTra
 		} else {
 			switch status {
 			case string(models.ReminderStatusDiscarded):
-				reminder.DtDiscarded = when
+				reminder.Data.DtDiscarded = when
 			case string(models.ReminderStatusSent):
-				reminder.DtSent = when
+				reminder.Data.DtSent = when
 			case string(models.ReminderStatusSending):
 				// pass
 			case string(models.ReminderStatusViewed):
-				reminder.DtViewed = when
+				reminder.Data.DtViewed = when
 			case string(models.ReminderStatusUsed):
-				reminder.DtUsed = when
+				reminder.Data.DtUsed = when
 			default:
-				return errors.New("Unsupported status: " + status)
+				return errors.New("unsupported status: " + status)
 			}
-			previousStatus = reminder.Status
+			previousStatus = reminder.Data.Status
 			changed = previousStatus != status
 			if returnTransferID != 0 && status == string(models.ReminderStatusDiscarded) {
-				for _, id := range reminder.ClosedByTransferIDs { // TODO: WTF are we doing here?
+				for _, id := range reminder.Data.ClosedByTransferIDs { // TODO: WTF are we doing here?
 					if id == returnTransferID {
-						log.Infof(c, "new status: '%v', Reminder{Status: '%v', ClosedByTransferIDs: %v}", status, reminder.Status, reminder.ClosedByTransferIDs)
+						log.Infof(c, "new status: '%v', Reminder{Status: '%v', ClosedByTransferIDs: %v}", status, reminder.Data.Status, reminder.Data.ClosedByTransferIDs)
 						return ErrDuplicateAttemptToDiscardReminder
 					}
 				}
-				reminder.ClosedByTransferIDs = append(reminder.ClosedByTransferIDs, returnTransferID)
+				reminder.Data.ClosedByTransferIDs = append(reminder.Data.ClosedByTransferIDs, returnTransferID)
 				changed = true
 			}
 			if changed {
-				reminder.Status = status
+				reminder.Data.Status = status
 				if err = tx.Set(c, reminder.Record); err != nil {
 					err = fmt.Errorf("failed to save reminder to db (id=%v): %w", reminderID, err)
 				}

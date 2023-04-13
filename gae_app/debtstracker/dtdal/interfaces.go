@@ -62,7 +62,7 @@ type ReceiptDal interface {
 	UpdateReceipt(c context.Context, tx dal.ReadwriteTransaction, receipt models.Receipt) error
 	GetReceiptByID(c context.Context, tx dal.ReadSession, id int) (models.Receipt, error)
 	MarkReceiptAsSent(c context.Context, receiptID, transferID int, sentTime time.Time) error
-	CreateReceipt(c context.Context, receipt *models.ReceiptEntity) (id int, err error)
+	CreateReceipt(c context.Context, data *models.ReceiptData) (receipt models.Receipt, err error)
 	DelayedMarkReceiptAsSent(c context.Context, receiptID, transferID int, sentTime time.Time) error
 	DelayCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongo.Environment, transferID int, userID int64) error
 }
@@ -79,8 +79,8 @@ type ReminderDal interface {
 	DelaySetReminderIsSent(c context.Context, reminderID int, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error
 	SetReminderIsSent(c context.Context, reminderID int, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error
 	SetReminderIsSentInTransaction(c context.Context, tx dal.ReadwriteTransaction, reminder models.Reminder, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) (err error)
-	GetActiveReminderIDsByTransferID(c context.Context, tx dal.ReadTransaction, transferID int) ([]int, error)
-	GetSentReminderIDsByTransferID(c context.Context, tx dal.ReadTransaction, transferID int) ([]int, error)
+	GetActiveReminderIDsByTransferID(c context.Context, tx dal.ReadSession, transferID int) ([]int, error)
+	GetSentReminderIDsByTransferID(c context.Context, tx dal.ReadSession, transferID int) ([]int, error)
 }
 
 type CreateUserData struct {
@@ -120,9 +120,9 @@ type UserDal interface {
 }
 
 type PasswordResetDal interface {
-	GetPasswordResetByID(c context.Context, id int64) (models.PasswordReset, error)
-	CreatePasswordResetByID(c context.Context, entity *models.PasswordResetEntity) (models.PasswordReset, error)
-	SavePasswordResetByID(c context.Context, record models.PasswordReset) (err error)
+	GetPasswordResetByID(c context.Context, tx dal.ReadSession, id int) (models.PasswordReset, error)
+	CreatePasswordResetByID(c context.Context, tx dal.ReadwriteTransaction, entity *models.PasswordResetData) (models.PasswordReset, error)
+	SavePasswordResetByID(c context.Context, tx dal.ReadwriteTransaction, record models.PasswordReset) (err error)
 }
 
 type EmailDal interface {
@@ -132,17 +132,17 @@ type EmailDal interface {
 }
 
 type FeedbackDal interface {
-	GetFeedbackByID(c context.Context, feedbackID int64) (models.Feedback, error)
+	GetFeedbackByID(c context.Context, tx dal.ReadSession, feedbackID int64) (feedback models.Feedback, err error)
 }
 
 type ContactDal interface {
-	GetLatestContacts(whc botsfw.WebhookContext, limit, totalCount int) (contacts []models.Contact, err error)
+	GetLatestContacts(whc botsfw.WebhookContext, tx dal.ReadSession, limit, totalCount int) (contacts []models.Contact, err error)
 	InsertContact(c context.Context, tx dal.ReadwriteTransaction, contactEntity *models.ContactData) (contact models.Contact, err error)
 	//CreateContact(c context.Context, userID int64, contactDetails models.ContactDetails) (contact models.Contact, user models.AppUser, err error)
 	//CreateContactWithinTransaction(c context.Context, user models.AppUser, contactUserID, counterpartyCounterpartyID int64, contactDetails models.ContactDetails, balanced money.Balanced) (contact models.Contact, err error)
 	//UpdateContact(c context.Context, contactID int64, values map[string]string) (contactEntity *models.ContactData, err error)
-	GetContactIDsByTitle(c context.Context, tx dal.ReadTransaction, userID int64, title string, caseSensitive bool) (contactIDs []int64, err error)
-	GetContactsWithDebts(c context.Context, tx dal.ReadTransaction, userID int64) (contacts []models.Contact, err error)
+	GetContactIDsByTitle(c context.Context, tx dal.ReadSession, userID int64, title string, caseSensitive bool) (contactIDs []int64, err error)
+	GetContactsWithDebts(c context.Context, tx dal.ReadSession, userID int64) (contacts []models.Contact, err error)
 }
 
 type BillsHolderGetter func(c context.Context) (billsHolder dal.Record, err error)
@@ -158,8 +158,8 @@ type SplitDal interface {
 }
 
 type TgGroupDal interface {
-	GetTgGroupByID(c context.Context, id int64) (tgGroup models.TgGroup, err error)
-	SaveTgGroup(c context.Context, tgGroup models.TgGroup) (err error)
+	GetTgGroupByID(c context.Context, tx dal.ReadSession, id int64) (tgGroup models.TgGroup, err error)
+	SaveTgGroup(c context.Context, tx dal.ReadwriteTransaction, tgGroup models.TgGroup) (err error)
 }
 
 type BillScheduleDal interface {
@@ -209,14 +209,14 @@ type UserFacebookDal interface {
 }
 
 type LoginPinDal interface {
-	GetLoginPinByID(c context.Context, tx dal.ReadTransaction, loginID int64) (loginPin models.LoginPin, err error)
+	GetLoginPinByID(c context.Context, tx dal.ReadSession, loginID int) (loginPin models.LoginPin, err error)
 	SaveLoginPin(c context.Context, tx dal.ReadwriteTransaction, loginPin models.LoginPin) (err error)
-	CreateLoginPin(c context.Context, tx dal.ReadwriteTransaction, channel, gaClientID string, createdUserID int64) (int64, error)
+	CreateLoginPin(c context.Context, tx dal.ReadwriteTransaction, channel, gaClientID string, createdUserID int64) (loginPin models.LoginPin, err error)
 }
 
 type LoginCodeDal interface {
-	NewLoginCode(c context.Context, userID int64) (int32, error)
-	ClaimLoginCode(c context.Context, code int32) (userID int64, err error)
+	NewLoginCode(c context.Context, userID int64) (code int, err error)
+	ClaimLoginCode(c context.Context, code int) (userID int64, err error)
 }
 
 type TwilioDal interface {
@@ -247,9 +247,9 @@ func RandomCode(n uint8) string {
 }
 
 type InviteDal interface {
-	GetInvite(c context.Context, inviteCode string) (*models.InviteData, error)
+	GetInvite(c context.Context, tx dal.ReadSession, inviteCode string) (models.Invite, error)
 	ClaimInvite(c context.Context, userID int64, inviteCode, claimedOn, claimedVia string) (err error)
-	ClaimInvite2(c context.Context, inviteCode string, inviteEntity *models.InviteData, claimedByUserID int64, claimedOn, claimedVia string) (invite models.Invite, err error)
+	ClaimInvite2(c context.Context, inviteCode string, invite models.Invite, claimedByUserID int64, claimedOn, claimedVia string) (err error)
 	CreatePersonalInvite(ec strongo.ExecutionContext, userID int64, inviteBy models.InviteBy, inviteToAddress, createdOnPlatform, createdOnID, related string) (models.Invite, error)
 	CreateMassInvite(ec strongo.ExecutionContext, userID int64, inviteCode string, maxClaimsCount int32, createdOnPlatform string) (invite models.Invite, err error)
 }
@@ -272,7 +272,7 @@ type UserGaClientDal interface {
 }
 
 type TgChatDal interface {
-	GetTgChatByID(c context.Context, tgBotID string, tgChatID int64) (tgChat models.TelegramChat, err error)
+	GetTgChatByID(c context.Context, tgBotID string, tgChatID int64) (tgChat models.DebtusTelegramChat, err error)
 	DoSomething(c context.Context, // TODO: WTF name?
 		userTask *sync.WaitGroup, currency string, tgChatID int64, authInfo auth.AuthInfo, user models.AppUser,
 		sendToTelegram func(tgChat tgstore.Chat) error) (err error)

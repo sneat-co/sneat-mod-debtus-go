@@ -147,11 +147,11 @@ func showLinkForReceiptInTelegram(whc botsfw.WebhookContext, transfer models.Tra
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
 	})
-	var receiptID int
-	if receiptID, err = dtdal.Receipt.CreateReceipt(whc.Context(), receiptData); err != nil {
+	var receipt models.Receipt
+	if receipt, err = dtdal.Receipt.CreateReceipt(whc.Context(), receiptData); err != nil {
 		return m, err
 	}
-	receiptUrl := GetUrlForReceiptInTelegram(whc.GetBotCode(), receiptID, whc.Locale().Code5)
+	receiptUrl := GetUrlForReceiptInTelegram(whc.GetBotCode(), receipt.ID, whc.Locale().Code5)
 	m.Text = "Send this link to counterparty:\n\n" + fmt.Sprintf(`<a href="%v">%v</a>`, receiptUrl, receiptUrl) + "\n\nPlease be aware that the first person opening this link will be treated as counterparty for this debt."
 	m.Format = botsfw.MessageFormatHTML
 	m.IsEdit = true

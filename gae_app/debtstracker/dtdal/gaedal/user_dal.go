@@ -59,8 +59,8 @@ func (userDal UserDalGae) GetUserByVkUserID(c context.Context, vkUserID int64) (
 func (userDal UserDalGae) GetUserByEmail(c context.Context, email string) (models.AppUser, error) {
 	email = strings.ToLower(email)
 	query := dal.From(models.AppUserKind).Where(
-		dal.FieldCondition("EmailAddress", dal.Equal, email),
-		dal.FieldCondition("EmailConfirmed", dal.Equal, true),
+		dal.WhereField("EmailAddress", dal.Equal, email),
+		dal.WhereField("EmailConfirmed", dal.Equal, true),
 	).SelectInto(func() dal.Record {
 		return dal.NewRecordWithoutKey(&models.AppUserData{})
 	})
@@ -68,8 +68,8 @@ func (userDal UserDalGae) GetUserByEmail(c context.Context, email string) (model
 	user, err := userDal.getUserByQuery(c, query, "EmailAddress, is confirmed")
 	if user.ID == 0 && dal.IsNotFound(err) {
 		query = dal.From(models.AppUserKind).Where(
-			dal.FieldCondition("EmailAddress", dal.Equal, email),
-			dal.FieldCondition("EmailConfirmed", dal.Equal, false),
+			dal.WhereField("EmailAddress", dal.Equal, email),
+			dal.WhereField("EmailConfirmed", dal.Equal, false),
 		).SelectInto(func() dal.Record {
 			return dal.NewRecordWithoutKey(&models.AppUserData{})
 		})
@@ -119,10 +119,8 @@ func (userDal UserDalGae) CreateAnonymousUser(c context.Context) (user models.Ap
 	})
 }
 
-func (userDal UserDalGae) CreateUser(c context.Context, userEntity *models.AppUserData) (user models.AppUser, err error) {
-	key := dal.NewKey(models.AppUserKind)
-
-	user.Record = dal.NewRecordWithData(key, userEntity)
+func (userDal UserDalGae) CreateUser(c context.Context, userData *models.AppUserData) (user models.AppUser, err error) {
+	user = models.NewAppUser(0, userData)
 
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {

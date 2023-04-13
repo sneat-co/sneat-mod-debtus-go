@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
+	"reflect"
 	"time"
 
 	"errors"
@@ -17,6 +18,9 @@ type Email struct {
 }
 
 func NewEmailKey(id int64) *dal.Key {
+	if id == 0 {
+		return dal.NewIncompleteKey(EmailKind, reflect.Int64, nil)
+	}
 	return dal.NewKeyWithID(EmailKind, id)
 }
 

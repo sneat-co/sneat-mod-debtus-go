@@ -2,11 +2,11 @@ package gaedal
 
 import (
 	"fmt"
+	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
 	"strings"
 	"sync"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/bots-go-framework/bots-fw-telegram"
@@ -21,22 +21,23 @@ func NewTgChatDalGae() TgChatDalGae {
 	return TgChatDalGae{}
 }
 
-func (TgChatDalGae) GetTgChatByID(c context.Context, tgBotID string, tgChatID int64) (tgChat models.TelegramChat, err error) {
-	tgChat.SetID(tgBotID, tgChatID)
-	err = dtdal.DB.Get(c, &tgChat)
-	return
-}
+//func (TgChatDalGae) GetTgChatByID(c context.Context, tgBotID string, tgChatID int64) (tgChat models.DebtusTelegramChat, err error) {
+//	tgChat = models.DebtusTelegramChat{}
+//	tgChat.SetID(tgBotID, tgChatID)
+//	err = dtdal.DB.Get(c, &tgChat)
+//	return
+//}
 
-func (TgChatDalGae) SaveTgChat(c context.Context, tgChat models.TelegramChat) error {
-	return dtdal.DB.Update(c, &tgChat)
-}
+//func (TgChatDalGae) SaveTgChat(c context.Context, tgChat models.DebtusTelegramChat) error {
+//	return dtdal.DB.Update(c, &tgChat)
+//}
 
 func (TgChatDalGae) /* TODO: rename properly! */ DoSomething(c context.Context,
 	userTask *sync.WaitGroup, currency string, tgChatID int64, authInfo auth.AuthInfo, user models.AppUser,
-	sendToTelegram func(tgChat telegram.TgChatEntityBase) error,
+	sendToTelegram func(tgChatBase tgstore.TgChatBase) error,
 ) (err error) {
 	var isSentToTelegram bool // Needed in case of failed to save to DB and is auto-retry
-	tgChatKey := gaedb.NewKey(c, telegram.ChatKind, "", tgChatID, nil)
+	tgChatKey := gaedb.NewKey(c, tgstore.TgChatCollection, "", tgChatID, nil)
 	if err = gaedb.RunInTransaction(c, func(tc context.Context) (err error) {
 		var tgChat telegram.TgChatEntityBase
 

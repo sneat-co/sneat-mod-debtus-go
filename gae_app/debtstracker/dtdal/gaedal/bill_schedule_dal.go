@@ -17,16 +17,8 @@ func NewBillScheduleDalGae() BillScheduleDalGae {
 	return BillScheduleDalGae{}
 }
 
-func NewBillScheduleKey(id int64) *dal.Key {
-	return dal.NewKeyWithID(models.BillScheduleKind, id)
-}
-
-func NewBillScheduleIncompleteKey() *dal.Key {
-	return dal.NewKey(models.BillScheduleKind)
-}
-
 func (BillScheduleDalGae) GetBillScheduleByID(c context.Context, id int64) (models.BillSchedule, error) {
-	key := NewBillScheduleKey(id)
+	key := models.NewBillScheduleKey(id)
 	data := new(models.BillScheduleEntity)
 	billSchedule := models.BillSchedule{
 		WithID: record.WithID[int64]{
@@ -47,7 +39,7 @@ func (BillScheduleDalGae) GetBillScheduleByID(c context.Context, id int64) (mode
 }
 
 func (BillScheduleDalGae) InsertBillSchedule(c context.Context, billScheduleEntity *models.BillScheduleEntity) (billSchedule models.BillSchedule, err error) {
-	_ = NewBillScheduleIncompleteKey()
+	_ = models.NewBillScheduleIncompleteKey()
 	panic("TODO: implement me")
 	//key := NewBillScheduleIncompleteKey()
 	//if key, err = gaedb.Put(c, key, billScheduleEntity); err != nil {

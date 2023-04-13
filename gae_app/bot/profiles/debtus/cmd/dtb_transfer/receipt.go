@@ -162,19 +162,24 @@ func OnInlineChosenCreateReceipt(whc botsfw.WebhookContext, inlineMessageID stri
 	if err != nil {
 		return m, err
 	}
-	receipt := models.NewReceiptEntity(whc.AppUserIntID(), transferID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, telegram.PlatformID, "", general.CreatedOn{
+	receiptData := models.NewReceiptEntity(whc.AppUserIntID(), transferID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, telegram.PlatformID, "", general.CreatedOn{
 		CreatedOnID:       whc.GetBotCode(), // TODO: Replace with method call.
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 	})
-	receiptID, err := dtdal.Receipt.CreateReceipt(c, receipt)
+	receipt, err := dtdal.Receipt.CreateReceipt(c, receiptData)
 	if err != nil {
 		return m, err
 	}
 
-	dtdal.Receipt.DelayedMarkReceiptAsSent(c, receiptID, transferID, time.Now())
-	m, err = showReceiptAnnouncement(whc, receiptID, creatorName)
+	if err = dtdal.Receipt.DelayedMarkReceiptAsSent(c, receipt.ID, transferID, time.Now()); err != nil {
+		log.Errorf(c, "Failed DelayedMarkReceiptAsSent: %v", err)
+	}
+	m, err = showReceiptAnnouncement(whc, receipt.ID, creatorName)
 
-	analytics.ReceiptSentFromBot(whc, "telegram")
+	if err = analytics.ReceiptSentFromBot(whc, "telegram"); err != nil {
+		log.Errorf(c, "Failed to send analytics.ReceiptSentFromBot: %v", err)
+		err = nil
+	}
 
 	//_, err = whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverHTTPS)
 	//if err != nil {

@@ -360,7 +360,7 @@ var FeedbackTextCommand = botsfw.Command{
 					if feedback.ID, err = strconv.ParseInt(feedbackParam, 10, 64); err != nil {
 						return
 					}
-					if feedback, err = dtdal.Feedback.GetFeedbackByID(c, feedback.ID); err != nil {
+					if feedback, err = dtdal.Feedback.GetFeedbackByID(c, tx, feedback.ID); err != nil {
 						return
 					}
 					feedback.Text = mt

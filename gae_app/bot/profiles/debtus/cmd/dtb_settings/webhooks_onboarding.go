@@ -23,35 +23,35 @@ import (
 
 var reEmail = regexp.MustCompile("^.+@.+\\.\\w+$")
 
-func handleInviteOnStart(whc botsfw.WebhookContext, inviteCode string, invite *models.InviteData) (m botsfw.MessageFromBot, err error) {
+func handleInviteOnStart(whc botsfw.WebhookContext, inviteCode string, invite models.Invite) (m botsfw.MessageFromBot, err error) {
 	claimAndReply := func() {
-		if _, err = dtdal.Invite.ClaimInvite2(whc.Context(), inviteCode, invite, whc.AppUserIntID(), whc.BotPlatform().ID(), whc.GetBotCode()); err != nil {
+		if err = dtdal.Invite.ClaimInvite2(whc.Context(), inviteCode, invite, whc.AppUserIntID(), whc.BotPlatform().ID(), whc.GetBotCode()); err != nil {
 			err = fmt.Errorf("failed to ClaimInvite(): %w", err)
 			return
 		}
 		m = whc.NewMessageByCode(trans.MESSAGE_TEXT_WELCOME_ONBOARDING_INVITE_ACCEPTED)
 		dtb_general.SetMainMenuKeyboard(whc, &m)
 	}
-	if invite.Related == INVITE_IS_RELATED_TO_ONBOARDING {
-		if invite.CreatedByUserID != whc.AppUserIntID() {
+	if invite.Data.Related == INVITE_IS_RELATED_TO_ONBOARDING {
+		if invite.Data.CreatedByUserID != whc.AppUserIntID() {
 			return m, errors.New("invite.Related == INVITE_IS_RELATED_TO_ONBOARDING && invite.CreatedByUserID != whc.AppUserIntID()")
 		}
 		claimAndReply()
 		return
 	} else {
-		if invite.CreatedByUserID == whc.AppUserIntID() {
+		if invite.Data.CreatedByUserID == whc.AppUserIntID() {
 			m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_ATTEMPT_TO_USE_OWN_INVITE))
 			dtb_general.SetMainMenuKeyboard(whc, &m)
 			return m, nil
 		}
 
-		if invite.Related == "" {
+		if invite.Data.Related == "" {
 			claimAndReply()
 			return
 		} else {
 			//switch invite.RelatedTo() {
 			//default:
-			m = whc.NewMessage(fmt.Sprintf("Unknown invite.Related: %v", invite.Related))
+			m = whc.NewMessage(fmt.Sprintf("Unknown invite.Related: %v", invite.Data.Related))
 			//}
 		}
 	}

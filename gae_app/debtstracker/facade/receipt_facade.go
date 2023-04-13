@@ -230,7 +230,7 @@ func MarkReceiptAsViewed(c context.Context, receiptID int, userID int64) (receip
 	return
 }
 
-func markReceiptAsViewed(receipt *models.ReceiptEntity, userID int64) (changed bool) {
+func markReceiptAsViewed(receipt *models.ReceiptData, userID int64) (changed bool) {
 	alreadyViewedByUser := false
 	for _, uid := range receipt.ViewedByUserIDs {
 		if uid == userID {

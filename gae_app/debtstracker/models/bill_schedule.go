@@ -1,7 +1,9 @@
 package models
 
 import (
+	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
+	"reflect"
 	"time"
 )
 
@@ -27,6 +29,14 @@ const BillScheduleKind = "BillSchedule"
 type BillSchedule struct {
 	record.WithID[int64]
 	Data *BillScheduleEntity
+}
+
+func NewBillScheduleKey(id int64) *dal.Key {
+	return dal.NewKeyWithID(BillScheduleKind, id)
+}
+
+func NewBillScheduleIncompleteKey() *dal.Key {
+	return dal.NewIncompleteKey(BillScheduleKind, reflect.Int64, nil)
 }
 
 type BillScheduleEntity struct {

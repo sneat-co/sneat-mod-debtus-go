@@ -43,11 +43,11 @@ func setReminderIsSent(c context.Context, reminderID int, sentAt time.Time, mess
 	return dtdal.Reminder.SetReminderIsSent(c, reminderID, sentAt, messageIntID, messageStrID, locale, errDetails)
 }
 
-func CreateSendReminderTask(c context.Context, reminderID int64) *taskqueue.Task {
+func CreateSendReminderTask(c context.Context, reminderID int) *taskqueue.Task {
 	if reminderID == 0 {
 		panic("reminderID == 0")
 	}
-	t := taskqueue.NewPOSTTask("/task-queue/send-reminder", url.Values{"id": []string{strconv.FormatInt(reminderID, 10)}})
+	t := taskqueue.NewPOSTTask("/task-queue/send-reminder", url.Values{"id": []string{strconv.Itoa(reminderID)}})
 	return t
 }
 

@@ -287,7 +287,7 @@ var AskToChooseDebtToReturnCommand = botsfw.Command{
 			}
 			user := botAppUser.(*models.AppUserData)
 			var counterparties []models.Contact
-			if counterparties, err = dtdal.Contact.GetLatestContacts(whc, 0, user.TotalContactsCount()); err != nil {
+			if counterparties, err = dtdal.Contact.GetLatestContacts(whc, nil, 0, user.TotalContactsCount()); err != nil {
 				return m, err
 			}
 			var counterpartyFound bool

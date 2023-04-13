@@ -2,6 +2,7 @@ package gaedal
 
 import (
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	"strings"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
-	"github.com/strongo/db/gaedb"
 )
 
 type LoginPinDalGae struct {
@@ -19,51 +19,48 @@ func NewLoginPinDalGae() LoginPinDalGae {
 	return LoginPinDalGae{}
 }
 
-func (LoginPinDalGae) GetLoginPinByID(c context.Context, id int64) (loginPin models.LoginPin, err error) {
-	loginPin.ID = id
-	entity := new(models.LoginPinEntity)
-	if err = gaedb.Get(c, NewLoginPinKey(c, id), entity); err != nil {
+func (LoginPinDalGae) GetLoginPinByID(c context.Context, tx dal.ReadSession, id int) (loginPin models.LoginPin, err error) {
+	if tx, err = facade.GetDatabase(c); err != nil {
 		return
 	}
-	loginPin.LoginPinEntity = entity
-	return
+	loginPin = models.NewLoginPin(id, nil)
+	return loginPin, tx.Get(c, loginPin.Record)
 }
 
-func (LoginPinDalGae) SaveLoginPin(c context.Context, loginPin models.LoginPin) (err error) {
-	_, err = gaedb.Put(c, NewLoginPinKey(c, loginPin.ID), loginPin.LoginPinEntity)
-	return
+func (LoginPinDalGae) SaveLoginPin(c context.Context, tx dal.ReadwriteTransaction, loginPin models.LoginPin) (err error) {
+	return tx.Set(c, loginPin.Record)
 }
 
-func (loginPinDalGae LoginPinDalGae) CreateLoginPin(c context.Context, channel, gaClientID string, createdUserID int64) (int64, error) {
+func (loginPinDalGae LoginPinDalGae) CreateLoginPin(c context.Context, tx dal.ReadwriteTransaction, channel, gaClientID string, createdUserID int64) (loginPin models.LoginPin, err error) {
 	switch strings.ToLower(channel) {
 	case "":
-		return 0, errors.New("Parameter 'channel' is not set")
+		return loginPin, errors.New("parameter 'channel' is not set")
 	case "telegram":
 	case "viber":
 	default:
-		return 0, fmt.Errorf("Unknown channel: %v", channel)
+		return loginPin, fmt.Errorf("Unknown channel: %v", channel)
 	}
 	if createdUserID != 0 {
-		if _, err := facade.User.GetUserByID(c, tx, createdUserID); err != nil {
-			return 0, fmt.Errorf("unknown createdUserID=%d: %w", createdUserID, err)
+		if _, err := facade.User.GetUserByID(c, nil, createdUserID); err != nil {
+			return loginPin, fmt.Errorf("unknown createdUserID=%d: %w", createdUserID, err)
 		}
 	}
 
-	entity := models.LoginPinEntity{
+	loginPin = models.NewLoginPin(0, &models.LoginPinData{
 		Channel:    channel,
 		Created:    time.Now(),
 		UserID:     createdUserID,
 		GaClientID: gaClientID,
+	})
+	if err = tx.Insert(c, loginPin.Record); err != nil {
+		return
 	}
-	if key, err := gaedb.Put(c, NewLoginPinIncompleteKey(c), &entity); err != nil {
-		return 0, err
-	} else {
-		return key.IntID(), err
-	}
+	loginPin.ID = loginPin.Record.Key().ID.(int)
+	return
 }
 
-//func (loginPinDalGae LoginPinDalGae) GetByID(c context.Context, loginID int64) (entity *models.LoginPinEntity, err error) {
-//	entity = new(models.LoginPinEntity)
+//func (loginPinDalGae LoginPinDalGae) GetByID(c context.Context, loginID int64) (entity *models.LoginPinData, err error) {
+//	entity = new(models.LoginPinData)
 //	err = gaedb.Get(c, models.NewLoginPinKey(c, loginID), entity)
 //	return
 //}

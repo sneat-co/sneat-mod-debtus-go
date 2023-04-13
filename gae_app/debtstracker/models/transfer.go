@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
+	"reflect"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
@@ -72,6 +73,17 @@ func NewTransferKey(id int) *dal.Key {
 		panic("id == 0")
 	}
 	return dal.NewKeyWithID(TransferKind, id)
+}
+
+func NewTransferWithIncompleteKey(data *TransferData) Transfer {
+	key := dal.NewIncompleteKey(TransferKind, reflect.Int, nil)
+	if data == nil {
+		data = new(TransferData)
+	}
+	return Transfer{
+		WithID: record.NewWithID(0, key, data),
+		Data:   data,
+	}
 }
 
 func NewTransfer(id int, data *TransferData) Transfer {

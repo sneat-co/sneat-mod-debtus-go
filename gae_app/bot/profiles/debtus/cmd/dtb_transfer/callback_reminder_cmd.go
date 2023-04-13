@@ -80,14 +80,14 @@ func rescheduleReminder(whc botsfw.WebhookContext, reminderID int, remindInDurat
 		return m, err
 	}
 	var transfer models.Transfer
-	if transfer, err = facade.Transfers.GetTransferByID(c, nil, oldReminder.TransferID); err != nil {
+	if transfer, err = facade.Transfers.GetTransferByID(c, nil, oldReminder.Data.TransferID); err != nil {
 		return m, fmt.Errorf("failed to get transferEntity by id: %w", err)
 	}
 	var messageText string
 	if remindInDuration == time.Duration(0) {
 		messageText = whc.Translate(trans.MESSAGE_TEXT_REMINDER_DISABLED)
 	} else {
-		messageText = whc.Translate(trans.MESSAGE_TEXT_REMINDER_SET, newReminder.DtNext.Format("Mon, 2 Jan 15:04:05 MST (-0700) 2006"))
+		messageText = whc.Translate(trans.MESSAGE_TEXT_REMINDER_SET, newReminder.Data.DtNext.Format("Mon, 2 Jan 15:04:05 MST (-0700) 2006"))
 	}
 
 	chatEntity := whc.ChatEntity()

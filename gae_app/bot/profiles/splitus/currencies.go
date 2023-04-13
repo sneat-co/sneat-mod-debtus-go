@@ -4,10 +4,15 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/log"
 	"net/url"
 )
@@ -109,20 +114,24 @@ func groupSettingsSetCurrencyCommand(params shared_all.BotParams) botsfw.Command
 		Code: GroupSettingsSetCurrencyCommandCode,
 		CallbackAction: shared_group.NewGroupCallbackAction(func(whc botsfw.WebhookContext, callbackUrl *url.URL, group models.Group) (m botsfw.MessageFromBot, err error) {
 			currency := money.Currency(callbackUrl.Query().Get(CURRENCY_PARAM_NAME))
-			if group.DefaultCurrency != currency {
+			if group.Data.DefaultCurrency != currency {
 				c := whc.Context()
-				if err := dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-					if group, err = dtdal.Group.GetGroupByID(c, group.ID); err != nil {
+				var db dal.Database
+				if db, err = facade.GetDatabase(c); err != nil {
+					return
+				}
+				if err := db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+					if group, err = dtdal.Group.GetGroupByID(c, tx, group.ID); err != nil {
 						return
 					}
-					if group.DefaultCurrency != currency {
-						group.DefaultCurrency = currency
-						if err = dtdal.Group.SaveGroup(c, group); err != nil {
+					if group.Data.DefaultCurrency != currency {
+						group.Data.DefaultCurrency = currency
+						if err = dtdal.Group.SaveGroup(c, tx, group); err != nil {
 							return
 						}
 					}
 					return
-				}, db.SingleGroupTransaction); err != nil {
+				}); err != nil {
 					log.Errorf(whc.Context(), "failed to change group default currency: %v", err)
 				} else {
 					log.Debugf(c, "Default currency for group %v updated to: %v", group.ID, currency)
@@ -160,5 +169,5 @@ func inGroupWelcomeMessage(whc botsfw.WebhookContext, group models.Group) (m bot
 	return whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_HI)+
 		"\n\n"+whc.Translate(trans.SPLITUS_TEXT_HI_IN_GROUP)+
 		"\n\n"+whc.Translate(trans.SPLITUS_TEXT_ABOUT_ME_AND_CO),
-		bots.MessageFormatHTML)
+		botsfw.MessageFormatHTML)
 }

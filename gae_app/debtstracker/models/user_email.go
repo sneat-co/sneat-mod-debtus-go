@@ -13,7 +13,7 @@ import (
 
 const UserEmailKind = "UserEmail"
 
-type UserEmailEntity struct {
+type UserEmailData struct {
 	user.LastLogin
 	user.Names
 	user.OwnedByUserWithIntID
@@ -22,9 +22,9 @@ type UserEmailEntity struct {
 	Providers          []string `datastore:",noindex"` // E.g. facebook, vk, user
 }
 
-var _ user.AccountData = (*UserEmailEntity)(nil)
+var _ user.AccountData = (*UserEmailData)(nil)
 
-func (entity UserEmailEntity) ConfirmationPin() string {
+func (entity UserEmailData) ConfirmationPin() string {
 	pin := base64.RawURLEncoding.EncodeToString(entity.PasswordBcryptHash)
 	//if len(pin) > 20 {
 	//	pin = pin[:20]
@@ -35,7 +35,7 @@ func (entity UserEmailEntity) ConfirmationPin() string {
 type UserEmail struct {
 	record.WithID[string]
 	user.Names
-	*UserEmailEntity
+	*UserEmailData
 }
 
 //var _ user.AccountRecord = (*UserEmail)(nil)
@@ -50,18 +50,18 @@ func (userEmail UserEmail) Kind() string {
 
 func (userEmail *UserEmail) SetEntity(entity interface{}) {
 	if entity == nil {
-		userEmail.UserEmailEntity = entity.(*UserEmailEntity)
+		userEmail.UserEmailData = entity.(*UserEmailData)
 	} else {
-		userEmail.UserEmailEntity = entity.(*UserEmailEntity)
+		userEmail.UserEmailData = entity.(*UserEmailData)
 	}
 }
 
 func (userEmail UserEmail) Entity() interface{} {
-	return userEmail.UserEmailEntity
+	return userEmail.UserEmailData
 }
 
 func (UserEmail) NewEntity() interface{} {
-	return new(UserEmailEntity)
+	return new(UserEmailData)
 }
 
 //func (userEmail *UserEmail) SetStrID(id string) {
@@ -74,8 +74,8 @@ func GetEmailID(email string) string {
 
 func NewUserEmail(email string, isConfirmed bool, provider string) UserEmail {
 	return UserEmail{
-		WithID:          record.WithID[string]{ID: GetEmailID(email)},
-		UserEmailEntity: NewUserEmailEntity(0, isConfirmed, provider),
+		WithID:        record.WithID[string]{ID: GetEmailID(email)},
+		UserEmailData: NewUserEmailEntity(0, isConfirmed, provider),
 	}
 }
 
@@ -83,12 +83,12 @@ func (userEmail UserEmail) GetEmail() string {
 	return userEmail.ID
 }
 
-func (entity *UserEmailEntity) IsEmailConfirmed() bool {
+func (entity *UserEmailData) IsEmailConfirmed() bool {
 	return entity.IsConfirmed
 }
 
-func NewUserEmailEntity(userID int64, isConfirmed bool, provider string) *UserEmailEntity {
-	entity := &UserEmailEntity{
+func NewUserEmailEntity(userID int64, isConfirmed bool, provider string) *UserEmailData {
+	entity := &UserEmailData{
 		OwnedByUserWithIntID: user.NewOwnedByUserWithIntID(userID, time.Now()),
 		IsConfirmed:          isConfirmed,
 	}
@@ -98,16 +98,16 @@ func NewUserEmailEntity(userID int64, isConfirmed bool, provider string) *UserEm
 
 const pwdSole = "85d80e53-"
 
-func (entity *UserEmailEntity) CheckPassword(password string) error {
+func (entity *UserEmailData) CheckPassword(password string) error {
 	return bcrypt.CompareHashAndPassword(entity.PasswordBcryptHash, []byte(pwdSole+password))
 }
 
-func (entity *UserEmailEntity) SetPassword(password string) (err error) {
+func (entity *UserEmailData) SetPassword(password string) (err error) {
 	entity.PasswordBcryptHash, err = bcrypt.GenerateFromPassword([]byte(pwdSole+password), 0)
 	return
 }
 
-func (entity *UserEmailEntity) AddProvider(v string) (changed bool) {
+func (entity *UserEmailData) AddProvider(v string) (changed bool) {
 	for _, p := range entity.Providers {
 		if p == v {
 			return
@@ -118,11 +118,11 @@ func (entity *UserEmailEntity) AddProvider(v string) (changed bool) {
 	return
 }
 
-func (entity *UserEmailEntity) Load(ps []datastore.Property) error {
+func (entity *UserEmailData) Load(ps []datastore.Property) error {
 	return datastore.LoadStruct(entity, ps)
 }
 
-func (entity *UserEmailEntity) Save() (properties []datastore.Property, err error) {
+func (entity *UserEmailData) Save() (properties []datastore.Property, err error) {
 	if properties, err = datastore.SaveStruct(entity); err != nil {
 		return
 	}

@@ -110,7 +110,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	query := dal.From(models.ContactKind).WhereField("UserID", dal.Equal, userID).SelectInto(func() dal.Record {
-		return dal.NewRecordWithoutKey(new(models.AppUserData))
+		return dal.NewRecordWithoutKey(models.AppUserKind, reflect.Int64, new(models.AppUserData))
 	})
 	userCounterpartyRecords, err := db.SelectAll(c, query)
 	if err != nil {
@@ -136,7 +136,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 	sort.Sort(counterpartyIDs)
 
 	query = dal.From(models.TransferKind).WhereField("BothUserIDs", dal.Equal, userID).OrderBy(dal.AscendingField("DtCreated")).SelectInto(func() dal.Record {
-		return dal.NewRecordWithoutKey(new(models.AppUserData))
+		return dal.NewRecordWithoutKey(models.AppUserKind, reflect.Int64, new(models.AppUserData))
 	})
 
 	transferRecords, err := db.SelectAll(c, query)

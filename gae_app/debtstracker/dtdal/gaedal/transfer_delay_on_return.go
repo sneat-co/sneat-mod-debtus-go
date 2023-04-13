@@ -14,7 +14,7 @@ import (
 	"google.golang.org/appengine/v2/delay"
 )
 
-func (TransferDalGae) DelayUpdateTransfersOnReturn(c context.Context, returntransferID int, transferReturnsUpdate []dtdal.TransferReturnUpdate) (err error) {
+func (TransferDalGae) DelayUpdateTransfersOnReturn(c context.Context, returnTransferID int, transferReturnsUpdate []dtdal.TransferReturnUpdate) (err error) {
 	log.Debugf(c, "DelayUpdateTransfersOnReturn(returnTransferID=%v, transferReturnsUpdate=%v)", returnTransferID, transferReturnsUpdate)
 	if returnTransferID == 0 {
 		panic("returnTransferID == 0")
@@ -87,7 +87,7 @@ func updateTransferOnReturn(c context.Context, returnTransferID, transferID int,
 			return
 		}
 		if transfer.Data.HasInterest() && !transfer.Data.IsOutstanding {
-			if err = removeFromOutstandingWithInterest(c, transfer); err != nil {
+			if err = removeFromOutstandingWithInterest(c, tx, transfer); err != nil {
 				return
 			}
 		}
@@ -95,7 +95,7 @@ func updateTransferOnReturn(c context.Context, returnTransferID, transferID int,
 	}, dal.TxWithCrossGroup())
 }
 
-func removeFromOutstandingWithInterest(c context.Context, transfer models.Transfer) (err error) {
+func removeFromOutstandingWithInterest(c context.Context, tx dal.ReadwriteTransaction, transfer models.Transfer) (err error) {
 	removeFromOutstanding := func(userID, contactID int64) (err error) {
 		if userID == 0 && contactID == 0 {
 			return
@@ -109,7 +109,8 @@ func removeFromOutstandingWithInterest(c context.Context, transfer models.Transf
 				user models.AppUser
 				//contact models.Contact
 			)
-			if user, err = facade.User.GetUserByID(c, userID); err != nil {
+
+			if user, err = facade.User.GetUserByID(c, tx, userID); err != nil {
 				return
 			}
 			contacts := user.Data.Contacts()
@@ -121,7 +122,7 @@ func removeFromOutstandingWithInterest(c context.Context, transfer models.Transf
 						userContact.Transfers.OutstandingWithInterest = append(a[:i], a[i+1:]...)
 						user.Data.SetContacts(contacts)
 						user.Data.TransfersWithInterestCount -= 1
-						err = facade.User.SaveUser(c, user)
+						err = facade.User.SaveUser(c, tx, user)
 					}
 				}
 			}

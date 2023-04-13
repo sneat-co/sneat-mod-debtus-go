@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"net/http"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
@@ -36,7 +37,7 @@ func NewApiWebhookContext(r *http.Request, appUser *models.AppUserData, userID, 
 			telegram.Platform{},
 			*botsfw.NewBotContext(dtdal.BotHost, botSettings),
 			nil, // webhookInput
-			bots.BotCoreStores{},
+			botsfw.BotCoreStores{},
 			nil, // GaMeasurement
 			func() bool { return false },
 			nil,

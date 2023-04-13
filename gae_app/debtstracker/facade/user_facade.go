@@ -92,7 +92,7 @@ func (uf userFacade) CreateUserByEmail(
 			return
 		}
 
-		userEmail.UserEmailEntity = models.NewUserEmailEntity(user.ID, false, "email")
+		userEmail.UserEmailData = models.NewUserEmailEntity(user.ID, false, "email")
 		if err = userEmail.SetPassword(dtdal.RandomCode(8)); err != nil {
 			return
 		}

@@ -308,7 +308,7 @@ func CreateAskTransferCounterpartyCommand(
 				}
 				if isReturn && user.Data.BalanceCount <= 3 && user.Data.TotalContactsCount() <= 3 {
 					// If there is little debts in total show selection of debts immediately
-					counterparties, err := dtdal.Contact.GetLatestContacts(whc, 0, user.Data.TotalContactsCount())
+					counterparties, err := dtdal.Contact.GetLatestContacts(whc, nil, 0, user.Data.TotalContactsCount())
 					if err != nil {
 						return m, err
 					}

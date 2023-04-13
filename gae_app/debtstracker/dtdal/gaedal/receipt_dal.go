@@ -11,15 +11,9 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/strongo/app/gae"
-	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/datastore"
 	"google.golang.org/appengine/v2/delay"
 )
-
-func NewReceiptIncompleteKey() *dal.Key {
-	return models.NewReceiptKey(0)
-}
 
 type ReceiptDalGae struct {
 }
@@ -39,24 +33,25 @@ func (receiptDalGae ReceiptDalGae) GetReceiptByID(c context.Context, tx dal.Read
 	return receipt, tx.Get(c, receipt.Record)
 }
 
-func (receiptDalGae ReceiptDalGae) CreateReceipt(c context.Context, receipt *models.ReceiptEntity) (id int, err error) { // TODO: Move to facade
+func (receiptDalGae ReceiptDalGae) CreateReceipt(c context.Context, data *models.ReceiptData) (receipt models.Receipt, err error) { // TODO: Move to facade
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
 	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
-		receiptKey := NewReceiptIncompleteKey()
-		user, err := facade.User.GetUserByID(c, receipt.CreatorUserID)
-		if err != nil {
+		receipt = models.NewReceiptWithoutID(data)
+		var user models.AppUser
+		if user, err = facade.User.GetUserByID(c, tx, data.CreatorUserID); err != nil {
 			return err
 		}
 		user.Data.CountOfReceiptsCreated += 1
-		if keys, err := gaedb.PutMulti(c, []*datastore.Key{receiptKey, models.NewAppUserKey(receipt.CreatorUserID)}, []interface{}{receipt, user}); err != nil {
+		if err = tx.Set(c, user.Record); err != nil {
 			return err
-		} else {
-			receiptKey = keys[0]
 		}
-		id = receiptKey.IntID()
+		if err = tx.Insert(c, receipt.Record); err != nil {
+			return err
+		}
+		receipt.ID = receipt.Record.Key().ID.(int)
 		return nil
 	})
 	return
@@ -80,11 +75,11 @@ func (receiptDalGae ReceiptDalGae) MarkReceiptAsSent(c context.Context, receiptI
 	//		}
 	//		transferKey = NewTransferKey(c, transferID)
 	//	} else {
-	//		receipt.ReceiptEntity = new(models.ReceiptEntity)
+	//		receipt.ReceiptData = new(models.ReceiptData)
 	//		transfer.TransferEntity = new(models.TransferData)
 	//		transferKey = NewTransferKey(c, transferID)
 	//		keys := []*datastore.Key{receiptKey, transferKey}
-	//		if err = gaedb.GetMulti(c, keys, []interface{}{receipt.ReceiptEntity, transfer.TransferEntity}); err != nil {
+	//		if err = gaedb.GetMulti(c, keys, []interface{}{receipt.ReceiptData, transfer.TransferEntity}); err != nil {
 	//			return err
 	//		}
 	//	}
@@ -103,7 +98,7 @@ func (receiptDalGae ReceiptDalGae) MarkReceiptAsSent(c context.Context, receiptI
 	//		} else {
 	//			transfer.ReceiptIDs = append(transfer.ReceiptIDs, receiptID)
 	//			transfer.ReceiptsSentCount += 1
-	//			_, err = gaedb.PutMulti(c, []*datastore.Key{receiptKey, transferKey}, []interface{}{receipt.ReceiptEntity, transfer.TransferEntity})
+	//			_, err = gaedb.PutMulti(c, []*datastore.Key{receiptKey, transferKey}, []interface{}{receipt.ReceiptData, transfer.TransferEntity})
 	//		}
 	//	}
 	//	return err

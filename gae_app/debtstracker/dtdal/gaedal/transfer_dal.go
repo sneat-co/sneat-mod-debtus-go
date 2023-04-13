@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
+	"reflect"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
@@ -15,7 +16,6 @@ import (
 	"errors"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/datastore"
 	"google.golang.org/appengine/v2/delay"
 )
 
@@ -28,38 +28,40 @@ func NewTransferDalGae() TransferDalGae {
 
 var _ dtdal.TransferDal = (*TransferDalGae)(nil)
 
-func _loadDueOnTransfers(c context.Context, userID int64, limit int, filter func(q *datastore.Query) *datastore.Query) (transfers []models.Transfer, err error) {
-	q := datastore.NewQuery(models.TransferKind)
-	q = filter(q.Filter("BothUserIDs =", userID).Filter("IsOutstanding =", true))
-	q = q.Order("DtDueOn")
+func _loadDueOnTransfers(c context.Context, tx dal.ReadSession, userID int64, limit int, filter func(q dal.Selector) dal.Selector) (transfers []models.Transfer, err error) {
+	q := dal.From(models.TransferKind).
+		WhereField("BothUserIDs", "=", userID).
+		WhereField("IsOutstanding", "=", true).OrderBy(dal.AscendingField("DtDueOn"))
+	q = filter(q)
+	query := q.SelectInto(func() dal.Record {
+		return models.NewTransferWithIncompleteKey(nil).Record
+	})
 	if limit > 0 {
-		q = q.Limit(limit)
+		query.Limit = limit
 	}
 	var (
-		transferKeys     []*datastore.Key
-		transferEntities []*models.TransferData
+		transferRecords []dal.Record
 	)
 
-	if transferKeys, err = q.GetAll(c, &transferEntities); err != nil {
-		return
-	}
-	transfers = make([]models.Transfer, len(transferKeys))
-	for i, transferKey := range transferKeys {
-		transfer := models.NewTransfer(transferKey.IntID(), transferEntities[i])
+	transferRecords, err = tx.SelectAll(c, query)
+
+	transfers = make([]models.Transfer, len(transferRecords))
+	for i, transferRecord := range transferRecords {
+		transfer := models.NewTransfer(transferRecord.Key().ID.(int), transferRecord.Data().(*models.TransferData))
 		transfers[i] = transfer
 	}
 	return
 }
 
-func (transferDalGae TransferDalGae) LoadOverdueTransfers(c context.Context, userID int64, limit int) ([]models.Transfer, error) {
-	return _loadDueOnTransfers(c, userID, limit, func(q *datastore.Query) *datastore.Query {
-		return q.Filter("DtDueOn >", time.Time{}).Filter("DtDueOn <", time.Now())
+func (transferDalGae TransferDalGae) LoadOverdueTransfers(c context.Context, tx dal.ReadSession, userID int64, limit int) ([]models.Transfer, error) {
+	return _loadDueOnTransfers(c, tx, userID, limit, func(q dal.Selector) dal.Selector {
+		return q.WhereField("DtDueOn", dal.GreaterThen, time.Time{}).WhereField("DtDueOn", dal.LessThen, time.Now())
 	})
 }
 
-func (transferDalGae TransferDalGae) LoadDueTransfers(c context.Context, userID int64, limit int) ([]models.Transfer, error) {
-	return _loadDueOnTransfers(c, userID, limit, func(q *datastore.Query) *datastore.Query {
-		return q.Filter("DtDueOn >", time.Now())
+func (transferDalGae TransferDalGae) LoadDueTransfers(c context.Context, tx dal.ReadSession, userID int64, limit int) ([]models.Transfer, error) {
+	return _loadDueOnTransfers(c, tx, userID, limit, func(q dal.Selector) dal.Selector {
+		return q.WhereField("DtDueOn", dal.GreaterThen, time.Now())
 	})
 }
 
@@ -82,11 +84,11 @@ func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context,
 
 	// TODO: Load outstanding transfer just for the specific contact & specific direction
 	q := dal.From(models.TransferKind).Where(
-		dal.FieldCondition("BothUserIDs", dal.Equal, userID),
-		dal.FieldCondition("Currency", dal.Equal, string(currency)),
-		dal.FieldCondition("IsOutstanding", dal.Equal, true),
+		dal.WhereField("BothUserIDs", dal.Equal, userID),
+		dal.WhereField("Currency", dal.Equal, string(currency)),
+		dal.WhereField("IsOutstanding", dal.Equal, true),
 	).OrderBy(dal.AscendingField("DtCreated")).SelectInto(func() dal.Record {
-		return dal.NewRecordWithoutKey(&models.TransferData{})
+		return dal.NewRecordWithIncompleteKey(models.TransferKind, reflect.Int, &models.TransferData{})
 	})
 	q.Limit = limit
 	transferEntities := make([]*models.TransferData, 0, limit)

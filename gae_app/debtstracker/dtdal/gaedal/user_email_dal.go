@@ -19,10 +19,10 @@ func NewUserEmailGaeDal() UserEmailGaeDal {
 }
 
 func (UserEmailGaeDal) GetUserEmailByID(c context.Context, email string) (userEmail models.UserEmail, err error) {
-	userEmail.UserEmailEntity = new(models.UserEmailEntity)
+	userEmail.UserEmailData = new(models.UserEmailData)
 	key := NewUserEmailKey(c, email)
 	userEmail.ID = key.StringID()
-	if err = gaedb.Get(c, key, userEmail.UserEmailEntity); err != nil {
+	if err = gaedb.Get(c, key, userEmail.UserEmailData); err != nil {
 		if err == datastore.ErrNoSuchEntity {
 			err = dal.ErrRecordNotFound
 		}
@@ -32,6 +32,6 @@ func (UserEmailGaeDal) GetUserEmailByID(c context.Context, email string) (userEm
 }
 
 func (UserEmailGaeDal) SaveUserEmail(c context.Context, userEmail models.UserEmail) (err error) {
-	_, err = gaedb.Put(c, NewUserEmailKey(c, userEmail.ID), userEmail.UserEmailEntity)
+	_, err = gaedb.Put(c, NewUserEmailKey(c, userEmail.ID), userEmail.UserEmailData)
 	return
 }

@@ -156,20 +156,20 @@ func sendReceiptBySms(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, ph
 	}
 
 	var (
-		smsText   string
-		receiptID int
+		smsText string
 		//inviteCode string
 	)
 
-	receipt := models.NewReceiptEntity(whc.AppUserIntID(), transfer.ID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, "sms", strconv.FormatInt(phoneContact.PhoneNumber, 10), general.CreatedOn{
+	receiptData := models.NewReceiptEntity(whc.AppUserIntID(), transfer.ID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, "sms", strconv.FormatInt(phoneContact.PhoneNumber, 10), general.CreatedOn{
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
 	})
-	if receiptID, err = dtdal.Receipt.CreateReceipt(c, receipt); err != nil {
+	var receipt models.Receipt
+	if receipt, err = dtdal.Receipt.CreateReceipt(c, receiptData); err != nil {
 		return m, err
 	}
 
-	receiptUrl := common.GetReceiptUrl(receiptID, common.GetWebsiteHost(receipt.CreatedOnID))
+	receiptUrl := common.GetReceiptUrl(receipt.ID, common.GetWebsiteHost(receiptData.CreatedOnID))
 
 	if counterparty.Data.CounterpartyUserID == 0 {
 		//related := fmt.Sprintf("%v=%v", models.TransferKind, transferID)

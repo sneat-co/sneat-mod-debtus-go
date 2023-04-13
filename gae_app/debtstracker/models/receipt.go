@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
+	"reflect"
 	"time"
 )
 
@@ -27,27 +28,33 @@ var ReceiptStatuses = [4]string{
 
 type Receipt struct {
 	record.WithID[int]
-	Data *ReceiptEntity
+	Data *ReceiptData
 }
 
 func NewReceiptKey(id int) *dal.Key {
+	if id == 0 {
+		return NewReceiptIncompleteKey()
+	}
 	return dal.NewKeyWithID(ReceiptKind, id)
 }
-
-//var _ db.EntityHolder = (*Receipt)(nil)
 
 func (*Receipt) Kind() string {
 	return ReceiptKind
 }
-func NewReceipt(id int, data *ReceiptEntity) Receipt {
+
+func NewReceiptWithoutID(data *ReceiptData) Receipt {
+	key := NewReceiptIncompleteKey()
+	return Receipt{
+		WithID: record.NewWithID[int](0, key, data),
+		Data:   data,
+	}
+}
+
+func NewReceipt(id int, data *ReceiptData) Receipt {
 	key := NewReceiptKey(id)
 	return Receipt{
-		WithID: record.WithID[int]{
-			ID:     id,
-			Key:    key,
-			Record: dal.NewRecordWithData(key, data),
-		},
-		Data: data}
+		WithID: record.NewWithID[int](id, key, data),
+		Data:   data}
 }
 
 const (
@@ -57,7 +64,7 @@ const (
 
 type ReceiptFor string
 
-type ReceiptEntity struct {
+type ReceiptData struct {
 	Status               string
 	TransferID           int
 	CreatorUserID        int64      // IMPORTANT: Can be different from transfer.CreatorUserID (usually same). Think of 3d party bills
@@ -78,7 +85,11 @@ type ReceiptEntity struct {
 	Error          string `datastore:",noindex"` //TODO: Need a comment on when it is used
 }
 
-func NewReceiptEntity(creatorUserID int64, transferID int, counterpartyUserID int64, lang, sentVia, sentTo string, createdOn general.CreatedOn) *ReceiptEntity {
+func NewReceiptIncompleteKey() *dal.Key {
+	return dal.NewIncompleteKey(ReceiptKind, reflect.Int, nil)
+}
+
+func NewReceiptEntity(creatorUserID int64, transferID int, counterpartyUserID int64, lang, sentVia, sentTo string, createdOn general.CreatedOn) *ReceiptData {
 	if creatorUserID == counterpartyUserID {
 		panic("creatorUserID == counterpartyUserID")
 	}
@@ -91,7 +102,7 @@ func NewReceiptEntity(creatorUserID int64, transferID int, counterpartyUserID in
 	if createdOn.CreatedOnPlatform == "" {
 		panic("CreatedOnPlatform is empty")
 	}
-	return &ReceiptEntity{
+	return &ReceiptData{
 		CreatorUserID:      creatorUserID,
 		CounterpartyUserID: counterpartyUserID,
 		TransferID:         transferID,
@@ -104,11 +115,11 @@ func NewReceiptEntity(creatorUserID int64, transferID int, counterpartyUserID in
 	}
 }
 
-//func (r *ReceiptEntity) Load(ps []datastore.Property) error {
+//func (r *ReceiptData) Load(ps []datastore.Property) error {
 //	return datastore.LoadStruct(r, ps)
 //}
 
-func (r *ReceiptEntity) Validate() (err error) {
+func (r *ReceiptData) Validate() (err error) {
 	if r.TransferID == 0 {
 		return errors.New("receipt.TransferID == 0")
 	}
@@ -116,27 +127,27 @@ func (r *ReceiptEntity) Validate() (err error) {
 		return err
 	}
 	if r.CreatorUserID == 0 {
-		err = errors.New("ReceiptEntity.CreatorUserID == 0")
+		err = errors.New("ReceiptData.CreatorUserID == 0")
 		return
 	}
 	if r.CounterpartyUserID == r.CreatorUserID {
-		err = errors.New("ReceiptEntity.CounterpartyUserID == ReceiptEntity.CreatorUserID")
+		err = errors.New("ReceiptData.CounterpartyUserID == ReceiptData.CreatorUserID")
 		return
 	}
 	if r.CreatedOn.CreatedOnID == "" {
-		err = errors.New("ReceiptEntity.CreatedOnID is empty")
+		err = errors.New("ReceiptData.CreatedOnID is empty")
 		return
 	}
 	if r.CreatedOn.CreatedOnPlatform == "" {
-		err = errors.New("ReceiptEntity.CreatedOnPlatform is empty")
+		err = errors.New("ReceiptData.CreatedOnPlatform is empty")
 		return
 	}
 	if r.Lang == "" {
-		err = errors.New("ReceiptEntity.Lang is empty")
+		err = errors.New("ReceiptData.Lang is empty")
 		return
 	}
 	if r.Status == "" {
-		err = errors.New("ReceiptEntity.Status is empty")
+		err = errors.New("ReceiptData.Status is empty")
 		return
 	}
 

@@ -4,6 +4,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
+	"reflect"
 	"time"
 
 	"context"
@@ -58,7 +59,8 @@ func NewAuditGaeStore(c context.Context) AuditGaeStore {
 
 func (s AuditGaeStore) LogAuditRecord(c context.Context, action, message string, related ...string) (audit Audit, err error) {
 	audit.Data = NewAuditData(action, message, related...)
-	audit.Record = dal.NewRecordWithoutKey(audit.Data)
+	audit.Record = dal.NewRecordWithIncompleteKey("Audit", reflect.Int, audit.Data)
+	audit.Key = audit.Record.Key()
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {
 		return

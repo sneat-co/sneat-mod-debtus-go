@@ -5,6 +5,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
@@ -64,18 +65,18 @@ func startByLinkCode(whc botsfw.WebhookContext, matches []string) (m botsfw.Mess
 
 func startInvite(whc botsfw.WebhookContext, inviteCode, operation, localeCode5 string) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
-	invite, err := dtdal.Invite.GetInvite(c, inviteCode)
-	if err == nil {
-		if invite == nil {
-			m = whc.NewMessage(fmt.Sprintf("Unknown invite code: %v", inviteCode))
-		} else {
-			log.Debugf(c, "Invite(%v): ClaimedCount=%v, MaxClaimsCount=%v", inviteCode, invite.ClaimedCount, invite.MaxClaimsCount)
-			if invite.MaxClaimsCount == 0 || invite.ClaimedCount < invite.MaxClaimsCount {
-				return handleInviteOnStart(whc, inviteCode, invite)
-			} else {
-				m = whc.NewMessage(fmt.Sprintf("Known & already claimed invite code: %v", inviteCode))
-			}
+	var invite models.Invite
+	if invite, err = dtdal.Invite.GetInvite(c, nil, inviteCode); err != nil {
+		if dal.IsNotFound(err) {
+			return whc.NewMessage(fmt.Sprintf("Unknown invite code: %v", inviteCode)), nil
 		}
+		return
+	}
+	log.Debugf(c, "Invite(%v): ClaimedCount=%v, MaxClaimsCount=%v", inviteCode, invite.Data.ClaimedCount, invite.Data.MaxClaimsCount)
+	if invite.Data.MaxClaimsCount == 0 || invite.Data.ClaimedCount < invite.Data.MaxClaimsCount {
+		return handleInviteOnStart(whc, inviteCode, invite)
+	} else {
+		m = whc.NewMessage(fmt.Sprintf("Known & already claimed invite code: %v", inviteCode))
 	}
 	return m, err
 }

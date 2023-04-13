@@ -26,7 +26,7 @@ var LoginPinCommand = botsfw.Command{
 		context := strings.Split(mt, " ")[0]
 		contextParams := strings.Split(context, "_")
 		var (
-			loginID int64
+			loginID int
 			//gacID string
 			lang string
 		)
@@ -36,7 +36,7 @@ var LoginPinCommand = botsfw.Command{
 		for _, p := range contextParams {
 			switch {
 			case strings.HasPrefix(p, "login-"):
-				if loginID, err = strconv.ParseInt(p[len("login-"):], 10, 64); err != nil {
+				if loginID, err = strconv.Atoi(p[len("login-"):]); err != nil {
 					err = errors.New(whc.Translate("Parameter 'login_id'  should be an integer."))
 					return m, err
 				}

@@ -95,65 +95,72 @@ func (ContactDalGae) SaveContact(c context.Context, tx dal.ReadwriteTransaction,
 	return nil
 }
 
-func newContactQueryActive(userID int64) *datastore.Query {
-	return newContactQueryWithStatus(userID, models.STATUS_ACTIVE)
+func newUserActiveContactsQuery(userID int64) dal.Selector {
+	return newUserContactsQuery(userID).WhereField("Status", dal.Equal, models.STATUS_ACTIVE)
 }
 
-func newContactQueryWithStatus(userID int64, status string) *dal.Query {
-	query := datastore.NewQuery(models.ContactKind).Filter("UserID =", userID)
-	if status != "" {
-		query = query.Filter("Status =", status)
-	}
-	return query
+func newUserContactsQuery(userID int64) dal.Selector {
+	return dal.From(models.ContactKind).WhereField("UserID", dal.Equal, userID)
 }
 
-func (ContactDalGae) GetContactsWithDebts(c context.Context, tx dal.ReadTransaction, userID int64) (counterparties []models.Contact, err error) {
-	query := newContactQueryWithStatus(userID, "").Filter("BalanceCount >", 0)
-	var (
-		counterpartyKeys     []*datastore.Key
-		counterpartyEntities []*models.ContactData
-	)
-	if counterpartyKeys, err = query.GetAll(c, &counterpartyEntities); err != nil {
-		err = fmt.Errorf("method ContactDalGae.GetContactsWithDebts() failed to execute query.GetAll(): %w", err)
-		return
+func (ContactDalGae) GetContactsWithDebts(c context.Context, tx dal.ReadSession, userID int64) (counterparties []models.Contact, err error) {
+	query := newUserContactsQuery(userID).WhereField("BalanceCount", dal.GreaterThen, 0).SelectInto(func() dal.Record {
+		return dal.NewRecordWithoutKey(new(models.ContactData))
+	})
+	//var (
+	//	counterpartyEntities []*models.ContactData
+	//)
+	records, err := tx.SelectAll(c, query)
+	counterparties = make([]models.Contact, len(records))
+	for i, record := range records {
+		counterparties[i] = models.NewContact(record.Key().ID.(int64), record.Data().(*models.ContactData))
 	}
-	counterparties = zipCounterparty(counterpartyKeys, counterpartyEntities)
 	return
 }
 
-func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, limit, totalCount int) (counterparties []models.Contact, err error) {
+func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, tx dal.ReadSession, limit, totalCount int) (counterparties []models.Contact, err error) {
 	c := whc.Context()
-	query := newContactQueryActive(whc.AppUserIntID()).Order("-LastTransferAt")
+	query := newUserActiveContactsQuery(whc.AppUserIntID()).OrderBy(dal.DescendingField("LastTransferAt")).SelectInto(func() dal.Record {
+		return dal.NewRecordWithoutKey(new(models.ContactData))
+	})
 	if limit > 0 {
-		query = query.Limit(limit)
+		query.Limit = limit
 	}
-	var keys []*datastore.Key
-	var entities []*models.ContactData
-	if keys, err = query.GetAll(c, &entities); err != nil {
-		err = fmt.Errorf("method ContactDalGae.GetLatestContacts() failed: %w", err)
-		return
+	if tx == nil {
+		if tx, err = facade.GetDatabase(c); err != nil {
+			return
+		}
 	}
-	var contactsCount = len(keys)
+	var records []dal.Record
+	records, err = tx.SelectAll(c, query)
+	//var keys []*datastore.Key
+	//var entities []*models.ContactData
+	//if keys, err = query.GetAll(c, &entities); err != nil {
+	//	err = fmt.Errorf("method ContactDalGae.GetLatestContacts() failed: %w", err)
+	//	return
+	//}
+	var contactsCount = len(records)
 	log.Debugf(c, "GetLatestContacts(limit=%v, totalCount=%v): %v", limit, totalCount, contactsCount)
 	if (limit == 0 && contactsCount < totalCount) || (limit > 0 && totalCount > 0 && contactsCount < limit && contactsCount < totalCount) {
 		log.Debugf(c, "Querying counterparties without index -LastTransferAt")
-		query = newContactQueryActive(whc.AppUserIntID())
+		query = newUserActiveContactsQuery(whc.AppUserIntID()).SelectInto(func() dal.Record {
+			return dal.NewRecordWithoutKey(new(models.ContactData))
+		})
 		if limit > 0 {
-			query = query.Limit(limit)
+			query.Limit = limit
 		}
-		if keys2, err := query.GetAll(c, &entities); err != nil {
-			err = fmt.Errorf("ContactDalGae.GetLatestContacts() failed: %w", err)
-			return nil, err
-		} else {
-			keys = append(keys, keys2...)
+		if records, err = tx.SelectAll(c, query); err != nil {
+			return
 		}
-		log.Debugf(c, "len(keys): %v, len(entities): %v", len(keys), len(entities))
 	}
-	counterparties = zipCounterparty(keys, entities)
+	counterparties = make([]models.Contact, len(records))
+	for i, record := range records {
+		counterparties[i] = models.NewContact(record.Key().ID.(int64), record.Data().(*models.ContactData))
+	}
 	return
 }
 
-func (contactDalGae ContactDalGae) GetContactIDsByTitle(c context.Context, tx dal.ReadTransaction, userID int64, title string, caseSensitive bool) (contactIDs []int64, err error) {
+func (contactDalGae ContactDalGae) GetContactIDsByTitle(c context.Context, tx dal.ReadSession, userID int64, title string, caseSensitive bool) (contactIDs []int64, err error) {
 	var user models.AppUser
 	if user, err = facade.User.GetUserByID(c, tx, userID); err != nil {
 		return
@@ -175,16 +182,16 @@ func (contactDalGae ContactDalGae) GetContactIDsByTitle(c context.Context, tx da
 	return
 }
 
-func zipCounterparty(keys []*datastore.Key, entities []*models.ContactData) (contacts []models.Contact) {
-	if len(keys) != len(entities) {
-		panic(fmt.Sprintf("len(keys):%d != len(entities):%d", len(keys), len(entities)))
-	}
-	contacts = make([]models.Contact, len(entities))
-	for i, entity := range entities {
-		contacts[i] = models.NewContact(keys[i].IntID(), entity)
-	}
-	return
-}
+//func zipCounterparty(keys []*datastore.Key, entities []*models.ContactData) (contacts []models.Contact) {
+//	if len(keys) != len(entities) {
+//		panic(fmt.Sprintf("len(keys):%d != len(entities):%d", len(keys), len(entities)))
+//	}
+//	contacts = make([]models.Contact, len(entities))
+//	for i, entity := range entities {
+//		contacts[i] = models.NewContact(keys[i].IntID(), entity)
+//	}
+//	return
+//}
 
 func (contactDalGae ContactDalGae) InsertContact(c context.Context, tx dal.ReadwriteTransaction, contactEntity *models.ContactData) (
 	contact models.Contact, err error,

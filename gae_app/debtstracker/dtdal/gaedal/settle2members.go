@@ -1,14 +1,13 @@
 package gaedal
 
 import (
-	"fmt"
-	"github.com/crediterra/money"
-	"github.com/strongo/db"
-
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"fmt"
+	"github.com/crediterra/money"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/v2/datastore"
@@ -33,7 +32,11 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 		log.Debugf(c, "keys: %v", keys)
 	}
 
-	err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 		var (
 			group                     models.Group
 			groupDebtor, groupSponsor models.GroupMemberJson
@@ -81,7 +84,7 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 				panic(fmt.Sprintf("amount < 0: %v", amount))
 			}
 			bill := models.Bill{}
-			if bill, err = facade.GetBillByID(c, k.StringID()); err != nil {
+			if bill, err = facade.GetBillByID(c, tx, k.StringID()); err != nil {
 				return
 			}
 			billMembers := bill.Data.GetBillMembers()
@@ -163,14 +166,14 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 
 		if len(billsToSave) > 0 {
 			billsSettlement.Data.SetBillSettlements(groupID, settlementBills)
-			if err = dtdal.InsertWithRandomStringID(c, &billsSettlement, 6); err != nil {
+			if err = dtdal.InsertWithRandomStringID(c, tx, billsSettlement.Record); err != nil {
 				return
 			}
-			toSave := make([]db.EntityHolder, len(billsToSave)+1)
-			toSave[0] = &group
+			toSave := make([]dal.Record, len(billsToSave)+1)
+			toSave[0] = group.Record
 			for i, bill := range billsToSave {
 				bill.Data.SettlementIDs = append(bill.Data.SettlementIDs, billsSettlement.ID)
-				toSave[i+1] = &bill
+				toSave[i+1] = bill.Record
 			}
 
 			groupMembers := group.Data.GetGroupMembers()
@@ -185,11 +188,11 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 			if changed := group.Data.SetGroupMembers(groupMembers); !changed {
 				panic("Group members not changed - something wrong")
 			}
-			if err = dtdal.DB.UpdateMulti(c, toSave); err != nil {
+			if err = tx.SetMulti(c, toSave); err != nil {
 				return
 			}
 			billsSettlement.Data.GroupMembersJsonAfter = group.Data.MembersJson
-			if err = dtdal.DB.Update(c, &billsSettlement); err != nil {
+			if err = tx.Set(c, billsSettlement.Record); err != nil {
 				return
 			}
 		} else {
@@ -197,7 +200,7 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 		}
 
 		return
-	}, db.CrossGroupTransaction)
+	})
 
 	return
 }

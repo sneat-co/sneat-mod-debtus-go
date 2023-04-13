@@ -51,7 +51,7 @@ func createStartCommand(botParams BotParams) botsfw.Command {
 				case startParam == "help_inline":
 					return startInlineHelp(whc)
 				case strings.HasPrefix(startParam, "login-"):
-					loginID, err := common.DecodeID(startParam[len("login-"):])
+					loginID, err := common.DecodeIntID(startParam[len("login-"):])
 					if err != nil {
 						return m, err
 					}
@@ -67,13 +67,13 @@ func createStartCommand(botParams BotParams) botsfw.Command {
 	}
 }
 
-func startLoginGac(whc botsfw.WebhookContext, loginID int64) (m botsfw.MessageFromBot, err error) {
+func startLoginGac(whc botsfw.WebhookContext, loginID int) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	var loginPin models.LoginPin
 	if loginPin, err = facade.AuthFacade.AssignPinCode(c, loginID, whc.AppUserIntID()); err != nil {
 		return
 	}
-	return whc.NewMessageByCode(trans.MESSAGE_TEXT_LOGIN_CODE, models.LoginCodeToString(loginPin.Code)), nil
+	return whc.NewMessageByCode(trans.MESSAGE_TEXT_LOGIN_CODE, models.LoginCodeToString(loginPin.Data.Code)), nil
 }
 
 func startInlineHelp(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
