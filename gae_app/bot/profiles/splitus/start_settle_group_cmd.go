@@ -8,7 +8,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/log"
 	"net/url"
 	"strings"
@@ -38,7 +41,7 @@ func settleGroupStartAction(whc botsfw.WebhookContext, startParams []string) (m 
 			group.ID = p[len("group="):]
 		}
 	}
-	if group, err = dtdal.Group.GetGroupByID(whc.Context(), group.ID); err != nil {
+	if group, err = dtdal.Group.GetGroupByID(whc.Context(), nil, group.ID); err != nil {
 		return
 	}
 	return settleGroupAskForCounterpartyAction(whc, group)
@@ -47,7 +50,7 @@ func settleGroupStartAction(whc botsfw.WebhookContext, startParams []string) (m 
 func settleGroupAskForCounterpartyAction(whc botsfw.WebhookContext, group models.Group) (m botsfw.MessageFromBot, err error) {
 	isDebtor, isSponsor := false, false
 
-	groupMembers := group.GetGroupMembers()
+	groupMembers := group.Data.GetGroupMembers()
 
 	userID := whc.AppUserStrID()
 
@@ -112,7 +115,7 @@ userMemberFound:
 		}
 
 		var buf bytes.Buffer
-		buf.WriteString(whc.Translate(trans.MT_GROUP_LABEL, group.Name) + "\n\n")
+		buf.WriteString(whc.Translate(trans.MT_GROUP_LABEL, group.Data.Name) + "\n\n")
 
 		switch {
 		case isSponsor && !isDebtor:
@@ -151,7 +154,7 @@ func settleGroupCounterpartyChosenAction(whc botsfw.WebhookContext, group models
 
 	var userMember, counterpartyMember models.GroupMemberJson
 	userID := whc.AppUserStrID()
-	for _, m := range group.GetGroupMembers() {
+	for _, m := range group.Data.GetGroupMembers() {
 		if m.UserID == userID {
 			userMember = m
 			if counterpartyMember.ID != "" {
@@ -206,13 +209,13 @@ func settleGroupCounterpartyConfirmedAction(whc botsfw.WebhookContext, group mod
 
 	var userMember, counterpartyMember models.GroupMemberJson
 
-	if counterpartyMember, err = group.GetGroupMemberByID(memberID); err != nil {
+	if counterpartyMember, err = group.Data.GetGroupMemberByID(memberID); err != nil {
 		return
 	}
 
 	userID := whc.AppUserStrID()
 
-	for _, m := range group.GetGroupMembers() {
+	for _, m := range group.Data.GetGroupMembers() {
 		if m.UserID == userID {
 			userMember = m
 			break

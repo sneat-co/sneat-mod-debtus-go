@@ -3,13 +3,14 @@ package gaedal
 import (
 	"fmt"
 	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
 	"strings"
 	"sync"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
 )
@@ -21,12 +22,25 @@ func NewTgChatDalGae() TgChatDalGae {
 	return TgChatDalGae{}
 }
 
-//func (TgChatDalGae) GetTgChatByID(c context.Context, tgBotID string, tgChatID int64) (tgChat models.DebtusTelegramChat, err error) {
-//	tgChat = models.DebtusTelegramChat{}
-//	tgChat.SetID(tgBotID, tgChatID)
-//	err = dtdal.DB.Get(c, &tgChat)
-//	return
-//}
+func (TgChatDalGae) GetTgChatByID(c context.Context, tgBotID string, tgChatID int64) (tgChat models.DebtusTelegramChat, err error) {
+	tgChatFullID := fmt.Sprintf("%s:%d", tgBotID, tgChatID)
+	key := dal.NewKeyWithID(tgstore.TgChatCollection, tgChatFullID)
+	data := new(models.DebtusTelegramChatData)
+	tgChat = models.DebtusTelegramChat{
+		Chat: tgstore.Chat{
+			WithID: record.NewWithID[string](tgChatFullID, key, data),
+		},
+		Data: data,
+	}
+	//tgChat.SetID(tgBotID, tgChatID)
+
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
+	}
+	err = db.Get(c, tgChat.Record)
+	return
+}
 
 //func (TgChatDalGae) SaveTgChat(c context.Context, tgChat models.DebtusTelegramChat) error {
 //	return dtdal.DB.Update(c, &tgChat)
@@ -39,7 +53,7 @@ func (TgChatDalGae) /* TODO: rename properly! */ DoSomething(c context.Context,
 	var isSentToTelegram bool // Needed in case of failed to save to DB and is auto-retry
 	tgChatKey := gaedb.NewKey(c, tgstore.TgChatCollection, "", tgChatID, nil)
 	if err = gaedb.RunInTransaction(c, func(tc context.Context) (err error) {
-		var tgChat telegram.TgChatEntityBase
+		var tgChat tgstore.TgChatBase
 
 		if err = gaedb.Get(tc, tgChatKey, &tgChat); err != nil {
 			return fmt.Errorf("failed to get Telegram chat entity by key=%v: %w", tgChatKey, err)

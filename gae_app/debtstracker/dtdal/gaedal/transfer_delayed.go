@@ -85,7 +85,7 @@ var delayedUpdateTransfersWithCounterparty = delay.MustRegister(DELAY_UPDATE_TRA
 })
 
 var delayedUpdateTransferWithCounterparty = delay.MustRegister(DELAY_UPDATE_1_TRANSFER_WITH_COUNTERPARTY,
-	func(c context.Context, transferID, counterpartyCounterpartyID int64) error {
+	func(c context.Context, transferID int, counterpartyCounterpartyID int64) (err error) {
 		log.Debugf(c, "delayedUpdateTransferWithCounterparty(transferID=%d, counterpartyCounterpartyID=%d)", transferID, counterpartyCounterpartyID)
 		if transferID == 0 {
 			log.Errorf(c, "transferID == 0")
@@ -96,7 +96,12 @@ var delayedUpdateTransferWithCounterparty = delay.MustRegister(DELAY_UPDATE_1_TR
 			return nil
 		}
 
-		counterpartyCounterparty, err := facade.GetContactByID(c, tx, counterpartyCounterpartyID)
+		var db dal.Database
+		if db, err = GetDatabase(c); err != nil {
+			return err
+		}
+
+		counterpartyCounterparty, err := facade.GetContactByID(c, db, counterpartyCounterpartyID)
 		if err != nil {
 			log.Errorf(c, err.Error())
 			if dal.IsNotFound(err) {
@@ -107,7 +112,7 @@ var delayedUpdateTransferWithCounterparty = delay.MustRegister(DELAY_UPDATE_1_TR
 
 		log.Debugf(c, "counterpartyCounterparty: %v", counterpartyCounterparty)
 
-		counterpartyUser, err := facade.User.GetUserByID(c, tx, counterpartyCounterparty.Data.UserID)
+		counterpartyUser, err := facade.User.GetUserByID(c, db, counterpartyCounterparty.Data.UserID)
 		if err != nil {
 			log.Errorf(c, err.Error())
 			if dal.IsNotFound(err) {
@@ -118,7 +123,7 @@ var delayedUpdateTransferWithCounterparty = delay.MustRegister(DELAY_UPDATE_1_TR
 
 		log.Debugf(c, "counterpartyUser: %v", *counterpartyUser.Data)
 
-		if err := dtdal.DB.RunInTransaction(c, func(tc context.Context) error {
+		if err := db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) error {
 			transfer, err := facade.Transfers.GetTransferByID(tc, tx, transferID)
 			if err != nil {
 				return err
@@ -212,10 +217,14 @@ func DelayUpdateTransfersWithCreatorName(c context.Context, userID int64) error 
 	return gae.CallDelayFunc(c, common.QUEUE_TRANSFERS, UPDATE_TRANSFERS_WITH_CREATOR_NAME, delayedUpdateTransfersWithCreatorName, userID)
 }
 
-var delayedUpdateTransfersWithCreatorName = delay.MustRegister(UPDATE_TRANSFERS_WITH_CREATOR_NAME, func(c context.Context, userID int64) error {
+var delayedUpdateTransfersWithCreatorName = delay.MustRegister(UPDATE_TRANSFERS_WITH_CREATOR_NAME, func(c context.Context, userID int64) (err error) {
 	log.Debugf(c, "delayedUpdateTransfersWithCreatorName(userID=%d)", userID)
 
-	user, err := facade.User.GetUserByID(c, tx, userID)
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return err
+	}
+	user, err := facade.User.GetUserByID(c, db, userID)
 	if err != nil {
 		log.Errorf(c, err.Error())
 		if dal.IsNotFound(err) {
@@ -226,14 +235,21 @@ var delayedUpdateTransfersWithCreatorName = delay.MustRegister(UPDATE_TRANSFERS_
 
 	userName := user.Data.FullName()
 
-	query := datastore.NewQuery(models.TransferKind).KeysOnly().Filter("BothUserIDs =", userID)
+	query := dal.From(models.TransferKind).
+		WhereField("BothUserIDs", dal.Equal, userID).
+		SelectInto(models.NewTransferRecord)
 
-	t := query.Run(c)
+	var reader dal.Reader
+	reader, err = db.Select(c, query)
+
 	var wg sync.WaitGroup
 	defer wg.Wait()
 	for {
-		var transferEntity models.TransferData
-		key, err := t.Next(&transferEntity)
+		transferRecord, err := reader.Next()
+		if err != nil {
+			return err
+		}
+		trasfer := models.TransferFromRecord(transferRecord)
 		if err != nil {
 			if err == datastore.Done {
 				return nil
@@ -244,8 +260,8 @@ var delayedUpdateTransfersWithCreatorName = delay.MustRegister(UPDATE_TRANSFERS_
 		wg.Add(1)
 		go func(transferID int) {
 			defer wg.Done()
-			err := dtdal.DB.RunInTransaction(c, func(c context.Context) error {
-				transfer, err := facade.Transfers.GetTransferByID(c, transferID)
+			err := db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+				transfer, err := facade.Transfers.GetTransferByID(c, tx, transferID)
 				if err != nil {
 					return err
 				}
@@ -270,11 +286,11 @@ var delayedUpdateTransfersWithCreatorName = delay.MustRegister(UPDATE_TRANSFERS_
 					}
 				}
 				return err
-			}, dtdal.SingleGroupTransaction)
+			})
 			if err != nil {
 				log.Errorf(c, err.Error())
 			}
 			return
-		}(key.IntID())
+		}(trasfer.ID)
 	}
 })

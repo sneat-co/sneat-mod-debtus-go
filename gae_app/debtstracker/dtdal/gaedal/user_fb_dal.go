@@ -3,18 +3,18 @@ package gaedal
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/v2/datastore"
+	"errors"
+	"github.com/dal-go/dalgo/dal"
 )
 
-func NewUserFacebookKey(c context.Context, fbAppOrPageID, fbUserOrPageScopeID string) *datastore.Key {
+func NewUserFacebookKey(c context.Context, fbAppOrPageID, fbUserOrPageScopeID string) *dal.Key {
 	if fbAppOrPageID == "" {
 		panic("fbAppOrPageID is empty string")
 	}
 	if fbUserOrPageScopeID == "" {
 		panic("fbUserOrPageScopeID is empty string")
 	}
-	return gaedb.NewKey(c, models.UserFacebookKind, fbAppOrPageID+":"+fbUserOrPageScopeID, 0, nil)
+	return dal.NewKeyWithID(models.UserFacebookKind, fbAppOrPageID+":"+fbUserOrPageScopeID)
 }
 
 type UserFacebookDalGae struct {
@@ -24,34 +24,37 @@ func NewUserFacebookDalGae() UserFacebookDalGae {
 	return UserFacebookDalGae{}
 }
 
-func (UserFacebookDalGae) SaveFbUser(c context.Context, fbUser models.UserFacebook) (err error) {
-	key := NewUserFacebookKey(c, fbUser.FbAppOrPageID, fbUser.FbUserOrPageScopeID)
-	if _, err = gaedb.Put(c, key, fbUser.UserFacebookEntity); err != nil {
-		return
-	}
-	return
+func (UserFacebookDalGae) SaveFbUser(c context.Context, tx dal.ReadwriteTransaction, fbUser models.UserFacebook) (err error) {
+	//key := NewUserFacebookKey(c, fbUser.FbAppOrPageID, fbUser.FbUserOrPageScopeID)
+	//if _, err = gaedb.Put(c, key, fbUser.Data); err != nil {
+	//	return
+	//}
+	//return
+	return errors.New("not implemented")
 }
 
 func (UserFacebookDalGae) DeleteFbUser(c context.Context, fbAppOrPageID, fbUserOrPageScopeID string) (err error) {
-	key := NewUserFacebookKey(c, fbAppOrPageID, fbUserOrPageScopeID)
-	if err = gaedb.Delete(c, key); err != nil {
-		return
-	}
-	return
+	//key := NewUserFacebookKey(c, fbAppOrPageID, fbUserOrPageScopeID)
+	//if err = gaedb.Delete(c, key); err != nil {
+	//	return
+	//}
+	return errors.New("not implemented")
 }
 
 func (UserFacebookDalGae) GetFbUserByFbID(c context.Context, fbAppOrPageID, fbUserOrPageScopeID string) (fbUser models.UserFacebook, err error) {
-	var entity models.UserFacebookData
-	if err = gaedb.Get(c, NewUserFacebookKey(c, fbAppOrPageID, fbUserOrPageScopeID), &entity); err != nil {
-		if err == datastore.ErrNoSuchEntity {
-			err = db.NewErrNotFoundByStrID(models.UserFacebookKind, fbUserOrPageScopeID, err)
-		}
-		return
-	}
-	fbUser = models.UserFacebook{
-		FbAppOrPageID:       fbAppOrPageID,
-		FbUserOrPageScopeID: fbUserOrPageScopeID,
-		UserFacebookEntity:  &entity,
-	}
+	err = errors.New("not implemented")
 	return
+	//var entity models.UserFacebookData
+	//if err = gaedb.Get(c, NewUserFacebookKey(c, fbAppOrPageID, fbUserOrPageScopeID), &entity); err != nil {
+	//	if err == datastore.ErrNoSuchEntity {
+	//		err = db.NewErrNotFoundByStrID(models.UserFacebookKind, fbUserOrPageScopeID, err)
+	//	}
+	//	return
+	//}
+	//fbUser = models.UserFacebook{
+	//	FbAppOrPageID:       fbAppOrPageID,
+	//	FbUserOrPageScopeID: fbUserOrPageScopeID,
+	//	UserFacebookEntity:  &entity,
+	//}
+	//return
 }

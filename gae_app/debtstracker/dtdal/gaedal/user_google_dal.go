@@ -3,12 +3,12 @@ package gaedal
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/v2/datastore"
+	"errors"
+	"github.com/dal-go/dalgo/dal"
 )
 
-func NewUserGoogleKey(c context.Context, id string) *datastore.Key {
-	return gaedb.NewKey(c, models.UserGoogleKind, id, 0, nil)
+func NewUserGoogleKey(id string) *dal.Key {
+	return dal.NewKeyWithID(models.UserGoogleKind, id)
 }
 
 type UserGoogleDalGae struct {
@@ -19,29 +19,30 @@ func NewUserGoogleDalGae() UserGoogleDalGae {
 }
 
 func (UserGoogleDalGae) GetUserGoogleByID(c context.Context, googleUserID string) (userGoogle models.UserGoogle, err error) {
-	userGoogle.ID = googleUserID
-	userGoogle.UserGoogleEntity = new(models.UserGoogleData)
-	if err = gaedb.Get(c, NewUserGoogleKey(c, googleUserID), userGoogle.UserGoogleEntity); err != nil {
-		if err == datastore.ErrNoSuchEntity {
-			err = dal.ErrRecordNotFound
-		}
-		return
-	}
+	//userGoogle.ID = googleUserID
+	//userGoogle.Data = new(models.UserGoogleData)
+	//if err = gaedb.Get(c, NewUserGoogleKey(googleUserID), userGoogle.Data); err != nil {
+	//	if err == datastore.ErrNoSuchEntity {
+	//		err = dal.ErrRecordNotFound
+	//	}
+	//	return
+	//}
+	err = errors.New("not implemented")
 	return
 }
 
 func (UserGoogleDalGae) DeleteUserGoogle(c context.Context, googleUserID string) (err error) {
-	if err = gaedb.Delete(c, NewUserGoogleKey(c, googleUserID)); err != nil {
-		return
-	}
-	return
+	//if err = gaedb.Delete(c, NewUserGoogleKey(googleUserID)); err != nil {
+	//	return
+	//}
+	return errors.New("not implemented")
 }
 
 func (UserGoogleDalGae) SaveUserGoogle(c context.Context, userGoogle models.UserGoogle) (err error) {
-	if _, err = gaedb.Put(c, NewUserGoogleKey(c, userGoogle.ID), userGoogle.UserGoogleEntity); err != nil {
-		return
-	}
-	return
+	//if _, err = gaedb.Put(c, NewUserGoogleKey(userGoogle.ID), userGoogle.Data); err != nil {
+	//	return
+	//}
+	return errors.New("not implemented")
 }
 
 // TODO: Obsolete!

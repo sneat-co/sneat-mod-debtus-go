@@ -1,12 +1,10 @@
 package gaedal
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"fmt"
-	"github.com/strongo/db"
-	"github.com/strongo/db/gaedb"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/decimal"
 	"github.com/strongo/gotwilio"
 	"github.com/strongo/log"
@@ -21,20 +19,21 @@ func NewTwilioDalGae() TwilioDalGae {
 	return TwilioDalGae{}
 }
 
-func (TwilioDalGae) GetLastTwilioSmsesForUser(c context.Context, userID int64, to string, limit int) (result []models.TwilioSms, err error) {
-	query := datastore.NewQuery(models.TwilioSmsKind).Filter("UserID =", userID).Order("-DtCreated").Limit(limit)
+func (TwilioDalGae) GetLastTwilioSmsesForUser(c context.Context, tx dal.ReadSession, userID int64, to string, limit int) (result []models.TwilioSms, err error) {
+	q := dal.From(models.TwilioSmsKind).
+		WhereField("UserID", dal.Equal, userID).
+		OrderBy(dal.DescendingField("DtCreated"))
+
 	if to != "" {
-		query = query.Filter("To =", to)
+		q = q.WhereField("To", dal.Equal, to)
 	}
-	entities := make([]*models.TwilioSmsData, 0, 1)
-	keys := make([]*datastore.Key, 0, limit)
-	if keys, err = query.GetAll(c, &entities); err != nil || len(keys) == 0 {
+	query := q.SelectInto(models.NewTwilioSmsRecord)
+	query.Limit = limit
+	var records []dal.Record
+	if records, err = tx.SelectAll(c, query); err != nil {
 		return
 	}
-	result = make([]models.TwilioSms, len(keys))
-	for i, entity := range entities {
-		result[i] = models.TwilioSms{StringID: db.StringID{ID: keys[i].StringID()}, TwilioSmsData: entity}
-	}
+	result = models.NewTwilioSmsFromRecords(records)
 	return
 }
 
@@ -48,49 +47,42 @@ func (TwilioDalGae) SaveTwilioSms(
 	smsStatusMessageID int,
 ) (twilioSms models.TwilioSms, err error) {
 	var twilioSmsEntity models.TwilioSmsData
-	if err = dtdal.DB.RunInTransaction(c, func(tc context.Context) error {
-		userKey := models.NewAppUserKey(userID)
-		transferKey := NewTransferKey(tc, transfer.ID)
-		counterpartyKey := NewContactKey(tc, transfer.Counterparty().ContactID)
-		twilioSmsKey := gaedb.NewKey(tc, models.TwilioSmsKind, smsResponse.Sid, 0, nil)
-		var (
-			appUserEntity      models.AppUserData
-			counterpartyEntity models.ContactData
-		)
-		if err := gaedb.GetMulti(tc, []*datastore.Key{userKey, twilioSmsKey, transferKey, counterpartyKey}, []interface{}{&appUserEntity, &twilioSmsEntity, transfer.TransferEntity, &counterpartyEntity}); err != nil {
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
+	}
+	if err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) error {
+		user := models.NewAppUser(userID, nil)
+		twilioSms = models.NewTwilioSms(smsResponse.Sid, nil)
+		counterparty := models.NewContact(transfer.Data.Counterparty().ContactID, nil)
+		if err := tx.GetMulti(tc, []dal.Record{user.Record, twilioSms.Record, transfer.Record, counterparty.Record}); err != nil {
 			if multiError, ok := err.(appengine.MultiError); ok {
 				if multiError[1] == datastore.ErrNoSuchEntity {
 					twilioSmsEntity = models.NewTwilioSmsFromSmsResponse(userID, smsResponse)
 					twilioSmsEntity.CreatorTgChatID = tgChatID
 					twilioSmsEntity.CreatorTgSmsStatusMessageID = smsStatusMessageID
 
-					appUserEntity.SmsCount += 1
-					transfer.SmsCount += 1
+					user.Data.SmsCount += 1
+					transfer.Data.SmsCount += 1
 
-					appUserEntity.SmsCost += twilioSmsEntity.Price
-					transfer.SmsCost += twilioSmsEntity.Price
+					user.Data.SmsCost += twilioSmsEntity.Price
+					transfer.Data.SmsCost += twilioSmsEntity.Price
 
 					smsPriceUSD := decimal.NewDecimal64p2FromFloat64(float64(twilioSmsEntity.Price))
 					twilioSmsEntity.PriceUSD = smsPriceUSD
-					appUserEntity.SmsCostUSD += smsPriceUSD
-					transfer.SmsCostUSD += smsPriceUSD
+					user.Data.SmsCostUSD += smsPriceUSD
+					transfer.Data.SmsCostUSD += smsPriceUSD
 
-					keysToPut := []*datastore.Key{
-						userKey,
-						twilioSmsKey,
-						transferKey,
+					recordsToPut := []dal.Record{
+						user.Record,
+						twilioSms.Record,
+						transfer.Record,
 					}
-					entitiesToPut := []interface{}{
-						&appUserEntity,
-						&twilioSmsEntity,
-						transfer.TransferEntity,
+					if counterparty.Data.PhoneContact.PhoneNumber != phoneContact.PhoneNumber {
+						counterparty.Data.PhoneContact = phoneContact
+						recordsToPut = append(recordsToPut, counterparty.Record)
 					}
-					if counterpartyEntity.PhoneContact.PhoneNumber != phoneContact.PhoneNumber {
-						counterpartyEntity.PhoneContact = phoneContact
-						keysToPut = append(keysToPut, counterpartyKey)
-						entitiesToPut = append(entitiesToPut, &counterpartyEntity)
-					}
-					if _, err = gaedb.PutMulti(tc, keysToPut, entitiesToPut); err != nil {
+					if err = tx.SetMulti(tc, recordsToPut); err != nil {
 						log.Errorf(c, "Failed to save Twilio SMS")
 						return err
 					}
@@ -105,10 +97,9 @@ func (TwilioDalGae) SaveTwilioSms(
 			log.Warningf(c, "Twillio SMS already saved to DB (2)")
 		}
 		return nil
-	}, dtdal.CrossGroupTransaction); err != nil {
+	}); err != nil {
 		err = fmt.Errorf("failed to save Twilio response to DB: %w", err)
 		return
 	}
-	twilioSms = models.TwilioSms{StringID: db.StringID{ID: smsResponse.Sid}, TwilioSmsData: &twilioSmsEntity}
 	return
 }

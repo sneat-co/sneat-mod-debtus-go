@@ -24,7 +24,7 @@ func sendReminderByEmail(c context.Context, reminder models.Reminder, emailTo st
 	var subj bytes.Buffer
 
 	subj.WriteString("Due payment notification")
-	text.WriteString(fmt.Sprintf("Hi %v, you have a due payment to %v: %v%v.", transfer.Counterparty().ContactName, user.Username, transfer.AmountInCents, transfer.Currency))
+	text.WriteString(fmt.Sprintf("Hi %v, you have a due payment to %v: %v%v.", transfer.Data.Counterparty().ContactName, user.Username, transfer.Data.AmountInCents, transfer.Data.Currency))
 
 	svc := ses.New(common.AwsSessionInstance)
 	params := &ses.SendEmailInput{

@@ -3,13 +3,8 @@ package gaedal
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/v2/datastore"
+	"github.com/dal-go/dalgo/dal"
 )
-
-func NewUserEmailKey(c context.Context, email string) *datastore.Key {
-	return datastore.NewKey(c, models.UserEmailKind, models.GetEmailID(email), 0, nil)
-}
 
 type UserEmailGaeDal struct {
 }
@@ -18,20 +13,11 @@ func NewUserEmailGaeDal() UserEmailGaeDal {
 	return UserEmailGaeDal{}
 }
 
-func (UserEmailGaeDal) GetUserEmailByID(c context.Context, email string) (userEmail models.UserEmail, err error) {
-	userEmail.UserEmailData = new(models.UserEmailData)
-	key := NewUserEmailKey(c, email)
-	userEmail.ID = key.StringID()
-	if err = gaedb.Get(c, key, userEmail.UserEmailData); err != nil {
-		if err == datastore.ErrNoSuchEntity {
-			err = dal.ErrRecordNotFound
-		}
-		return
-	}
-	return
+func (UserEmailGaeDal) GetUserEmailByID(c context.Context, tx dal.ReadSession, email string) (userEmail models.UserEmail, err error) {
+	userEmail = models.NewUserEmail(email, nil)
+	return userEmail, tx.Get(c, userEmail.Record)
 }
 
-func (UserEmailGaeDal) SaveUserEmail(c context.Context, userEmail models.UserEmail) (err error) {
-	_, err = gaedb.Put(c, NewUserEmailKey(c, userEmail.ID), userEmail.UserEmailData)
-	return
+func (UserEmailGaeDal) SaveUserEmail(c context.Context, tx dal.ReadwriteTransaction, userEmail models.UserEmail) (err error) {
+	return tx.Set(c, userEmail.Record)
 }

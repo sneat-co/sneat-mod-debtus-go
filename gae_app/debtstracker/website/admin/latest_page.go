@@ -53,10 +53,10 @@ func LatestPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		b.WriteString(user.BalanceJson)
 		b.WriteString("</td><td>")
 		if user.InvitedByUserID != 0 {
-			if invitedByUser, err := facade.User.GetUserByID(c, user.InvitedByUserID); err != nil {
+			if invitedByUser, err := facade.User.GetUserByID(c, nil, user.InvitedByUserID); err != nil {
 				b.WriteString(err.Error())
 			} else {
-				b.WriteString(fmt.Sprintf("<a href='user?id=%v>%v</a>')", user.InvitedByUserID, invitedByUser.FullName()))
+				b.WriteString(fmt.Sprintf("<a href='user?id=%v>%v</a>')", user.InvitedByUserID, invitedByUser.Data.FullName()))
 			}
 		}
 		b.WriteString("</td></tr>")

@@ -3,6 +3,9 @@ package splitus
 import (
 	"bytes"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
@@ -36,10 +39,10 @@ func groupBalanceAction(whc botsfw.WebhookContext, group models.Group) (m botsfw
 			buf.WriteString("\n")
 		}
 	}
-	groupMembers := group.GetGroupMembers()
+	groupMembers := group.Data.GetGroupMembers()
 	sponsors, debtors := getGroupSponsorsAndDebtors(groupMembers)
 
-	buf.WriteString(whc.Translate(trans.MT_GROUP_LABEL, group.Name))
+	buf.WriteString(whc.Translate(trans.MT_GROUP_LABEL, group.Data.Name))
 	buf.WriteString("\n")
 
 	buf.WriteString("\n")

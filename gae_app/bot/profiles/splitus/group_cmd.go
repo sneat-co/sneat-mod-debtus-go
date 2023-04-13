@@ -2,7 +2,10 @@ package splitus
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 	"strconv"
 
@@ -74,7 +77,7 @@ var groupCommand = botsfw.NewCallbackCommand(groupCommandCode,
 
 		var group models.Group
 
-		if group, err = dtdal.Group.GetGroupByID(c, userGroupJson.ID); err != nil {
+		if group, err = dtdal.Group.GetGroupByID(c, nil, userGroupJson.ID); err != nil {
 			return
 		}
 
@@ -82,7 +85,7 @@ var groupCommand = botsfw.NewCallbackCommand(groupCommandCode,
 
 		fmt.Fprintf(buf, "<b>Group #%d</b>: %v", i+1, userGroupJson.Name)
 		var groupMemberJson models.GroupMemberJson
-		if groupMemberJson, err = group.GetGroupMemberByUserID(strconv.FormatInt(whc.AppUserIntID(), 10)); err != nil {
+		if groupMemberJson, err = group.Data.GetGroupMemberByUserID(strconv.FormatInt(whc.AppUserIntID(), 10)); err != nil {
 			return
 		}
 		writeBalanceSide := func(title string, sign decimal.Decimal64p2, b money.Balance) {
@@ -101,7 +104,7 @@ var groupCommand = botsfw.NewCallbackCommand(groupCommandCode,
 		}
 		writeBalanceSide("Owed to me", +1, groupMemberJson.Balance.OnlyPositive())
 		writeBalanceSide("I owe", -1, groupMemberJson.Balance.OnlyNegative())
-		fmt.Fprintf(buf, "\n<b>Members</b>: %v", group.MembersCount)
+		fmt.Fprintf(buf, "\n<b>Members</b>: %v", group.Data.MembersCount)
 
 		m.Text = buf.String()
 

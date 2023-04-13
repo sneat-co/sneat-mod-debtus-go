@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/base64"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"strings"
 	"time"
@@ -23,6 +24,21 @@ type UserEmailData struct {
 }
 
 var _ user.AccountData = (*UserEmailData)(nil)
+
+func NewUserEmailKey(email string) *dal.Key {
+	return dal.NewKeyWithID(UserEmailKind, GetEmailID(email))
+}
+
+func NewUserEmail(email string, data *UserEmailData) UserEmail {
+	id := GetEmailID(email)
+	if data == nil {
+		data = new(UserEmailData)
+	}
+	return UserEmail{
+		WithID:        record.NewWithID(id, NewUserEmailKey(email), data),
+		UserEmailData: data,
+	}
+}
 
 func (entity UserEmailData) ConfirmationPin() string {
 	pin := base64.RawURLEncoding.EncodeToString(entity.PasswordBcryptHash)
@@ -72,12 +88,12 @@ func GetEmailID(email string) string {
 	return strings.ToLower(strings.TrimSpace(email))
 }
 
-func NewUserEmail(email string, isConfirmed bool, provider string) UserEmail {
-	return UserEmail{
-		WithID:        record.WithID[string]{ID: GetEmailID(email)},
-		UserEmailData: NewUserEmailEntity(0, isConfirmed, provider),
-	}
-}
+//func NewUserEmail(email string, isConfirmed bool, provider string) UserEmail {
+//	return UserEmail{
+//		WithID:        record.WithID[string]{ID: GetEmailID(email)},
+//		UserEmailData: NewUserEmailData(0, isConfirmed, provider),
+//	}
+//}
 
 func (userEmail UserEmail) GetEmail() string {
 	return userEmail.ID
@@ -87,7 +103,7 @@ func (entity *UserEmailData) IsEmailConfirmed() bool {
 	return entity.IsConfirmed
 }
 
-func NewUserEmailEntity(userID int64, isConfirmed bool, provider string) *UserEmailData {
+func NewUserEmailData(userID int64, isConfirmed bool, provider string) *UserEmailData {
 	entity := &UserEmailData{
 		OwnedByUserWithIntID: user.NewOwnedByUserWithIntID(userID, time.Now()),
 		IsConfirmed:          isConfirmed,

@@ -1,6 +1,7 @@
 package splitus
 
 import (
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"net/url"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"

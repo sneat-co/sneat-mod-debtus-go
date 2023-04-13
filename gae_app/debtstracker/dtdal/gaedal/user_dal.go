@@ -61,18 +61,14 @@ func (userDal UserDalGae) GetUserByEmail(c context.Context, email string) (model
 	query := dal.From(models.AppUserKind).Where(
 		dal.WhereField("EmailAddress", dal.Equal, email),
 		dal.WhereField("EmailConfirmed", dal.Equal, true),
-	).SelectInto(func() dal.Record {
-		return dal.NewRecordWithoutKey(&models.AppUserData{})
-	})
+	).SelectInto(models.NewAppUserRecord)
 	query.Limit = 2
 	user, err := userDal.getUserByQuery(c, query, "EmailAddress, is confirmed")
 	if user.ID == 0 && dal.IsNotFound(err) {
 		query = dal.From(models.AppUserKind).Where(
 			dal.WhereField("EmailAddress", dal.Equal, email),
 			dal.WhereField("EmailConfirmed", dal.Equal, false),
-		).SelectInto(func() dal.Record {
-			return dal.NewRecordWithoutKey(&models.AppUserData{})
-		})
+		).SelectInto(models.NewAppUserRecord)
 		query.Limit = 2
 		user, err = userDal.getUserByQuery(c, query, "EmailAddress, is not confirmed")
 	}

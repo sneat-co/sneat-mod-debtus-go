@@ -104,9 +104,9 @@ func newUserContactsQuery(userID int64) dal.Selector {
 }
 
 func (ContactDalGae) GetContactsWithDebts(c context.Context, tx dal.ReadSession, userID int64) (counterparties []models.Contact, err error) {
-	query := newUserContactsQuery(userID).WhereField("BalanceCount", dal.GreaterThen, 0).SelectInto(func() dal.Record {
-		return dal.NewRecordWithoutKey(new(models.ContactData))
-	})
+	query := newUserContactsQuery(userID).
+		WhereField("BalanceCount", dal.GreaterThen, 0).
+		SelectInto(models.NewContactRecord)
 	//var (
 	//	counterpartyEntities []*models.ContactData
 	//)
@@ -120,9 +120,9 @@ func (ContactDalGae) GetContactsWithDebts(c context.Context, tx dal.ReadSession,
 
 func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, tx dal.ReadSession, limit, totalCount int) (counterparties []models.Contact, err error) {
 	c := whc.Context()
-	query := newUserActiveContactsQuery(whc.AppUserIntID()).OrderBy(dal.DescendingField("LastTransferAt")).SelectInto(func() dal.Record {
-		return dal.NewRecordWithoutKey(new(models.ContactData))
-	})
+	query := newUserActiveContactsQuery(whc.AppUserIntID()).
+		OrderBy(dal.DescendingField("LastTransferAt")).
+		SelectInto(models.NewContactRecord)
 	if limit > 0 {
 		query.Limit = limit
 	}
@@ -143,9 +143,8 @@ func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, tx dal.ReadSes
 	log.Debugf(c, "GetLatestContacts(limit=%v, totalCount=%v): %v", limit, totalCount, contactsCount)
 	if (limit == 0 && contactsCount < totalCount) || (limit > 0 && totalCount > 0 && contactsCount < limit && contactsCount < totalCount) {
 		log.Debugf(c, "Querying counterparties without index -LastTransferAt")
-		query = newUserActiveContactsQuery(whc.AppUserIntID()).SelectInto(func() dal.Record {
-			return dal.NewRecordWithoutKey(new(models.ContactData))
-		})
+		query = newUserActiveContactsQuery(whc.AppUserIntID()).
+			SelectInto(models.NewTransferRecord)
 		if limit > 0 {
 			query.Limit = limit
 		}

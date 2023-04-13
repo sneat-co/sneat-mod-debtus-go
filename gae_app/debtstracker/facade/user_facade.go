@@ -72,7 +72,7 @@ func (uf userFacade) CreateUserByEmail(
 		return
 	}
 	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
-		if userEmail, err = dtdal.UserEmail.GetUserEmailByID(c, email); err == nil {
+		if userEmail, err = dtdal.UserEmail.GetUserEmailByID(c, tx, email); err == nil {
 			return ErrEmailAlreadyRegistered
 		} else if !dal.IsNotFound(err) {
 			return
@@ -92,12 +92,12 @@ func (uf userFacade) CreateUserByEmail(
 			return
 		}
 
-		userEmail.UserEmailData = models.NewUserEmailEntity(user.ID, false, "email")
+		userEmail.UserEmailData = models.NewUserEmailData(user.ID, false, "email")
 		if err = userEmail.SetPassword(dtdal.RandomCode(8)); err != nil {
 			return
 		}
 
-		err = dtdal.UserEmail.SaveUserEmail(c, userEmail)
+		err = dtdal.UserEmail.SaveUserEmail(c, tx, userEmail)
 		return
 	})
 
@@ -124,7 +124,7 @@ func (uf userFacade) GetOrCreateEmailUser(
 		return
 	}
 	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
-		if userEmail, err = dtdal.UserEmail.GetUserEmailByID(c, email); err == nil {
+		if userEmail, err = dtdal.UserEmail.GetUserEmailByID(c, tx, email); err == nil {
 			return // User found
 		} else if !dal.IsNotFound(err) { //
 			return // Internal error
@@ -133,7 +133,7 @@ func (uf userFacade) GetOrCreateEmailUser(
 
 		now := time.Now()
 		isNewUser = true
-		userEmail = models.NewUserEmail(email, isConfirmed, "email")
+		userEmail = models.NewUserEmail(email, models.NewUserEmailData(0, isConfirmed, "email"))
 		appUser = models.NewUser(models.ClientInfo{})
 		appUser.Data.DtCreated = now
 		appUser.Data.AddAccount(userEmail.UserAccount())
@@ -145,7 +145,7 @@ func (uf userFacade) GetOrCreateEmailUser(
 		}
 		userEmail.DtCreated = now
 
-		if err = dtdal.UserEmail.SaveUserEmail(c, userEmail); err != nil {
+		if err = dtdal.UserEmail.SaveUserEmail(c, tx, userEmail); err != nil {
 			return err
 		}
 		return nil
@@ -282,12 +282,12 @@ func getOrCreateUserAccountRecordOnSignIn(
 		}
 
 		var userEmail models.UserEmail
-		if userEmail, err = dtdal.UserEmail.GetUserEmailByID(c, email); err != nil && !dal.IsNotFound(err) {
+		if userEmail, err = dtdal.UserEmail.GetUserEmailByID(c, tx, email); err != nil && !dal.IsNotFound(err) {
 			return // error
 		}
 
 		if dal.IsNotFound(err) { // UserEmail record NOT found
-			userEmail := models.NewUserEmail(email, true, provider)
+			userEmail := models.NewUserEmail(email, models.NewUserEmailData(0, true, provider))
 			userEmail.DtCreated = now
 
 			// We need to create new User entity
@@ -330,7 +330,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 
 			if changed := userEmail.AddProvider(provider); changed || !userEmail.IsConfirmed {
 				userEmail.IsConfirmed = true
-				if err = dtdal.UserEmail.SaveUserEmail(c, userEmail); err != nil {
+				if err = dtdal.UserEmail.SaveUserEmail(c, tx, userEmail); err != nil {
 					return
 				}
 			}

@@ -8,10 +8,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/bots-go-framework/bots-fw-telegram"
+	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/log"
-	"github.com/strongo/nds"
 	"net/http"
 	"strconv"
 	"time"
@@ -24,7 +23,7 @@ func SendReminderHandler(c context.Context, w http.ResponseWriter, r *http.Reque
 		log.Errorf(c, "Failed to parse form")
 		return
 	}
-	reminderID, err := strconv.ParseInt(r.FormValue("id"), 10, 64)
+	reminderID, err := strconv.Atoi(r.FormValue("id"))
 	if err != nil {
 		log.Errorf(c, "Failed to convert reminder ID to int")
 		return
@@ -37,37 +36,42 @@ func SendReminderHandler(c context.Context, w http.ResponseWriter, r *http.Reque
 	}
 }
 
-func sendReminder(c context.Context, reminderID int64) error {
+func sendReminder(c context.Context, reminderID int) (err error) {
 	log.Debugf(c, "sendReminder(reminderID=%v)", reminderID)
 	if reminderID == 0 {
 		return errors.New("reminderID == 0")
 	}
 
-	reminder, err := dtdal.Reminder.GetReminderByID(c, reminderID)
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return fmt.Errorf("failed to get database: %w", err)
+	}
+
+	reminder, err := dtdal.Reminder.GetReminderByID(c, db, reminderID)
 	if err != nil {
 		return err
 	}
-	if reminder.Status != models.ReminderStatusCreated {
-		log.Infof(c, "reminder.Status:%v != models.ReminderStatusCreated", reminder.Status)
+	if reminder.Data.Status != models.ReminderStatusCreated {
+		log.Infof(c, "reminder.Status:%v != models.ReminderStatusCreated", reminder.Data.Status)
 		return nil
 	}
 
-	transfer, err := facade.Transfers.GetTransferByID(c, tx, reminder.TransferID)
+	transfer, err := facade.Transfers.GetTransferByID(c, nil, reminder.Data.TransferID)
 	if err != nil {
 		if dal.IsNotFound(err) {
 			log.Errorf(c, err.Error())
-			if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-				if reminder, err = dtdal.Reminder.GetReminderByID(c, reminderID); err != nil {
+			if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+				if reminder, err = dtdal.Reminder.GetReminderByID(c, tx, reminderID); err != nil {
 					return
 				}
-				reminder.Status = "invalid:no-transfer"
-				reminder.DtUpdated = time.Now()
-				reminder.DtNext = time.Time{}
-				if err = dtdal.Reminder.SaveReminder(c, reminder); err != nil {
+				reminder.Data.Status = "invalid:no-transfer"
+				reminder.Data.DtUpdated = time.Now()
+				reminder.Data.DtNext = time.Time{}
+				if err = dtdal.Reminder.SaveReminder(c, tx, reminder); err != nil {
 					return
 				}
 				return
-			}, dtdal.SingleGroupTransaction); err != nil {
+			}); err != nil {
 				return fmt.Errorf("failed to update reminder: %w", err)
 			}
 			return nil
@@ -77,15 +81,15 @@ func sendReminder(c context.Context, reminderID int64) error {
 	}
 
 	if !transfer.Data.IsOutstanding {
-		log.Infof(c, "Transfer(id=%v) is not outstanding, transfer.Amount=%v, transfer.AmountInCentsReturned=%v", reminder.TransferID, transfer.Data.AmountInCents, transfer.Data.AmountReturned())
-		if err := gaedal.DiscardReminder(c, reminderID, reminder.TransferID, 0); err != nil {
-			return fmt.Errorf("failed to discard a reminder for non outstanding transfer id=%v: %w", reminder.TransferID, err)
+		log.Infof(c, "Transfer(id=%v) is not outstanding, transfer.Amount=%v, transfer.AmountInCentsReturned=%v", reminder.Data.TransferID, transfer.Data.AmountInCents, transfer.Data.AmountReturned())
+		if err := gaedal.DiscardReminder(c, reminderID, reminder.Data.TransferID, 0); err != nil {
+			return fmt.Errorf("failed to discard a reminder for non outstanding transfer id=%v: %w", reminder.Data.TransferID, err)
 		}
 		return nil
 	}
 
 	if err = sendReminderToUser(c, reminderID, transfer); err != nil {
-		log.Errorf(c, "Failed to send reminder (id=%v) for transfer %v: %v", reminderID, reminder.TransferID, err.Error())
+		log.Errorf(c, "Failed to send reminder (id=%v) for transfer %v: %v", reminderID, reminder.Data.TransferID, err.Error())
 	}
 
 	return nil
@@ -93,22 +97,26 @@ func sendReminder(c context.Context, reminderID int64) error {
 
 var errReminderAlreadySentOrIsBeingSent = errors.New("Reminder already sent or is being sent")
 
-func sendReminderToUser(c context.Context, reminderID int64, transfer models.Transfer) (err error) {
+func sendReminderToUser(c context.Context, reminderID int, transfer models.Transfer) (err error) {
 
 	var reminder models.Reminder
 
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return fmt.Errorf("failed to get database: %w", err)
+	}
 	// If sending notification failed do not try to resend - to prevent spamming.
-	if err = dtdal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
-		reminder, err = dtdal.Reminder.GetReminderByID(c, reminderID)
+	if err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) (err error) {
+		reminder, err = dtdal.Reminder.GetReminderByID(c, tx, reminderID)
 
-		if reminder, err = dtdal.Reminder.GetReminderByID(c, reminderID); err != nil {
+		if reminder, err = dtdal.Reminder.GetReminderByID(c, tx, reminderID); err != nil {
 			return fmt.Errorf("failed to get reminder by id=%v: %w", reminderID, err)
 		}
-		if reminder.Status != models.ReminderStatusCreated {
+		if reminder.Data.Status != models.ReminderStatusCreated {
 			return errReminderAlreadySentOrIsBeingSent
 		}
-		reminder.Status = models.ReminderStatusSending
-		if err = dtdal.Reminder.SaveReminder(tc, reminder); err != nil { // TODO: User dtdal.Reminder.SaveReminder()
+		reminder.Data.Status = models.ReminderStatusSending
+		if err = dtdal.Reminder.SaveReminder(tc, tx, reminder); err != nil { // TODO: User dtdal.Reminder.SaveReminder()
 			return fmt.Errorf("failed to save reminder with new status to db: %w", err)
 		}
 		return
@@ -124,32 +132,31 @@ func sendReminderToUser(c context.Context, reminderID int64, transfer models.Tra
 		log.Infof(c, "Updated Reminder(id=%v) status to '%v'.", reminderID, models.ReminderStatusSending)
 	}
 
-	var user models.AppUserData
-	if err = nds.Get(c, models.NewAppUserKey(reminder.UserID), &user); err != nil {
-		err = fmt.Errorf("failed to get user by id=%v: %w", transfer.Data.CreatorUserID, err)
-		return
+	user := models.NewAppUser(reminder.Data.UserID, nil)
+	if err = db.Get(c, user.Record); err != nil {
+		return err
 	}
 
 	var reminderIsSent, channelDisabledByUser bool
-	if user.HasTelegramAccount() {
+	if user.Data.HasTelegramAccount() {
 		var (
 			tgChatID int64
 			tgBotID  string
 		)
-		if transferUserInfo := transfer.Data.UserInfoByUserID(reminder.UserID); transferUserInfo.TgChatID != 0 {
+		if transferUserInfo := transfer.Data.UserInfoByUserID(reminder.Data.UserID); transferUserInfo.TgChatID != 0 {
 			tgChatID = transferUserInfo.TgChatID
 			tgBotID = transferUserInfo.TgBotID
 		} else {
-			var tgChat *telegram.TgChatEntityBase
-			_, tgChat, err = gaedal.GetTelegramChatByUserID(c, reminder.UserID) // TODO: replace with DAL method
+			var tgChat tgstore.TgChatData
+			_, tgChat, err = gaedal.GetTelegramChatByUserID(c, reminder.Data.UserID) // TODO: replace with DAL method
 			if err != nil {
 				if dal.IsNotFound(err) { // TODO: Get rid of datastore reference
-					err = fmt.Errorf("failed to call gaedal.GetTelegramChatByUserID(userID=%v): %w", reminder.UserID, err)
+					err = fmt.Errorf("failed to call gaedal.GetTelegramChatByUserID(userID=%v): %w", reminder.Data.UserID, err)
 					return
 				}
 			} else {
-				tgChatID = (int64)(tgChat.TelegramUserID)
-				tgBotID = tgChat.BotID
+				tgChatID = tgChat.BaseChatData().TelegramUserID
+				tgBotID = tgChat.BaseChatData().BotID
 			}
 		}
 		if tgChatID != 0 {
@@ -161,25 +168,25 @@ func sendReminderToUser(c context.Context, reminderID int64, transfer models.Tra
 		}
 	}
 	if !reminderIsSent { // TODO: This is wrong to send same reminder by email if Telegram failed, complex and will screw up stats <= Are you sure?
-		if user.EmailAddress != "" {
-			if err = sendReminderByEmail(c, reminder, user.EmailAddress, transfer, user); err != nil {
+		if user.Data.EmailAddress != "" {
+			if err = sendReminderByEmail(c, reminder, user.Data.EmailAddress, transfer, *user.Data); err != nil {
 				log.Errorf(c, "Failure in sendReminderByEmail()")
 			}
 		} else {
 			if !channelDisabledByUser {
 				log.Errorf(c, "Can't send reminder")
 			}
-			err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
-				if reminder, err = dtdal.Reminder.GetReminderByID(c, reminderID); err != nil {
+			err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+				if reminder, err = dtdal.Reminder.GetReminderByID(c, tx, reminderID); err != nil {
 					return err
 				}
-				reminder.Status = models.ReminderStatusFailed
-				return dtdal.Reminder.SaveReminder(c, reminder)
+				reminder.Data.Status = models.ReminderStatusFailed
+				return dtdal.Reminder.SaveReminder(c, tx, reminder)
 			}, nil)
 			if err != nil {
 				log.Errorf(c, fmt.Errorf("failed to set reminder status to '%v': %w", models.ReminderStatusFailed, err).Error())
 			} else {
-				log.Infof(c, "Reminder status set to '%v'", reminder.Status)
+				log.Infof(c, "Reminder status set to '%v'", reminder.Data.Status)
 			}
 		}
 	}

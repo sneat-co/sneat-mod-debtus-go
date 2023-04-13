@@ -1,6 +1,8 @@
 package splitus
 
 import (
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"net/url"
 
 	"github.com/strongo/log"

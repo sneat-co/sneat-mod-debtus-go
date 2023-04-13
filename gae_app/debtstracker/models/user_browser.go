@@ -1,13 +1,15 @@
 package models
 
 import (
+	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
+	"reflect"
 	"time"
 )
 
 const UserBrowserKind = "UserBrowser"
 
-type UserBrowserEntity struct {
+type UserBrowserData struct {
 	UserID      int64
 	UserAgent   string
 	LastUpdated time.Time `datastore:",noindex"`
@@ -15,27 +17,16 @@ type UserBrowserEntity struct {
 
 type UserBrowser struct {
 	record.WithID[int]
-	*UserBrowserEntity
+	Data *UserBrowserData
 }
 
-//var _ db.EntityHolder = (*UserBrowser)(nil)
-
-func (UserBrowser) Kind() string {
-	return UserBrowserKind
+func NewUserBrowserRecord() dal.Record {
+	return dal.NewRecordWithIncompleteKey(UserBrowserKind, reflect.Int, new(UserBrowserData))
 }
 
-func (ub UserBrowser) Entity() interface{} {
-	return ub.UserBrowserEntity
-}
-
-func (UserBrowser) NewEntity() interface{} {
-	return new(UserBrowserEntity)
-}
-
-func (ub *UserBrowser) SetEntity(entity interface{}) {
-	if entity == nil {
-		ub.UserBrowserEntity = nil
-	} else {
-		ub.UserBrowserEntity = entity.(*UserBrowserEntity)
+func NewUserBrowserWithIncompleteKey(data *UserBrowserData) UserBrowser {
+	return UserBrowser{
+		WithID: record.NewWithID[int](0, dal.NewIncompleteKey(UserBrowserKind, reflect.Int, nil), data),
+		Data:   data,
 	}
 }

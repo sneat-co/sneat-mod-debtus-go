@@ -1,8 +1,12 @@
 package splitus
 
 import (
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"fmt"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
@@ -18,7 +22,7 @@ var groupSplitCommand = shared_group.GroupCallbackCommand(groupSplitCommandCode,
 	func(whc botsfw.WebhookContext, callbackUrl *url.URL, group models.Group) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 
-		members := group.GetMembers()
+		members := group.Data.GetMembers()
 		billMembers := make([]models.BillMemberJson, len(members))
 		for i, m := range members {
 			billMembers[i].MemberJson = m
@@ -33,11 +37,15 @@ var groupSplitCommand = shared_group.GroupCallbackCommand(groupSplitCommandCode,
 			money.Amount{},
 			nil,
 			func(memberID string, addValue int) (member models.BillMemberJson, err error) {
-				err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-					if group, err = dtdal.Group.GetGroupByID(c, group.ID); err != nil {
+				var db dal.Database
+				if db, err = facade.GetDatabase(c); err != nil {
+					return
+				}
+				err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+					if group, err = dtdal.Group.GetGroupByID(c, tx, group.ID); err != nil {
 						return
 					}
-					members := group.GetGroupMembers()
+					members := group.Data.GetGroupMembers()
 					for i, m := range members {
 						if m.ID == memberID {
 							m.Shares += addValue
@@ -45,8 +53,8 @@ var groupSplitCommand = shared_group.GroupCallbackCommand(groupSplitCommandCode,
 								m.Shares = 0
 							}
 							members[i] = m
-							group.SetGroupMembers(members)
-							if err = dtdal.Group.SaveGroup(c, group); err != nil {
+							group.Data.SetGroupMembers(members)
+							if err = dtdal.Group.SaveGroup(c, tx, group); err != nil {
 								return
 							}
 							member = models.BillMemberJson{MemberJson: m.MemberJson}
@@ -54,7 +62,7 @@ var groupSplitCommand = shared_group.GroupCallbackCommand(groupSplitCommandCode,
 						}
 					}
 					return fmt.Errorf("member not found by ID: %v", member.ID)
-				}, dtdal.CrossGroupTransaction)
+				})
 				return
 			},
 		)

@@ -6,6 +6,7 @@ import (
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"math"
 	"net/url"
@@ -622,8 +623,12 @@ func CreateTransferFromBot(
 			err = nil
 			buf := new(bytes.Buffer)
 			buf.WriteString(whc.Translate(trans.MT_ATTEMPT_TO_CREATE_DEBT_WITH_INTEREST_AFFECTING_OUTSTANDING) + "\n")
+			var db dal.Database
+			if db, err = facade.GetDatabase(c); err != nil {
+				return
+			}
 			now := time.Now()
-			if outstandingTransfer, err := dtdal.Transfer.LoadOutstandingTransfers(c, now, appUser.ID, creatorInfo.ContactID, amount.Currency, newTransfer.Direction().Reverse()); err != nil {
+			if outstandingTransfer, err := dtdal.Transfer.LoadOutstandingTransfers(c, db, now, appUser.ID, creatorInfo.ContactID, amount.Currency, newTransfer.Direction().Reverse()); err != nil {
 				buf.WriteString(fmt.Errorf("failed to load outstanding transfers: %w", err).Error() + "\n")
 			} else if len(outstandingTransfer) == 0 {
 				return m, errors.New("got facade.ErrAttemptToCreateDebtWithInterestAffectingOutstandingTransfers but no outstanding transfers found")

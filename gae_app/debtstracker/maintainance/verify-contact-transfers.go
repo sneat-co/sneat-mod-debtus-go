@@ -74,7 +74,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 		WhereField("BothCounterpartyIDs", dal.Equal, contact.ID).
 		OrderBy(dal.DescendingField("DtCreated")).
 		SelectInto(func() dal.Record {
-			return dal.NewRecordWithoutKey(new(models.TransferData))
+			return models.NewTransferWithIncompleteKey(nil).Record
 		})
 
 	var db dal.Database

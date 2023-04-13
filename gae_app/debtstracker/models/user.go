@@ -34,6 +34,10 @@ type AppUser struct {
 	Data *AppUserData
 }
 
+func NewAppUserRecord() dal.Record {
+	return dal.NewRecordWithIncompleteKey(AppUserKind, reflect.Int64, new(AppUserData))
+}
+
 func NewAppUser(id int64, data *AppUserData) AppUser {
 	key := NewAppUserKey(id)
 	if data == nil {

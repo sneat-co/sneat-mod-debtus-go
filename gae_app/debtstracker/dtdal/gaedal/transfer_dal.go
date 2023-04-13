@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
-	"reflect"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
@@ -33,9 +32,7 @@ func _loadDueOnTransfers(c context.Context, tx dal.ReadSession, userID int64, li
 		WhereField("BothUserIDs", "=", userID).
 		WhereField("IsOutstanding", "=", true).OrderBy(dal.AscendingField("DtDueOn"))
 	q = filter(q)
-	query := q.SelectInto(func() dal.Record {
-		return models.NewTransferWithIncompleteKey(nil).Record
-	})
+	query := q.SelectInto(models.NewTransferRecord)
 	if limit > 0 {
 		query.Limit = limit
 	}
@@ -78,29 +75,25 @@ func (transferDalGae TransferDalGae) GetTransfersByID(c context.Context, tx dal.
 	return
 }
 
-func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context, periodEnds time.Time, userID, contactID int64, currency money.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error) {
+func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context, tx dal.ReadSession, periodEnds time.Time, userID, contactID int64, currency money.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error) {
 	log.Debugf(c, "TransferDalGae.LoadOutstandingTransfers(periodEnds=%v, userID=%v, contactID=%v currency=%v, direction=%v)", periodEnds, userID, contactID, currency, direction)
 	const limit = 100
 
 	// TODO: Load outstanding transfer just for the specific contact & specific direction
-	q := dal.From(models.TransferKind).Where(
-		dal.WhereField("BothUserIDs", dal.Equal, userID),
-		dal.WhereField("Currency", dal.Equal, string(currency)),
-		dal.WhereField("IsOutstanding", dal.Equal, true),
-	).OrderBy(dal.AscendingField("DtCreated")).SelectInto(func() dal.Record {
-		return dal.NewRecordWithIncompleteKey(models.TransferKind, reflect.Int, &models.TransferData{})
-	})
+	q := dal.From(models.TransferKind).
+		Where(
+			dal.WhereField("BothUserIDs", dal.Equal, userID),
+			dal.WhereField("Currency", dal.Equal, string(currency)),
+			dal.WhereField("IsOutstanding", dal.Equal, true),
+		).OrderBy(dal.AscendingField("DtCreated")).
+		SelectInto(models.NewTransferRecord)
 	q.Limit = limit
-	transferEntities := make([]*models.TransferData, 0, limit)
-	var keys []*dal.Key
-	if keys, err = q.GetAll(c, &transferEntities); err != nil {
-		return
-	}
-	transfers = make([]models.Transfer, 0, len(keys))
+	var transferRecords []dal.Record
+	transferRecords, err = tx.SelectAll(c, q)
+	transfers = models.TransfersFromRecords(transferRecords)
 	var errorMessages, warnings, debugs bytes.Buffer
 	var transfersIDsToFixIsOutstanding []int
-	for i, key := range keys {
-		transfer := models.NewTransfer(key.ID.(int), transferEntities[i])
+	for _, transfer := range transfers {
 		if contactID != 0 {
 			if cpContactID := transfer.Data.CounterpartyInfoByUserID(userID).ContactID; cpContactID != contactID {
 				debugs.WriteString(fmt.Sprintf("Skipped outstanding Transfer(id=%v) as counterpartyContactID != contactID: %v != %v\n", transfer.ID, cpContactID, contactID))
@@ -117,10 +110,10 @@ func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context,
 		if outstandingValue := transfer.Data.GetOutstandingValue(periodEnds); outstandingValue > 0 {
 			transfers = append(transfers, transfer)
 		} else if outstandingValue == 0 {
-			fmt.Fprintf(&warnings, "Transfer(id=%v) => GetOutstandingValue() == 0 && IsOutstanding==true\n", transfer.ID)
+			_, _ = fmt.Fprintf(&warnings, "Transfer(id=%v) => GetOutstandingValue() == 0 && IsOutstanding==true\n", transfer.ID)
 			transfersIDsToFixIsOutstanding = append(transfersIDsToFixIsOutstanding, transfer.ID)
 		} else { // outstandingValue < 0
-			fmt.Fprintf(&errorMessages, "Transfer(id=%v) => IsOutstanding==true && GetOutstandingValue() < 0: %v\n", transfer.ID, outstandingValue)
+			_, _ = fmt.Fprintf(&errorMessages, "Transfer(id=%v) => IsOutstanding==true && GetOutstandingValue() < 0: %v\n", transfer.ID, outstandingValue)
 		}
 	}
 	if len(transfersIDsToFixIsOutstanding) > 0 {
@@ -186,9 +179,10 @@ func (transferDalGae TransferDalGae) LoadTransfersByUserID(c context.Context, us
 		err = errors.New("userID == 0")
 		return
 	}
-	q := dal.From(models.TransferKind).WhereField("BothUserIDs", dal.Equal, userID).OrderBy(dal.DescendingField("DtCreated")).SelectInto(func() dal.Record {
-		return dal.NewRecordWithoutKey(&models.TransferData{})
-	})
+	q := dal.From(models.TransferKind).
+		WhereField("BothUserIDs", dal.Equal, userID).
+		OrderBy(dal.DescendingField("DtCreated")).
+		SelectInto(models.NewTransferRecord)
 
 	if transfers, err = transferDalGae.loadTransfers(c, q); err != nil {
 		return
@@ -211,9 +205,7 @@ func (transferDalGae TransferDalGae) LoadTransferIDsByContactID(c context.Contex
 	}
 	q := dal.From(models.TransferKind).
 		WhereField("BothCounterpartyIDs", dal.Equal, contactID).
-		SelectInto(func() dal.Record {
-			return dal.NewRecordWithoutKey(new(models.TransferData))
-		})
+		SelectInto(models.NewTransferRecord)
 	q.Limit = limit
 	q.StartCursor = startCursor
 
@@ -261,9 +253,7 @@ func (transferDalGae TransferDalGae) LoadTransfersByContactID(c context.Context,
 	q := dal.From(models.TransferKind).
 		WhereField("BothCounterpartyIDs", dal.Equal, contactID).
 		OrderBy(dal.DescendingField("DtCreated")).
-		SelectInto(func() dal.Record {
-			return dal.NewRecordWithoutKey(new(models.TransferData))
-		})
+		SelectInto(models.NewTransferRecord)
 	q.Limit = limit
 	q.Offset = offset
 
@@ -277,9 +267,7 @@ func (transferDalGae TransferDalGae) LoadTransfersByContactID(c context.Context,
 func (transferDalGae TransferDalGae) LoadLatestTransfers(c context.Context, offset, limit int) ([]models.Transfer, error) {
 	q := dal.From(models.TransferKind).
 		OrderBy(dal.DescendingField("DtCreated")).
-		SelectInto(func() dal.Record {
-			return dal.NewRecordWithoutKey(new(models.TransferData))
-		})
+		SelectInto(models.NewTransferRecord)
 	q.Limit = limit
 	q.Offset = offset
 	return transferDalGae.loadTransfers(c, q)

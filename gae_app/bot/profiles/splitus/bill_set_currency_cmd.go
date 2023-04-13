@@ -3,8 +3,10 @@ package splitus
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"context"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/log"
 	"net/url"
@@ -26,20 +28,26 @@ var setBillCurrencyCommand = billCallbackCommand(setBillCurrencyCommandCode,
 			}
 
 			if bill.Data.GetUserGroupID() != "" {
-				var group models.Group
-				if group, err = dtdal.Group.GetGroupByID(c, tx, bill.Data.GetUserGroupID()); err != nil {
-					return
-				}
-				diff := bill.Data.GetBalance().BillBalanceDifference(make(models.BillBalanceByMember, 0))
-				if _, err = group.Data.ApplyBillBalanceDifference(bill.Data.Currency, diff); err != nil {
-					return
-				}
-				if previousCurrency != "" {
-					if _, err = group.Data.ApplyBillBalanceDifference(previousCurrency, diff.Reverse()); err != nil {
+				err = whc.RunReadwriteTransaction(c, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
+					var group models.Group
+					if group, err = dtdal.Group.GetGroupByID(c, tx, bill.Data.GetUserGroupID()); err != nil {
 						return
 					}
-				}
-				if dtdal.Group.SaveGroup(c, tx, group); err != nil {
+					diff := bill.Data.GetBalance().BillBalanceDifference(make(models.BillBalanceByMember, 0))
+					if _, err = group.Data.ApplyBillBalanceDifference(bill.Data.Currency, diff); err != nil {
+						return
+					}
+					if previousCurrency != "" {
+						if _, err = group.Data.ApplyBillBalanceDifference(previousCurrency, diff.Reverse()); err != nil {
+							return
+						}
+					}
+					if dtdal.Group.SaveGroup(c, tx, group); err != nil {
+						return
+					}
+					return nil
+				})
+				if err != nil {
 					return
 				}
 			}

@@ -1,10 +1,11 @@
 package gaedal
 
 import (
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/strongo/db/gaedb"
@@ -19,7 +20,11 @@ func NewUserGaClientDalGae() UserGaClientDalGae {
 }
 
 func (UserGaClientDalGae) SaveGaClient(c context.Context, gaClientId, userAgent, ipAddress string) (gaClient models.GaClient, err error) {
-	err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
 		var entity models.GaClientEntity
 		key := gaedb.NewKey(c, models.GaClientKind, gaClientId, 0, nil)
 		err := gaedb.Get(c, key, &entity)

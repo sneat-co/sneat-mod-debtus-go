@@ -112,9 +112,7 @@ func (h transfersPage) processTransfers(c context.Context, tx dal.ReadSession, c
 			dal.Field("Currency").EqualTo(currency),
 		).
 		OrderBy(dal.DescendingField("DtCreated")).
-		SelectInto(func() dal.Record {
-			return dal.NewRecordWithoutKey(new(models.TransferData))
-		})
+		SelectInto(models.NewTransferRecord)
 
 	var reader dal.Reader
 	if reader, err = tx.Select(c, query); err != nil {

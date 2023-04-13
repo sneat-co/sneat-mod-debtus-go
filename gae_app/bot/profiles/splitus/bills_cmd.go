@@ -7,8 +7,11 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/emoji"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 )
 
@@ -29,17 +32,17 @@ func billsAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error)
 	c := whc.Context()
 	if !whc.IsInGroup() {
 		var user models.AppUser
-		if user, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+		if user, err = facade.User.GetUserByID(c, nil, whc.AppUserIntID()); err != nil {
 			return
 		}
-		if user.OutstandingBillsCount == 0 {
+		if user.Data.OutstandingBillsCount == 0 {
 			m.Text = whc.Translate("You have no outstanding bills.")
 			return
 		}
 
 		buf := new(bytes.Buffer)
 		fmt.Fprintf(buf, "<b>%v</b>\n", whc.Translate("Outstanding bills"))
-		for i, billJson := range user.GetOutstandingBills() {
+		for i, billJson := range user.Data.GetOutstandingBills() {
 			fmt.Fprintf(buf, "\n%v. %v: %v %v", i+1, billJson.Name, billJson.Total, billJson.Currency)
 		}
 		m.Text = buf.String()
@@ -75,7 +78,7 @@ func billsAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error)
 
 	m.Format = botsfw.MessageFormatHTML
 
-	if group.OutstandingBillsCount == 0 {
+	if group.Data.OutstandingBillsCount == 0 {
 		mt := "This group has no outstanding bills"
 		switch whc.InputType() {
 		case botsfw.WebhookInputCallbackQuery:
@@ -91,7 +94,7 @@ func billsAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error)
 	buf := new(bytes.Buffer)
 	buf.WriteString("<b>Outstanding bills</b>\n\n")
 
-	outstandingBills := group.GetOutstandingBills()
+	outstandingBills := group.Data.GetOutstandingBills()
 
 	for i, bill := range outstandingBills {
 		fmt.Fprintf(buf, `  %d. <a href="https://t.me/%v?start=bill-%v">%v</a>`+"\n", i+1, whc.GetBotCode(), bill.ID, bill.Name)

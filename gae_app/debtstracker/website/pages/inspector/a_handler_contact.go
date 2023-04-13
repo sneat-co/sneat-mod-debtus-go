@@ -87,9 +87,7 @@ func (contactPage) verifyTransfers(c context.Context, contactID int64) (
 	//}
 	query := dal.From(models.TransferKind).
 		Where(dal.Field("BothCounterpartyIDs").EqualTo(contactID)).
-		SelectInto(func() dal.Record {
-			return dal.NewRecordWithoutKey(new(models.TransferData))
-		})
+		SelectInto(models.NewTransferRecord)
 
 	var reader dal.Reader
 	reader, err = db.Select(c, query)

@@ -2,6 +2,9 @@ package splitus
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"html"
 	"net/url"
 	"regexp"
@@ -79,7 +82,7 @@ func inlineQueryJoinGroup(whc botsfw.WebhookContext, query string) (m botsfw.Mes
 		err = errors.New("Missing group ID")
 		return
 	}
-	if group, err = dtdal.Group.GetGroupByID(c, group.ID); err != nil {
+	if group, err = dtdal.Group.GetGroupByID(c, nil, group.ID); err != nil {
 		return
 	}
 
@@ -87,7 +90,7 @@ func inlineQueryJoinGroup(whc botsfw.WebhookContext, query string) (m botsfw.Mes
 		ID:          query,
 		Type:        "article",
 		Title:       "Send invite for joining",
-		Description: "group: " + group.Name,
+		Description: "group: " + group.Data.Name,
 		InputMessageContent: tgbotapi.InputTextMessageContent{
 			Text:      fmt.Sprintf("I'm inviting you to join <b>bills sharing</b> group @%v.", whc.GetBotCode()),
 			ParseMode: "HTML",

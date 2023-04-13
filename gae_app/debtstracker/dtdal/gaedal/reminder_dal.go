@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
+	"reflect"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
@@ -47,7 +48,7 @@ func (reminderDalGae ReminderDalGae) GetSentReminderIDsByTransferID(c context.Co
 	q := dal.From(models.ReminderKind).Where(
 		dal.WhereField("TransferID", dal.Equal, transferID),
 		dal.WhereField("Status", dal.Equal, models.ReminderStatusSent),
-	).SelectKeysOnly()
+	).SelectKeysOnly(reflect.Int)
 
 	records, err := tx.SelectAll(c, q)
 	if err != nil {
@@ -64,7 +65,7 @@ func (reminderDalGae ReminderDalGae) GetActiveReminderIDsByTransferID(c context.
 	q := dal.From(models.ReminderKind).Where(
 		dal.WhereField("TransferID", dal.Equal, transferID),
 		dal.WhereField("DtNext", dal.GreaterThen, time.Time{}),
-	).SelectKeysOnly()
+	).SelectKeysOnly(reflect.Int)
 	records, err := tx.SelectAll(c, q)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get active reminders by transfer id=%v: %w", transferID, err)

@@ -41,7 +41,7 @@ type TransferReturnUpdate struct {
 
 type RewardDal interface {
 	//GetRewardByID(c context.Context, rewardID int64) (reward models.Reward, err error)
-	InsertReward(c context.Context, rewardEntity *models.RewardEntity) (reward models.Reward, err error)
+	InsertReward(c context.Context, tx dal.ReadwriteTransaction, rewardEntity *models.RewardData) (reward models.Reward, err error)
 }
 
 type TransferDal interface {
@@ -49,9 +49,9 @@ type TransferDal interface {
 	LoadTransfersByUserID(c context.Context, userID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error)
 	LoadTransfersByContactID(c context.Context, contactID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error)
 	LoadTransferIDsByContactID(c context.Context, contactID int64, limit int, startCursor string) (transferIDs []int, endCursor string, err error)
-	LoadOverdueTransfers(c context.Context, userID int64, limit int) (transfers []models.Transfer, err error)
-	LoadOutstandingTransfers(c context.Context, periodEnds time.Time, userID, contactID int64, currency money.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error)
-	LoadDueTransfers(c context.Context, userID int64, limit int) (transfers []models.Transfer, err error)
+	LoadOverdueTransfers(c context.Context, tx dal.ReadSession, userID int64, limit int) (transfers []models.Transfer, err error)
+	LoadOutstandingTransfers(c context.Context, tx dal.ReadSession, periodEnds time.Time, userID, contactID int64, currency money.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error)
+	LoadDueTransfers(c context.Context, tx dal.ReadSession, userID int64, limit int) (transfers []models.Transfer, err error)
 	LoadLatestTransfers(c context.Context, offset, limit int) ([]models.Transfer, error)
 	DelayUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCode string, transferID int, creatorTgChatID, creatorTgReceiptMessageID int64) error
 	DelayUpdateTransfersWithCounterparty(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) error
@@ -192,8 +192,8 @@ type UserVkDal interface {
 }
 
 type UserEmailDal interface {
-	GetUserEmailByID(c context.Context, email string) (userEmail models.UserEmail, err error)
-	SaveUserEmail(c context.Context, userEmail models.UserEmail) (err error)
+	GetUserEmailByID(c context.Context, tx dal.ReadSession, email string) (userEmail models.UserEmail, err error)
+	SaveUserEmail(c context.Context, tx dal.ReadwriteTransaction, userEmail models.UserEmail) (err error)
 }
 
 type UserGooglePlusDal interface {
@@ -203,7 +203,7 @@ type UserGooglePlusDal interface {
 
 type UserFacebookDal interface {
 	GetFbUserByFbID(c context.Context, fbAppOrPageID, fbUserOrPageScopeID string) (fbUser models.UserFacebook, err error)
-	SaveFbUser(c context.Context, fbUser models.UserFacebook) (err error)
+	SaveFbUser(c context.Context, tx dal.ReadwriteTransaction, fbUser models.UserFacebook) (err error)
 	DeleteFbUser(c context.Context, fbAppOrPageID, fbUserOrPageScopeID string) (err error)
 	//CreateFbUserRecord(c context.Context, fbUserID string, appUserID int64) (fbUser models.UserFacebook, err error)
 }
@@ -220,7 +220,7 @@ type LoginCodeDal interface {
 }
 
 type TwilioDal interface {
-	GetLastTwilioSmsesForUser(c context.Context, userID int64, to string, limit int) (result []models.TwilioSms, err error)
+	GetLastTwilioSmsesForUser(c context.Context, tx dal.ReadSession, userID int64, to string, limit int) (result []models.TwilioSms, err error)
 	SaveTwilioSms(
 		c context.Context,
 		smsResponse *gotwilio.SmsResponse,
@@ -273,13 +273,19 @@ type UserGaClientDal interface {
 
 type TgChatDal interface {
 	GetTgChatByID(c context.Context, tgBotID string, tgChatID int64) (tgChat models.DebtusTelegramChat, err error)
-	DoSomething(c context.Context, // TODO: WTF name?
-		userTask *sync.WaitGroup, currency string, tgChatID int64, authInfo auth.AuthInfo, user models.AppUser,
-		sendToTelegram func(tgChat tgstore.Chat) error) (err error)
+	DoSomething( // TODO: WTF name?
+		c context.Context,
+		userTask *sync.WaitGroup,
+		currency string,
+		tgChatID int64,
+		authInfo auth.AuthInfo,
+		user models.AppUser,
+		sendToTelegram func(tgChat tgstore.TgChatBase) error,
+	) (err error)
 }
 
 type TgUserDal interface {
-	FindByUserName(c context.Context, userName string) (tgUsers []tgstore.TgUser, err error)
+	FindByUserName(c context.Context, tx dal.ReadSession, userName string) (tgUsers []tgstore.TgUser, err error)
 }
 
 //type TaskQueueDal interface {

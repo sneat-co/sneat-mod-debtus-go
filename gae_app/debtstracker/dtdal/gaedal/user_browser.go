@@ -1,20 +1,15 @@
 package gaedal
 
 import (
-	"fmt"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"github.com/dal-go/dalgo/dal"
 	"strings"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/datastore"
 )
-
-func newUserBrowserIncompleteKey(c context.Context) *datastore.Key {
-	return datastore.NewIncompleteKey(c, models.UserBrowserKind, nil)
-}
 
 type UserBrowserDalGae struct {
 }
@@ -23,13 +18,16 @@ func NewUserBrowserDalGae() UserBrowserDalGae {
 	return UserBrowserDalGae{}
 }
 
-func (UserBrowserDalGae) insertUserBrowser(c context.Context, entity *models.UserBrowserEntity) (userBrowser models.UserBrowser, err error) {
-	var key *datastore.Key
-	if key, err = gaedb.Put(c, newUserBrowserIncompleteKey(c), &entity); err != nil {
+func (UserBrowserDalGae) insertUserBrowser(c context.Context, data *models.UserBrowserData) (userBrowser models.UserBrowser, err error) {
+
+	userBrowser = models.NewUserBrowserWithIncompleteKey(data)
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
-	userBrowser = models.UserBrowser{IntegerID: db.NewIntID(key.IntID()), UserBrowserEntity: entity}
-	return
+	return userBrowser, db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+		return tx.Insert(c, userBrowser.Record)
+	})
 }
 
 func (userBrowserDalGae UserBrowserDalGae) SaveUserBrowser(c context.Context, userID int64, userAgent string) (userBrowser models.UserBrowser, err error) {
@@ -38,41 +36,47 @@ func (userBrowserDalGae UserBrowserDalGae) SaveUserBrowser(c context.Context, us
 		panic("Missign required parameter userAgent")
 	}
 	const limit = 1
-	query := datastore.NewQuery(models.UserBrowserKind).Limit(limit)
-	query = query.Filter("AppUserIntID =", userID).Filter("UserAgent =", userAgent)
-	userBrowsers := make([]models.UserBrowserEntity, 0, limit)
-	var keys []*datastore.Key
-	if keys, err = query.GetAll(c, &userBrowsers); err != nil {
-		err = fmt.Errorf("Failed to query UserBrowser: %v", err)
-		return
-	} else {
-		switch len(keys) {
-		case 0:
-			ub := models.UserBrowserEntity{
-				UserID:      userID,
-				UserAgent:   userAgent,
-				LastUpdated: time.Now(),
-			}
-			userBrowser, err = userBrowserDalGae.insertUserBrowser(c, &ub)
-			return
-		case 1:
-			userBrowser := userBrowsers[0]
-			if userBrowser.LastUpdated.Before(time.Now().Add(-24 * time.Hour)) {
-				gaedb.RunInTransaction(c, func(c context.Context) error {
-					key := keys[0]
-					if err := gaedb.Get(c, key, &userBrowser); err != nil {
-						return err
-					}
-					if userBrowser.LastUpdated.Before(time.Now().Add(-time.Hour)) {
-						userBrowser.LastUpdated = time.Now()
-						_, err = gaedb.Put(c, key, &userBrowser)
-					}
-					return err
-				}, nil)
-			}
-		default:
-			log.Errorf(c, "Loaded too many entities: %v", len(keys))
-		}
+	q := dal.From(models.UserBrowserKind).
+		WhereField("AppUserIntID", dal.Equal, userID).
+		WhereField("UserAgent", dal.Equal, userAgent)
+	query := q.SelectInto(models.NewUserBrowserRecord)
+	query.Limit = limit
+
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
+
+	var records []dal.Record
+	if records, err = db.SelectAll(c, query); err != nil {
+		return
+	}
+
+	switch len(records) {
+	case 0:
+		ub := models.UserBrowserData{
+			UserID:      userID,
+			UserAgent:   userAgent,
+			LastUpdated: time.Now(),
+		}
+		userBrowser, err = userBrowserDalGae.insertUserBrowser(c, &ub)
+		return
+	case 1:
+		userBrowser := records[0].Data().(*models.UserBrowserData)
+		if userBrowser.LastUpdated.Before(time.Now().Add(-24 * time.Hour)) {
+			err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+				if err := tx.Get(c, records[0]); err != nil {
+					return err
+				}
+				if userBrowser.LastUpdated.Before(time.Now().Add(-time.Hour)) {
+					userBrowser.LastUpdated = time.Now()
+					err = tx.Set(c, records[0])
+				}
+				return err
+			})
+		}
+	default:
+		log.Errorf(c, "Loaded too many records: %v", len(records))
+	}
+	return
 }

@@ -5,6 +5,8 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/log"
 	"net/url"
 )
@@ -18,19 +20,19 @@ var billChangeSplitModeCommand = botsfw.Command{
 		if bill.ID, err = GetBillID(callbackUrl); err != nil {
 			return
 		}
-		if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-			if bill, err = facade.GetBillByID(c, bill.ID); err != nil {
+		if err = whc.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+			if bill, err = facade.GetBillByID(c, tx, bill.ID); err != nil {
 				return
 			}
 			splitMode := models.SplitMode(callbackUrl.Query().Get("mode"))
-			if bill.SplitMode != splitMode {
-				bill.SplitMode = splitMode
-				if err = dtdal.Bill.SaveBill(c, bill); err != nil {
+			if bill.Data.SplitMode != splitMode {
+				bill.Data.SplitMode = splitMode
+				if err = dtdal.Bill.SaveBill(c, tx, bill); err != nil {
 					return
 				}
 			}
 			return
-		}, dtdal.SingleGroupTransaction); err != nil {
+		}); err != nil {
 			return
 		}
 		return ShowBillCard(whc, true, bill, "")

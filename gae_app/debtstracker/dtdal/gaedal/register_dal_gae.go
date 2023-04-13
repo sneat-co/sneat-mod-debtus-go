@@ -1,21 +1,21 @@
 package gaedal
 
 import (
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
 	strongo "github.com/strongo/app"
-	"github.com/strongo/db"
 	"net/http"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"context"
 	telegramBot "github.com/bots-go-framework/bots-fw-telegram"
-	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/v2/urlfetch"
 )
 
 func RegisterDal() {
-	dtdal.DB = gaedb.NewDatabase()
+	//dtdal.DB = gaedb.NewDatabase()
 	telegramBot.DAL.DB = dtdal.DB
 	//
 	dtdal.Contact = NewContactDalGae()
@@ -75,6 +75,6 @@ func (h ApiBotHost) GetBotCoreStores(platform string, appContext botsfw.BotAppCo
 	panic("Not implemented")
 }
 
-func (h ApiBotHost) DB() db.Database {
-	return gaedb.NewDatabase()
+func (h ApiBotHost) DB(c context.Context) (dal.Database, error) {
+	return facade.GetDatabase(c)
 }

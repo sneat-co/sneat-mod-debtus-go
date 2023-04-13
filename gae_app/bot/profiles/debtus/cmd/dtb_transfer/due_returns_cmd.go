@@ -1,10 +1,12 @@
 package dtb_transfer
 
 import (
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bytes"
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"html"
 	"net/url"
@@ -32,7 +34,12 @@ func dueReturnsCallbackAction(whc botsfw.WebhookContext, _ *url.URL) (m botsfw.M
 
 	er := make(chan error, 2)
 	go func(er chan<- error) {
-		if overdueTransfers, err = dtdal.Transfer.LoadOverdueTransfers(c, userID, 5); err != nil {
+		var db dal.Database
+		if db, err = facade.GetDatabase(c); err != nil {
+			er <- err
+			return
+		}
+		if overdueTransfers, err = dtdal.Transfer.LoadOverdueTransfers(c, db, userID, 5); err != nil {
 			er <- fmt.Errorf("failed to get overdue transfers: %w", err)
 		} else {
 			log.Debugf(c, "Loaded %v overdue transfer", len(overdueTransfers))
@@ -40,7 +47,12 @@ func dueReturnsCallbackAction(whc botsfw.WebhookContext, _ *url.URL) (m botsfw.M
 		}
 	}(er)
 	go func(er chan<- error) {
-		if dueTransfers, err = dtdal.Transfer.LoadDueTransfers(c, userID, 5); err != nil {
+		var db dal.Database
+		if db, err = facade.GetDatabase(c); err != nil {
+			er <- err
+			return
+		}
+		if dueTransfers, err = dtdal.Transfer.LoadDueTransfers(c, db, userID, 5); err != nil {
 			er <- fmt.Errorf("failed to get due transfers: %w", err)
 		} else {
 			log.Debugf(c, "Loaded %v due transfer", len(dueTransfers))

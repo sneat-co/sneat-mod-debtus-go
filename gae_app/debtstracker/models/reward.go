@@ -1,7 +1,9 @@
 package models
 
 import (
+	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
+	"reflect"
 	"time"
 )
 
@@ -9,30 +11,27 @@ const RewardKind = "Reward"
 
 type Reward struct {
 	record.WithID[int]
-	*RewardEntity
+	Data *RewardData
 }
 
-func (Reward) Kind() string {
-	return RewardKind
-}
-
-func (reward Reward) Entity() interface{} {
-	return reward.RewardEntity
-}
-
-func (Reward) NewEntity() interface{} {
-	return new(RewardEntity)
-}
-
-func (reward *Reward) SetEntity(entity interface{}) {
-	if entity == nil {
-		reward.RewardEntity = nil
-	} else {
-		reward.RewardEntity = entity.(*RewardEntity)
+func NewReward(id int, data *RewardData) Reward {
+	key := dal.NewKeyWithID(RewardKind, id)
+	if data == nil {
+		data = new(RewardData)
+	}
+	return Reward{
+		WithID: record.NewWithID(id, key, data),
+		Data:   data,
 	}
 }
 
-//var _ db.EntityHolder = (*Reward)(nil)
+func NewRewardWithIncompleteKey(data *RewardData) Reward {
+	key := dal.NewIncompleteKey(RewardKind, reflect.Int, nil)
+	return Reward{
+		WithID: record.NewWithID(0, key, data),
+		Data:   data,
+	}
+}
 
 type RewardReason string
 
@@ -41,7 +40,7 @@ const (
 	RewardReasonFriendOfInvitedUserJoined RewardReason = "FriendOfInvitedUserJoined"
 )
 
-type RewardEntity struct {
+type RewardData struct {
 	UserID       int64
 	DtCreated    time.Time
 	Reason       RewardReason `datastore:",noindex"`

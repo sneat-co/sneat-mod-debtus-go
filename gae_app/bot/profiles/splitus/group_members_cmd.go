@@ -3,6 +3,9 @@ package splitus
 import (
 	"bytes"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
@@ -41,28 +44,28 @@ func groupMembersCard(
 	selectedMemberID int64,
 ) (text string, err error) {
 	var buffer bytes.Buffer
-	buffer.WriteString(t.Translate(trans.MESSAGE_TEXT_MEMBERS_CARD_TITLE, group.MembersCount) + "\n\n")
+	buffer.WriteString(t.Translate(trans.MESSAGE_TEXT_MEMBERS_CARD_TITLE, group.Data.MembersCount) + "\n\n")
 
-	if group.GroupEntity == nil {
-		if group, err = dtdal.Group.GetGroupByID(c, group.ID); err != nil {
+	if group.Data == nil {
+		if group, err = dtdal.Group.GetGroupByID(c, nil, group.ID); err != nil {
 			return
 		}
 	}
 
-	if group.MembersCount > 0 {
-		members := group.GetGroupMembers()
+	if group.Data.MembersCount > 0 {
+		members := group.Data.GetGroupMembers()
 		if len(members) == 0 {
-			msg := fmt.Sprintf("ERROR: group.MembersCount:%d != 0 && len(members) == 0", group.MembersCount)
+			msg := fmt.Sprintf("ERROR: group.MembersCount:%d != 0 && len(members) == 0", group.Data.MembersCount)
 			buffer.WriteString("\n" + msg + "\n")
 			log.Errorf(c, msg)
 		}
 
-		splitMode := group.GetSplitMode()
+		splitMode := group.Data.GetSplitMode()
 
 		var totalShares int
 
 		if splitMode != models.SplitModeEqually {
-			totalShares = group.TotalShares()
+			totalShares = group.Data.TotalShares()
 		}
 
 		for i, member := range members {
@@ -85,7 +88,7 @@ func groupMembersCard(
 
 func showGroupMembers(whc botsfw.WebhookContext, group models.Group, isEdit bool) (m botsfw.MessageFromBot, err error) {
 
-	if group.GroupEntity == nil {
+	if group.Data == nil {
 		if group, err = shared_group.GetGroup(whc, nil); err != nil {
 			return
 		}

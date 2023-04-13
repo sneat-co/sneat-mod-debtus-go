@@ -360,7 +360,12 @@ func (transferFacade transferFacade) checkOutstandingTransfersForReturns(c conte
 	creatorContactID := input.CreatorContactID()
 
 	reversedDirection := input.Direction().Reverse()
-	outstandingTransfers, err = dtdal.Transfer.LoadOutstandingTransfers(c, now, creatorUserID, creatorContactID, input.Amount.Currency, reversedDirection)
+
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
+	}
+	outstandingTransfers, err = dtdal.Transfer.LoadOutstandingTransfers(c, db, now, creatorUserID, creatorContactID, input.Amount.Currency, reversedDirection)
 	if err != nil {
 		err = fmt.Errorf("failed to load outstanding transfers: %w", err)
 		return

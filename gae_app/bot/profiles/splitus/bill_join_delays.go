@@ -7,6 +7,8 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/app/gaestandard"
@@ -37,10 +39,10 @@ func delayUpdateBillCardOnUserJoin(c context.Context, billID string, message str
 
 func delayedUpdateBillCards(c context.Context, billID string, footer string) error {
 	log.Debugf(c, "delayedUpdateBillCards(billID=%d)", billID)
-	if bill, err := facade.GetBillByID(c, billID); err != nil {
+	if bill, err := facade.GetBillByID(c, nil, billID); err != nil {
 		return err
 	} else {
-		for _, tgChatMessageID := range bill.TgChatMessageIDs {
+		for _, tgChatMessageID := range bill.Data.TgChatMessageIDs {
 			if err = gae.CallDelayFunc(c, common.QUEUE_BILLS, "update-bill-tg-chat-card", delayUpdateBillTgChatCard, billID, tgChatMessageID, footer); err != nil {
 				log.Errorf(c, "Failed to queue updated for %v: %v", tgChatMessageID, err)
 				return err
@@ -52,7 +54,7 @@ func delayedUpdateBillCards(c context.Context, billID string, footer string) err
 
 func delayedUpdateBillTgChartCard(c context.Context, billID string, tgChatMessageID, footer string) error {
 	log.Debugf(c, "delayedUpdateBillTgChartCard(billID=%d, tgChatMessageID=%v)", billID, tgChatMessageID)
-	if bill, err := facade.GetBillByID(c, billID); err != nil {
+	if bill, err := facade.GetBillByID(c, nil, billID); err != nil {
 		return err
 	} else {
 		ids := strings.Split(tgChatMessageID, "@")
@@ -87,7 +89,7 @@ func updateInlineBillCardMessage(c context.Context, translator strongo.SingleLoc
 	if bill.ID == "" {
 		panic("bill.ID is empty string")
 	}
-	if bill.BillEntity == nil {
+	if bill.Data == nil {
 		panic("bill.BillEntity == nil")
 	}
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
+	"reflect"
 	"strings"
 	"time"
 
@@ -62,13 +63,13 @@ func NewContact(id int64, data *ContactData) Contact {
 		data = new(ContactData)
 	}
 	return Contact{
-		WithID: record.WithID[int64]{
-			ID:     id,
-			Key:    key,
-			Record: dal.NewRecordWithData(key, data),
-		},
-		Data: data,
+		WithID: record.NewWithID(id, key, data),
+		Data:   data,
 	}
+}
+
+func NewContactRecord() dal.Record {
+	return dal.NewRecordWithIncompleteKey(ContactKind, reflect.Int64, new(ContactData))
 }
 
 //var _ db.EntityHolder = (*Contact)(nil)

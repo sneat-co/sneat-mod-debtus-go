@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
+	"reflect"
 	"time"
 
 	"github.com/strongo/decimal"
@@ -27,6 +28,30 @@ const TwilioSmsKind = "TwilioSms"
 type TwilioSms struct {
 	record.WithID[string]
 	Data *TwilioSmsData
+}
+
+func NewTwilioSmsRecord() dal.Record {
+	return dal.NewRecordWithIncompleteKey(TwilioSmsKind, reflect.String, new(TwilioSmsData))
+}
+
+func NewTwilioSmsFromRecord(r dal.Record) TwilioSms {
+	key := r.Key()
+	return TwilioSms{
+		WithID: record.WithID[string]{
+			ID:     key.ID.(string),
+			Key:    key,
+			Record: r,
+		},
+		Data: r.Data().(*TwilioSmsData),
+	}
+}
+
+func NewTwilioSmsFromRecords(r []dal.Record) []TwilioSms {
+	result := make([]TwilioSms, len(r))
+	for i, v := range r {
+		result[i] = NewTwilioSmsFromRecord(v)
+	}
+	return result
 }
 
 func NewTwilioSms(smsID string, data *TwilioSmsData) TwilioSms {

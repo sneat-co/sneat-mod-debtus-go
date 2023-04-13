@@ -5,19 +5,22 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"github.com/sneat-co/debtstracker-translations/emoji"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 )
 
 func GroupSettingsAction(whc botsfw.WebhookContext, group models.Group, isEdit bool) (m botsfw.MessageFromBot, err error) {
 	var buf bytes.Buffer
-	buf.WriteString(whc.Translate(trans.MT_GROUP_LABEL, group.Name))
+	buf.WriteString(whc.Translate(trans.MT_GROUP_LABEL, group.Data.Name))
 	buf.WriteString("\n")
-	buf.WriteString(whc.Translate(trans.MT_TEXT_MEMBERS_COUNT, group.MembersCount))
+	buf.WriteString(whc.Translate(trans.MT_TEXT_MEMBERS_COUNT, group.Data.MembersCount))
 	m.Format = botsfw.MessageFormatHTML
 	m.Text = buf.String()
-	defaultCurrency := group.DefaultCurrency
+	defaultCurrency := group.Data.DefaultCurrency
 	if defaultCurrency == "" {
 		defaultCurrency = money.Currency(whc.Translate(trans.NOT_SET))
 	}
@@ -36,7 +39,7 @@ func GroupSettingsAction(whc botsfw.WebhookContext, group models.Group, isEdit b
 		},
 		[]tgbotapi.InlineKeyboardButton{
 			{
-				Text:         whc.Translate(trans.BUTTON_TEXT_SPLIT_MODE, whc.Translate(string(group.GetSplitMode()))),
+				Text:         whc.Translate(trans.BUTTON_TEXT_SPLIT_MODE, whc.Translate(string(group.Data.GetSplitMode()))),
 				CallbackData: shared_group.GroupCallbackCommandData(groupSplitCommandCode, group.ID),
 			},
 		},

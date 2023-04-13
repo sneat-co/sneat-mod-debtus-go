@@ -60,6 +60,21 @@ func NewTransfers(transferIDs []int) []Transfer {
 	return transfers
 }
 
+func TransferFromRecord(r dal.Record) (transfer Transfer) {
+	return Transfer{
+		WithID: record.NewWithID(r.Key().ID.(int), r.Key(), r.Data),
+		Data:   r.Data().(*TransferData),
+	}
+}
+
+func TransfersFromRecords(records []dal.Record) (transfers []Transfer) {
+	transfers = make([]Transfer, len(records))
+	for i, r := range records {
+		transfers[i] = TransferFromRecord(r)
+	}
+	return
+}
+
 func TransferRecords(transfers []Transfer) []dal.Record {
 	records := make([]dal.Record, len(transfers))
 	for i, transfer := range transfers {
@@ -73,6 +88,10 @@ func NewTransferKey(id int) *dal.Key {
 		panic("id == 0")
 	}
 	return dal.NewKeyWithID(TransferKind, id)
+}
+
+var NewTransferRecord = func() dal.Record {
+	return NewTransferWithIncompleteKey(nil).Record
 }
 
 func NewTransferWithIncompleteKey(data *TransferData) Transfer {

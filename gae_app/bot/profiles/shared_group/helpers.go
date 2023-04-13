@@ -70,7 +70,6 @@ func GetUserGroupID(whc botsfw.WebhookContext) (groupID string, err error) {
 }
 
 func createGroupFromTelegram(c context.Context, whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, chatEntity *models.DebtusTelegramChatData, tgChat *tgbotapi.Chat) (group models.Group, err error) {
-	c := whc.Context()
 	log.Debugf(c, "createGroupFromTelegram()")
 	var user *models.AppUserData
 	if user, err = shared_all.GetUser(whc); err != nil {

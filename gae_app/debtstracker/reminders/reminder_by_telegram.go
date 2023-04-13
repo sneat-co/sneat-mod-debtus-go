@@ -36,7 +36,7 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 
 	var locale strongo.Locale
 
-	if locale, err = facade.GetLocale(c, tgBot, tgChatID, reminder.UserID); err != nil {
+	if locale, err = facade.GetLocale(c, tgBot, tgChatID, reminder.Data.UserID); err != nil {
 		return
 	}
 
@@ -66,7 +66,7 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 			Medium:   telegram.PlatformID,
 			Campaign: common.UTM_CAMPAIGN_REMINDER,
 		}
-		messageText += common.TextReceiptForTransfer(executionContext, transfer, reminder.UserID, common.ShowReceiptToAutodetect, utm)
+		messageText += common.TextReceiptForTransfer(executionContext, transfer, reminder.Data.UserID, common.ShowReceiptToAutodetect, utm)
 
 		messageConfig := tgbotapi.NewMessage(tgChatID, messageText)
 
@@ -121,7 +121,7 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 			return
 		}
 		if sent {
-			analytics.ReminderSent(c, reminder.UserID, translator.Locale().Code5, telegram.PlatformID)
+			analytics.ReminderSent(c, reminder.Data.UserID, translator.Locale().Code5, telegram.PlatformID)
 		}
 	}
 	return

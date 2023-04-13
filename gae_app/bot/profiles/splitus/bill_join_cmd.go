@@ -58,7 +58,10 @@ var joinBillCommand = botsfw.Command{
 			c := whc.Context()
 			log.Debugf(c, "joinBillCommand.CallbackAction()")
 			memberStatus := callbackUrl.Query().Get("i")
-			return joinBillAction(whc, tx, bill, memberStatus, true)
+			return m, whc.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+				m, err = joinBillAction(whc, tx, bill, memberStatus, true)
+				return err
+			})
 		}))(whc, callbackUrl)
 	},
 }
@@ -180,7 +183,7 @@ func joinBillAction(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, bill
 		return
 	}
 	if billChanged = billChanged2 || billChanged; billChanged {
-		if err = dtdal.Bill.SaveBill(c, bill); err != nil {
+		if err = dtdal.Bill.SaveBill(c, tx, bill); err != nil {
 			return
 		}
 		if isJoined {

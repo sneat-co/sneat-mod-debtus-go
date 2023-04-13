@@ -251,7 +251,7 @@ func sendReceiptBySms(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, ph
 		return m, fmt.Errorf("failed to parse whc.BotChatID() to int: %w", err)
 	}
 
-	if lastTwilioSmsese, err := dtdal.Twilio.GetLastTwilioSmsesForUser(c, whc.AppUserIntID(), phoneContact.PhoneNumberAsString(), 1); err != nil {
+	if lastTwilioSmsese, err := dtdal.Twilio.GetLastTwilioSmsesForUser(c, tx, whc.AppUserIntID(), phoneContact.PhoneNumberAsString(), 1); err != nil {
 		err = fmt.Errorf("failed to check latest SMS records: %w", err)
 		return m, err
 	} else if len(lastTwilioSmsese) > 0 {
