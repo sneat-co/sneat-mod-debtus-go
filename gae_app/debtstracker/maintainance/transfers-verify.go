@@ -14,32 +14,31 @@ import (
 	"github.com/captaincodeman/datastore-mapper"
 	"github.com/strongo/log"
 	"github.com/strongo/nds"
-	"google.golang.org/appengine/v2/datastore"
 )
 
 type verifyTransfers struct {
 	transfersAsyncJob
 }
 
-func (m *verifyTransfers) Next(c context.Context, counters mapper.Counters, key *datastore.Key) (err error) {
+func (m *verifyTransfers) Next(c context.Context, counters mapper.Counters, key *dal.Key) (err error) {
 	return m.startTransferWorker(c, counters, key, m.verifyTransfer)
 }
 
-func (m *verifyTransfers) verifyTransfer(c context.Context, counters *asyncCounters, transfer models.Transfer) (err error) {
+func (m *verifyTransfers) verifyTransfer(c context.Context, tx dal.ReadwriteTransaction, counters *asyncCounters, transfer models.Transfer) (err error) {
 	buf := new(bytes.Buffer)
-	if err = m.verifyTransferUsers(c, transfer, buf, counters); err != nil {
+	if err = m.verifyTransferUsers(c, tx, transfer, buf, counters); err != nil {
 		log.Errorf(c, fmt.Errorf("verifyTransferUsers:transfer=%d: %w", transfer.ID, err).Error())
 		return
 	}
-	if err = m.verifyTransferContacts(c, transfer, buf, counters); err != nil {
+	if err = m.verifyTransferContacts(c, tx, transfer, buf, counters); err != nil {
 		log.Errorf(c, fmt.Errorf("verifyTransferContacts:transfer=%d: %w", transfer.ID, err).Error())
 		return
 	}
-	if err = m.verifyTransferCurrency(c, transfer, buf, counters); err != nil {
+	if err = m.verifyTransferCurrency(c, tx, transfer, buf, counters); err != nil {
 		log.Errorf(c, fmt.Errorf("verifyTransferCurrency:transfer=%d: %w", transfer.ID, err).Error())
 		return
 	}
-	if err = m.verifyReturnsToTransferIDs(c, transfer, buf, counters); err != nil {
+	if err = m.verifyReturnsToTransferIDs(c, tx, transfer, buf, counters); err != nil {
 		log.Errorf(c, fmt.Errorf("verifyReturnsToTransferIDs:transfer=%d: %w", transfer.ID, err).Error())
 		return
 	}
@@ -49,7 +48,7 @@ func (m *verifyTransfers) verifyTransfer(c context.Context, counters *asyncCount
 	return
 }
 
-func (m *verifyTransfers) verifyTransferUsers(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
+func (m *verifyTransfers) verifyTransferUsers(c context.Context, tx dal.ReadwriteTransaction, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
 	for _, userID := range transfer.Data.BothUserIDs {
 		if userID != 0 {
 			if _, err2 := facade.User.GetUserByID(c, tx, userID); dal.IsNotFound(err2) {
@@ -64,12 +63,12 @@ func (m *verifyTransfers) verifyTransferUsers(c context.Context, transfer models
 	return
 }
 
-func (m *verifyTransfers) verifyTransferContacts(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
+func (m *verifyTransfers) verifyTransferContacts(c context.Context, tx dal.ReadwriteTransaction, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
 	for _, contactID := range transfer.Data.BothCounterpartyIDs {
 		if contactID != 0 {
-			if _, err2 := facade.GetContactByID(c, contactID); dal.IsNotFound(err2) {
+			if _, err2 := facade.GetContactByID(c, tx, contactID); dal.IsNotFound(err2) {
 				counters.Increment(fmt.Sprintf("Contact:%d", contactID), 1)
-				fmt.Fprintf(buf, "Unknown contact %d\n", contactID)
+				_, _ = fmt.Fprintf(buf, "Unknown contact %d\n", contactID)
 			} else if err2 != nil {
 				err = fmt.Errorf("failed to get contact by ID=%v: %w", contactID, err2)
 				return
@@ -85,14 +84,14 @@ func (m *verifyTransfers) verifyTransferContacts(c context.Context, transfer mod
 				panic("toFix.ContactID != 0")
 			}
 			var user models.AppUser
-			if user, err = facade.User.GetUserByID(c, toUse.UserID); err != nil {
+			if user, err = facade.User.GetUserByID(c, tx, toUse.UserID); err != nil {
 				return changed, fmt.Errorf("failed to get user by ID: %w", err)
 			}
 			contactIDs := make([]int64, 0, user.Data.ContactsCount)
 			for _, c := range user.Data.Contacts() {
 				contactIDs = append(contactIDs, c.ID)
 			}
-			contacts, err := facade.GetContactsByIDs(c, contactIDs)
+			contacts, err := facade.GetContactsByIDs(c, nil, contactIDs)
 			if err != nil {
 				return false, fmt.Errorf("failed to get contacts by IDs=%+v: %w", contactIDs, err)
 			}
@@ -126,7 +125,7 @@ func (m *verifyTransfers) verifyTransferContacts(c context.Context, transfer mod
 	return nil
 }
 
-func (*verifyTransfers) verifyTransferCurrency(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
+func (*verifyTransfers) verifyTransferCurrency(c context.Context, tx dal.ReadwriteTransaction, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
 	var currency money.Currency
 	if transfer.Data.Currency == money.Currency("euro") {
 		currency = money.Currency("EUR")
@@ -155,7 +154,7 @@ func (*verifyTransfers) verifyTransferCurrency(c context.Context, transfer model
 	return
 }
 
-func (*verifyTransfers) verifyReturnsToTransferIDs(c context.Context, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
+func (*verifyTransfers) verifyReturnsToTransferIDs(c context.Context, tx dal.ReadwriteTransaction, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
 	if len(transfer.Data.ReturnToTransferIDs) == 0 {
 		return
 	}

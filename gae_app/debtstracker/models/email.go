@@ -1,6 +1,8 @@
 package models
 
 import (
+	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
 	"time"
 
 	"errors"
@@ -10,11 +12,26 @@ import (
 const EmailKind = "Email"
 
 type Email struct {
-	ID int64
-	*EmailEntity
+	record.WithID[int64]
+	Data *EmailData
 }
 
-type EmailEntity struct {
+func NewEmailKey(id int64) *dal.Key {
+	return dal.NewKeyWithID(EmailKind, id)
+}
+
+func NewEmail(id int64, data *EmailData) Email {
+	key := NewEmailKey(id)
+	if data == nil {
+		data = new(EmailData)
+	}
+	return Email{
+		WithID: record.NewWithID(id, key, data),
+		Data:   data,
+	}
+}
+
+type EmailData struct {
 	Status          string
 	Error           string `datastore:",noindex"`
 	DtCreated       time.Time
@@ -27,11 +44,11 @@ type EmailEntity struct {
 	AwsSesMessageID string
 }
 
-func (entity *EmailEntity) Load(ps []datastore.Property) error {
+func (entity *EmailData) Load(ps []datastore.Property) error {
 	return datastore.LoadStruct(entity, ps)
 }
 
-func (entity *EmailEntity) Save() (properties []datastore.Property, err error) {
+func (entity *EmailData) Save() (properties []datastore.Property, err error) {
 	if entity.Status == "" {
 		err = errors.New("email.Status is empty")
 	}

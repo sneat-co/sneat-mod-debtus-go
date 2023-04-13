@@ -70,14 +70,14 @@ func (r *Reminder) Save() ([]datastore.Property, error) {
 }
 
 type ReminderEntity struct {
-	ParentReminderID    int64 `datastore:",omitempty"`
-	IsAutomatic         bool  `datastore:",noindex,omitempty"`
-	IsRescheduled       bool  `datastore:",noindex,omitempty"`
-	TransferID          int64
+	ParentReminderID    int  `datastore:",omitempty"`
+	IsAutomatic         bool `datastore:",noindex,omitempty"`
+	IsRescheduled       bool `datastore:",noindex,omitempty"`
+	TransferID          int
 	DtNext              time.Time
 	DtScheduled         time.Time `datastore:",noindex,omitempty"` // DtNext moves here once sent, can be used for stats & troubleshooting
 	Locale              string    `datastore:",noindex"`
-	ClosedByTransferIDs []int64   `datastore:",noindex"` // TODO: Why do we need list of IDs here?
+	ClosedByTransferIDs []int     `datastore:",noindex"` // TODO: Why do we need list of IDs here?
 	SentVia             string    `datastore:",omitempty"`
 	Status              string
 	UserID              int64
@@ -151,8 +151,8 @@ func (r ReminderEntity) validate() (err error) {
 	return nil
 }
 
-func NewReminderViaTelegram(botID string, chatID, userID, transferID int64, isAutomatic bool, next time.Time) (reminder ReminderEntity) {
-	reminder = ReminderEntity{
+func NewReminderViaTelegram(botID string, chatID, userID int64, transferID int, isAutomatic bool, next time.Time) (reminder *ReminderEntity) {
+	return &ReminderEntity{
 		Status:      ReminderStatusCreated,
 		SentVia:     telegram.PlatformID,
 		BotID:       botID,
@@ -163,10 +163,9 @@ func NewReminderViaTelegram(botID string, chatID, userID, transferID int64, isAu
 		IsAutomatic: isAutomatic,
 		DtNext:      next,
 	}
-	return
 }
 
-func (r *ReminderEntity) ScheduleNextReminder(parentReminderID int64, next time.Time) *ReminderEntity {
+func (r *ReminderEntity) ScheduleNextReminder(parentReminderID int, next time.Time) *ReminderEntity {
 	reminder := *r
 	reminder.ParentReminderID = parentReminderID
 	reminder.Status = ReminderStatusRescheduled

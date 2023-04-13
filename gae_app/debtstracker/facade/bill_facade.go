@@ -586,7 +586,7 @@ func (billFacade) AddBillMember(
 	}
 	log.Debugf(c, "bill.GetBillMembers(): %+v", bill.Data.GetBillMembers())
 
-	if err = dtdal.Bill.SaveBill(c, bill); err != nil {
+	if err = dtdal.Bill.SaveBill(c, tx, bill); err != nil {
 		return
 	}
 
@@ -646,7 +646,7 @@ func (billFacade) DeleteBill(c context.Context, billID string, userID int64) (bi
 				return
 			}
 			bill.Data.Status = models.BillStatusDeleted
-			if err = dtdal.Bill.SaveBill(c, bill); err != nil {
+			if err = dtdal.Bill.SaveBill(c, tx, bill); err != nil {
 				return
 			}
 		}
@@ -711,7 +711,7 @@ func (billFacade) RestoreBill(c context.Context, billID string, userID int64) (b
 		if err = tx.Insert(c, billHistory.Record); err != nil {
 			return
 		}
-		if err = dtdal.Bill.SaveBill(c, bill); err != nil {
+		if err = dtdal.Bill.SaveBill(c, tx, bill); err != nil {
 			return
 		}
 		if groupID := bill.Data.GetUserGroupID(); groupID != "" {

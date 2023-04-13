@@ -1,6 +1,9 @@
 package dtb_settings
 
 import (
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 
 	//"github.com/bots-go-framework/bots-api-telegram"
@@ -29,11 +32,11 @@ var ContactsListCommand = botsfw.Command{
 }
 
 func contactsAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
-	var user *models.AppUserEntity
+	var user *models.AppUserData
 	if appUser, err := whc.GetAppUser(); err != nil {
 		return m, err
 	} else {
-		user = appUser.(*models.AppUserEntity)
+		user = appUser.(*models.AppUserData)
 	}
 	var buffer bytes.Buffer
 	buffer.WriteString(fmt.Sprintf("<b>%v</b>\n", whc.Translate(trans.COMMAND_TEXT_CONTACTS)))

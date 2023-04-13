@@ -163,7 +163,7 @@ func (groupFacade) AddUsersToTheGroupAndOutstandingBills(c context.Context, grou
 	return group, newUsers, err
 }
 
-var delayUpdateGroupUsers = delay.Func("updateGroupUsers", updateGroupUsers)
+var delayUpdateGroupUsers = delay.MustRegister("updateGroupUsers", updateGroupUsers)
 
 func (groupFacade) DelayUpdateGroupUsers(c context.Context, groupID string) error { // TODO: Move to DAL?
 	if groupID == "" {
@@ -206,7 +206,7 @@ func updateGroupUsers(c context.Context, groupID string) (err error) {
 	return err
 }
 
-var delayUpdateUserWithGroups = delay.Func("UpdateUserWithGroups", delayedUpdateUserWithGroups)
+var delayUpdateUserWithGroups = delay.MustRegister("UpdateUserWithGroups", delayedUpdateUserWithGroups)
 
 func delayedUpdateUserWithGroups(c context.Context, userID string, groupIDs2add, groupIDs2remove []string) (err error) {
 	log.Debugf(c, "delayedUpdateUserWithGroups(userID=%d, groupIDs2add=%v, groupIDs2remove=%v)", userID, groupIDs2add, groupIDs2remove)
@@ -263,7 +263,7 @@ func (userFacade) UpdateUserWithGroups(c context.Context, tx dal.ReadwriteTransa
 	return
 }
 
-var delayUpdateContactWithGroups = delay.Func("UpdateContactWithGroups", delayedUpdateContactWithGroup)
+var delayUpdateContactWithGroups = delay.MustRegister("UpdateContactWithGroups", delayedUpdateContactWithGroup)
 
 func (userFacade) DelayUpdateContactWithGroups(c context.Context, contactID int64, addGroupIDs, removeGroupIDs []string) error {
 	return gae.CallDelayFunc(c, common.QUEUE_USERS, "update-contact-groups", delayUpdateContactWithGroups, contactID, addGroupIDs, removeGroupIDs)
@@ -277,7 +277,7 @@ func delayedUpdateContactWithGroup(c context.Context, contactID int64, addGroupI
 	}
 
 	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
-		if _, err = GetContactByID(c, contactID); err != nil {
+		if _, err = GetContactByID(c, tx, contactID); err != nil {
 			return err
 		}
 		return User.UpdateContactWithGroups(c, contactID, addGroupIDs, removeGroupIDs)
@@ -289,7 +289,7 @@ func delayedUpdateContactWithGroup(c context.Context, contactID int64, addGroupI
 
 func (userFacade) UpdateContactWithGroups(c context.Context, contactID int64, addGroupIDs, removeGroupIDs []string) error {
 	log.Debugf(c, "UpdateContactWithGroups(contactID=%d, addGroupIDs=%v, removeGroupIDs=%v)", contactID, addGroupIDs, removeGroupIDs)
-	if contact, err := GetContactByID(c, contactID); err != nil {
+	if contact, err := GetContactByID(c, nil, contactID); err != nil {
 		return err
 	} else {
 		var isAdded bool

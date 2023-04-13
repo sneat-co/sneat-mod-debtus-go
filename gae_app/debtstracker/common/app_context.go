@@ -22,11 +22,11 @@ func (appCtx DebtsTrackerAppContext) AppUserEntityKind() string {
 }
 
 func (appCtx DebtsTrackerAppContext) AppUserEntityType() reflect.Type {
-	return reflect.TypeOf(&models.AppUserEntity{})
+	return reflect.TypeOf(&models.AppUserData{})
 }
 
 func (appCtx DebtsTrackerAppContext) NewBotAppUserEntity() botsfw.BotAppUser {
-	return &models.AppUserEntity{
+	return &models.AppUserData{
 		ContactDetails: models.ContactDetails{
 			PhoneContact: models.PhoneContact{},
 		},

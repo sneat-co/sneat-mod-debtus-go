@@ -13,7 +13,7 @@ package dtb_transfer
 //	"github.com/strongo/app"
 //)
 //
-//func ClaimInviteOnTransfer(ec strongo.ExecutionContext, inviteCode string, invite *invites.Invite) (transferID int64, transfer *models.Transfer, counterpartyID int64, counterparty *models.Contact, err error) {
+//func ClaimInviteOnTransfer(ec strongo.ExecutionContext, inviteCode string, invite *invites.Invite) (transferID int, transfer *models.Transfer, counterpartyID int64, counterparty *models.Contact, err error) {
 //	c := ec.Context()
 //
 //	//if transferID, err = invite.RelatedIntID(); err != nil {

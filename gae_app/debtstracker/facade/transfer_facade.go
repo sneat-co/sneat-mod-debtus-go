@@ -125,7 +125,7 @@ func (output createTransferOutput) Validate() {
 		panic("Transfer.ID == 0")
 	}
 	if output.Transfer.Data == nil {
-		panic("TransferEntity == nil")
+		panic("TransferData == nil")
 	}
 }
 
@@ -137,7 +137,7 @@ func (input createTransferInput) Validate() {
 		panic("creatorUser.ID == 0")
 	}
 	if input.CreatorUser.Data == nil {
-		panic("creatorUser.AppUserEntity == nil")
+		panic("creatorUser.AppUserData == nil")
 	}
 	if input.Amount.Value <= 0 {
 		panic("amount.Value <= 0")
@@ -275,7 +275,7 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 			goto contactFound
 		}
 		// If contact not found in user's JSON try to recover from DB record
-		if creatorContact, err = GetContactByID(c, creatorContactID); err != nil {
+		if creatorContact, err = GetContactByID(c, nil, creatorContactID); err != nil {
 			return
 		}
 
@@ -479,7 +479,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		link := func(sideName, countersideName string, side, counterside *models.TransferCounterpartyInfo, sideContact models.Contact) (countersideContact models.Contact, err error) {
 			log.Debugf(c, "link(%v=%v, %v=%v, %vContact=%v)", sideName, side, countersideName, counterside, sideName, sideContact)
 			if side.ContactID != 0 && sideContact.Data.CounterpartyCounterpartyID != 0 && counterside.ContactID == 0 {
-				if countersideContact, err = GetContactByID(c, sideContact.Data.CounterpartyCounterpartyID); err != nil {
+				if countersideContact, err = GetContactByID(c, tx, sideContact.Data.CounterpartyCounterpartyID); err != nil {
 					err = fmt.Errorf("failed to get counterparty by 'fromCounterparty.CounterpartyCounterpartyID': %w", err)
 					return
 				}
@@ -515,7 +515,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		// 		return
 		// 	}
 		// 	output.To.Contact = toContact
-		// 	log.Debugf(c, "Got toContact id=%d: %v", toContact.ID, toContact.ContactEntity)
+		// 	log.Debugf(c, "Got toContact id=%d: %v", toContact.ID, toContact.ContactData)
 		// 	to.ContactID = toContact.ID
 		// 	to.ContactName = toContact.GetFullName()
 		// 	from.UserID = toContact.UserID
@@ -527,7 +527,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		// 		return
 		// 	}
 		// 	output.From.Contact = fromCounterparty
-		// 	log.Debugf(c, "Got fromCounterparty id=%d: %v", fromCounterparty.ID, fromCounterparty.ContactEntity)
+		// 	log.Debugf(c, "Got fromCounterparty id=%d: %v", fromCounterparty.ID, fromCounterparty.ContactData)
 		// 	from.ContactID = fromCounterparty.ID
 		// 	from.ContactName = fromCounterparty.GetFullName()
 		// 	to.UserID = fromCounterparty.UserID
@@ -538,7 +538,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 	// In case if we just loaded above missing counterparty we need to check for missing user
 	{
 		loadUserIfNeeded := func(who string, userID int64, appUser models.AppUser) (models.AppUser, models.AppUser, error) {
-			log.Debugf(c, "%v.UserID: %d, %vUser.AppUserEntity: %v", who, userID, who, appUser.Data)
+			log.Debugf(c, "%v.UserID: %d, %vUser.AppUserData: %v", who, userID, who, appUser.Data)
 			if userID != 0 {
 				if appUser.Data == nil {
 					if appUser, err = User.GetUserByID(c, tx, userID); err != nil {
@@ -592,7 +592,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		amountToAssign := input.Amount.Value
 		assignedToExistingTransfers := false
 		for _, returnToTransfer := range returnToTransfers {
-			//returnToTransfer := returnToTransfer.Data().(*models.TransferEntity)
+			//returnToTransfer := returnToTransfer.Data().(*models.TransferData)
 			returnToTransferOutstandingValue := returnToTransfer.Data.GetOutstandingValue(dtCreated)
 			if !returnToTransfer.Data.IsOutstanding {
 				log.Warningf(c, "Transfer(%v).IsOutstanding: false, returnToTransferOutstandingValue: %v", returnToTransfer.ID, returnToTransferOutstandingValue)
@@ -838,6 +838,11 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 }
 
 func (transferFacade) GetTransferByID(c context.Context, tx dal.ReadSession, id int) (transfer models.Transfer, err error) {
+	if tx == nil {
+		if tx, err = GetDatabase(c); err != nil {
+			return
+		}
+	}
 	transfer = models.NewTransfer(id, nil)
 	err = tx.Get(c, transfer.Record)
 	return
@@ -1000,7 +1005,7 @@ func removeClosedTransfersFromOutstandingWithInterest(
 	return transfersWithInterest[:i]
 }
 
-func InsertTransfer(c context.Context, tx dal.ReadwriteTransaction, transferEntity *models.TransferEntity) (transfer models.Transfer, err error) {
+func InsertTransfer(c context.Context, tx dal.ReadwriteTransaction, transferEntity *models.TransferData) (transfer models.Transfer, err error) {
 	transfer = models.NewTransfer(0, transferEntity)
 	err = tx.Insert(c, transfer.Record)
 	return

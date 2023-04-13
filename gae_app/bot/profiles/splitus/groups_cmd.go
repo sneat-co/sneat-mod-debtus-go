@@ -55,7 +55,7 @@ func groupsAction(whc botsfw.WebhookContext, isEdit bool, groupsMessageID int) (
 	if user, err = whc.GetAppUser(); err != nil {
 		return
 	}
-	appUserEntity := user.(*models.AppUserEntity)
+	appUserEntity := user.(*models.AppUserData)
 
 	groups := appUserEntity.ActiveGroups()
 

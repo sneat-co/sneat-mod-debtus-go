@@ -4,27 +4,25 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	"net/http"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/captaincodeman/datastore-mapper"
 	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/nds"
-	"google.golang.org/appengine/v2/datastore"
 	"google.golang.org/appengine/v2/log"
 	"time"
 )
 
 type verifyUsers struct {
 	asyncMapper
-	entity *models.AppUserEntity
+	entity *models.AppUserData
 }
 
 func (m *verifyUsers) Make() interface{} {
-	m.entity = new(models.AppUserEntity)
+	m.entity = new(models.AppUserData)
 	return m.entity
 }
 
@@ -32,9 +30,9 @@ func (m *verifyUsers) Query(r *http.Request) (query *mapper.Query, err error) {
 	return applyIDAndUserFilters(r, "verifyUsers", models.AppUserKind, filterByIntID, "")
 }
 
-func (m *verifyUsers) Next(c context.Context, counters mapper.Counters, key *datastore.Key) (err error) {
+func (m *verifyUsers) Next(c context.Context, counters mapper.Counters, key *dal.Key) (err error) {
 	userEntity := *m.entity
-	user := models.AppUser{IntegerID: db.NewIntID(key.IntID()), AppUserEntity: &userEntity}
+	user := models.NewAppUser(key.ID.(int64), &userEntity)
 	return m.startWorker(c, counters, func() Worker {
 		return func(counters *asyncCounters) error {
 			return m.processUser(c, user, counters)
@@ -57,13 +55,13 @@ func (m *verifyUsers) processUser(c context.Context, user models.AppUser, counte
 }
 
 func (m *verifyUsers) checkContactsExistsAndRecreateIfNeeded(c context.Context, buf *bytes.Buffer, counters *asyncCounters, user models.AppUser) (models.AppUser, error) {
-	userContacts := user.Contacts()
+	userContacts := user.Data.Contacts()
 	userChanged := false
 	var err error
 	for i, userContact := range userContacts {
 		contactID := userContact.ID
 		var contact models.Contact
-		if contact, err = facade.GetContactByID(c, contactID); err != nil {
+		if contact, err = facade.GetContactByID(c, nil, contactID); err != nil {
 			if dal.IsNotFound(err) {
 				if err = m.createContact(c, buf, counters, user, userContact); err != nil {
 					log.Errorf(c, "Failed to create contact %v", userContact.ID)
@@ -74,30 +72,34 @@ func (m *verifyUsers) checkContactsExistsAndRecreateIfNeeded(c context.Context, 
 				return user, err
 			}
 		}
-		if contact.CounterpartyUserID != 0 && userContact.UserID != contact.CounterpartyUserID {
+		if contact.Data.CounterpartyUserID != 0 && userContact.UserID != contact.Data.CounterpartyUserID {
 			if userContact.UserID == 0 {
-				userContact.UserID = contact.CounterpartyUserID
+				userContact.UserID = contact.Data.CounterpartyUserID
 				userContacts[i] = userContact
 				userChanged = true
 			} else {
 				err = fmt.Errorf(
 					"data integrity issue for contact %v: userContact.UserID != contact.CounterpartyUserID: %v != %v",
-					contact.ID, userContact.UserID, contact.CounterpartyUserID)
+					contact.ID, userContact.UserID, contact.Data.CounterpartyUserID)
 				return user, err
 			}
 		}
 	}
 	if userChanged {
-		if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
-			if user, err = facade.User.GetUserByID(c, user.ID); err != nil {
+		var db dal.Database
+		if db, err = facade.GetDatabase(c); err != nil {
+			return user, err
+		}
+		if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+			if user, err = facade.User.GetUserByID(c, tx, user.ID); err != nil {
 				return err
 			}
-			user.SetContacts(userContacts)
-			if err = facade.User.SaveUser(c, user); err != nil {
+			user.Data.SetContacts(userContacts)
+			if err = facade.User.SaveUser(c, tx, user); err != nil {
 				return err
 			}
 			return nil
-		}, db.CrossGroupTransaction); err != nil {
+		}); err != nil {
 			return user, err
 		}
 
@@ -107,10 +109,14 @@ func (m *verifyUsers) checkContactsExistsAndRecreateIfNeeded(c context.Context, 
 
 func (m *verifyUsers) createContact(c context.Context, buf *bytes.Buffer, counters *asyncCounters, user models.AppUser, userContact models.UserContactJson) (err error) {
 	var contact models.Contact
-	if err = dtdal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
-		if contact, err = facade.GetContactByID(tc, userContact.ID); err != nil {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+	if err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) (err error) {
+		if contact, err = facade.GetContactByID(tc, nil, userContact.ID); err != nil {
 			if dal.IsNotFound(err) {
-				contact = models.NewContact(userContact.ID, &models.ContactEntity{
+				contact = models.NewContact(userContact.ID, &models.ContactData{
 					UserID:    user.ID,
 					DtCreated: time.Now(),
 					Status:    models.STATUS_ACTIVE,
@@ -119,10 +125,10 @@ func (m *verifyUsers) createContact(c context.Context, buf *bytes.Buffer, counte
 						TelegramUserID: userContact.TgUserID,
 					},
 				})
-				if err = contact.SetBalance(userContact.Balance()); err != nil {
+				if err = contact.Data.SetBalance(userContact.Balance()); err != nil {
 					return
 				}
-				if err = contact.SetTransfersInfo(*contact.GetTransfersInfo()); err != nil {
+				if err = contact.Data.SetTransfersInfo(*contact.Data.GetTransfersInfo()); err != nil {
 					return
 				}
 				if err = facade.SaveContact(tc, contact); err != nil {
@@ -132,23 +138,27 @@ func (m *verifyUsers) createContact(c context.Context, buf *bytes.Buffer, counte
 			return
 		}
 		return
-	}, db.CrossGroupTransaction); err != nil {
+	}); err != nil {
 		return
 	} else {
-		log.Warningf(c, "Recreated contact %v[%v] for user %v[%v]", contact.ID, contact.FullName(), user.ID, user.FullName())
+		log.Warningf(c, "Recreated contact %v[%v] for user %v[%v]", contact.ID, contact.Data.FullName(), user.ID, user.Data.FullName())
 	}
 	return
 }
 
 func (m *verifyUsers) verifyUserBalanceAndContacts(c context.Context, buf *bytes.Buffer, counters *asyncCounters, user models.AppUser) (err error) {
-	if user.BalanceCount > 0 {
-		balance := user.Balance()
+	if user.Data.BalanceCount > 0 {
+		balance := user.Data.Balance()
 
 		if fixedContactsBalances, err := fixUserContactsBalances(m.entity); err != nil {
 			return err
 		} else if fixedContactsBalances || FixBalanceCurrencies(balance) {
-			if err = nds.RunInTransaction(c, func(c context.Context) error {
-				if user, err = facade.User.GetUserByID(c, user.ID); err != nil {
+			var db dal.Database
+			if db, err = facade.GetDatabase(c); err != nil {
+				return err
+			}
+			if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+				if user, err = facade.User.GetUserByID(c, tx, user.ID); err != nil {
 					return err
 				}
 				balance = m.entity.Balance()
@@ -166,7 +176,7 @@ func (m *verifyUsers) verifyUserBalanceAndContacts(c context.Context, buf *bytes
 					changed = true
 				}
 				if changed {
-					if err = facade.User.SaveUser(c, user); err != nil {
+					if err = facade.User.SaveUser(c, tx, user); err != nil {
 						return err
 					}
 					fmt.Fprintf(buf, "User fixed: %d ", user.ID)
@@ -180,7 +190,7 @@ func (m *verifyUsers) verifyUserBalanceAndContacts(c context.Context, buf *bytes
 	return
 }
 
-func fixUserContactsBalances(u *models.AppUserEntity) (changed bool, err error) {
+func fixUserContactsBalances(u *models.AppUserData) (changed bool, err error) {
 	contacts := u.Contacts()
 	for i, contact := range contacts {
 		if balance := contact.Balance(); FixBalanceCurrencies(balance) {

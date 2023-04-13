@@ -113,7 +113,7 @@ func AskTransferCurrencyButtons(whc botsfw.WebhookContext) [][]string {
 		}
 	}
 
-	appUser := user.(*models.AppUserEntity)
+	appUser := user.(*models.AppUserData)
 
 	for _, currency := range appUser.GetCurrencies() {
 		curr := money.Currency(currency)
@@ -269,7 +269,7 @@ func CreateAskTransferCounterpartyCommand(
 						return cancelTransferWizardCommandAction(whc)
 					}
 					var contactIDs []int64
-					if contactIDs, err = dtdal.Contact.GetContactIDsByTitle(c, whc.AppUserIntID(), mt, true); err != nil {
+					if contactIDs, err = dtdal.Contact.GetContactIDsByTitle(c, nil, whc.AppUserIntID(), mt, true); err != nil {
 						return m, err
 					}
 					if mt == whc.Translate(trans.COMMAND_TEXT_SHOW_ALL_CONTACTS) {
@@ -282,7 +282,7 @@ func CreateAskTransferCounterpartyCommand(
 							contactID := contactIDs[0]
 							chatEntity.AddWizardParam(WIZARD_PARAM_COUNTERPARTY, strconv.FormatInt(contactID, 10))
 							var contact models.Contact
-							if contact, err = facade.GetContactByID(c, contactID); err != nil {
+							if contact, err = facade.GetContactByID(c, nil, contactID); err != nil {
 								return
 							}
 							m, err = onContactSelectedAction(whc, contact)
@@ -303,7 +303,7 @@ func CreateAskTransferCounterpartyCommand(
 			default:
 				log.Debugf(c, "default:")
 				var user models.AppUser
-				if user, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+				if user, err = facade.User.GetUserByID(c, nil, whc.AppUserIntID()); err != nil {
 					return
 				}
 				if isReturn && user.Data.BalanceCount <= 3 && user.Data.TotalContactsCount() <= 3 {
@@ -371,7 +371,7 @@ func listCounterpartiesAsButtons(whc botsfw.WebhookContext, user models.AppUser,
 	}
 	m.Format = botsfw.MessageFormatHTML
 	if user.Data == nil {
-		if user, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+		if user, err = facade.User.GetUserByID(c, nil, whc.AppUserIntID()); err != nil {
 			return
 		}
 	}
@@ -595,7 +595,7 @@ func CreateTransferFromBot(
 	from, to := facade.TransferCounterparties(direction, creatorInfo)
 
 	var appUser models.AppUser
-	if appUser, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+	if appUser, err = facade.User.GetUserByID(c, nil, whc.AppUserIntID()); err != nil {
 		return
 	}
 	newTransfer := facade.NewTransferInput(whc.Environment(),
@@ -767,7 +767,7 @@ func createSendReceiptOptionsMessage(whc botsfw.WebhookContext, transfer models.
 	var telegramKeyboard tgbotapi.InlineKeyboardMarkup
 	var isCounterpartyUserHasTelegram bool
 	if transfer.Data.Creator().ContactID != 0 {
-		if user, err := facade.User.GetUserByID(c, transfer.Data.Counterparty().UserID); err != nil {
+		if user, err := facade.User.GetUserByID(c, nil, transfer.Data.Counterparty().UserID); err != nil {
 			err = fmt.Errorf("failed to get counterparty user by ID=%v: %w", transfer.Data.Counterparty().UserID, err)
 			return m, err
 		} else {

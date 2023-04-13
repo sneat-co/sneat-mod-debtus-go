@@ -1,16 +1,15 @@
 package gaedal
 
 import (
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"testing"
-
-	"context"
 )
 
 func TestNewReceiptIncompleteKey(t *testing.T) {
-	testDatastoreIncompleteKey(t, NewReceiptIncompleteKey(context.Background()))
+	testIncompleteKey(t, NewReceiptIncompleteKey())
 }
 
 func TestNewReceiptKey(t *testing.T) {
 	const receiptID = 234
-	testDatastoreIntKey(t, receiptID, NewReceiptKey(context.Background(), receiptID))
+	testIntKey(t, receiptID, models.NewReceiptKey(receiptID))
 }

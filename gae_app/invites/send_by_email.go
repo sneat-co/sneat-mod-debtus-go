@@ -3,6 +3,7 @@ package invites
 import (
 	"bytes"
 	"fmt"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"html/template"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
@@ -73,7 +74,7 @@ func SendReceiptByEmail(ec strongo.ExecutionContext, receipt models.Receipt, fro
 	templateParams := struct {
 		ToName     string
 		FromName   string
-		ReceiptID  int64
+		ReceiptID  int
 		ReceiptURL template.HTML
 	}{
 		toName,
@@ -92,7 +93,7 @@ func SendReceiptByEmail(ec strongo.ExecutionContext, receipt models.Receipt, fro
 		return "", err
 	}
 
-	receiptURL := common.GetReceiptUrl(receipt.ID, common.GetWebsiteHost(receipt.CreatedOnID))
+	receiptURL := common.GetReceiptUrl(receipt.ID, common.GetWebsiteHost(receipt.Data.CreatedOnID))
 	//displayUrl := strings.Split(string(templateParams.ReceiptURL), "#")[0]
 	templateParams.ReceiptURL = template.HTML(fmt.Sprintf(`<a href="%v">%v</a>`, receiptURL, receiptURL))
 	var bodyHtml bytes.Buffer

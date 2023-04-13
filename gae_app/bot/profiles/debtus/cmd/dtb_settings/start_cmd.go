@@ -82,13 +82,13 @@ func startInvite(whc botsfw.WebhookContext, inviteCode, operation, localeCode5 s
 
 func startReceipt(whc botsfw.WebhookContext, receiptCode, operation, localeCode5 string) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
-	receiptID, err := strconv.ParseInt(receiptCode, 10, 64)
+	receiptID, err := strconv.Atoi(receiptCode)
 	if err != nil {
-		receiptID, err = common.DecodeID(receiptCode) // TODO: remove obsolete in a while. 2017/11/19
-	} else if _, err = dtdal.Receipt.GetReceiptByID(c, receiptID); err != nil {
+		receiptID, err = common.DecodeIntID(receiptCode) // TODO: remove obsolete in a while. 2017/11/19
+	} else if _, err = dtdal.Receipt.GetReceiptByID(c, nil, receiptID); err != nil {
 		if dal.IsNotFound(err) {
 			err = nil
-			if receiptID, err = common.DecodeID(receiptCode); err != nil {
+			if receiptID, err = common.DecodeIntID(receiptCode); err != nil {
 				err = fmt.Errorf("failed to decode receipt ID: %w", err)
 				return
 			}
@@ -98,7 +98,9 @@ func startReceipt(whc botsfw.WebhookContext, receiptCode, operation, localeCode5
 	}
 	switch operation {
 	case "view":
-		whc.SetLocale(localeCode5)
+		if err = whc.SetLocale(localeCode5); err != nil {
+			return
+		}
 		return dtb_transfer.ShowReceipt(whc, receiptID)
 	default:
 		return dtb_transfer.AcknowledgeReceipt(whc, receiptID, operation)

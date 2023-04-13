@@ -1,6 +1,7 @@
 package dtb_transfer
 
 import (
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/strongo/log"
 )
 

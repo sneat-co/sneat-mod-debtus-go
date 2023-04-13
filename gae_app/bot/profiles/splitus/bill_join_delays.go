@@ -17,8 +17,8 @@ import (
 )
 
 var (
-	delayUpdateBillCards      = delay.Func("UpdateBillCards", delayedUpdateBillCards)
-	delayUpdateBillTgChatCard = delay.Func("UpdateBillTgChatCard", delayedUpdateBillTgChartCard)
+	delayUpdateBillCards      = delay.MustRegister("UpdateBillCards", delayedUpdateBillCards)
+	delayUpdateBillTgChatCard = delay.MustRegister("UpdateBillTgChatCard", delayedUpdateBillTgChartCard)
 )
 
 func delayUpdateBillCardOnUserJoin(c context.Context, billID string, message string) error {

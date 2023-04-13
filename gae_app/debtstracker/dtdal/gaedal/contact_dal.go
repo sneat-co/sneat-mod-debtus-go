@@ -12,7 +12,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/strongo/app/gae"
-	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/v2/datastore"
 	"google.golang.org/appengine/v2/delay"
@@ -27,20 +26,13 @@ func NewContactDalGae() ContactDalGae {
 
 var _ dtdal.ContactDal = (*ContactDalGae)(nil)
 
-func NewContactKey(c context.Context, contactID int64) *datastore.Key {
-	if contactID == 0 {
-		panic("NewContactKey(): contactID == 0")
-	}
-	return gaedb.NewKey(c, models.ContactKind, "", contactID, nil)
-}
-
 func NewContactIncompleteKey(c context.Context) *datastore.Key {
 	return datastore.NewIncompleteKey(c, models.ContactKind, nil)
 }
 
-func (contactDalGae ContactDalGae) DeleteContact(c context.Context, contactID int64) (err error) {
+func (contactDalGae ContactDalGae) DeleteContact(c context.Context, tx dal.ReadwriteTransaction, contactID int64) (err error) {
 	log.Debugf(c, "ContactDalGae.DeleteContact(%d)", contactID)
-	if err = gaedb.Delete(c, NewContactKey(c, contactID)); err != nil {
+	if err = tx.Delete(c, models.NewContactKey(contactID)); err != nil {
 		return
 	}
 	if err = delayDeleteContactTransfers(c, contactID, ""); err != nil { // TODO: Move to facade!
@@ -54,7 +46,7 @@ var deleteContactTransfersDelayFunc *delay.Function
 const DeleteContactTransfersFuncKey = "DeleteContactTransfers"
 
 func init() {
-	deleteContactTransfersDelayFunc = delay.Func(DeleteContactTransfersFuncKey, delayedDeleteContactTransfers)
+	deleteContactTransfersDelayFunc = delay.MustRegister(DeleteContactTransfersFuncKey, delayedDeleteContactTransfers)
 }
 
 func delayDeleteContactTransfers(c context.Context, contactID int64, cursor string) error {
@@ -107,7 +99,7 @@ func newContactQueryActive(userID int64) *datastore.Query {
 	return newContactQueryWithStatus(userID, models.STATUS_ACTIVE)
 }
 
-func newContactQueryWithStatus(userID int64, status string) *datastore.Query {
+func newContactQueryWithStatus(userID int64, status string) *dal.Query {
 	query := datastore.NewQuery(models.ContactKind).Filter("UserID =", userID)
 	if status != "" {
 		query = query.Filter("Status =", status)
@@ -115,11 +107,11 @@ func newContactQueryWithStatus(userID int64, status string) *datastore.Query {
 	return query
 }
 
-func (ContactDalGae) GetContactsWithDebts(c context.Context, userID int64) (counterparties []models.Contact, err error) {
+func (ContactDalGae) GetContactsWithDebts(c context.Context, tx dal.ReadTransaction, userID int64) (counterparties []models.Contact, err error) {
 	query := newContactQueryWithStatus(userID, "").Filter("BalanceCount >", 0)
 	var (
 		counterpartyKeys     []*datastore.Key
-		counterpartyEntities []*models.ContactEntity
+		counterpartyEntities []*models.ContactData
 	)
 	if counterpartyKeys, err = query.GetAll(c, &counterpartyEntities); err != nil {
 		err = fmt.Errorf("method ContactDalGae.GetContactsWithDebts() failed to execute query.GetAll(): %w", err)
@@ -136,7 +128,7 @@ func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, limit, totalCo
 		query = query.Limit(limit)
 	}
 	var keys []*datastore.Key
-	var entities []*models.ContactEntity
+	var entities []*models.ContactData
 	if keys, err = query.GetAll(c, &entities); err != nil {
 		err = fmt.Errorf("method ContactDalGae.GetLatestContacts() failed: %w", err)
 		return
@@ -163,7 +155,7 @@ func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, limit, totalCo
 
 func (contactDalGae ContactDalGae) GetContactIDsByTitle(c context.Context, tx dal.ReadTransaction, userID int64, title string, caseSensitive bool) (contactIDs []int64, err error) {
 	var user models.AppUser
-	if user, err = facade.User.GetUserByID(c, userID); err != nil {
+	if user, err = facade.User.GetUserByID(c, tx, userID); err != nil {
 		return
 	}
 	if caseSensitive {
@@ -183,7 +175,7 @@ func (contactDalGae ContactDalGae) GetContactIDsByTitle(c context.Context, tx da
 	return
 }
 
-func zipCounterparty(keys []*datastore.Key, entities []*models.ContactEntity) (contacts []models.Contact) {
+func zipCounterparty(keys []*datastore.Key, entities []*models.ContactData) (contacts []models.Contact) {
 	if len(keys) != len(entities) {
 		panic(fmt.Sprintf("len(keys):%d != len(entities):%d", len(keys), len(entities)))
 	}
@@ -194,7 +186,7 @@ func zipCounterparty(keys []*datastore.Key, entities []*models.ContactEntity) (c
 	return
 }
 
-func (contactDalGae ContactDalGae) InsertContact(c context.Context, tx dal.ReadwriteTransaction, contactEntity *models.ContactEntity) (
+func (contactDalGae ContactDalGae) InsertContact(c context.Context, tx dal.ReadwriteTransaction, contactEntity *models.ContactData) (
 	contact models.Contact, err error,
 ) {
 	contact.Data = contactEntity

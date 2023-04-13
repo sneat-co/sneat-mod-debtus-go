@@ -31,7 +31,7 @@ func redirectToWebApp(w http.ResponseWriter, r *http.Request, authRequired bool,
 	lang := query.Get("lang")
 	if lang == "" {
 		if authInfo.UserID != 0 {
-			user, err := facade.User.GetUserByID(c, tx, authInfo.UserID)
+			user, err := facade.User.GetUserByID(c, nil, authInfo.UserID)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(err.Error()))

@@ -10,7 +10,7 @@ import (
 	"github.com/strongo/log"
 )
 
-func SaveFeedback(c context.Context, tx dal.ReadwriteTransaction, feedbackID int64, feedbackEntity *models.FeedbackEntity) (feedback models.Feedback, user models.AppUser, err error) {
+func SaveFeedback(c context.Context, tx dal.ReadwriteTransaction, feedbackID int64, feedbackEntity *models.FeedbackData) (feedback models.Feedback, user models.AppUser, err error) {
 	if c == nil {
 		panic("c == nil")
 	}
@@ -24,7 +24,7 @@ func SaveFeedback(c context.Context, tx dal.ReadwriteTransaction, feedbackID int
 	if feedbackEntity.Rate == "" {
 		panic("feedbackEntity.Rate is empty string")
 	}
-	feedback = models.Feedback{FeedbackEntity: feedbackEntity}
+	feedback = models.Feedback{FeedbackData: feedbackEntity}
 	user, err = User.GetUserByID(c, tx, feedbackEntity.UserID)
 	if err != nil {
 		err = fmt.Errorf("failed to get user by ID=%d: %w", feedbackEntity.UserID, err)

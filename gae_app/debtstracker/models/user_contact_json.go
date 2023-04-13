@@ -82,7 +82,7 @@ type UserContactJson struct {
 	ID          int64
 	Name        string
 	Status      string                    `json:",omitempty"`
-	UserID      int                       `json:",omitempty"` // TODO: new prop, update in map reduce and change code!
+	UserID      int64                     `json:",omitempty"` // TODO: new prop, update in map reduce and change code!
 	TgUserID    int64                     `json:",omitempty"`
 	BalanceJson *json.RawMessage          `json:"Balance,omitempty"`
 	Transfers   *UserContactTransfersInfo `json:",omitempty"`

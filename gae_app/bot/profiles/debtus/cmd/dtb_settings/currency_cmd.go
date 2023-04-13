@@ -1,17 +1,20 @@
 package dtb_settings
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/emoji"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/log"
 )
 
 const ASK_CURRENCY_SETTING_COMMAND = "ask-currency-settings"
 
-var AskCurrencySettingsCommand = botsfw.Command{
+var AskCurrencySettingsCommand = botsfw.Command{ // TODO: make used
 	Code:     ASK_CURRENCY_SETTING_COMMAND,
 	Replies:  []botsfw.Command{SetPrimaryCurrency},
 	Commands: []string{"\xF0\x9F\x92\xB1"},
@@ -43,13 +46,17 @@ var SetPrimaryCurrency = botsfw.Command{
 		log.Debugf(c, "SetPrimaryCurrency.Action()")
 		whc.ChatEntity().SetAwaitingReplyTo("")
 		primaryCurrency := whc.Input().(botsfw.WebhookTextMessage).Text()
-		if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+		var db dal.Database
+		if db, err = facade.GetDatabase(c); err != nil {
+			return
+		}
+		if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 			var user models.AppUser
-			if user, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+			if user, err = facade.User.GetUserByID(c, tx, whc.AppUserIntID()); err != nil {
 				return
 			}
-			user.PrimaryCurrency = primaryCurrency
-			return facade.User.SaveUser(c, user)
+			user.Data.PrimaryCurrency = primaryCurrency
+			return facade.User.SaveUser(c, tx, user)
 		}, nil); err != nil {
 			return
 		}

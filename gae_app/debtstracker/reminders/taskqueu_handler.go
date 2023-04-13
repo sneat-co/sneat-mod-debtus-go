@@ -124,8 +124,8 @@ func sendReminderToUser(c context.Context, reminderID int64, transfer models.Tra
 		log.Infof(c, "Updated Reminder(id=%v) status to '%v'.", reminderID, models.ReminderStatusSending)
 	}
 
-	var user models.AppUserEntity
-	if err = nds.Get(c, gaedal.NewAppUserKey(c, reminder.UserID), &user); err != nil {
+	var user models.AppUserData
+	if err = nds.Get(c, models.NewAppUserKey(reminder.UserID), &user); err != nil {
 		err = fmt.Errorf("failed to get user by id=%v: %w", transfer.Data.CreatorUserID, err)
 		return
 	}

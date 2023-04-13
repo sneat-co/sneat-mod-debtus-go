@@ -91,7 +91,7 @@ func (linker *ReceiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID 
 		return
 	}
 	log.Debugf(c, "ReceiptUsersLinker.LinkReceiptUsers() => invitedContact: %+v", invitedContact)
-	if invitedContact, err = GetContactByID(c, invitedContact.ID); err != nil {
+	if invitedContact, err = GetContactByID(c, nil, invitedContact.ID); err != nil {
 		return
 	}
 	log.Debugf(c, "ReceiptUsersLinker.LinkReceiptUsers() => invitedContact from DB: %+v", invitedContact)
@@ -146,7 +146,7 @@ func (linker *ReceiptUsersLinker) linkUsersByReceiptWithinTransaction(
 
 	transferCreatorCounterparty := transfer.Data.Counterparty()
 
-	if inviterContact, err = GetContactByID(tc, transferCreatorCounterparty.ContactID); err != nil {
+	if inviterContact, err = GetContactByID(tc, tx, transferCreatorCounterparty.ContactID); err != nil {
 		return
 	} else if inviterContact.Data.UserID != inviterUser.ID {
 		panic(fmt.Errorf("inviterContact.UserID !=  inviterUser.ID: %v != %v", inviterContact.Data.UserID, inviterUser.ID))

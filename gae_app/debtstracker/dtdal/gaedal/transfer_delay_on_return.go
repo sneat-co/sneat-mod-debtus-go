@@ -14,7 +14,7 @@ import (
 	"google.golang.org/appengine/v2/delay"
 )
 
-func (TransferDalGae) DelayUpdateTransfersOnReturn(c context.Context, returnTransferID int64, transferReturnsUpdate []dtdal.TransferReturnUpdate) (err error) {
+func (TransferDalGae) DelayUpdateTransfersOnReturn(c context.Context, returntransferID int, transferReturnsUpdate []dtdal.TransferReturnUpdate) (err error) {
 	log.Debugf(c, "DelayUpdateTransfersOnReturn(returnTransferID=%v, transferReturnsUpdate=%v)", returnTransferID, transferReturnsUpdate)
 	if returnTransferID == 0 {
 		panic("returnTransferID == 0")
@@ -33,7 +33,7 @@ func (TransferDalGae) DelayUpdateTransfersOnReturn(c context.Context, returnTran
 	return gae.CallDelayFunc(c, common.QUEUE_TRANSFERS, "update-transfers-on-return", delayUpdateTransfersOnReturn, returnTransferID, transferReturnsUpdate)
 }
 
-var delayUpdateTransfersOnReturn = delay.Func("updateTransfersOnReturn", updateTransfersOnReturn)
+var delayUpdateTransfersOnReturn = delay.MustRegister("updateTransfersOnReturn", updateTransfersOnReturn)
 
 func updateTransfersOnReturn(c context.Context, returnTransferID int, transferReturnsUpdate []dtdal.TransferReturnUpdate) (err error) {
 	log.Debugf(c, "updateTransfersOnReturn(returnTransferID=%v, transferReturnsUpdate=%+v)", returnTransferID, transferReturnsUpdate)
@@ -55,7 +55,7 @@ func DelayUpdateTransferOnReturn(c context.Context, returnTransferID, transferID
 	return gae.CallDelayFunc(c, common.QUEUE_TRANSFERS, "update-transfer-on-return", delayUpdateTransferOnReturn, returnTransferID, transferID, returnedAmount)
 }
 
-var delayUpdateTransferOnReturn = delay.Func("updateTransferOnReturn", updateTransferOnReturn)
+var delayUpdateTransferOnReturn = delay.MustRegister("updateTransferOnReturn", updateTransferOnReturn)
 
 func updateTransferOnReturn(c context.Context, returnTransferID, transferID int, returnedAmount decimal.Decimal64p2) (err error) {
 	log.Debugf(c, "updateTransferOnReturn(returnTransferID=%v, transferID=%v, returnedAmount=%v)", returnTransferID, transferID, returnedAmount)
@@ -131,7 +131,7 @@ func removeFromOutstandingWithInterest(c context.Context, transfer models.Transf
 			var (
 				contact models.Contact
 			)
-			if contact, err = facade.GetContactByID(c, contactID); err != nil {
+			if contact, err = facade.GetContactByID(c, tx, contactID); err != nil {
 				return
 			}
 			if contact.Data.UserID != userID {

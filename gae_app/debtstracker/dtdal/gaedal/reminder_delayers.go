@@ -27,7 +27,7 @@ func _validateSetReminderIsSentMessageIDs(messageIntID int64, messageStrID strin
 	return nil
 }
 
-func (ReminderDalGae) DelaySetReminderIsSent(c context.Context, reminderID int64, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error {
+func (ReminderDalGae) DelaySetReminderIsSent(c context.Context, reminderID int, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error {
 	if err := _validateSetReminderIsSentMessageIDs(messageIntID, messageStrID, sentAt); err != nil {
 		return err
 	}
@@ -37,9 +37,9 @@ func (ReminderDalGae) DelaySetReminderIsSent(c context.Context, reminderID int64
 	return nil
 }
 
-var delayedSetReminderIsSent = delay.Func("setReminderIsSent", setReminderIsSent)
+var delayedSetReminderIsSent = delay.MustRegister("setReminderIsSent", setReminderIsSent)
 
-func setReminderIsSent(c context.Context, reminderID int64, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error {
+func setReminderIsSent(c context.Context, reminderID int, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error {
 	return dtdal.Reminder.SetReminderIsSent(c, reminderID, sentAt, messageIntID, messageStrID, locale, errDetails)
 }
 
@@ -51,7 +51,7 @@ func CreateSendReminderTask(c context.Context, reminderID int64) *taskqueue.Task
 	return t
 }
 
-func QueueSendReminder(c context.Context, reminderID int64, dueIn time.Duration) error {
+func QueueSendReminder(c context.Context, reminderID int, dueIn time.Duration) error {
 	if dueIn < 3*time.Hour {
 		task := CreateSendReminderTask(c, reminderID)
 		if dueIn > time.Duration(0) {

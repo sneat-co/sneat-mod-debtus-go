@@ -91,7 +91,7 @@ var FeedbackCommand = botsfw.Command{
 		case FEEDBACK_COMMAND:
 			mt := whc.Input().(botsfw.WebhookTextMessage).Text()
 			words := strings.SplitN(mt, " ", 2)
-			feedbackEntity := models.FeedbackEntity{
+			feedbackEntity := models.FeedbackData{
 				UserID: whc.AppUserIntID(),
 			}
 			//mainMenuButton := []tgbotapi.InlineKeyboardButton{
@@ -188,7 +188,7 @@ var FeedbackCommand = botsfw.Command{
 			m, err = feedbackCommandAction(whc)
 			return
 		}
-		feedbackEntity := models.FeedbackEntity{
+		feedbackEntity := models.FeedbackData{
 			UserID: whc.AppUserIntID(),
 			CreatedOn: general.CreatedOn{
 				CreatedOnPlatform: whc.BotPlatform().ID(),
@@ -290,12 +290,12 @@ var CanYouRateCommand = botsfw.Command{
 	},
 }
 
-func askToWriteFeedback(whc botsfw.WebhookContext, feedbackID int) (m botsfw.MessageFromBot, err error) {
+func askToWriteFeedback(whc botsfw.WebhookContext, feedbackID int64) (m botsfw.MessageFromBot, err error) {
 	m = whc.NewMessageByCode(trans.MESSAGE_TEXT_ASK_TO_WRITE_FEEDBACK_WITHIN_MESSENGER)
 	//m, err = editTelegramMessageText(whc, FEEDBACK_TEXT_COMMAND, whc.Translate(trans.MESSAGE_TEXT_ASK_TO_WRITE_FEEDBACK_WITHIN_MESSENGER))
 	whc.ChatEntity().SetAwaitingReplyTo(FEEDBACK_TEXT_COMMAND)
 	if feedbackID != 0 {
-		whc.ChatEntity().AddWizardParam("feedback", strconv.FormatInt(int64(feedbackID), 10))
+		whc.ChatEntity().AddWizardParam("feedback", strconv.FormatInt(feedbackID, 10))
 	}
 	m.Keyboard = tgbotapi.NewHideKeyboard(false)
 	return
@@ -347,7 +347,7 @@ var FeedbackTextCommand = botsfw.Command{
 			}
 			if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 				if feedbackParam == "" {
-					feedback.FeedbackEntity = &models.FeedbackEntity{
+					feedback.FeedbackData = &models.FeedbackData{
 						Rate:   "none",
 						UserID: whc.AppUserIntID(),
 						Text:   mt,
@@ -357,7 +357,7 @@ var FeedbackTextCommand = botsfw.Command{
 						},
 					}
 				} else {
-					if feedback.ID, err = strconv.Atoi(feedbackParam); err != nil {
+					if feedback.ID, err = strconv.ParseInt(feedbackParam, 10, 64); err != nil {
 						return
 					}
 					if feedback, err = dtdal.Feedback.GetFeedbackByID(c, feedback.ID); err != nil {
@@ -365,7 +365,7 @@ var FeedbackTextCommand = botsfw.Command{
 					}
 					feedback.Text = mt
 				}
-				if feedback, _, err = facade.SaveFeedback(c, tx, 0, feedback.FeedbackEntity); err != nil {
+				if feedback, _, err = facade.SaveFeedback(c, tx, 0, feedback.FeedbackData); err != nil {
 					return
 				}
 				return nil

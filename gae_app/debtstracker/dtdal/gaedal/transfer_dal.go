@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/crediterra/money"
-	"github.com/strongo/db"
+	"github.com/dal-go/dalgo/dal"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
@@ -37,7 +37,7 @@ func _loadDueOnTransfers(c context.Context, userID int64, limit int, filter func
 	}
 	var (
 		transferKeys     []*datastore.Key
-		transferEntities []*models.TransferEntity
+		transferEntities []*models.TransferData
 	)
 
 	if transferKeys, err = q.GetAll(c, &transferEntities); err != nil {
@@ -63,17 +63,15 @@ func (transferDalGae TransferDalGae) LoadDueTransfers(c context.Context, userID 
 	})
 }
 
-func (transferDalGae TransferDalGae) GetTransfersByID(c context.Context, transferIDs []int64) (transfers []models.Transfer, err error) {
-	entityHolders := make([]db.EntityHolder, len(transferIDs))
+func (transferDalGae TransferDalGae) GetTransfersByID(c context.Context, tx dal.ReadSession, transferIDs []int) (transfers []models.Transfer, err error) {
+	transfers = make([]models.Transfer, len(transferIDs))
+	records := make([]dal.Record, len(transferIDs))
 	for i, transferID := range transferIDs {
-		entityHolders[i] = &models.Transfer{IntegerID: db.NewIntID(transferID)}
+		transfers[i] = models.NewTransfer(transferID, nil)
+		records[i] = transfers[i].Record
 	}
-	if err = dtdal.DB.GetMulti(c, entityHolders); err != nil {
+	if err = tx.GetMulti(c, records); err != nil {
 		return
-	}
-	transfers = make([]models.Transfer, len(entityHolders))
-	for i, eh := range entityHolders {
-		transfers[i] = *eh.(*models.Transfer)
 	}
 	return
 }
@@ -81,36 +79,40 @@ func (transferDalGae TransferDalGae) GetTransfersByID(c context.Context, transfe
 func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context, periodEnds time.Time, userID, contactID int64, currency money.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error) {
 	log.Debugf(c, "TransferDalGae.LoadOutstandingTransfers(periodEnds=%v, userID=%v, contactID=%v currency=%v, direction=%v)", periodEnds, userID, contactID, currency, direction)
 	const limit = 100
-	q := datastore.NewQuery(models.TransferKind) // TODO: Load outstanding transfer just for the specific contact & specific direction
-	q = q.Filter("BothUserIDs =", userID)
-	q = q.Filter("Currency =", string(currency))
-	q = q.Filter("IsOutstanding =", true)
-	q = q.Order("DtCreated")
-	q = q.Limit(limit)
-	transferEntities := make([]*models.TransferEntity, 0, limit)
-	var keys []*datastore.Key
+
+	// TODO: Load outstanding transfer just for the specific contact & specific direction
+	q := dal.From(models.TransferKind).Where(
+		dal.FieldCondition("BothUserIDs", dal.Equal, userID),
+		dal.FieldCondition("Currency", dal.Equal, string(currency)),
+		dal.FieldCondition("IsOutstanding", dal.Equal, true),
+	).OrderBy(dal.AscendingField("DtCreated")).SelectInto(func() dal.Record {
+		return dal.NewRecordWithoutKey(&models.TransferData{})
+	})
+	q.Limit = limit
+	transferEntities := make([]*models.TransferData, 0, limit)
+	var keys []*dal.Key
 	if keys, err = q.GetAll(c, &transferEntities); err != nil {
 		return
 	}
 	transfers = make([]models.Transfer, 0, len(keys))
 	var errorMessages, warnings, debugs bytes.Buffer
-	var transfersIDsToFixIsOutstanding []int64
+	var transfersIDsToFixIsOutstanding []int
 	for i, key := range keys {
-		transfer := models.Transfer{IntegerID: db.NewIntID(key.IntID()), TransferEntity: transferEntities[i]}
+		transfer := models.NewTransfer(key.ID.(int), transferEntities[i])
 		if contactID != 0 {
-			if cpContactID := transfer.CounterpartyInfoByUserID(userID).ContactID; cpContactID != contactID {
+			if cpContactID := transfer.Data.CounterpartyInfoByUserID(userID).ContactID; cpContactID != contactID {
 				debugs.WriteString(fmt.Sprintf("Skipped outstanding Transfer(id=%v) as counterpartyContactID != contactID: %v != %v\n", transfer.ID, cpContactID, contactID))
 				continue
 			}
 		}
 		if direction != "" {
-			if d := transfer.DirectionForUser(userID); d != direction {
+			if d := transfer.Data.DirectionForUser(userID); d != direction {
 				debugs.WriteString(fmt.Sprintf("Skipped outstanding Transfer(id=%v) as DirectionForUser(): %v\n", transfer.ID, d))
 				continue
 			}
 		}
 
-		if outstandingValue := transfer.GetOutstandingValue(periodEnds); outstandingValue > 0 {
+		if outstandingValue := transfer.Data.GetOutstandingValue(periodEnds); outstandingValue > 0 {
 			transfers = append(transfers, transfer)
 		} else if outstandingValue == 0 {
 			fmt.Fprintf(&warnings, "Transfer(id=%v) => GetOutstandingValue() == 0 && IsOutstanding==true\n", transfer.ID)
@@ -137,9 +139,9 @@ func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context,
 	return
 }
 
-var delayFixTransfersIsOutstanding = delay.Func("fix-transfers-is-outstanding", fixTransfersIsOutstanding)
+var delayFixTransfersIsOutstanding = delay.MustRegister("fix-transfers-is-outstanding", fixTransfersIsOutstanding)
 
-func fixTransfersIsOutstanding(c context.Context, transferIDs []int64) (err error) {
+func fixTransfersIsOutstanding(c context.Context, transferIDs []int) (err error) {
 	log.Debugf(c, "fixTransfersIsOutstanding(%v)", transferIDs)
 	for _, transferID := range transferIDs {
 		if _, transferErr := fixTransferIsOutstanding(c, transferID); transferErr != nil {
@@ -150,17 +152,21 @@ func fixTransfersIsOutstanding(c context.Context, transferIDs []int64) (err erro
 	return
 }
 
-func fixTransferIsOutstanding(c context.Context, transferID int64) (transfer models.Transfer, err error) {
-	err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
-		if transfer, err = facade.Transfers.GetTransferByID(c, transferID); err != nil {
+func fixTransferIsOutstanding(c context.Context, transferID int) (transfer models.Transfer, err error) {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+		if transfer, err = facade.Transfers.GetTransferByID(c, tx, transferID); err != nil {
 			return err
 		}
-		if transfer.GetOutstandingValue(time.Now()) == 0 {
-			transfer.IsOutstanding = false
-			return facade.Transfers.SaveTransfer(c, transfer)
+		if transfer.Data.GetOutstandingValue(time.Now()) == 0 {
+			transfer.Data.IsOutstanding = false
+			return facade.Transfers.SaveTransfer(c, tx, transfer)
 		}
 		return nil
-	}, db.SingleGroupTransaction)
+	})
 	if err == nil {
 		log.Warningf(c, "Fixed IsOutstanding (set to false) for transfer %v", transferID)
 	} else {
@@ -178,11 +184,9 @@ func (transferDalGae TransferDalGae) LoadTransfersByUserID(c context.Context, us
 		err = errors.New("userID == 0")
 		return
 	}
-	q := datastore.NewQuery(models.TransferKind)
-	q = q.Filter("BothUserIDs =", userID)
-	q = q.Offset(offset)
-	q = q.Order("-DtCreated")
-	q = q.Limit(limit + 1)
+	q := dal.From(models.TransferKind).WhereField("BothUserIDs", dal.Equal, userID).OrderBy(dal.DescendingField("DtCreated")).SelectInto(func() dal.Record {
+		return dal.NewRecordWithoutKey(&models.TransferData{})
+	})
 
 	if transfers, err = transferDalGae.loadTransfers(c, q); err != nil {
 		return
@@ -191,7 +195,7 @@ func (transferDalGae TransferDalGae) LoadTransfersByUserID(c context.Context, us
 	return
 }
 
-func (transferDalGae TransferDalGae) LoadTransferIDsByContactID(c context.Context, contactID int64, limit int, startCursor string) (transferIDs []int64, endCursor string, err error) {
+func (transferDalGae TransferDalGae) LoadTransferIDsByContactID(c context.Context, contactID int64, limit int, startCursor string) (transferIDs []int, endCursor string, err error) {
 	if limit == 0 {
 		err = errors.New("LoadTransferIDsByContactID(): limit == 0")
 		return
@@ -203,36 +207,44 @@ func (transferDalGae TransferDalGae) LoadTransferIDsByContactID(c context.Contex
 		err = errors.New("LoadTransferIDsByContactID(): contactID == 0")
 		return
 	}
-	q := datastore.NewQuery(models.TransferKind)
-	q = q.Filter("BothCounterpartyIDs =", contactID)
-	q = q.Limit(limit + 1)
-	q = q.KeysOnly()
-	if startCursor != "" {
-		var decodedCursor datastore.Cursor
-		if decodedCursor, err = datastore.DecodeCursor(startCursor); err != nil {
-			return
-		} else {
-			q = q.Start(decodedCursor)
-		}
-	}
+	q := dal.From(models.TransferKind).
+		WhereField("BothCounterpartyIDs", dal.Equal, contactID).
+		SelectInto(func() dal.Record {
+			return dal.NewRecordWithoutKey(new(models.TransferData))
+		})
+	q.Limit = limit
+	q.StartCursor = startCursor
 
-	var key *datastore.Key
-	transferIDs = make([]int64, 0, limit)
-	for t := q.Run(c); ; {
-		key, err = t.Next(nil)
-		if err == datastore.Done {
+	//if startCursor != "" {
+	//	var decodedCursor datastore.Cursor
+	//	if decodedCursor, err = datastore.DecodeCursor(startCursor); err != nil {
+	//		return
+	//	} else {
+	//		q = q.Start(decodedCursor)
+	//	}
+	//}
+
+	transferIDs = make([]int, 0, limit)
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+	var reader dal.Reader
+	reader, err = db.Select(c, q)
+	var record dal.Record
+	for record, err = reader.Next(); err != nil; {
+		if dal.ErrNoMoreRecords == err {
 			err = nil
-			var cursor datastore.Cursor
-			if cursor, err = t.Cursor(); err != nil {
+			if endCursor, err = reader.Cursor(); err != nil {
 				return
 			}
-			endCursor = cursor.String()
 			return
 		} else if err != nil {
 			return
 		}
-		transferIDs = append(transferIDs, key.IntID())
+		transferIDs = append(transferIDs, record.Key().ID.(int))
 	}
+	return
 }
 
 func (transferDalGae TransferDalGae) LoadTransfersByContactID(c context.Context, contactID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error) {
@@ -244,11 +256,14 @@ func (transferDalGae TransferDalGae) LoadTransfersByContactID(c context.Context,
 		err = errors.New("LoadTransfersByContactID(): contactID == 0")
 		return
 	}
-	q := datastore.NewQuery(models.TransferKind)
-	q = q.Filter("BothCounterpartyIDs =", contactID)
-	q = q.Offset(offset)
-	q = q.Order("-DtCreated")
-	q = q.Limit(limit + 1)
+	q := dal.From(models.TransferKind).
+		WhereField("BothCounterpartyIDs", dal.Equal, contactID).
+		OrderBy(dal.DescendingField("DtCreated")).
+		SelectInto(func() dal.Record {
+			return dal.NewRecordWithoutKey(new(models.TransferData))
+		})
+	q.Limit = limit
+	q.Offset = offset
 
 	if transfers, err = transferDalGae.loadTransfers(c, q); err != nil {
 		return
@@ -258,31 +273,28 @@ func (transferDalGae TransferDalGae) LoadTransfersByContactID(c context.Context,
 }
 
 func (transferDalGae TransferDalGae) LoadLatestTransfers(c context.Context, offset, limit int) ([]models.Transfer, error) {
-	q := datastore.NewQuery(models.TransferKind)
-	q = q.Offset(offset)
-	q = q.Order("-DtCreated")
-	q = q.Limit(limit)
-
+	q := dal.From(models.TransferKind).
+		OrderBy(dal.DescendingField("DtCreated")).
+		SelectInto(func() dal.Record {
+			return dal.NewRecordWithoutKey(new(models.TransferData))
+		})
+	q.Limit = limit
+	q.Offset = offset
 	return transferDalGae.loadTransfers(c, q)
 }
 
-func (transferDalGae TransferDalGae) loadTransfers(c context.Context, q *datastore.Query) (transfers []models.Transfer, err error) {
-	var (
-		transferKeys     []*datastore.Key
-		transferEntities []*models.TransferEntity
-	)
-	if transferKeys, err = q.GetAll(c, &transferEntities); err != nil {
-		err = fmt.Errorf("failed to loadTransfers(): %w", err)
+func (transferDalGae TransferDalGae) loadTransfers(c context.Context, q dal.Query) (transfers []models.Transfer, err error) {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
-	log.Debugf(c, "loadTransfers(): %v", transferKeys)
-	transfers = make([]models.Transfer, len(transferKeys))
-	for i, transferKey := range transferKeys {
-		transferEntity := transferEntities[i]
-		transfers[i] = models.Transfer{
-			IntegerID:      db.NewIntID(transferKey.IntID()),
-			TransferEntity: transferEntity,
-		}
+	var records []dal.Record
+	if records, err = db.SelectAll(c, q); err != nil {
+		return
 	}
-	return
+	transfers = make([]models.Transfer, len(records))
+	for i, record := range records {
+		transfers[i] = models.NewTransfer(record.Key().ID.(int), record.Data().(*models.TransferData))
+	}
+	return transfers, nil
 }

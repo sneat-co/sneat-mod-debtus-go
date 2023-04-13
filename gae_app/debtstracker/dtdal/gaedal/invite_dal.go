@@ -18,10 +18,6 @@ import (
 	"time"
 )
 
-func NewInviteKey(inviteCode string) *dal.Key {
-	return dal.NewKeyWithID(models.InviteKind, inviteCode)
-}
-
 type InviteDalGae struct {
 }
 
@@ -29,14 +25,14 @@ func NewInviteDalGae() InviteDalGae {
 	return InviteDalGae{}
 }
 
-func (InviteDalGae) GetInvite(c context.Context, inviteCode string) (*models.InviteEntity, error) {
-	inviteKey := NewInviteKey(inviteCode)
-	var inviteEntity models.InviteEntity
-	err := gaedb.Get(c, inviteKey, &inviteEntity)
-	if dal.IsNotFound(err) {
-		return nil, err
+func (InviteDalGae) GetInvite(c context.Context, tx dal.ReadSession, inviteCode string) (invite models.Invite, err error) {
+	if tx == nil {
+		if tx, err = facade.GetDatabase(c); err != nil {
+
+		}
 	}
-	return &inviteEntity, err
+	invite = models.NewInvite(inviteCode, nil)
+	return invite, tx.Get(c, invite.Record)
 }
 
 func (InviteDalGae) ClaimInvite(c context.Context, userID int64, inviteCode, claimedOn, claimedVia string) (err error) {
@@ -46,22 +42,22 @@ func (InviteDalGae) ClaimInvite(c context.Context, userID int64, inviteCode, cla
 	}
 	err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) error {
 		inviteKey := gaedb.NewKey(tc, models.InviteKind, inviteCode, 0, nil)
-		var invite models.InviteEntity
+		var invite models.InviteData
 
 		if err = gaedb.Get(tc, inviteKey, &invite); err == nil {
 			log.Debugf(c, "Invite found")
 			// TODO: Check invite.For
-			inviteClaim := NewInviteClaim(inviteCode, userID, claimedOn, claimedVia)
+			inviteClaim := models.NewInviteClaim(inviteCode, userID, claimedOn, claimedVia)
 			//invite.ClaimedCount += 1
-			inviteClaimKey := NewInviteClaimIncompleteKey(c)
+			inviteClaimKey := models.NewInviteClaimIncompleteKey()
 			userKey := gaedb.NewKey(tc, models.AppUserKind, "", userID, nil)
-			user := new(models.AppUserEntity)
+			user := new(models.AppUserData)
 			if err = gaedb.Get(tc, userKey, user); err != nil {
 				return err
 			}
 			user.InvitedByUserID = invite.CreatedByUserID
 
-			keysToPut := []*datastore.Key{inviteClaimKey, userKey}
+			keysToPut := []*dal.Key{inviteClaimKey, userKey}
 			entitiesToPut := []interface{}{inviteClaim, user}
 
 			if keysToPut, err := tx.SetMulti(tc, keysToPut, entitiesToPut); err != nil {
@@ -106,7 +102,7 @@ func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, use
 	c := ec.Context()
 
 	dtCreated := time.Now()
-	inviteEntity := models.InviteEntity{
+	inviteEntity := models.InviteData{
 		Type:    string(inviteType),
 		Channel: string(inviteBy),
 		CreatedOn: general.CreatedOn{
@@ -120,7 +116,7 @@ func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, use
 		DtActiveFrom:    dtCreated,
 		DtActiveTill:    dtCreated.AddDate(100, 0, 0), // By default is active for 100 years
 	}
-	invite.InviteEntity = &inviteEntity
+	invite.Data = &inviteEntity
 	switch inviteBy {
 	case models.InviteByEmail:
 		if inviteToAddress == "" {
@@ -131,7 +127,7 @@ func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, use
 		}
 		inviteEntity.ToEmail = strings.ToLower(inviteToAddress)
 		if inviteToAddress != strings.ToLower(inviteToAddress) {
-			invite.ToEmailOriginal = inviteToAddress
+			invite.Data.ToEmailOriginal = inviteToAddress
 		}
 	case models.InviteBySms:
 		var phoneNumber int64
@@ -142,17 +138,17 @@ func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, use
 		inviteEntity.ToPhoneNumber = phoneNumber
 	}
 	err = gaedb.RunInTransaction(c, func(tc context.Context) error {
-		var inviteKey *datastore.Key
+		var inviteKey *dal.Key
 		if inviteCode != AUTO_GENERATE_INVITE_CODE {
-			inviteKey = gaedb.NewKey(c, models.InviteKind, inviteCode, 0, nil)
+			inviteKey = models.NewInviteKey(inviteCode)
 		} else {
 			for {
 				if inviteCodeLen == 0 {
 					inviteCodeLen = INVITE_CODE_LENGTH
 				}
 				inviteCode = dtdal.RandomCode(inviteCodeLen)
-				inviteKey = NewInviteKey(tc, inviteCode)
-				var existingInvite models.InviteEntity
+				inviteKey = models.NewInviteKey(inviteCode)
+				var existingInvite models.InviteData
 				err := gaedb.Get(c, inviteKey, existingInvite)
 				if err == datastore.ErrNoSuchEntity {
 					log.Debugf(c, "New invite code: %v", inviteCode)
@@ -173,13 +169,13 @@ func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, use
 	return
 }
 
-func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, inviteEntity *models.InviteEntity, claimedByUserID int64, claimedOn, claimedVia string) (invite models.Invite, err error) {
-	var inviteClaimKey *datastore.Key
+func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, inviteEntity *models.InviteData, claimedByUserID int64, claimedOn, claimedVia string) (invite models.Invite, err error) {
+	var inviteClaimKey *dal.Key
 	err = gaedb.RunInTransaction(c, func(tc context.Context) error {
-		inviteKey := NewInviteKey(tc, inviteCode)
-		userKey := NewAppUserKey(tc, claimedByUserID)
-		var user models.AppUserEntity
-		if err = gaedb.GetMulti(tc, []*datastore.Key{inviteKey, userKey}, []interface{}{inviteEntity, &user}); err != nil {
+		inviteKey := models.NewInviteKey(inviteCode)
+		userKey := models.NewAppUserKey(claimedByUserID)
+		var user models.AppUserData
+		if err = gaedb.GetMulti(tc, []*dal.Key{inviteKey, userKey}, []interface{}{inviteEntity, &user}); err != nil {
 			return fmt.Errorf("failed to get entities by keys (%v): %w", []*datastore.Key{inviteKey, userKey}, err)
 		}
 
@@ -187,8 +183,8 @@ func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, inviteEnt
 		if inviteEntity.MaxClaimsCount > 0 && inviteEntity.ClaimedCount > inviteEntity.MaxClaimsCount {
 			return fmt.Errorf("invite.ClaimedCount > invite.MaxClaimsCount: %v > %v", inviteEntity.ClaimedCount, inviteEntity.MaxClaimsCount)
 		}
-		inviteClaimKey = NewInviteClaimIncompleteKey(c)
-		inviteClaim := NewInviteClaim(inviteCode, claimedByUserID, claimedOn, claimedVia)
+		inviteClaimKey = models.NewInviteClaimIncompleteKey()
+		inviteClaim := models.NewInviteClaim(inviteCode, claimedByUserID, claimedOn, claimedVia)
 		keys := []*datastore.Key{inviteClaimKey, inviteKey}
 		entities := []interface{}{inviteClaim, inviteEntity}
 
@@ -204,7 +200,7 @@ func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, inviteEnt
 			counterpartyQuery := datastore.NewQuery(models.ContactKind)
 			counterpartyQuery = counterpartyQuery.Filter("UserID =", claimedByUserID)
 			counterpartyQuery = counterpartyQuery.Filter("CounterpartyUserID =", inviteEntity.CreatedByUserID)
-			var counterparties []*models.ContactEntity
+			var counterparties []*models.ContactData
 			counterpartiesKeys, err := counterpartyQuery.Limit(1).GetAll(c, &counterparties) // Use out-of-transaction context
 			if err != nil {
 				return fmt.Errorf("failed to load counterparty by CounterpartyUserID: %w", err)
@@ -257,7 +253,7 @@ func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, inviteEnt
 	return
 }
 
-func updateUserContactDetails(user *models.AppUserEntity, invite *models.InviteEntity) (changed bool) {
+func updateUserContactDetails(user *models.AppUserData, invite *models.InviteData) (changed bool) {
 	switch models.InviteBy(invite.Channel) {
 	case models.InviteByEmail:
 		changed = !user.EmailConfirmed

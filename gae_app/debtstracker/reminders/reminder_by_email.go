@@ -17,7 +17,7 @@ import (
 	"google.golang.org/appengine/v2/urlfetch"
 )
 
-func sendReminderByEmail(c context.Context, reminder models.Reminder, emailTo string, transfer models.Transfer, user models.AppUserEntity) error {
+func sendReminderByEmail(c context.Context, reminder models.Reminder, emailTo string, transfer models.Transfer, user models.AppUserData) error {
 	log.Debugf(c, "sendReminderByEmail(reminder.ID=%v, emailTo=%v)", reminder.ID, emailTo)
 	// TODO: Do we really need to pass "w http.ResponseWriter" here?
 	var text bytes.Buffer

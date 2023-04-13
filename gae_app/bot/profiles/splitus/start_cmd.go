@@ -22,7 +22,7 @@ func startInGroupAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err
 		return
 	}
 
-	appUser := user.(*models.AppUserEntity)
+	appUser := user.(*models.AppUserData)
 
 	var botUser botsfw.BotUser
 

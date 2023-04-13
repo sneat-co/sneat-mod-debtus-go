@@ -1,6 +1,8 @@
 package dtb_transfer
 
 import (
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"html"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
@@ -11,13 +13,13 @@ import (
 	"github.com/strongo/log"
 )
 
-func AcknowledgeReceipt(whc botsfw.WebhookContext, receiptID int64, operation string) (m botsfw.MessageFromBot, err error) {
+func AcknowledgeReceipt(whc botsfw.WebhookContext, receiptID int, operation string) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
 	_, transfer, isCounterpartiesJustConnected, err := facade.AcknowledgeReceipt(c, receiptID, whc.AppUserIntID(), operation)
 	if err != nil {
-		if errors.Cause(err) == facade.ErrSelfAcknowledgement {
-			m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_SELF_ACKNOWLEDGEMENT, html.EscapeString(transfer.Counterparty().ContactName)))
+		if errors.Is(err, facade.ErrSelfAcknowledgement) {
+			m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_SELF_ACKNOWLEDGEMENT, html.EscapeString(transfer.Data.Counterparty().ContactName)))
 			return m, nil
 		}
 		return m, err
@@ -62,11 +64,11 @@ func AcknowledgeReceipt(whc botsfw.WebhookContext, receiptID int64, operation st
 			m.Format = botsfw.MessageFormatHTML
 		}
 
-		if transfer.Creator().TgChatID != 0 {
+		if transfer.Data.Creator().TgChatID != 0 {
 			askMsgToCreator := whc.NewMessage("")
-			askMsgToCreator.ToChat = botsfw.ChatIntID(transfer.Creator().TgChatID)
+			askMsgToCreator.ToChat = botsfw.ChatIntID(transfer.Data.Creator().TgChatID)
 			var operationMsg string
-			counterpartyName := transfer.Counterparty().ContactName
+			counterpartyName := transfer.Data.Counterparty().ContactName
 			switch operation {
 			case "accept":
 				operationMsg = whc.Translate(trans.MESSAGE_TEXT_TRANSFER_ACCEPTED_BY_COUNTERPARTY, html.EscapeString(counterpartyName))
@@ -75,9 +77,9 @@ func AcknowledgeReceipt(whc botsfw.WebhookContext, receiptID int64, operation st
 			default:
 				err = errors.New("Expected accept or decline as operation, got: " + operation)
 			}
-			askMsgToCreator.Text = operationMsg + "\n\n" + common.TextReceiptForTransfer(whc, transfer, transfer.CreatorUserID, common.ShowReceiptToAutodetect, utm)
+			askMsgToCreator.Text = operationMsg + "\n\n" + common.TextReceiptForTransfer(whc, transfer, transfer.Data.CreatorUserID, common.ShowReceiptToAutodetect, utm)
 
-			if transfer.Creator().TgBotID != whc.GetBotCode() {
+			if transfer.Data.Creator().TgBotID != whc.GetBotCode() {
 				log.Warningf(c, "TODO: transferEntity.Creator().TgBotID != whc.GetBotCode(): "+askMsgToCreator.Text)
 			} else {
 				if _, err = whc.Responder().SendMessage(c, askMsgToCreator, botsfw.BotAPISendMessageOverHTTPS); err != nil {

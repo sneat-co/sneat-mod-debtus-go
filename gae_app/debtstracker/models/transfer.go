@@ -44,11 +44,11 @@ const ( // Transfer statuses
 
 const TransferKind = "Transfer"
 
-var _ datastore.PropertyLoadSaver = (*TransferEntity)(nil)
+var _ datastore.PropertyLoadSaver = (*TransferData)(nil)
 
 type Transfer struct {
 	record.WithID[int]
-	Data *TransferEntity
+	Data *TransferData
 }
 
 func NewTransfers(transferIDs []int) []Transfer {
@@ -74,10 +74,10 @@ func NewTransferKey(id int) *dal.Key {
 	return dal.NewKeyWithID(TransferKind, id)
 }
 
-func NewTransfer(id int, data *TransferEntity) Transfer {
+func NewTransfer(id int, data *TransferData) Transfer {
 	key := NewTransferKey(id)
 	if data == nil {
-		data = new(TransferEntity)
+		data = new(TransferData)
 	}
 	return Transfer{
 		WithID: record.WithID[int]{
@@ -99,34 +99,34 @@ func (Transfer) Kind() string {
 //}
 
 //func (t *Transfer) Entity() interface{} {
-//	return t.TransferEntity
+//	return t.TransferData
 //}
 
 //func (Transfer) NewEntity() interface{} {
-//	return new(TransferEntity)
+//	return new(TransferData)
 //}
 
 //func (t *Transfer) SetEntity(entity interface{}) {
 //	if entity == nil {
 //		t.Data = nil
 //	} else {
-//		t.Data = entity.(*TransferEntity)
+//		t.Data = entity.(*TransferData)
 //	}
 //}
 
-func (t *TransferEntity) HasObsoleteProps() bool {
+func (t *TransferData) HasObsoleteProps() bool {
 	return t.hasObsoleteProps
 }
 
-func (t *TransferEntity) GetStartDate() time.Time {
+func (t *TransferData) GetStartDate() time.Time {
 	return t.DtCreated // TODO: Change to DtStart?
 }
 
-func (t *TransferEntity) GetLendingValue() decimal.Decimal64p2 {
+func (t *TransferData) GetLendingValue() decimal.Decimal64p2 {
 	return t.AmountInCents
 }
 
-type TransferEntity struct {
+type TransferData struct {
 	hasObsoleteProps bool
 	general.CreatedOn
 	from *TransferCounterpartyInfo
@@ -146,7 +146,7 @@ type TransferEntity struct {
 	returns      TransferReturns // Deserialized cache
 	ReturnsJson  string          `datastore:",noindex,omitempty"`
 	ReturnsCount int             `datastore:",noindex,omitempty"`
-	// ReturnTransferIDs []int64 `datastore:",noindex"` // Obsolete - replaced with ReturnsJson List of transfers that return money to this debts
+	// ReturntransferIDs []int `datastore:",noindex"` // Obsolete - replaced with ReturnsJson List of transfers that return money to this debts
 	//
 	CreatorUserID           int64  `datastore:",noindex"`           // Do not delete, is NOT obsolete!
 	CreatorCounterpartyID   int    `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>ContactID
@@ -215,7 +215,7 @@ type TransferEntity struct {
 }
 
 // AmountReturned returns amount returned to counterparty
-func (t *TransferEntity) AmountReturned() decimal.Decimal64p2 {
+func (t *TransferData) AmountReturned() decimal.Decimal64p2 {
 	if t.AmountInCentsReturned > 0 {
 		return t.AmountInCentsReturned
 	}
@@ -233,13 +233,13 @@ func (t Transfer) String() string {
 	}
 }
 
-func (t *TransferEntity) String() string {
+func (t *TransferData) String() string {
 	return fmt.Sprintf(
-		"TransferEntity{DtCreated: %v, Direction: %v, GetAmount(): %v, AmoutInCentsReturned: %v, IsReturn: %v, ReturnToTransferIDs: %v, CreatorUserID: %d, Creator: %v, Contact: %v, BothUserIDs: %v, BothCounterpartyIDs: %v, From: %v, To: %v}",
+		"TransferData{DtCreated: %v, Direction: %v, GetAmount(): %v, AmoutInCentsReturned: %v, IsReturn: %v, ReturnToTransferIDs: %v, CreatorUserID: %d, Creator: %v, Contact: %v, BothUserIDs: %v, BothCounterpartyIDs: %v, From: %v, To: %v}",
 		t.DtCreated, t.Direction(), t.GetAmount(), t.AmountInCentsReturned, t.IsReturn, t.ReturnToTransferIDs, t.CreatorUserID, t.Creator(), t.Counterparty(), t.BothUserIDs, t.BothCounterpartyIDs, t.From(), t.To())
 }
 
-func (t *TransferEntity) Direction() TransferDirection {
+func (t *TransferData) Direction() TransferDirection {
 	// if t.DirectionObsoleteProp != "" {
 	// 	return TransferDirection(t.DirectionObsoleteProp)
 	// }
@@ -254,7 +254,7 @@ func (t *TransferEntity) Direction() TransferDirection {
 	return TransferDirection3dParty
 }
 
-func (t *TransferEntity) DirectionForUser(userID int64) TransferDirection {
+func (t *TransferData) DirectionForUser(userID int64) TransferDirection {
 	switch userID {
 	case t.From().UserID:
 		return TransferDirectionUser2Counterparty
@@ -267,12 +267,12 @@ func (t *TransferEntity) DirectionForUser(userID int64) TransferDirection {
 	}
 }
 
-func (t *TransferEntity) IsReverseDirection(t2 *TransferEntity) bool {
+func (t *TransferData) IsReverseDirection(t2 *TransferData) bool {
 	return t.DirectionForUser(t.CreatorUserID) == t2.DirectionForUser(t.CreatorUserID).Reverse()
 }
 
 // DirectionForContact
-func (t *TransferEntity) DirectionForContact(contactID int64) TransferDirection {
+func (t *TransferData) DirectionForContact(contactID int64) TransferDirection {
 	switch contactID {
 	case t.From().ContactID:
 		return TransferDirectionCounterparty2User
@@ -283,28 +283,28 @@ func (t *TransferEntity) DirectionForContact(contactID int64) TransferDirection 
 	}
 }
 
-func (t *TransferEntity) transferIsNotAssociatedWithUser(userID int64) string {
+func (t *TransferData) transferIsNotAssociatedWithUser(userID int64) string {
 	return fmt.Sprintf(
 		"Transfer is not associated with userID=%d  (FromUserID=%d, ToUserID=%d)",
 		userID, t.From().UserID, t.To().UserID,
 	)
 }
 
-func (t *TransferEntity) transferIsNotAssociatedWithContact(contactID int64) string {
+func (t *TransferData) transferIsNotAssociatedWithContact(contactID int64) string {
 	return fmt.Sprintf(
 		"Transfer is not associated with contactID=%v  (FromContactID=%v, ToContactID=%v)",
 		contactID, t.From().ContactID, t.To().ContactID,
 	)
 }
 
-func (t *TransferEntity) transferIsNotRelatedToCreator() string {
+func (t *TransferData) transferIsNotRelatedToCreator() string {
 	return ErrTransferNotRelatedToCreator.Error() + fmt.Sprintf(
 		"\nDirection(): %v, CreatorUserID: %d, From: %v, To: %v",
 		t.Direction(), t.CreatorUserID, t.FromJson, t.ToJson,
 	)
 }
 
-func (t *TransferEntity) ReturnDirectionForUser(userID int64) TransferDirection {
+func (t *TransferData) ReturnDirectionForUser(userID int64) TransferDirection {
 	switch userID {
 	case 0:
 		panic("userID == 0")
@@ -319,7 +319,7 @@ func (t *TransferEntity) ReturnDirectionForUser(userID int64) TransferDirection 
 
 var ErrTransferNotRelatedToCreator = errors.New("Transfer is not related to creator")
 
-func (t *TransferEntity) Creator() *TransferCounterpartyInfo { // TODO: Same as t.Creator()
+func (t *TransferData) Creator() *TransferCounterpartyInfo { // TODO: Same as t.Creator()
 	if t.CreatorUserID == 0 {
 		panic("CreatorUserID == 0")
 	}
@@ -331,7 +331,7 @@ func (t *TransferEntity) Creator() *TransferCounterpartyInfo { // TODO: Same as 
 	panic(t.transferIsNotRelatedToCreator())
 }
 
-func (t *TransferEntity) Counterparty() *TransferCounterpartyInfo {
+func (t *TransferData) Counterparty() *TransferCounterpartyInfo {
 	// return TransferCounterpartyInfo{
 	// 	UserID:         t.CounterpartyUserID,
 	// 	ContactID: t.CreatorCounterpartyID,
@@ -349,7 +349,7 @@ func (t *TransferEntity) Counterparty() *TransferCounterpartyInfo {
 	}
 }
 
-func (t *TransferEntity) CounterpartyInfoByUserID(userID int64) *TransferCounterpartyInfo {
+func (t *TransferData) CounterpartyInfoByUserID(userID int64) *TransferCounterpartyInfo {
 	switch userID {
 	case t.From().UserID:
 		return t.To()
@@ -360,7 +360,7 @@ func (t *TransferEntity) CounterpartyInfoByUserID(userID int64) *TransferCounter
 	}
 }
 
-func (t *TransferEntity) UserInfoByUserID(userID int64) *TransferCounterpartyInfo {
+func (t *TransferData) UserInfoByUserID(userID int64) *TransferCounterpartyInfo {
 	switch userID {
 	case t.From().UserID:
 		return t.from
@@ -413,7 +413,7 @@ func (t *TransferEntity) UserInfoByUserID(userID int64) *TransferCounterpartyInf
 // 	return t.setAutoRemindersDisabled(userID, true)
 // }
 
-func (t *TransferEntity) Load(ps []datastore.Property) error {
+func (t *TransferData) Load(ps []datastore.Property) error {
 	// Load I and J as usual.
 	p2 := make([]datastore.Property, 0, len(ps))
 	var creationPlatform string
@@ -640,29 +640,29 @@ var transferPropertiesToClean = map[string]gaedb.IsOkToRemove{
 	"IsReturn":                 gaedb.IsFalse,
 }
 
-func (t *TransferEntity) BeforeSave() (err error) {
+func (t *TransferData) BeforeSave() (err error) {
 	if t.CreatorUserID == 0 {
-		err = errors.New("*TransferEntity.CreatorUserID == 0")
+		err = errors.New("*TransferData.CreatorUserID == 0")
 		return
 	}
 
 	if t.AmountInCents == 0 { // Should be always presented
-		err = errors.New("*TransferEntity.AmountInCents == 0")
+		err = errors.New("*TransferData.AmountInCents == 0")
 		return
 	}
 
 	if t.AmountInCents > MaxTransferAmount {
-		err = fmt.Errorf("*TransferEntity.AmountInCents is too big, expected to be less then %v, got %v", MaxTransferAmount, t.AmountInCents)
+		err = fmt.Errorf("*TransferData.AmountInCents is too big, expected to be less then %v, got %v", MaxTransferAmount, t.AmountInCents)
 		return
 	}
 
 	if t.Currency == "" { // Should be always presented
-		err = errors.New("*TransferEntity.Currency is empty string")
+		err = errors.New("*TransferData.Currency is empty string")
 		return
 	}
 
 	if t.AmountInCentsReturned < 0 {
-		err = fmt.Errorf("*TransferEntity.AmountInCentsReturned:%v < 0", t.AmountInCentsReturned)
+		err = fmt.Errorf("*TransferData.AmountInCentsReturned:%v < 0", t.AmountInCentsReturned)
 		return
 	}
 
@@ -701,45 +701,45 @@ func (t *TransferEntity) BeforeSave() (err error) {
 	// }
 
 	// if t.AmountInCentsOutstanding < 0 {
-	// 	err = fmt.Errorf("*TransferEntity.AmountInCentsOutstanding:%v < 0", t.AmountInCentsOutstanding)
+	// 	err = fmt.Errorf("*TransferData.AmountInCentsOutstanding:%v < 0", t.AmountInCentsOutstanding)
 	// 	return
 	// }
 
 	// if t.AmountInCentsReturned > t.AmountInCents {
-	// 	err = fmt.Errorf("*TransferEntity.AmountInCentsReturned:%v > AmountInCents:%v", t.AmountInCentsReturned, t.AmountInCents)
+	// 	err = fmt.Errorf("*TransferData.AmountInCentsReturned:%v > AmountInCents:%v", t.AmountInCentsReturned, t.AmountInCents)
 	// 	return
 	// }
 
 	// if t.AmountInCentsOutstanding > t.AmountInCents {
-	// 	err = fmt.Errorf("*TransferEntity.AmountInCentsOutstanding:%v > AmountInCents:%v", t.AmountInCentsOutstanding, t.AmountInCents)
+	// 	err = fmt.Errorf("*TransferData.AmountInCentsOutstanding:%v > AmountInCents:%v", t.AmountInCentsOutstanding, t.AmountInCents)
 	// 	return
 	// }
 	//
 	// if t.AmountInCentsReturned+t.AmountInCentsOutstanding > t.AmountInCents {
-	// 	err = fmt.Errorf("*TransferEntity.AmountInCentsReturned:%v + AmountInCentsOutstanding:%v > AmountInCents:%v", t.AmountInCentsReturned, t.AmountInCentsOutstanding, t.AmountInCents)
+	// 	err = fmt.Errorf("*TransferData.AmountInCentsReturned:%v + AmountInCentsOutstanding:%v > AmountInCents:%v", t.AmountInCentsReturned, t.AmountInCentsOutstanding, t.AmountInCents)
 	// 	return
 	// }
 
 	if t.IsReturn {
 		// TODO: Temporally commented just this if on 11 May 2018 to fix migration mapreduce
 		// if len(t.ReturnToTransferIDs) == 0 {
-		// 	err = errors.New("*TransferEntity: IsReturn == true && len(ReturnToTransferIDs) == 0")
+		// 	err = errors.New("*TransferData: IsReturn == true && len(ReturnToTransferIDs) == 0")
 		// 	return
 		// }
 
 		// if (t.AmountInCentsReturned != 0 || t.AmountInCentsOutstanding != 0) && t.AmountInCents != t.AmountInCentsReturned+t.AmountInCentsOutstanding {
-		// 	err = fmt.Errorf("*TransferEntity: IsReturn == true && AmountInCents != AmountInCentsReturned + AmountInCentsOutstanding: %v != %v + %v", t.AmountInCents, t.AmountInCentsReturned, t.AmountInCentsOutstanding)
+		// 	err = fmt.Errorf("*TransferData: IsReturn == true && AmountInCents != AmountInCentsReturned + AmountInCentsOutstanding: %v != %v + %v", t.AmountInCents, t.AmountInCentsReturned, t.AmountInCentsOutstanding)
 		// 	return
 		// }
 		// } else {
 		// 	if t.AmountInCents != t.AmountInCentsReturned+t.AmountInCentsOutstanding {
-		// 		err = fmt.Errorf("*TransferEntity: IsReturn == false && AmountInCents != AmountInCentsReturned + AmountInCentsOutstanding: %v != %v + %v", t.AmountInCents, t.AmountInCentsReturned, t.AmountInCentsOutstanding)
+		// 		err = fmt.Errorf("*TransferData: IsReturn == false && AmountInCents != AmountInCentsReturned + AmountInCentsOutstanding: %v != %v + %v", t.AmountInCents, t.AmountInCentsReturned, t.AmountInCentsOutstanding)
 		// 		return
 		// 	}
 	}
 
 	if t.CreatorUserID <= 0 { // Should be always presented
-		err = fmt.Errorf("*TransferEntity.CreatorUserID:%d <= 0", t.CreatorUserID)
+		err = fmt.Errorf("*TransferData.CreatorUserID:%d <= 0", t.CreatorUserID)
 		return
 	}
 
@@ -803,7 +803,7 @@ func (t *TransferEntity) BeforeSave() (err error) {
 	return
 }
 
-func (*TransferEntity) movedToJson(propName string) bool {
+func (*TransferData) movedToJson(propName string) bool {
 	return propName == "CounterpartyUserID" || (strings.HasPrefix(propName, "Creator") || strings.HasPrefix(propName, "Counterparty")) && (strings.HasSuffix(propName, "CounterpartyID") ||
 		strings.HasSuffix(propName, "CounterpartyName") ||
 		strings.HasSuffix(propName, "Note") ||
@@ -812,7 +812,7 @@ func (*TransferEntity) movedToJson(propName string) bool {
 		strings.HasSuffix(propName, "TgChatID"))
 }
 
-func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
+func (t *TransferData) Save() (properties []datastore.Property, err error) {
 	if err = t.BeforeSave(); err != nil {
 		return
 	}
@@ -849,7 +849,7 @@ func (t *TransferEntity) Save() (properties []datastore.Property, err error) {
 	return
 }
 
-func NewTransferData(creatorUserID int64, isReturn bool, amount money.Amount, from *TransferCounterpartyInfo, to *TransferCounterpartyInfo) *TransferEntity {
+func NewTransferData(creatorUserID int64, isReturn bool, amount money.Amount, from *TransferCounterpartyInfo, to *TransferCounterpartyInfo) *TransferData {
 	if creatorUserID == 0 {
 		panic("creatorUserID == 0")
 	}
@@ -865,7 +865,7 @@ func NewTransferData(creatorUserID int64, isReturn bool, amount money.Amount, fr
 	if amount.Currency == "" {
 		panic("amount.Currency is empty")
 	}
-	transfer := &TransferEntity{
+	transfer := &TransferData{
 		CreatorUserID: creatorUserID,
 		IsReturn:      isReturn,
 		//
@@ -885,11 +885,11 @@ func NewTransferData(creatorUserID int64, isReturn bool, amount money.Amount, fr
 	return transfer
 }
 
-func (t *TransferEntity) GetAmount() money.Amount {
+func (t *TransferData) GetAmount() money.Amount {
 	return money.Amount{Currency: t.Currency, Value: t.AmountInCents}
 }
 
-func (t *TransferEntity) GetReturnedAmount() money.Amount {
+func (t *TransferData) GetReturnedAmount() money.Amount {
 	return money.Amount{Currency: t.Currency, Value: t.AmountReturned()}
 }
 

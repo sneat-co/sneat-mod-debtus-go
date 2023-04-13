@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"time"
 
@@ -17,8 +18,6 @@ const (
 	InviteByLinkToTelegram = InviteBy("link2tg")
 )
 
-const InviteKind = "Invite"
-
 type InviteType string
 
 const (
@@ -26,7 +25,28 @@ const (
 	InviteTypePublic   = "public"
 )
 
-type InviteEntity struct {
+const InviteKind = "Invite"
+
+type Invite struct {
+	record.WithID[string]
+	//db.NoStrID
+	//ID string
+	Data *InviteData
+}
+
+func NewInviteKey(inviteCode string) *dal.Key {
+	return dal.NewKeyWithID(InviteKind, inviteCode)
+}
+
+func NewInvite(id string, data *InviteData) Invite {
+	key := NewInviteKey(id)
+	return Invite{
+		WithID: record.NewWithID(id, key, &data),
+		Data:   data,
+	}
+}
+
+type InviteData struct {
 	Channel      string `datastore:",noindex"`
 	DtCreated    time.Time
 	DtActiveFrom time.Time
@@ -49,11 +69,4 @@ type InviteEntity struct {
 	ToEmailOriginal string `datastore:",noindex"`
 	ToPhoneNumber   int64
 	ToUrl           string
-}
-
-type Invite struct {
-	record.WithID[string]
-	//db.NoStrID
-	//ID string
-	*InviteEntity
 }

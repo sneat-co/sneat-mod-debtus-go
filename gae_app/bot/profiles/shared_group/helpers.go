@@ -1,6 +1,12 @@
 package shared_group
 
 import (
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
+	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/db"
 	"net/url"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
@@ -27,7 +33,7 @@ func GetGroup(whc botsfw.WebhookContext, callbackUrl *url.URL) (group models.Gro
 	}
 
 	if group.ID != "" {
-		return dtdal.Group.GetGroupByID(whc.Context(), group.ID)
+		return dtdal.Group.GetGroupByID(whc.Context(), nil, group.ID)
 	}
 
 	if !whc.IsInGroup() {
@@ -59,7 +65,7 @@ func GetUserGroupID(whc botsfw.WebhookContext) (groupID string, err error) {
 func createGroupFromTelegram(whc botsfw.WebhookContext, chatEntity *models.DebtusTelegramChatData, tgChat *tgbotapi.Chat) (group models.Group, err error) {
 	c := whc.Context()
 	log.Debugf(c, "createGroupFromTelegram()")
-	var user *models.AppUserEntity
+	var user *models.AppUserData
 	if user, err = shared_all.GetUser(whc); err != nil {
 		return
 	}
@@ -100,9 +106,9 @@ func createGroupFromTelegram(whc botsfw.WebhookContext, chatEntity *models.Debtu
 				return
 			}
 		}
-		if tgGroup.TgGroupEntity != nil && tgGroup.UserGroupID != "" {
+		if tgGroup.TgGroupData != nil && tgGroup.UserGroupID != "" {
 			hasTgGroupEntity = true
-			return dtdal.Group.GetGroupByID(c, tgGroup.UserGroupID)
+			return dtdal.Group.GetGroupByID(c, nil, tgGroup.UserGroupID)
 		}
 		_, _, idx, member, members := groupEntity.AddOrGetMember(userID, "", user.FullName())
 		member.TgUserID = strconv.FormatInt(int64(whc.Input().GetSender().GetID().(int)), 10)
@@ -115,8 +121,9 @@ func createGroupFromTelegram(whc botsfw.WebhookContext, chatEntity *models.Debtu
 		log.Debugf(c, "afterGroupInsert()")
 		if !hasTgGroupEntity {
 			if err = dtdal.TgGroup.SaveTgGroup(c, models.TgGroup{
+				WithID:    record.NewWithID(tgChat.ID),
 				IntegerID: db.NewIntID(tgChat.ID),
-				TgGroupEntity: &models.TgGroupEntity{
+				TgGroupData: &models.TgGroupData{
 					UserGroupID: group.ID,
 				},
 			}); err != nil {
@@ -124,7 +131,7 @@ func createGroupFromTelegram(whc botsfw.WebhookContext, chatEntity *models.Debtu
 			}
 		}
 
-		_ = user.AddGroup(group, whc.GetBotCode())
+		_ = user.Data.AddGroup(group, whc.GetBotCode())
 		chatEntity.UserGroupID = group.ID // TODO: !!! has to be updated in transaction!!!
 		if err = whc.SaveBotChat(c, whc.GetBotCode(), whc.MustBotChatID(), chatEntity); err != nil {
 			return

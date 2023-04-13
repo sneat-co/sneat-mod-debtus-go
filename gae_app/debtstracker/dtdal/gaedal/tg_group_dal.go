@@ -21,13 +21,13 @@ func newTgGroupKey(c context.Context, id int64) *datastore.Key {
 }
 
 func (tgGroupDalGae) GetTgGroupByID(c context.Context, id int64) (tgGroup models.TgGroup, err error) {
-	tgGroup.TgGroupEntity = new(models.TgGroupEntity)
+	tgGroup.TgGroupData = new(models.TgGroupData)
 	err = get(c, newTgGroupKey(c, id), &tgGroup)
 	return
 }
 
 func (tgGroupDalGae) SaveTgGroup(c context.Context, tgGroup models.TgGroup) (err error) {
-	if _, err = gaedb.Put(c, newTgGroupKey(c, tgGroup.ID), tgGroup.TgGroupEntity); err != nil {
+	if _, err = gaedb.Put(c, newTgGroupKey(c, tgGroup.ID), tgGroup.TgGroupData); err != nil {
 		return
 	}
 	return

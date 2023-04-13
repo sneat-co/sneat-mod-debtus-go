@@ -26,16 +26,16 @@ import (
 	"google.golang.org/appengine/v2/taskqueue"
 )
 
-func (ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, transferID, userID int64) (err error) {
+func (ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, transferID int, userID int64) (err error) {
 	if transferID == 0 {
 		panic("transferID == 0")
 	}
 	if userID == 0 {
 		panic("userID == 0")
 	}
-	if !dtdal.DB.IsInTransaction(c) {
-		panic("This function should be called within transaction")
-	}
+	//if !dtdal.DB.IsInTransaction(c) {
+	//	panic("This function should be called within transaction")
+	//}
 	if task, err := gae.CreateDelayTask(common.QUEUE_REMINDERS, "create-reminder-4-transfer-user", delayCreateReminderForTransferUser, transferID, userID); err != nil {
 		return fmt.Errorf("failed to create a task for reminder creation. transferID=%v, userID=%v: %w", transferID, userID, err)
 	} else {
@@ -48,10 +48,10 @@ func (ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, tran
 	return
 }
 
-var delayCreateReminderForTransferUser = delay.Func("createReminderForTransferUser", createReminderForTransferUser)
+var delayCreateReminderForTransferUser = delay.MustRegister("delayedCreateReminderForTransferUser", delayedCreateReminderForTransferUser)
 
-func createReminderForTransferUser(c context.Context, transferID, userID int64) (err error) {
-	log.Debugf(c, "createReminderForTransferUser(transferID=%d, userID=%d)", transferID, userID)
+func delayedCreateReminderForTransferUser(c context.Context, transferID int, userID int64) (err error) {
+	log.Debugf(c, "delayedCreateReminderForTransferUser(transferID=%d, userID=%d)", transferID, userID)
 	if transferID == 0 {
 		log.Errorf(c, "transferID == 0")
 		return nil
@@ -61,7 +61,11 @@ func createReminderForTransferUser(c context.Context, transferID, userID int64) 
 		return nil
 	}
 
-	return dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+	return db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 		var transfer models.Transfer
 		transfer, err = facade.Transfers.GetTransferByID(c, tx, transferID)
 		if err != nil {
@@ -86,7 +90,7 @@ func createReminderForTransferUser(c context.Context, transferID, userID int64) 
 			return
 		}
 
-		reminderKey := NewReminderIncompleteKey(c)
+		//reminderKey := NewReminderIncompleteKey(c)
 		next := transfer.Data.DtDueOn
 		isAutomatic := next.IsZero()
 		if isAutomatic {
@@ -96,25 +100,26 @@ func createReminderForTransferUser(c context.Context, transferID, userID int64) 
 				next = time.Now().Add(7 * 24 * time.Hour)
 			}
 		}
-		reminder := models.NewReminderViaTelegram(transferUserInfo.TgBotID, transferUserInfo.TgChatID, userID, transferID, isAutomatic, next)
-		if reminderKey, err = gaedb.Put(c, reminderKey, &reminder); err != nil {
+		reminder := models.NewReminder(0, models.NewReminderViaTelegram(transferUserInfo.TgBotID, transferUserInfo.TgChatID, userID, transferID, isAutomatic, next))
+		if err = tx.Insert(c, reminder.Record); err != nil {
 			return fmt.Errorf("failed to save reminder to db: %w", err)
 		}
-		log.Infof(c, "Created reminder id=%v", reminderKey.IntID())
-		if err = QueueSendReminder(c, reminderKey.IntID(), next.Sub(time.Now())); err != nil {
+		reminderID := reminder.Key.ID.(int)
+		log.Infof(c, "Created reminder id=%v", reminderID)
+		if err = QueueSendReminder(c, reminderID, next.Sub(time.Now())); err != nil {
 			return fmt.Errorf("failed to queue reminder for sending: %w", err)
 		}
-		transferUserInfo.ReminderID = reminderKey.IntID()
+		transferUserInfo.ReminderID = reminderID
 
 		if err = facade.Transfers.SaveTransfer(c, tx, transfer); err != nil {
 			return fmt.Errorf("failed to save transfer to db: %w", err)
 		}
 
 		return
-	}, dtdal.CrossGroupTransaction)
+	})
 }
 
-func (ReminderDalGae) DelayDiscardReminders(c context.Context, transferIDs []int64, returnTransferID int64) error {
+func (ReminderDalGae) DelayDiscardReminders(c context.Context, transferIDs []int, returnTransferID int) error {
 	if len(transferIDs) > 0 {
 		return gae.CallDelayFunc(c, common.QUEUE_REMINDERS, "discard-reminders", delayDiscardReminders, transferIDs, returnTransferID)
 	} else {
@@ -123,9 +128,9 @@ func (ReminderDalGae) DelayDiscardReminders(c context.Context, transferIDs []int
 	}
 }
 
-var delayDiscardReminders = delay.Func("discardReminders", discardReminders)
+var delayDiscardReminders = delay.MustRegister("discardReminders", discardReminders)
 
-func discardReminders(c context.Context, transferIDs []int64, returnTransferID int64) error {
+func discardReminders(c context.Context, transferIDs []int, returntransferID int) error {
 	log.Debugf(c, "discardReminders(transferIDs=%v, returnTransferID=%returnTransferID)", transferIDs, returnTransferID)
 	if len(transferIDs) == 0 {
 		return errors.New("len(transferIDs) == 0")
@@ -145,9 +150,9 @@ func discardReminders(c context.Context, transferIDs []int64, returnTransferID i
 	return nil
 }
 
-var delayDiscardRemindersForTransfer = delay.Func("discardRemindersForTransfer", discardRemindersForTransfer)
+var delayDiscardRemindersForTransfer = delay.MustRegister("discardRemindersForTransfer", discardRemindersForTransfer)
 
-func discardRemindersForTransfer(c context.Context, transferID, returnTransferID int64) error {
+func discardRemindersForTransfer(c context.Context, transferID, returnTransferID int) error {
 	log.Debugf(c, "discardReminders(transferID=%v, returnTransferID=%v)", transferID, returnTransferID)
 	if transferID == 0 {
 		log.Errorf(c, "transferID == 0")
@@ -156,7 +161,7 @@ func discardRemindersForTransfer(c context.Context, transferID, returnTransferID
 	var tasks []*taskqueue.Task
 	delayDuration := time.Millisecond * 10
 	var _discard = func(
-		getIDs func(context.Context, int64) ([]int64, error),
+		getIDs func(context.Context, int) ([]int, error),
 		loadedFormat, notLoadedFormat string,
 	) error {
 		if reminderIDs, err := getIDs(c, transferID); err != nil {
@@ -191,13 +196,13 @@ func discardRemindersForTransfer(c context.Context, transferID, returnTransferID
 	return nil
 }
 
-var delayDiscardReminder = delay.Func("DiscardReminder", delayedDiscardReminder)
+var delayDiscardReminder = delay.MustRegister("DiscardReminder", delayedDiscardReminder)
 
-func DiscardReminder(c context.Context, reminderID, transferID, returnTransferID int64) (err error) {
+func DiscardReminder(c context.Context, reminderID, transferID, returnTransferID int) (err error) {
 	return discardReminder(c, reminderID, transferID, returnTransferID)
 }
 
-func delayedDiscardReminder(c context.Context, reminderID, transferID, returnTransferID int64) (err error) {
+func delayedDiscardReminder(c context.Context, reminderID, transferID, returnTransferID int) (err error) {
 	if discardReminder(c, reminderID, transferID, returnTransferID); err == ErrDuplicateAttemptToDiscardReminder {
 		log.Errorf(c, err.Error())
 		return nil
@@ -205,20 +210,20 @@ func delayedDiscardReminder(c context.Context, reminderID, transferID, returnTra
 	return err
 }
 
-func discardReminder(c context.Context, reminderID int64, transferID, returnTransferID int) (err error) {
+func discardReminder(c context.Context, reminderID, transferID, returnTransferID int) (err error) {
 	log.Debugf(c, "discardReminder(reminderID=%v, transferID=%v, returnTransferID=%v)", reminderID, transferID, returnTransferID)
 
-	reminderKey := NewReminderKey(c, reminderID)
+	reminderKey := NewReminderKey(reminderID)
 	transferKey := models.NewTransferKey(transferID)
 
 	var (
-		transferEntity models.TransferEntity
+		transferEntity models.TransferData
 		reminder       = models.NewReminder(reminderID, new(models.ReminderEntity))
 	)
 
 	if returnTransferID > 0 {
 		returnTransferKey := models.NewTransferKey(returnTransferID)
-		var returnTransfer models.TransferEntity
+		var returnTransfer models.TransferData
 		keys := []*datastore.Key{reminderKey, transferKey, returnTransferKey}
 		if err = gaedb.GetMulti(c, keys, []interface{}{reminder.ReminderEntity, &transferEntity, &returnTransfer}); err != nil {
 			return err
@@ -252,7 +257,7 @@ func discardReminder(c context.Context, reminderID int64, transferID, returnTran
 
 		if reminder.Locale == "" {
 			log.Errorf(c, "reminder.Locale == ''")
-			if user, err := facade.User.GetUserByID(c, reminder.UserID); err != nil {
+			if user, err := facade.User.GetUserByID(c, nil, reminder.UserID); err != nil {
 				return err
 			} else if user.Data.PreferredLanguage != "" {
 				reminder.Locale = user.Data.PreferredLanguage
@@ -306,13 +311,17 @@ func GetExecutionContextForReminder(c context.Context, reminder *models.Reminder
 
 var ErrDuplicateAttemptToDiscardReminder = errors.New("Duplicate attempt to close reminder by same return transfer")
 
-func (ReminderDalGae) SetReminderStatus(c context.Context, reminderID, returnTransferID int64, status string, when time.Time) (reminder models.Reminder, err error) {
+func (ReminderDalGae) SetReminderStatus(c context.Context, reminderID, returnTransferID int, status string, when time.Time) (reminder models.Reminder, err error) {
 	var (
 		changed        bool
 		previousStatus string
 	)
-	err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if reminder, err = dtdal.Reminder.GetReminderByID(c, reminderID); err != nil {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+		if reminder, err = dtdal.Reminder.GetReminderByID(c, tx, reminderID); err != nil {
 			return
 		} else {
 			switch status {
@@ -343,7 +352,7 @@ func (ReminderDalGae) SetReminderStatus(c context.Context, reminderID, returnTra
 			}
 			if changed {
 				reminder.Status = status
-				if _, err = gaedb.Put(c, NewReminderKey(c, reminderID), reminder.ReminderEntity); err != nil {
+				if err = tx.Set(c, reminder.Record); err != nil {
 					err = fmt.Errorf("failed to save reminder to db (id=%v): %w", reminderID, err)
 				}
 			}

@@ -81,7 +81,7 @@ func TestCreateTransfer(t *testing.T) {
 
 		creatorUser := models.AppUser{
 			IntegerID:     db.IntegerID{ID: userID},
-			AppUserEntity: &models.AppUserEntity{},
+			AppUserEntity: &models.AppUserData{},
 		}
 		newTransfer := NewTransferInput(strongo.EnvLocal,
 			source,
@@ -107,16 +107,16 @@ func TestCreateTransfer(t *testing.T) {
 			return
 		}
 		if output.Transfer.TransferEntity == nil {
-			t.Error("transfer.TransferEntity == nil")
+			t.Error("transfer.TransferData == nil")
 			return
 		}
 
 		if toCounterparty.Data.ContactEntity == nil {
-			t.Error("toCounterparty.ContactEntity == nil")
+			t.Error("toCounterparty.ContactData == nil")
 			return
 		}
 		if fromUser.Data == nil {
-			t.Error("fromUser.AppUserEntity == nil")
+			t.Error("fromUser.AppUserData == nil")
 			return
 		}
 		if transfer.Data.CreatorUserID != userID {
@@ -143,16 +143,16 @@ func TestCreateTransfer(t *testing.T) {
 			return
 		}
 		if fromUser.ID != 0 && fromUser.Data == nil {
-			t.Error("fromUser.ID != 0 && fromUser.AppUserEntity == nil")
+			t.Error("fromUser.ID != 0 && fromUser.AppUserData == nil")
 		}
 		if toUser.ID != 0 && toUser.Data == nil {
-			t.Error("toUser.ID != 0 && toUser.AppUserEntity == nil")
+			t.Error("toUser.ID != 0 && toUser.AppUserData == nil")
 		}
 		if toCounterparty.ID != 0 && toCounterparty.Data == nil {
-			t.Error("fromCounterparty.ContactEntity == nil")
+			t.Error("fromCounterparty.ContactData == nil")
 		}
 		if fromCounterparty.ID != 0 && fromCounterparty.Data == nil {
-			t.Error("fromCounterparty.ID != 0 && fromCounterparty.ContactEntity == nil")
+			t.Error("fromCounterparty.ID != 0 && fromCounterparty.ContactData == nil")
 		}
 	}
 }
@@ -184,7 +184,7 @@ type createTransferTestCase struct {
 type createTransferStepInput struct {
 	direction          models.TransferDirection
 	isReturn           bool
-	returnToTransferID int64
+	returnTotransferID int
 	amount             decimal.Decimal64p2
 	time               time.Time
 	models.TransferInterest
@@ -204,7 +204,7 @@ type createTransferStepExpects struct {
 
 type createTransferStep struct {
 	input             createTransferStepInput
-	createdTransferID int64 // Save transfer ID for checking transfer state in later steps
+	createdtransferID int // Save transfer ID for checking transfer state in later steps
 	expects           createTransferStepExpects
 }
 
@@ -385,7 +385,7 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 
 	creatorUser := models.AppUser{
 		IntegerID:     db.IntegerID{ID: userID},
-		AppUserEntity: &models.AppUserEntity{},
+		AppUserEntity: &models.AppUserData{},
 	}
 
 	tUser := &models.TransferCounterpartyInfo{

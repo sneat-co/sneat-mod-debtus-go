@@ -16,7 +16,7 @@ import (
 
 func ChangeContactStatus(c context.Context, contactID int64, newStatus string) (contact models.Contact, err error) {
 	err = RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
-		if contact, err = GetContactByID(c, contactID); err != nil {
+		if contact, err = GetContactByID(c, tx, contactID); err != nil {
 			return err
 		}
 		if contact.Data.Status != newStatus {
@@ -62,20 +62,20 @@ func createContactWithinTransaction(
 		return
 	}
 	if appUser.Data == nil {
-		err = errors.New("appUser.AppUserEntity == nil")
+		err = errors.New("appUser.AppUserData == nil")
 		return
 	}
 	if appUser.ID == counterpartyUserID {
 		panic(fmt.Sprintf("appUser.ID == counterpartyUserID: %v", counterpartyUserID))
 	}
 	if counterpartyContact.Data != nil && counterpartyContact.ID == 0 {
-		panic(fmt.Sprintf("counterpartyContact.ContactEntity != nil && counterpartyContact.ID == 0: %v", litter.Sdump(counterpartyContact)))
+		panic(fmt.Sprintf("counterpartyContact.ContactData != nil && counterpartyContact.ID == 0: %v", litter.Sdump(counterpartyContact)))
 	}
 
 	contact.Data = models.NewContactEntity(appUser.ID, contactDetails)
 	if counterpartyContact.ID != 0 {
 		if counterpartyContact.Data == nil {
-			if counterpartyContact, err = GetContactByID(tc, counterpartyContact.ID); err != nil {
+			if counterpartyContact, err = GetContactByID(tc, tx, counterpartyContact.ID); err != nil {
 				return
 			}
 			changes.counterpartyContact = &counterpartyContact
@@ -219,7 +219,7 @@ func CreateContact(c context.Context, tx dal.ReadwriteTransaction, userID int64,
 		}
 		return
 	case 1:
-		if contact, err = GetContactByID(c, contactIDs[0]); err != nil {
+		if contact, err = GetContactByID(c, tx, contactIDs[0]); err != nil {
 			return
 		}
 		user.ID = userID
@@ -230,13 +230,13 @@ func CreateContact(c context.Context, tx dal.ReadwriteTransaction, userID int64,
 	}
 }
 
-func UpdateContact(c context.Context, contactID int64, values map[string]string) (contactEntity *models.ContactEntity, err error) {
+func UpdateContact(c context.Context, contactID int64, values map[string]string) (contactEntity *models.ContactData, err error) {
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
 	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
-		if contact, err := GetContactByID(c, contactID); err != nil {
+		if contact, err := GetContactByID(c, tx, contactID); err != nil {
 			return err
 		} else {
 			var changed bool
@@ -303,7 +303,7 @@ func DeleteContact(c context.Context, contactID int64) (user models.AppUser, err
 	}
 	var contact models.Contact
 	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
-		if contact, err = GetContactByID(c, contactID); err != nil {
+		if contact, err = GetContactByID(c, tx, contactID); err != nil {
 			if dal.IsNotFound(err) {
 				log.Warningf(c, "Contact not found by ID: %v", contactID)
 				err = nil
@@ -357,17 +357,24 @@ func SaveContact(c context.Context, contact models.Contact) error {
 	})
 }
 
-func GetContactsByIDs(c context.Context, tx dal.ReadTransaction, contactsIDs []int64) (contacts []models.Contact, err error) {
+func GetContactsByIDs(c context.Context, tx dal.ReadSession, contactsIDs []int64) (contacts []models.Contact, err error) {
+	if tx == nil {
+		if tx, err = GetDatabase(c); err != nil {
+			return
+		}
+	}
 	contacts = models.NewContacts(contactsIDs...)
 	records := models.ContactRecords(contacts)
 	return contacts, tx.GetMulti(c, records)
 }
 
-func GetContactByID(c context.Context, contactID int64) (models.Contact, error) {
-	contact := models.NewContact(contactID, nil)
-	db, err := GetDatabase(c)
+func GetContactByID(c context.Context, tx dal.ReadSession, contactID int64) (contact models.Contact, err error) {
+	contact = models.NewContact(contactID, nil)
+	if tx == nil {
+		tx, err = GetDatabase(c)
+	}
 	if err != nil {
 		return contact, err
 	}
-	return contact, db.Get(c, contact.Record)
+	return contact, tx.Get(c, contact.Record)
 }

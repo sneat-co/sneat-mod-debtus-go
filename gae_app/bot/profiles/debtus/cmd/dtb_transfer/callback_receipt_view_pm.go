@@ -29,7 +29,7 @@ func ShowReceipt(whc botsfw.WebhookContext, receiptID int) (m botsfw.MessageFrom
 	c := whc.Context()
 
 	var receipt models.Receipt
-	if receipt, err = dtdal.Receipt.GetReceiptByID(c, receiptID); err != nil {
+	if receipt, err = dtdal.Receipt.GetReceiptByID(c, nil, receiptID); err != nil {
 		return m, err
 	}
 
@@ -43,7 +43,7 @@ func ShowReceipt(whc botsfw.WebhookContext, receiptID int) (m botsfw.MessageFrom
 		return
 	}
 
-	transfer, err := facade.Transfers.GetTransferByID(c, receipt.Data.TransferID)
+	transfer, err := facade.Transfers.GetTransferByID(c, nil, receipt.Data.TransferID)
 	if err != nil {
 		return m, err
 	}
@@ -57,12 +57,12 @@ func ShowReceipt(whc botsfw.WebhookContext, receiptID int) (m botsfw.MessageFrom
 	counterpartyCounterparty := transfer.Data.Creator()
 
 	if counterpartyCounterparty.ContactID != 0 {
-		counterparty, err = facade.GetContactByID(c, counterpartyCounterparty.ContactID)
+		counterparty, err = facade.GetContactByID(c, nil, counterpartyCounterparty.ContactID)
 	} else {
-		if user, err := facade.User.GetUserByID(c, transfer.Data.CreatorUserID); err != nil {
+		if user, err := facade.User.GetUserByID(c, nil, transfer.Data.CreatorUserID); err != nil {
 			return m, err
 		} else {
-			counterparty.Data = &models.ContactEntity{}
+			counterparty.Data = &models.ContactData{}
 			counterparty.Data.FirstName = user.Data.FirstName
 			counterparty.Data.LastName = user.Data.LastName
 		}
@@ -184,7 +184,7 @@ func viewReceiptCallbackAction(whc botsfw.WebhookContext, callbackUrl *url.URL) 
 	return ShowReceipt(whc, int(receiptID))
 }
 
-//func (viewReceiptCallback) onInvite(whc botsfw.WebhookContext, inviteCode string) (exit bool, transferID int64, transfer *models.Transfer, m botsfw.MessageFromBot, err error) {
+//func (viewReceiptCallback) onInvite(whc botsfw.WebhookContext, inviteCode string) (exit bool, transferID int, transfer *models.Transfer, m botsfw.MessageFromBot, err error) {
 //	c := whc.Context()
 //	var invite *invites.Invite
 //	if invite, err = invites.GetInvite(c, inviteCode); err != nil {

@@ -1,16 +1,17 @@
 package support
 
 import (
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
 	"time"
 
 	"context"
-	"github.com/strongo/nds"
-	"google.golang.org/appengine/v2/datastore"
 )
 
 const AuditKind = "Audit"
 
-type AuditEntity struct {
+type AuditData struct {
 	Action  string
 	Created time.Time
 	Message string `datastore:",noindex"`
@@ -18,12 +19,24 @@ type AuditEntity struct {
 }
 
 type Audit struct {
-	ID int64
-	AuditEntity
+	record.WithID[int64]
+	Data *AuditData
 }
 
-func NewAuditEntity(action, message string, related ...string) AuditEntity {
-	return AuditEntity{
+func NewAuditKey(id int64) *dal.Key {
+	return dal.NewKeyWithID(AuditKind, id)
+}
+
+func NewAudit(id int64, data *AuditData) Audit {
+	key := NewAuditKey(id)
+	return Audit{
+		WithID: record.NewWithID(id, key, data),
+		Data:   data,
+	}
+}
+
+func NewAuditData(action, message string, related ...string) *AuditData {
+	return &AuditData{
 		Created: time.Now(),
 		Action:  action,
 		Message: message,
@@ -43,13 +56,16 @@ func NewAuditGaeStore(c context.Context) AuditGaeStore {
 	return AuditGaeStore{c: c}
 }
 
-func (s AuditGaeStore) LogAuditRecord(action, message string, related ...string) (audit Audit, err error) {
-	audit.AuditEntity = NewAuditEntity(action, message, related...)
-	var key *datastore.Key
-	key, err = nds.Put(s.c, datastore.NewIncompleteKey(s.c, AuditKind, nil), audit.AuditEntity)
-	if err != nil {
+func (s AuditGaeStore) LogAuditRecord(c context.Context, action, message string, related ...string) (audit Audit, err error) {
+	audit.Data = NewAuditData(action, message, related...)
+	audit.Record = dal.NewRecordWithoutKey(audit.Data)
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
-	audit.ID = key.IntID()
+	err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) error {
+		return tx.Insert(c, audit.Record)
+	})
+	audit.ID = audit.Record.Key().ID.(int64)
 	return
 }

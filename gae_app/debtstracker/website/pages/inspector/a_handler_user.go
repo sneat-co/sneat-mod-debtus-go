@@ -76,7 +76,7 @@ func validateTransfers(c context.Context, userID int64, userBalances balances) (
 	iterator := query.Run(c)
 
 	for {
-		transferEntity := new(models.TransferEntity)
+		transferEntity := new(models.TransferData)
 		if _, err = iterator.Next(transferEntity); err != nil {
 			if err == datastore.Done {
 				break
@@ -169,7 +169,7 @@ func validateContacts(c context.Context,
 
 	for i, userContactInfo := range userContactsJson {
 		var contact models.Contact
-		if contact, err = facade.GetContactByID(c, userContactInfo.ID); err != nil {
+		if contact, err = facade.GetContactByID(c, nil, userContactInfo.ID); err != nil {
 			if dal.IsNotFound(err) {
 				contactInfosNotFoundInDb = append(contactInfosNotFoundInDb, userContactInfo)
 			} else {
@@ -206,7 +206,7 @@ func validateContacts(c context.Context,
 			matchedContacts = append(matchedContacts, contactInfo)
 		} else {
 			var contact models.Contact
-			if contact, err = facade.GetContactByID(c, key.IntID()); err != nil {
+			if contact, err = facade.GetContactByID(c, nil, key.IntID()); err != nil {
 				return
 			}
 			contactInfo = updateBalance(contact)
@@ -256,7 +256,7 @@ func userPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		contactsMissingInJson, contactsMissedByQuery, matchedContacts []contactWithBalances
 		contactInfosNotFoundInDb                                      []models.UserContactJson
 	)
-	if user, err = facade.User.GetUserByID(c, tx, userID); err != nil {
+	if user, err = facade.User.GetUserByID(c, nil, userID); err != nil {
 		w.Write([]byte(err.Error()))
 		return
 	}

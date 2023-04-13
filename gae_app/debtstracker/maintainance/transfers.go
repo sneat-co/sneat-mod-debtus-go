@@ -1,21 +1,22 @@
 package maintainance
 
 import (
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"github.com/dal-go/dalgo/dal"
 	"net/http"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/captaincodeman/datastore-mapper"
-	"google.golang.org/appengine/v2/datastore"
 )
 
 type transfersAsyncJob struct {
 	asyncMapper
-	entity *models.TransferEntity
+	entity *models.TransferData
 }
 
 func (m *transfersAsyncJob) Make() interface{} {
-	m.entity = new(models.TransferEntity)
+	m.entity = new(models.TransferData)
 	return m.entity
 }
 
@@ -23,18 +24,25 @@ func (m *transfersAsyncJob) Query(r *http.Request) (query *mapper.Query, err err
 	return applyIDAndUserFilters(r, "transfersAsyncJob", models.TransferKind, filterByIntID, "BothUserIDs")
 }
 
-func (m *transfersAsyncJob) Transfer(key *datastore.Key) models.Transfer {
+func (m *transfersAsyncJob) Transfer(key *dal.Key) models.Transfer {
 	entity := *m.entity
-	return models.Transfer{IntegerID: db.IntegerID{ID: key.IntID()}, TransferEntity: &entity}
+	return models.NewTransfer(key.ID.(int), &entity)
 }
 
-type TransferWorker func(c context.Context, counters *asyncCounters, transfer models.Transfer) error
+type TransferWorker func(c context.Context, tx dal.ReadwriteTransaction, counters *asyncCounters, transfer models.Transfer) error
 
-func (m *transfersAsyncJob) startTransferWorker(c context.Context, counters mapper.Counters, key *datastore.Key, transferWorker TransferWorker) error {
+func (m *transfersAsyncJob) startTransferWorker(c context.Context, counters mapper.Counters, key *dal.Key, transferWorker TransferWorker) error {
 	transfer := m.Transfer(key)
 	w := func() Worker {
 		return func(counters *asyncCounters) error {
-			return transferWorker(c, counters, transfer)
+			db, err := facade.GetDatabase(c)
+			if err != nil {
+				return err
+			}
+			return db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+				return transferWorker(c, tx, counters, transfer)
+			})
+
 		}
 	}
 	return m.startWorker(c, counters, w)

@@ -1,12 +1,6 @@
 package reminders
 
 import (
-	"fmt"
-	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
-	"github.com/sneat-co/debtstracker-translations/trans"
-	"net/http"
-	"time"
-
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/analytics"
@@ -15,15 +9,19 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/app/gaestandard"
-	"github.com/strongo/bots-framework/hosts/appengine"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/datastore"
 	"google.golang.org/appengine/v2/delay"
 	"google.golang.org/appengine/v2/urlfetch"
+	"net/http"
+	"time"
 )
 
 func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminder models.Reminder, tgChatID int64, tgBot string) (sent, channelDisabledByUser bool, err error) {
@@ -72,12 +70,16 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 
 		messageConfig := tgbotapi.NewMessage(tgChatID, messageText)
 
-		err = dtdal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
-			reminder, err := dtdal.Reminder.GetReminderByID(c, reminder.ID)
+		var db dal.Database
+		if db, err = facade.GetDatabase(c); err != nil {
+			return
+		}
+		err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) (err error) {
+			reminder, err = dtdal.Reminder.GetReminderByID(c, tx, reminder.ID)
 			if err != nil {
 				return err
 			}
-			callbackData := fmt.Sprintf(dtb_common.DEBT_RETURN_CALLBACK_DATA, dtb_common.CALLBACK_DEBT_RETURNED_PATH, common.EncodeID(reminder.ID), "%v")
+			callbackData := fmt.Sprintf(dtb_common.DEBT_RETURN_CALLBACK_DATA, dtb_common.CALLBACK_DEBT_RETURNED_PATH, common.EncodeIntID(reminder.ID), "%v")
 			messageConfig.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 				[]tgbotapi.InlineKeyboardButton{
 					{Text: translator.Translate(trans.COMMAND_TEXT_REMINDER_RETURNED_IN_FULL), CallbackData: fmt.Sprintf(callbackData, dtb_common.RETURNED_FULLY)},
@@ -107,7 +109,7 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 			sent = true
 			log.Infof(c, "Sent message to telegram. MessageID: %v", message.MessageID)
 
-			if err = dtdal.Reminder.SetReminderIsSentInTransaction(tc, reminder, time.Now(), int64(message.MessageID), "", locale.Code5, ""); err != nil {
+			if err = dtdal.Reminder.SetReminderIsSentInTransaction(tc, tx, reminder, time.Now(), int64(message.MessageID), "", locale.Code5, ""); err != nil {
 				err = dtdal.Reminder.DelaySetReminderIsSent(tc, reminder.ID, time.Now(), int64(message.MessageID), "", locale.Code5, "")
 			}
 			//
@@ -129,18 +131,19 @@ func DelaySetChatIsForbidden(c context.Context, botID string, tgChatID int64, at
 	return gae.CallDelayFunc(c, common.QUEUE_CHATS, "set-chat-is-forbidden", delaySetChatIsForbidden, botID, tgChatID, at)
 }
 
-var delaySetChatIsForbidden = delay.Func("SetChatIsForbidden", SetChatIsForbidden)
+var delaySetChatIsForbidden = delay.MustRegister("SetChatIsForbidden", SetChatIsForbidden)
 
 func SetChatIsForbidden(c context.Context, botID string, tgChatID int64, at time.Time) error {
 	log.Debugf(c, "SetChatIsForbidden(tgChatID=%v, at=%v)", tgChatID, at)
-	err := gaehost.MarkTelegramChatAsForbidden(c, botID, tgChatID, at)
-	if err == nil {
-		log.Infof(c, "Success")
-	} else {
-		log.Errorf(c, err.Error())
-		if err == datastore.ErrNoSuchEntity {
-			return nil // Do not re-try
-		}
-	}
-	return err
+	panic("TODO: Implement SetChatIsForbidden")
+	//err := gaehost.MarkTelegramChatAsForbidden(c, botID, tgChatID, at)
+	//if err == nil {
+	//	log.Infof(c, "Success")
+	//} else {
+	//	log.Errorf(c, err.Error())
+	//	if err == datastore.ErrNoSuchEntity {
+	//		return nil // Do not re-try
+	//	}
+	//}
+	//return err
 }

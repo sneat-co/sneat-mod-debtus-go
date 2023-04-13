@@ -88,7 +88,7 @@ func handleGetContact(c context.Context, w http.ResponseWriter, r *http.Request,
 	if err != nil {
 		return
 	}
-	counterparty, err := facade.GetContactByID(c, counterpartyID)
+	counterparty, err := facade.GetContactByID(c, tx, counterpartyID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))

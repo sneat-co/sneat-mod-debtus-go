@@ -139,7 +139,7 @@ func TextReceiptForTransfer(ec strongo.ExecutionContext, transfer models.Transfe
 		panic("transferID == 0")
 	}
 
-	//transferEntity := transfer.TransferEntity
+	//transferEntity := transfer.TransferData
 
 	switch showReceiptTo {
 	case ShowReceiptToCreator:

@@ -19,7 +19,7 @@ type TransferReturnJson struct {
 
 type TransferReturns []TransferReturnJson
 
-func (t *TransferEntity) GetReturns() (returns TransferReturns) {
+func (t *TransferData) GetReturns() (returns TransferReturns) {
 	if t.ReturnsCount == 0 && t.ReturnsJson == "" {
 		return
 	}
@@ -42,7 +42,7 @@ func (t *TransferEntity) GetReturns() (returns TransferReturns) {
 	return
 }
 
-func (t *TransferEntity) AddReturn(returnTransfer TransferReturnJson) error {
+func (t *TransferData) AddReturn(returnTransfer TransferReturnJson) error {
 	if returnTransfer.TransferID == 0 {
 		return errors.New("returnTransfer.TransferID == 0")
 	}

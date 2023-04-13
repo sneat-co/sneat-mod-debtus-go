@@ -3,7 +3,6 @@ package inspector
 import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/dal-go/dalgo/where"
 	"net/http"
 	"strconv"
 	//"sync"
@@ -28,7 +27,7 @@ func (h contactPage) contactPageHandler(w http.ResponseWriter, r *http.Request, 
 
 	var contact models.Contact
 
-	if contact, err = facade.GetContactByID(c, contactID); err != nil {
+	if contact, err = facade.GetContactByID(c, nil, contactID); err != nil {
 		_, _ = fmt.Fprint(w, err)
 		return
 	}
@@ -64,7 +63,7 @@ func (h contactPage) contactPageHandler(w http.ResponseWriter, r *http.Request, 
 	//
 	//if contact.CounterpartyCounterpartyID != 0 {
 	//	wg.Add(1)
-	//	if counterpartyContact, err = facade.GetContactByID(c, contact.CounterpartyCounterpartyID); err != nil {
+	//	if counterpartyContact, err = facade.GetContactByID(c, tx, contact.CounterpartyCounterpartyID); err != nil {
 	//		return
 	//	}
 	//}
@@ -86,19 +85,20 @@ func (contactPage) verifyTransfers(c context.Context, contactID int64) (
 	//select := dal.Select{
 	//	From: &dal.CollectionRef{Name: models.TransferKind},
 	//}
-	query := dal.From(models.TransferKind,
-		where.Field("BothCounterpartyIDs").EqualTo(contactID)).
+	query := dal.From(models.TransferKind).
+		Where(dal.Field("BothCounterpartyIDs").EqualTo(contactID)).
 		SelectInto(func() dal.Record {
-			return dal.NewRecordWithoutKey(new(models.TransferEntity))
+			return dal.NewRecordWithoutKey(new(models.TransferData))
 		})
 
-	iterator, err := db.Select(c, query)
+	var reader dal.Reader
+	reader, err = db.Select(c, query)
 
 	for {
-		//transferEntity := new(models.TransferEntity)
+		//transferEntity := new(models.TransferData)
 		//var key *datastore.Key
 		var record dal.Record
-		if record, err = iterator.Next(); err != nil {
+		if record, err = reader.Next(); err != nil {
 			if err == datastore.Done {
 				break
 			}
@@ -106,7 +106,7 @@ func (contactPage) verifyTransfers(c context.Context, contactID int64) (
 		}
 		transfers = append(transfers, models.NewTransfer(
 			record.Key().ID.(int),
-			record.Data().(*models.TransferEntity),
+			record.Data().(*models.TransferData),
 		))
 	}
 

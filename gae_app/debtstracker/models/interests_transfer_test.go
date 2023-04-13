@@ -35,7 +35,7 @@ func TestTransferEntity_GetInterestValue(t *testing.T) {
 	now := time.Now()
 	transfer := Transfer{
 		IntegerID: db.NewIntID(111),
-		TransferEntity: &TransferEntity{
+		TransferEntity: &TransferData{
 			DtCreated:        now,
 			IsOutstanding:    true,
 			AmountInCents:    1000,
@@ -64,7 +64,7 @@ func TestTransferEntityGetOutstandingValue(t *testing.T) {
 	now := time.Now()
 	transfer := Transfer{
 		IntegerID: db.NewIntID(111),
-		TransferEntity: &TransferEntity{
+		TransferEntity: &TransferData{
 			IsOutstanding:    true,
 			DtCreated:        now.Add(-3*day + time.Hour),
 			AmountInCents:    decimal.NewDecimal64p2(100, 0),

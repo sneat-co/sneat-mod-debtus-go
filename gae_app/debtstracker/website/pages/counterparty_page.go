@@ -23,7 +23,7 @@ func CounterpartyPage(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 		return
 	}
 
-	counterparty, err := facade.GetContactByID(c, counterpartyID)
+	counterparty, err := facade.GetContactByID(c, nil, counterpartyID)
 	if err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte(err.Error()))

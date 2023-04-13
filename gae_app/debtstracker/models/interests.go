@@ -25,7 +25,7 @@ func updateBalanceWithInterest(failOnZeroBalance bool, b money.Balance, outstand
 	return
 }
 
-func (t *TransferEntity) validateTransferInterestAndReturns() (err error) {
+func (t *TransferData) validateTransferInterestAndReturns() (err error) {
 	if err = t.TransferInterest.ValidateTransferInterest(); err != nil {
 		return
 	}
@@ -46,7 +46,7 @@ func (t *TransferEntity) validateTransferInterestAndReturns() (err error) {
 			amountReturned += r.Amount
 		}
 		if amountReturned != t.AmountReturned() {
-			return fmt.Errorf("sum(returns.Amount) != *TransferEntity.AmountInCentsReturned: %v != %v", amountReturned, t.AmountInCentsReturned)
+			return fmt.Errorf("sum(returns.Amount) != *TransferData.AmountInCentsReturned: %v != %v", amountReturned, t.AmountInCentsReturned)
 		}
 	}
 	return

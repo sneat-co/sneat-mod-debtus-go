@@ -113,7 +113,7 @@ func signInFbUser(c context.Context, fbAppID, fbUserID string, r *http.Request, 
 	} else if user.ID == 0 {
 		panic("userID == 0")
 	} else if user.Data == nil {
-		panic("user.AppUserEntity == nil")
+		panic("user.AppUserData == nil")
 	}
 
 	return

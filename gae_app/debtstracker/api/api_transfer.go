@@ -43,7 +43,7 @@ type transferSourceSetToAPI struct {
 	createdOnID string
 }
 
-func (s transferSourceSetToAPI) PopulateTransfer(t *models.TransferEntity) {
+func (s transferSourceSetToAPI) PopulateTransfer(t *models.TransferData) {
 	t.CreatedOnPlatform = s.appPlatform
 	t.CreatedOnID = s.createdOnID
 }
@@ -94,7 +94,7 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	var (
-		returnToTransferID int64
+		returnTotransferID int
 		dueOn              time.Time
 	)
 
@@ -113,7 +113,7 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 	//	hashedWriter.Write([]byte(errors.Wrap(err, "Failed to get user")))
 	//}
 	if isReturn {
-		if counterparty, err := facade.GetContactByID(c, contactID); err != nil {
+		if counterparty, err := facade.GetContactByID(c, tx, contactID); err != nil {
 			if dal.IsNotFound(err) {
 				BadRequestError(c, w, err)
 			} else {

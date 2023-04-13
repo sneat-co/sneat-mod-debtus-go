@@ -21,7 +21,7 @@ import (
 )
 
 type TransferSource interface {
-	PopulateTransfer(t *models.TransferEntity)
+	PopulateTransfer(t *models.TransferData)
 }
 
 const (
@@ -45,7 +45,7 @@ type RewardDal interface {
 }
 
 type TransferDal interface {
-	GetTransfersByID(c context.Context, tx dal.ReadTransaction, transferIDs []int) ([]models.Transfer, error)
+	GetTransfersByID(c context.Context, tx dal.ReadSession, transferIDs []int) ([]models.Transfer, error)
 	LoadTransfersByUserID(c context.Context, userID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error)
 	LoadTransfersByContactID(c context.Context, contactID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error)
 	LoadTransferIDsByContactID(c context.Context, contactID int64, limit int, startCursor string) (transferIDs []int, endCursor string, err error)
@@ -59,11 +59,11 @@ type TransferDal interface {
 }
 
 type ReceiptDal interface {
-	UpdateReceipt(c context.Context, receipt models.Receipt) error
-	GetReceiptByID(c context.Context, id int) (models.Receipt, error)
+	UpdateReceipt(c context.Context, tx dal.ReadwriteTransaction, receipt models.Receipt) error
+	GetReceiptByID(c context.Context, tx dal.ReadSession, id int) (models.Receipt, error)
 	MarkReceiptAsSent(c context.Context, receiptID, transferID int, sentTime time.Time) error
-	CreateReceipt(c context.Context, receipt *models.ReceiptEntity) (id int64, err error)
-	DelayedMarkReceiptAsSent(c context.Context, receiptID, transferID int64, sentTime time.Time) error
+	CreateReceipt(c context.Context, receipt *models.ReceiptEntity) (id int, err error)
+	DelayedMarkReceiptAsSent(c context.Context, receiptID, transferID int, sentTime time.Time) error
 	DelayCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongo.Environment, transferID int, userID int64) error
 }
 
@@ -72,15 +72,15 @@ var ErrReminderAlreadyRescheduled = errors.New("reminder already rescheduled")
 type ReminderDal interface {
 	DelayDiscardReminders(c context.Context, transferIDs []int, returnTransferID int) error
 	DelayCreateReminderForTransferUser(c context.Context, transferID int, userID int64) error
-	SaveReminder(c context.Context, reminder models.Reminder) (err error)
-	GetReminderByID(c context.Context, id int) (models.Reminder, error)
-	RescheduleReminder(c context.Context, reminderID int64, remindInDuration time.Duration) (oldReminder, newReminder models.Reminder, err error)
-	SetReminderStatus(c context.Context, reminderID int64, returnTransferID int, status string, when time.Time) (reminder models.Reminder, err error)
-	DelaySetReminderIsSent(c context.Context, reminderID int64, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error
-	SetReminderIsSent(c context.Context, reminderID int64, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error
-	SetReminderIsSentInTransaction(c context.Context, reminder models.Reminder, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) (err error)
-	GetActiveReminderIDsByTransferID(c context.Context, transferID int64) ([]int64, error)
-	GetSentReminderIDsByTransferID(c context.Context, transferID int64) ([]int64, error)
+	SaveReminder(c context.Context, tx dal.ReadwriteTransaction, reminder models.Reminder) (err error)
+	GetReminderByID(c context.Context, tx dal.ReadSession, id int) (models.Reminder, error)
+	RescheduleReminder(c context.Context, reminderID int, remindInDuration time.Duration) (oldReminder, newReminder models.Reminder, err error)
+	SetReminderStatus(c context.Context, reminderID int, returnTransferID int, status string, when time.Time) (reminder models.Reminder, err error)
+	DelaySetReminderIsSent(c context.Context, reminderID int, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error
+	SetReminderIsSent(c context.Context, reminderID int, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error
+	SetReminderIsSentInTransaction(c context.Context, tx dal.ReadwriteTransaction, reminder models.Reminder, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) (err error)
+	GetActiveReminderIDsByTransferID(c context.Context, tx dal.ReadTransaction, transferID int) ([]int, error)
+	GetSentReminderIDsByTransferID(c context.Context, tx dal.ReadTransaction, transferID int) ([]int, error)
 }
 
 type CreateUserData struct {
@@ -93,8 +93,8 @@ type CreateUserData struct {
 	Nickname   string
 }
 
-func CreateUserEntity(createUserData CreateUserData) (user *models.AppUserEntity) {
-	return &models.AppUserEntity{
+func CreateUserEntity(createUserData CreateUserData) (user *models.AppUserData) {
+	return &models.AppUserData{
 		//FbUserID: createUserData.FbUserID,
 		//VkUserID: createUserData.VkUserID,
 		//GoogleUniqueUserID: createUserData.GoogleUserID,
@@ -111,7 +111,7 @@ type UserDal interface {
 	GetUserByStrID(c context.Context, userID string) (models.AppUser, error)
 	GetUserByVkUserID(c context.Context, vkUserID int64) (models.AppUser, error)
 	CreateAnonymousUser(c context.Context) (models.AppUser, error)
-	CreateUser(c context.Context, userEntity *models.AppUserEntity) (models.AppUser, error)
+	CreateUser(c context.Context, userEntity *models.AppUserData) (models.AppUser, error)
 	DelaySetUserPreferredLocale(c context.Context, delay time.Duration, userID int64, localeCode5 string) error
 	DelayUpdateUserHasDueTransfers(c context.Context, userID int64) error
 	SetLastCurrency(c context.Context, userID int64, currency money.Currency) error
@@ -126,21 +126,21 @@ type PasswordResetDal interface {
 }
 
 type EmailDal interface {
-	InsertEmail(c context.Context, entity *models.EmailEntity) (models.Email, error)
+	InsertEmail(c context.Context, tx dal.ReadwriteTransaction, entity *models.EmailData) (models.Email, error)
 	UpdateEmail(c context.Context, tx dal.ReadwriteTransaction, email models.Email) error
-	GetEmailByID(c context.Context, id int64) (models.Email, error)
+	GetEmailByID(c context.Context, tx dal.ReadSession, id int64) (models.Email, error)
 }
 
 type FeedbackDal interface {
-	GetFeedbackByID(c context.Context, feedbackID int) (models.Feedback, error)
+	GetFeedbackByID(c context.Context, feedbackID int64) (models.Feedback, error)
 }
 
 type ContactDal interface {
 	GetLatestContacts(whc botsfw.WebhookContext, limit, totalCount int) (contacts []models.Contact, err error)
-	InsertContact(c context.Context, tx dal.ReadwriteTransaction, contactEntity *models.ContactEntity) (contact models.Contact, err error)
+	InsertContact(c context.Context, tx dal.ReadwriteTransaction, contactEntity *models.ContactData) (contact models.Contact, err error)
 	//CreateContact(c context.Context, userID int64, contactDetails models.ContactDetails) (contact models.Contact, user models.AppUser, err error)
 	//CreateContactWithinTransaction(c context.Context, user models.AppUser, contactUserID, counterpartyCounterpartyID int64, contactDetails models.ContactDetails, balanced money.Balanced) (contact models.Contact, err error)
-	//UpdateContact(c context.Context, contactID int64, values map[string]string) (contactEntity *models.ContactEntity, err error)
+	//UpdateContact(c context.Context, contactID int64, values map[string]string) (contactEntity *models.ContactData, err error)
 	GetContactIDsByTitle(c context.Context, tx dal.ReadTransaction, userID int64, title string, caseSensitive bool) (contactIDs []int64, err error)
 	GetContactsWithDebts(c context.Context, tx dal.ReadTransaction, userID int64) (contacts []models.Contact, err error)
 }
@@ -148,12 +148,12 @@ type ContactDal interface {
 type BillsHolderGetter func(c context.Context) (billsHolder dal.Record, err error)
 
 type BillDal interface {
-	SaveBill(c context.Context, bill models.Bill) (err error)
-	UpdateBillsHolder(c context.Context, billID string, getBillsHolder BillsHolderGetter) (err error)
+	SaveBill(c context.Context, tx dal.ReadwriteTransaction, bill models.Bill) (err error)
+	UpdateBillsHolder(c context.Context, tx dal.ReadwriteTransaction, billID string, getBillsHolder BillsHolderGetter) (err error)
 }
 
 type SplitDal interface {
-	GetSplitByID(c context.Context, splitID int64) (split models.Split, err error)
+	GetSplitByID(c context.Context, splitID int) (split models.Split, err error)
 	InsertSplit(c context.Context, splitEntity models.SplitEntity) (split models.Split, err error)
 }
 
@@ -177,7 +177,7 @@ type GroupDal interface {
 
 //type GroupMemberDal interface {
 //	GetGroupMemberByID(c context.Context, groupMemberID int64) (groupMember models.GroupMember, err error)
-//	CreateGroupMember(c context.Context, groupMemberEntity *models.GroupMemberEntity) (groupMember models.GroupMember, err error)
+//	CreateGroupMember(c context.Context, groupMemberEntity *models.GroupMemberData) (groupMember models.GroupMember, err error)
 //}
 
 type UserGoogleDal interface {
@@ -247,9 +247,9 @@ func RandomCode(n uint8) string {
 }
 
 type InviteDal interface {
-	GetInvite(c context.Context, inviteCode string) (*models.InviteEntity, error)
+	GetInvite(c context.Context, inviteCode string) (*models.InviteData, error)
 	ClaimInvite(c context.Context, userID int64, inviteCode, claimedOn, claimedVia string) (err error)
-	ClaimInvite2(c context.Context, inviteCode string, inviteEntity *models.InviteEntity, claimedByUserID int64, claimedOn, claimedVia string) (invite models.Invite, err error)
+	ClaimInvite2(c context.Context, inviteCode string, inviteEntity *models.InviteData, claimedByUserID int64, claimedOn, claimedVia string) (invite models.Invite, err error)
 	CreatePersonalInvite(ec strongo.ExecutionContext, userID int64, inviteBy models.InviteBy, inviteToAddress, createdOnPlatform, createdOnID, related string) (models.Invite, error)
 	CreateMassInvite(ec strongo.ExecutionContext, userID int64, inviteCode string, maxClaimsCount int32, createdOnPlatform string) (invite models.Invite, err error)
 }

@@ -2,6 +2,8 @@ package dtb_transfer
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"regexp"
 	"strconv"
 	"strings"

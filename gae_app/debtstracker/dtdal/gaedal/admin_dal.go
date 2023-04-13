@@ -17,7 +17,7 @@ func (AdminDalGae) LatestUsers(c context.Context) (users []models.AppUser, err e
 	return nil, errors.New("not implemented")
 	//var (
 	//	userKeys     []*datastore.Key
-	//	userEntities []*models.AppUserEntity
+	//	userEntities []*models.AppUserData
 	//)
 	//query := datastore.NewQuery(models.AppUserKind).Order("-DtCreated").Limit(20)
 	//if userKeys, err = query.GetAll(c, &userEntities); err != nil {
@@ -125,7 +125,7 @@ func (AdminDalGae) DeleteAll(c context.Context, botCode, botChatID string) error
 	//return nil
 }
 
-//var delayTgChatDeletion = delay.Func("delete-%v", func(c context.Context, id string) error {
+//var delayTgChatDeletion = delay.MustRegister("delete-%v", func(c context.Context, id string) error {
 //	log.Debugf(c, "delayTgChatDeletion(id=%v)", id)
 //	panic("not implemented")
 //	key := gaedb.NewKey(c, telegram.ChatKind, id, 0, nil)

@@ -57,7 +57,7 @@ func setUserReferrer(c context.Context, userID int64, referredBy string) (err er
 	return nil
 }
 
-var delayedSetUserReferrer = delay.Func("setUserReferrer", setUserReferrer)
+var delayedSetUserReferrer = delay.MustRegister("setUserReferrer", setUserReferrer)
 
 func delaySetUserReferrer(c context.Context, userID int64, referredBy string) (err error) {
 	return gae.CallDelayFuncWithDelay(c, time.Second/2, common.QUEUE_USERS, "set-user-referrer", delayedSetUserReferrer, userID, referredBy)

@@ -62,7 +62,7 @@ func InlineSendReceipt(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err 
 		return m, err
 	}
 	var transfer models.Transfer
-	transfer, err = facade.Transfers.GetTransferByID(c, tx, transferID)
+	transfer, err = facade.Transfers.GetTransferByID(c, nil, transferID)
 	if err != nil {
 		log.Infof(c, "Faield to get transfer by ID: %v", transferID)
 		return m, err
@@ -151,22 +151,22 @@ func OnInlineChosenCreateReceipt(whc botsfw.WebhookContext, inlineMessageID stri
 
 	log.Debugf(c, "OnInlineChosenCreateReceipt(queryUrl: %v)", queryUrl)
 	transferEncodedID := queryUrl.Query().Get("id")
-	transferID, err := common.DecodeID(transferEncodedID)
+	transferID, err := common.DecodeIntID(transferEncodedID)
 	if err != nil {
 		return m, err
 	}
 	creator := whc.GetSender()
 	creatorName := fmt.Sprintf("%v %v", creator.GetFirstName(), creator.GetLastName())
 
-	transfer, err := facade.Transfers.GetTransferByID(c, transferID)
+	transfer, err := facade.Transfers.GetTransferByID(c, nil, transferID)
 	if err != nil {
 		return m, err
 	}
-	receipt := models.NewReceiptEntity(whc.AppUserIntID(), transferID, transfer.Counterparty().UserID, whc.Locale().Code5, telegram.PlatformID, "", general.CreatedOn{
+	receipt := models.NewReceiptEntity(whc.AppUserIntID(), transferID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, telegram.PlatformID, "", general.CreatedOn{
 		CreatedOnID:       whc.GetBotCode(), // TODO: Replace with method call.
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 	})
-	receiptID, err := dtdal.Receipt.CreateReceipt(c, &receipt)
+	receiptID, err := dtdal.Receipt.CreateReceipt(c, receipt)
 	if err != nil {
 		return m, err
 	}

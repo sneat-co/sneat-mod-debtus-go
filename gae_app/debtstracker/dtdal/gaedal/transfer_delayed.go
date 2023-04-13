@@ -39,7 +39,7 @@ const (
 	DELAY_UPDATE_1_TRANSFER_WITH_COUNTERPARTY = "update-1-transfer-with-counterparty"
 )
 
-var delayedUpdateTransfersWithCounterparty = delay.Func(DELAY_UPDATE_TRANSFERS_WITH_COUNTERPARTY, func(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) error {
+var delayedUpdateTransfersWithCounterparty = delay.MustRegister(DELAY_UPDATE_TRANSFERS_WITH_COUNTERPARTY, func(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) error {
 	log.Infof(c, "delayedUpdateTransfersWithCounterparty(creatorCounterpartyID=%d, counterpartyCounterpartyID=%d)", creatorCounterpartyID, counterpartyCounterpartyID)
 	if creatorCounterpartyID == 0 {
 		log.Errorf(c, "creatorCounterpartyID == 0")
@@ -52,7 +52,7 @@ var delayedUpdateTransfersWithCounterparty = delay.Func(DELAY_UPDATE_TRANSFERS_W
 	query := datastore.NewQuery(models.TransferKind).KeysOnly()
 	query = query.Filter("BothCounterpartyIDs =", creatorCounterpartyID).Filter("BothCounterpartyIDs =", 0)
 	query = query.Order("-DtCreated") // We don't need order here, but it would be nice to update recent first and we have index in place anyway
-	var transfers []*models.TransferEntity
+	var transfers []*models.TransferData
 	if keys, err := query.GetAll(c, transfers); err != nil {
 		return fmt.Errorf("failed to load transfers: %w", err)
 	} else if len(keys) > 0 {
@@ -84,7 +84,7 @@ var delayedUpdateTransfersWithCounterparty = delay.Func(DELAY_UPDATE_TRANSFERS_W
 	return nil
 })
 
-var delayedUpdateTransferWithCounterparty = delay.Func(DELAY_UPDATE_1_TRANSFER_WITH_COUNTERPARTY,
+var delayedUpdateTransferWithCounterparty = delay.MustRegister(DELAY_UPDATE_1_TRANSFER_WITH_COUNTERPARTY,
 	func(c context.Context, transferID, counterpartyCounterpartyID int64) error {
 		log.Debugf(c, "delayedUpdateTransferWithCounterparty(transferID=%d, counterpartyCounterpartyID=%d)", transferID, counterpartyCounterpartyID)
 		if transferID == 0 {
@@ -96,7 +96,7 @@ var delayedUpdateTransferWithCounterparty = delay.Func(DELAY_UPDATE_1_TRANSFER_W
 			return nil
 		}
 
-		counterpartyCounterparty, err := facade.GetContactByID(c, counterpartyCounterpartyID)
+		counterpartyCounterparty, err := facade.GetContactByID(c, tx, counterpartyCounterpartyID)
 		if err != nil {
 			log.Errorf(c, err.Error())
 			if dal.IsNotFound(err) {
@@ -212,7 +212,7 @@ func DelayUpdateTransfersWithCreatorName(c context.Context, userID int64) error 
 	return gae.CallDelayFunc(c, common.QUEUE_TRANSFERS, UPDATE_TRANSFERS_WITH_CREATOR_NAME, delayedUpdateTransfersWithCreatorName, userID)
 }
 
-var delayedUpdateTransfersWithCreatorName = delay.Func(UPDATE_TRANSFERS_WITH_CREATOR_NAME, func(c context.Context, userID int64) error {
+var delayedUpdateTransfersWithCreatorName = delay.MustRegister(UPDATE_TRANSFERS_WITH_CREATOR_NAME, func(c context.Context, userID int64) error {
 	log.Debugf(c, "delayedUpdateTransfersWithCreatorName(userID=%d)", userID)
 
 	user, err := facade.User.GetUserByID(c, tx, userID)
@@ -232,7 +232,7 @@ var delayedUpdateTransfersWithCreatorName = delay.Func(UPDATE_TRANSFERS_WITH_CRE
 	var wg sync.WaitGroup
 	defer wg.Wait()
 	for {
-		var transferEntity models.TransferEntity
+		var transferEntity models.TransferData
 		key, err := t.Next(&transferEntity)
 		if err != nil {
 			if err == datastore.Done {
@@ -242,7 +242,7 @@ var delayedUpdateTransfersWithCreatorName = delay.Func(UPDATE_TRANSFERS_WITH_CRE
 			return err
 		}
 		wg.Add(1)
-		go func(transferID int64) {
+		go func(transferID int) {
 			defer wg.Done()
 			err := dtdal.DB.RunInTransaction(c, func(c context.Context) error {
 				transfer, err := facade.Transfers.GetTransferByID(c, transferID)

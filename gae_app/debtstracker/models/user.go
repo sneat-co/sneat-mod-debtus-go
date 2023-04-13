@@ -21,12 +21,20 @@ import (
 
 const AppUserKind = "User"
 
-type AppUser struct {
-	record.WithID[int64]
-	Data *AppUserEntity
+func NewAppUserKey(appUserId int64) *dal.Key {
+	return dal.NewKeyWithID(AppUserKind, appUserId)
 }
 
-func NewAppUser(id int64, entity *AppUserEntity) AppUser {
+func NewAppUserIncompleteKey(c context.Context) *dal.Key {
+	return dal.NewKey(AppUserKind)
+}
+
+type AppUser struct {
+	record.WithID[int64]
+	Data *AppUserData
+}
+
+func NewAppUser(id int64, entity *AppUserData) AppUser {
 	return AppUser{WithID: record.WithID[int64]{
 		ID:  id,
 		Key: dal.NewKeyWithID(AppUserKind, id),
@@ -61,7 +69,7 @@ func (u *AppUser) Entity() interface{} {
 
 // NewEntity creates new entity for the user
 func (*AppUser) NewEntity() interface{} {
-	return new(AppUserEntity)
+	return new(AppUserData)
 }
 
 // SetEntity sets entity to the user
@@ -69,7 +77,7 @@ func (u *AppUser) SetEntity(entity interface{}) {
 	if entity == nil {
 		u.Data = nil
 	} else {
-		u.Data = entity.(*AppUserEntity)
+		u.Data = entity.(*AppUserData)
 	}
 }
 
@@ -103,14 +111,14 @@ func NewClientInfoFromRequest(r *http.Request) ClientInfo {
 
 func NewUser(clientInfo ClientInfo) AppUser {
 	return AppUser{
-		Data: &AppUserEntity{
+		Data: &AppUserData{
 			LastUserAgent:     clientInfo.UserAgent,
 			LastUserIpAddress: clientInfo.RemoteAddr,
 		},
 	}
 }
 
-type AppUserEntity struct {
+type AppUserData struct {
 	UserRewardBalance
 
 	SavedCounter int `datastore:"A"` // Indexing to find most active users
@@ -188,11 +196,11 @@ type AppUserEntity struct {
 	LastFeedbackRate  string    `datastore:",noindex,omitempty"`
 }
 
-func (entity *AppUserEntity) GetFullName() string {
+func (entity *AppUserData) GetFullName() string {
 	return entity.FullName()
 }
 
-func (entity *AppUserEntity) SetLastCurrency(v string) {
+func (entity *AppUserData) SetLastCurrency(v string) {
 	for i, c := range entity.LastCurrencies {
 		if c == v {
 			if i > 0 {
@@ -210,7 +218,7 @@ func (entity *AppUserEntity) SetLastCurrency(v string) {
 	}
 }
 
-func (entity *AppUserEntity) TotalContactsCount() int {
+func (entity *AppUserData) TotalContactsCount() int {
 	return entity.ContactsCountActive + entity.ContactsCountArchived
 }
 
@@ -232,7 +240,7 @@ func userContactsByStatus(contacts []UserContactJson) (active, archived []UserCo
 	return
 }
 
-func (entity *AppUserEntity) FixObsolete() error {
+func (entity *AppUserData) FixObsolete() error {
 	fixContactsJson := func() error {
 		if entity.ContactsJson != "" {
 			contacts := make([]UserContactJson, 0, entity.ContactsCount)
@@ -270,7 +278,7 @@ func (entity *AppUserEntity) FixObsolete() error {
 	return fixContactsJson()
 }
 
-func (entity *AppUserEntity) ContactIDs() (ids []int64) {
+func (entity *AppUserData) ContactIDs() (ids []int64) {
 	contacts := entity.Contacts()
 	ids = make([]int64, len(contacts))
 	for i, c := range contacts {
@@ -279,7 +287,7 @@ func (entity *AppUserEntity) ContactIDs() (ids []int64) {
 	return ids
 }
 
-func (entity *AppUserEntity) RemoveContact(contactID int64) (changed bool) {
+func (entity *AppUserData) RemoveContact(contactID int64) (changed bool) {
 	contacts := entity.Contacts()
 	for i, contact := range contacts {
 		if contact.ID == contactID {
@@ -293,7 +301,7 @@ func (entity *AppUserEntity) RemoveContact(contactID int64) (changed bool) {
 
 func (u AppUser) AddOrUpdateContact(c Contact) (contactJson UserContactJson, changed bool) {
 	if c.Data == nil {
-		panic("c.ContactEntity == nil")
+		panic("c.ContactData == nil")
 	}
 	if u.ID != c.Data.UserID {
 		panic(fmt.Sprintf("appUser.ID:%d != contact.UserID:%d", u.ID, c.Data.UserID))
@@ -323,7 +331,7 @@ func (u AppUser) AddOrUpdateContact(c Contact) (contactJson UserContactJson, cha
 	return
 }
 
-func (entity *AppUserEntity) SetContacts(contacts []UserContactJson) {
+func (entity *AppUserData) SetContacts(contacts []UserContactJson) {
 	{ // store to internal properties
 		active, archived := userContactsByStatus(contacts)
 		entity.setContacts(STATUS_ACTIVE, active)
@@ -350,7 +358,7 @@ func (entity *AppUserEntity) SetContacts(contacts []UserContactJson) {
 	entity.ContactsCount = 0 // TODO: Clean obsolete - remove later
 }
 
-func (entity *AppUserEntity) setContacts(status string, contacts []UserContactJson) {
+func (entity *AppUserData) setContacts(status string, contacts []UserContactJson) {
 	switch status {
 	case STATUS_ACTIVE:
 		if entity.ContactsCountActive = len(contacts); entity.ContactsCountActive == 0 {
@@ -373,13 +381,13 @@ func (entity *AppUserEntity) setContacts(status string, contacts []UserContactJs
 	}
 }
 
-func (entity *AppUserEntity) Contacts() (contacts []UserContactJson) {
+func (entity *AppUserData) Contacts() (contacts []UserContactJson) {
 	return append(entity.ActiveContacts(), entity.ArchivedContacts()...)
 }
 
-func (entity *AppUserEntity) ContactByID(id int64) (contact *UserContactJson) {
+func (entity *AppUserData) ContactByID(id int64) (contact *UserContactJson) {
 	if id == 0 {
-		panic("*AppUserEntity.ContactByID() => id == 0")
+		panic("*AppUserData.ContactByID() => id == 0")
 	}
 	for _, c := range entity.ActiveContacts() {
 		if c.ID == id {
@@ -394,7 +402,7 @@ func (entity *AppUserEntity) ContactByID(id int64) (contact *UserContactJson) {
 	return
 }
 
-func (entity *AppUserEntity) ContactsByID() (contactsByID map[int64]UserContactJson) {
+func (entity *AppUserData) ContactsByID() (contactsByID map[int64]UserContactJson) {
 	contacts := entity.Contacts()
 	contactsByID = make(map[int64]UserContactJson, len(contacts))
 	for _, contact := range contacts {
@@ -416,7 +424,7 @@ func fixUserContacts(contacts []UserContactJson, status string) []UserContactJso
 	return contacts
 }
 
-func (entity *AppUserEntity) ActiveContacts() (contacts []UserContactJson) {
+func (entity *AppUserData) ActiveContacts() (contacts []UserContactJson) {
 	if entity.ContactsJsonActive != "" {
 		contacts = make([]UserContactJson, 0, entity.ContactsCountActive)
 		if err := ffjson.Unmarshal([]byte(entity.ContactsJsonActive), &contacts); err != nil {
@@ -427,7 +435,7 @@ func (entity *AppUserEntity) ActiveContacts() (contacts []UserContactJson) {
 	return
 }
 
-func (entity *AppUserEntity) ArchivedContacts() (contacts []UserContactJson) {
+func (entity *AppUserData) ArchivedContacts() (contacts []UserContactJson) {
 	if entity.ContactsJsonArchived != "" {
 		contacts = make([]UserContactJson, 0, entity.ContactsCountArchived)
 		if err := ffjson.Unmarshal([]byte(entity.ContactsJsonArchived), &contacts); err != nil {
@@ -438,7 +446,7 @@ func (entity *AppUserEntity) ArchivedContacts() (contacts []UserContactJson) {
 	return
 }
 
-func (entity *AppUserEntity) LatestCounterparties(limit int) (contacts []UserContactJson) { //TODO: Need implement sorting
+func (entity *AppUserData) LatestCounterparties(limit int) (contacts []UserContactJson) { //TODO: Need implement sorting
 	allCounterparties := entity.Contacts()
 	if len(allCounterparties) > limit {
 		contacts = make([]UserContactJson, limit)
@@ -454,7 +462,7 @@ func (entity *AppUserEntity) LatestCounterparties(limit int) (contacts []UserCon
 	return
 }
 
-func (entity *AppUserEntity) ActiveContactsWithBalance() (contacts []UserContactJson) {
+func (entity *AppUserData) ActiveContactsWithBalance() (contacts []UserContactJson) {
 	activeContacts := entity.ActiveContacts()
 	contacts = make([]UserContactJson, 0, len(activeContacts))
 	for _, cp := range activeContacts {
@@ -465,7 +473,7 @@ func (entity *AppUserEntity) ActiveContactsWithBalance() (contacts []UserContact
 	return
 }
 
-func (entity *AppUserEntity) AddGroup(group Group, tgBot string) (changed bool) {
+func (entity *AppUserData) AddGroup(group Group, tgBot string) (changed bool) {
 	groups := entity.ActiveGroups()
 	for i, g := range groups {
 		if g.ID == group.ID {
@@ -504,7 +512,7 @@ func (entity *AppUserEntity) AddGroup(group Group, tgBot string) (changed bool) 
 	return
 }
 
-func (entity *AppUserEntity) ActiveGroups() (groups []UserGroupJson) {
+func (entity *AppUserData) ActiveGroups() (groups []UserGroupJson) {
 	if entity.GroupsJsonActive != "" {
 		if err := ffjson.Unmarshal([]byte(entity.GroupsJsonActive), &groups); err != nil {
 			panic(fmt.Errorf("failed to unmarhal user.ContactsJson: %w", err))
@@ -513,7 +521,7 @@ func (entity *AppUserEntity) ActiveGroups() (groups []UserGroupJson) {
 	return
 }
 
-func (entity *AppUserEntity) SetActiveGroups(groups []UserGroupJson) {
+func (entity *AppUserData) SetActiveGroups(groups []UserGroupJson) {
 	if len(groups) == 0 {
 		entity.GroupsJsonActive = ""
 		entity.GroupsCountActive = 0
@@ -527,13 +535,13 @@ func (entity *AppUserEntity) SetActiveGroups(groups []UserGroupJson) {
 	}
 }
 
-var _ botsfw.BotAppUser = (*AppUserEntity)(nil)
+var _ botsfw.BotAppUser = (*AppUserData)(nil)
 
-func (entity *AppUserEntity) GetCurrencies() []string {
+func (entity *AppUserData) GetCurrencies() []string {
 	return entity.LastCurrencies
 }
 
-func (entity *AppUserEntity) SetBotUserID(platform, botID, botUserID string) {
+func (entity *AppUserData) SetBotUserID(platform, botID, botUserID string) {
 	entity.AddAccount(user.Account{
 		Provider: platform,
 		App:      botID,
@@ -541,7 +549,7 @@ func (entity *AppUserEntity) SetBotUserID(platform, botID, botUserID string) {
 	})
 }
 
-func (entity *AppUserEntity) GetPreferredLocale() string {
+func (entity *AppUserData) GetPreferredLocale() string {
 	if entity.PreferredLanguage != "" {
 		return entity.PreferredLanguage
 	} else {
@@ -549,7 +557,7 @@ func (entity *AppUserEntity) GetPreferredLocale() string {
 	}
 }
 
-func (entity *AppUserEntity) SetPreferredLocale(code5 string) error {
+func (entity *AppUserData) SetPreferredLocale(code5 string) error {
 	if len(code5) != 5 {
 		return errors.New("code5 length should be 5")
 	}
@@ -557,13 +565,13 @@ func (entity *AppUserEntity) SetPreferredLocale(code5 string) error {
 	return nil
 }
 
-func (entity *AppUserEntity) SetNames(first, last, user string) {
+func (entity *AppUserData) SetNames(first, last, user string) {
 	entity.FirstName = first
 	entity.LastName = last
 	entity.Username = user
 }
 
-func (entity *AppUserEntity) Load(ps []datastore.Property) (err error) {
+func (entity *AppUserData) Load(ps []datastore.Property) (err error) {
 	// Load I and J as usual.
 	p2 := make([]datastore.Property, 0, len(ps))
 	for _, p := range ps {
@@ -746,7 +754,7 @@ var userPropertiesToClean = map[string]gaedb.IsOkToRemove{
 	//
 }
 
-func (entity *AppUserEntity) cleanProps(properties []datastore.Property) ([]datastore.Property, error) {
+func (entity *AppUserData) cleanProps(properties []datastore.Property) ([]datastore.Property, error) {
 	var err error
 	//if properties, err = gaedb.CleanProperties(properties, userPropertiesToClean); err != nil {
 	//	return properties, err
@@ -757,7 +765,7 @@ func (entity *AppUserEntity) cleanProps(properties []datastore.Property) ([]data
 	return properties, err
 }
 
-func (entity *AppUserEntity) TotalBalanceFromContacts() (balance money.Balance) {
+func (entity *AppUserData) TotalBalanceFromContacts() (balance money.Balance) {
 	balance = make(money.Balance, entity.BalanceCount)
 
 	for _, contact := range entity.Contacts() {
@@ -776,7 +784,7 @@ func (entity *AppUserEntity) TotalBalanceFromContacts() (balance money.Balance) 
 var ErrDuplicateContactName = errors.New("user has at least 2 contacts with same name")
 var ErrDuplicateTgUserID = errors.New("user has at least 2 contacts with same TgUserID")
 
-func (entity *AppUserEntity) BeforeSave() (err error) {
+func (entity *AppUserData) BeforeSave() (err error) {
 	if entity.GroupsJsonActive != "" && entity.GroupsCountActive == 0 {
 		return errors.New(`entity.GroupsJsonActive != "" && entity.GroupsCountActive == 0`)
 	}
@@ -824,7 +832,7 @@ func (entity *AppUserEntity) BeforeSave() (err error) {
 	return
 }
 
-func (entity *AppUserEntity) Save() (properties []datastore.Property, err error) {
+func (entity *AppUserData) Save() (properties []datastore.Property, err error) {
 	if err = entity.BeforeSave(); err != nil {
 		return
 	}
@@ -841,7 +849,7 @@ func (entity *AppUserEntity) Save() (properties []datastore.Property, err error)
 	return properties, err
 }
 
-func (entity *AppUserEntity) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance money.Balance, err error) {
+func (entity *AppUserData) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance money.Balance, err error) {
 	if entity.TransfersWithInterestCount == 0 {
 		balance = entity.Balance()
 	} else if entity.TransfersWithInterestCount > 0 {
@@ -874,7 +882,7 @@ func (entity *AppUserEntity) BalanceWithInterest(c context.Context, periodEnds t
 	return
 }
 
-func (entity *AppUserEntity) GetOutstandingBalance() (balance money.Balance) {
+func (entity *AppUserData) GetOutstandingBalance() (balance money.Balance) {
 	balance = make(money.Balance, 2)
 	for _, bill := range entity.GetOutstandingBills() {
 		balance[bill.Currency] += bill.UserBalance

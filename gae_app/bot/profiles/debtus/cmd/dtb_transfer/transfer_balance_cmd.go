@@ -3,6 +3,9 @@ package dtb_transfer
 import (
 	"bytes"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 	"strings"
 	"time"
@@ -38,18 +41,18 @@ func balanceAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err erro
 
 	var user models.AppUser
 
-	if user, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+	if user, err = facade.User.GetUserByID(c, nil, whc.AppUserIntID()); err != nil {
 		return
 	}
 
 	var buffer bytes.Buffer
-	if user.BalanceCount == 0 {
+	if user.Data.BalanceCount == 0 {
 		if _, err = buffer.WriteString(whc.Translate(trans.MESSAGE_TEXT_BALANCE_IS_ZERO)); err != nil {
 			return
 		}
 	} else {
 		balanceMessageBuilder := NewBalanceMessageBuilder(whc)
-		contacts := user.Contacts()
+		contacts := user.Data.Contacts()
 		if len(contacts) == 0 {
 			return m, fmt.Errorf("Integrity issue: User{ID=%v} has non zero balance and no contacts.", whc.AppUserIntID())
 		}
@@ -79,7 +82,7 @@ func balanceAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err erro
 		}
 
 		if len(contacts) > 1 && thereAreFewDebtsForSingleCurrency() {
-			userBalanceWithInterest, err := user.BalanceWithInterest(c, time.Now())
+			userBalanceWithInterest, err := user.Data.BalanceWithInterest(c, time.Now())
 			if err != nil {
 				m := fmt.Sprintf("Failed to get balance with interest for user %v: %v", user.ID, err)
 				log.Errorf(c, m)
@@ -114,7 +117,7 @@ func balanceAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err erro
 
 	m.DisableWebPagePreview = true
 
-	if user.HasDueTransfers {
+	if user.Data.HasDueTransfers {
 		m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
 			[]tgbotapi.InlineKeyboardButton{
 				{

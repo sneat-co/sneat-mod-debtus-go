@@ -1,5 +1,10 @@
 package dtb_invite
 
+import (
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+)
+
 const (
 	CREATE_MASS_INVITE_CALLBACK_PATH = "create-mass-invite"
 	CREATE_MASS_INVITE_COMMAND_CODE  = CREATE_MASS_INVITE_CALLBACK_PATH

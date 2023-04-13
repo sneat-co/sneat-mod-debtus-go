@@ -28,7 +28,7 @@ func TestBillApiCreateBill(t *testing.T) {
 	c := context.Background()
 	dtmocks.SetupMocks(c)
 
-	if contact, err := dtdal.Contact.InsertContact(c, &models.ContactEntity{
+	if contact, err := dtdal.Contact.InsertContact(c, &models.ContactData{
 		UserID: creatorUserID,
 		ContactDetails: models.ContactDetails{
 			FirstName: "First",
@@ -38,7 +38,7 @@ func TestBillApiCreateBill(t *testing.T) {
 	} else if contact.ID != 1 {
 		t.Fatalf("contact.ID: %v", contact.ID)
 	}
-	// if contact, err := dtdal.Contact.InsertContact(c, &models.ContactEntity{
+	// if contact, err := dtdal.Contact.InsertContact(c, &models.ContactData{
 	// 	UserID: creatorUserID,
 	// 	ContactDetails: models.ContactDetails{
 	// 		FirstName: "Second",
@@ -48,7 +48,7 @@ func TestBillApiCreateBill(t *testing.T) {
 	// } else if contact.ID != 2 {
 	// 	t.Fatalf("contact.ID != 2: %v", contact.ID)
 	// }
-	// if contact, err := dtdal.Contact.InsertContact(c, &models.ContactEntity{
+	// if contact, err := dtdal.Contact.InsertContact(c, &models.ContactData{
 	// 	UserID: creatorUserID,
 	// 	ContactDetails: models.ContactDetails{
 	// 		FirstName: "Third",

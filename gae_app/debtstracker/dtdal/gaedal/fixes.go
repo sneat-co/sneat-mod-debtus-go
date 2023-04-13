@@ -1,38 +1,37 @@
 package gaedal
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/dal-go/dalgo/dal"
+
 	//"errors"
 	"sync"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"context"
-	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/datastore"
 )
 
-type TransferFixter struct {
+type TransferFixer struct {
 	changed     bool
 	Fixes       []string
-	transferKey *datastore.Key
-	transfer    *models.TransferEntity
+	transferKey *dal.Key
+	transfer    *models.TransferData
 }
 
-func NewTransferFixter(transferKey *datastore.Key, transfer *models.TransferEntity) TransferFixter {
-	return TransferFixter{transferKey: transferKey, transfer: transfer, Fixes: make([]string, 0)}
+func NewTransferFixer(transferKey *dal.Key, transfer *models.TransferData) TransferFixer {
+	return TransferFixer{transferKey: transferKey, transfer: transfer, Fixes: make([]string, 0)}
 }
 
-func (f *TransferFixter) needFixCounterpartyCounterpartyName() bool {
+func (f *TransferFixer) needFixCounterpartyCounterpartyName() bool {
 	return f.transfer.Creator().ContactName == ""
 }
 
-//func (f *TransferFixter) fixCounterpartyCounterpartyName(c context.Context) error {
+//func (f *TransferFixer) fixCounterpartyCounterpartyName(c context.Context) error {
 //	if f.needFixCounterpartyCounterpartyName() {
 //		log.Debugf(c, "%v: needFixCounterpartyCounterpartyName=true", f.transferKey.IntegerID())
 //		if f.transfer.Creator().CounterpartyID != 0 {
-//			var counterpartyCounterparty models.ContactEntity
+//			var counterpartyCounterparty models.ContactData
 //			err := gaedb.Get(c, NewCounterpartyKey(c, f.transfer.Creator().CounterpartyID), &counterpartyCounterparty)
 //			if err != nil {
 //				return err
@@ -65,26 +64,31 @@ func (f *TransferFixter) needFixCounterpartyCounterpartyName() bool {
 //	return nil
 //}
 
-func (f *TransferFixter) needFixes(c context.Context) bool {
+func (f *TransferFixer) needFixes(_ context.Context) bool {
 	return f.needFixCounterpartyCounterpartyName()
 	//log.Debugf(c, "%v: needFixes=%v", f.transferKey.IntegerID(), result)
 	//return result
 }
 
-func (f *TransferFixter) FixAllIfNeeded(c context.Context) (err error) {
+func (f *TransferFixer) FixAllIfNeeded(c context.Context) (err error) {
 	if f.needFixes(c) {
-		err = dtdal.DB.RunInTransaction(c, func(tc context.Context) error {
-			transfer, err := facade.Transfers.GetTransferByID(tc, f.transferKey.IntID())
+		var db dal.Database
+		if db, err = facade.GetDatabase(c); err != nil {
+			return
+		}
+
+		err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) error {
+			transfer, err := facade.Transfers.GetTransferByID(tc, tx, f.transferKey.ID.(int))
 			if err != nil {
 				return err
 			}
-			f.transfer = transfer.TransferEntity
+			f.transfer = transfer.Data
 			//if err = f.fixCounterpartyCounterpartyName(c); err != nil {
 			//	return err
 			//}
 			if f.changed {
 				//log.Debugf(c, "%v: changed", f.transferKey.IntegerID())
-				_, err = gaedb.Put(tc, f.transferKey, f.transfer)
+				err = tx.Set(tc, transfer.Record)
 				return err
 				//} else {
 				//	log.Debugf(c, "%v: not changed", f.transferKey.IntegerID())
@@ -96,17 +100,25 @@ func (f *TransferFixter) FixAllIfNeeded(c context.Context) (err error) {
 }
 
 func FixTransfers(c context.Context) (loadedCount int, fixedCount int, failedCount int, err error) {
-	query := datastore.NewQuery(models.TransferKind) //.Limit(50)
-	iterator := query.Run(c)
+	query := dal.From(models.TransferKind).SelectInto(func() dal.Record {
+		return dal.NewRecordWithoutKey(new(models.TransferData))
+	})
+	//query.Limit = 50
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+	var reader dal.Reader
+	reader, err = db.Select(c, query)
+	if err != nil {
+		return
+	}
 	wg := sync.WaitGroup{}
 	mutex := sync.Mutex{}
 	for {
-		var (
-			transfer    models.TransferEntity
-			transferKey *datastore.Key
-		)
-		if transferKey, err = iterator.Next(&transfer); err != nil {
-			if err == datastore.Done {
+		var record dal.Record
+		if record, err = reader.Next(); err != nil {
+			if err == dal.ErrNoMoreRecords {
 				err = nil
 				return
 			}
@@ -115,27 +127,28 @@ func FixTransfers(c context.Context) (loadedCount int, fixedCount int, failedCou
 		}
 		loadedCount += 1
 		wg.Add(1)
-		go func(transferKey *datastore.Key, transfer models.TransferEntity) {
+		go func(transferRecord dal.Record) {
 			defer wg.Done()
-			fixter := NewTransferFixter(transferKey, &transfer)
-			err2 := fixter.FixAllIfNeeded(c)
+			key := transferRecord.Key()
+			fixer := NewTransferFixer(key, transferRecord.Data().(*models.TransferData))
+			err2 := fixer.FixAllIfNeeded(c)
 			if err2 != nil {
-				log.Errorf(c, "Faield to fix transfer=%v: %v", transferKey.IntID(), err2.Error())
+				log.Errorf(c, "Failed to fix transfer=%v: %v", key.ID.(int), err2.Error())
 				mutex.Lock()
 				failedCount += 1
 				err = err2
 				mutex.Unlock()
 			} else {
-				if len(fixter.Fixes) > 0 {
+				if len(fixer.Fixes) > 0 {
 					mutex.Lock()
 					fixedCount += 1
 					mutex.Unlock()
-					log.Infof(c, "Fixed transfer %v: %v", transferKey.IntID(), fixter.Fixes)
+					log.Infof(c, "Fixed transfer %v: %v", key.ID.(int), fixer.Fixes)
 					//} else {
-					//	log.Debugf(c, "Transfer %v is OK: CounterpartyCounterpartyName: %v", transferKey.IntegerID(), fixter.transfer.Creator().ContactName)
+					//	log.Debugf(c, "Transfer %v is OK: CounterpartyCounterpartyName: %v", transferKey.IntegerID(), fixer.transfer.Creator().ContactName)
 				}
 			}
-		}(transferKey, transfer)
+		}(record)
 		if err != nil {
 			break
 		}

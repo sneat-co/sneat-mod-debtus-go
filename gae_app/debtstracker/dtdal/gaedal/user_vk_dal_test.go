@@ -8,5 +8,5 @@ import (
 
 func TestNewVkUserKey(t *testing.T) {
 	const vkUserID = 789
-	testDatastoreIntKey(t, vkUserID, NewUserVkKey(context.Background(), vkUserID))
+	testIntKey(t, vkUserID, NewUserVkKey(context.Background(), vkUserID))
 }

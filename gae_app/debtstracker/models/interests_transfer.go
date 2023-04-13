@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/crediterra/go-interest"
-	"github.com/sanity-io/litter"
 	"github.com/crediterra/money"
+	"github.com/sanity-io/litter"
 )
 
 type TransferInterest struct {
@@ -99,7 +99,7 @@ func (ti TransferInterest) ValidateTransferInterest() (err error) {
 // 	addInterestPropertiesToClean(transferPropertiesToClean)
 // }
 
-func (t *TransferEntity) GetOutstandingValue(periodEnds time.Time) (outstandingValue decimal.Decimal64p2) {
+func (t *TransferData) GetOutstandingValue(periodEnds time.Time) (outstandingValue decimal.Decimal64p2) {
 	if t.IsReturn && (t.AmountInCentsReturned == 0 || t.AmountInCents == t.AmountInCentsReturned) {
 		/*
 			TODO: What if transfer was a return > then outstanding value? We decided to allow it for returns without interest.
@@ -116,7 +116,7 @@ func (t *TransferEntity) GetOutstandingValue(periodEnds time.Time) (outstandingV
 	return
 }
 
-func (t *TransferEntity) GetOutstandingAmount(periodEnds time.Time) money.Amount {
+func (t *TransferData) GetOutstandingAmount(periodEnds time.Time) money.Amount {
 	return money.Amount{Currency: t.Currency, Value: t.GetOutstandingValue(periodEnds)}
 }
 
@@ -127,7 +127,7 @@ type TransferInterestCalculable interface {
 	GetInterestData() TransferInterest
 }
 
-func (t *TransferEntity) GetInterestValue(periodEnds time.Time) (interestValue decimal.Decimal64p2) {
+func (t *TransferData) GetInterestValue(periodEnds time.Time) (interestValue decimal.Decimal64p2) {
 	if t.InterestType == "" && t.InterestPeriod == 0 {
 		return 0
 	}
@@ -159,7 +159,7 @@ func calculateInterestValue(t TransferInterestCalculable, reportTime time.Time) 
 	return
 }
 
-func (t *TransferEntity) AgeInDays() int {
+func (t *TransferData) AgeInDays() int {
 	return interest.AgeInDays(time.Now(), t.DtCreated)
 }
 

@@ -22,11 +22,11 @@ func NewTransferDalMock(mockDB *mockdb.MockDB) *TransferDalMock {
 	}
 }
 
-func (mock *TransferDalMock) DelayUpdateTransfersOnReturn(c context.Context, returnTransferID int64, transferReturnUpdates []dtdal.TransferReturnUpdate) (err error) {
+func (mock *TransferDalMock) DelayUpdateTransfersOnReturn(c context.Context, returntransferID int, transferReturnUpdates []dtdal.TransferReturnUpdate) (err error) {
 	panic("not implemented yet")
 }
 
-func (mock *TransferDalMock) GetTransfersByID(c context.Context, transferIDs []int64) ([]models.Transfer, error) {
+func (mock *TransferDalMock) GetTransfersByID(c context.Context, transferIDs []int) ([]models.Transfer, error) {
 	panic("not implemented yet")
 }
 
@@ -34,7 +34,7 @@ func (mock *TransferDalMock) LoadTransfersByUserID(c context.Context, userID int
 	panic(NOT_IMPLEMENTED_YET)
 }
 
-func (mock *TransferDalMock) LoadTransferIDsByContactID(c context.Context, contactID int64, limit int, startCursor string) (transferIDs []int64, endCursor string, err error) {
+func (mock *TransferDalMock) LoadTransferIDsByContactID(c context.Context, contactID int64, limit int, startCursor string) (transferIDs []int, endCursor string, err error) {
 	panic(NOT_IMPLEMENTED_YET)
 }
 
@@ -65,7 +65,7 @@ func (mock *TransferDalMock) LoadLatestTransfers(c context.Context, offset, limi
 	panic(NOT_IMPLEMENTED_YET)
 }
 
-func (mock *TransferDalMock) DelayUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCode string, transferID, creatorTgChatID, creatorTgReceiptMessageID int64) error {
+func (mock *TransferDalMock) DelayUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCode string, transferID int, creatorTgChatID, creatorTgReceiptMessageID int64) error {
 	panic(NOT_IMPLEMENTED_YET)
 }
 

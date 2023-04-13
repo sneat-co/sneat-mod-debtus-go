@@ -8,7 +8,7 @@ import (
 )
 
 func CreateConfirmationEmailAndQueueForSending(c context.Context, user models.AppUser, userEmail models.UserEmail) error {
-	emailEntity := &models.EmailEntity{
+	emailEntity := &models.EmailData{
 		From:    "Alex @ DebtsTracker.io <alex@debtstracker.io>",
 		To:      userEmail.ID,
 		Subject: "Please confirm your account at DebtsTracker.io",

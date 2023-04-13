@@ -37,7 +37,7 @@ func newReceiptDbChanges() *receiptDbChanges {
 }
 
 func workaroundReinsertContact(c context.Context, receipt models.Receipt, invitedContact models.Contact, changes *receiptDbChanges) (err error) {
-	if _, err = GetContactByID(c, invitedContact.ID); err != nil {
+	if _, err = GetContactByID(c, nil, invitedContact.ID); err != nil {
 		if dal.IsNotFound(err) {
 			log.Warningf(c, "workaroundReinsertContact(invitedContact.ID=%v) => %v", invitedContact.ID, err.Error())
 			err = nil
@@ -191,7 +191,7 @@ func AcknowledgeReceipt(
 	log.Infof(c, "Receipt successfully acknowledged")
 
 	{ // verify invitedContact
-		if invitedContact, err = GetContactByID(c, invitedContact.ID); err != nil {
+		if invitedContact, err = GetContactByID(c, nil, invitedContact.ID); err != nil {
 			err = fmt.Errorf("failed to load invited contact outside of transaction: %w", err)
 			if dal.IsNotFound(err) {
 				return
@@ -210,7 +210,7 @@ func MarkReceiptAsViewed(c context.Context, receiptID int, userID int64) (receip
 		return
 	}
 	err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) error {
-		receipt, err = dtdal.Receipt.GetReceiptByID(tc, receiptID)
+		receipt, err = dtdal.Receipt.GetReceiptByID(tc, tx, receiptID)
 		if err != nil {
 			return err
 		}
@@ -221,7 +221,7 @@ func MarkReceiptAsViewed(c context.Context, receiptID int, userID int64) (receip
 			changed = true
 		}
 		if changed {
-			if err = dtdal.Receipt.UpdateReceipt(c, receipt); err != nil {
+			if err = dtdal.Receipt.UpdateReceipt(c, tx, receipt); err != nil {
 				return err
 			}
 		}
@@ -254,7 +254,7 @@ func getReceiptTransferAndUsers(c context.Context, tx dal.ReadSession, receiptID
 ) {
 	log.Debugf(c, "getReceiptTransferAndUsers(receiptID=%v, userID=%v)", receiptID, userID)
 
-	if receipt, err = dtdal.Receipt.GetReceiptByID(c, receiptID); err != nil {
+	if receipt, err = dtdal.Receipt.GetReceiptByID(c, tx, receiptID); err != nil {
 		return
 	}
 

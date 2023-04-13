@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/strongo/db"
 	"net/url"
 	"strings"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
@@ -121,7 +120,7 @@ func setPreferredLanguageAction(whc botsfw.WebhookContext, code5, mode string, b
 		log.Errorf(c, ": %v", err)
 		return m, fmt.Errorf("%w: failed to load userEntity", err)
 	}
-	userEntity, ok := appUser.(*models.AppUserEntity)
+	userEntity, ok := appUser.(*models.AppUserData)
 	if !ok {
 		return m, fmt.Errorf("expected *models.AppUser, got: %T", appUser)
 	}
@@ -139,12 +138,16 @@ func setPreferredLanguageAction(whc botsfw.WebhookContext, code5, mode string, b
 			if locale.Code5 == code5 {
 				whc.SetLocale(locale.Code5)
 
-				if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+				var db dal.Database
+				if db, err = facade.GetDatabase(c); err != nil {
+					return
+				}
+				if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 					var user models.AppUser
-					if user, err = facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+					if user, err = facade.User.GetUserByID(c, tx, whc.AppUserIntID()); err != nil {
 						return
 					}
-					if err = user.SetPreferredLocale(locale.Code5); err != nil {
+					if err = user.Data.SetPreferredLocale(locale.Code5); err != nil {
 						err = fmt.Errorf("%w: failed to set preferred locale for user", err)
 					}
 					chatEntity.SetPreferredLanguage(locale.Code5)
@@ -152,8 +155,8 @@ func setPreferredLanguageAction(whc botsfw.WebhookContext, code5, mode string, b
 					if err = whc.SaveBotChat(c, whc.GetBotCode(), whc.MustBotChatID(), chatEntity); err != nil {
 						return
 					}
-					return facade.User.SaveUser(c, user)
-				}, db.CrossGroupTransaction); err != nil {
+					return facade.User.SaveUser(c, tx, user)
+				}); err != nil {
 					return
 				}
 				localeChanged = true

@@ -46,7 +46,7 @@ func TestTransfer_LoadSaver(t *testing.T) {
 		t.Errorf("len(saved):%v != 1", len(saved))
 	}
 
-	loadedTransfer := new(TransferEntity)
+	loadedTransfer := new(TransferData)
 	if err = loadedTransfer.Load(properties); err != nil {
 		t.Fatal(err)
 	}

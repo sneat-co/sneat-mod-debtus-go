@@ -17,7 +17,7 @@ const (
 )
 
 type SendReceipt struct {
-	TransferID int64
+	transferID int
 	By         string
 }
 
@@ -25,6 +25,6 @@ func SendReceiptCallbackData(transferID int, by string) string {
 	return fmt.Sprintf("%v?by=%v&transfer=%v", SEND_RECEIPT_CALLBACK_PATH, by, common.EncodeID(int64(transferID)))
 }
 
-func SendReceiptUrl(transferID int64, by string) string {
-	return fmt.Sprintf("https://debtstracker.io/app/send-receipt?by=%v&transfer=%v", by, common.EncodeID(transferID))
+func SendReceiptUrl(transferID int, by string) string {
+	return fmt.Sprintf("https://debtstracker.io/app/send-receipt?by=%v&transfer=%v", by, common.EncodeIntID(transferID))
 }

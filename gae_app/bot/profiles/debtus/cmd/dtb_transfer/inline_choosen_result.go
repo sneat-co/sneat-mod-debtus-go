@@ -26,12 +26,12 @@ func showReceiptAnnouncement(whc botsfw.WebhookContext, receiptID int, creatorNa
 
 	c := whc.Context()
 
-	receipt, err := dtdal.Receipt.GetReceiptByID(c, receiptID)
+	receipt, err := dtdal.Receipt.GetReceiptByID(c, nil, receiptID)
 	if err != nil {
 		return m, err
 	}
 	if creatorName == "" {
-		user, err := facade.User.GetUserByID(c, tx, receipt.Data.CreatorUserID)
+		user, err := facade.User.GetUserByID(c, nil, receipt.Data.CreatorUserID)
 		if err != nil {
 			return m, err
 		}

@@ -13,7 +13,7 @@ type TransferSourceBot struct {
 	chatID   string
 }
 
-func (s TransferSourceBot) PopulateTransfer(t *models.TransferEntity) {
+func (s TransferSourceBot) PopulateTransfer(t *models.TransferData) {
 	t.CreatedOnPlatform = s.platform
 	t.CreatedOnID = s.botID
 	if s.platform == telegram.PlatformID {

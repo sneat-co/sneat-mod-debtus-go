@@ -11,13 +11,13 @@ import (
 
 type contactsAsyncJob struct {
 	asyncMapper
-	entity *models.ContactEntity
+	entity *models.ContactData
 }
 
 var _ mapper.JobEntity = (*contactsAsyncJob)(nil)
 
 func (m *contactsAsyncJob) Make() interface{} {
-	m.entity = new(models.ContactEntity)
+	m.entity = new(models.ContactData)
 	return m.entity
 }
 

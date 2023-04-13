@@ -32,8 +32,8 @@ import (
 var RemindAgainCallbackCommand = botsfw.NewCallbackCommand(dtb_common.CALLBACK_REMIND_AGAIN,
 	func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		q := callbackUrl.Query()
-		var reminderID int64
-		if reminderID, err = common.DecodeID(q.Get("id")); err != nil {
+		var reminderID int
+		if reminderID, err = common.DecodeIntID(q.Get("id")); err != nil {
 			return m, err
 		} else if reminderID == 0 {
 			return m, errors.New("reminderID == 0")
@@ -61,7 +61,7 @@ var RemindAgainCallbackCommand = botsfw.NewCallbackCommand(dtb_common.CALLBACK_R
 	},
 )
 
-func rescheduleReminder(whc botsfw.WebhookContext, reminderID int64, remindInDuration time.Duration) (m botsfw.MessageFromBot, err error) {
+func rescheduleReminder(whc botsfw.WebhookContext, reminderID int, remindInDuration time.Duration) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
 	var oldReminder, newReminder models.Reminder
@@ -80,7 +80,7 @@ func rescheduleReminder(whc botsfw.WebhookContext, reminderID int64, remindInDur
 		return m, err
 	}
 	var transfer models.Transfer
-	if transfer, err = facade.Transfers.GetTransferByID(c, tx, oldReminder.TransferID); err != nil {
+	if transfer, err = facade.Transfers.GetTransferByID(c, nil, oldReminder.TransferID); err != nil {
 		return m, fmt.Errorf("failed to get transferEntity by id: %w", err)
 	}
 	var messageText string
@@ -105,7 +105,7 @@ func rescheduleReminder(whc botsfw.WebhookContext, reminderID int64, remindInDur
 				{
 					Text: whc.Translate(trans.COMMAND_TEXT_REMINDER_ENABLE),
 					CallbackData: fmt.Sprintf("%v?reminder=%v&transfer=%v", commandCodeEnableReminderAgain,
-						common.EncodeID(reminderID), common.EncodeID(transfer.ID),
+						common.EncodeIntID(reminderID), common.EncodeIntID(transfer.ID),
 					),
 				},
 			},
@@ -139,7 +139,7 @@ func rescheduleReminder(whc botsfw.WebhookContext, reminderID int64, remindInDur
 //	return err
 //}
 //
-//var delayedAskForFeedback = delay.Func(ASK_FOR_FEEDBACK_TASK,
+//var delayedAskForFeedback = delay.MustRegister(ASK_FOR_FEEDBACK_TASK,
 //	func(c context.Context, botID string, chatID, userID int64) error {
 //		log.Debugf(c, "delayedAskForFeedback(botID=%v, chatID=%d, userID=%d)", botID, chatID, userID)
 //		if botSettings, ok := telegram.Bots(gaestandard.GetEnvironment(c), nil).ByCode[botID]; !ok {
@@ -170,7 +170,7 @@ func rescheduleReminder(whc botsfw.WebhookContext, reminderID int64, remindInDur
 //		return nil
 //	})
 
-//func disableReminders(whc botsfw.WebhookContext, transferID int64) (m botsfw.MessageFromBot, err error) {
+//func disableReminders(whc botsfw.WebhookContext, transferID int) (m botsfw.MessageFromBot, err error) {
 //	c := whc.Context()
 //	transferKey, transfer, err := facade.Transfers.GetTransferByID(c, transferID)
 //	userID := whc.AppUserIntID()

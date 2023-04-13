@@ -8,6 +8,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/sms"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
 
 	//"bitbucket.org/asterus/debtstracker-server/gae_app/invites"
@@ -41,99 +42,104 @@ var AskPhoneNumberForReceiptCommand = botsfw.Command{
 	Code: ASK_PHONE_NUMBER_FOR_RECEIPT_COMMAND,
 	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
-		log.Debugf(c, "AskPhoneNumberForReceiptCommand.Action()")
+		var db dal.Database
+		if db, err = facade.GetDatabase(c); err != nil {
+			return m, err
+		}
+		return m, db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+			log.Debugf(c, "AskPhoneNumberForReceiptCommand.Action()")
 
-		input := whc.Input()
+			input := whc.Input()
 
-		var (
-			mt             string
-			phoneNumberStr string
-			phoneNumber    int64
-		)
+			var (
+				mt             string
+				phoneNumberStr string
+				phoneNumber    int64
+			)
 
-		contact, isContactMessage := input.(botsfw.WebhookContactMessage)
+			contact, isContactMessage := input.(botsfw.WebhookContactMessage)
 
-		if isContactMessage {
-			if contact == nil {
-				m = whc.NewMessageByCode(trans.MESSAGE_TEXT_INVALID_PHONE_NUMBER)
-				return m, nil
-			}
-			user, err := facade.User.GetUserByID(c, tx, whc.AppUserIntID())
-			if err != nil {
-				return m, err
-			}
-			if user.Data.FirstName == contact.FirstName() && user.Data.LastName == contact.LastName() {
-				phoneNumberStr = cleanPhoneNumber(contact.PhoneNumber())
-				if phoneNumber, err = strconv.ParseInt(phoneNumberStr, 10, 64); err != nil {
-					log.Warningf(c, "Failed to parse contact's phone number: [%v]", phoneNumberStr)
-					err = nil
-				} else if user.Data.PhoneNumber == 0 {
-					err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
-						user, err := facade.User.GetUserByID(c, whc.AppUserIntID())
+			if isContactMessage {
+				if contact == nil {
+					m = whc.NewMessageByCode(trans.MESSAGE_TEXT_INVALID_PHONE_NUMBER)
+					return nil
+				}
+				user, err := facade.User.GetUserByID(c, tx, whc.AppUserIntID())
+				if err != nil {
+					return err
+				}
+				if user.Data.FirstName == contact.FirstName() && user.Data.LastName == contact.LastName() {
+					phoneNumberStr = cleanPhoneNumber(contact.PhoneNumber())
+					if phoneNumber, err = strconv.ParseInt(phoneNumberStr, 10, 64); err != nil {
+						log.Warningf(c, "Failed to parse contact's phone number: [%v]", phoneNumberStr)
+						err = nil
+					} else if user.Data.PhoneNumber == 0 {
+						user, err := facade.User.GetUserByID(c, tx, whc.AppUserIntID())
 						if err != nil {
 							return err
 						}
 						if user.Data.PhoneNumber == 0 {
 							user.Data.PhoneNumber = phoneNumber
 							user.Data.PhoneNumberConfirmed = true
-							return facade.User.SaveUser(c, tx, user)
+							if err = facade.User.SaveUser(c, tx, user); err != nil {
+								log.Errorf(c, fmt.Errorf("failed to update user with phone number: %w", err).Error())
+								return err
+							}
+
 						}
-						return nil
-					}, nil)
-					if err != nil {
-						log.Errorf(c, fmt.Errorf("failed to update user with phone number: %w", err).Error())
-						err = nil
 					}
+					m = whc.NewMessage(trans.MESSAGE_TEXT_YOU_CAN_SEND_RECEIPT_TO_YOURSELF_BY_SMS)
+					return nil
 				}
-
-				return whc.NewMessage(trans.MESSAGE_TEXT_YOU_CAN_SEND_RECEIPT_TO_YOURSELF_BY_SMS), nil
+				mt = contact.PhoneNumber()
+			} else {
+				mt = whc.Input().(botsfw.WebhookTextMessage).Text()
 			}
-			mt = contact.PhoneNumber()
-		} else {
-			mt = whc.Input().(botsfw.WebhookTextMessage).Text()
-		}
 
-		if twilioTestNumber, ok := common.TwilioTestNumbers[mt]; ok {
-			log.Debugf(c, "Using predefined test number [%v]: %v", mt, twilioTestNumber)
-			phoneNumberStr = twilioTestNumber
-		} else {
-			phoneNumberStr = cleanPhoneNumber(mt)
-		}
+			if twilioTestNumber, ok := common.TwilioTestNumbers[mt]; ok {
+				log.Debugf(c, "Using predefined test number [%v]: %v", mt, twilioTestNumber)
+				phoneNumberStr = twilioTestNumber
+			} else {
+				phoneNumberStr = cleanPhoneNumber(mt)
+			}
 
-		if phoneNumber, err = strconv.ParseInt(phoneNumberStr, 10, 64); err != nil {
-			m = whc.NewMessageByCode(trans.MESSAGE_TEXT_INVALID_PHONE_NUMBER)
-			return m, nil
-		}
+			if phoneNumber, err = strconv.ParseInt(phoneNumberStr, 10, 64); err != nil {
+				m = whc.NewMessageByCode(trans.MESSAGE_TEXT_INVALID_PHONE_NUMBER)
+				return nil
+			}
 
-		chatEntity := whc.ChatEntity()
+			chatEntity := whc.ChatEntity()
 
-		awaitingUrl, err := url.Parse(chatEntity.GetAwaitingReplyTo())
-		if err != nil {
-			return m, fmt.Errorf("failed to parse chat state as URL: %w", err)
-		}
-
-		if transferID, err := strconv.ParseInt(awaitingUrl.Query().Get(WIZARD_PARAM_TRANSFER), 10, 64); err != nil {
-			return m, fmt.Errorf("failed to parse transferID=%v: %w", awaitingUrl, err)
-		} else {
-			transfer, err := facade.Transfers.GetTransferByID(c, tx, transferID)
+			awaitingUrl, err := url.Parse(chatEntity.GetAwaitingReplyTo())
 			if err != nil {
-				return m, fmt.Errorf("failed to get transfer by ID: %w", err)
+				return fmt.Errorf("failed to parse chat state as URL: %w", err)
 			}
-			counterparty, err := facade.GetContactByID(c, transfer.Data.Counterparty().ContactID)
-			if err != nil {
-				return m, err
-			}
-			phoneContact := models.PhoneContact{PhoneNumber: phoneNumber, PhoneNumberConfirmed: false}
 
-			return sendReceiptBySms(whc, phoneContact, transfer, counterparty)
-		}
+			if transferID, err := strconv.Atoi(awaitingUrl.Query().Get(WIZARD_PARAM_TRANSFER)); err != nil {
+				return fmt.Errorf("failed to parse transferID=%v: %w", awaitingUrl, err)
+			} else {
+				transfer, err := facade.Transfers.GetTransferByID(c, tx, transferID)
+				if err != nil {
+					return fmt.Errorf("failed to get transfer by ID: %w", err)
+				}
+				counterparty, err := facade.GetContactByID(c, tx, transfer.Data.Counterparty().ContactID)
+				if err != nil {
+					return err
+				}
+				phoneContact := models.PhoneContact{PhoneNumber: phoneNumber, PhoneNumberConfirmed: false}
+
+				m, err = sendReceiptBySms(whc, tx, phoneContact, transfer, counterparty)
+				return err
+			}
+		})
+
 	},
 }
 
 const SMS_STATUS_MESSAGE_ID_PARAM_NAME = "SmsStatusMessageId"
 const SMS_STATUS_MESSAGE_UPDATES_COUNT_PARAM_NAME = "SmsStatusUpdatesCount"
 
-func sendReceiptBySms(whc botsfw.WebhookContext, phoneContact models.PhoneContact, transfer models.Transfer, counterparty models.Contact) (m botsfw.MessageFromBot, err error) {
+func sendReceiptBySms(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, phoneContact models.PhoneContact, transfer models.Transfer, counterparty models.Contact) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
 	if transfer.Data == nil {
@@ -144,14 +150,14 @@ func sendReceiptBySms(whc botsfw.WebhookContext, phoneContact models.PhoneContac
 
 	whc.ChatEntity() //TODO: Workaround to make whc.GetAppUser() working
 	appUser, err := whc.GetAppUser()
-	user := appUser.(*models.AppUserEntity)
+	user := appUser.(*models.AppUserData)
 	if err != nil {
 		return
 	}
 
 	var (
 		smsText   string
-		receiptID int64
+		receiptID int
 		//inviteCode string
 	)
 
@@ -159,7 +165,7 @@ func sendReceiptBySms(whc botsfw.WebhookContext, phoneContact models.PhoneContac
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
 	})
-	if receiptID, err = dtdal.Receipt.CreateReceipt(c, &receipt); err != nil {
+	if receiptID, err = dtdal.Receipt.CreateReceipt(c, receipt); err != nil {
 		return m, err
 	}
 
@@ -250,7 +256,7 @@ func sendReceiptBySms(whc botsfw.WebhookContext, phoneContact models.PhoneContac
 		return m, err
 	} else if len(lastTwilioSmsese) > 0 {
 		smsRecord := lastTwilioSmsese[0]
-		if smsRecord.To == phoneContact.PhoneNumberAsString() && (smsRecord.Status == "delivered" || smsRecord.Status == "queued") {
+		if smsRecord.Data.To == phoneContact.PhoneNumberAsString() && (smsRecord.Data.Status == "delivered" || smsRecord.Data.Status == "queued") {
 			// TODO: Do smarter check for limit
 			m.Text = emoji.ERROR_ICON + " " + fmt.Sprintf("Exceeded limit for sending SMS to same number: %v", phoneContact.PhoneNumberAsString())
 			log.Warningf(c, m.Text)
@@ -289,17 +295,15 @@ func sendReceiptBySms(whc botsfw.WebhookContext, phoneContact models.PhoneContac
 			return
 		}
 		if counterparty.Data.PhoneNumber == phoneContact.PhoneNumber {
-			dtdal.DB.RunInTransaction(whc.Context(), func(tc context.Context) error {
-				counterparty, err := facade.GetContactByID(tc, transfer.Data.Counterparty().ContactID)
-				if err != nil {
-					return err
-				}
-				if counterparty.Data.PhoneNumber != phoneContact.PhoneNumber {
-					counterparty.Data.PhoneNumber = phoneContact.PhoneNumber
-					err = facade.SaveContact(c, counterparty)
-				}
-				return err
-			}, nil)
+			var counterparty models.Contact
+			counterparty, err = facade.GetContactByID(c, tx, transfer.Data.Counterparty().ContactID)
+			if err != nil {
+				return
+			}
+			if counterparty.Data.PhoneNumber != phoneContact.PhoneNumber {
+				counterparty.Data.PhoneNumber = phoneContact.PhoneNumber
+				err = facade.SaveContact(c, counterparty)
+			}
 		}
 		if m, err = whc.NewEditMessage(fmt.Sprintf("<b>Exception</b>\n%v\n\n<b>SMS text</b>\n%v", twilioException, smsText), botsfw.MessageFormatHTML); err != nil {
 			return

@@ -3,7 +3,10 @@ package dtb_transfer
 import (
 	"bytes"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"strings"
 	"time"
 
@@ -77,7 +80,7 @@ var ParseTransferCommand = botsfw.Command{
 
 		value, _ := decimal.ParseDecimal64p2(valueS)
 
-		isReturn := false
+		const isReturn = false
 
 		creatorInfo := models.TransferCounterpartyInfo{
 			UserID:      whc.AppUserIntID(),
@@ -89,10 +92,7 @@ var ParseTransferCommand = botsfw.Command{
 
 		var botUserEntity botsfw.BotAppUser
 		botUserEntity, err = whc.GetAppUser()
-		creatorUser := models.AppUser{
-			IntegerID:     db.NewIntID(whc.AppUserIntID()),
-			AppUserEntity: botUserEntity.(*models.AppUserEntity),
-		}
+		creatorUser := models.NewAppUser(whc.AppUserIntID(), botUserEntity.(*models.AppUserData))
 
 		newTransfer := facade.NewTransferInput(whc.Environment(),
 			GetTransferSource(whc),
@@ -135,7 +135,7 @@ var ParseTransferCommand = botsfw.Command{
 		case models.TransferDirectionCounterparty2User:
 			counterparty = output.From.Contact
 		}
-		counterpartyBalance := counterparty.Balance()
+		counterpartyBalance := counterparty.Data.Balance()
 		buffer.WriteString(fmt.Sprintf(".\nTotal balance: %v", counterpartyBalance))
 		//switch {
 		//case counterparty.BalanceJson > 0: buffer.WriteString(fmt.Sprintf(".\nTotal balance: %v ows to you %v %v", contact, counterparty.BalanceJson, currency))

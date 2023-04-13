@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/crediterra/money"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"strconv"
 	"time"
 
@@ -25,6 +26,13 @@ func NewBalanceMessageBuilder(translator strongo.SingleLocaleTranslator) Balance
 	return BalanceMessageBuilder{translator: translator}
 }
 
+type simpleTranslator struct {
+	t strongo.SingleLocaleTranslator
+}
+
+func (t simpleTranslator) Translate(key string) string {
+	return t.t.Translate(key)
+}
 func (m BalanceMessageBuilder) ByContact(c context.Context, linker common.Linker, userContactJsons []models.UserContactJson) string {
 	var buffer bytes.Buffer
 	translator := m.translator
@@ -35,7 +43,7 @@ func (m BalanceMessageBuilder) ByContact(c context.Context, linker common.Linker
 
 	writeBalanceRow := func(userContactJson models.UserContactJson, b money.Balance, msg string) {
 		if len(b) > 0 {
-			amounts := b.CommaSeparatedUnsignedWithSymbols(translator)
+			amounts := b.CommaSeparatedUnsignedWithSymbols(simpleTranslator{t: translator})
 			msg = m.translator.Translate(msg)
 			name := getContactName(userContactJson)
 			buffer.WriteString(fmt.Sprintf(msg, name, amounts) + "\n")
@@ -91,7 +99,7 @@ func (m BalanceMessageBuilder) ByCurrency(isTotal bool, balance money.Balance) s
 	debtToUser := balance.OnlyPositive()
 	commaSeparatedAmounts := func(prefix string, owed money.Balance) {
 		if !owed.IsZero() {
-			buffer.WriteString(fmt.Sprintf(translator.Translate(prefix), owed.CommaSeparatedUnsignedWithSymbols(translator)) + "\n")
+			buffer.WriteString(fmt.Sprintf(translator.Translate(prefix), owed.CommaSeparatedUnsignedWithSymbols(simpleTranslator{t: translator})) + "\n")
 		}
 	}
 	commaSeparatedAmounts(trans.MESSAGE_TEXT_BALANCE_CURRENCY_ROW_DEBT_BY_USER, debtByUser)

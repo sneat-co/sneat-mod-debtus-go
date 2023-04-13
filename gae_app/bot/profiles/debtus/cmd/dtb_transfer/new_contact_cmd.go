@@ -101,7 +101,7 @@ func NewCounterpartyCommand(nextCommand botsfw.Command) botsfw.Command {
 
 				if !existingContact {
 					var user models.AppUser
-					if user, err = facade.User.GetUserByID(c, tx, whc.AppUserIntID()); err != nil {
+					if user, err = facade.User.GetUserByID(c, nil, whc.AppUserIntID()); err != nil {
 						return
 					}
 
@@ -116,7 +116,7 @@ func NewCounterpartyCommand(nextCommand botsfw.Command) botsfw.Command {
 				}
 
 				if !existingContact {
-					if contact, user, err = facade.CreateContact(c, tx, whc.AppUserIntID(), contactDetails); err != nil {
+					if contact, user, err = facade.CreateContact(c, nil, whc.AppUserIntID(), contactDetails); err != nil {
 						return m, err
 					}
 					ga := whc.GA()

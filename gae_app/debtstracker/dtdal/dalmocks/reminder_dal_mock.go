@@ -15,12 +15,12 @@ func NewReminderDalMock() *ReminderDalMock {
 	return &ReminderDalMock{}
 }
 
-func (mock *ReminderDalMock) DelayDiscardReminders(c context.Context, transferIDs []int64, returnTransferID int64) error {
+func (mock *ReminderDalMock) DelayDiscardReminders(c context.Context, transferIDs []int, returntransferID int) error {
 	log.Warningf(c, "DelayDiscardReminders() is not implemented in mock")
 	return nil
 }
 
-func (mock *ReminderDalMock) DelayCreateReminderForTransferCounterparty(c context.Context, transferID int64) error {
+func (mock *ReminderDalMock) DelayCreateReminderForTransferCounterparty(c context.Context, transferID int) error {
 	panic(NOT_IMPLEMENTED_YET)
 }
 
@@ -36,11 +36,11 @@ func (mock *ReminderDalMock) SaveReminder(c context.Context, reminder models.Rem
 	panic(NOT_IMPLEMENTED_YET)
 }
 
-func (mock *ReminderDalMock) RescheduleReminder(c context.Context, reminderID int64, remindInDuration time.Duration) (oldReminder, newReminder models.Reminder, err error) {
+func (mock *ReminderDalMock) RescheduleReminder(c context.Context, reminderID int, remindInDuration time.Duration) (oldReminder, newReminder models.Reminder, err error) {
 	panic(NOT_IMPLEMENTED_YET)
 }
 
-func (mock *ReminderDalMock) SetReminderStatus(c context.Context, reminderID, returnTransferID int64, status string, when time.Time) (reminder models.Reminder, err error) {
+func (mock *ReminderDalMock) SetReminderStatus(c context.Context, reminderID, returntransferID int, status string, when time.Time) (reminder models.Reminder, err error) {
 	panic(NOT_IMPLEMENTED_YET)
 }
 
@@ -56,10 +56,10 @@ func (mock *ReminderDalMock) SetReminderIsSentInTransaction(c context.Context, r
 	panic(NOT_IMPLEMENTED_YET)
 }
 
-func (mock *ReminderDalMock) GetActiveReminderIDsByTransferID(c context.Context, transferID int64) ([]int64, error) {
+func (mock *ReminderDalMock) GetActiveReminderIDsByTransferID(c context.Context, transferID int) ([]int64, error) {
 	panic(NOT_IMPLEMENTED_YET)
 }
 
-func (mock *ReminderDalMock) GetSentReminderIDsByTransferID(c context.Context, transferID int64) ([]int64, error) {
+func (mock *ReminderDalMock) GetSentReminderIDsByTransferID(c context.Context, transferID int) ([]int64, error) {
 	panic(NOT_IMPLEMENTED_YET)
 }

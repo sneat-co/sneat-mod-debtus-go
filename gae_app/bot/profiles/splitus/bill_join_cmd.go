@@ -75,7 +75,7 @@ func joinBillAction(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, bill
 	if appUser, err = whc.GetAppUser(); err != nil {
 		return
 	}
-	user := appUser.(*models.AppUserEntity)
+	user := appUser.(*models.AppUserData)
 
 	isAlreadyMember := func(members []models.BillMemberJson) (member models.BillMemberJson, isMember bool) {
 		for _, member = range bill.Data.GetBillMembers() {

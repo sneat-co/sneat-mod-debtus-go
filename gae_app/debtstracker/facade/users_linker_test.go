@@ -82,7 +82,7 @@ func TestUsersLinker_LinkUsersWithinTransaction(t *testing.T) {
 	}
 
 	if invitedContact.ContactEntity == nil {
-		t.Error("invitedContact.ContactEntity == nil")
+		t.Error("invitedContact.ContactData == nil")
 		return
 	}
 

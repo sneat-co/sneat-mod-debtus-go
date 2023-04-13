@@ -2,13 +2,13 @@ package debtus
 
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_admin"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_fbm"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_invite"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_retention"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_settings"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 )
 
 var botParams = shared_all.BotParams{
@@ -104,11 +104,11 @@ var callbackCommands = []botsfw.Command{
 	dtb_settings.SettingsCommand,
 	dtb_settings.ContactsListCommand,
 	//
-	dtb_fbm.FbmGetStartedCommand, // TODO: Move command to other package?
-	dtb_fbm.FbmMainMenuCommand,
-	dtb_fbm.FbmDebtsCommand,
-	dtb_fbm.FbmBillsCommand,
-	dtb_fbm.FbmSettingsCommand,
+	//dtb_fbm.FbmGetStartedCommand, // TODO: Move command to other package?
+	//dtb_fbm.FbmMainMenuCommand,
+	//dtb_fbm.FbmDebtsCommand,
+	//dtb_fbm.FbmBillsCommand,
+	//dtb_fbm.FbmSettingsCommand,
 	//
 	dtb_invite.CreateMassInviteCommand,
 	dtb_invite.AskInviteAddressCallbackCommand,
@@ -137,18 +137,18 @@ var callbackCommands = []botsfw.Command{
 }
 
 var Router = botsfw.NewWebhookRouter(
-	map[bots.WebhookInputType][]botsfw.Command{
-		bots.WebhookInputText:          textAndContactCommands,
-		bots.WebhookInputContact:       textAndContactCommands,
-		bots.WebhookInputCallbackQuery: callbackCommands,
+	map[botsfw.WebhookInputType][]botsfw.Command{
+		botsfw.WebhookInputText:          textAndContactCommands,
+		botsfw.WebhookInputContact:       textAndContactCommands,
+		botsfw.WebhookInputCallbackQuery: callbackCommands,
 		//
-		bots.WebhookInputInlineQuery: {
+		botsfw.WebhookInputInlineQuery: {
 			InlineQueryCommand,
 		},
-		bots.WebhookInputChosenInlineResult: {
+		botsfw.WebhookInputChosenInlineResult: {
 			dtb_invite.ChosenInlineResultCommand,
 		},
-		bots.WebhookInputNewChatMembers: {
+		botsfw.WebhookInputNewChatMembers: {
 			newChatMembersCommand,
 		},
 	},

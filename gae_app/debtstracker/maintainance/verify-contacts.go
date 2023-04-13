@@ -1,12 +1,12 @@
 package maintainance
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"fmt"
 	"github.com/captaincodeman/datastore-mapper"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/nds"
 	"google.golang.org/appengine/v2/datastore"
 	"google.golang.org/appengine/v2/log"
@@ -22,9 +22,9 @@ func (m *verifyContacts) Next(c context.Context, counters mapper.Counters, key *
 }
 
 func (m *verifyContacts) processContact(c context.Context, counters *asyncCounters, contact models.Contact) (err error) {
-	if _, err = facade.User.GetUserByID(c, contact.UserID); dal.IsNotFound(err) {
+	if _, err = facade.User.GetUserByID(c, nil, contact.Data.UserID); dal.IsNotFound(err) {
 		counters.Increment("wrong_UserID", 1)
-		log.Warningf(c, "Contact %d reference unknown user %d", contact.ID, contact.UserID)
+		log.Warningf(c, "Contact %d reference unknown user %d", contact.ID, contact.Data.UserID)
 	} else if err != nil {
 		log.Errorf(c, err.Error())
 		return
@@ -41,22 +41,22 @@ func (m *verifyContacts) processContact(c context.Context, counters *asyncCounte
 }
 
 func (m *verifyContacts) verifyLinking(c context.Context, counters *asyncCounters, contact models.Contact) (err error) {
-	if contact.CounterpartyCounterpartyID != 0 {
+	if contact.Data.CounterpartyCounterpartyID != 0 {
 		var counterpartyContact models.Contact
-		if counterpartyContact, err = facade.GetContactByID(c, contact.CounterpartyCounterpartyID); err != nil {
+		if counterpartyContact, err = facade.GetContactByID(c, nil, contact.Data.CounterpartyCounterpartyID); err != nil {
 			log.Errorf(c, err.Error())
 			return
 		}
-		if counterpartyContact.CounterpartyCounterpartyID == 0 || counterpartyContact.CounterpartyUserID == 0 {
+		if counterpartyContact.Data.CounterpartyCounterpartyID == 0 || counterpartyContact.Data.CounterpartyUserID == 0 {
 			if err = m.linkContacts(c, counters, contact); err != nil {
 				return
 			}
-		} else if counterpartyContact.CounterpartyCounterpartyID == contact.ID && counterpartyContact.CounterpartyUserID == contact.UserID {
+		} else if counterpartyContact.Data.CounterpartyCounterpartyID == contact.ID && counterpartyContact.Data.CounterpartyUserID == contact.Data.UserID {
 			// Pass, we are OK
 		} else {
 			log.Warningf(c, "Wrongly linked contacts: %v=>%v != %v=>%v",
-				contact.ID, contact.CounterpartyCounterpartyID,
-				counterpartyContact.ID, counterpartyContact.CounterpartyCounterpartyID)
+				contact.ID, contact.Data.CounterpartyCounterpartyID,
+				counterpartyContact.ID, counterpartyContact.Data.CounterpartyCounterpartyID)
 		}
 	}
 	return
@@ -64,30 +64,34 @@ func (m *verifyContacts) verifyLinking(c context.Context, counters *asyncCounter
 
 func (m *verifyContacts) linkContacts(c context.Context, counters *asyncCounters, contact models.Contact) (err error) {
 	var counterpartyContact models.Contact
-	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if counterpartyContact, err = facade.GetContactByID(c, contact.CounterpartyCounterpartyID); err != nil {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+		if counterpartyContact, err = facade.GetContactByID(c, tx, contact.Data.CounterpartyCounterpartyID); err != nil {
 			log.Errorf(c, err.Error())
 			return
 		}
-		if counterpartyContact.CounterpartyCounterpartyID == 0 {
-			counterpartyContact.CounterpartyCounterpartyID = contact.ID
-			if counterpartyContact.CounterpartyUserID == 0 {
-				counterpartyContact.CounterpartyUserID = contact.UserID
-			} else if counterpartyContact.CounterpartyUserID != contact.UserID {
+		if counterpartyContact.Data.CounterpartyCounterpartyID == 0 {
+			counterpartyContact.Data.CounterpartyCounterpartyID = contact.ID
+			if counterpartyContact.Data.CounterpartyUserID == 0 {
+				counterpartyContact.Data.CounterpartyUserID = contact.Data.UserID
+			} else if counterpartyContact.Data.CounterpartyUserID != contact.Data.UserID {
 				err = fmt.Errorf("counterpartyContact(id=%v).CounterpartyUserID != contact(id=%v).UserID: %v != %v",
-					counterpartyContact.ID, contact.ID, counterpartyContact.CounterpartyUserID, contact.UserID)
+					counterpartyContact.ID, contact.ID, counterpartyContact.Data.CounterpartyUserID, contact.Data.UserID)
 				return
 			}
 			if err = facade.SaveContact(c, counterpartyContact); err != nil {
 				return
 			}
-		} else if counterpartyContact.CounterpartyCounterpartyID != contact.ID {
+		} else if counterpartyContact.Data.CounterpartyCounterpartyID != contact.ID {
 			log.Warningf(c, "in tx: wrongly linked contacts: %v=>%v != %v=>%v",
-				contact.ID, contact.CounterpartyCounterpartyID,
-				counterpartyContact.ID, counterpartyContact.CounterpartyCounterpartyID)
+				contact.ID, contact.Data.CounterpartyCounterpartyID,
+				counterpartyContact.ID, counterpartyContact.Data.CounterpartyCounterpartyID)
 		}
 		return
-	}, db.SingleGroupTransaction); err != nil {
+	}); err != nil {
 		log.Errorf(c, err.Error())
 		return
 	}
@@ -97,14 +101,14 @@ func (m *verifyContacts) linkContacts(c context.Context, counters *asyncCounters
 }
 
 func (m *verifyContacts) verifyBalance(c context.Context, counters *asyncCounters, contact models.Contact) (err error) {
-	balance := contact.Balance()
+	balance := contact.Data.Balance()
 	if FixBalanceCurrencies(balance) {
 		if err = nds.RunInTransaction(c, func(c context.Context) (err error) {
-			if contact, err = facade.GetContactByID(c, contact.ID); err != nil {
+			if contact, err = facade.GetContactByID(c, nil, contact.ID); err != nil {
 				return err
 			}
-			if balance := contact.Balance(); FixBalanceCurrencies(balance) {
-				if err = contact.SetBalance(balance); err != nil {
+			if balance := contact.Data.Balance(); FixBalanceCurrencies(balance) {
+				if err = contact.Data.SetBalance(balance); err != nil {
 					return err
 				}
 				if err = facade.SaveContact(c, contact); err != nil {

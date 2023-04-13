@@ -20,15 +20,16 @@ func RegisterMappers() {
 		mapper.SliceLifecycle
 		mapper.JobLifecycle
 	}) {
-		mapper.RegisterJob(job)
+		//mapper.RegisterJob(job)
 	}
-	registerAsyncJob(&verifyUsers{})
-	registerAsyncJob(&verifyContacts{})
-	registerAsyncJob(&verifyTransfers{})
-	registerAsyncJob(&migrateTransfers{})
-	registerAsyncJob(&verifyContactTransfers{})
-	registerAsyncJob(&transfersRecreateContacts{})
-	registerAsyncJob(&verifyTelegramUserAccounts{})
+	_ = registerAsyncJob
+	//registerAsyncJob(&verifyUsers{})
+	//registerAsyncJob(&verifyContacts{})
+	//registerAsyncJob(&verifyTransfers{})
+	//registerAsyncJob(&migrateTransfers{})
+	//registerAsyncJob(&verifyContactTransfers{})
+	//registerAsyncJob(&transfersRecreateContacts{})
+	//registerAsyncJob(&verifyTelegramUserAccounts{})
 
 	http.HandleFunc("/_ah/merge-contacts", mergeContactsHandler)
 }

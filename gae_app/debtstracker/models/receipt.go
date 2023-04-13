@@ -30,13 +30,17 @@ type Receipt struct {
 	Data *ReceiptEntity
 }
 
+func NewReceiptKey(id int) *dal.Key {
+	return dal.NewKeyWithID(ReceiptKind, id)
+}
+
 //var _ db.EntityHolder = (*Receipt)(nil)
 
 func (*Receipt) Kind() string {
 	return ReceiptKind
 }
 func NewReceipt(id int, data *ReceiptEntity) Receipt {
-	key := dal.NewKeyWithID(ReceiptKind, id)
+	key := NewReceiptKey(id)
 	return Receipt{
 		WithID: record.WithID[int]{
 			ID:     id,
@@ -74,7 +78,7 @@ type ReceiptEntity struct {
 	Error          string `datastore:",noindex"` //TODO: Need a comment on when it is used
 }
 
-func NewReceiptEntity(creatorUserID int64, transferID int, counterpartyUserID int64, lang, sentVia, sentTo string, createdOn general.CreatedOn) ReceiptEntity {
+func NewReceiptEntity(creatorUserID int64, transferID int, counterpartyUserID int64, lang, sentVia, sentTo string, createdOn general.CreatedOn) *ReceiptEntity {
 	if creatorUserID == counterpartyUserID {
 		panic("creatorUserID == counterpartyUserID")
 	}
@@ -87,7 +91,7 @@ func NewReceiptEntity(creatorUserID int64, transferID int, counterpartyUserID in
 	if createdOn.CreatedOnPlatform == "" {
 		panic("CreatedOnPlatform is empty")
 	}
-	return ReceiptEntity{
+	return &ReceiptEntity{
 		CreatorUserID:      creatorUserID,
 		CounterpartyUserID: counterpartyUserID,
 		TransferID:         transferID,

@@ -24,8 +24,14 @@ var User = userFacade{}
 var ErrEmailAlreadyRegistered = errors.New("Email already registered")
 
 func (userFacade) GetUserByID(c context.Context, tx dal.ReadSession, userID int64) (user models.AppUser, err error) {
+	if tx == nil {
+		if tx, err = GetDatabase(c); err != nil {
+			return
+		}
+	}
+
 	key := dal.NewKeyWithID(models.AppUserKind, userID)
-	user.Data = new(models.AppUserEntity)
+	user.Data = new(models.AppUserData)
 	user.WithID = record.WithID[int64]{
 		ID:     userID,
 		Key:    key,

@@ -1,12 +1,11 @@
 package gaedal
 
 import (
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"testing"
-
-	"context"
 )
 
 func TestNewAppUserKey(t *testing.T) {
 	const appUserID = 1234
-	testDatastoreIntKey(t, appUserID, NewAppUserKey(context.Background(), appUserID))
+	testIntKey(t, appUserID, models.NewAppUserKey(appUserID))
 }

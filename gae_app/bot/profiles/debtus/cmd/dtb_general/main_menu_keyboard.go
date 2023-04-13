@@ -28,14 +28,14 @@ type mainMenuParams struct {
 
 func getMainMenuParams(whc botsfw.WebhookContext, onReceiptAck bool) (params mainMenuParams) {
 	var (
-		user      *models.AppUserEntity
+		user      *models.AppUserData
 		isAppUser bool
 	)
 
 	c := whc.Context()
 	if userEntity, err := whc.GetAppUser(); err != nil {
 		log.Errorf(c, "Failed to get user: %v", err)
-	} else if user, isAppUser = userEntity.(*models.AppUserEntity); !isAppUser {
+	} else if user, isAppUser = userEntity.(*models.AppUserData); !isAppUser {
 		log.Errorf(c, "Failed to caset user to *models.AppUser: %T", userEntity)
 	} else if onReceiptAck || !user.Balance().IsZero() {
 		params.showReturn = true

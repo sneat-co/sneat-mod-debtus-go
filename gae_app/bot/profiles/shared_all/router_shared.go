@@ -2,7 +2,6 @@ package shared_all
 
 import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
-	bots "github.com/strongo/bots-framework/core"
 )
 
 func AddSharedRoutes(router botsfw.WebhooksRouter, botParams BotParams) {
@@ -27,7 +26,7 @@ func AddSharedRoutes(router botsfw.WebhooksRouter, botParams BotParams) {
 		leftChatCommand,
 	})
 	router.AddCommands(botsfw.WebhookInputSticker, []botsfw.Command{
-		bots.IgnoreCommand,
+		botsfw.IgnoreCommand,
 	})
 	router.AddCommands(botsfw.WebhookInputReferral, []botsfw.Command{
 		startCommand,

@@ -3,7 +3,6 @@ package shared_all
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bytes"
@@ -11,6 +10,7 @@ import (
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
@@ -90,12 +90,12 @@ func startInlineHelp(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err er
 	return m, err
 }
 
-func GetUser(whc botsfw.WebhookContext) (userEntity *models.AppUserEntity, err error) { // TODO: Make library and use across app
+func GetUser(whc botsfw.WebhookContext) (userEntity *models.AppUserData, err error) { // TODO: Make library and use across app
 	var botAppUser botsfw.BotAppUser
 	if botAppUser, err = whc.GetAppUser(); err != nil {
 		return
 	}
-	userEntity = botAppUser.(*models.AppUserEntity)
+	userEntity = botAppUser.(*models.AppUserData)
 	return
 }
 
@@ -123,12 +123,20 @@ func onStartCallbackCommand(params BotParams) botsfw.Command {
 
 			whc.ChatEntity().SetPreferredLanguage(lang)
 
-			if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
-				if user, err := facade.User.GetUserByID(c, whc.AppUserIntID()); err != nil {
+			var db dal.Database
+			if db, err = facade.GetDatabase(c); err != nil {
+				return
+			}
+
+			if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+				user, err := facade.User.GetUserByID(c, tx, whc.AppUserIntID())
+				if err != nil {
 					return err
-				} else if err = user.Data.SetPreferredLocale(lang); err != nil {
+				}
+				if err = user.Data.SetPreferredLocale(lang); err != nil {
 					return err
-				} else if err = facade.User.SaveUser(c, user); err != nil {
+				}
+				if err = facade.User.SaveUser(c, tx, user); err != nil {
 					return err
 				}
 				return nil

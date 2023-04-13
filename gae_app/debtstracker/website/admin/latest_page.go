@@ -27,7 +27,7 @@ func LatestPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	var users []models.AppUserEntity
+	var users []models.AppUserData
 	userKeys, err := datastore.NewQuery(models.AppUserKind).Order("-DtCreated").Limit(50).GetAll(c, &users)
 	if err != nil {
 		log.Errorf(c, err.Error())

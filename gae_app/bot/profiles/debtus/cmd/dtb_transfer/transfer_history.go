@@ -3,6 +3,9 @@ package dtb_transfer
 import (
 	"bytes"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 	"strings"
 	"time"
@@ -75,12 +78,12 @@ const (
 func transferHistoryRows(whc botsfw.WebhookContext, transfers []models.Transfer) string {
 	var s bytes.Buffer
 	for _, transfer := range transfers {
-		isCreator := whc.AppUserIntID() == transfer.CreatorUserID
+		isCreator := whc.AppUserIntID() == transfer.Data.CreatorUserID
 		var counterpartyName string
 		if isCreator {
-			counterpartyName = transfer.Counterparty().ContactName
+			counterpartyName = transfer.Data.Counterparty().ContactName
 		} else {
-			counterpartyName = transfer.Creator().ContactName
+			counterpartyName = transfer.Data.Creator().ContactName
 		}
 		amount := fmt.Sprintf(`<a href="%v">%s</a>`,
 			common.GetTransferUrlForUser(
@@ -89,15 +92,15 @@ func transferHistoryRows(whc botsfw.WebhookContext, transfers []models.Transfer)
 				whc.Locale(),
 				common.NewUtmParams(whc, "history"),
 			),
-			transfer.GetAmount(),
+			transfer.Data.GetAmount(),
 		)
-		if (isCreator && transfer.Direction() == models.TransferDirectionUser2Counterparty) || (!isCreator && transfer.Direction() == models.TransferDirectionCounterparty2User) {
-			s.WriteString(whc.Translate(trans.MESSAGE_TEXT_HISTORY_ROW_FROM_USER_WITH_NAME, shortDate(transfer.DtCreated, whc), counterpartyName, amount))
+		if (isCreator && transfer.Data.Direction() == models.TransferDirectionUser2Counterparty) || (!isCreator && transfer.Data.Direction() == models.TransferDirectionCounterparty2User) {
+			s.WriteString(whc.Translate(trans.MESSAGE_TEXT_HISTORY_ROW_FROM_USER_WITH_NAME, shortDate(transfer.Data.DtCreated, whc), counterpartyName, amount))
 		} else {
-			s.WriteString(whc.Translate(trans.MESSAGE_TEXT_HISTORY_ROW_TO_USER_WITH_NAME, shortDate(transfer.DtCreated, whc), counterpartyName, amount))
+			s.WriteString(whc.Translate(trans.MESSAGE_TEXT_HISTORY_ROW_TO_USER_WITH_NAME, shortDate(transfer.Data.DtCreated, whc), counterpartyName, amount))
 		}
 
-		if transfer.HasInterest() {
+		if transfer.Data.HasInterest() {
 			s.WriteString("\n")
 			common.WriteTransferInterest(&s, transfer, whc)
 		}

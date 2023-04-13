@@ -10,5 +10,5 @@ package gaedal
 //}
 //
 //func (TaskQueueDalGae) CallDelayFunc(c context.Context, queueName, subPath, key string, f interface{}, args ...interface{}) error {
-//	return gae.CallDelayFunc(c, queueName, subPath, delay.Func(key, f), args...)
+//	return gae.CallDelayFunc(c, queueName, subPath, delay.MustRegister(key, f), args...)
 //}

@@ -3,9 +3,9 @@ package models
 //go:generate ffjson $GOFILE
 
 import (
+	"github.com/crediterra/money"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
-	"github.com/crediterra/money"
 )
 
 type MemberJson struct {
@@ -54,7 +54,7 @@ type BillMemberJson struct {
 	Owes       decimal.Decimal64p2 `json:",omitempty"`
 	Percent    decimal.Decimal64p2 `json:",omitempty"`
 	Adjustment decimal.Decimal64p2 `json:",omitempty"`
-	//TransferIDs []int64             `json:",omitempty"`
+	//transferIDs []int             `json:",omitempty"`
 }
 
 func (m BillMemberJson) Balance() decimal.Decimal64p2 {

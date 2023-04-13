@@ -35,6 +35,11 @@ func (GroupDalGae) SaveGroup(c context.Context, tx dal.ReadwriteTransaction, gro
 }
 
 func (GroupDalGae) GetGroupByID(c context.Context, tx dal.ReadSession, groupID string) (group models.Group, err error) {
+	if tx == nil {
+		if tx, err = facade.GetDatabase(c); err != nil {
+			return
+		}
+	}
 	if group.ID = groupID; group.ID == "" {
 		panic("groupID is empty string")
 	}
@@ -52,7 +57,7 @@ func (GroupDalGae) DelayUpdateGroupWithBill(c context.Context, groupID, billID s
 	return
 }
 
-var delayedUpdateGroupWithBill = delay.Func("delayedUpdateWithBill", func(c context.Context, groupID, billID string) (err error) {
+var delayedUpdateGroupWithBill = delay.MustRegister("delayedUpdateWithBill", func(c context.Context, groupID, billID string) (err error) {
 	log.Debugf(c, "delayedUpdateGroupWithBill(groupID=%d, billID=%d)", groupID, billID)
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {

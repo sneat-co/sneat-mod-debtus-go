@@ -2,6 +2,7 @@ package debtus
 
 import (
 	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/strongo/log"
 )
 

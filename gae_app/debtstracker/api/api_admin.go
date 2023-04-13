@@ -111,7 +111,7 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 	}
 }
 
-var delayedChangeTransfersCounterparty = delay.Func("changeTransfersCounterparty", func(c context.Context, oldID, newID int64, cursor string) error {
+var delayedChangeTransfersCounterparty = delay.MustRegister("changeTransfersCounterparty", func(c context.Context, oldID, newID int64, cursor string) error {
 	log.Debugf(c, "delayedChangeTransfersCounterparty(oldID=%d, newID=%d)", oldID, newID)
 
 	query := datastore.NewQuery(models.TransferKind).Filter("BothCounterpartyIDs =", oldID).Limit(100)
@@ -133,9 +133,9 @@ var delayedChangeTransfersCounterparty = delay.Func("changeTransfersCounterparty
 	return nil
 })
 
-var delayedChangeTransferCounterparty = delay.Func("changeTransferCounterparty", func(c context.Context, transferID, oldID, newID int64, cursor string) error {
+var delayedChangeTransferCounterparty = delay.MustRegister("changeTransferCounterparty", func(c context.Context, transferID, oldID, newID int64, cursor string) error {
 	log.Debugf(c, "delayedChangeTransferCounterparty(oldID=%d, newID=%d, cursor=%v)", oldID, newID, cursor)
-	if _, err := facade.GetContactByID(c, newID); err != nil {
+	if _, err := facade.GetContactByID(c, tx, newID); err != nil {
 		return err
 	}
 	err := dtdal.DB.RunInTransaction(c, func(c context.Context) error {

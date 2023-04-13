@@ -62,7 +62,7 @@ func renderUserPage(
 	hero.EscapeHTML(user.Data.FirstName, _buffer)
 	_buffer.WriteString(`</td>
                 <td>`)
-	hero.EscapeHTML(userData.LastName, _buffer)
+	hero.EscapeHTML(user.Data.LastName, _buffer)
 	_buffer.WriteString(`</td>
                 <td>`)
 	hero.EscapeHTML(user.Data.Nickname, _buffer)

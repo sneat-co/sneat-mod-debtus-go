@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/strongo/db"
 	"strings"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
@@ -71,18 +69,25 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 		}
 	}()
 
-	q := datastore.NewQuery(models.TransferKind) // TODO: Load outstanding transfer just for the specific contact & specific direction
-	q = q.Filter("BothCounterpartyIDs =", contact.ID)
-	q = q.Order("-DtCreated")
-	transferEntities := make([]*models.TransferEntity, 0, contact.Data.CountOfTransfers)
-	var transferKeys []*datastore.Key
-	if transferKeys, err = q.GetAll(c, &transferEntities); err != nil {
-		log.Errorf(c, fmt.Errorf("failed to load transfer: %w", err).Error())
-		return
+	//TODO: Load outstanding transfer just for the specific contact & specific direction
+	q := dal.From(models.TransferKind).
+		WhereField("BothCounterpartyIDs", dal.Equal, contact.ID).
+		OrderBy(dal.DescendingField("DtCreated")).
+		SelectInto(func() dal.Record {
+			return dal.NewRecordWithoutKey(new(models.TransferData))
+		})
+
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return err
 	}
-	transfers = make([]models.Transfer, len(transferEntities))
-	for i, transfer := range transferEntities {
-		transfers[i] = models.Transfer{IntegerID: db.NewIntID(transferKeys[i].IntID()), TransferEntity: transfer}
+	var transferRecords []dal.Record
+	if transferRecords, err = db.SelectAll(c, q); err != nil {
+
+	}
+	transfers = make([]models.Transfer, len(transferRecords))
+	for i, r := range transferRecords {
+		transfers[i] = models.NewTransfer(r.Key().ID.(int), r.Data().(*models.TransferData))
 	}
 	models.ReverseTransfers(transfers)
 
@@ -106,7 +111,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 				changed = true
 			}
 			if counterparty.UserName == "" && counterparty.UserID != 0 {
-				if user, err := facade.User.GetUserByID(c, tx, counterparty.UserID); err != nil {
+				if user, err := facade.User.GetUserByID(c, db, counterparty.UserID); err != nil {
 					log.Errorf(c, err.Error())
 					return err
 				} else {
@@ -121,7 +126,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 			}
 
 			if self.ContactID != 0 && self.ContactName == "" {
-				if counterpartyContact, err := facade.GetContactByID(c, self.ContactID); err != nil {
+				if counterpartyContact, err := facade.GetContactByID(c, nil, self.ContactID); err != nil {
 					log.Errorf(c, err.Error())
 					return err
 				} else {
@@ -131,7 +136,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 			}
 
 			if self.UserID != 0 && self.UserName == "" {
-				if user, err := facade.User.GetUserByID(c, self.UserID); err != nil {
+				if user, err := facade.User.GetUserByID(c, nil, self.UserID); err != nil {
 					log.Errorf(c, err.Error())
 					return err
 				} else {
@@ -142,7 +147,10 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 
 			if changed {
 				log.Warningf(c, "Fixing contact details for transfer %v: From:%v, To: %v\n\noriginal: %v\n\n new: %v", transfer.ID, litter.Sdump(transfer.Data.From()), litter.Sdump(transfer.Data.To()), litter.Sdump(originalTransfer), litter.Sdump(transfer))
-				if err = facade.Transfers.SaveTransfer(c, tx, transfer); err != nil {
+				err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+					return facade.Transfers.SaveTransfer(c, tx, transfer)
+				})
+				if err != nil {
 					log.Errorf(c, fmt.Errorf("failed to save transfer: %w", err).Error())
 					return
 				}
@@ -150,7 +158,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 		}
 	}
 
-	loggedTransfers := make(map[int64]bool, len(transfers))
+	loggedTransfers := make(map[int]bool, len(transfers))
 
 	logTransfer := func(transfer models.Transfer, padding int) {
 		if _, ok := loggedTransfers[transfer.ID]; !ok {
@@ -216,34 +224,37 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 		transfersByCurrency, transfersToSave := m.fixTransfers(c, now, buf, contact, transfers)
 
 		for currency, currencyTransfers := range transfersByCurrency {
-			fmt.Fprintf(buf, "\tcurrency: %v - %d transfers\n", currency, len(currencyTransfers))
+			_, _ = fmt.Fprintf(buf, "\tcurrency: %v - %d transfers\n", currency, len(currencyTransfers))
 		}
 
 		if valid, _ := m.verifyOutstanding(c, 2, buf, contactBalance, transfersBalance); !valid {
-			fmt.Fprint(buf, "Outstandings are invalid after fix!\n")
+			_, _ = fmt.Fprint(buf, "Outstandings are invalid after fix!\n")
 			needsFixingContactOrUser = true
 		} else if valid, _ = m.assertTotals(buf, counters, contact, transfersBalance); !valid {
-			fmt.Fprint(buf, "Totals are invalid after fix!\n")
+			_, _ = fmt.Fprint(buf, "Totals are invalid after fix!\n")
 		} else if valid = verifyReturnIDs(); !valid {
-			fmt.Fprint(buf, "Return IDs are invalid after fix!\n")
+			_, _ = fmt.Fprint(buf, "Return IDs are invalid after fix!\n")
 		} else {
-			fmt.Fprintf(buf, "%v transfers to save!\n", len(transfersToSave))
+			_, _ = fmt.Fprintf(buf, "%v transfers to save!\n", len(transfersToSave))
 			recordsToSave := make([]dal.Record, 0, len(transfersToSave))
 			for id, transfer := range transfersToSave {
 				recordsToSave = append(recordsToSave, models.NewTransfer(id, transfer).Record)
 			}
 			//gaedb.LoggingEnabled = true
-			if err = dtdal.DB.UpdateMulti(log.NewContextWithLoggingEnabled(c), recordsToSave); err != nil {
-				fmt.Fprintf(buf, "ERROR: failed to save transfers: %v\n", err)
+			err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+				return tx.SetMulti(c, recordsToSave)
+			})
+			if err != nil {
+				_, _ = fmt.Fprintf(buf, "ERROR: failed to save transfers: %v\n", err)
 				hasError = true
 				return
 			}
-			fmt.Fprintf(buf, "SAVED %v transfers!\n", len(recordsToSave))
+			_, _ = fmt.Fprintf(buf, "SAVED %v transfers!\n", len(recordsToSave))
 		}
 	}
 
 	if outstandingIsValid {
-		if user, err = facade.User.GetUserByID(c, tx, contact.Data.UserID); err != nil {
+		if user, err = facade.User.GetUserByID(c, nil, contact.Data.UserID); err != nil {
 			log.Errorf(c, fmt.Errorf("contact{ID=%v}: user not found by ID: %w", contact.ID, err).Error())
 			return
 		}
@@ -255,7 +266,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 
 	if !needsFixingContactOrUser && contact.Data.CounterpartyCounterpartyID != 0 {
 		var counterpartyContact models.Contact
-		if counterpartyContact, err = facade.GetContactByID(c, contact.Data.CounterpartyCounterpartyID); err != nil {
+		if counterpartyContact, err = facade.GetContactByID(c, nil, contact.Data.CounterpartyCounterpartyID); err != nil {
 			return
 		}
 		fmt.Fprintf(buf, "contact.Balance(): %v\n", contact.Data.Balance())
@@ -264,7 +275,7 @@ func (m *verifyContactTransfers) processContact(c context.Context, counters *asy
 			needsFixingContactOrUser = true
 		}
 	} else {
-		fmt.Fprintf(buf, "needsFixingContactOrUser: %v, contact.CounterpartyCounterpartyID: %v", needsFixingContactOrUser, contact.CounterpartyCounterpartyID)
+		fmt.Fprintf(buf, "needsFixingContactOrUser: %v, contact.CounterpartyCounterpartyID: %v", needsFixingContactOrUser, contact.Data.CounterpartyCounterpartyID)
 	}
 
 	if needsFixingContactOrUser {
@@ -320,25 +331,29 @@ func (m *verifyContactTransfers) assertTotals(buf *bytes.Buffer, counters *async
 }
 
 func (m *verifyContactTransfers) fixContactAndUser(c context.Context, buf *bytes.Buffer, counters *asyncCounters, contactID int64, transfersBalance money.Balance, transfersCount int, lastTransfer models.Transfer) (contact models.Contact, user models.AppUser, err error) {
-	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
-		if contact, user, err = m.fixContactAndUserWithinTransaction(c, buf, counters, contactID, transfersBalance, transfersCount, lastTransfer); err != nil {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+		if contact, user, err = m.fixContactAndUserWithinTransaction(c, tx, buf, counters, contactID, transfersBalance, transfersCount, lastTransfer); err != nil {
 			return
 		}
 		if contact.Data.CounterpartyCounterpartyID != 0 {
-			if _, _, err = m.fixContactAndUserWithinTransaction(c, buf, counters, contact.Data.CounterpartyCounterpartyID, transfersBalance.Reversed(), transfersCount, lastTransfer); err != nil {
+			if _, _, err = m.fixContactAndUserWithinTransaction(c, tx, buf, counters, contact.Data.CounterpartyCounterpartyID, transfersBalance.Reversed(), transfersCount, lastTransfer); err != nil {
 				return
 			}
 		}
 		return
-	}, db.CrossGroupTransaction); err != nil {
+	}); err != nil {
 		return
 	}
 	return
 }
 
-func (m *verifyContactTransfers) fixContactAndUserWithinTransaction(c context.Context, buf *bytes.Buffer, counters *asyncCounters, contactID int64, transfersBalance money.Balance, transfersCount int, lastTransfer models.Transfer) (contact models.Contact, user models.AppUser, err error) {
+func (m *verifyContactTransfers) fixContactAndUserWithinTransaction(c context.Context, tx dal.ReadwriteTransaction, buf *bytes.Buffer, counters *asyncCounters, contactID int64, transfersBalance money.Balance, transfersCount int, lastTransfer models.Transfer) (contact models.Contact, user models.AppUser, err error) {
 	fmt.Fprintf(buf, "Fixing contact %v...\n", contactID)
-	if contact, err = facade.GetContactByID(c, contactID); err != nil {
+	if contact, err = facade.GetContactByID(c, tx, contactID); err != nil {
 		return
 	}
 	changed := false
@@ -370,7 +385,7 @@ func (m *verifyContactTransfers) fixContactAndUserWithinTransaction(c context.Co
 			return
 		}
 		//var user models.AppUser
-		if user, err = facade.User.GetUserByID(c, tx, contact.Data.UserID); err != nil {
+		if user, err = facade.User.GetUserByID(c, nil, contact.Data.UserID); err != nil {
 			return
 		}
 		userContacts := user.Data.Contacts()
@@ -456,13 +471,13 @@ func (m *verifyContactTransfers) verifyOutstanding(c context.Context, iteration 
 
 func (m *verifyContactTransfers) fixTransfers(c context.Context, now time.Time, buf *bytes.Buffer, contact models.Contact, transfers []models.Transfer) (
 	transfersByCurrency map[money.Currency][]models.Transfer,
-	transfersToSave map[int]*models.TransferEntity,
+	transfersToSave map[int]*models.TransferData,
 ) {
 	fmt.Fprintln(buf, "fixTransfers()")
 
 	transfersByCurrency = make(map[money.Currency][]models.Transfer)
 
-	transfersToSave = make(map[int]*models.TransferEntity)
+	transfersToSave = make(map[int]*models.TransferData)
 
 	for _, transfer := range transfers {
 		if transfer.Data.AmountInCentsReturned != 0 {

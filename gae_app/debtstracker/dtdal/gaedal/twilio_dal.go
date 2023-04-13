@@ -49,13 +49,13 @@ func (TwilioDalGae) SaveTwilioSms(
 ) (twilioSms models.TwilioSms, err error) {
 	var twilioSmsEntity models.TwilioSmsData
 	if err = dtdal.DB.RunInTransaction(c, func(tc context.Context) error {
-		userKey := NewAppUserKey(c, userID)
+		userKey := models.NewAppUserKey(userID)
 		transferKey := NewTransferKey(tc, transfer.ID)
 		counterpartyKey := NewContactKey(tc, transfer.Counterparty().ContactID)
 		twilioSmsKey := gaedb.NewKey(tc, models.TwilioSmsKind, smsResponse.Sid, 0, nil)
 		var (
-			appUserEntity      models.AppUserEntity
-			counterpartyEntity models.ContactEntity
+			appUserEntity      models.AppUserData
+			counterpartyEntity models.ContactData
 		)
 		if err := gaedb.GetMulti(tc, []*datastore.Key{userKey, twilioSmsKey, transferKey, counterpartyKey}, []interface{}{&appUserEntity, &twilioSmsEntity, transfer.TransferEntity, &counterpartyEntity}); err != nil {
 			if multiError, ok := err.(appengine.MultiError); ok {

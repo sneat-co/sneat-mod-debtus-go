@@ -1,6 +1,7 @@
 package dtb_transfer
 
 import (
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"net/url"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
@@ -17,8 +18,10 @@ var ChangeReceiptAnnouncementLangCommand = botsfw.NewCallbackCommand(
 		if len(code5) != 5 {
 			return m, errors.New("ChangeReceiptAnnouncementLangCommand: len(code5) != 5")
 		}
-		whc.SetLocale(code5)
-		receiptID, err := common.DecodeID(query.Get("id"))
+		if err = whc.SetLocale(code5); err != nil {
+			return m, err
+		}
+		receiptID, err := common.DecodeIntID(query.Get("id"))
 		if err != nil {
 			return m, err
 		}

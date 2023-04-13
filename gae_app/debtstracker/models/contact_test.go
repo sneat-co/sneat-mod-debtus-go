@@ -6,7 +6,7 @@ import (
 )
 
 func TestContactEntity_SetTransfersInfo(t *testing.T) {
-	contact := ContactEntity{}
+	contact := ContactData{}
 	if err := contact.SetTransfersInfo(UserContactTransfersInfo{
 		Count: 1,
 		Last: LastTransfer{

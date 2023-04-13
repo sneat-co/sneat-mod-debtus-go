@@ -5,7 +5,7 @@ import (
 )
 
 func TestOnSaveSerializeJson(t *testing.T) {
-	transferEntity := TransferEntity{
+	transferEntity := TransferData{
 		from: &TransferCounterpartyInfo{
 			UserID: 11,
 		},
@@ -25,7 +25,7 @@ func TestOnSaveSerializeJson(t *testing.T) {
 }
 
 func TestTransferFromToUpdate(t *testing.T) {
-	transferEntity := TransferEntity{
+	transferEntity := TransferData{
 		CreatorUserID: 11,
 		from: &TransferCounterpartyInfo{
 			UserID: 11,

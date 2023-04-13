@@ -14,8 +14,8 @@ import (
 	"google.golang.org/appengine/v2/datastore"
 )
 
-func NewContactEntity(userID int64, details ContactDetails) *ContactEntity {
-	return &ContactEntity{
+func NewContactEntity(userID int64, details ContactDetails) *ContactData {
+	return &ContactData{
 		Status:         STATUS_ACTIVE,
 		UserID:         userID,
 		DtCreated:      time.Now(), // TODO: Should we pass from outside as parameter?
@@ -27,7 +27,14 @@ const ContactKind = "Counterparty" // TODO: Change value to Contact & migrated D
 
 type Contact struct {
 	record.WithID[int64]
-	Data *ContactEntity
+	Data *ContactData
+}
+
+func NewContactKey(contactID int64) *dal.Key {
+	if contactID == 0 {
+		panic("NewContactKey(): contactID == 0")
+	}
+	return dal.NewKeyWithID(ContactKind, contactID)
 }
 
 func ContactRecords(contacts []Contact) (records []dal.Record) {
@@ -49,14 +56,10 @@ func NewContacts(ids ...int64) (contacts []Contact) {
 	return
 }
 
-func NewContactKey(id int64) *dal.Key {
-	return dal.NewKeyWithID(ContactKind, id)
-}
-
-func NewContact(id int64, data *ContactEntity) Contact {
+func NewContact(id int64, data *ContactData) Contact {
 	key := NewContactKey(id)
 	if data == nil {
-		data = new(ContactEntity)
+		data = new(ContactData)
 	}
 	return Contact{
 		WithID: record.WithID[int64]{
@@ -79,14 +82,14 @@ func NewContact(id int64, data *ContactEntity) Contact {
 //}
 
 //func (Contact) NewEntity() interface{} {
-//	return new(ContactEntity)
+//	return new(ContactData)
 //}
 
 //func (c *Contact) SetEntity(entity interface{}) {
 //	if entity == nil {
 //		c.Data = nil
 //	} else {
-//		c.Data = entity.(*ContactEntity)
+//		c.Data = entity.(*ContactData)
 //	}
 //}
 
@@ -99,7 +102,7 @@ func (c Contact) MustMatchCounterparty(counterparty Contact) {
 	}
 }
 
-type ContactEntity struct {
+type ContactData struct {
 	DtCreated                  time.Time `datastore:",omitempty"`
 	UserID                     int64     // owner can not be in parent key as we have problem with filtering transfers then
 	CounterpartyUserID         int64     // The counterparty user ID if registered
@@ -114,17 +117,17 @@ type ContactEntity struct {
 	//
 	//TelegramChatID int
 	//
-	//LastTransferID int64  `datastore:",noindex"` - Decided against as we do not need it really and would require either 2 Put() instead of 1 PutMulti()
+	//LasttransferID int  `datastore:",noindex"` - Decided against as we do not need it really and would require either 2 Put() instead of 1 PutMulti()
 	SearchName          []string `datastore:",noindex"` // Deprecated
 	NoTransferUpdatesBy []string `datastore:",noindex"`
 	GroupIDs            []string `datastore:",noindex"`
 }
 
-func (entity *ContactEntity) String() string {
+func (entity *ContactData) String() string {
 	return fmt.Sprintf("Contact{UserID: %v, CounterpartyUserID: %v, CounterpartyCounterpartyID: %v, Status: %v, ContactDetails: %v, Balance: '%v', LastTransferAt: %v}", entity.UserID, entity.CounterpartyUserID, entity.CounterpartyCounterpartyID, entity.Status, entity.ContactDetails, entity.BalanceJson, entity.LastTransferAt)
 }
 
-func (entity *ContactEntity) GetTransfersInfo() (transfersInfo *UserContactTransfersInfo) {
+func (entity *ContactData) GetTransfersInfo() (transfersInfo *UserContactTransfersInfo) {
 	if entity.TransfersJson == "" {
 		return &UserContactTransfersInfo{}
 	}
@@ -135,7 +138,7 @@ func (entity *ContactEntity) GetTransfersInfo() (transfersInfo *UserContactTrans
 	return
 }
 
-func (entity *ContactEntity) SetTransfersInfo(transfersInfo UserContactTransfersInfo) error {
+func (entity *ContactData) SetTransfersInfo(transfersInfo UserContactTransfersInfo) error {
 	if data, err := ffjson.Marshal(transfersInfo); err != nil {
 		return err
 	} else {
@@ -144,7 +147,7 @@ func (entity *ContactEntity) SetTransfersInfo(transfersInfo UserContactTransfers
 	}
 }
 
-func (entity *ContactEntity) Info(counterpartyID int64, note, comment string) TransferCounterpartyInfo {
+func (entity *ContactData) Info(counterpartyID int64, note, comment string) TransferCounterpartyInfo {
 	return TransferCounterpartyInfo{
 		ContactID:   counterpartyID,
 		UserID:      entity.UserID,
@@ -154,7 +157,7 @@ func (entity *ContactEntity) Info(counterpartyID int64, note, comment string) Tr
 	}
 }
 
-//func (entity *ContactEntity) UpdateSearchName() {
+//func (entity *ContactData) UpdateSearchName() {
 //	fullName := entity.GetFullName()
 //	entity.SearchName = []string{strings.ToLower(fullName)}
 //	if entity.Username != "" {
@@ -171,7 +174,7 @@ func (entity *ContactEntity) Info(counterpartyID int64, note, comment string) Tr
 //	}
 //}
 
-func (entity *ContactEntity) Load(ps []datastore.Property) error {
+func (entity *ContactData) Load(ps []datastore.Property) error {
 	p2 := make([]datastore.Property, 0, len(ps))
 	for _, p := range ps {
 		switch p.Name {
@@ -214,14 +217,14 @@ var contactPropertiesToClean = map[string]gaedb.IsOkToRemove{
 	"TelegramUserID":             gaedb.IsZeroInt,
 }
 
-func (entity *ContactEntity) BeforeSave() (err error) {
+func (entity *ContactData) BeforeSave() (err error) {
 	//entity.UpdateSearchName()
 	entity.EmailAddressOriginal = strings.TrimSpace(entity.EmailAddressOriginal)
 	entity.EmailAddress = strings.ToLower(entity.EmailAddressOriginal)
 	return nil
 }
 
-func (entity *ContactEntity) Save() (properties []datastore.Property, err error) {
+func (entity *ContactData) Save() (properties []datastore.Property, err error) {
 	if err = entity.BeforeSave(); err != nil {
 		return
 	}
@@ -239,7 +242,7 @@ func (entity *ContactEntity) Save() (properties []datastore.Property, err error)
 	return
 }
 
-func (entity *ContactEntity) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance money.Balance, err error) {
+func (entity *ContactData) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance money.Balance, err error) {
 	balance = entity.Balance()
 	if transferInfo := entity.GetTransfersInfo(); transferInfo != nil {
 		err = updateBalanceWithInterest(true, balance, transferInfo.OutstandingWithInterest, periodEnds)
@@ -247,8 +250,8 @@ func (entity *ContactEntity) BalanceWithInterest(c context.Context, periodEnds t
 	return
 }
 
-func ContactsByID(contacts []Contact) (contactsByID map[int64]*ContactEntity) {
-	contactsByID = make(map[int64]*ContactEntity, len(contacts))
+func ContactsByID(contacts []Contact) (contactsByID map[int64]*ContactData) {
+	contactsByID = make(map[int64]*ContactData, len(contacts))
 	for _, contact := range contacts {
 		contactsByID[contact.ID] = contact.Data
 	}

@@ -7,6 +7,8 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
+	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
@@ -20,7 +22,7 @@ func DelayUpdateUsersWithBill(c context.Context, billID string, userIDs []string
 	return gae.CallDelayFunc(c, common.QUEUE_BILLS, updateUsersWithBillKeyName, delayUpdateUsersWithBill, billID, userIDs)
 }
 
-var delayUpdateUsersWithBill = delay.Func(updateUsersWithBillKeyName, updateUsersWithBill)
+var delayUpdateUsersWithBill = delay.MustRegister(updateUsersWithBillKeyName, updateUsersWithBill)
 
 func updateUsersWithBill(c context.Context, billID string, userIDs []string) (err error) {
 	wg := new(sync.WaitGroup)
@@ -39,7 +41,7 @@ func updateUsersWithBill(c context.Context, billID string, userIDs []string) (er
 
 const updateUserWithBillKeyName = "update-user-with-bill"
 
-var delayUpdateUserWithBill = delay.Func(updateUserWithBillKeyName, updateUserWithBill)
+var delayUpdateUserWithBill = delay.MustRegister(updateUserWithBillKeyName, updateUserWithBill)
 
 func updateUserWithBill(c context.Context, billID, userID string) (err error) {
 	log.Debugf(c, "updateUserWithBill(billID=%v, userID=%v)", billID, userID)
@@ -53,11 +55,15 @@ func updateUserWithBill(c context.Context, billID, userID string) (err error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if bill, billErr = facade.GetBillByID(c, billID); err != nil {
+		if bill, billErr = facade.GetBillByID(c, nil, billID); err != nil {
 			return
 		}
 	}()
-	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 		var user models.AppUser
 		if user, err = dtdal.User.GetUserByStrID(c, userID); err != nil {
 			return
@@ -65,12 +71,12 @@ func updateUserWithBill(c context.Context, billID, userID string) (err error) {
 		wg.Wait()
 		if billErr != nil {
 			return fmt.Errorf("%w: failed to get bill", billErr)
-		} else if bill.BillEntity == nil {
+		} else if bill.Data == nil {
 			return errors.New("bill.BillEntity == nil")
 		}
 		var userBillBalance decimal.Decimal64p2
-		if bill.Status != models.BillStatusDeleted {
-			for _, billMember := range bill.GetBillMembers() {
+		if bill.Data.Status != models.BillStatusDeleted {
+			for _, billMember := range bill.Data.GetBillMembers() {
 				if billMember.UserID == userID {
 					userBillBalance = billMember.Balance()
 					userIsBillMember = true
@@ -83,15 +89,15 @@ func updateUserWithBill(c context.Context, billID, userID string) (err error) {
 
 		log.Debugf(c, "userIsBillMember: %v", userIsBillMember)
 
-		shouldBeInOutstanding := userIsBillMember && (bill.Status == models.BillStatusOutstanding || bill.Status == models.BillStatusDraft)
-		userOutstandingBills := user.GetOutstandingBills()
+		shouldBeInOutstanding := userIsBillMember && (bill.Data.Status == models.BillStatusOutstanding || bill.Data.Status == models.BillStatusDraft)
+		userOutstandingBills := user.Data.GetOutstandingBills()
 		for i, userOutstandingBill := range userOutstandingBills {
 			if userOutstandingBill.ID == billID {
 				if !shouldBeInOutstanding {
 					// Remove bill info from the user
 					userOutstandingBills = append(userOutstandingBills[:i], userOutstandingBills[i+1:]...)
 				} else {
-					if billUserGroupID := bill.GetUserGroupID(); userOutstandingBill.GroupID != billUserGroupID {
+					if billUserGroupID := bill.Data.GetUserGroupID(); userOutstandingBill.GroupID != billUserGroupID {
 						userOutstandingBill.GroupID = billUserGroupID
 						userChanged = true
 					}
@@ -99,16 +105,16 @@ func updateUserWithBill(c context.Context, billID, userID string) (err error) {
 						userOutstandingBill.UserBalance = userBillBalance
 						userChanged = true
 					}
-					if userOutstandingBill.Total != bill.AmountTotal {
-						userOutstandingBill.Total = bill.AmountTotal
+					if userOutstandingBill.Total != bill.Data.AmountTotal {
+						userOutstandingBill.Total = bill.Data.AmountTotal
 						userChanged = true
 					}
-					if userOutstandingBill.Currency != bill.Currency {
-						userOutstandingBill.Currency = bill.Currency
+					if userOutstandingBill.Currency != bill.Data.Currency {
+						userOutstandingBill.Currency = bill.Data.Currency
 						userChanged = true
 					}
-					if userOutstandingBill.Name != bill.Name {
-						userOutstandingBill.Name = bill.Name
+					if userOutstandingBill.Name != bill.Data.Name {
+						userOutstandingBill.Name = bill.Data.Name
 						userChanged = true
 					}
 					userOutstandingBills[i] = userOutstandingBill
@@ -119,28 +125,28 @@ func updateUserWithBill(c context.Context, billID, userID string) (err error) {
 		if shouldBeInOutstanding {
 			userOutstandingBills = append(userOutstandingBills, models.BillJson{
 				ID:           bill.ID,
-				Name:         bill.Name,
-				MembersCount: bill.MembersCount,
-				Total:        bill.AmountTotal,
-				Currency:     bill.Currency,
+				Name:         bill.Data.Name,
+				MembersCount: bill.Data.MembersCount,
+				Total:        bill.Data.AmountTotal,
+				Currency:     bill.Data.Currency,
 				UserBalance:  userBillBalance,
-				GroupID:      bill.GetUserGroupID(),
+				GroupID:      bill.Data.GetUserGroupID(),
 			})
 			userChanged = true
 		}
 	doneWithChanges:
 		if userChanged {
-			if _, err = user.SetOutstandingBills(userOutstandingBills); err != nil {
+			if _, err = user.Data.SetOutstandingBills(userOutstandingBills); err != nil {
 				return
 			}
-			if err = facade.User.SaveUser(c, user); err != nil {
+			if err = facade.User.SaveUser(c, tx, user); err != nil {
 				return
 			}
 		} else {
 			log.Debugf(c, "User not changed, ID: %v", user.ID)
 		}
 		return
-	}, db.SingleGroupTransaction); err != nil {
+	}); err != nil {
 		if dal.IsNotFound(err) {
 			log.Errorf(c, err.Error())
 			err = nil

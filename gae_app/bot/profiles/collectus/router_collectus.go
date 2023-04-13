@@ -11,7 +11,7 @@ import (
 
 var botParams = shared_all.BotParams{
 	InBotWelcomeMessage: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
-		var user *models.AppUserEntity
+		var user *models.AppUserData
 		if user, err = shared_all.GetUser(whc); err != nil {
 			return
 		}

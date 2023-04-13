@@ -2,6 +2,9 @@ package dtb_invite
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/log"

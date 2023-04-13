@@ -4,6 +4,9 @@ import (
 	//"github.com/sneat-co/debtstracker-translations/emoji"
 	//"fmt"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 	"strings"
 
@@ -151,10 +154,10 @@ func createTransferAskNoteOrCommentCommand(code string, nextCommand botsfw.Comma
 			if counterpartyID == 0 {
 				return m, errors.New("transferWizard.CounterpartyID() == 0")
 			}
-			counterparty, err := facade.GetContactByID(whc.Context(), counterpartyID)
+			counterparty, err := facade.GetContactByID(whc.Context(), nil, counterpartyID)
 			m.Text = strings.TrimLeft(fmt.Sprintf("%v\n(<i>%v</i>)",
 				whc.Translate(trans.MESSAGE_TEXT_TRANSFER_ASK_FOR_COMMENT_ONLY),
-				whc.Translate(trans.MESSAGE_TEXT_VISIBLE_TO_YOU_AND_COUNTERPARTY, html.EscapeString(counterparty.FullName()))),
+				whc.Translate(trans.MESSAGE_TEXT_VISIBLE_TO_YOU_AND_COUNTERPARTY, html.EscapeString(counterparty.Data.FullName()))),
 				"\n ",
 			)
 

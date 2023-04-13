@@ -1,6 +1,7 @@
 package debtus
 
 import (
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"strings"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_inline"

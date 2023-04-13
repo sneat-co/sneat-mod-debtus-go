@@ -2,15 +2,14 @@ package maintainance
 
 import (
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	"runtime/debug"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/captaincodeman/datastore-mapper"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/datastore"
 	"time"
 )
 
@@ -18,33 +17,33 @@ type transfersRecreateContacts struct {
 	transfersAsyncJob
 }
 
-func (m *transfersRecreateContacts) Next(c context.Context, counters mapper.Counters, key *datastore.Key) (err error) {
+func (m *transfersRecreateContacts) Next(c context.Context, counters mapper.Counters, key *dal.Key) (err error) {
 	return m.startTransferWorker(c, counters, key, m.verifyAndFix)
 }
 
-func (m *transfersRecreateContacts) verifyAndFix(c context.Context, counters *asyncCounters, transfer models.Transfer) (err error) {
+func (m *transfersRecreateContacts) verifyAndFix(c context.Context, tx dal.ReadwriteTransaction, counters *asyncCounters, transfer models.Transfer) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Errorf(c, "*transfersRecreateContacts.verifyAndFix() => panic: %v\n\n%v", r, string(debug.Stack()))
 		}
 	}()
 	var fixed bool
-	fixed, err = verifyAndFixMissingTransferContacts(c, transfer)
+	fixed, err = verifyAndFixMissingTransferContacts(c, tx, transfer)
 	if fixed {
 		counters.Increment("fixed", 1)
 	}
 	return
 }
 
-func verifyAndFixMissingTransferContacts(c context.Context, transfer models.Transfer) (fixed bool, err error) {
+func verifyAndFixMissingTransferContacts(c context.Context, tx dal.ReadwriteTransaction, transfer models.Transfer) (fixed bool, err error) {
 	isMissingAndCanBeFixed := func(contactID, contactUserID, counterpartyContactID int64) (bool, error) {
 		if contactID != 0 && contactUserID != 0 && counterpartyContactID != 0 {
-			if _, err := facade.GetContactByID(c, contactID); err != nil {
+			if _, err := facade.GetContactByID(c, tx, contactID); err != nil {
 				if dal.IsNotFound(err) {
-					if user, err := facade.User.GetUserByID(c, contactUserID); err != nil {
+					if user, err := facade.User.GetUserByID(c, tx, contactUserID); err != nil {
 						return false, err
 					} else {
-						for _, c := range user.Contacts() {
+						for _, c := range user.Data.Contacts() {
 							if c.ID == contactID {
 								return true, nil
 							}
@@ -59,25 +58,29 @@ func verifyAndFixMissingTransferContacts(c context.Context, transfer models.Tran
 	}
 
 	doFix := func(contactInfo *models.TransferCounterpartyInfo, counterpartyInfo *models.TransferCounterpartyInfo) (err error) {
-		err = dtdal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
+		var db dal.Database
+		if db, err = facade.GetDatabase(c); err != nil {
+			return
+		}
+		err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) (err error) {
 			log.Debugf(c, "Recreating contact # %v", contactInfo.ContactID)
 			var counterpartyContact models.Contact
-			if counterpartyContact, err = facade.GetContactByID(c, counterpartyInfo.ContactID); err != nil {
+			if counterpartyContact, err = facade.GetContactByID(c, tx, counterpartyInfo.ContactID); err != nil {
 				return
 			}
 			var contactUser, counterpartyUser models.AppUser
 
-			if contactUser, err = facade.User.GetUserByID(c, counterpartyInfo.UserID); err != nil {
+			if contactUser, err = facade.User.GetUserByID(c, tx, counterpartyInfo.UserID); err != nil {
 				return
 			}
 
-			if counterpartyUser, err = facade.User.GetUserByID(c, contactInfo.UserID); err != nil {
+			if counterpartyUser, err = facade.User.GetUserByID(c, tx, contactInfo.UserID); err != nil {
 				return
 			}
 
 			var contactUserContactJson models.UserContactJson
 
-			for _, c := range contactUser.Contacts() {
+			for _, c := range contactUser.Data.Contacts() {
 				if c.ID == contactInfo.ContactID {
 					contactUserContactJson = c
 					break
@@ -89,12 +92,12 @@ func verifyAndFixMissingTransferContacts(c context.Context, transfer models.Tran
 				return
 			}
 
-			if counterpartyContact.CounterpartyCounterpartyID == 0 {
-				if counterpartyContact.CounterpartyCounterpartyID == 0 {
-					counterpartyContact.CounterpartyCounterpartyID = contactInfo.ContactID
-					counterpartyContact.CounterpartyUserID = counterpartyInfo.UserID
-				} else if counterpartyContact.CounterpartyCounterpartyID != contactInfo.ContactID {
-					log.Errorf(c, "counterpartyContact.CounterpartyCounterpartyID != contact.ID: %v != %v", counterpartyContact.CounterpartyCounterpartyID, contactInfo.ContactID)
+			if counterpartyContact.Data.CounterpartyCounterpartyID == 0 {
+				if counterpartyContact.Data.CounterpartyCounterpartyID == 0 {
+					counterpartyContact.Data.CounterpartyCounterpartyID = contactInfo.ContactID
+					counterpartyContact.Data.CounterpartyUserID = counterpartyInfo.UserID
+				} else if counterpartyContact.Data.CounterpartyCounterpartyID != contactInfo.ContactID {
+					log.Errorf(c, "counterpartyContact.CounterpartyCounterpartyID != contact.ID: %v != %v", counterpartyContact.Data.CounterpartyCounterpartyID, contactInfo.ContactID)
 					return
 				}
 				if err = facade.SaveContact(c, counterpartyContact); err != nil {
@@ -102,22 +105,25 @@ func verifyAndFixMissingTransferContacts(c context.Context, transfer models.Tran
 				}
 			}
 
-			contact := models.NewContact(contactInfo.ContactID, &models.ContactEntity{
+			contact := models.NewContact(contactInfo.ContactID, &models.ContactData{
 				UserID:         counterpartyInfo.UserID,
 				DtCreated:      time.Now(),
 				Status:         models.STATUS_ACTIVE,
-				TransfersJson:  counterpartyContact.TransfersJson,
-				ContactDetails: counterpartyUser.ContactDetails,
-				Balanced:       counterpartyContact.Balanced,
+				TransfersJson:  counterpartyContact.Data.TransfersJson,
+				ContactDetails: counterpartyUser.Data.ContactDetails,
+				Balanced:       counterpartyContact.Data.Balanced,
 			})
-			if contact.Nickname != contactUserContactJson.Name && contact.FirstName != contactUserContactJson.Name && contact.LastName != contactUserContactJson.Name && contact.ScreenName != contactUserContactJson.Name {
-				contact.Nickname = contactUserContactJson.Name
+			if contact.Data.Nickname != contactUserContactJson.Name &&
+				contact.Data.FirstName != contactUserContactJson.Name &&
+				contact.Data.LastName != contactUserContactJson.Name &&
+				contact.Data.ScreenName != contactUserContactJson.Name {
+				contact.Data.Nickname = contactUserContactJson.Name
 			}
-			if err = contact.SetBalance(counterpartyContact.Balance().Reversed()); err != nil {
+			if err = contact.Data.SetBalance(counterpartyContact.Data.Balance().Reversed()); err != nil {
 				return
 			}
-			if !contact.Balance().Equal(contactUserContactJson.Balance()) {
-				err = fmt.Errorf("contact(%v).Balance != contactUserContactJson.Balance(): %v != %v", contact.ID, contact.Balance(), contactUserContactJson.Balance())
+			if !contact.Data.Balance().Equal(contactUserContactJson.Balance()) {
+				err = fmt.Errorf("contact(%v).Balance != contactUserContactJson.Balance(): %v != %v", contact.ID, contact.Data.Balance(), contactUserContactJson.Balance())
 				return
 			}
 			if err = facade.SaveContact(c, contact); err != nil {
@@ -125,7 +131,7 @@ func verifyAndFixMissingTransferContacts(c context.Context, transfer models.Tran
 			}
 
 			return
-		}, db.CrossGroupTransaction)
+		})
 		if err != nil {
 			return
 		}
@@ -143,7 +149,7 @@ func verifyAndFixMissingTransferContacts(c context.Context, transfer models.Tran
 		return nil
 	}
 
-	from, to := transfer.From(), transfer.To()
+	from, to := transfer.Data.From(), transfer.Data.To()
 
 	if err = verifyAndFix(from, to); err != nil {
 		return

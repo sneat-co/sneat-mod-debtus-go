@@ -16,16 +16,16 @@ func DelayUpdateInviteClaimedCount(c context.Context, claimID int64) error {
 	return delayedUpdateInviteClaimedCount.Call(c, claimID)
 }
 
-var delayedUpdateInviteClaimedCount = delay.Func("UpdateInviteClaimedCount", func(c context.Context, claimID int64) error {
+var delayedUpdateInviteClaimedCount = delay.MustRegister("UpdateInviteClaimedCount", func(c context.Context, claimID int64) error {
 	log.Debugf(c, "delayedUpdateInviteClaimedCount(claimID=%v)", claimID)
-	var claim models.InviteClaim
+	var claim models.InviteClaimData
 	err := gaedb.Get(c, NewInviteClaimKey(c, claimID), &claim)
 	if err != nil {
 		if dal.IsNotFound(err) {
 			log.Errorf(c, "Claim not found by id: %v", claimID)
 			return nil
 		}
-		return fmt.Errorf("failed to get InviteClaim by id=%v: %w", claimID, err)
+		return fmt.Errorf("failed to get InviteClaimData by id=%v: %w", claimID, err)
 	}
 	err = gaedb.RunInTransaction(c, func(tc context.Context) error {
 		invite, err := dtdal.Invite.GetInvite(c, claim.InviteCode)

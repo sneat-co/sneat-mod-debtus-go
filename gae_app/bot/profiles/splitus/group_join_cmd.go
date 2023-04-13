@@ -2,6 +2,10 @@ package splitus
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 	"strconv"
 
@@ -22,7 +26,7 @@ var joinGroupCommand = shared_group.GroupCallbackCommand(joinGroupCommanCode,
 
 		userID := whc.AppUserStrID()
 		var appUser models.AppUser
-		if group.UserIsMember(userID) {
+		if group.Data.UserIsMember(userID) {
 			if appUser, err = dtdal.User.GetUserByStrID(c, userID); err != nil {
 				return
 			}
@@ -31,11 +35,15 @@ var joinGroupCommand = shared_group.GroupCallbackCommand(joinGroupCommanCode,
 			callbackAnswer.ShowAlert = true
 			m.BotMessage = telegram.CallbackAnswer(callbackAnswer)
 		} else {
-			err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
+			var db dal.Database
+			if db, err = facade.GetDatabase(c); err != nil {
+				return
+			}
+			err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
 				if appUser, err = dtdal.User.GetUserByStrID(c, userID); err != nil {
 					return err
 				}
-				_, changed, memberIndex, member, members := group.AddOrGetMember(userID, "", appUser.FullName())
+				_, changed, memberIndex, member, members := group.Data.AddOrGetMember(userID, "", appUser.Data.FullName())
 				tgUserID := strconv.FormatInt(int64(whc.Input().GetSender().GetID().(int)), 10)
 				if member.TgUserID == "" {
 					member.TgUserID = tgUserID
@@ -45,11 +53,11 @@ var joinGroupCommand = shared_group.GroupCallbackCommand(joinGroupCommanCode,
 						log.Errorf(c, "tgUserID:%v != member.TgUserID:%v", tgUserID, member.TgUserID)
 					}
 				}
-				switch group.GetSplitMode() {
+				switch group.Data.GetSplitMode() {
 				case models.SplitModeEqually:
 					var shares int
-					if group.MembersCount > 0 {
-						shares = group.GetGroupMembers()[0].Shares
+					if group.Data.MembersCount > 0 {
+						shares = group.Data.GetGroupMembers()[0].Shares
 					} else {
 						shares = 1
 					}
@@ -65,15 +73,15 @@ var joinGroupCommand = shared_group.GroupCallbackCommand(joinGroupCommanCode,
 				}
 				if changed {
 					members[memberIndex] = member
-					group.SetGroupMembers(members)
-					if err = dtdal.Group.SaveGroup(c, group); err != nil {
+					group.Data.SetGroupMembers(members)
+					if err = dtdal.Group.SaveGroup(c, tx, group); err != nil {
 						return err
 					}
 				} else {
 					log.Debugf(c, "Group member not changed")
 				}
-				if userChanged := appUser.AddGroup(group, whc.GetBotCode()); userChanged {
-					if err = facade.User.SaveUser(c, appUser); err != nil {
+				if userChanged := appUser.Data.AddGroup(group, whc.GetBotCode()); userChanged {
+					if err = facade.User.SaveUser(c, tx, appUser); err != nil {
 						return err
 					}
 				}
@@ -91,7 +99,7 @@ var joinGroupCommand = shared_group.GroupCallbackCommand(joinGroupCommanCode,
 					}
 				}
 				return err
-			}, dtdal.CrossGroupTransaction)
+			})
 
 			if m, err := showGroupMembers(whc, group, true); err != nil {
 				return m, err
@@ -99,7 +107,7 @@ var joinGroupCommand = shared_group.GroupCallbackCommand(joinGroupCommanCode,
 				return m, err
 			}
 
-			m.Text = whc.Translate(trans.MESSAGE_TEXT_USER_JOINED_GROUP, fmt.Sprintf(`<a href="tg://user?id=%v">%v</a>`, whc.MustBotChatID(), appUser.FullName()))
+			m.Text = whc.Translate(trans.MESSAGE_TEXT_USER_JOINED_GROUP, fmt.Sprintf(`<a href="tg://user?id=%v">%v</a>`, whc.MustBotChatID(), appUser.Data.FullName()))
 		}
 
 		m.Format = botsfw.MessageFormatHTML

@@ -63,7 +63,7 @@ var newBillCommand = botsfw.Command{
 		if appUser, err = whc.GetAppUser(); err != nil {
 			return
 		}
-		user := appUser.(*models.AppUserEntity)
+		user := appUser.(*models.AppUserData)
 		userName := user.FullName()
 		if userName == "" {
 			err = errors.New("User has no name")

@@ -200,7 +200,7 @@ func processReturnCommand(whc botsfw.WebhookContext, returnValue decimal.Decimal
 
 	if transferID != 0 && returnValue > 0 {
 		var transfer models.Transfer
-		if transfer, err = facade.Transfers.GetTransferByID(whc.Context(), tx, transferID); err != nil {
+		if transfer, err = facade.Transfers.GetTransferByID(whc.Context(), nil, transferID); err != nil {
 			return
 		}
 
@@ -285,7 +285,7 @@ var AskToChooseDebtToReturnCommand = botsfw.Command{
 			if err != nil {
 				return m, err
 			}
-			user := botAppUser.(*models.AppUserEntity)
+			user := botAppUser.(*models.AppUserData)
 			var counterparties []models.Contact
 			if counterparties, err = dtdal.Contact.GetLatestContacts(whc, 0, user.TotalContactsCount()); err != nil {
 				return m, err
@@ -378,7 +378,7 @@ func getReturnWizardParams(whc botsfw.WebhookContext) (counterpartyID int64, tra
 
 func getCounterparty(whc botsfw.WebhookContext, counterpartyID int64) (counterparty models.Contact, err error) {
 	//counterparty = new(models.Contact)
-	if counterparty, err = facade.GetContactByID(whc.Context(), counterpartyID); err != nil {
+	if counterparty, err = facade.GetContactByID(whc.Context(), nil, counterpartyID); err != nil {
 		return
 	}
 	return

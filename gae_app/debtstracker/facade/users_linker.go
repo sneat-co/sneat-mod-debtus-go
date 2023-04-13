@@ -164,7 +164,7 @@ func (linker usersLinker) getOrCreateInvitedContactByInviterUserAndInviterContac
 			if invitedUserContact.Data.CounterpartyUserID == inviterUser.ID {
 				// We re-get the entity of the found invitedContact using transactional context
 				// and store it to output var
-				if invitedContact, err = GetContactByID(tc, invitedUserContact.ID); err != nil {
+				if invitedContact, err = GetContactByID(tc, tx, invitedUserContact.ID); err != nil {
 					err = fmt.Errorf("failed to call GetContactByID(%d): %w", invitedUserContact.ID, err)
 					return
 				}
@@ -309,11 +309,11 @@ func (linker usersLinker) updateInviterContact(
 		for i, inviterUserContact := range inviterUserContacts {
 			if inviterUserContact.ID == inviterContact.ID {
 				if inviterUserContact.UserID == 0 {
-					inviterUserContact.UserID = int(inviterContact.Data.CounterpartyUserID)
+					inviterUserContact.UserID = inviterContact.Data.CounterpartyUserID
 					inviterUserContacts[i] = inviterUserContact
 					inviterUser.Data.SetContacts(inviterUserContacts)
 					linker.changes.FlagAsChanged(inviterUser.Record)
-				} else if inviterUserContact.UserID == int(inviterContact.Data.CounterpartyUserID) {
+				} else if inviterUserContact.UserID == inviterContact.Data.CounterpartyUserID {
 					// do nothing
 				} else {
 					err = fmt.Errorf(

@@ -2,6 +2,8 @@ package shared_all
 
 import (
 	"bytes"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"strings"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
@@ -33,7 +35,7 @@ func startInBotAction(whc botsfw.WebhookContext, startParams []string, botParams
 }
 
 func startInBotWelcomeAction(whc botsfw.WebhookContext, botParams BotParams) (m botsfw.MessageFromBot, err error) {
-	var user *models.AppUserEntity
+	var user *models.AppUserData
 	if user, err = GetUser(whc); err != nil {
 		return
 	}

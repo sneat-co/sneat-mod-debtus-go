@@ -11,6 +11,7 @@ import (
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/v2/delay"
@@ -29,7 +30,7 @@ var ViewReceiptInTelegramCallbackCommand = botsfw.NewCallbackCommand(
 		if receiptID, err = common.DecodeIntID(query.Get("id")); err != nil {
 			return m, err
 		}
-		receipt, err := dtdal.Receipt.GetReceiptByID(c, receiptID)
+		receipt, err := dtdal.Receipt.GetReceiptByID(c, nil, receiptID)
 		if err != nil {
 			return m, err
 		}
@@ -62,15 +63,15 @@ var ViewReceiptInTelegramCallbackCommand = botsfw.NewCallbackCommand(
 
 const delayLinkUserByReceiptKeyName = "delayLinkUserByReceipt"
 
-var delayLinkUserByReceipt = delay.Func(delayLinkUserByReceiptKeyName, delayedLinkUsersByReceipt)
+var delayLinkUserByReceipt = delay.MustRegister(delayLinkUserByReceiptKeyName, delayedLinkUsersByReceipt)
 
 func DelayLinkUsersByReceipt(c context.Context, receiptID int, invitedUserID int64) (err error) {
 	return gae.CallDelayFunc(c, common.QUEUE_RECEIPTS, delayLinkUserByReceiptKeyName, delayLinkUserByReceipt, receiptID, invitedUserID)
 }
 
-func delayedLinkUsersByReceipt(c context.Context, receiptID, invitedUserID int64) error {
+func delayedLinkUsersByReceipt(c context.Context, receiptID int, invitedUserID int64) error {
 	log.Debugf(c, "delayedLinkUsersByReceipt(receiptID=%v, invitedUserID=%v)", receiptID, invitedUserID)
-	receipt, err := dtdal.Receipt.GetReceiptByID(c, receiptID)
+	receipt, err := dtdal.Receipt.GetReceiptByID(c, nil, receiptID)
 	if err != nil {
 		if dal.IsNotFound(err) {
 			log.Errorf(c, err.Error())

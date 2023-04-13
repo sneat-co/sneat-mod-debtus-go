@@ -81,7 +81,7 @@ func (c TransferCounterpartyInfo) Name() string {
 	}
 }
 
-func (t *TransferEntity) From() *TransferCounterpartyInfo {
+func (t *TransferData) From() *TransferCounterpartyInfo {
 	if t.from == nil {
 		t.from = &TransferCounterpartyInfo{}
 
@@ -149,7 +149,7 @@ func (t *TransferEntity) From() *TransferCounterpartyInfo {
 	return t.from
 }
 
-func (t *TransferEntity) To() *TransferCounterpartyInfo {
+func (t *TransferData) To() *TransferCounterpartyInfo {
 	if t.to == nil {
 		t.to = &TransferCounterpartyInfo{}
 		if t.ToJson != "" {
@@ -210,7 +210,7 @@ func (t *TransferEntity) To() *TransferCounterpartyInfo {
 	return t.to
 }
 
-func (t *TransferEntity) onSaveSerializeJson() error {
+func (t *TransferData) onSaveSerializeJson() error {
 	if t.from != nil {
 		if s, err := ffjson.MarshalFast(t.from); err != nil {
 			panic(fmt.Errorf("failed to marshal transfer.from: %w", err))
@@ -232,7 +232,7 @@ func (t *TransferEntity) onSaveSerializeJson() error {
 	return nil
 }
 
-//func (t *TransferEntity) onSaveMigrateUserProps() {
+//func (t *TransferData) onSaveMigrateUserProps() {
 //	switch t.Direction() {
 //	case TransferDirectionUser2Counterparty:
 //		from, to := t.From(), t.To()

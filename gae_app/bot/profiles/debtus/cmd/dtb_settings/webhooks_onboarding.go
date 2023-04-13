@@ -23,7 +23,7 @@ import (
 
 var reEmail = regexp.MustCompile("^.+@.+\\.\\w+$")
 
-func handleInviteOnStart(whc botsfw.WebhookContext, inviteCode string, invite *models.InviteEntity) (m botsfw.MessageFromBot, err error) {
+func handleInviteOnStart(whc botsfw.WebhookContext, inviteCode string, invite *models.InviteData) (m botsfw.MessageFromBot, err error) {
 	claimAndReply := func() {
 		if _, err = dtdal.Invite.ClaimInvite2(whc.Context(), inviteCode, invite, whc.AppUserIntID(), whc.BotPlatform().ID(), whc.GetBotCode()); err != nil {
 			err = fmt.Errorf("failed to ClaimInvite(): %w", err)

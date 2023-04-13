@@ -7,32 +7,32 @@ import (
 const TgGroupKind = "TgGroup"
 
 type TgGroup struct {
-	record.WithID[string]
-	*TgGroupEntity
+	record.WithID[int64]
+	*TgGroupData
 }
 
 //var _ db.EntityHolder = (*TgGroup)(nil)
 
-type TgGroupEntity struct {
-	UserGroupID string `datastore:",noindex"`
+type TgGroupData struct {
+	UserGroupID string `datastore:",noindex" firestore:",noindex"`
 }
 
-func (TgGroup) Kind() string {
-	return TgGroupKind
-}
-
-func (tgGroup TgGroup) Entity() interface{} {
-	return tgGroup.TgGroupEntity
-}
-
-func (tgGroup TgGroup) NewEntity() interface{} {
-	return new(TgGroupEntity)
-}
-
-func (tgGroup *TgGroup) SetEntity(entity interface{}) {
-	if entity == nil {
-		tgGroup.TgGroupEntity = nil
-	} else {
-		tgGroup.TgGroupEntity = entity.(*TgGroupEntity)
-	}
-}
+//func (TgGroup) Kind() string {
+//	return TgGroupKind
+//}
+//
+//func (tgGroup TgGroup) Entity() interface{} {
+//	return tgGroup.TgGroupData
+//}
+//
+//func (tgGroup TgGroup) NewEntity() interface{} {
+//	return new(TgGroupData)
+//}
+//
+//func (tgGroup *TgGroup) SetEntity(entity interface{}) {
+//	if entity == nil {
+//		tgGroup.TgGroupData = nil
+//	} else {
+//		tgGroup.TgGroupData = entity.(*TgGroupData)
+//	}
+//}

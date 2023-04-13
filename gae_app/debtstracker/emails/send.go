@@ -1,8 +1,10 @@
 package emails
 
 import (
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bytes"
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	"net/http"
 	"strings"
 
@@ -17,12 +19,16 @@ import (
 	"google.golang.org/appengine/v2/urlfetch"
 )
 
-func CreateEmailRecordAndQueueForSending(c context.Context, emailEntity *models.EmailEntity) (id int64, err error) {
+func CreateEmailRecordAndQueueForSending(c context.Context, emailEntity *models.EmailData) (id int64, err error) {
 	var email models.Email
 
-	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
 		emailEntity.Status = "queued"
-		if email, err = dtdal.Email.InsertEmail(c, emailEntity); err != nil {
+		if email, err = dtdal.Email.InsertEmail(c, tx, emailEntity); err != nil {
 			err = fmt.Errorf("%w: Failed to insert Email record", err)
 			return err
 		}
@@ -30,7 +36,7 @@ func CreateEmailRecordAndQueueForSending(c context.Context, emailEntity *models.
 			err = fmt.Errorf("%w: Failed to delay sending", err)
 		}
 		return err
-	}, dtdal.CrossGroupTransaction); err != nil {
+	}); err != nil {
 		return
 	}
 

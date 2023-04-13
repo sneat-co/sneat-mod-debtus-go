@@ -32,7 +32,7 @@ func ReceiptRedirect(w http.ResponseWriter, r *http.Request, _ httprouter.Params
 		return
 	}
 	log.Debugf(c, "Receipt ID: %v", receiptID)
-	receipt, err := dtdal.Receipt.GetReceiptByID(c, receiptID)
+	receipt, err := dtdal.Receipt.GetReceiptByID(c, nil, receiptID)
 	switch err {
 	case nil: //pass
 	case datastore.ErrNoSuchEntity:
@@ -42,7 +42,7 @@ func ReceiptRedirect(w http.ResponseWriter, r *http.Request, _ httprouter.Params
 	default:
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Errorf(c, err.Error())
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 

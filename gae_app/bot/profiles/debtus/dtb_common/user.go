@@ -10,7 +10,7 @@ func GetUser(whc botsfw.WebhookContext) (user models.AppUser, err error) {
 	if appUser, err = whc.GetAppUser(); err != nil {
 		return
 	}
-	user.Data = appUser.(*models.AppUserEntity)
+	user.Data = appUser.(*models.AppUserData)
 	user.ID = whc.AppUserIntID()
 	return
 }

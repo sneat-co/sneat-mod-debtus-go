@@ -1,22 +1,19 @@
 package maintainance
 
 import (
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"context"
 	"fmt"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/strongo/db"
+	"github.com/strongo/log"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/v2/datastore"
 	"net/http"
 	"strconv"
 	"strings"
 	"sync"
-
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"context"
-	"github.com/strongo/log"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/v2/datastore"
 )
 
 func mergeContactsHandler(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +21,8 @@ func mergeContactsHandler(w http.ResponseWriter, r *http.Request) {
 	targetContactID, err := strconv.ParseInt(q.Get("target"), 10, 64)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
+		return
 	}
 	sourceContacts := strings.Split(q.Get("source"), ",")
 	sourceContactIDs := make([]int64, len(sourceContacts))
@@ -34,14 +32,25 @@ func mergeContactsHandler(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(err.Error()))
 		}
 	}
-	if err = mergeContacts(appengine.NewContext(r), targetContactID, sourceContactIDs...); err != nil {
+	var db dal.Database
+	db, err = facade.GetDatabase(r.Context())
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
+		return
+	}
+	err = db.RunReadwriteTransaction(r.Context(), func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
+		return mergeContacts(appengine.NewContext(r), tx, targetContactID, sourceContactIDs...)
+	})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(err.Error()))
+		return
 	}
 	w.Write([]byte("done"))
 }
 
-func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ...int64) (err error) {
+func mergeContacts(c context.Context, tx dal.ReadwriteTransaction, targetContactID int64, sourceContactIDs ...int64) (err error) {
 	if len(sourceContactIDs) == 0 {
 		panic("len(sourceContactIDs) == 0")
 	}
@@ -51,9 +60,9 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 		user          models.AppUser
 	)
 
-	if targetContact, err = facade.GetContactByID(c, targetContactID); err != nil {
+	if targetContact, err = facade.GetContactByID(c, tx, targetContactID); err != nil {
 		if dal.IsNotFound(err) && len(sourceContactIDs) == 1 {
-			if targetContact, err = facade.GetContactByID(c, sourceContactIDs[0]); err != nil {
+			if targetContact, err = facade.GetContactByID(c, tx, sourceContactIDs[0]); err != nil {
 				return
 			}
 			targetContact.ID = targetContactID
@@ -65,7 +74,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 		}
 	}
 
-	if user, err = facade.User.GetUserByID(c, tx, targetContact.Data.UserID); err != nil {
+	if user, err = facade.User.GetUserByID(c, nil, targetContact.Data.UserID); err != nil {
 		return
 	}
 
@@ -75,7 +84,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 			return
 		}
 		var sourceContact models.Contact
-		if sourceContact, err = facade.GetContactByID(c, sourceContactID); err != nil {
+		if sourceContact, err = facade.GetContactByID(c, tx, sourceContactID); err != nil {
 			if dal.IsNotFound(err) {
 				continue
 			}
@@ -93,7 +102,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 
 	for _, sourceContactID := range sourceContactIDs {
 		go func(sourceContactID int64) {
-			if err2 := mergeContactTransfers(c, wg, targetContactID, sourceContactID); err2 != nil {
+			if err2 := mergeContactTransfers(c, tx, wg, targetContactID, sourceContactID); err2 != nil {
 				log.Errorf(c, "failed to merge transfers for contact %v: %v", sourceContactID, err2)
 				if err == nil {
 					err = err2
@@ -107,7 +116,11 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 		return
 	}
 
-	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) (err error) {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 		if user, err = facade.User.GetUserByID(c, tx, user.ID); err != nil {
 			return
 		}
@@ -121,7 +134,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 						targetContactBalance.Add(money.NewAmount(currency, value))
 					}
 					var sourceContact models.Contact
-					if sourceContact, err = facade.GetContactByID(c, sourceContactID); err != nil {
+					if sourceContact, err = facade.GetContactByID(c, tx, sourceContactID); err != nil {
 						if dal.IsNotFound(err) {
 							err = nil
 						} else {
@@ -135,7 +148,7 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 						}
 						if sourceContact.Data.CounterpartyCounterpartyID != 0 {
 							var counterpartyContact models.Contact
-							if counterpartyContact, err = facade.GetContactByID(c, sourceContact.CounterpartyCounterpartyID); err != nil {
+							if counterpartyContact, err = facade.GetContactByID(c, tx, sourceContact.Data.CounterpartyCounterpartyID); err != nil {
 								if dal.IsNotFound(err) {
 									err = nil
 								} else {
@@ -176,34 +189,39 @@ func mergeContacts(c context.Context, targetContactID int64, sourceContactIDs ..
 			return
 		}
 		return
-	}, db.CrossGroupTransaction); err != nil {
+	}); err != nil {
 		return fmt.Errorf("%w: failed to update user entity", err)
 	}
 
 	return
 }
 
-func mergeContactTransfers(c context.Context, wg *sync.WaitGroup, targetContactID int64, sourceContactID int64) (err error) {
+func mergeContactTransfers(c context.Context, tx dal.ReadwriteTransaction, wg *sync.WaitGroup, targetContactID int64, sourceContactID int64) (err error) {
 	defer func() {
 		wg.Done()
 	}()
-	transfersQ := datastore.NewQuery(models.TransferKind)
-	transfersQ = transfersQ.Filter("BothCounterpartyIDs =", sourceContactID)
-	transfers := transfersQ.Run(c)
+	transfersQ := dal.From(models.TransferKind).
+		Where(dal.Field("BothCounterpartyIDs").EqualTo(sourceContactID)).
+		SelectInto(func() dal.Record {
+			return models.NewTransfer(0, nil).Record
+		})
+	transfers, err := tx.Select(c, transfersQ)
+	if err != nil {
+		return fmt.Errorf("failed to select transfers: %w", err)
+	}
 	var (
-		key      *datastore.Key
+		record   dal.Record
 		transfer models.Transfer
 	)
 	for {
-		transfer.Data = new(models.TransferEntity)
-		if key, err = transfers.Next(transfer.Data); err != nil {
+		if record, err = transfers.Next(); err != nil {
 			if err == datastore.Done {
 				err = nil
 				break
 			}
 			log.Errorf(c, "Failed to get next transfer: %v", err)
 		}
-		transfer.ID = key.IntID()
+		transfer.ID = record.Key().ID.(int)
 		switch sourceContactID {
 		case transfer.Data.From().ContactID:
 			transfer.Data.From().ContactID = targetContactID

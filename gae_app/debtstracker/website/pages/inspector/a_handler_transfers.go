@@ -3,6 +3,7 @@ package inspector
 import (
 	"fmt"
 	"github.com/crediterra/money"
+	"github.com/dal-go/dalgo/dal"
 	"net/http"
 	"strconv"
 
@@ -49,14 +50,14 @@ func (h transfersPage) transfersPageHandler(w http.ResponseWriter, r *http.Reque
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if contact, err = facade.GetContactByID(c, contactID); err != nil {
+		if contact, err = facade.GetContactByID(c, nil, contactID); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, err)
+			_, _ = fmt.Fprint(w, err)
 			return
 		}
-		if user, err = facade.User.GetUserByID(c, tx, contact.Data.UserID); err != nil {
+		if user, err = facade.User.GetUserByID(c, nil, contact.Data.UserID); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, err)
+			_, _ = fmt.Fprint(w, err)
 			return
 		}
 	}()
@@ -64,9 +65,15 @@ func (h transfersPage) transfersPageHandler(w http.ResponseWriter, r *http.Reque
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if transfers, transfersTotalWithoutInterest, err = h.processTransfers(c, contactID, currency); err != nil {
+		db, err := facade.GetDatabase(c)
+		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, err)
+			_, _ = fmt.Fprint(w, err)
+			return
+		}
+		if transfers, transfersTotalWithoutInterest, err = h.processTransfers(c, db, contactID, currency); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = fmt.Fprint(w, err)
 			return
 		}
 	}()
@@ -94,29 +101,35 @@ func (h transfersPage) transfersPageHandler(w http.ResponseWriter, r *http.Reque
 	renderTransfersPage(contact, currency, balancesWithoutInterest, balancesWithInterest, transfers, w)
 }
 
-func (h transfersPage) processTransfers(c context.Context, contactID int64, currency money.Currency) (
+func (h transfersPage) processTransfers(c context.Context, tx dal.ReadSession, contactID int64, currency money.Currency) (
 	transfers []models.Transfer,
 	balanceWithoutInterest decimal.Decimal64p2,
 	err error,
 ) {
-	query := datastore.NewQuery(models.TransferKind)
-	query = query.Filter("BothCounterpartyIDs=", contactID)
-	query = query.Filter("Currency=", currency)
-	query = query.Order("DtCreated")
+	query := dal.From(models.TransferKind).
+		Where(
+			dal.Field("BothCounterpartyIDs").EqualTo(contactID),
+			dal.Field("Currency").EqualTo(currency),
+		).
+		OrderBy(dal.DescendingField("DtCreated")).
+		SelectInto(func() dal.Record {
+			return dal.NewRecordWithoutKey(new(models.TransferData))
+		})
 
-	iterator := query.Run(c)
-
+	var reader dal.Reader
+	if reader, err = tx.Select(c, query); err != nil {
+		return
+	}
 	for {
-		transferEntity := new(models.TransferEntity)
-		var key *datastore.Key
-		if key, err = iterator.Next(transferEntity); err != nil {
+		var record dal.Record
+		if record, err = reader.Next(); err != nil {
 			if err == datastore.Done {
 				err = nil
 				break
 			}
 			panic(err)
 		}
-		transfer := models.NewTransfer(key.IntID(), transferEntity)
+		transfer := models.NewTransfer(record.Key().ID.(int), record.Data().(*models.TransferData))
 		transfers = append(transfers, transfer)
 		switch contactID {
 		case transfer.Data.From().ContactID:

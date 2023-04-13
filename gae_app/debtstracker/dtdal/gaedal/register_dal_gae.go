@@ -1,7 +1,9 @@
 package gaedal
 
 import (
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	strongo "github.com/strongo/app"
+	"github.com/strongo/db"
 	"net/http"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
