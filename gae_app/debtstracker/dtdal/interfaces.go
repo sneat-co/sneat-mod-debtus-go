@@ -280,7 +280,7 @@ type TgChatDal interface {
 		tgChatID int64,
 		authInfo auth.AuthInfo,
 		user models.AppUser,
-		sendToTelegram func(tgChat tgstore.TgChatBase) error,
+		sendToTelegram func(tgChat tgstore.TgChat) error,
 	) (err error)
 }
 

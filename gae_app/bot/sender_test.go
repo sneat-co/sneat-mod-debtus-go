@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"testing"
 )
 

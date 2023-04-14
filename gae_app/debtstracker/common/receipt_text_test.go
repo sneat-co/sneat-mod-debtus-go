@@ -3,6 +3,7 @@ package common
 import (
 	"bytes"
 	"github.com/crediterra/money"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"regexp"
 	"testing"
 
@@ -30,21 +31,19 @@ func TestWriteReceiptText(t *testing.T) {
 	translator := strongo.NewSingleMapTranslator(strongo.LocaleEnUS, strongo.NewMapTranslator(c, trans.TRANS))
 	ec := strongo.NewExecutionContext(c, translator)
 
-	transfer := models.Transfer{
-		IntegerID: db.IntegerID{ID: 123},
-		TransferEntity: models.NewTransferData(
-			12,
-			false,
-			money.Amount{Currency: "EUR", Value: 98765},
-			&models.TransferCounterpartyInfo{
-				ContactID:   23,
-				ContactName: "John Whites",
-			},
-			&models.TransferCounterpartyInfo{
-				UserID:   12,
-				UserName: "Anna Blacks",
-			},
-		)}
+	transfer := models.NewTransfer(123, models.NewTransferData(
+		12,
+		false,
+		money.Amount{Currency: "EUR", Value: 98765},
+		&models.TransferCounterpartyInfo{
+			ContactID:   23,
+			ContactName: "John Whites",
+		},
+		&models.TransferCounterpartyInfo{
+			UserID:   12,
+			UserName: "Anna Blacks",
+		},
+	))
 
 	receiptTextBuilder := newReceiptTextBuilder(ec, transfer, ShowReceiptToCounterparty)
 

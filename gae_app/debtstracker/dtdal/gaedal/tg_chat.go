@@ -5,13 +5,13 @@ import (
 	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
+	"strconv"
 	"strings"
 	"sync"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/strongo/db/gaedb"
 	"github.com/strongo/log"
 )
 
@@ -27,7 +27,7 @@ func (TgChatDalGae) GetTgChatByID(c context.Context, tgBotID string, tgChatID in
 	key := dal.NewKeyWithID(tgstore.TgChatCollection, tgChatFullID)
 	data := new(models.DebtusTelegramChatData)
 	tgChat = models.DebtusTelegramChat{
-		Chat: tgstore.Chat{
+		TgChat: tgstore.TgChat{
 			WithID: record.NewWithID[string](tgChatFullID, key, data),
 		},
 		Data: data,
@@ -48,36 +48,44 @@ func (TgChatDalGae) GetTgChatByID(c context.Context, tgBotID string, tgChatID in
 
 func (TgChatDalGae) /* TODO: rename properly! */ DoSomething(c context.Context,
 	userTask *sync.WaitGroup, currency string, tgChatID int64, authInfo auth.AuthInfo, user models.AppUser,
-	sendToTelegram func(tgChatBase tgstore.TgChatBase) error,
+	sendToTelegram func(tgChat tgstore.TgChat) error,
 ) (err error) {
 	var isSentToTelegram bool // Needed in case of failed to save to DB and is auto-retry
-	tgChatKey := gaedb.NewKey(c, tgstore.TgChatCollection, "", tgChatID, nil)
-	if err = gaedb.RunInTransaction(c, func(tc context.Context) (err error) {
-		var tgChat tgstore.TgChatBase
+	debtusTgChatData := &models.DebtusTelegramChatData{}
 
-		if err = gaedb.Get(tc, tgChatKey, &tgChat); err != nil {
-			return fmt.Errorf("failed to get Telegram chat entity by key=%v: %w", tgChatKey, err)
+	debtusTgChat := models.DebtusTelegramChat{
+		TgChat: tgstore.NewTgChat(strconv.FormatInt(tgChatID, 10), debtusTgChatData),
+	}
+
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
+	}
+
+	if err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) (err error) {
+		if err = tx.Get(tc, debtusTgChat.Record); err != nil {
+			return err
 		}
-		if tgChat.BotID == "" {
+		if debtusTgChat.Data.BotID == "" {
 			log.Errorf(c, "Data inconsistency issue - TgChat(%v).BotID is empty string", tgChatID)
 			if strings.Contains(authInfo.Issuer, ":") {
 				issuer := strings.Split(authInfo.Issuer, ":")
 				if strings.ToLower(issuer[0]) == "telegram" {
-					tgChat.BotID = issuer[1]
-					log.Infof(c, "Data inconsistency fixed, set to: %v", tgChat.BotID)
+					debtusTgChat.Data.BotID = issuer[1]
+					log.Infof(c, "Data inconsistency fixed, set to: %v", debtusTgChat.Data.BotID)
 				}
 			}
 		}
-		tgChat.AddWizardParam("currency", string(currency))
+		debtusTgChat.Data.AddWizardParam("currency", string(currency))
 
 		if !isSentToTelegram {
-			if err = sendToTelegram(tgChat); err != nil { // This is some serious architecture sheet. Too sleepy to make it right, just make it working.
+			if err = sendToTelegram(debtusTgChat.TgChat); err != nil { // This is some serious architecture sheet. Too sleepy to make it right, just make it working.
 				return err
 			}
 			isSentToTelegram = true
 		}
-		if _, err = gaedb.Put(tc, tgChatKey, &tgChat); err != nil {
-			return fmt.Errorf("failed to save Telegram chat entity to datastore: %w", err)
+		if err = tx.Set(tc, debtusTgChat.Record); err != nil {
+			return fmt.Errorf("failed to save Telegram chat record to db: %w", err)
 		}
 		return err
 	}, nil); err != nil {

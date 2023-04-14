@@ -2,6 +2,8 @@ package dtb_transfer
 
 import (
 	"github.com/crediterra/money"
+	"github.com/sneat-co/debtstracker-translations/trans"
+
 	//"fmt"
 	"encoding/json"
 	"fmt"

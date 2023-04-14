@@ -5,32 +5,12 @@ import (
 )
 
 type DebtusTelegramChat struct {
-	tgstore.Chat
+	tgstore.TgChat
 	//tgstore.ChatEntity
 	Data *DebtusTelegramChatData
 }
 
-//var _ db.EntityHolder = (*DebtusTelegramChat)(nil)
-
-//func (DebtusTelegramChat) Kind() string {
-//	return telegram.ChatKind
-//}
-
-//func (tgChat DebtusTelegramChat) Entity() interface{} {
-//	return tgChat.DebtusTelegramChatData
-//}
-
-//func (DebtusTelegramChat) NewEntity() interface{} {
-//	return new(DebtusTelegramChatData)
-//}
-
-//func (tgChat *DebtusTelegramChat) SetEntity(entity interface{}) {
-//	if entity == nil {
-//		tgChat.DebtusTelegramChatData = nil
-//	} else {
-//		tgChat.DebtusTelegramChatData = entity.(*DebtusTelegramChatData)
-//	}
-//}
+var _ tgstore.TgChatData = (*DebtusTelegramChatData)(nil)
 
 // DebtusTelegramChatData is a data structure for storing debtus data related to specific telegram chat
 type DebtusTelegramChatData struct {
@@ -38,7 +18,11 @@ type DebtusTelegramChatData struct {
 	DebtusChatData
 }
 
-func (entity *DebtusTelegramChatData) Validate() (err error) {
+func (v *DebtusTelegramChatData) BaseChatData() *tgstore.TgChatBase {
+	return &v.TgChatBase
+}
+
+func (v *DebtusTelegramChatData) Validate() (err error) {
 	//if properties, err = datastore.SaveStruct(entity); err != nil {
 	//	return properties, err
 	//}

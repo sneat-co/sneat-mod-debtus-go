@@ -15,7 +15,7 @@ import (
 func GetLocale(c context.Context, botID string, tgChatIntID, userID int64) (locale strongo.Locale, err error) {
 	chatID := botsfw.NewChatID(botID, strconv.FormatInt(tgChatIntID, 10))
 	//var tgChatEntity tgstore.ChatEntity
-	tgChat := tgstore.NewChat(chatID, new(models.DebtusTelegramChatData))
+	tgChat := tgstore.NewTgChat(chatID, new(models.DebtusTelegramChatData))
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
 		return
