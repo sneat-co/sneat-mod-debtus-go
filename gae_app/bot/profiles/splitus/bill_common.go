@@ -34,9 +34,9 @@ func getBill(c context.Context, tx dal.ReadSession, callbackUrl *url.URL) (bill 
 	return
 }
 
-type billCallbackActionType func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error)
+type billCallbackActionHandler func(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error)
 
-func billCallbackCommand(code string, f billCallbackActionType) (command botsfw.Command) {
+func billCallbackCommand(code string, f billCallbackActionHandler) (command botsfw.Command) {
 	command = botsfw.NewCallbackCommand(code, billCallbackAction(f))
 	//if txOptions != nil {
 	//	command.CallbackAction = shared_all.TransactionalCallbackAction(txOptions, command.CallbackAction)
@@ -44,7 +44,7 @@ func billCallbackCommand(code string, f billCallbackActionType) (command botsfw.
 	return
 }
 
-func billCallbackAction(f billCallbackActionType) func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
+func billCallbackAction(f billCallbackActionHandler) func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 	return func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		var db dal.Database
@@ -69,7 +69,7 @@ func billCallbackAction(f billCallbackActionType) func(whc botsfw.WebhookContext
 					log.Debugf(c, "Not in group")
 				}
 			}
-			m, err = f(whc, callbackUrl, bill)
+			m, err = f(whc, tx, callbackUrl, bill)
 			return err
 		}); err != nil {
 			return

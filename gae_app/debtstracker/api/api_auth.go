@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	strongo "github.com/strongo/app"
 	"io"
 	"net/http"
@@ -42,7 +43,7 @@ func AuthOnlyWithUser(handler AuthHandlerWithUser) strongo.ContextHandler {
 
 		user, err := facade.User.GetUserByID(c, nil, userID)
 
-		if hasError(c, w, err, models.AppUserKind, userID, http.StatusInternalServerError) {
+		if hasError(c, w, err, models.AppUserKind, int(userID), http.StatusInternalServerError) {
 			return
 		}
 		handler(c, w, r, authInfo, user)
@@ -99,21 +100,21 @@ func handleAuthLoginId(c context.Context, w http.ResponseWriter, r *http.Request
 	query := r.URL.Query()
 	channel := query.Get("channel")
 	var (
-		loginID int64
+		loginID int
 		err     error
 	)
 
 	loginIdStr := query.Get("id")
 
 	if loginIdStr != "" {
-		if loginID, err = common.DecodeID(loginIdStr); err != nil {
+		if loginID, err = common.DecodeIntID(loginIdStr); err != nil {
 			BadRequestError(c, w, err)
 			return
 		}
 	}
 
-	returnLoginID := func(loginID int64) {
-		encoded := common.EncodeID(loginID)
+	returnLoginID := func(loginID int) {
+		encoded := common.EncodeIntID(loginID)
 		log.Infof(c, "Login ID: %d, Encoded: %v", loginID, encoded)
 		if _, err = w.Write([]byte(encoded)); err != nil {
 			log.Criticalf(c, "Failed to write login ID to response: %v", err)
@@ -121,12 +122,12 @@ func handleAuthLoginId(c context.Context, w http.ResponseWriter, r *http.Request
 	}
 
 	if loginID != 0 {
-		if loginPin, err := dtdal.LoginPin.GetLoginPinByID(c, loginID); err != nil {
-			if err != dal.ErrRecordNotFound {
+		if loginPin, err := dtdal.LoginPin.GetLoginPinByID(c, nil, loginID); err != nil {
+			if dal.IsNotFound(err) {
 				InternalError(c, w, err)
 				return
 			}
-		} else if loginPin.IsActive(channel) {
+		} else if loginPin.Data.IsActive(channel) {
 			returnLoginID(loginID)
 			return
 		}
@@ -151,8 +152,22 @@ func handleAuthLoginId(c context.Context, w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	if loginID, err = dtdal.LoginPin.CreateLoginPin(c, channel, gaClientID, authInfo.UserID); err != nil {
-		ErrorAsJson(c, w, http.StatusInternalServerError, err)
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		InternalError(c, w, err)
+		return
+	}
+	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+		var loginPin models.LoginPin
+		if loginPin, err = dtdal.LoginPin.CreateLoginPin(c, tx, channel, gaClientID, authInfo.UserID); err != nil {
+			ErrorAsJson(c, w, http.StatusInternalServerError, err)
+			return
+		}
+		loginID = loginPin.ID
+		return err
+	})
+	if err != nil {
+		InternalError(c, w, err)
 		return
 	}
 	returnLoginID(loginID)

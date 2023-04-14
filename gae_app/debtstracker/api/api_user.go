@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -23,9 +24,9 @@ func getApiUser(c context.Context, w http.ResponseWriter, r *http.Request, authI
 		return
 	}
 
-	if user, err = facade.User.GetUserByID(c, user.ID); hasError(c, w, err, models.AppUserKind, user.ID, 0) {
+	if user, err = facade.User.GetUserByID(c, nil, user.ID); hasError(c, w, err, models.AppUserKind, int(user.ID), 0) {
 		return
-	} else if user.AppUserEntity == nil {
+	} else if user.Data == nil {
 		w.Write([]byte(fmt.Sprintf("User not found by ID=%v", user.ID)))
 		http.NotFound(w, r) // TODO: Check response output
 		return
@@ -74,16 +75,16 @@ func handleSaveVisitorData(c context.Context, w http.ResponseWriter, r *http.Req
 func handleMe(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo, user models.AppUser) {
 	meDto := dto.UserMeDto{
 		UserID:   strconv.FormatInt(authInfo.UserID, 10),
-		FullName: user.FullName(),
+		FullName: user.Data.FullName(),
 	}
-	if ua, err := user.GetGoogleAccount(); err != nil {
+	if ua, err := user.Data.GetGoogleAccount(); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	} else if ua != nil {
 		meDto.GoogleUserID = ua.ID
 	}
 
-	if fbAccounts, err := user.GetFbAccounts(); err != nil {
+	if fbAccounts, err := user.Data.GetFbAccounts(); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	} else {
@@ -114,20 +115,24 @@ func setUserName(c context.Context, w http.ResponseWriter, r *http.Request, auth
 		return
 	}
 
-	err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
-		user, err := facade.User.GetUserByID(c, authInfo.UserID)
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+		user, err := facade.User.GetUserByID(c, tx, authInfo.UserID)
 		if err != nil {
 			return err
 		}
-		user.Username = string(body)
-		if err = facade.User.SaveUser(c, user); err != nil {
+		user.Data.Username = string(body)
+		if err = facade.User.SaveUser(c, tx, user); err != nil {
 			return err
 		}
 		if err = gaedal.DelayUpdateTransfersWithCreatorName(c, user.ID); err != nil {
 			return err
 		}
 		return err
-	}, dtdal.SingleGroupTransaction)
+	})
 
 	if err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)

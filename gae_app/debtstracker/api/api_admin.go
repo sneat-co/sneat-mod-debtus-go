@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	"net/http"
 	"strconv"
 
@@ -9,7 +10,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal/gaedal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
@@ -38,7 +38,7 @@ func handleAdminFindUser(c context.Context, w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		tgUsers, err := dtdal.TgUser.FindByUserName(c, tgUserText)
+		tgUsers, err := dtdal.TgUser.FindByUserName(c, nil, tgUserText)
 
 		if err != nil {
 			InternalError(c, w, err)
@@ -49,8 +49,8 @@ func handleAdminFindUser(c context.Context, w http.ResponseWriter, r *http.Reque
 
 		for i, tgUser := range tgUsers {
 			users[i] = dto.ApiUserDto{
-				ID:   strconv.FormatInt(tgUser.AppUserIntID, 10),
-				Name: tgUser.Name(),
+				ID:   strconv.FormatInt(tgUser.Data.AppUserIntID, 10),
+				Name: tgUser.Data.Name(),
 			}
 		}
 
@@ -59,13 +59,19 @@ func handleAdminFindUser(c context.Context, w http.ResponseWriter, r *http.Reque
 }
 
 func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *http.Request, _ auth.AuthInfo) {
-	keepID := getID(c, w, r, "keepID")
-	deleteID := getID(c, w, r, "deleteID")
+	keepID := int64(getID(c, w, r, "keepID"))
+	deleteID := int64(getID(c, w, r, "deleteID"))
 
 	log.Infof(c, "keepID: %d, deleteID: %d", keepID, deleteID)
 
-	if err := dtdal.DB.RunInTransaction(c, func(c context.Context) error {
-		contacts, err := facade.GetContactsByIDs(c, []int64{keepID, deleteID})
+	db, err := facade.GetDatabase(c)
+	if err != nil {
+		ErrorAsJson(c, w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+		contacts, err := facade.GetContactsByIDs(c, tx, []int64{keepID, deleteID})
 		if err != nil {
 			return err
 		}
@@ -80,7 +86,7 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 		if contactToDelete.Data.CounterpartyUserID != 0 && contactToKeep.Data.CounterpartyUserID == 0 {
 			return errors.New("contactToDelete.CounterpartyUserID != 0 && contactToKeep.CounterpartyUserID == 0")
 		}
-		user, err := facade.User.GetUserByID(c, contactToKeep.Data.UserID)
+		user, err := facade.User.GetUserByID(c, tx, contactToKeep.Data.UserID)
 		if err != nil {
 			return err
 		}
@@ -88,7 +94,7 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 			return errors.New("Not implemented yet: Need to update counterparty & user balances + last transfer info")
 		}
 		if userChanged := user.Data.RemoveContact(deleteID); userChanged {
-			if err = facade.User.SaveUser(c, user); err != nil {
+			if err = facade.User.SaveUser(c, tx, user); err != nil {
 				return err
 			}
 		}
@@ -99,13 +105,13 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 				return err
 			}
 		}
-		if err := datastore.Delete(c, gaedal.NewContactKey(c, deleteID)); err != nil {
+		if err := tx.Delete(c, models.NewContactKey(deleteID)); err != nil {
 			return err
 		} else {
 			log.Warningf(c, "Contact %d has been deleted from DB (non revocable)", deleteID)
 		}
 		return nil
-	}, dtdal.CrossGroupTransaction); err != nil {
+	}); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	}
@@ -133,13 +139,17 @@ var delayedChangeTransfersCounterparty = delay.MustRegister("changeTransfersCoun
 	return nil
 })
 
-var delayedChangeTransferCounterparty = delay.MustRegister("changeTransferCounterparty", func(c context.Context, transferID, oldID, newID int64, cursor string) error {
+var delayedChangeTransferCounterparty = delay.MustRegister("changeTransferCounterparty", func(c context.Context, transferID int, oldID, newID int64, cursor string) (err error) {
 	log.Debugf(c, "delayedChangeTransferCounterparty(oldID=%d, newID=%d, cursor=%v)", oldID, newID, cursor)
-	if _, err := facade.GetContactByID(c, tx, newID); err != nil {
+	if _, err = facade.GetContactByID(c, nil, newID); err != nil {
 		return err
 	}
-	err := dtdal.DB.RunInTransaction(c, func(c context.Context) error {
-		transfer, err := facade.Transfers.GetTransferByID(c, transferID)
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return err
+	}
+	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+		transfer, err := facade.Transfers.GetTransferByID(c, tx, transferID)
 		if err != nil {
 			return err
 		}
@@ -157,9 +167,9 @@ var delayedChangeTransferCounterparty = delay.MustRegister("changeTransferCounte
 			} else if to := transfer.Data.To(); to.ContactID == oldID {
 				to.ContactID = newID
 			}
-			err = facade.Transfers.SaveTransfer(c, transfer)
+			err = facade.Transfers.SaveTransfer(c, tx, transfer)
 		}
 		return err
-	}, dtdal.SingleGroupTransaction)
+	})
 	return err
 })

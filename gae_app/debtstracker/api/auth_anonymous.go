@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/dal-go/dalgo/dal"
 	"net/http"
 	"strconv"
 
@@ -27,7 +28,7 @@ func handleSignInAnonymous(c context.Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	userEntity, err := facade.User.GetUserByID(c, userID)
+	userEntity, err := facade.User.GetUserByID(c, nil, userID)
 
 	if err != nil {
 		if dal.IsNotFound(err) {
@@ -38,7 +39,7 @@ func handleSignInAnonymous(c context.Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if userEntity.IsAnonymous {
+	if userEntity.Data.IsAnonymous {
 		SaveUserAgent(c, userID, r.UserAgent())
 		ReturnToken(c, w, userID, false, false)
 	} else {

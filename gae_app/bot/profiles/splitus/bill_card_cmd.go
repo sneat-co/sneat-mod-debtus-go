@@ -56,7 +56,7 @@ func getPrivateBillCardInlineKeyboard(translator strongo.SingleLocaleTranslator,
 				Text:         translator.Translate(trans.BUTTON_TEXT_CHANGE_BILL_PAYER),
 				CallbackData: fmt.Sprintf(CHANGE_BILL_PAYER_COMMAND+"?bill=%v", bill.ID)},
 			{
-				Text:         translator.Translate(trans.BUTTON_TEXT_SPLIT_MODE, translator.Translate(string(bill.SplitMode))),
+				Text:         translator.Translate(trans.BUTTON_TEXT_SPLIT_MODE, translator.Translate(string(bill.Data.SplitMode))),
 				CallbackData: fmt.Sprintf("split-modes?bill=%v", bill.ID),
 			},
 		},

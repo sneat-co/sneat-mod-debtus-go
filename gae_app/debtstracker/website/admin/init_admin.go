@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_fbm"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -14,5 +13,5 @@ func InitAdmin(router router) {
 	router.GET("/admin/clean", CleanupPage)
 	//strongo.AddHttpHandler("/admin/mass-invites", LatestPage)
 	router.GET("/admin/fix/transfers", FixTransfersHandler)
-	router.GET("/admin/fbm/set", dtb_fbm.SetupFbm)
+	//router.GET("/admin/fbm/set", dtb_fbm.SetupFbm)
 }

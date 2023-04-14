@@ -2,6 +2,8 @@ package website
 
 import (
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/http"
 	"strconv"
 
@@ -76,15 +78,15 @@ func CreateInvitePage(w http.ResponseWriter, r *http.Request, authInfo auth.Auth
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		invite, err := dtdal.Invite.GetInvite(c, inviteCode)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			return
-		}
-		if invite != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(fmt.Sprintf("Invate code [%v] already exists", inviteCode)))
+
+		if _, err = dtdal.Invite.GetInvite(c, nil, inviteCode); err != nil {
+			if dal.IsNotFound(err) {
+				w.WriteHeader(http.StatusBadRequest)
+				_, _ = w.Write([]byte(fmt.Sprintf("Invate code [%v] already exists", inviteCode)))
+			} else {
+				w.WriteHeader(http.StatusInternalServerError)
+				_, _ = w.Write([]byte(err.Error()))
+			}
 			return
 		}
 		translator := strongo.NewSingleMapTranslator(strongo.GetLocaleByCode5(strongo.LocaleCodeEnUS), strongo.NewMapTranslator(c, trans.TRANS))

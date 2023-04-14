@@ -1,9 +1,11 @@
 package splitus
 
 import (
+	"context"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
+	"github.com/dal-go/dalgo/dal"
 	"net/url"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
@@ -79,10 +81,18 @@ var newBillCommand = botsfw.Command{
 		if err = billEntity.SetBillMembers([]models.BillMemberJson{billMember}); err != nil {
 			return
 		}
-		var bill models.Bill
-		if bill, err = facade.Bill.CreateBill(c, c, nil, billEntity); err != nil {
+
+		var db dal.Database
+		if db, err = facade.GetDatabase(c); err != nil {
 			return
 		}
-		return ShowBillCard(whc, true, bill, "")
+		return m, db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) (err error) {
+			var bill models.Bill
+			if bill, err = facade.Bill.CreateBill(c, tx, billEntity); err != nil {
+				return
+			}
+			m, err = ShowBillCard(whc, true, bill, "")
+			return err
+		})
 	},
 }

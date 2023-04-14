@@ -15,7 +15,7 @@ import (
 const setBillCurrencyCommandCode = "set-bill-currency"
 
 var setBillCurrencyCommand = billCallbackCommand(setBillCurrencyCommandCode,
-	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "setBillCurrencyCommand.CallbackAction()")
 		query := callbackUrl.Query()
@@ -23,7 +23,7 @@ var setBillCurrencyCommand = billCallbackCommand(setBillCurrencyCommandCode,
 		if bill.Data.Currency != currencyCode {
 			previousCurrency := bill.Data.Currency
 			bill.Data.Currency = currencyCode
-			if err = dtdal.Bill.SaveBill(c, bill); err != nil {
+			if err = dtdal.Bill.SaveBill(c, tx, bill); err != nil {
 				return
 			}
 

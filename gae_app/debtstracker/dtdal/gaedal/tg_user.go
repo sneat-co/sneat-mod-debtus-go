@@ -1,6 +1,7 @@
 package gaedal
 
 import (
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"context"
 	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
 	"github.com/dal-go/dalgo/dal"
@@ -16,6 +17,12 @@ func NewTgUserDalGae() TgUserDalGae {
 }
 
 func (TgUserDalGae) FindByUserName(c context.Context, tx dal.ReadSession, userName string) (tgUsers []tgstore.TgUser, err error) {
+	if tx == nil {
+		tx, err = facade.GetDatabase(c)
+		if err != nil {
+			return
+		}
+	}
 	q := dal.From(tgstore.BotUserCollection).
 		WhereField("UserName", dal.Equal, userName)
 
@@ -23,6 +30,7 @@ func (TgUserDalGae) FindByUserName(c context.Context, tx dal.ReadSession, userNa
 		return dal.NewRecordWithIncompleteKey(tgstore.BotUserCollection, reflect.Int, new(tgstore.TgBotUserData))
 	})
 	var records []dal.Record
+
 	if records, err = tx.SelectAll(c, query); err != nil {
 		return
 	}

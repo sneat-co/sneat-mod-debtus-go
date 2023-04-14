@@ -8,6 +8,7 @@ import (
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 )
@@ -15,7 +16,7 @@ import (
 const billSharesCommandCode = "bill_shares"
 
 var billSharesCommand = billCallbackCommand(billSharesCommandCode,
-	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		whc.LogRequest()
 		c := whc.Context()
 		members := bill.Data.GetBillMembers()
@@ -47,13 +48,13 @@ var billSharesCommand = billCallbackCommand(billSharesCommandCode,
 						}
 						members[i] = m
 						bill.Data.SplitMode = models.SplitModeShare
+						member = m
 						if err = bill.Data.SetBillMembers(members); err != nil {
 							return
 						}
-						if err = dtdal.Bill.SaveBill(c, bill); err != nil {
+						if err = dtdal.Bill.SaveBill(c, tx, bill); err != nil {
 							return
 						}
-						member = m
 						return
 					}
 				}

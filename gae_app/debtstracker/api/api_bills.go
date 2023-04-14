@@ -2,12 +2,12 @@ package api
 
 import (
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	"net/http"
 	"strconv"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
@@ -23,7 +23,7 @@ func handleGetBill(c context.Context, w http.ResponseWriter, r *http.Request, au
 		BadRequestError(c, w, errors.New("Missing id parameter"))
 		return
 	}
-	bill, err := facade.GetBillByID(c, billID)
+	bill, err := facade.GetBillByID(c, nil, billID)
 	if err != nil {
 		InternalError(c, w, err)
 		return
@@ -101,7 +101,7 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 
 	var contacts []models.Contact
 	if len(contactIDs) > 0 {
-		if contacts, err = facade.GetContactsByIDs(c, contactIDs); err != nil {
+		if contacts, err = facade.GetContactsByIDs(c, nil, contactIDs); err != nil {
 			InternalError(c, w, err)
 			return
 		}
@@ -134,9 +134,9 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 		if member.ContactID != "" {
 			for _, contact := range contacts {
 				if strconv.FormatInt(contact.ID, 10) == member.ContactID {
-					contactName := contact.FullName()
+					contactName := contact.Data.FullName()
 					billMembers[i].ContactByUser = models.MemberContactsJsonByUser{
-						strconv.FormatInt(contact.UserID, 10): {
+						strconv.FormatInt(contact.Data.UserID, 10): {
 							ContactID:   member.ContactID,
 							ContactName: contactName,
 						},
@@ -154,7 +154,7 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 		if member.UserID != "" {
 			for _, u := range memberUsers {
 				if strconv.FormatInt(u.ID, 10) == member.UserID {
-					billMembers[i].Name = u.FullName()
+					billMembers[i].Name = u.Data.FullName()
 					break
 				}
 			}
@@ -172,11 +172,17 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	var bill models.Bill
-	err = dtdal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
-		bill, err = facade.Bill.CreateBill(c, tc, billEntity)
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		InternalError(c, w, err)
 		return
-	}, dtdal.CrossGroupTransaction)
+	}
+
+	var bill models.Bill
+	err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) (err error) {
+		bill, err = facade.Bill.CreateBill(c, tx, billEntity)
+		return
+	})
 
 	if err != nil {
 		InternalError(c, w, err)
@@ -194,19 +200,19 @@ func billToResponse(c context.Context, w http.ResponseWriter, userID int64, bill
 		InternalError(c, w, errors.New("Required parameter bill.ID is empty string."))
 		return
 	}
-	if bill.BillEntity == nil {
+	if bill.Data == nil {
 		InternalError(c, w, errors.New("Required parameter bill.BillEntity is nil."))
 		return
 	}
 	billDto := dto.BillDto{
 		ID:   bill.ID,
-		Name: bill.Name,
+		Name: bill.Data.Name,
 		Amount: money.Amount{
-			Currency: money.Currency(bill.Currency),
-			Value:    decimal.Decimal64p2(bill.AmountTotal),
+			Currency: money.Currency(bill.Data.Currency),
+			Value:    decimal.Decimal64p2(bill.Data.AmountTotal),
 		},
 	}
-	billMembers := bill.GetBillMembers()
+	billMembers := bill.Data.GetBillMembers()
 	members := make([]dto.BillMemberDto, len(billMembers))
 	sUserID := strconv.FormatInt(userID, 10)
 	for i, billMember := range billMembers {

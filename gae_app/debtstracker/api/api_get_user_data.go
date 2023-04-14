@@ -120,9 +120,9 @@ func writeUserGroupsToJson(_ context.Context, w io.Writer, status string, user m
 	var jsonVal string
 	switch status {
 	case models.STATUS_ACTIVE:
-		jsonVal = user.GroupsJsonActive
+		jsonVal = user.Data.GroupsJsonActive
 	case models.STATUS_ARCHIVED:
-		jsonVal = user.GroupsJsonArchived
+		jsonVal = user.Data.GroupsJsonArchived
 	default:
 		panicUnknownStatus(status)
 	}
@@ -139,9 +139,9 @@ func writeUserContactsToJson(c context.Context, w io.Writer, status string, user
 	var jsonVal string
 	switch status {
 	case models.STATUS_ACTIVE:
-		jsonVal = user.ContactsJsonActive
+		jsonVal = user.Data.ContactsJsonActive
 	case models.STATUS_ARCHIVED:
-		jsonVal = user.ContactsJsonArchived
+		jsonVal = user.Data.ContactsJsonArchived
 	default:
 		panicUnknownStatus(status)
 	}
@@ -155,26 +155,26 @@ func writeUserContactsToJson(c context.Context, w io.Writer, status string, user
 }
 
 func writeUserActiveBillsToJson(c context.Context, w io.Writer, user models.AppUser) bool {
-	if user.BillsJsonActive != "" {
+	if user.Data.BillsJsonActive != "" {
 		log.Debugf(c, "User has BillsJsonActive")
-		if user.BillsCountActive == 0 {
+		if user.Data.BillsCountActive == 0 {
 			log.Warningf(c, "User(id=%d).BillsJsonActive is not empty && BillsCountActive == 0", user.ID)
 		}
 		w.Write(([]byte)(`"Bills":`))
-		w.Write([]byte(user.BillsJsonActive))
+		w.Write([]byte(user.Data.BillsJsonActive))
 		return true
 	}
 	return false
 }
 
 func writeUserActiveBillSchedulesToJson(c context.Context, w io.Writer, user models.AppUser) bool {
-	if user.BillSchedulesJsonActive != "" {
+	if user.Data.BillSchedulesJsonActive != "" {
 		log.Debugf(c, "User has BillSchedulesJsonActive")
-		if user.BillSchedulesCountActive == 0 {
+		if user.Data.BillSchedulesCountActive == 0 {
 			log.Warningf(c, "User(id=%d).BillSchedulesJsonActive is not empty && BillSchedulesCountActive == 0", user.ID)
 		}
 		w.Write(([]byte)(`"BillSchedules":`))
-		w.Write([]byte(user.BillSchedulesJsonActive))
+		w.Write([]byte(user.Data.BillSchedulesJsonActive))
 		return true
 	}
 	return false

@@ -9,5 +9,5 @@ import (
 )
 
 func handleGetUserCurrencies(c context.Context, w http.ResponseWriter, _ *http.Request, _ auth.AuthInfo, user models.AppUser) {
-	jsonToResponse(c, w, user.LastCurrencies)
+	jsonToResponse(c, w, user.Data.LastCurrencies)
 }

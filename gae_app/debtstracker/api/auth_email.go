@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/dal-go/dalgo/dal"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -43,7 +44,7 @@ func handleSignUpWithEmail(c context.Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if _, err := dtdal.UserEmail.GetUserEmailByID(c, email); err != nil {
+	if _, err := dtdal.UserEmail.GetUserEmailByID(c, nil, email); err != nil {
 		if !dal.IsNotFound(err) {
 			ErrorAsJson(c, w, http.StatusInternalServerError, err)
 			return
@@ -54,7 +55,7 @@ func handleSignUpWithEmail(c context.Context, w http.ResponseWriter, r *http.Req
 	}
 
 	if user, userEmail, err := facade.User.CreateUserByEmail(c, email, userName); err != nil {
-		if errors.Cause(err) == facade.ErrEmailAlreadyRegistered {
+		if errors.Is(err, facade.ErrEmailAlreadyRegistered) {
 			ErrorAsJson(c, w, http.StatusConflict, err)
 			return
 		} else {
@@ -66,7 +67,7 @@ func handleSignUpWithEmail(c context.Context, w http.ResponseWriter, r *http.Req
 			ErrorAsJson(c, w, http.StatusInternalServerError, err)
 			return
 		}
-		ReturnToken(c, w, user.ID, true, user.EmailAddress == "alexander.trakhimenok@gmail.com")
+		ReturnToken(c, w, user.ID, true, user.Data.EmailAddress == "alexander.trakhimenok@gmail.com")
 	}
 }
 
@@ -84,7 +85,7 @@ func handleSignInWithEmail(c context.Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	userEmail, err := dtdal.UserEmail.GetUserEmailByID(c, email)
+	userEmail, err := dtdal.UserEmail.GetUserEmailByID(c, nil, email)
 	if err != nil {
 		if dal.IsNotFound(err) {
 			ErrorAsJson(c, w, http.StatusForbidden, errors.New("Unknown email"))
@@ -103,7 +104,7 @@ func handleSignInWithEmail(c context.Context, w http.ResponseWriter, r *http.Req
 
 func handleRequestPasswordReset(c context.Context, w http.ResponseWriter, r *http.Request) {
 	email := r.PostFormValue("email")
-	userEmail, err := dtdal.UserEmail.GetUserEmailByID(c, email)
+	userEmail, err := dtdal.UserEmail.GetUserEmailByID(c, nil, email)
 	if dal.IsNotFound(err) {
 		ErrorAsJson(c, w, http.StatusForbidden, errors.New("Unknown email"))
 		return
@@ -117,10 +118,19 @@ func handleRequestPasswordReset(c context.Context, w http.ResponseWriter, r *htt
 		OwnedByUserWithIntID: user.NewOwnedByUserWithIntID(userEmail.AppUserIntID, now),
 	}
 
-	if _, err := dtdal.PasswordReset.CreatePasswordResetByID(c, &pwdResetEntity); err != nil {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+		_, err = dtdal.PasswordReset.CreatePasswordResetByID(c, tx, &pwdResetEntity)
+		return err
+	})
+	if err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	}
+	return
 }
 
 func handleChangePasswordAndSignIn(c context.Context, w http.ResponseWriter, r *http.Request) {
@@ -129,7 +139,7 @@ func handleChangePasswordAndSignIn(c context.Context, w http.ResponseWriter, r *
 		passwordReset models.PasswordReset
 	)
 
-	if passwordReset.ID, err = strconv.ParseInt(r.PostFormValue("pin"), 10, 64); err != nil {
+	if passwordReset.ID, err = strconv.Atoi(r.PostFormValue("pin")); err != nil {
 		ErrorAsJson(c, w, http.StatusBadRequest, err)
 		return
 	}
@@ -140,7 +150,7 @@ func handleChangePasswordAndSignIn(c context.Context, w http.ResponseWriter, r *
 		return
 	}
 
-	if passwordReset, err = dtdal.PasswordReset.GetPasswordResetByID(c, passwordReset.ID); err != nil {
+	if passwordReset, err = dtdal.PasswordReset.GetPasswordResetByID(c, nil, passwordReset.ID); err != nil {
 		if dal.IsNotFound(err) {
 			ErrorAsJson(c, w, http.StatusForbidden, errors.New("Unknown pin"))
 			return
@@ -149,23 +159,22 @@ func handleChangePasswordAndSignIn(c context.Context, w http.ResponseWriter, r *
 		return
 	}
 
-	isAdmin := IsAdmin(passwordReset.Email)
+	isAdmin := IsAdmin(passwordReset.Data.Email)
 
-	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		ErrorAsJson(c, w, http.StatusInternalServerError, err)
+		return
+	}
+	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
 
 		now := time.Now()
-		user := models.AppUser{
-			IntegerID:     db.NewIntID(passwordReset.AppUserIntID),
-			AppUserEntity: new(models.AppUserData),
-		}
-		userEmail := models.UserEmail{
-			StringID:      db.StringID{ID: models.GetEmailID(passwordReset.Email)},
-			UserEmailData: new(models.UserEmailData),
-		}
+		appUser := models.NewAppUser(passwordReset.Data.AppUserIntID, nil)
+		userEmail := models.NewUserEmail(passwordReset.Data.Email, nil)
 
-		entities := []db.EntityHolder{&user, &userEmail, &passwordReset}
+		records := []dal.Record{appUser.Record, userEmail.Record, passwordReset.Record}
 
-		if err = dtdal.DB.GetMulti(c, entities); err != nil {
+		if err = dtdal.DB.GetMulti(c, records); err != nil {
 			return err
 		}
 
@@ -173,25 +182,25 @@ func handleChangePasswordAndSignIn(c context.Context, w http.ResponseWriter, r *
 			return err
 		}
 
-		passwordReset.Status = "changed"
-		passwordReset.Email = "" // Clean email as we don't need it anymore
-		passwordReset.DtUpdated = now
+		passwordReset.Data.Status = "changed"
+		passwordReset.Data.Email = "" // Clean email as we don't need it anymore
+		passwordReset.Data.DtUpdated = now
 		if changed := userEmail.AddProvider("password-reset"); changed {
 			userEmail.DtUpdated = now
 		}
 		userEmail.SetLastLogin(now)
-		user.SetLastLogin(now)
+		appUser.Data.SetLastLogin(now)
 
-		if err = dtdal.DB.UpdateMulti(c, entities); err != nil {
+		if err = tx.SetMulti(c, records); err != nil {
 			return err
 		}
 		return err
-	}, dtdal.CrossGroupTransaction); err != nil {
+	}); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	}
 
-	ReturnToken(c, w, passwordReset.AppUserIntID, false, isAdmin)
+	ReturnToken(c, w, passwordReset.Data.AppUserIntID, false, isAdmin)
 }
 
 var errInvalidEmailConformationPin = errors.New("email confirmation pin is not valid")
@@ -214,15 +223,19 @@ func handleConfirmEmailAndSignIn(c context.Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	if err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
 		now := time.Now()
 
-		if userEmail, err = dtdal.UserEmail.GetUserEmailByID(c, userEmail.ID); err != nil {
+		if userEmail, err = dtdal.UserEmail.GetUserEmailByID(c, tx, userEmail.ID); err != nil {
 			return err
 		}
 
 		var appUser models.AppUser
-		if appUser, err = facade.User.GetUserByID(c, userEmail.AppUserIntID); err != nil {
+		if appUser, err = facade.User.GetUserByID(c, tx, userEmail.AppUserIntID); err != nil {
 			return err
 		}
 
@@ -234,14 +247,14 @@ func handleConfirmEmailAndSignIn(c context.Context, w http.ResponseWriter, r *ht
 		userEmail.SetUpdatedTime(now)
 		userEmail.PasswordBcryptHash = []byte{}
 		userEmail.SetLastLogin(now)
-		appUser.SetLastLogin(now)
+		appUser.Data.SetLastLogin(now)
 
-		entities := []db.EntityHolder{&appUser, &userEmail}
-		if err = dtdal.DB.UpdateMulti(c, entities); err != nil {
+		entities := []dal.Record{appUser.Record, userEmail.Record}
+		if err = tx.SetMulti(c, entities); err != nil {
 			return err
 		}
 		return err
-	}, dtdal.CrossGroupTransaction); err != nil {
+	}); err != nil {
 		if dal.IsNotFound(err) {
 			ErrorAsJson(c, w, http.StatusBadRequest, err)
 			return

@@ -54,14 +54,12 @@ var joinBillCommand = botsfw.Command{
 	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		_ = whc.AppUserIntID() // Make sure we have user before transaction starts, TODO: it smells, should be refactored?
 		//
-		return shared_all.TransactionalCallbackAction(billCallbackAction(func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
+		return shared_all.TransactionalCallbackAction(billCallbackAction(func(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 			c := whc.Context()
 			log.Debugf(c, "joinBillCommand.CallbackAction()")
 			memberStatus := callbackUrl.Query().Get("i")
-			return m, whc.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
-				m, err = joinBillAction(whc, tx, bill, memberStatus, true)
-				return err
-			})
+			m, err = joinBillAction(whc, tx, bill, memberStatus, true)
+			return
 		}))(whc, callbackUrl)
 	},
 }

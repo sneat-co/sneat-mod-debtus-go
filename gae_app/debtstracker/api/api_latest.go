@@ -42,7 +42,7 @@ func handleAdminLatestUsers(c context.Context, w http.ResponseWriter, r *http.Re
 		if len(userCounterpartiesIDs) > 0 {
 			wg.Add(1)
 			go func(i int, userCounterpartiesIDs []int64) {
-				counterparties, err := facade.GetContactsByIDs(c, userCounterpartiesIDs)
+				counterparties, err := facade.GetContactsByIDs(c, nil, userCounterpartiesIDs)
 				if err != nil {
 					log.Errorf(c, fmt.Errorf("failed to get counterparties by ids=%+v: %w", userCounterpartiesIDs, err).Error())
 					wg.Done()
@@ -68,7 +68,7 @@ func handleAdminLatestUsers(c context.Context, w http.ResponseWriter, r *http.Re
 		if user.Data.InvitedByUserID != 0 {
 			wg.Add(1)
 			go func(i int, userID int64) {
-				inviter, err := facade.User.GetUserByID(c, tx, userID)
+				inviter, err := facade.User.GetUserByID(c, nil, userID)
 				if err != nil {
 					log.Errorf(c, fmt.Errorf("failed to get user by id=%v: %w", userID, err).Error())
 					return

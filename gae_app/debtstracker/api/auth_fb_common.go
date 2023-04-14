@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"net/http"
-	"strconv"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/fbmbots"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
@@ -44,44 +42,46 @@ func signInFbUser(c context.Context, fbAppID, fbUserID string, r *http.Request, 
 			err = fmt.Errorf("%w: Parameters access_token & signed_request should not be passed together", ErrBadRequest)
 			return
 		} else if accessToken != "" {
-			_, fbSession, err = fbmbots.FbAppAndSessionFromAccessToken(c, r, accessToken)
+			panic("not imlemented")
+			//_, fbSession, err = fbmbots.FbAppAndSessionFromAccessToken(c, r, accessToken)
 		} else if signedRequest != "" {
-			var (
-				signedData fb.Result
-			)
-			if fbApp, _, err = fbmbots.GetFbAppAndHost(r); err != nil {
-				return
-			}
-			if signedData, err = fbApp.ParseSignedRequest(signedRequest); err != nil {
-				return
-			}
-			psID := signedData.Get("psid").(string)
-			if psID != "" {
-				if fbUserID == "" {
-					fbUserID = psID
-				} else if fbUserID != psID {
-					err = fmt.Errorf("%w: fbUserID != psID", ErrBadRequest)
-					return
-				}
-				var (
-					pageID string
-					ok     bool
-				)
-				if pageID, ok = signedData.Get("page_id").(string); !ok {
-					pageID = strconv.FormatFloat(signedData.Get("page_id").(float64), 'f', 0, 64)
-				}
-
-				log.Debugf(c, "pageID: %v, signedData: %v", pageID, signedData)
-				if fbmBot, ok := fbmbots.Bots(c).ByID[pageID]; !ok {
-					err = errors.New("ReferredTo settings not found by page ID=" + pageID)
-				} else {
-					isFbm = true
-					_, fbSession, err = fbmbots.FbAppAndSessionFromAccessToken(c, r, fbmBot.Token)
-				}
-			} else {
-				err = fmt.Errorf("Not implemented for signed request: %v", signedData)
-				return
-			}
+			panic("not imlemented")
+			//var (
+			//	signedData fb.Result
+			//)
+			//if fbApp, _, err = fbmbots.GetFbAppAndHost(r); err != nil {
+			//	return
+			//}
+			//if signedData, err = fbApp.ParseSignedRequest(signedRequest); err != nil {
+			//	return
+			//}
+			//psID := signedData.Get("psid").(string)
+			//if psID != "" {
+			//	if fbUserID == "" {
+			//		fbUserID = psID
+			//	} else if fbUserID != psID {
+			//		err = fmt.Errorf("%w: fbUserID != psID", ErrBadRequest)
+			//		return
+			//	}
+			//	var (
+			//		pageID string
+			//		ok     bool
+			//	)
+			//	if pageID, ok = signedData.Get("page_id").(string); !ok {
+			//		pageID = strconv.FormatFloat(signedData.Get("page_id").(float64), 'f', 0, 64)
+			//	}
+			//
+			//	log.Debugf(c, "pageID: %v, signedData: %v", pageID, signedData)
+			//	if fbmBot, ok := fbmbots.Bots(c).ByID[pageID]; !ok {
+			//		err = errors.New("ReferredTo settings not found by page ID=" + pageID)
+			//	} else {
+			//		isFbm = true
+			//		_, fbSession, err = fbmbots.FbAppAndSessionFromAccessToken(c, r, fbmBot.Token)
+			//	}
+			//} else {
+			//	err = fmt.Errorf("Not implemented for signed request: %v", signedData)
+			//	return
+			//}
 		} else {
 			err = fmt.Errorf("%w: Either access_token or signed_request should be passed", ErrBadRequest)
 			return
@@ -100,7 +100,7 @@ func signInFbUser(c context.Context, fbAppID, fbUserID string, r *http.Request, 
 		return
 	}
 
-	if accessToken != "" || userFacebook.UserFacebookEntity == nil || userFacebook.DtUpdated.Before(time.Now().Add(-1*time.Hour)) {
+	if accessToken != "" || userFacebook.Data == nil || userFacebook.Data.DtUpdated.Before(time.Now().Add(-1*time.Hour)) {
 		if user, userFacebook, isNewUser, err = createOrUpdateFbUserDbRecord(c, isFbm, fbAppID, fbUserID, fbSession, authInfo, models.NewClientInfoFromRequest(r)); err != nil {
 			return
 		}
@@ -172,7 +172,7 @@ func createOrUpdateFbUserDbRecord(c context.Context, isFbm bool, fbAppID, fbUser
 }
 
 func authWriteResponseForAuthFailed(c context.Context, w http.ResponseWriter, err error) {
-	if errors.Cause(err) == ErrUnauthorized {
+	if errors.Is(err, ErrUnauthorized) {
 		w.WriteHeader(http.StatusUnauthorized)
 		log.Debugf(c, err.Error())
 	} else {
@@ -183,5 +183,5 @@ func authWriteResponseForAuthFailed(c context.Context, w http.ResponseWriter, er
 }
 
 func authWriteResponseForUser(c context.Context, w http.ResponseWriter, user models.AppUser, isNewUser bool) {
-	ReturnToken(c, w, user.ID, isNewUser, user.EmailConfirmed && IsAdmin(user.EmailAddress))
+	ReturnToken(c, w, user.ID, isNewUser, user.Data.EmailConfirmed && IsAdmin(user.Data.EmailAddress))
 }

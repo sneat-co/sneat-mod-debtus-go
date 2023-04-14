@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"context"
 	"github.com/julienschmidt/httprouter"
@@ -56,7 +55,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	if _user, err := facade.User.GetUserByID(c, tx, userID); err != nil {
+	if _user, err := facade.User.GetUserByID(c, nil, userID); err != nil {
 		if dal.IsNotFound(err) {
 			w.WriteHeader(http.StatusNotFound)
 			log.Infof(c, err.Error())
@@ -67,7 +66,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	} else {
 		if _user.Data.EmailAddress != "" {
-			log.Infof(c, "_user.EmailAddress: %v", _user.EmailAddress)
+			log.Infof(c, "_user.EmailAddress: %v", _user.Data.EmailAddress)
 		} else {
 			gaeUser := user.Current(c)
 			if gaeUser == nil {
@@ -77,7 +76,13 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 					log.Infof(c, "gaeUser.Email is empty")
 				} else {
 					log.Infof(c, "gaeUser.Email: %v", gaeUser.Email)
-					err = dtdal.DB.RunInTransaction(c, func(tc context.Context) error {
+					var db dal.Database
+					if db, err = facade.GetDatabase(c); err != nil {
+						w.WriteHeader(http.StatusInternalServerError)
+						log.Errorf(c, err.Error())
+						return
+					}
+					err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) error {
 						u, err := facade.User.GetUserByID(tc, tx, userID)
 						if err != nil {
 							return err

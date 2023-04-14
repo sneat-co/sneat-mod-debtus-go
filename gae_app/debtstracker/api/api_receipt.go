@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/strongo/db"
 	"net/http"
 	"strconv"
 	"strings"
@@ -66,7 +65,7 @@ func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	receipt, err := dtdal.Receipt.GetReceiptByID(c, receiptID)
+	receipt, err := dtdal.Receipt.GetReceiptByID(c, nil, receiptID)
 	if hasError(c, w, err, models.ReceiptKind, receiptID, http.StatusBadRequest) {
 		return
 	}
@@ -182,7 +181,7 @@ func handleSendReceipt(c context.Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	receipt, err := dtdal.Receipt.GetReceiptByID(c, receiptID)
+	receipt, err := dtdal.Receipt.GetReceiptByID(c, nil, receiptID)
 
 	if err != nil {
 		var status int
@@ -195,7 +194,7 @@ func handleSendReceipt(c context.Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	transfer, err := facade.Transfers.GetTransferByID(c, tx, receipt.Data.TransferID)
+	transfer, err := facade.Transfers.GetTransferByID(c, nil, receipt.Data.TransferID)
 	if err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
@@ -226,9 +225,14 @@ func handleSendReceipt(c context.Context, w http.ResponseWriter, r *http.Request
 	}
 }
 
-func updateReceiptAndTransferOnSent(c context.Context, receiptID int64, channel, sentTo, lang string) (receipt models.Receipt, transfer models.Transfer, err error) {
-	err = dtdal.DB.RunInTransaction(c, func(c context.Context) error {
-		if receipt, err = dtdal.Receipt.GetReceiptByID(c, receiptID); err != nil {
+func updateReceiptAndTransferOnSent(c context.Context, receiptID int, channel, sentTo, lang string) (receipt models.Receipt, transfer models.Transfer, err error) {
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return
+	}
+
+	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+		if receipt, err = dtdal.Receipt.GetReceiptByID(c, tx, receiptID); err != nil {
 			return err
 		}
 		if receipt.Data.SentVia == RECEIPT_CHANNEL_DRAFT {
@@ -250,7 +254,7 @@ func updateReceiptAndTransferOnSent(c context.Context, receiptID int64, channel,
 			if !transferHasThisReceiptID {
 				transfer.Data.ReceiptIDs = append(transfer.Data.ReceiptIDs, receiptID)
 			}
-			if err = dtdal.DB.UpdateMulti(c, []db.EntityHolder{&receipt, &transfer}); err != nil {
+			if err = tx.SetMulti(c, []dal.Record{receipt.Record, transfer.Record}); err != nil {
 				err = fmt.Errorf("failed to save receipt & transfer: %w", err)
 			}
 		} else if receipt.Data.SentVia == channel {
@@ -260,7 +264,7 @@ func updateReceiptAndTransferOnSent(c context.Context, receiptID int64, channel,
 		}
 
 		return err
-	}, dtdal.CrossGroupTransaction)
+	})
 	return
 }
 
@@ -272,7 +276,7 @@ func handleSetReceiptChannel(c context.Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	receiptID, err := strconv.ParseInt(r.FormValue("receipt"), 10, 64)
+	receiptID, err := strconv.Atoi(r.FormValue("receipt"))
 	if err != nil {
 		err = fmt.Errorf("invalid receipt parameter: %w", err)
 		log.Debugf(c, err.Error())
@@ -342,13 +346,13 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 	log.Debugf(c, "handleCreateReceipt() => r.Form: %v", r.Form)
-	transferID, err := strconv.ParseInt(r.FormValue("transfer"), 10, 64)
+	transferID, err := strconv.Atoi(r.FormValue("transfer"))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Missing transfer parameter"))
 		return
 	}
-	transfer, err := facade.Transfers.GetTransferByID(c, transferID)
+	transfer, err := facade.Transfers.GetTransferByID(c, nil, transferID)
 	if err != nil {
 		if dal.IsNotFound(err) {
 			w.WriteHeader(http.StatusBadRequest)
@@ -360,7 +364,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 	var user models.AppUser
-	if user, err = facade.User.GetUserByID(c, authInfo.UserID); err != nil {
+	if user, err = facade.User.GetUserByID(c, nil, authInfo.UserID); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	}
@@ -402,12 +406,12 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 	if lang == "" {
 		lang = strongo.LocaleCodeEnUS
 	}
-	receipt := models.NewReceiptEntity(creatorUserID, transferID, transfer.Counterparty().UserID, lang, channel, "", general.CreatedOn{
+	receiptData := models.NewReceiptEntity(creatorUserID, transferID, transfer.Data.Counterparty().UserID, lang, channel, "", general.CreatedOn{
 		CreatedOnPlatform: "api", // TODO: Replace with actual, pass from client
 		CreatedOnID:       r.Host,
 	})
 
-	receiptID, err := dtdal.Receipt.CreateReceipt(c, &receipt)
+	receipt, err := dtdal.Receipt.CreateReceipt(c, receiptData)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Errorf(c, err.Error())
@@ -433,7 +437,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 				tgBotID = "DebtsTrackerBot"
 			}
 		}
-		messageToSend = fmt.Sprintf("https://telegram.me/%v?start=send-receipt_%v", tgBotID, common.EncodeID(receiptID)) // TODO:
+		messageToSend = fmt.Sprintf("https://telegram.me/%v?start=send-receipt_%v", tgBotID, common.EncodeIntID(receipt.ID)) // TODO:
 	} else {
 		locale := strongo.GetLocaleByCode5(user.Data.GetPreferredLocale())
 		translator := strongo.NewSingleMapTranslator(locale, common.TheAppContext.GetTranslator(c))
@@ -444,7 +448,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 		templateParams := struct {
 			ReceiptURL string
 		}{
-			ReceiptURL: common.GetReceiptUrl(receiptID, r.Host),
+			ReceiptURL: common.GetReceiptUrl(receipt.ID, r.Host),
 		}
 		messageToSend, err = common.TextTemplates.RenderTemplate(c, translator, trans.MESSENGER_RECEIPT_TEXT, templateParams) // TODO: Consider using just ExecutionContext instead of (c, translator)
 		if err != nil {
@@ -456,14 +460,14 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	jsonToResponse(c, w, struct {
-		ID   int64
+		ID   int
 		Link string
 		Text string
 	}{
-		receiptID,
+		receipt.ID,
 		// TODO: It seems wrong to use request host!
-		//common.GetReceiptUrlForUser(receiptID, receipt.CreatorUserID, receipt.CreatedOnPlatform, receipt.CreatedOnID)
-		fmt.Sprintf("https://%v/receipt?id=%v&t=%v", r.Host, common.EncodeID(receiptID), time.Now().Format("20060102-150405")),
+		//common.GetReceiptUrlForUser(receipt, receiptData.CreatorUserID, receiptData.CreatedOnPlatform, receiptData.CreatedOnID)
+		fmt.Sprintf("https://%v/receipt?id=%v&t=%v", r.Host, common.EncodeIntID(receipt.ID), time.Now().Format("20060102-150405")),
 		messageToSend,
 	})
 }

@@ -29,12 +29,12 @@ func handleSignInWithCode(c context.Context, w http.ResponseWriter, r *http.Requ
 		ErrorAsJson(c, w, http.StatusBadRequest, errors.New("Login code should not be 0."))
 		return
 	} else {
-		if userID, err := dtdal.LoginCode.ClaimLoginCode(c, int32(loginCode)); err != nil {
+		if userID, err := dtdal.LoginCode.ClaimLoginCode(c, loginCode); err != nil {
 			switch err {
 			case models.ErrLoginCodeExpired:
-				w.Write([]byte("expired"))
+				_, _ = w.Write([]byte("expired"))
 			case models.ErrLoginCodeAlreadyClaimed:
-				w.Write([]byte("claimed"))
+				_, _ = w.Write([]byte("claimed"))
 			default:
 				err = fmt.Errorf("failed to claim code: %w", err)
 				ErrorAsJson(c, w, http.StatusInternalServerError, err)
@@ -50,7 +50,7 @@ func handleSignInWithCode(c context.Context, w http.ResponseWriter, r *http.Requ
 }
 
 func handleSignInWithPin(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
-	loginID, err := common.DecodeID(r.PostFormValue("loginID"))
+	loginID, err := common.DecodeIntID(r.PostFormValue("loginID"))
 	if err != nil {
 		BadRequestError(c, w, fmt.Errorf("parameter 'loginID' is not an integer: %w", err))
 		return

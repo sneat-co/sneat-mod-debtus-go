@@ -90,7 +90,7 @@ func handleTgHelperCurrencySelected(c context.Context, w http.ResponseWriter, r 
 			}
 		}()
 		errs <- dtdal.TgChat.DoSomething(c, &userTask, currency, tgChatID, authInfo, user,
-			func(tgChat tgstore.Chat) error {
+			func(tgChat tgstore.TgChatBase) error {
 				// TODO: This is some serious architecture sheet. Too sleepy to make it right, just make it working.
 				return sendToTelegram(c, user, tgChatID, tgChat, &userTask, r)
 			},
@@ -101,7 +101,7 @@ func handleTgHelperCurrencySelected(c context.Context, w http.ResponseWriter, r 
 		if err := <-errs; err != nil {
 			log.Errorf(c, "%v: %v", i, err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 
@@ -24,7 +25,7 @@ const billCardCommandCode = "bill-card"
 
 var billCardCommand = botsfw.Command{
 	Code: billCardCommandCode,
-	CallbackAction: billCallbackAction(func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
+	CallbackAction: billCallbackAction(func(whc botsfw.WebhookContext, _ dal.ReadwriteTransaction, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		if m.Text, err = getBillCardMessageText(c, whc.GetBotCode(), whc, bill, false, ""); err != nil {
 			return
@@ -57,7 +58,7 @@ func billCallbackCommandData(command string, billID string) string {
 }
 
 var billMembersCommand = billCallbackCommand(billMembersCommandCode,
-	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, _ dal.ReadwriteTransaction, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		var buffer bytes.Buffer
 		if err = writeBillCardTitle(whc.Context(), bill, whc.GetBotCode(), &buffer, whc); err != nil {
 			return
@@ -174,7 +175,7 @@ const INVITE_BILL_MEMBER_COMMAND = "invite2bill"
 const INLINE_COMMAND_JOIN = "join"
 
 var inviteToBillCommand = billCallbackCommand(INVITE_BILL_MEMBER_COMMAND,
-	func(whc botsfw.WebhookContext, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, _ dal.ReadwriteTransaction, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		m.Keyboard = &tgbotapi.InlineKeyboardMarkup{
 			InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{
 				{

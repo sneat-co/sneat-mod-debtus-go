@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/crediterra/money"
+	"github.com/dal-go/dalgo/dal"
 	"net/http"
 	"strconv"
 	"time"
@@ -21,14 +22,28 @@ func handleGetTransfer(c context.Context, w http.ResponseWriter, r *http.Request
 	if transferID := getID(c, w, r, "id"); transferID == 0 {
 		return
 	} else {
-		transfer, err := facade.Transfers.GetTransferByID(c, transferID)
+		transfer, err := facade.Transfers.GetTransferByID(c, nil, transferID)
 		if hasError(c, w, err, models.TransferKind, transferID, http.StatusBadRequest) {
 			return
 		}
 
-		if transfer, err = facade.CheckTransferCreatorNameAndFixIfNeeded(c, w, transfer); err != nil {
+		var db dal.Database
+		if db, err = facade.GetDatabase(c); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+			if err = facade.CheckTransferCreatorNameAndFixIfNeeded(c, tx, transfer); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				_, _ = w.Write([]byte(err.Error()))
+				return
+			}
+			return err
+		})
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 
@@ -113,7 +128,7 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 	//	hashedWriter.Write([]byte(errors.Wrap(err, "Failed to get user")))
 	//}
 	if isReturn {
-		if counterparty, err := facade.GetContactByID(c, tx, contactID); err != nil {
+		if counterparty, err := facade.GetContactByID(c, nil, contactID); err != nil {
 			if dal.IsNotFound(err) {
 				BadRequestError(c, w, err)
 			} else {
@@ -121,7 +136,7 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 			}
 			return
 		} else {
-			balance := counterparty.Balance()
+			balance := counterparty.Data.Balance()
 			if balanceAmount, ok := balance[amountWithCurrency.Currency]; !ok {
 				BadRequestMessage(c, w, fmt.Sprintf("No balance for %v", amountWithCurrency.Currency))
 			} else {
@@ -167,7 +182,7 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	var appUser models.AppUser
-	if appUser, err = facade.User.GetUserByID(c, authInfo.UserID); err != nil {
+	if appUser, err = facade.User.GetUserByID(c, nil, authInfo.UserID); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	}
@@ -176,7 +191,7 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 		transferSourceSetToAPI{appPlatform: platform, createdOnID: r.Host},
 		appUser,
 		"",
-		isReturn, returnToTransferID,
+		isReturn, returnTotransferID,
 		from, to,
 		amountWithCurrency, dueOn, models.NoInterest())
 	output, err := facade.Transfers.CreateTransfer(c, newTransfer)
@@ -188,22 +203,22 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	//userBalance := json.RawMessage(user.BalanceJson)
-	log.Infof(c, "transfer.DtDueOn: %v", output.Transfer.DtDueOn)
+	log.Infof(c, "transfer.DtDueOn: %v", output.Transfer.Data.DtDueOn)
 	response := dto.CreateTransferResponse{
 		Transfer: dto.TransferToDto(authInfo.UserID, output.Transfer),
 	}
 
 	var counterparty models.Contact
-	switch output.Transfer.CreatorUserID {
-	case output.Transfer.From().UserID:
+	switch output.Transfer.Data.CreatorUserID {
+	case output.Transfer.Data.From().UserID:
 		counterparty = output.To.Contact
-	case output.Transfer.To().UserID:
+	case output.Transfer.Data.To().UserID:
 		counterparty = output.From.Contact
 	default:
 		panic("Unknown direction")
 	}
-	if counterparty.BalanceJson != "" {
-		counterpartyBalance := json.RawMessage(counterparty.BalanceJson)
+	if counterparty.Data.BalanceJson != "" {
+		counterpartyBalance := json.RawMessage(counterparty.Data.BalanceJson)
 		response.CounterpartyBalance = &counterpartyBalance
 	}
 	jsonToResponse(c, w, response)

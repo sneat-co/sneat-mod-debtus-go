@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -65,12 +66,23 @@ func handleCreateCounterparty(c context.Context, w http.ResponseWriter, r *http.
 		}
 		contactDetails.PhoneNumber = telNumber
 	}
-	counterparty, _, err := facade.CreateContact(c, authInfo.UserID, contactDetails)
+	var err error
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		InternalError(c, w, err)
+		return
+	}
+	var counterparty models.Contact
+	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+		counterparty, _, err = facade.CreateContact(c, tx, authInfo.UserID, contactDetails)
+		return err
+	})
+
 	if err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	}
-	w.Write([]byte(strconv.FormatInt(counterparty.ID, 10)))
+	_, _ = w.Write([]byte(strconv.FormatInt(counterparty.ID, 10)))
 }
 
 func getContactID(w http.ResponseWriter, query url.Values) (int64, error) {
@@ -88,7 +100,7 @@ func handleGetContact(c context.Context, w http.ResponseWriter, r *http.Request,
 	if err != nil {
 		return
 	}
-	counterparty, err := facade.GetContactByID(c, tx, counterpartyID)
+	counterparty, err := facade.GetContactByID(c, nil, counterpartyID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -99,7 +111,7 @@ func handleGetContact(c context.Context, w http.ResponseWriter, r *http.Request,
 }
 
 func contactToResponse(c context.Context, w http.ResponseWriter, authInfo auth.AuthInfo, contact models.Contact) {
-	if !authInfo.IsAdmin && contact.UserID != authInfo.UserID {
+	if !authInfo.IsAdmin && contact.Data.UserID != authInfo.UserID {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
@@ -113,11 +125,11 @@ func contactToResponse(c context.Context, w http.ResponseWriter, authInfo auth.A
 
 	counterpartyJson := dto.ContactDetailsDto{
 		ContactListDto: dto.ContactListDto{
-			Status: contact.Status,
+			Status: contact.Data.Status,
 			ContactDto: dto.ContactDto{
 				ID:     strconv.FormatInt(contact.ID, 10),
-				Name:   contact.FullName(),
-				UserID: strconv.FormatInt(contact.UserID, 10),
+				Name:   contact.Data.FullName(),
+				UserID: strconv.FormatInt(contact.Data.UserID, 10),
 			},
 		},
 		TransfersResultDto: dto.TransfersResultDto{
@@ -125,37 +137,37 @@ func contactToResponse(c context.Context, w http.ResponseWriter, authInfo auth.A
 			Transfers:        dto.TransfersToDto(authInfo.UserID, transfers),
 		},
 	}
-	if contact.BalanceJson != "" {
-		balance := json.RawMessage(contact.BalanceJson)
+	if contact.Data.BalanceJson != "" {
+		balance := json.RawMessage(contact.Data.BalanceJson)
 		counterpartyJson.Balance = &balance
 	}
-	if contact.EmailAddressOriginal != "" {
+	if contact.Data.EmailAddressOriginal != "" {
 		counterpartyJson.Email = &dto.EmailInfo{
-			Address:     contact.EmailAddressOriginal,
-			IsConfirmed: contact.EmailConfirmed,
+			Address:     contact.Data.EmailAddressOriginal,
+			IsConfirmed: contact.Data.EmailConfirmed,
 		}
 	}
-	if contact.PhoneNumber != 0 {
+	if contact.Data.PhoneNumber != 0 {
 		counterpartyJson.Phone = &dto.PhoneInfo{
-			Number:      contact.PhoneNumber,
-			IsConfirmed: contact.PhoneNumberConfirmed,
+			Number:      contact.Data.PhoneNumber,
+			IsConfirmed: contact.Data.PhoneNumberConfirmed,
 		}
 	}
-	if len(contact.GroupIDs) > 0 {
-		for _, groupID := range contact.GroupIDs {
+	if len(contact.Data.GroupIDs) > 0 {
+		for _, groupID := range contact.Data.GroupIDs {
 			var group models.Group
-			if group, err = dtdal.Group.GetGroupByID(c, groupID); err != nil {
+			if group, err = dtdal.Group.GetGroupByID(c, nil, groupID); err != nil {
 				ErrorAsJson(c, w, http.StatusInternalServerError, err)
 				return
 			}
-			for _, member := range group.GetGroupMembers() {
+			for _, member := range group.Data.GetGroupMembers() {
 				for _, memberContactID := range member.ContactIDs {
 					if memberContactID == strconv.FormatInt(contact.ID, 10) {
 						counterpartyJson.Groups = append(counterpartyJson.Groups, dto.ContactGroupDto{
 							ID:           group.ID,
-							Name:         group.Name,
+							Name:         group.Data.Name,
 							MemberID:     memberContactID,
-							MembersCount: group.MembersCount,
+							MembersCount: group.Data.MembersCount,
 						})
 					}
 				}

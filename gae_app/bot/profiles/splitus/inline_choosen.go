@@ -126,8 +126,8 @@ func createBillFromInlineChosenResult(whc botsfw.WebhookContext, chosenResult bo
 		if db, err = facade.GetDatabase(c); err != nil {
 			return
 		}
-		err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) (err error) {
-			if bill, err = facade.Bill.CreateBill(c, tc, bill.Data); err != nil {
+		err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+			if bill, err = facade.Bill.CreateBill(c, tx, bill.Data); err != nil {
 				return
 			}
 			return
@@ -249,7 +249,7 @@ var EditedBillCardHookCommand = botsfw.Command{ // TODO: seems to be not used an
 			}
 
 			if changed {
-				return dtdal.Bill.SaveBill(c, bill)
+				return dtdal.Bill.SaveBill(c, tx, bill)
 			}
 
 			return err

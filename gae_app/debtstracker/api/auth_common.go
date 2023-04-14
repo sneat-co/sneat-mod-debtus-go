@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/dal-go/dalgo/dal"
 	"net/http"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
@@ -16,8 +17,14 @@ import (
 func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
 	provider := r.URL.Query().Get("provider")
 
-	if err := dtdal.DB.RunInTransaction(c, func(c context.Context) error {
-		appUser, err := facade.User.GetUserByID(c, authInfo.UserID)
+	var err error
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		ErrorAsJson(c, w, http.StatusInternalServerError, err)
+		return
+	}
+	if err := db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
+		appUser, err := facade.User.GetUserByID(c, tx, authInfo.UserID)
 		if err != nil {
 			return err
 		}
@@ -29,12 +36,12 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 				if err != dal.ErrRecordNotFound {
 					return err
 				}
-			} else if userFb.AppUserIntID == appUser.ID {
+			} else if userFb.Data.AppUserIntID == appUser.ID {
 				if err = dtdal.UserFacebook.DeleteFbUser(c, userAccount.App, userAccount.ID); err != nil {
 					return err
 				}
 			} else {
-				log.Warningf(c, "TODO: Handle case if userFb.AppUserIntID:%d != appUser.ID:%d", userFb.AppUserIntID, appUser.ID)
+				log.Warningf(c, "TODO: Handle case if userFb.AppUserIntID:%d != appUser.ID:%d", userFb.Data.AppUserIntID, appUser.ID)
 			}
 			return nil
 		}
@@ -43,60 +50,60 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 			ErrorAsJson(c, w, http.StatusBadRequest, errors.New("Unknown provider: "+provider))
 			return nil
 		}
-		if !appUser.HasAccount(provider, "") {
+		if !appUser.Data.HasAccount(provider, "") {
 			return nil
 		}
 		var userAccount *user.Account
 		switch provider {
 		case "google":
-			if userAccount, err = appUser.GetGoogleAccount(); err != nil {
+			if userAccount, err = appUser.Data.GetGoogleAccount(); err != nil {
 				return err
 			} else if userAccount != nil {
 				if userGoogle, err := dtdal.UserGoogle.GetUserGoogleByID(c, userAccount.ID); err != nil {
 					if err != dal.ErrRecordNotFound {
 						return err
 					}
-				} else if userGoogle.AppUserIntID == appUser.ID {
-					userGoogle.AppUserIntID = 0
+				} else if userGoogle.Data.AppUserIntID == appUser.ID {
+					userGoogle.Data.AppUserIntID = 0
 					if err = dtdal.UserGoogle.DeleteUserGoogle(c, userGoogle.ID); err != nil {
 						return err
 					}
 				} else {
-					log.Warningf(c, "TODO: Handle case if userGoogle.AppUserIntID:%d != appUser.ID:%d", userGoogle.AppUserIntID, appUser.ID)
+					log.Warningf(c, "TODO: Handle case if userGoogle.AppUserIntID:%d != appUser.ID:%d", userGoogle.Data.AppUserIntID, appUser.ID)
 				}
-				_ = appUser.RemoveAccount(*userAccount)
+				_ = appUser.Data.RemoveAccount(*userAccount)
 				changed = true
 			}
 		case "fb":
-			if userAccount, err = appUser.GetFbAccount(""); err != nil {
+			if userAccount, err = appUser.Data.GetFbAccount(""); err != nil {
 				return err
 			} else if userAccount != nil {
 				if err = deleteFbUser(*userAccount); err != nil {
 					return err
 				}
-				_ = appUser.RemoveAccount(*userAccount)
+				_ = appUser.Data.RemoveAccount(*userAccount)
 				changed = true
 			}
 		case "fbm":
-			if userAccount, err = appUser.GetFbAccount(""); err != nil {
+			if userAccount, err = appUser.Data.GetFbAccount(""); err != nil {
 				return err
 			} else if userAccount != nil {
 				if err = deleteFbUser(*userAccount); err != nil {
 					return err
 				}
-				_ = appUser.RemoveAccount(*userAccount)
+				_ = appUser.Data.RemoveAccount(*userAccount)
 				changed = true
 			}
 		default:
 		}
 
 		if changed {
-			if err = facade.User.SaveUser(c, appUser); err != nil {
+			if err = facade.User.SaveUser(c, tx, appUser); err != nil {
 				return err
 			}
 		}
 		return nil
-	}, dtdal.CrossGroupTransaction); err != nil {
+	}); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 	}
 }
