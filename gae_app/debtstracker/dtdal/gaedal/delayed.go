@@ -21,9 +21,9 @@ import (
 	"github.com/strongo/app/gae"
 	"github.com/strongo/app/gaestandard"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/datastore"
 	"google.golang.org/appengine/v2/delay"
 	"google.golang.org/appengine/v2/urlfetch"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -120,26 +120,35 @@ func (ReceiptDalGae) DelayCreateAndSendReceiptToCounterpartyByTelegram(c context
 }
 
 func GetTelegramChatByUserID(c context.Context, userID int64) (entityID string, chat tgstore.TgChatData, err error) {
-	tgChatQuery := datastore.NewQuery(tgstore.TgChatCollection).Filter("AppUserIntID =", userID).Order("-DtUpdated")
-	limit1 := 1
-	tgChatQuery = tgChatQuery.Limit(limit1)
-	var tgChats []tgstore.TgChatData
-	tgChatKeys, err := tgChatQuery.GetAll(c, &tgChats)
-	if err != nil {
+	tgChatQuery := dal.From(tgstore.TgChatCollection).
+		WhereField("AppUserIntID", dal.Equal, userID).
+		OrderBy(dal.DescendingField("DtUpdated")).
+		SelectInto(models.NewDebtusTelegramChatRecord)
+	tgChatQuery.Limit = 1
+
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
+	}
+
+	var tgChatRecords []dal.Record
+	if tgChatRecords, err = db.SelectAll(c, tgChatQuery); err != nil {
 		err = fmt.Errorf("failed to load telegram chat by app user id=%v: %w", userID, err)
 		return
 	}
-	if len(tgChatKeys) == limit1 {
-		if entityID = tgChatKeys[0].StringID(); entityID == "" {
-			entityID = strconv.FormatInt(tgChatKeys[0].IntID(), 10)
-		}
-		chat = tgChats[0]
+	switch len(tgChatRecords) {
+	case tgChatQuery.Limit:
+		entityID = fmt.Sprintf("%v", tgChatRecords[0].Key().ID)
+		tgChatBase := tgChatRecords[0].Data().(models.DebtusTelegramChatData).TgChatBase
+		chat = &tgChatBase
 		return
-	} else {
-		log.Debugf(c, "len(tgChatKeys): %v", len(tgChatKeys))
-		err = fmt.Errorf("%w: AppUserIntID=%d", dal.ErrRecordNotFound, userID)
+	case 0:
+		err = fmt.Errorf("%w: telegram chat not found by userID=%d:%T", dal.ErrRecordNotFound, userID, userID)
+		return
+	default:
+		err = fmt.Errorf("too many telegram chats found by userID=%d:%T: %d", dal.ErrRecordNotFound, userID, userID, len(tgChatRecords))
+		return
 	}
-	return
 }
 
 func DelayOnReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transferID int, tgChatID int64, tgMsgID int, tgBotID, locale string) error {
@@ -668,23 +677,24 @@ var delayedUpdateUserHasDueTransfers = delay.MustRegister("delayedUpdateUserHasD
 		return nil
 	}
 
-	q := datastore.NewQuery(models.TransferKind)
-	q = q.Filter("BothUserIDs =", userID)
-	q = q.Filter("IsOutstanding =", true)
-	q = q.Filter("DtDueOn >", time.Time{})
-	q = q.KeysOnly()
-	q = q.Limit(1)
-	var keys []*datastore.Key
-	if _, err = q.GetAll(c, nil); err != nil {
-		return fmt.Errorf("failed to query due reminders: %w", err)
+	q := dal.From(models.TransferKind).
+		WhereField("BothUserIDs", dal.Equal, userID).
+		WhereField("IsOutstanding", dal.Equal, true).
+		WhereField("DtDueOn", dal.GreaterThen, time.Time{}).
+		SelectKeysOnly(reflect.Int)
+	q.Limit = 1
+
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return err
 	}
-	if len(keys) > 0 {
+
+	var transferIDs []int
+	transferIDs, err = db.SelectAllIntIDs(c, q)
+
+	if len(transferIDs) > 0 {
 		// panic("Not implemented - refactoring in progress")
 		// reminder := reminders[0]
-		var db dal.Database
-		if db, err = GetDatabase(c); err != nil {
-			return err
-		}
 		err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) error {
 			if user, err := facade.User.GetUserByID(tc, tx, userID); err != nil {
 				if dal.IsNotFound(err) {

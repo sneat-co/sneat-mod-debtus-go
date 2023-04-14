@@ -1,18 +1,15 @@
 package models
 
 import (
+	"context"
 	"fmt"
+	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
+	"github.com/pquerna/ffjson/ffjson"
 	"reflect"
 	"strings"
 	"time"
-
-	"context"
-	"github.com/crediterra/money"
-	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/v2/datastore"
 )
 
 func NewContactEntity(userID int64, details ContactDetails) *ContactData {
@@ -175,73 +172,73 @@ func (entity *ContactData) Info(counterpartyID int64, note, comment string) Tran
 //	}
 //}
 
-func (entity *ContactData) Load(ps []datastore.Property) error {
-	p2 := make([]datastore.Property, 0, len(ps))
-	for _, p := range ps {
-		switch p.Name {
-		case "SearchName": // Ignore legacy
-		default:
-			p2 = append(p2, p)
-		}
-	}
-	if err := datastore.LoadStruct(entity, p2); err != nil {
-		return err
-	}
-	if entity.PhoneNumberIsConfirmed && !entity.PhoneNumberConfirmed {
-		entity.PhoneNumberConfirmed = true
-	}
-	return nil
-}
+//func (entity *ContactData) Load(ps []datastore.Property) error {
+//	p2 := make([]datastore.Property, 0, len(ps))
+//	for _, p := range ps {
+//		switch p.Name {
+//		case "SearchName": // Ignore legacy
+//		default:
+//			p2 = append(p2, p)
+//		}
+//	}
+//	if err := datastore.LoadStruct(entity, p2); err != nil {
+//		return err
+//	}
+//	if entity.PhoneNumberIsConfirmed && !entity.PhoneNumberConfirmed {
+//		entity.PhoneNumberConfirmed = true
+//	}
+//	return nil
+//}
 
-var contactPropertiesToClean = map[string]gaedb.IsOkToRemove{
-	// Remove obsolete
-	"PhoneNumberIsConfirmed": gaedb.IsObsolete,
-	"SearchName":             gaedb.IsObsolete,
-	// Remove defaults
-	"CounterpartyUserID":         gaedb.IsZeroInt,
-	"CounterpartyCounterpartyID": gaedb.IsZeroInt,
-	"BalanceCount":               gaedb.IsZeroInt,
-	"BalanceJson":                gaedb.IsEmptyStringOrSpecificValue("null"), //TODO: Remove once DB cleared
-	"SmsCount":                   gaedb.IsZeroInt,
-	"SmsCost":                    gaedb.IsZeroFloat,
-	"SmsCostUSD":                 gaedb.IsZeroInt,
-	"EmailAddress":               gaedb.IsEmptyString,
-	"EmailAddressOriginal":       gaedb.IsEmptyString,
-	"TransfersJson":              gaedb.IsEmptyJSON,
-	"Nickname":                   gaedb.IsEmptyString,
-	"FirstName":                  gaedb.IsEmptyString,
-	"LastName":                   gaedb.IsEmptyString,
-	"ScreenName":                 gaedb.IsEmptyString,
-	"PhoneNumber":                gaedb.IsZeroInt,
-	"PhoneNumberConfirmed":       gaedb.IsFalse,
-	"EmailConfirmed":             gaedb.IsFalse,
-	"TelegramUserID":             gaedb.IsZeroInt,
-}
+//var contactPropertiesToClean = map[string]gaedb.IsOkToRemove{
+//	// Remove obsolete
+//	"PhoneNumberIsConfirmed": gaedb.IsObsolete,
+//	"SearchName":             gaedb.IsObsolete,
+//	// Remove defaults
+//	"CounterpartyUserID":         gaedb.IsZeroInt,
+//	"CounterpartyCounterpartyID": gaedb.IsZeroInt,
+//	"BalanceCount":               gaedb.IsZeroInt,
+//	"BalanceJson":                gaedb.IsEmptyStringOrSpecificValue("null"), //TODO: Remove once DB cleared
+//	"SmsCount":                   gaedb.IsZeroInt,
+//	"SmsCost":                    gaedb.IsZeroFloat,
+//	"SmsCostUSD":                 gaedb.IsZeroInt,
+//	"EmailAddress":               gaedb.IsEmptyString,
+//	"EmailAddressOriginal":       gaedb.IsEmptyString,
+//	"TransfersJson":              gaedb.IsEmptyJSON,
+//	"Nickname":                   gaedb.IsEmptyString,
+//	"FirstName":                  gaedb.IsEmptyString,
+//	"LastName":                   gaedb.IsEmptyString,
+//	"ScreenName":                 gaedb.IsEmptyString,
+//	"PhoneNumber":                gaedb.IsZeroInt,
+//	"PhoneNumberConfirmed":       gaedb.IsFalse,
+//	"EmailConfirmed":             gaedb.IsFalse,
+//	"TelegramUserID":             gaedb.IsZeroInt,
+//}
 
-func (entity *ContactData) BeforeSave() (err error) {
+func (entity *ContactData) Validate() (err error) {
 	//entity.UpdateSearchName()
 	entity.EmailAddressOriginal = strings.TrimSpace(entity.EmailAddressOriginal)
 	entity.EmailAddress = strings.ToLower(entity.EmailAddressOriginal)
 	return nil
 }
 
-func (entity *ContactData) Save() (properties []datastore.Property, err error) {
-	if err = entity.BeforeSave(); err != nil {
-		return
-	}
-
-	if properties, err = datastore.SaveStruct(entity); err != nil {
-		return
-	}
-
-	//if properties, err = gaedb.CleanProperties(properties, contactPropertiesToClean); err != nil {
-	//	return
-	//}
-
-	//checkHasProperties(ContactKind, properties)
-
-	return
-}
+//func (entity *ContactData) Save() (properties []datastore.Property, err error) {
+//	if err = entity.BeforeSave(); err != nil {
+//		return
+//	}
+//
+//	if properties, err = datastore.SaveStruct(entity); err != nil {
+//		return
+//	}
+//
+//	//if properties, err = gaedb.CleanProperties(properties, contactPropertiesToClean); err != nil {
+//	//	return
+//	//}
+//
+//	//checkHasProperties(ContactKind, properties)
+//
+//	return
+//}
 
 func (entity *ContactData) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance money.Balance, err error) {
 	balance = entity.Balance()

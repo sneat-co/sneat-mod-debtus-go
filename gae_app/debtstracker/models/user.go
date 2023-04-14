@@ -1,23 +1,21 @@
 package models
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
+	"github.com/pquerna/ffjson/ffjson"
+	"github.com/strongo/app"
+	"github.com/strongo/app/user"
+	"google.golang.org/appengine/v2/datastore"
 	"net/http"
 	"reflect"
 	"strconv"
 	"time"
-
-	"context"
-	"errors"
-	"github.com/crediterra/money"
-	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/app"
-	"github.com/strongo/app/user"
-	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/v2/datastore"
 )
 
 const AppUserKind = "User"
@@ -668,75 +666,75 @@ func (entity *AppUserData) Load(ps []datastore.Property) (err error) {
 	return
 }
 
-var userPropertiesToClean = map[string]gaedb.IsOkToRemove{
-	"AA":              gaedb.IsObsolete,
-	"FmbUserID":       gaedb.IsObsolete,
-	"CounterpartyIDs": gaedb.IsObsolete,
-	//
-	"ContactsCount": gaedb.IsZeroInt,   // TODO: Obsolete
-	"ContactsJson":  gaedb.IsEmptyJSON, // TODO: Obsolete
-	//
-	"GroupsCountActive":                   gaedb.IsZeroInt,
-	"GroupsJsonActive":                    gaedb.IsEmptyJSON,
-	"GroupsCountArchived":                 gaedb.IsZeroInt,
-	"GroupsJsonArchived":                  gaedb.IsEmptyJSON,
-	"BillsCountActive":                    gaedb.IsZeroInt,
-	"BillsJsonActive":                     gaedb.IsEmptyJSON,
-	"BillSchedulesCountActive":            gaedb.IsZeroInt,
-	"BillSchedulesJsonActive":             gaedb.IsEmptyJSON,
-	"BalanceCount":                        gaedb.IsZeroInt,
-	"BalanceJson":                         gaedb.IsEmptyString,
-	"CountOfAckTransfersByCounterparties": gaedb.IsZeroInt,
-	"CountOfAckTransfersByUser":           gaedb.IsZeroInt,
-	"CountOfInvitesAccepted":              gaedb.IsZeroInt,
-	"CountOfInvitesCreated":               gaedb.IsZeroInt,
-	"CountOfReceiptsCreated":              gaedb.IsZeroInt,
-	"CountOfTransfers":                    gaedb.IsZeroInt,
-	"ContactsCountActive":                 gaedb.IsZeroInt,
-	"ContactsJsonActive":                  gaedb.IsEmptyJSON,
-	"ContactsCountArchived":               gaedb.IsZeroInt,
-	"ContactsJsonArchived":                gaedb.IsEmptyJSON,
-	"DtAccessGranted":                     gaedb.IsZeroTime,
-	"EmailAddress":                        gaedb.IsEmptyString,
-	"EmailAddressOriginal":                gaedb.IsEmptyString,
-	"FirstName":                           gaedb.IsEmptyString,
-	"HasDueTransfers":                     gaedb.IsFalse,
-	"InvitedByUserID":                     gaedb.IsZeroInt,
-	"IsAnonymous":                         gaedb.IsFalse,
-	"LastName":                            gaedb.IsEmptyString,
-	"LastTransferAt":                      gaedb.IsZeroTime,
-	"LastTransferID":                      gaedb.IsZeroInt,
-	"LastFeedbackAt":                      gaedb.IsZeroTime,
-	"LastFeedbackRate":                    gaedb.IsEmptyString,
-	"LastUserAgent":                       gaedb.IsEmptyString,
-	"LastUserIpAddress":                   gaedb.IsEmptyString,
-	"Nickname":                            gaedb.IsEmptyString,
-	"PhoneNumber":                         gaedb.IsZeroInt,
-	"PhoneNumberConfirmed":                gaedb.IsFalse, // TODO: Duplicate of PhoneNumberIsConfirmed
-	"PhoneNumberIsConfirmed":              gaedb.IsFalse, // TODO: Duplicate of PhoneNumberConfirmed
-	"EmailConfirmed":                      gaedb.IsFalse,
-	"PreferredLanguage":                   gaedb.IsEmptyString,
-	"PrimaryCurrency":                     gaedb.IsEmptyString,
-	"ScreenName":                          gaedb.IsEmptyString,
-	"SmsCost":                             gaedb.IsZeroFloat,
-	"SmsCostUSD":                          gaedb.IsZeroInt,
-	"SmsCount":                            gaedb.IsZeroInt,
-	"Username":                            gaedb.IsEmptyString,
-	"VkUserID":                            gaedb.IsZeroInt,
-	"DtLastLogin":                         gaedb.IsZeroTime,
-	"PasswordBcryptHash":                  gaedb.IsObsolete,
-	"TransfersWithInterestCount":          gaedb.IsZeroInt,
-	//
-	"ViberBotID":         gaedb.IsObsolete,
-	"ViberUserID":        gaedb.IsObsolete,
-	"FbmUserID":          gaedb.IsObsolete,
-	"FbUserID":           gaedb.IsObsolete,
-	"FbUserIDs":          gaedb.IsObsolete,
-	"GoogleUniqueUserID": gaedb.IsObsolete,
-	"TelegramUserID":     gaedb.IsObsolete,
-	"TelegramUserIDs":    gaedb.IsObsolete,
-	//
-}
+//var userPropertiesToClean = map[string]gaedb.IsOkToRemove{
+//	"AA":              gaedb.IsObsolete,
+//	"FmbUserID":       gaedb.IsObsolete,
+//	"CounterpartyIDs": gaedb.IsObsolete,
+//	//
+//	"ContactsCount": gaedb.IsZeroInt,   // TODO: Obsolete
+//	"ContactsJson":  gaedb.IsEmptyJSON, // TODO: Obsolete
+//	//
+//	"GroupsCountActive":                   gaedb.IsZeroInt,
+//	"GroupsJsonActive":                    gaedb.IsEmptyJSON,
+//	"GroupsCountArchived":                 gaedb.IsZeroInt,
+//	"GroupsJsonArchived":                  gaedb.IsEmptyJSON,
+//	"BillsCountActive":                    gaedb.IsZeroInt,
+//	"BillsJsonActive":                     gaedb.IsEmptyJSON,
+//	"BillSchedulesCountActive":            gaedb.IsZeroInt,
+//	"BillSchedulesJsonActive":             gaedb.IsEmptyJSON,
+//	"BalanceCount":                        gaedb.IsZeroInt,
+//	"BalanceJson":                         gaedb.IsEmptyString,
+//	"CountOfAckTransfersByCounterparties": gaedb.IsZeroInt,
+//	"CountOfAckTransfersByUser":           gaedb.IsZeroInt,
+//	"CountOfInvitesAccepted":              gaedb.IsZeroInt,
+//	"CountOfInvitesCreated":               gaedb.IsZeroInt,
+//	"CountOfReceiptsCreated":              gaedb.IsZeroInt,
+//	"CountOfTransfers":                    gaedb.IsZeroInt,
+//	"ContactsCountActive":                 gaedb.IsZeroInt,
+//	"ContactsJsonActive":                  gaedb.IsEmptyJSON,
+//	"ContactsCountArchived":               gaedb.IsZeroInt,
+//	"ContactsJsonArchived":                gaedb.IsEmptyJSON,
+//	"DtAccessGranted":                     gaedb.IsZeroTime,
+//	"EmailAddress":                        gaedb.IsEmptyString,
+//	"EmailAddressOriginal":                gaedb.IsEmptyString,
+//	"FirstName":                           gaedb.IsEmptyString,
+//	"HasDueTransfers":                     gaedb.IsFalse,
+//	"InvitedByUserID":                     gaedb.IsZeroInt,
+//	"IsAnonymous":                         gaedb.IsFalse,
+//	"LastName":                            gaedb.IsEmptyString,
+//	"LastTransferAt":                      gaedb.IsZeroTime,
+//	"LastTransferID":                      gaedb.IsZeroInt,
+//	"LastFeedbackAt":                      gaedb.IsZeroTime,
+//	"LastFeedbackRate":                    gaedb.IsEmptyString,
+//	"LastUserAgent":                       gaedb.IsEmptyString,
+//	"LastUserIpAddress":                   gaedb.IsEmptyString,
+//	"Nickname":                            gaedb.IsEmptyString,
+//	"PhoneNumber":                         gaedb.IsZeroInt,
+//	"PhoneNumberConfirmed":                gaedb.IsFalse, // TODO: Duplicate of PhoneNumberIsConfirmed
+//	"PhoneNumberIsConfirmed":              gaedb.IsFalse, // TODO: Duplicate of PhoneNumberConfirmed
+//	"EmailConfirmed":                      gaedb.IsFalse,
+//	"PreferredLanguage":                   gaedb.IsEmptyString,
+//	"PrimaryCurrency":                     gaedb.IsEmptyString,
+//	"ScreenName":                          gaedb.IsEmptyString,
+//	"SmsCost":                             gaedb.IsZeroFloat,
+//	"SmsCostUSD":                          gaedb.IsZeroInt,
+//	"SmsCount":                            gaedb.IsZeroInt,
+//	"Username":                            gaedb.IsEmptyString,
+//	"VkUserID":                            gaedb.IsZeroInt,
+//	"DtLastLogin":                         gaedb.IsZeroTime,
+//	"PasswordBcryptHash":                  gaedb.IsObsolete,
+//	"TransfersWithInterestCount":          gaedb.IsZeroInt,
+//	//
+//	"ViberBotID":         gaedb.IsObsolete,
+//	"ViberUserID":        gaedb.IsObsolete,
+//	"FbmUserID":          gaedb.IsObsolete,
+//	"FbUserID":           gaedb.IsObsolete,
+//	"FbUserIDs":          gaedb.IsObsolete,
+//	"GoogleUniqueUserID": gaedb.IsObsolete,
+//	"TelegramUserID":     gaedb.IsObsolete,
+//	"TelegramUserIDs":    gaedb.IsObsolete,
+//	//
+//}
 
 func (entity *AppUserData) cleanProps(properties []datastore.Property) ([]datastore.Property, error) {
 	var err error

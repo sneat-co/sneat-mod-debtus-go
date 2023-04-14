@@ -3,8 +3,6 @@ package gaedal
 import (
 	"github.com/dal-go/dalgo/dal"
 	"testing"
-
-	"google.golang.org/appengine/v2/datastore"
 )
 
 func testIntKey(t *testing.T, expectedID int64, key *dal.Key) {
@@ -29,15 +27,15 @@ func testIntKey(t *testing.T, expectedID int64, key *dal.Key) {
 	}
 }
 
-func testDatastoreStringKey(t *testing.T, expectedID string, key *datastore.Key) {
+func testDatastoreStringKey(t *testing.T, expectedID string, key *dal.Key) {
 	if key == nil {
 		t.Error("key is nil")
 		return
 	}
-	if key.StringID() != expectedID {
-		t.Error("StringID() != expectedID", key.StringID(), expectedID)
+	if id, ok := key.ID.(string); ok && id != expectedID {
+		t.Error("StringID() != expectedID", id, expectedID)
 	}
-	if key.IntID() != 0 {
+	if id, ok := key.ID.(int); ok && id != 0 {
 		t.Error("IntegerID() != 0")
 	}
 	if key.Parent() != nil {

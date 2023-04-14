@@ -1,24 +1,22 @@
 package gaedal
 
 import (
-	"testing"
-
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/strongo/db/gaedb"
-	"google.golang.org/appengine/v2/datastore"
+	"testing"
 )
 
 func TestNewUserEmailKey(t *testing.T) {
 	const email = "test@example.come"
-	testDatastoreStringKey(t, email, NewUserEmailKey(context.Background(), email))
+	testDatastoreStringKey(t, email, models.NewUserEmailKey(email))
 }
 
 func TestUserEmailGaeDal_GetUserEmailByID(t *testing.T) {
-	gaedb.Get = func(c context.Context, key *datastore.Key, val interface{}) error {
-		return nil
-	}
+	//gaedb.Get = func(c context.Context, key *dal.Key, val interface{}) error {
+	//	return nil
+	//}
 
-	userEmail, _ := NewUserEmailGaeDal().GetUserEmailByID(context.Background(), " JackSmith@Example.com ")
+	userEmail, _ := NewUserEmailGaeDal().GetUserEmailByID(context.Background(), nil, " JackSmith@Example.com ")
 
 	if userEmail.ID != "jacksmith@example.com" {
 		t.Error("userEmail.ID expected to be lower case without spaces")

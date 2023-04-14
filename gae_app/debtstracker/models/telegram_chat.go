@@ -2,6 +2,8 @@ package models
 
 import (
 	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
+	"github.com/dal-go/dalgo/dal"
+	"reflect"
 )
 
 type DebtusTelegramChat struct {
@@ -16,6 +18,10 @@ var _ tgstore.TgChatData = (*DebtusTelegramChatData)(nil)
 type DebtusTelegramChatData struct {
 	tgstore.TgChatBase
 	DebtusChatData
+}
+
+func NewDebtusTelegramChatRecord() dal.Record {
+	return dal.NewRecordWithIncompleteKey(tgstore.TgChatCollection, reflect.String, new(DebtusTelegramChatData))
 }
 
 func (v *DebtusTelegramChatData) BaseChatData() *tgstore.TgChatBase {

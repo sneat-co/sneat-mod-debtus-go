@@ -1,20 +1,18 @@
 package gaedal
 
 import (
-	"fmt"
-	"github.com/bots-go-framework/bots-fw/botsfw"
-	"github.com/dal-go/dalgo/dal"
-	"strings"
-
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"fmt"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/datastore"
 	"google.golang.org/appengine/v2/delay"
+	"strings"
 )
 
 type ContactDalGae struct {
@@ -25,10 +23,6 @@ func NewContactDalGae() ContactDalGae {
 }
 
 var _ dtdal.ContactDal = (*ContactDalGae)(nil)
-
-func NewContactIncompleteKey(c context.Context) *datastore.Key {
-	return datastore.NewIncompleteKey(c, models.ContactKind, nil)
-}
 
 func (contactDalGae ContactDalGae) DeleteContact(c context.Context, tx dal.ReadwriteTransaction, contactID int64) (err error) {
 	log.Debugf(c, "ContactDalGae.DeleteContact(%d)", contactID)
@@ -133,12 +127,6 @@ func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, tx dal.ReadSes
 	}
 	var records []dal.Record
 	records, err = tx.SelectAll(c, query)
-	//var keys []*datastore.Key
-	//var entities []*models.ContactData
-	//if keys, err = query.GetAll(c, &entities); err != nil {
-	//	err = fmt.Errorf("method ContactDalGae.GetLatestContacts() failed: %w", err)
-	//	return
-	//}
 	var contactsCount = len(records)
 	log.Debugf(c, "GetLatestContacts(limit=%v, totalCount=%v): %v", limit, totalCount, contactsCount)
 	if (limit == 0 && contactsCount < totalCount) || (limit > 0 && totalCount > 0 && contactsCount < limit && contactsCount < totalCount) {

@@ -1,19 +1,16 @@
 package models
 
 import (
-	"fmt"
-	"github.com/dal-go/dalgo/dal"
-	"github.com/dal-go/dalgo/record"
-	"reflect"
-	"time"
-
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
 	"errors"
+	"fmt"
 	"github.com/crediterra/money"
-	"github.com/strongo/db/gaedb"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/decimal"
-	"google.golang.org/appengine/v2/datastore"
+	"reflect"
 	"strings"
+	"time"
 )
 
 const MaxTransferAmount = decimal.Decimal64p2(^uint64(0) >> 8)
@@ -45,7 +42,7 @@ const ( // Transfer statuses
 
 const TransferKind = "Transfer"
 
-var _ datastore.PropertyLoadSaver = (*TransferData)(nil)
+//var _ datastore.PropertyLoadSaver = (*TransferData)(nil)
 
 type Transfer struct {
 	record.WithID[int]
@@ -444,234 +441,234 @@ func (t *TransferData) UserInfoByUserID(userID int64) *TransferCounterpartyInfo 
 // 	return t.setAutoRemindersDisabled(userID, true)
 // }
 
-func (t *TransferData) Load(ps []datastore.Property) error {
-	// Load I and J as usual.
-	p2 := make([]datastore.Property, 0, len(ps))
-	var creationPlatform string
-	var ( // TODO: obsolete props migrated to TransferCounterpartyJson
-		creatorReminderID, counterpartyReminderID         int
-		creatorTgChatID, counterpartyTgChatID             int64
-		creatorTgBotID, counterpartyTgBotID               string
-		creatorContactName, counterpartyContactName       string
-		creatorNote, counterpartyNote                     string
-		creatorComment, counterpartyComment               string
-		creatorUserID, counterpartyUserID                 int64
-		creatorCounterpartyID, counterpartyCounterpartyID int64
-		// creatorTgReceiptByTgMsgID, counterpartyTgReceiptByTgMsgID int64
-	)
-	for _, p := range ps {
-		switch p.Name {
-		// case "AmountInCentsOutstanding": // Ignore legacy
-		// 	t.hasObsoleteProps = true
-		case "CounterpartyAutoRemindersDisabled": // Ignore legacy
-			t.hasObsoleteProps = true
-		case "CreatorAutoRemindersDisabled": // Ignore legacy
-			t.hasObsoleteProps = true
-		case "ReturnTransferIDs": // Ignore legacy
-			t.hasObsoleteProps = true
-		case "IsDue2Notify": // Ignore legacy
-			t.hasObsoleteProps = true
-		case "DtDueNext": // Ignore legacy
-			t.hasObsoleteProps = true
-		case "CounterpartyNotifications": // Ignore legacy
-			t.hasObsoleteProps = true
-		case "CreatorNotifications": // Ignore legacy
-			t.hasObsoleteProps = true
-		case "CounterpartyTgReceiptInlineMessageID": // Ignore legacy
-			t.hasObsoleteProps = true
-		case "CreationPlatform":
-			t.hasObsoleteProps = true
-			creationPlatform = p.Value.(string)
+//func (t *TransferData) Load(ps []datastore.Property) error {
+//	// Load I and J as usual.
+//	p2 := make([]datastore.Property, 0, len(ps))
+//	var creationPlatform string
+//	var ( // TODO: obsolete props migrated to TransferCounterpartyJson
+//		creatorReminderID, counterpartyReminderID         int
+//		creatorTgChatID, counterpartyTgChatID             int64
+//		creatorTgBotID, counterpartyTgBotID               string
+//		creatorContactName, counterpartyContactName       string
+//		creatorNote, counterpartyNote                     string
+//		creatorComment, counterpartyComment               string
+//		creatorUserID, counterpartyUserID                 int64
+//		creatorCounterpartyID, counterpartyCounterpartyID int64
+//		// creatorTgReceiptByTgMsgID, counterpartyTgReceiptByTgMsgID int64
+//	)
+//	for _, p := range ps {
+//		switch p.Name {
+//		// case "AmountInCentsOutstanding": // Ignore legacy
+//		// 	t.hasObsoleteProps = true
+//		case "CounterpartyAutoRemindersDisabled": // Ignore legacy
+//			t.hasObsoleteProps = true
+//		case "CreatorAutoRemindersDisabled": // Ignore legacy
+//			t.hasObsoleteProps = true
+//		case "ReturnTransferIDs": // Ignore legacy
+//			t.hasObsoleteProps = true
+//		case "IsDue2Notify": // Ignore legacy
+//			t.hasObsoleteProps = true
+//		case "DtDueNext": // Ignore legacy
+//			t.hasObsoleteProps = true
+//		case "CounterpartyNotifications": // Ignore legacy
+//			t.hasObsoleteProps = true
+//		case "CreatorNotifications": // Ignore legacy
+//			t.hasObsoleteProps = true
+//		case "CounterpartyTgReceiptInlineMessageID": // Ignore legacy
+//			t.hasObsoleteProps = true
+//		case "CreationPlatform":
+//			t.hasObsoleteProps = true
+//			creationPlatform = p.Value.(string)
+//
+//		case "CreatorCounterpartyName":
+//			t.hasObsoleteProps = true
+//			counterpartyContactName = p.Value.(string)
+//		case "CounterpartyCounterpartyName":
+//			t.hasObsoleteProps = true
+//			counterpartyContactName = p.Value.(string)
+//
+//		case "CreatorNote":
+//			t.hasObsoleteProps = true
+//			creatorNote = p.Value.(string)
+//		case "CounterpartyNote":
+//			t.hasObsoleteProps = true
+//			counterpartyNote = p.Value.(string)
+//
+//		case "CreatorComment":
+//			t.hasObsoleteProps = true
+//			creatorComment = p.Value.(string)
+//		case "CounterpartyComment":
+//			t.hasObsoleteProps = true
+//			counterpartyComment = p.Value.(string)
+//
+//		case "CreatorUserID": // Is NOT obsolete!
+//			// t.hasObsoleteProps = true
+//			p2 = append(p2, p)
+//			creatorUserID = p.Value.(int64)
+//		case "CounterpartyUserID":
+//			t.hasObsoleteProps = true
+//			counterpartyUserID = p.Value.(int64)
+//
+//		case "CreatorCounterpartyID":
+//			t.hasObsoleteProps = true
+//			creatorCounterpartyID = p.Value.(int64)
+//		case "CounterpartyCounterpartyID":
+//			t.hasObsoleteProps = true
+//			counterpartyCounterpartyID = p.Value.(int64)
+//
+//			// case "FromUserID": // TODO: Ignore legacy, temporary
+//			// case "FromUserName": // TODO: Ignore legacy, temporary
+//			// case "FromCounterpartyID": // TODO: Ignore legacy, temporary
+//			// case "FromCounterpartyName": // TODO: Ignore legacy, temporary
+//			// case "FromComment": // TODO: Ignore legacy, temporary
+//			// case "FromNote": // TODO: Ignore legacy, temporary
+//			// case "ToUserID": // TODO: Ignore legacy, temporary
+//			// case "ToUserName": // TODO: Ignore legacy, temporary
+//			// case "ToCounterpartyID": // TODO: Ignore legacy, temporary
+//			// case "ToCounterpartyName": // TODO:  Ignore legacy, temporary
+//			// case "ToComment": // TODO: Ignore legacy, temporary
+//			// case "ToNote": // TODO: Ignore legacy, temporary
+//
+//		case "CreatorReminderID":
+//			t.hasObsoleteProps = true
+//			creatorReminderID = p.Value.(int)
+//		case "CounterpartyReminderID":
+//			t.hasObsoleteProps = true
+//			counterpartyReminderID = p.Value.(int)
+//
+//		case "CreatorTgBotID":
+//			t.hasObsoleteProps = true
+//			creatorTgBotID = p.Value.(string)
+//		case "CounterpartyTgBotID":
+//			t.hasObsoleteProps = true
+//			counterpartyTgBotID = p.Value.(string)
+//
+//		case "CreatorTgChatID":
+//			t.hasObsoleteProps = true
+//			creatorTgChatID = p.Value.(int64)
+//		case "CounterpartyTgChatID":
+//			t.hasObsoleteProps = true
+//			counterpartyTgChatID = p.Value.(int64)
+//		case "Amount", "AmountReturned", "AmountOutstanding":
+//			t.hasObsoleteProps = true
+//			if v, isFloat := p.Value.(float64); isFloat {
+//				if v != 0 {
+//					p.Name = strings.Replace(p.Name, "Amount", "AmountInCents", 1)
+//					if v < 0.01 { // Fix very small amounts
+//						v = 0.01
+//					}
+//					val := int64(decimal.NewDecimal64p2FromFloat64(v))
+//					if val < 0 && v > 0 { // value is too big so we are getting overflow
+//						val = int64(MaxTransferAmount)
+//					}
+//					p.Value = val
+//					p2 = append(p2, p)
+//				}
+//			} else {
+//				return fmt.Errorf("obsolete property '%v' expected to be of type float64, got: %T=%v", p.Name, p.Value, p.Value)
+//			}
+//		default:
+//			p2 = append(p2, p)
+//		}
+//	}
+//
+//	if err := datastore.LoadStruct(t, p2); err != nil {
+//		return err
+//	}
+//
+//	// t.hasObsoleteProps = t.hasObsoleteProps || t.DirectionObsoleteProp != ""
+//
+//	if t.CreatedOnPlatform == "" && creationPlatform != "" {
+//		t.CreatedOnPlatform = creationPlatform
+//	}
+//
+//	// switch t.DirectionObsoleteProp {
+//	// case "from":
+//	// 	t.DirectionObsoleteProp = TransferDirectionUser2Counterparty
+//	// case "to":
+//	// 	t.DirectionObsoleteProp = TransferDirectionCounterparty2User
+//	// }
+//
+//	if t.GetOutstandingValue(time.Now()) > 0 && !t.IsOutstanding {
+//		t.IsOutstanding = true
+//	}
+//
+//	{ // TODO: Get rid once all transfers migrated - Moves properties to JSON
+//		migrateToCounterpartyInfo := func(
+//			counterparty *TransferCounterpartyInfo,
+//			userID int64,
+//			contactID int64,
+//			reminderID int,
+//			tgChatID int64,
+//			tgBotID, contactName, note, comment string,
+//		) {
+//			if userID != 0 && counterparty.UserID == 0 {
+//				counterparty.UserID = userID
+//			}
+//			if contactID != 0 && counterparty.ContactID == 0 {
+//				counterparty.ContactID = contactID
+//			}
+//			if reminderID != 0 {
+//				counterparty.ReminderID = reminderID
+//			}
+//			if tgChatID != 0 {
+//				counterparty.TgChatID = tgChatID
+//			}
+//			if tgBotID != "" {
+//				counterparty.TgBotID = tgBotID
+//			}
+//			if contactName != "" && counterparty.ContactName == "" {
+//				counterparty.ContactName = contactName
+//			}
+//			if note != "" && counterparty.Note == "" {
+//				counterparty.Note = note
+//			}
+//			if comment != "" && counterparty.Comment == "" {
+//				counterparty.Comment = comment
+//			}
+//		}
+//
+//		if creatorUserID != 0 { // TODO: temporary workaround to fix migration
+//			migrateToCounterpartyInfo(t.Creator(), creatorUserID, counterpartyCounterpartyID, creatorReminderID, creatorTgChatID, creatorTgBotID, creatorContactName, creatorNote, creatorComment)
+//			migrateToCounterpartyInfo(t.Counterparty(), counterpartyUserID, creatorCounterpartyID, counterpartyReminderID, counterpartyTgChatID, counterpartyTgBotID, counterpartyContactName, counterpartyNote, counterpartyComment)
+//		}
+//	}
+//
+//	return nil
+//}
 
-		case "CreatorCounterpartyName":
-			t.hasObsoleteProps = true
-			counterpartyContactName = p.Value.(string)
-		case "CounterpartyCounterpartyName":
-			t.hasObsoleteProps = true
-			counterpartyContactName = p.Value.(string)
+//var transferPropertiesToClean = map[string]gaedb.IsOkToRemove{
+//	// Remove obsolete properties
+//	"Amount":            gaedb.IsObsolete,
+//	"AmountTotal":       gaedb.IsObsolete,
+//	"AmountReturned":    gaedb.IsObsolete,
+//	"AmountOutstanding": gaedb.IsObsolete,
+//	//
+//
+//	// Remove defaults
+//	"SmsCount":          gaedb.IsZeroInt,
+//	"SmsCost":           gaedb.IsZeroFloat,
+//	"SmsCostUSD":        gaedb.IsZeroInt,
+//	"ReceiptsSentCount": gaedb.IsZeroInt,
+//	// "CreatorReminderID":         gaedb.IsZeroInt,
+//	// "CounterpartyReminderID":    gaedb.IsZeroInt,
+//	// "CreatorTgChatID":           gaedb.IsZeroInt,
+//	// "CounterpartyTgChatID":      gaedb.IsZeroInt,
+//	"CreatorTgReceiptByTgMsgID": gaedb.IsZeroInt,
+//	// "CounterpartyTgBotID":       gaedb.IsEmptyString,
+//	// "CreatorTgBotID":            gaedb.IsEmptyString,
+//	"Direction":                gaedb.IsEmptyString,
+//	"BillID":                   gaedb.IsEmptyString,
+//	"AmountInCentsOutstanding": gaedb.IsZeroInt,
+//	"AmountInCentsReturned":    gaedb.IsZeroInt,
+//	"AcknowledgeStatus":        gaedb.IsEmptyString,
+//	"AcknowledgeTime":          gaedb.IsZeroTime,
+//	"DtDueOn":                  gaedb.IsZeroTime,
+//	"IsOutstanding":            gaedb.IsFalse,
+//	"IsReturn":                 gaedb.IsFalse,
+//}
 
-		case "CreatorNote":
-			t.hasObsoleteProps = true
-			creatorNote = p.Value.(string)
-		case "CounterpartyNote":
-			t.hasObsoleteProps = true
-			counterpartyNote = p.Value.(string)
-
-		case "CreatorComment":
-			t.hasObsoleteProps = true
-			creatorComment = p.Value.(string)
-		case "CounterpartyComment":
-			t.hasObsoleteProps = true
-			counterpartyComment = p.Value.(string)
-
-		case "CreatorUserID": // Is NOT obsolete!
-			// t.hasObsoleteProps = true
-			p2 = append(p2, p)
-			creatorUserID = p.Value.(int64)
-		case "CounterpartyUserID":
-			t.hasObsoleteProps = true
-			counterpartyUserID = p.Value.(int64)
-
-		case "CreatorCounterpartyID":
-			t.hasObsoleteProps = true
-			creatorCounterpartyID = p.Value.(int64)
-		case "CounterpartyCounterpartyID":
-			t.hasObsoleteProps = true
-			counterpartyCounterpartyID = p.Value.(int64)
-
-			// case "FromUserID": // TODO: Ignore legacy, temporary
-			// case "FromUserName": // TODO: Ignore legacy, temporary
-			// case "FromCounterpartyID": // TODO: Ignore legacy, temporary
-			// case "FromCounterpartyName": // TODO: Ignore legacy, temporary
-			// case "FromComment": // TODO: Ignore legacy, temporary
-			// case "FromNote": // TODO: Ignore legacy, temporary
-			// case "ToUserID": // TODO: Ignore legacy, temporary
-			// case "ToUserName": // TODO: Ignore legacy, temporary
-			// case "ToCounterpartyID": // TODO: Ignore legacy, temporary
-			// case "ToCounterpartyName": // TODO:  Ignore legacy, temporary
-			// case "ToComment": // TODO: Ignore legacy, temporary
-			// case "ToNote": // TODO: Ignore legacy, temporary
-
-		case "CreatorReminderID":
-			t.hasObsoleteProps = true
-			creatorReminderID = p.Value.(int)
-		case "CounterpartyReminderID":
-			t.hasObsoleteProps = true
-			counterpartyReminderID = p.Value.(int)
-
-		case "CreatorTgBotID":
-			t.hasObsoleteProps = true
-			creatorTgBotID = p.Value.(string)
-		case "CounterpartyTgBotID":
-			t.hasObsoleteProps = true
-			counterpartyTgBotID = p.Value.(string)
-
-		case "CreatorTgChatID":
-			t.hasObsoleteProps = true
-			creatorTgChatID = p.Value.(int64)
-		case "CounterpartyTgChatID":
-			t.hasObsoleteProps = true
-			counterpartyTgChatID = p.Value.(int64)
-		case "Amount", "AmountReturned", "AmountOutstanding":
-			t.hasObsoleteProps = true
-			if v, isFloat := p.Value.(float64); isFloat {
-				if v != 0 {
-					p.Name = strings.Replace(p.Name, "Amount", "AmountInCents", 1)
-					if v < 0.01 { // Fix very small amounts
-						v = 0.01
-					}
-					val := int64(decimal.NewDecimal64p2FromFloat64(v))
-					if val < 0 && v > 0 { // value is too big so we are getting overflow
-						val = int64(MaxTransferAmount)
-					}
-					p.Value = val
-					p2 = append(p2, p)
-				}
-			} else {
-				return fmt.Errorf("obsolete property '%v' expected to be of type float64, got: %T=%v", p.Name, p.Value, p.Value)
-			}
-		default:
-			p2 = append(p2, p)
-		}
-	}
-
-	if err := datastore.LoadStruct(t, p2); err != nil {
-		return err
-	}
-
-	// t.hasObsoleteProps = t.hasObsoleteProps || t.DirectionObsoleteProp != ""
-
-	if t.CreatedOnPlatform == "" && creationPlatform != "" {
-		t.CreatedOnPlatform = creationPlatform
-	}
-
-	// switch t.DirectionObsoleteProp {
-	// case "from":
-	// 	t.DirectionObsoleteProp = TransferDirectionUser2Counterparty
-	// case "to":
-	// 	t.DirectionObsoleteProp = TransferDirectionCounterparty2User
-	// }
-
-	if t.GetOutstandingValue(time.Now()) > 0 && !t.IsOutstanding {
-		t.IsOutstanding = true
-	}
-
-	{ // TODO: Get rid once all transfers migrated - Moves properties to JSON
-		migrateToCounterpartyInfo := func(
-			counterparty *TransferCounterpartyInfo,
-			userID int64,
-			contactID int64,
-			reminderID int,
-			tgChatID int64,
-			tgBotID, contactName, note, comment string,
-		) {
-			if userID != 0 && counterparty.UserID == 0 {
-				counterparty.UserID = userID
-			}
-			if contactID != 0 && counterparty.ContactID == 0 {
-				counterparty.ContactID = contactID
-			}
-			if reminderID != 0 {
-				counterparty.ReminderID = reminderID
-			}
-			if tgChatID != 0 {
-				counterparty.TgChatID = tgChatID
-			}
-			if tgBotID != "" {
-				counterparty.TgBotID = tgBotID
-			}
-			if contactName != "" && counterparty.ContactName == "" {
-				counterparty.ContactName = contactName
-			}
-			if note != "" && counterparty.Note == "" {
-				counterparty.Note = note
-			}
-			if comment != "" && counterparty.Comment == "" {
-				counterparty.Comment = comment
-			}
-		}
-
-		if creatorUserID != 0 { // TODO: temporary workaround to fix migration
-			migrateToCounterpartyInfo(t.Creator(), creatorUserID, counterpartyCounterpartyID, creatorReminderID, creatorTgChatID, creatorTgBotID, creatorContactName, creatorNote, creatorComment)
-			migrateToCounterpartyInfo(t.Counterparty(), counterpartyUserID, creatorCounterpartyID, counterpartyReminderID, counterpartyTgChatID, counterpartyTgBotID, counterpartyContactName, counterpartyNote, counterpartyComment)
-		}
-	}
-
-	return nil
-}
-
-var transferPropertiesToClean = map[string]gaedb.IsOkToRemove{
-	// Remove obsolete properties
-	"Amount":            gaedb.IsObsolete,
-	"AmountTotal":       gaedb.IsObsolete,
-	"AmountReturned":    gaedb.IsObsolete,
-	"AmountOutstanding": gaedb.IsObsolete,
-	//
-
-	// Remove defaults
-	"SmsCount":          gaedb.IsZeroInt,
-	"SmsCost":           gaedb.IsZeroFloat,
-	"SmsCostUSD":        gaedb.IsZeroInt,
-	"ReceiptsSentCount": gaedb.IsZeroInt,
-	// "CreatorReminderID":         gaedb.IsZeroInt,
-	// "CounterpartyReminderID":    gaedb.IsZeroInt,
-	// "CreatorTgChatID":           gaedb.IsZeroInt,
-	// "CounterpartyTgChatID":      gaedb.IsZeroInt,
-	"CreatorTgReceiptByTgMsgID": gaedb.IsZeroInt,
-	// "CounterpartyTgBotID":       gaedb.IsEmptyString,
-	// "CreatorTgBotID":            gaedb.IsEmptyString,
-	"Direction":                gaedb.IsEmptyString,
-	"BillID":                   gaedb.IsEmptyString,
-	"AmountInCentsOutstanding": gaedb.IsZeroInt,
-	"AmountInCentsReturned":    gaedb.IsZeroInt,
-	"AcknowledgeStatus":        gaedb.IsEmptyString,
-	"AcknowledgeTime":          gaedb.IsZeroTime,
-	"DtDueOn":                  gaedb.IsZeroTime,
-	"IsOutstanding":            gaedb.IsFalse,
-	"IsReturn":                 gaedb.IsFalse,
-}
-
-func (t *TransferData) BeforeSave() (err error) {
+func (t *TransferData) Validate() (err error) {
 	if t.CreatorUserID == 0 {
 		err = errors.New("*TransferData.CreatorUserID == 0")
 		return
@@ -843,42 +840,42 @@ func (*TransferData) movedToJson(propName string) bool {
 		strings.HasSuffix(propName, "TgChatID"))
 }
 
-func (t *TransferData) Save() (properties []datastore.Property, err error) {
-	if err = t.BeforeSave(); err != nil {
-		return
-	}
-
-	// Serialize from struct to list of properties
-	if properties, err = datastore.SaveStruct(t); err != nil {
-		return properties, err
-	}
-
-	// To optimize storage we filter out default values
-	//if properties, err = gaedb.CleanProperties(properties, transferPropertiesToClean); err != nil {
-	//	return
-	//}
-
-	// { // Obsolete properties that were moved to JSON also should be removed
-	// 	if migratedToJson := t.FromJson != "" && t.ToJson != ""; migratedToJson {
-	// 		if t.DirectionObsoleteProp != "" {
-	// 			t.DirectionObsoleteProp = ""
-	// 		}
-	// 		properties2 := make([]datastore.Property, 0, len(properties))
-	// 		for _, p := range properties {
-	// 			if t.movedToJson(p.Name) {
-	// 				continue
-	// 			}
-	// 			properties2 = append(properties2, p)
-	// 		}
-	// 		properties = properties2
-	// 	}
-	// }
-
-	// Make general application-wide checks and call hooks if any
-	//checkHasProperties(TransferKind, properties)
-
-	return
-}
+//func (t *TransferData) Save() (properties []datastore.Property, err error) {
+//	if err = t.BeforeSave(); err != nil {
+//		return
+//	}
+//
+//	// Serialize from struct to list of properties
+//	if properties, err = datastore.SaveStruct(t); err != nil {
+//		return properties, err
+//	}
+//
+//	// To optimize storage we filter out default values
+//	//if properties, err = gaedb.CleanProperties(properties, transferPropertiesToClean); err != nil {
+//	//	return
+//	//}
+//
+//	// { // Obsolete properties that were moved to JSON also should be removed
+//	// 	if migratedToJson := t.FromJson != "" && t.ToJson != ""; migratedToJson {
+//	// 		if t.DirectionObsoleteProp != "" {
+//	// 			t.DirectionObsoleteProp = ""
+//	// 		}
+//	// 		properties2 := make([]datastore.Property, 0, len(properties))
+//	// 		for _, p := range properties {
+//	// 			if t.movedToJson(p.Name) {
+//	// 				continue
+//	// 			}
+//	// 			properties2 = append(properties2, p)
+//	// 		}
+//	// 		properties = properties2
+//	// 	}
+//	// }
+//
+//	// Make general application-wide checks and call hooks if any
+//	//checkHasProperties(TransferKind, properties)
+//
+//	return
+//}
 
 func NewTransferData(creatorUserID int64, isReturn bool, amount money.Amount, from *TransferCounterpartyInfo, to *TransferCounterpartyInfo) *TransferData {
 	if creatorUserID == 0 {

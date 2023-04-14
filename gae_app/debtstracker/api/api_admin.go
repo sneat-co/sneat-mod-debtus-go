@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"net/http"
+	"reflect"
 	"strconv"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
@@ -16,7 +17,6 @@ import (
 	"errors"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/datastore"
 	"google.golang.org/appengine/v2/delay"
 	"google.golang.org/appengine/v2/taskqueue"
 )
@@ -120,21 +120,25 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 var delayedChangeTransfersCounterparty = delay.MustRegister("changeTransfersCounterparty", func(c context.Context, oldID, newID int64, cursor string) error {
 	log.Debugf(c, "delayedChangeTransfersCounterparty(oldID=%d, newID=%d)", oldID, newID)
 
-	query := datastore.NewQuery(models.TransferKind).Filter("BothCounterpartyIDs =", oldID).Limit(100)
-	query = query.KeysOnly()
-	if keys, err := query.GetAll(c, nil); err != nil {
+	query := dal.From(models.TransferKind).
+		WhereField("BothCounterpartyIDs", dal.Equal, oldID).
+		SelectKeysOnly(reflect.Int)
+	query.Limit = 100
+
+	transferIDs, err := facade.DB().SelectAllIDs(c, query)
+	if err != nil {
 		return err
-	} else {
-		log.Infof(c, "Loaded %d keys", len(keys))
-		tasks := make([]*taskqueue.Task, len(keys))
-		for i, key := range keys {
-			if tasks[i], err = gae.CreateDelayTask(common.QUEUE_SUPPORT, "changeTransferCounterparty", delayedChangeTransferCounterparty, key.IntID(), oldID, newID, ""); err != nil {
-				return err
-			}
-		}
-		if _, err = taskqueue.AddMulti(c, tasks, common.QUEUE_SUPPORT); err != nil {
+	}
+
+	log.Infof(c, "Loaded %d transferIDs", len(transferIDs))
+	tasks := make([]*taskqueue.Task, len(transferIDs))
+	for i, id := range transferIDs {
+		if tasks[i], err = gae.CreateDelayTask(common.QUEUE_SUPPORT, "changeTransferCounterparty", delayedChangeTransferCounterparty, id.(int), oldID, newID, ""); err != nil {
 			return err
 		}
+	}
+	if _, err = taskqueue.AddMulti(c, tasks, common.QUEUE_SUPPORT); err != nil {
+		return err
 	}
 	return nil
 })
