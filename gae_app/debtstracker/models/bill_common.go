@@ -8,7 +8,6 @@ import (
 	"github.com/crediterra/money"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
-	"google.golang.org/appengine/v2/datastore"
 	"strconv"
 )
 
@@ -208,15 +207,15 @@ Members:
 	}
 }
 
-func (entity *BillCommon) load(ps []datastore.Property) []datastore.Property {
-	for i, p := range ps {
-		if p.Name == "GetUserGroupID" {
-			entity.UserGroupID = p.Value.(string)
-			return append(ps[:i], ps[i+1:]...)
-		}
-	}
-	return ps
-}
+//func (entity *BillCommon) load(ps []datastore.Property) []datastore.Property {
+//	for i, p := range ps {
+//		if p.Name == "GetUserGroupID" {
+//			entity.UserGroupID = p.Value.(string)
+//			return append(ps[:i], ps[i+1:]...)
+//		}
+//	}
+//	return ps
+//}
 
 func (entity *BillCommon) Validate() (err error) {
 	if entity.CreatorUserID == "" {

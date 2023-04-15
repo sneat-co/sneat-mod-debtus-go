@@ -143,7 +143,7 @@ func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, use
 				inviteCode = dtdal.RandomCode(inviteCodeLen)
 				existingInvite := models.NewInvite(inviteCode, nil)
 
-				if err := tx.Get(c, existingInvite.Record); err == datastore.ErrNoSuchEntity {
+				if err := tx.Get(c, existingInvite.Record); dal.IsNotFound(err) {
 					//log.Debugf(c, "New invite code: %v", inviteCode)
 					break
 				} else {

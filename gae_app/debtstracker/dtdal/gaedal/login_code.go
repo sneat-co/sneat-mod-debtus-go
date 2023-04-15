@@ -10,7 +10,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/datastore"
 )
 
 type LoginCodeDalGae struct {
@@ -69,7 +68,7 @@ func (LoginCodeDalGae) ClaimLoginCode(c context.Context, code int) (userID int64
 	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 		loginCode := models.NewLoginCode(code, nil)
 		if err = tx.Get(c, loginCode.Record); err != nil {
-			if err == datastore.ErrNoSuchEntity {
+			if dal.IsNotFound(err) {
 				return err
 			} else {
 				return err

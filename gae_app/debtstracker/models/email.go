@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"errors"
-	"google.golang.org/appengine/v2/datastore"
 )
 
 const EmailKind = "Email"
@@ -48,29 +47,33 @@ type EmailData struct {
 	AwsSesMessageID string
 }
 
-func (entity *EmailData) Load(ps []datastore.Property) error {
-	return datastore.LoadStruct(entity, ps)
-}
+//func (entity *EmailData) Load(ps []datastore.Property) error {
+//	return datastore.LoadStruct(entity, ps)
+//}
 
-func (entity *EmailData) Save() (properties []datastore.Property, err error) {
+func (entity *EmailData) Validate() (err error) {
 	if entity.Status == "" {
 		err = errors.New("email.Status is empty")
+		return
 	}
 	if entity.Subject == "" {
 		err = errors.New("email.Subject is empty")
+		return
 	}
 	if entity.From == "" {
 		err = errors.New("email.From is empty")
+		return
 	}
 	if entity.To == "" {
 		err = errors.New("email.To is empty")
+		return
 	}
 	if entity.DtCreated.IsZero() {
 		entity.DtCreated = time.Now()
 	}
-	if properties, err = datastore.SaveStruct(entity); err != nil {
-		return
-	}
+	//if properties, err = datastore.SaveStruct(entity); err != nil {
+	//	return
+	//}
 	//return gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
 	//	"DtSent":          gaedb.IsZeroTime,
 	//	"AwsSesMessageID": gaedb.IsEmptyString,
@@ -78,5 +81,6 @@ func (entity *EmailData) Save() (properties []datastore.Property, err error) {
 	//	"BodyText":        gaedb.IsEmptyString,
 	//	"BodyHtml":        gaedb.IsEmptyString,
 	//})
-	return nil, nil
+	//return nil, nil
+	return nil
 }

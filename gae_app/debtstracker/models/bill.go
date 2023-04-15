@@ -7,7 +7,6 @@ import (
 
 	"errors"
 	"github.com/strongo/decimal"
-	"google.golang.org/appengine/v2/datastore"
 )
 
 const (
@@ -114,10 +113,10 @@ func (Bill) Kind() string {
 //	}
 //}
 
-func (entity *BillEntity) Load(ps []datastore.Property) error {
-	ps = entity.BillCommon.load(ps)
-	return datastore.LoadStruct(entity, ps)
-}
+//func (entity *BillEntity) Load(ps []datastore.Property) error {
+//	ps = entity.BillCommon.load(ps)
+//	return datastore.LoadStruct(entity, ps)
+//}
 
 func (entity *BillEntity) Validate() (err error) {
 	if err = entity.validateBalance(); err != nil {
