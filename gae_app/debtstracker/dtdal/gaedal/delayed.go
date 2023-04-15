@@ -146,7 +146,7 @@ func GetTelegramChatByUserID(c context.Context, userID int64) (entityID string, 
 		err = fmt.Errorf("%w: telegram chat not found by userID=%d:%T", dal.ErrRecordNotFound, userID, userID)
 		return
 	default:
-		err = fmt.Errorf("too many telegram chats found by userID=%d:%T: %d", dal.ErrRecordNotFound, userID, userID, len(tgChatRecords))
+		err = fmt.Errorf("%w: too many telegram chats found by userID=%d:%T: %d", dal.ErrRecordNotFound, userID, userID, len(tgChatRecords))
 		return
 	}
 }

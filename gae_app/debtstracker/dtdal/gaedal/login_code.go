@@ -83,7 +83,7 @@ func (LoginCodeDalGae) ClaimLoginCode(c context.Context, code int) (userID int64
 		}
 		loginCode.Data.Claimed = time.Now()
 		if err = tx.Set(c, loginCode.Record); err != nil {
-			return fmt.Errorf("failed to save %v: %w", err)
+			return fmt.Errorf("failed to save login code record: %w", err)
 		}
 		userID = loginCode.Data.UserID
 		return nil

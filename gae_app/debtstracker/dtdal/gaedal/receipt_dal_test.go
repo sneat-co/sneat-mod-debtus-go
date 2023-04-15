@@ -6,7 +6,7 @@ import (
 )
 
 func TestNewReceiptIncompleteKey(t *testing.T) {
-	testIncompleteKey(t, NewReceiptIncompleteKey())
+	testIncompleteKey(t, models.NewReceiptIncompleteKey())
 }
 
 func TestNewReceiptKey(t *testing.T) {

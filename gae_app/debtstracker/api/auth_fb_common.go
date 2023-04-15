@@ -87,7 +87,7 @@ func signInFbUser(c context.Context, fbAppID, fbUserID string, r *http.Request, 
 			return
 		}
 		if err != nil {
-			err = fmt.Errorf("%w: %w", ErrUnauthorized, err.Error())
+			err = fmt.Errorf("%w: %v", ErrUnauthorized, err.Error())
 			return
 		}
 	}

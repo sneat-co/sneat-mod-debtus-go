@@ -2,11 +2,9 @@ package gaedal
 
 import (
 	"testing"
-
-	"context"
 )
 
 func TestNewVkUserKey(t *testing.T) {
 	const vkUserID = 789
-	testIntKey(t, vkUserID, NewUserVkKey(context.Background(), vkUserID))
+	testIntKey(t, vkUserID, NewUserVkKey(vkUserID))
 }

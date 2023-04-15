@@ -24,7 +24,7 @@ func (authFacade) AssignPinCode(c context.Context, loginID int, userID int64) (l
 	}
 	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
 		if loginPin, err = dtdal.LoginPin.GetLoginPinByID(c, tx, loginID); err != nil {
-			return fmt.Errorf("failed to get LoginPin entity by ID=%s: %w", loginID, err)
+			return fmt.Errorf("failed to get LoginPin entity by ID=%v: %w", loginID, err)
 		}
 		if loginPin.Data.UserID != 0 && loginPin.Data.UserID != userID {
 			return errors.New("LoginPin.UserID != userID")

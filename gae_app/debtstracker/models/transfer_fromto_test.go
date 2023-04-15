@@ -61,20 +61,20 @@ func TestTransferFromToUpdate(t *testing.T) {
 
 	transfer := NewTransfer(55, &transferEntity)
 
-	from = transfer.From()
+	from = transfer.Data.From()
 
 	from.ContactID = 77
-	if v := transfer.From().ContactID; v != 77 {
+	if v := transfer.Data.From().ContactID; v != 77 {
 		t.Errorf("transferEntity.From().ContactID != 77: %d", v)
 		return
 	}
 
-	creator := transfer.Creator()
+	creator := transfer.Data.Creator()
 	creator.ContactID = 88
-	if v := transfer.Creator().ContactID; v != 88 {
+	if v := transfer.Data.Creator().ContactID; v != 88 {
 		t.Errorf("transfer.Creator().ContactID != 88: %d", v)
 	}
-	if v := transfer.From().ContactID; v != 88 {
+	if v := transfer.Data.From().ContactID; v != 88 {
 		t.Errorf("transfer.From().ContactID != 88: %d", v)
 	}
 }

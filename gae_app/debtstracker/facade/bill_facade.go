@@ -119,7 +119,7 @@ func (billFacade) CreateBill(c context.Context, tx dal.ReadwriteTransaction, bil
 		return
 	}
 	if billEntity.Status == "" {
-		err = fmt.Errorf("%w: billEntity.Status property is required")
+		err = fmt.Errorf("%w: billEntity.Status property is required", err)
 		return
 	}
 	if !models.IsValidBillStatus(billEntity.Status) {

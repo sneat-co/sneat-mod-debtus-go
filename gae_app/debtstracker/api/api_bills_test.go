@@ -28,7 +28,7 @@ func TestBillApiCreateBill(t *testing.T) {
 	c := context.Background()
 	dtmocks.SetupMocks(c)
 
-	if contact, err := dtdal.Contact.InsertContact(c, &models.ContactData{
+	if contact, err := dtdal.Contact.InsertContact(c, nil, &models.ContactData{
 		UserID: creatorUserID,
 		ContactDetails: models.ContactDetails{
 			FirstName: "First",

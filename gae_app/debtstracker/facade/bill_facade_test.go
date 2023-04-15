@@ -4,6 +4,8 @@ import (
 	// "bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	// "bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal/dalmocks"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"fmt"
+
 	// "errors"
 	"strings"
 	"testing"
@@ -38,7 +40,7 @@ func TestCreateBillPanicOnNilBill(t *testing.T) {
 			}
 		}
 	}()
-	Bill.CreateBill(context.Background(), context.Background(), nil)
+	_, _ = Bill.CreateBill(context.Background(), nil, nil)
 }
 
 func TestCreateBillErrorNoMembers(t *testing.T) {
@@ -66,7 +68,7 @@ func TestCreateBillAmountZeroError(t *testing.T) {
 	billEntity := createGoodBillSplitByPercentage(t)
 	billEntity.AmountTotal = 0
 	billEntity.Currency = "EUR"
-	bill, err := Bill.CreateBill(context.Background(), context.Background(), billEntity)
+	bill, err := Bill.CreateBill(context.Background(), nil, billEntity)
 	if err == nil {
 		t.Error("Error expected")
 	}
@@ -83,7 +85,7 @@ func TestCreateBillAmountNegativeError(t *testing.T) {
 	dtmocks.SetupMocks(context.Background())
 	billEntity := createGoodBillSplitByPercentage(t)
 	billEntity.AmountTotal = -5
-	bill, err := Bill.CreateBill(context.Background(), context.Background(), billEntity)
+	bill, err := Bill.CreateBill(context.Background(), nil, billEntity)
 	if err == nil {
 		t.Error("Error expected")
 	}
@@ -120,7 +122,7 @@ func TestCreateBillStatusMissingError(t *testing.T) {
 	dtmocks.SetupMocks(context.Background())
 	billEntity := createGoodBillSplitByPercentage(t)
 	billEntity.Status = ""
-	bill, err := Bill.CreateBill(context.Background(), context.Background(), billEntity)
+	bill, err := Bill.CreateBill(context.Background(), nil, billEntity)
 	if err == nil {
 		t.Error("Error expected")
 		return
@@ -138,7 +140,7 @@ func TestCreateBillStatusUnknownError(t *testing.T) {
 	dtmocks.SetupMocks(context.Background())
 	billEntity := createGoodBillSplitByPercentage(t)
 	billEntity.Status = "bogus"
-	bill, err := Bill.CreateBill(context.Background(), context.Background(), billEntity)
+	bill, err := Bill.CreateBill(context.Background(), nil, billEntity)
 	if err == nil {
 		t.Error("Error expected")
 		return
@@ -183,7 +185,7 @@ func TestCreateBillTooManyMembersError(t *testing.T) {
 		t.Error(err)
 	}
 	c := context.Background()
-	bill, err := Bill.CreateBill(c, c, billEntity)
+	bill, err := Bill.CreateBill(c, nil, billEntity)
 	if err == nil {
 		t.Error("Error expected")
 	}
@@ -204,7 +206,7 @@ func TestCreateBillMembersOverPaid(t *testing.T) {
 	if err := billEntity.SetBillMembers(members); err != nil {
 		t.Fatal(err)
 	}
-	bill, err := Bill.CreateBill(context.Background(), context.Background(), billEntity)
+	bill, err := Bill.CreateBill(context.Background(), nil, billEntity)
 	if err == nil {
 		t.Fatal("Error expected")
 	}
@@ -238,7 +240,7 @@ func TestCreateBillSuccess(t *testing.T) {
 
 	members := billEntity.GetBillMembers()
 
-	bill, err := Bill.CreateBill(c, c, billEntity)
+	bill, err := Bill.CreateBill(c, nil, billEntity)
 	if err != nil {
 		t.Error(err)
 		return
@@ -426,7 +428,7 @@ func TestCreateBillEquallySuccess(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	bill, err := Bill.CreateBill(c, c, billEntity)
+	bill, err := Bill.CreateBill(c, nil, billEntity)
 	if err != nil {
 		t.Error(err)
 		return
@@ -443,7 +445,7 @@ func TestCreateBillAdjustmentSuccess(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	bill, err := Bill.CreateBill(c, c, billEntity)
+	bill, err := Bill.CreateBill(c, nil, billEntity)
 	if err != nil {
 		t.Error(err)
 		return
@@ -529,7 +531,7 @@ func TestCreateBillShareSuccess(t *testing.T) {
 	if err != nil {
 		return
 	}
-	bill, err := Bill.CreateBill(context.Background(), context.Background(), billEntity)
+	bill, err := Bill.CreateBill(context.Background(), nil, billEntity)
 	if err != nil {
 		t.Error(err)
 		return

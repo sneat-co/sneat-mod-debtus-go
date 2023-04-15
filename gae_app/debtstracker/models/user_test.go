@@ -53,16 +53,16 @@ func TestAppUserEntity_SetLastCurrency(t *testing.T) {
 func TestLastLogin_SetLastLogin(t *testing.T) {
 	user := NewUser(ClientInfo{})
 	now := time.Now()
-	user.SetLastLogin(now)
-	if user.DtLastLogin != now {
+	user.Data.SetLastLogin(now)
+	if user.Data.DtLastLogin != now {
 		t.Errorf("user.DtLastLogin != now")
 	}
 
 	userGoogle := UserGoogle{
-		UserGoogleEntity: &UserGoogleData{},
+		Data: &UserGoogleData{},
 	}
-	userGoogle.SetLastLogin(now)
-	if userGoogle.DtLastLogin != now {
+	userGoogle.Data.SetLastLogin(now)
+	if userGoogle.Data.DtLastLogin != now {
 		t.Errorf("userGoogle.DtLastLogin != now")
 	}
 
@@ -71,11 +71,11 @@ func TestLastLogin_SetLastLogin(t *testing.T) {
 	}
 
 	userGoogle = UserGoogle{
-		UserGoogleEntity: &UserGoogleData{},
+		Data: &UserGoogleData{},
 	}
-	var lastLoginSetter LastLoginSetter = userGoogle
+	var lastLoginSetter LastLoginSetter = userGoogle.Data
 	lastLoginSetter.SetLastLogin(now)
-	if userGoogle.DtLastLogin != now {
+	if userGoogle.Data.DtLastLogin != now {
 		t.Errorf("lastLoginSetter.DtLastLogin != now")
 	}
 }
