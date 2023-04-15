@@ -9,7 +9,7 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/datastore"
 	"net/http"
 	"strconv"
 	"strings"

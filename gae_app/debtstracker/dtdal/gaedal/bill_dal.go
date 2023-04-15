@@ -10,7 +10,7 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/delay"
+	"google.golang.org/appengine/delay"
 )
 
 type billDalGae struct {
@@ -39,7 +39,7 @@ func (billDalGae) DelayUpdateBillDependencies(c context.Context, billID string) 
 	return
 }
 
-var delayedUpdateBillDependencies = delay.MustRegister("delayedUpdateBillDependencies", func(c context.Context, billID string) (err error) {
+var delayedUpdateBillDependencies = delay.Func("delayedUpdateBillDependencies", func(c context.Context, billID string) (err error) {
 	log.Debugf(c, "delayedUpdateBillDependencies(billID=%d)", billID)
 	var bill models.Bill
 	if bill, err = facade.GetBillByID(c, nil, billID); err != nil {

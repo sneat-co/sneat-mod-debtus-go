@@ -17,7 +17,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/decimal"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/datastore"
 )
 
 type transfersPage struct {

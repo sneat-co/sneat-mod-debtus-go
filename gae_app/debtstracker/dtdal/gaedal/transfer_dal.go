@@ -15,7 +15,7 @@ import (
 	"errors"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/delay"
+	"google.golang.org/appengine/delay"
 )
 
 type TransferDalGae struct {
@@ -134,7 +134,7 @@ func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context,
 	return
 }
 
-var delayFixTransfersIsOutstanding = delay.MustRegister("fix-transfers-is-outstanding", fixTransfersIsOutstanding)
+var delayFixTransfersIsOutstanding = delay.Func("fix-transfers-is-outstanding", fixTransfersIsOutstanding)
 
 func fixTransfersIsOutstanding(c context.Context, transferIDs []int) (err error) {
 	log.Debugf(c, "fixTransfersIsOutstanding(%v)", transferIDs)

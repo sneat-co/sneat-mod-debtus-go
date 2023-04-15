@@ -14,7 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/urlfetch"
+	"google.golang.org/appengine/urlfetch"
 )
 
 func sendReminderByEmail(c context.Context, reminder models.Reminder, emailTo string, transfer models.Transfer, user models.AppUserData) error {

@@ -11,8 +11,8 @@ import (
 	"context"
 	"errors"
 	"github.com/strongo/app/gae"
-	"google.golang.org/appengine/v2/delay"
-	"google.golang.org/appengine/v2/taskqueue"
+	"google.golang.org/appengine/delay"
+	"google.golang.org/appengine/taskqueue"
 )
 
 func _validateSetReminderIsSentMessageIDs(messageIntID int64, messageStrID string, sentAt time.Time) error {
@@ -37,7 +37,7 @@ func (ReminderDalGae) DelaySetReminderIsSent(c context.Context, reminderID int, 
 	return nil
 }
 
-var delayedSetReminderIsSent = delay.MustRegister("setReminderIsSent", setReminderIsSent)
+var delayedSetReminderIsSent = delay.Func("setReminderIsSent", setReminderIsSent)
 
 func setReminderIsSent(c context.Context, reminderID int, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error {
 	return dtdal.Reminder.SetReminderIsSent(c, reminderID, sentAt, messageIntID, messageStrID, locale, errDetails)

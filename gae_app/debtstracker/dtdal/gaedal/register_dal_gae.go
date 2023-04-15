@@ -11,7 +11,7 @@ import (
 	"context"
 	telegramBot "github.com/bots-go-framework/bots-fw-telegram"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/v2/urlfetch"
+	"google.golang.org/appengine/urlfetch"
 )
 
 func RegisterDal() {

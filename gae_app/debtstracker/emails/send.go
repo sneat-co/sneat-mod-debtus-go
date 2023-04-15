@@ -16,7 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/urlfetch"
+	"google.golang.org/appengine/urlfetch"
 )
 
 func CreateEmailRecordAndQueueForSending(c context.Context, emailEntity *models.EmailData) (id int64, err error) {

@@ -11,7 +11,7 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/delay"
+	"google.golang.org/appengine/delay"
 	"strings"
 )
 
@@ -40,7 +40,7 @@ var deleteContactTransfersDelayFunc *delay.Function
 const DeleteContactTransfersFuncKey = "DeleteContactTransfers"
 
 func init() {
-	deleteContactTransfersDelayFunc = delay.MustRegister(DeleteContactTransfersFuncKey, delayedDeleteContactTransfers)
+	deleteContactTransfersDelayFunc = delay.Func(DeleteContactTransfersFuncKey, delayedDeleteContactTransfers)
 }
 
 func delayDeleteContactTransfers(c context.Context, contactID int64, cursor string) error {

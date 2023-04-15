@@ -18,8 +18,8 @@ import (
 	"github.com/strongo/app/gae"
 	"github.com/strongo/app/gaestandard"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/delay"
-	"google.golang.org/appengine/v2/urlfetch"
+	"google.golang.org/appengine/delay"
+	"google.golang.org/appengine/urlfetch"
 	"net/http"
 	"time"
 )
@@ -131,7 +131,7 @@ func DelaySetChatIsForbidden(c context.Context, botID string, tgChatID int64, at
 	return gae.CallDelayFunc(c, common.QUEUE_CHATS, "set-chat-is-forbidden", delaySetChatIsForbidden, botID, tgChatID, at)
 }
 
-var delaySetChatIsForbidden = delay.MustRegister("SetChatIsForbidden", SetChatIsForbidden)
+var delaySetChatIsForbidden = delay.Func("SetChatIsForbidden", SetChatIsForbidden)
 
 func SetChatIsForbidden(c context.Context, botID string, tgChatID int64, at time.Time) error {
 	log.Debugf(c, "SetChatIsForbidden(tgChatID=%v, at=%v)", tgChatID, at)

@@ -125,7 +125,7 @@ func (AdminDalGae) DeleteAll(c context.Context, botCode, botChatID string) error
 	//return nil
 }
 
-//var delayTgChatDeletion = delay.MustRegister("delete-%v", func(c context.Context, id string) error {
+//var delayTgChatDeletion = delay.Func("delete-%v", func(c context.Context, id string) error {
 //	log.Debugf(c, "delayTgChatDeletion(id=%v)", id)
 //	panic("not implemented")
 //	key := gaedb.NewKey(c, telegram.ChatKind, id, 0, nil)

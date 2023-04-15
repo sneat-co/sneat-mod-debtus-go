@@ -12,7 +12,7 @@ import (
 	"github.com/strongo/app/gae"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/delay"
+	"google.golang.org/appengine/delay"
 	"sync"
 )
 
@@ -22,7 +22,7 @@ func DelayUpdateUsersWithBill(c context.Context, billID string, userIDs []string
 	return gae.CallDelayFunc(c, common.QUEUE_BILLS, updateUsersWithBillKeyName, delayUpdateUsersWithBill, billID, userIDs)
 }
 
-var delayUpdateUsersWithBill = delay.MustRegister(updateUsersWithBillKeyName, updateUsersWithBill)
+var delayUpdateUsersWithBill = delay.Func(updateUsersWithBillKeyName, updateUsersWithBill)
 
 func updateUsersWithBill(c context.Context, billID string, userIDs []string) (err error) {
 	wg := new(sync.WaitGroup)
@@ -41,7 +41,7 @@ func updateUsersWithBill(c context.Context, billID string, userIDs []string) (er
 
 const updateUserWithBillKeyName = "update-user-with-bill"
 
-var delayUpdateUserWithBill = delay.MustRegister(updateUserWithBillKeyName, updateUserWithBill)
+var delayUpdateUserWithBill = delay.Func(updateUserWithBillKeyName, updateUserWithBill)
 
 func updateUserWithBill(c context.Context, billID, userID string) (err error) {
 	log.Debugf(c, "updateUserWithBill(billID=%v, userID=%v)", billID, userID)

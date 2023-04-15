@@ -12,7 +12,7 @@ package dtb_fbm
 //	"github.com/strongo/bots-api-fbm"
 //	"github.com/strongo/log"
 //	"google.golang.org/appengine"
-//	"google.golang.org/appengine/v2/urlfetch"
+//	"google.golang.org/appengine/urlfetch"
 //)
 //
 //func SetupFbm(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

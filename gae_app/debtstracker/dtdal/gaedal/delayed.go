@@ -21,8 +21,8 @@ import (
 	"github.com/strongo/app/gae"
 	"github.com/strongo/app/gaestandard"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/delay"
-	"google.golang.org/appengine/v2/urlfetch"
+	"google.golang.org/appengine/delay"
+	"google.golang.org/appengine/urlfetch"
 	"reflect"
 	"strconv"
 	"strings"
@@ -41,7 +41,7 @@ func (UserDalGae) DelaySetUserPreferredLocale(c context.Context, delay time.Dura
 	}
 }
 
-var delayedSetUserPreferredLocale = delay.MustRegister("SetUserPreferredLocale", func(c context.Context, userID int64, localeCode5 string) (err error) {
+var delayedSetUserPreferredLocale = delay.Func("SetUserPreferredLocale", func(c context.Context, userID int64, localeCode5 string) (err error) {
 	log.Debugf(c, "delayedSetUserPreferredLocale(userID=%v, localeCode5=%v)", userID, localeCode5)
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
@@ -76,7 +76,7 @@ func (TransferDalGae) DelayUpdateTransferWithCreatorReceiptTgMessageID(c context
 	return nil
 }
 
-var delayedUpdateTransferWithCreatorReceiptTgMessageID = delay.MustRegister("UpdateTransferWithCreatorReceiptTgMessageID", func(c context.Context, botCode string, transferID int, creatorTgChatID, creatorTgReceiptMessageID int64) (err error) {
+var delayedUpdateTransferWithCreatorReceiptTgMessageID = delay.Func("UpdateTransferWithCreatorReceiptTgMessageID", func(c context.Context, botCode string, transferID int, creatorTgChatID, creatorTgReceiptMessageID int64) (err error) {
 	log.Infof(c, "delayedUpdateTransferWithCreatorReceiptTgMessageID(botCode=%v, transferID=%v, creatorTgChatID=%v, creatorReceiptTgMessageID=%v)", botCode, transferID, creatorTgChatID, creatorTgReceiptMessageID)
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
@@ -179,8 +179,8 @@ func DelayOnReceiptSendFail(c context.Context, receiptID int, tgChatID int64, tg
 	return nil
 }
 
-var delayedOnReceiptSentSuccess = delay.MustRegister("onReceiptSentSuccess", onReceiptSentSuccess)
-var delayedOnReceiptSendFail = delay.MustRegister("onReceiptSendFail", onReceiptSendFail)
+var delayedOnReceiptSentSuccess = delay.Func("onReceiptSentSuccess", onReceiptSentSuccess)
+var delayedOnReceiptSendFail = delay.Func("onReceiptSendFail", onReceiptSendFail)
 
 func onReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transferID int, tgChatID int64, tgMsgID int, tgBotID, locale string) (err error) {
 	log.Debugf(c, "onReceiptSentSuccess(sentAt=%v, receiptID=%v, transferID=%v, tgChatID=%v, tgMsgID=%v tgBotID=%v, locale=%v)", sentAt, receiptID, transferID, tgChatID, tgMsgID, tgBotID, locale)
@@ -376,7 +376,7 @@ func delaySendReceiptToCounterpartyByTelegram(c context.Context, receiptID int, 
 	return nil
 }
 
-var delayedSendReceiptToCounterpartyByTelegram = delay.MustRegister("delayedSendReceiptToCounterpartyByTelegram", sendReceiptToCounterpartyByTelegram)
+var delayedSendReceiptToCounterpartyByTelegram = delay.Func("delayedSendReceiptToCounterpartyByTelegram", sendReceiptToCounterpartyByTelegram)
 
 func updateReceiptStatus(c context.Context, tx dal.ReadwriteTransaction, receiptID int, expectedCurrentStatus, newStatus string) (receipt models.Receipt, err error) {
 
@@ -574,7 +574,7 @@ func sendReceiptToTelegramChat(c context.Context, receipt models.Receipt, transf
 	return
 }
 
-var delayedCreateAndSendReceiptToCounterpartyByTelegram = delay.MustRegister("delayedCreateAndSendReceiptToCounterpartyByTelegram", func(c context.Context, env strongo.Environment, transferID int, toUserID int64) error {
+var delayedCreateAndSendReceiptToCounterpartyByTelegram = delay.Func("delayedCreateAndSendReceiptToCounterpartyByTelegram", func(c context.Context, env strongo.Environment, transferID int, toUserID int64) error {
 	log.Debugf(c, "delayedCreateAndSendReceiptToCounterpartyByTelegram(transferID=%v, toUserID=%v)", transferID, toUserID)
 	if transferID == 0 {
 		log.Errorf(c, "transferID == 0")
@@ -658,7 +658,7 @@ func (UserDalGae) DelayUpdateUserHasDueTransfers(c context.Context, userID int64
 	return gae.CallDelayFunc(c, common.QUEUE_USERS, "update-user-has-due-transfers", delayedUpdateUserHasDueTransfers, userID)
 }
 
-var delayedUpdateUserHasDueTransfers = delay.MustRegister("delayedUpdateUserHasDueTransfers", func(c context.Context, userID int64) (err error) {
+var delayedUpdateUserHasDueTransfers = delay.Func("delayedUpdateUserHasDueTransfers", func(c context.Context, userID int64) (err error) {
 	log.Debugf(c, "delayedUpdateUserHasDueTransfers(userID=%v)", userID)
 	if userID == 0 {
 		log.Errorf(c, "userID == 0")

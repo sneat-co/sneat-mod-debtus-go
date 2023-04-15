@@ -19,8 +19,8 @@ import (
 	//"github.com/strongo/app"
 	//"github.com/strongo/app/gae"
 	//"context"
-	//"google.golang.org/appengine/v2/delay"
-	//"google.golang.org/appengine/v2/urlfetch"
+	//"google.golang.org/appengine/delay"
+	//"google.golang.org/appengine/urlfetch"
 	//"net/http"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"net/url"
@@ -139,7 +139,7 @@ func rescheduleReminder(whc botsfw.WebhookContext, reminderID int, remindInDurat
 //	return err
 //}
 //
-//var delayedAskForFeedback = delay.MustRegister(ASK_FOR_FEEDBACK_TASK,
+//var delayedAskForFeedback = delay.Func(ASK_FOR_FEEDBACK_TASK,
 //	func(c context.Context, botID string, chatID, userID int64) error {
 //		log.Debugf(c, "delayedAskForFeedback(botID=%v, chatID=%d, userID=%d)", botID, chatID, userID)
 //		if botSettings, ok := telegram.Bots(gaestandard.GetEnvironment(c), nil).ByCode[botID]; !ok {

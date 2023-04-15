@@ -11,7 +11,7 @@ import (
 	"github.com/strongo/app/gae"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/delay"
+	"google.golang.org/appengine/delay"
 )
 
 func (TransferDalGae) DelayUpdateTransfersOnReturn(c context.Context, returnTransferID int, transferReturnsUpdate []dtdal.TransferReturnUpdate) (err error) {
@@ -33,7 +33,7 @@ func (TransferDalGae) DelayUpdateTransfersOnReturn(c context.Context, returnTran
 	return gae.CallDelayFunc(c, common.QUEUE_TRANSFERS, "update-transfers-on-return", delayUpdateTransfersOnReturn, returnTransferID, transferReturnsUpdate)
 }
 
-var delayUpdateTransfersOnReturn = delay.MustRegister("updateTransfersOnReturn", updateTransfersOnReturn)
+var delayUpdateTransfersOnReturn = delay.Func("updateTransfersOnReturn", updateTransfersOnReturn)
 
 func updateTransfersOnReturn(c context.Context, returnTransferID int, transferReturnsUpdate []dtdal.TransferReturnUpdate) (err error) {
 	log.Debugf(c, "updateTransfersOnReturn(returnTransferID=%v, transferReturnsUpdate=%+v)", returnTransferID, transferReturnsUpdate)
@@ -55,7 +55,7 @@ func DelayUpdateTransferOnReturn(c context.Context, returnTransferID, transferID
 	return gae.CallDelayFunc(c, common.QUEUE_TRANSFERS, "update-transfer-on-return", delayUpdateTransferOnReturn, returnTransferID, transferID, returnedAmount)
 }
 
-var delayUpdateTransferOnReturn = delay.MustRegister("updateTransferOnReturn", updateTransferOnReturn)
+var delayUpdateTransferOnReturn = delay.Func("updateTransferOnReturn", updateTransferOnReturn)
 
 func updateTransferOnReturn(c context.Context, returnTransferID, transferID int, returnedAmount decimal.Decimal64p2) (err error) {
 	log.Debugf(c, "updateTransferOnReturn(returnTransferID=%v, transferID=%v, returnedAmount=%v)", returnTransferID, transferID, returnedAmount)

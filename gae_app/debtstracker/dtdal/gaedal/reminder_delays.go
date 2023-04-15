@@ -20,8 +20,8 @@ import (
 	"github.com/strongo/app/gae"
 	"github.com/strongo/app/gaestandard"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/delay"
-	"google.golang.org/appengine/v2/taskqueue"
+	"google.golang.org/appengine/delay"
+	"google.golang.org/appengine/taskqueue"
 )
 
 func (ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, transferID int, userID int64) (err error) {
@@ -46,7 +46,7 @@ func (ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, tran
 	return
 }
 
-var delayCreateReminderForTransferUser = delay.MustRegister("delayedCreateReminderForTransferUser", delayedCreateReminderForTransferUser)
+var delayCreateReminderForTransferUser = delay.Func("delayedCreateReminderForTransferUser", delayedCreateReminderForTransferUser)
 
 func delayedCreateReminderForTransferUser(c context.Context, transferID int, userID int64) (err error) {
 	log.Debugf(c, "delayedCreateReminderForTransferUser(transferID=%d, userID=%d)", transferID, userID)
@@ -126,7 +126,7 @@ func (ReminderDalGae) DelayDiscardReminders(c context.Context, transferIDs []int
 	}
 }
 
-var delayDiscardReminders = delay.MustRegister("discardReminders", discardReminders)
+var delayDiscardReminders = delay.Func("discardReminders", discardReminders)
 
 func discardReminders(c context.Context, transferIDs []int, returnTransferID int) error {
 	log.Debugf(c, "discardReminders(transferIDs=%v, returnTransferID=%returnTransferID)", transferIDs, returnTransferID)
@@ -148,7 +148,7 @@ func discardReminders(c context.Context, transferIDs []int, returnTransferID int
 	return nil
 }
 
-var delayDiscardRemindersForTransfer = delay.MustRegister("discardRemindersForTransfer", discardRemindersForTransfer)
+var delayDiscardRemindersForTransfer = delay.Func("discardRemindersForTransfer", discardRemindersForTransfer)
 
 func discardRemindersForTransfer(c context.Context, transferID, returnTransferID int) error {
 	log.Debugf(c, "discardReminders(transferID=%v, returnTransferID=%v)", transferID, returnTransferID)
@@ -194,7 +194,7 @@ func discardRemindersForTransfer(c context.Context, transferID, returnTransferID
 	return nil
 }
 
-var delayDiscardReminder = delay.MustRegister("DiscardReminder", delayedDiscardReminder)
+var delayDiscardReminder = delay.Func("DiscardReminder", delayedDiscardReminder)
 
 func DiscardReminder(c context.Context, reminderID, transferID, returnTransferID int) (err error) {
 	var db dal.Database

@@ -12,7 +12,7 @@ import (
 	"errors"
 	"github.com/strongo/gamp"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/urlfetch"
+	"google.golang.org/appengine/urlfetch"
 )
 
 const (

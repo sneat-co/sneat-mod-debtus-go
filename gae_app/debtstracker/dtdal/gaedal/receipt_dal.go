@@ -12,7 +12,7 @@ import (
 	"context"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/delay"
+	"google.golang.org/appengine/delay"
 )
 
 type ReceiptDalGae struct {
@@ -109,7 +109,7 @@ func (receiptDalGae ReceiptDalGae) DelayedMarkReceiptAsSent(c context.Context, r
 	return gae.CallDelayFunc(c, common.QUEUE_TRANSFERS, "set-receipt-as-sent", delayedMarkReceiptAsSent, receiptID, transferID, sentTime)
 }
 
-var delayedMarkReceiptAsSent = delay.MustRegister("delayedMarkReceiptAsSent", func(c context.Context, receiptID, transferID int, sentTime time.Time) (err error) {
+var delayedMarkReceiptAsSent = delay.Func("delayedMarkReceiptAsSent", func(c context.Context, receiptID, transferID int, sentTime time.Time) (err error) {
 	log.Debugf(c, "delayedMarkReceiptAsSent(receiptID=%v, transferID=%v, sentTime=%v)", receiptID, transferID, sentTime)
 	if receiptID == 0 {
 		log.Errorf(c, "receiptID == 0")

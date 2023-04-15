@@ -15,9 +15,9 @@ import (
 	"errors"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/datastore"
-	"google.golang.org/appengine/v2/delay"
-	"google.golang.org/appengine/v2/memcache"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/delay"
+	"google.golang.org/appengine/memcache"
 )
 
 type refererFacade struct {
@@ -57,7 +57,7 @@ func setUserReferrer(c context.Context, userID int64, referredBy string) (err er
 	return nil
 }
 
-var delayedSetUserReferrer = delay.MustRegister("setUserReferrer", setUserReferrer)
+var delayedSetUserReferrer = delay.Func("setUserReferrer", setUserReferrer)
 
 func delaySetUserReferrer(c context.Context, userID int64, referredBy string) (err error) {
 	return gae.CallDelayFuncWithDelay(c, time.Second/2, common.QUEUE_USERS, "set-user-referrer", delayedSetUserReferrer, userID, referredBy)

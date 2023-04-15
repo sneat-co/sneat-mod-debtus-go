@@ -13,7 +13,7 @@ import (
 	"errors"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/delay"
+	"google.golang.org/appengine/delay"
 )
 
 const SEND_EMAIL_TASK = "send-email"
@@ -22,7 +22,7 @@ func DelaySendEmail(c context.Context, id int64) error {
 	return gae.CallDelayFunc(c, common.QUEUE_EMAILS, SEND_EMAIL_TASK, delayEmail, id)
 }
 
-var delayEmail = delay.MustRegister(SEND_EMAIL_TASK, delayedSendEmail)
+var delayEmail = delay.Func(SEND_EMAIL_TASK, delayedSendEmail)
 
 var ErrEmailIsInWrongStatus = errors.New("email is already sending or sent")
 

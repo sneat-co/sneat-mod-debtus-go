@@ -6,7 +6,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"context"
 	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal/gaedal"
-	//"google.golang.org/appengine/v2/datastore"
+	//"google.golang.org/appengine/datastore"
 	//"errors"
 	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	//"strconv"

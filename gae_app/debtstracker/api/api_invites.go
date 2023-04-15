@@ -8,7 +8,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"google.golang.org/appengine/v2/user"
+	"google.golang.org/appengine/user"
 )
 
 func ApiCreateInvite(c context.Context, w http.ResponseWriter, r *http.Request) {

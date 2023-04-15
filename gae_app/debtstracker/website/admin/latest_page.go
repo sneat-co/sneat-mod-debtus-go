@@ -13,8 +13,8 @@ import (
 	"github.com/strongo/log"
 	"golang.org/x/net/html"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/v2/datastore"
-	gaeUser "google.golang.org/appengine/v2/user"
+	"google.golang.org/appengine/datastore"
+	gaeUser "google.golang.org/appengine/user"
 )
 
 func LatestPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

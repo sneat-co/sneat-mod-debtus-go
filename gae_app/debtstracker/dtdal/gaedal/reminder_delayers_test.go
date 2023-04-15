@@ -9,7 +9,7 @@ import (
 	"context"
 	"github.com/strongo/app"
 	"github.com/strongo/app/gae"
-	"google.golang.org/appengine/v2/delay"
+	"google.golang.org/appengine/delay"
 )
 
 func Test__validateSetReminderIsSentMessageIDs(t *testing.T) {

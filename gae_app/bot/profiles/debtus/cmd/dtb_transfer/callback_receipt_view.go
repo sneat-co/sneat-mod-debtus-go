@@ -14,7 +14,7 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/delay"
+	"google.golang.org/appengine/delay"
 	"net/url"
 	"strings"
 )
@@ -63,7 +63,7 @@ var ViewReceiptInTelegramCallbackCommand = botsfw.NewCallbackCommand(
 
 const delayLinkUserByReceiptKeyName = "delayLinkUserByReceipt"
 
-var delayLinkUserByReceipt = delay.MustRegister(delayLinkUserByReceiptKeyName, delayedLinkUsersByReceipt)
+var delayLinkUserByReceipt = delay.Func(delayLinkUserByReceiptKeyName, delayedLinkUsersByReceipt)
 
 func DelayLinkUsersByReceipt(c context.Context, receiptID int, invitedUserID int64) (err error) {
 	return gae.CallDelayFunc(c, common.QUEUE_RECEIPTS, delayLinkUserByReceiptKeyName, delayLinkUserByReceipt, receiptID, invitedUserID)

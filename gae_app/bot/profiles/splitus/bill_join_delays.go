@@ -13,14 +13,14 @@ import (
 	"github.com/strongo/app/gae"
 	"github.com/strongo/app/gaestandard"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/delay"
-	"google.golang.org/appengine/v2/urlfetch"
+	"google.golang.org/appengine/delay"
+	"google.golang.org/appengine/urlfetch"
 	"strings"
 )
 
 var (
-	delayUpdateBillCards      = delay.MustRegister("UpdateBillCards", delayedUpdateBillCards)
-	delayUpdateBillTgChatCard = delay.MustRegister("UpdateBillTgChatCard", delayedUpdateBillTgChartCard)
+	delayUpdateBillCards      = delay.Func("UpdateBillCards", delayedUpdateBillCards)
+	delayUpdateBillTgChatCard = delay.Func("UpdateBillTgChatCard", delayedUpdateBillTgChartCard)
 )
 
 func delayUpdateBillCardOnUserJoin(c context.Context, billID string, message string) error {

@@ -11,7 +11,7 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/delay"
+	"google.golang.org/appengine/delay"
 	"strconv"
 	"strings"
 	"time"
@@ -140,7 +140,7 @@ func (UserDalGae) DelayUpdateUserWithBill(c context.Context, userID, billID stri
 	return
 }
 
-var delayedUpdateUserWithBill = delay.MustRegister("delayedUpdateWithBill", func(c context.Context, userID, billID string) (err error) {
+var delayedUpdateUserWithBill = delay.Func("delayedUpdateWithBill", func(c context.Context, userID, billID string) (err error) {
 	var user models.AppUser
 
 	if user, err = dtdal.User.GetUserByStrID(c, userID); err != nil {
@@ -157,7 +157,7 @@ func (UserDalGae) DelayUpdateUserWithContact(c context.Context, userID, billID i
 	return
 }
 
-var delayedUpdateUserWithContact = delay.MustRegister("updateUserWithContact", updateUserWithContact)
+var delayedUpdateUserWithContact = delay.Func("updateUserWithContact", updateUserWithContact)
 
 func updateUserWithContact(c context.Context, userID, contactID int64) (err error) {
 	log.Debugf(c, "updateUserWithContact(userID=%v, contactID=%v)", userID, contactID)

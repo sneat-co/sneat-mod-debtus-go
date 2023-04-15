@@ -13,7 +13,7 @@ import (
 	"errors"
 	"github.com/strongo/app/user"
 	"github.com/strongo/log"
-	gae_user "google.golang.org/appengine/v2/user"
+	gae_user "google.golang.org/appengine/user"
 )
 
 type userFacade struct {

@@ -17,8 +17,8 @@ import (
 	"errors"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/delay"
-	"google.golang.org/appengine/v2/taskqueue"
+	"google.golang.org/appengine/delay"
+	"google.golang.org/appengine/taskqueue"
 )
 
 func handleAdminFindUser(c context.Context, w http.ResponseWriter, r *http.Request, _ auth.AuthInfo) {
@@ -117,7 +117,7 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 	}
 }
 
-var delayedChangeTransfersCounterparty = delay.MustRegister("changeTransfersCounterparty", func(c context.Context, oldID, newID int64, cursor string) error {
+var delayedChangeTransfersCounterparty = delay.Func("changeTransfersCounterparty", func(c context.Context, oldID, newID int64, cursor string) error {
 	log.Debugf(c, "delayedChangeTransfersCounterparty(oldID=%d, newID=%d)", oldID, newID)
 
 	query := dal.From(models.TransferKind).
@@ -143,7 +143,7 @@ var delayedChangeTransfersCounterparty = delay.MustRegister("changeTransfersCoun
 	return nil
 })
 
-var delayedChangeTransferCounterparty = delay.MustRegister("changeTransferCounterparty", func(c context.Context, transferID int, oldID, newID int64, cursor string) (err error) {
+var delayedChangeTransferCounterparty = delay.Func("changeTransferCounterparty", func(c context.Context, transferID int, oldID, newID int64, cursor string) (err error) {
 	log.Debugf(c, "delayedChangeTransferCounterparty(oldID=%d, newID=%d, cursor=%v)", oldID, newID, cursor)
 	if _, err = facade.GetContactByID(c, nil, newID); err != nil {
 		return err

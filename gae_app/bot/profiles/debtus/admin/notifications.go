@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
-	"google.golang.org/appengine/v2/urlfetch"
+	"google.golang.org/appengine/urlfetch"
 )
 
 func SendFeedbackToAdmins(c context.Context, botToken string, feedback models.Feedback) (err error) {

@@ -14,7 +14,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/v2/user"
+	"google.golang.org/appengine/user"
 )
 
 func LoginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

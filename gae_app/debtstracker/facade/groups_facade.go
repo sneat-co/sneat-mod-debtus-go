@@ -14,8 +14,8 @@ import (
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
 	"github.com/strongo/slices"
-	"google.golang.org/appengine/v2/delay"
-	"google.golang.org/appengine/v2/taskqueue"
+	"google.golang.org/appengine/delay"
+	"google.golang.org/appengine/taskqueue"
 )
 
 type groupFacade struct {
@@ -163,7 +163,7 @@ func (groupFacade) AddUsersToTheGroupAndOutstandingBills(c context.Context, grou
 	return group, newUsers, err
 }
 
-var delayUpdateGroupUsers = delay.MustRegister("updateGroupUsers", updateGroupUsers)
+var delayUpdateGroupUsers = delay.Func("updateGroupUsers", updateGroupUsers)
 
 func (groupFacade) DelayUpdateGroupUsers(c context.Context, groupID string) error { // TODO: Move to DAL?
 	if groupID == "" {
@@ -206,7 +206,7 @@ func updateGroupUsers(c context.Context, groupID string) (err error) {
 	return err
 }
 
-var delayUpdateUserWithGroups = delay.MustRegister("UpdateUserWithGroups", delayedUpdateUserWithGroups)
+var delayUpdateUserWithGroups = delay.Func("UpdateUserWithGroups", delayedUpdateUserWithGroups)
 
 func delayedUpdateUserWithGroups(c context.Context, userID string, groupIDs2add, groupIDs2remove []string) (err error) {
 	log.Debugf(c, "delayedUpdateUserWithGroups(userID=%d, groupIDs2add=%v, groupIDs2remove=%v)", userID, groupIDs2add, groupIDs2remove)
@@ -263,7 +263,7 @@ func (userFacade) UpdateUserWithGroups(c context.Context, tx dal.ReadwriteTransa
 	return
 }
 
-var delayUpdateContactWithGroups = delay.MustRegister("UpdateContactWithGroups", delayedUpdateContactWithGroup)
+var delayUpdateContactWithGroups = delay.Func("UpdateContactWithGroups", delayedUpdateContactWithGroup)
 
 func (userFacade) DelayUpdateContactWithGroups(c context.Context, contactID int64, addGroupIDs, removeGroupIDs []string) error {
 	return gae.CallDelayFunc(c, common.QUEUE_USERS, "update-contact-groups", delayUpdateContactWithGroups, contactID, addGroupIDs, removeGroupIDs)

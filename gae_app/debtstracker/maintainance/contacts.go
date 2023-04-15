@@ -6,7 +6,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/captaincodeman/datastore-mapper"
-	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/datastore"
 )
 
 type contactsAsyncJob struct {

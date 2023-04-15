@@ -5,7 +5,7 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/app/user"
-	gaeuser "google.golang.org/appengine/v2/user" // TODO: Get rid of dependency to GAE?
+	gaeuser "google.golang.org/appengine/user" // TODO: Get rid of dependency to GAE?
 )
 
 const UserGoogleKind = "UserGoogle"

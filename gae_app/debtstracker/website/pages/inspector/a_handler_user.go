@@ -15,7 +15,7 @@ import (
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/datastore"
 )
 
 type contactWithBalances struct {

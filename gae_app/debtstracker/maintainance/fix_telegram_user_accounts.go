@@ -6,7 +6,7 @@ import (
 	"errors"
 	"github.com/captaincodeman/datastore-mapper"
 	"github.com/dal-go/dalgo/dal"
-	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/datastore"
 	"net/http"
 )
 

@@ -8,14 +8,14 @@ import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/delay"
+	"google.golang.org/appengine/delay"
 )
 
 func DelayUpdateInviteClaimedCount(c context.Context, claimID int64) error {
 	return delayedUpdateInviteClaimedCount.Call(c, claimID)
 }
 
-var delayedUpdateInviteClaimedCount = delay.MustRegister("UpdateInviteClaimedCount", func(c context.Context, claimID int64) (err error) {
+var delayedUpdateInviteClaimedCount = delay.Func("UpdateInviteClaimedCount", func(c context.Context, claimID int64) (err error) {
 	log.Debugf(c, "delayedUpdateInviteClaimedCount(claimID=%v)", claimID)
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {

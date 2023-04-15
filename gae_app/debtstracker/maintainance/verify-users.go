@@ -12,7 +12,7 @@ import (
 	"context"
 	"github.com/captaincodeman/datastore-mapper"
 	"github.com/pquerna/ffjson/ffjson"
-	"google.golang.org/appengine/v2/log"
+	"google.golang.org/appengine/log"
 	"time"
 )
 
