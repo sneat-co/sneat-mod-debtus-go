@@ -11,10 +11,8 @@ import (
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/app"
 	"github.com/strongo/app/user"
-	"google.golang.org/appengine/v2/datastore"
 	"net/http"
 	"reflect"
-	"strconv"
 	"time"
 )
 
@@ -553,118 +551,118 @@ func (entity *AppUserData) SetNames(first, last, user string) {
 	entity.Username = user
 }
 
-func (entity *AppUserData) Load(ps []datastore.Property) (err error) {
-	// Load I and J as usual.
-	p2 := make([]datastore.Property, 0, len(ps))
-	for _, p := range ps {
-		switch p.Name {
-		case "AA":
-			continue // Ignore legacy
-		case "FirstDueTransferOn":
-			continue // Ignore legacy
-		case "ActiveGroupsJson":
-			p.Name = "GroupsJsonActive"
-		case "ActiveGroupsCount":
-			p.Name = "GroupsCountActive"
-		case "CounterpartiesCount":
-			p.Name = "ContactsCount"
-		case "ContactsCount":
-			continue // Ignore legacy
-		case "FbUserID":
-			if v, ok := p.Value.(string); ok && v != "" {
-				entity.AddAccount(user.Account{
-					Provider: "fb",
-					ID:       v,
-				})
-			}
-			continue
-		case "FmbUserID":
-			if v, ok := p.Value.(string); ok && v != "" {
-				entity.AddAccount(user.Account{
-					Provider: "fbm",
-					ID:       v,
-				})
-			}
-			continue
-		case "FbmUserID":
-			if v, ok := p.Value.(string); ok && v != "" {
-				entity.AddAccount(user.Account{
-					Provider: "fbm",
-					ID:       v,
-				})
-			}
-			continue
-		case "ViberUserID":
-			continue
-		case "ViberBotID":
-			continue
-		case "TelegramUserID":
-			if telegramUserID, ok := p.Value.(int64); ok && telegramUserID != 0 {
-				entity.AccountsOfUser.Accounts = append(entity.AccountsOfUser.Accounts, "telegram::"+strconv.FormatInt(telegramUserID, 10))
-			}
-			continue
-		case "TelegramUserIDs":
-			switch p.Value.(type) {
-			case int64:
-				if id := p.Value.(int64); id != 0 {
-					entity.AccountsOfUser.Accounts = append(entity.AccountsOfUser.Accounts, "telegram::"+strconv.FormatInt(id, 10))
-				}
-			default:
-				err = fmt.Errorf("unknown type of TelegramUserIDs value: %T", p.Value)
-				return
-			}
-			continue
-		case "GoogleUniqueUserID":
-			if v, ok := p.Value.(string); ok && v != "" {
-				entity.AddAccount(user.Account{
-					Provider: "google",
-					App:      "debtstracker",
-					ID:       v,
-				})
-			}
-		default:
-			if p.Name == "CounterpartiesJson" {
-				p.Name = "ContactsJson"
-			}
-			if p.Name == "ContactsJson" {
-				contactsJson := p.Value.(string)
-				if contactsJson != "" {
-					entity.ContactsJson = contactsJson
-					if err := entity.FixObsolete(); err != nil {
-						return err
-					}
-					//panic(fmt.Sprintf("contactsJson: %v\n ContactsJson: %v\n ContactsJsonActive: %v", contactsJson, entity.ContactsJson, entity.ContactsJsonActive))
-					if entity.ContactsCountActive > 0 {
-						p.Name = "ContactsJsonActive"
-						p.Value = entity.ContactsJsonActive
-						p2 = append(p2, p)
-						//
-						p.Name = "ContactsCountActive"
-						p.Value = int64(entity.ContactsCountActive)
-						p2 = append(p2, p)
-					}
-
-					if entity.ContactsCountArchived > 0 {
-						p.Name = "ContactsJsonArchived"
-						p.Value = entity.ContactsJsonArchived
-						p2 = append(p2, p)
-						//
-						p.Name = "ContactsCountArchived"
-						p.Value = int64(entity.ContactsCountArchived)
-						p2 = append(p2, p)
-
-					}
-					continue
-				}
-			}
-		}
-		p2 = append(p2, p)
-	}
-	if err = datastore.LoadStruct(entity, p2); err != nil {
-		return
-	}
-	return
-}
+//func (entity *AppUserData) Load(ps []datastore.Property) (err error) {
+//	// Load I and J as usual.
+//	p2 := make([]datastore.Property, 0, len(ps))
+//	for _, p := range ps {
+//		switch p.Name {
+//		case "AA":
+//			continue // Ignore legacy
+//		case "FirstDueTransferOn":
+//			continue // Ignore legacy
+//		case "ActiveGroupsJson":
+//			p.Name = "GroupsJsonActive"
+//		case "ActiveGroupsCount":
+//			p.Name = "GroupsCountActive"
+//		case "CounterpartiesCount":
+//			p.Name = "ContactsCount"
+//		case "ContactsCount":
+//			continue // Ignore legacy
+//		case "FbUserID":
+//			if v, ok := p.Value.(string); ok && v != "" {
+//				entity.AddAccount(user.Account{
+//					Provider: "fb",
+//					ID:       v,
+//				})
+//			}
+//			continue
+//		case "FmbUserID":
+//			if v, ok := p.Value.(string); ok && v != "" {
+//				entity.AddAccount(user.Account{
+//					Provider: "fbm",
+//					ID:       v,
+//				})
+//			}
+//			continue
+//		case "FbmUserID":
+//			if v, ok := p.Value.(string); ok && v != "" {
+//				entity.AddAccount(user.Account{
+//					Provider: "fbm",
+//					ID:       v,
+//				})
+//			}
+//			continue
+//		case "ViberUserID":
+//			continue
+//		case "ViberBotID":
+//			continue
+//		case "TelegramUserID":
+//			if telegramUserID, ok := p.Value.(int64); ok && telegramUserID != 0 {
+//				entity.AccountsOfUser.Accounts = append(entity.AccountsOfUser.Accounts, "telegram::"+strconv.FormatInt(telegramUserID, 10))
+//			}
+//			continue
+//		case "TelegramUserIDs":
+//			switch p.Value.(type) {
+//			case int64:
+//				if id := p.Value.(int64); id != 0 {
+//					entity.AccountsOfUser.Accounts = append(entity.AccountsOfUser.Accounts, "telegram::"+strconv.FormatInt(id, 10))
+//				}
+//			default:
+//				err = fmt.Errorf("unknown type of TelegramUserIDs value: %T", p.Value)
+//				return
+//			}
+//			continue
+//		case "GoogleUniqueUserID":
+//			if v, ok := p.Value.(string); ok && v != "" {
+//				entity.AddAccount(user.Account{
+//					Provider: "google",
+//					App:      "debtstracker",
+//					ID:       v,
+//				})
+//			}
+//		default:
+//			if p.Name == "CounterpartiesJson" {
+//				p.Name = "ContactsJson"
+//			}
+//			if p.Name == "ContactsJson" {
+//				contactsJson := p.Value.(string)
+//				if contactsJson != "" {
+//					entity.ContactsJson = contactsJson
+//					if err := entity.FixObsolete(); err != nil {
+//						return err
+//					}
+//					//panic(fmt.Sprintf("contactsJson: %v\n ContactsJson: %v\n ContactsJsonActive: %v", contactsJson, entity.ContactsJson, entity.ContactsJsonActive))
+//					if entity.ContactsCountActive > 0 {
+//						p.Name = "ContactsJsonActive"
+//						p.Value = entity.ContactsJsonActive
+//						p2 = append(p2, p)
+//						//
+//						p.Name = "ContactsCountActive"
+//						p.Value = int64(entity.ContactsCountActive)
+//						p2 = append(p2, p)
+//					}
+//
+//					if entity.ContactsCountArchived > 0 {
+//						p.Name = "ContactsJsonArchived"
+//						p.Value = entity.ContactsJsonArchived
+//						p2 = append(p2, p)
+//						//
+//						p.Name = "ContactsCountArchived"
+//						p.Value = int64(entity.ContactsCountArchived)
+//						p2 = append(p2, p)
+//
+//					}
+//					continue
+//				}
+//			}
+//		}
+//		p2 = append(p2, p)
+//	}
+//	if err = datastore.LoadStruct(entity, p2); err != nil {
+//		return
+//	}
+//	return
+//}
 
 //var userPropertiesToClean = map[string]gaedb.IsOkToRemove{
 //	"AA":              gaedb.IsObsolete,
@@ -736,16 +734,16 @@ func (entity *AppUserData) Load(ps []datastore.Property) (err error) {
 //	//
 //}
 
-func (entity *AppUserData) cleanProps(properties []datastore.Property) ([]datastore.Property, error) {
-	var err error
-	//if properties, err = gaedb.CleanProperties(properties, userPropertiesToClean); err != nil {
-	//	return properties, err
-	//}
-	//if properties, err = entity.UserRewardBalance.cleanProperties(properties); err != nil {
-	//	return properties, err
-	//}
-	return properties, err
-}
+//func (entity *AppUserData) cleanProps(properties []datastore.Property) ([]datastore.Property, error) {
+//	var err error
+//	//if properties, err = gaedb.CleanProperties(properties, userPropertiesToClean); err != nil {
+//	//	return properties, err
+//	//}
+//	//if properties, err = entity.UserRewardBalance.cleanProperties(properties); err != nil {
+//	//	return properties, err
+//	//}
+//	return properties, err
+//}
 
 func (entity *AppUserData) TotalBalanceFromContacts() (balance money.Balance) {
 	balance = make(money.Balance, entity.BalanceCount)
@@ -814,22 +812,22 @@ func (entity *AppUserData) BeforeSave() (err error) {
 	return
 }
 
-func (entity *AppUserData) Save() (properties []datastore.Property, err error) {
-	if err = entity.BeforeSave(); err != nil {
-		return
-	}
-
-	//entity.SavedCounter += 1
-	if properties, err = datastore.SaveStruct(entity); err != nil {
-		return
-	}
-	if properties, err = entity.cleanProps(properties); err != nil {
-		return
-	}
-
-	//checkHasProperties(AppUserKind, properties)
-	return properties, err
-}
+//func (entity *AppUserData) Save() (properties []datastore.Property, err error) {
+//	if err = entity.BeforeSave(); err != nil {
+//		return
+//	}
+//
+//	//entity.SavedCounter += 1
+//	if properties, err = datastore.SaveStruct(entity); err != nil {
+//		return
+//	}
+//	if properties, err = entity.cleanProps(properties); err != nil {
+//		return
+//	}
+//
+//	//checkHasProperties(AppUserKind, properties)
+//	return properties, err
+//}
 
 func (entity *AppUserData) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance money.Balance, err error) {
 	if entity.TransfersWithInterestCount == 0 {

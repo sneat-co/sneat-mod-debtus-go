@@ -2,8 +2,6 @@ cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.110.0 h1:Zc8gqp3+a9/Eyph2KDmcGaPtbKRIoqq4YTlL4NMD0Ys=
 cloud.google.com/go v0.110.0/go.mod h1:SJnCLqQ0FCFGSZMUNUf84MV3Aia54kn7pi8st7tMzaY=
-cloud.google.com/go/compute v1.19.0 h1:+9zda3WGgW1ZSTlVppLCYFIr48Pa35q1uG2N1itbCEQ=
-cloud.google.com/go/compute v1.19.0/go.mod h1:rikpw2y+UMidAe9tISo04EHNOIf42RLYF/q8Bs93scU=
 cloud.google.com/go/compute v1.19.1 h1:am86mquDUgjGNWxiGn+5PGLbmgiWXlE/yNWpIpNvuXY=
 cloud.google.com/go/compute v1.19.1/go.mod h1:6ylj3a05WF8leseCdIf77NK0g1ey+nj5IKd5/kvShxE=
 cloud.google.com/go/compute/metadata v0.2.3 h1:mg4jlk7mCAj6xXp9UJ4fjI9VUI5rubuGBW5aJ7UnBMY=
@@ -27,8 +25,6 @@ github.com/bots-go-framework/bots-fw-dalgo v0.0.5 h1:/dZgDebCPf7wG6LNoSzD8hgkgaQ
 github.com/bots-go-framework/bots-fw-dalgo v0.0.5/go.mod h1:9c2LME3Daoq+MEsbNSoq0Hn66TJj5BDhYG/sfDI8CoM=
 github.com/bots-go-framework/bots-fw-telegram v0.4.6 h1:ZGKFYB3cbfVsNsE661EzkET2NsFmTkQsG1yt0dp8ea8=
 github.com/bots-go-framework/bots-fw-telegram v0.4.6/go.mod h1:TISNxocj2qqi1Zhkvs3qj3e9YZ7p/C/kiqNCo2MTrwE=
-github.com/bots-go-framework/bots-host-gae v0.3.6 h1:VOCCoVmcTxGP/mEd1ut75aHDqHtMBdEnmasRzhOt9lU=
-github.com/bots-go-framework/bots-host-gae v0.3.6/go.mod h1:kkM0/C6oW9DGwv/hzPQFHLjvPWvuJE0ktDnoABwOwZk=
 github.com/bots-go-framework/bots-host-gae v0.3.7 h1:V9+HI7w1KRaXeLU8kkRBSXUjhHdJKxcnlo8hBFafqcQ=
 github.com/bots-go-framework/bots-host-gae v0.3.7/go.mod h1:x39R3KwI972sacZFuRn3wo4WF2k7UWtwJ0WBKzyHPZg=
 github.com/captaincodeman/datastore-locker v0.0.0-20170308203336-4eddc467484e h1:SJoKNBURy0VzeEc1htXwTqk8I41evmoJxdKqRm7VzdA=
@@ -48,12 +44,8 @@ github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85 h1:DhDOfMUB
 github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85/go.mod h1:G8FV2IlQjC168M2ZNvih9I+8pInny334pxTzcR+QhWw=
 github.com/crediterra/money v0.0.1 h1:5DoI/mOHc8H96J9GcHYnjbpLd0dM9+EmB8LcvmCbn4s=
 github.com/crediterra/money v0.0.1/go.mod h1:NI2zTzEt4m2P47UAWsuOZ+Zk0aIfSNWw4Hb6tOHTpm0=
-github.com/dal-go/dalgo v0.2.8 h1:rxKqayoNenybSO9Ejgqnznx43Hc574q4nj3YkOPWUHM=
-github.com/dal-go/dalgo v0.2.8/go.mod h1:b0U+y2xjE5xY+HJ+vAt1DDcJe32N98tbRWDp5tPTwIc=
 github.com/dal-go/dalgo v0.2.9 h1:a2rA+sdc8yfIrZlzvD/cw2GwxFkkf5m8pLUm6NJeHsI=
 github.com/dal-go/dalgo v0.2.9/go.mod h1:b0U+y2xjE5xY+HJ+vAt1DDcJe32N98tbRWDp5tPTwIc=
-github.com/dal-go/dalgo2datastore v0.0.4 h1:1XOeoPFdv6NXG2yBhDeMs4cG76ldjcz6PEI7duZvi80=
-github.com/dal-go/dalgo2datastore v0.0.4/go.mod h1:nisD9LmbmTd3nq84poSvnnaB6trSU6ClLXIoOLDvIz8=
 github.com/dal-go/dalgo2datastore v0.0.5 h1:ejVqUAgQ75/XYO5KvmZS09HoSlu9aupIVzDd+YSXRnM=
 github.com/dal-go/dalgo2datastore v0.0.5/go.mod h1:keIOit6GxfdQ61KeQhmtPd8la2OcS2cXxbkcOizgyp4=
 github.com/davecgh/go-spew v0.0.0-20161028175848-04cdfd42973b/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -100,8 +92,6 @@ github.com/google/go-cmp v0.5.5/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/
 github.com/google/go-cmp v0.5.9 h1:O2Tfq5qg4qc4AmwVlvv0oLiVAGB7enBSJ2x2DqQFi38=
 github.com/google/go-cmp v0.5.9/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/google/martian/v3 v3.3.2 h1:IqNFLAmvJOgVlpdEBiQbDc2EwKW77amAycfTuWKdfvw=
-github.com/google/s2a-go v0.1.0 h1:3Qm0liEiCErViKERO2Su5wp+9PfMRiuS6XB5FvpKnYQ=
-github.com/google/s2a-go v0.1.0/go.mod h1:OJpEgntRZo8ugHpF9hkoLJbS5dSI20XZeXJ9JVywLlM=
 github.com/google/s2a-go v0.1.1 h1:XJQvZvUdPzOGdf4ZMQc78wYt9XrdIZOl//n03i8P68Q=
 github.com/google/s2a-go v0.1.1/go.mod h1:OJpEgntRZo8ugHpF9hkoLJbS5dSI20XZeXJ9JVywLlM=
 github.com/google/uuid v1.1.2/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
@@ -189,8 +179,6 @@ go.opentelemetry.io/proto/otlp v0.7.0/go.mod h1:PqfVotwruBrMGOCsRd/89rSnXhoiJIqe
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20210921155107-089bfa567519/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
-golang.org/x/crypto v0.1.0 h1:MDRAIl0xIo9Io2xV565hzXHw3zVseKrJKodhohM5CjU=
-golang.org/x/crypto v0.1.0/go.mod h1:RecgLatLF4+eUMCP1PoPZQb+cVrJcOPbHkTkbkB9sbw=
 golang.org/x/crypto v0.8.0 h1:pd9TJtTueMTVQXzk8E2XESSMQDj/U7OUu0PqJqPXQjQ=
 golang.org/x/crypto v0.8.0/go.mod h1:mRqEX+O9/h5TFCrQhkgjo2yKi0yYA+9ecGkdQoHrywE=
 golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
@@ -264,8 +252,6 @@ google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8/go.mod h1:JiN7NxoA
 google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55/go.mod h1:DMBHOl98Agz4BDEuKkezgsaosCRResVns1a3J2ZsMNc=
 google.golang.org/genproto v0.0.0-20200513103714-09dca8ec2884/go.mod h1:55QSHmfGQM9UVYDPBsyGGes0y52j32PQ3BqQfXhyH3c=
 google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013/go.mod h1:NbSheEEYHJ7i3ixzK3sjbqSGDJWnxyFXZblF3eUsNvo=
-google.golang.org/genproto v0.0.0-20230403163135-c38d8f061ccd h1:sLpv7bNL1AsX3fdnWh9WVh7ejIzXdOc1RRHGeAmeStU=
-google.golang.org/genproto v0.0.0-20230403163135-c38d8f061ccd/go.mod h1:UUQDJDOlWu4KYeJZffbWgBkS1YFobzKbLVfK69pe0Ak=
 google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 h1:KpwkzHKEF7B9Zxg18WzOa7djJ+Ha5DzthMyZYQfEn2A=
 google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1/go.mod h1:nKE/iIaLqn2bQwXBg8f1g2Ylh6r5MN5CmZvuzZCgsCU=
 google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZiDr8c=

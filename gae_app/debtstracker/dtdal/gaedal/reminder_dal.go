@@ -12,11 +12,10 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/datastore"
 )
 
-func NewReminderIncompleteKey(c context.Context) *datastore.Key {
-	return datastore.NewIncompleteKey(c, models.ReminderKind, nil)
+func NewReminderIncompleteKey(c context.Context) *dal.Key {
+	return dal.NewIncompleteKey(models.ReminderKind, reflect.Int, nil)
 }
 
 func NewReminderKey(reminderID int) *dal.Key {
@@ -96,7 +95,7 @@ func (reminderDalGae ReminderDalGae) SetReminderIsSentInTransaction(c context.Co
 	if reminder.Data == nil {
 		reminder, err = reminderDalGae.GetReminderByID(c, tx, reminder.ID)
 		if err != nil {
-			if err == datastore.ErrNoSuchEntity {
+			if dal.IsNotFound(err) {
 				return nil
 			}
 			return fmt.Errorf("failed to get reminder by ID: %w", err)

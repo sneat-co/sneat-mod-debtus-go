@@ -10,32 +10,33 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/datastore"
+	"reflect"
 )
 
 func Settle2members(c context.Context, groupID, debtorID, sponsorID string, currency money.Currency, amount decimal.Decimal64p2) (err error) {
 	log.Debugf(c, "Settle2members(groupID=%v, debtorID=%v, sponsorID=%v, currency=%v, amount=%v)", groupID, debtorID, sponsorID, currency, amount)
-	query := datastore.NewQuery(models.BillKind)
-	query = query.KeysOnly()
-	query = query.Filter("GetUserGroupID=", groupID)
-	query = query.Filter("Currency=", string(currency))
-	query = query.Filter("DebtorIDs=", debtorID)
-	query = query.Filter("SponsorIDs=", sponsorID)
-	query = query.Order("DtCreated")
-	query = query.Limit(20)
-
-	keys, err := query.GetAll(c, nil)
-	if len(keys) == 0 {
-		log.Errorf(c, "No bills found to settle")
-		return
-	} else {
-		log.Debugf(c, "keys: %v", keys)
-	}
+	query := dal.From(models.BillKind).
+		WhereField("GetUserGroupID", dal.Equal, groupID).
+		WhereField("Currency", dal.Equal, string(currency)).
+		WhereField("DebtorIDs", dal.Equal, debtorID).
+		WhereField("SponsorIDs", dal.Equal, sponsorID).
+		OrderBy(dal.AscendingField("DtCreated")).
+		SelectKeysOnly(reflect.String)
+	query.Limit = 20
 
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
+	ids, err := db.SelectAllStrIDs(c, query)
+
+	if len(ids) == 0 {
+		log.Errorf(c, "No bills found to settle")
+		return
+	} else {
+		log.Debugf(c, "ids: %+v", ids)
+	}
+
 	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 		var (
 			group                     models.Group
@@ -73,18 +74,18 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 			amount = v
 		}
 
-		billsToSave := make([]models.Bill, 0, len(keys))
+		billsToSave := make([]models.Bill, 0, len(ids))
 
-		settlementBills := make([]models.BillSettlementJson, 0, len(keys))
+		settlementBills := make([]models.BillSettlementJson, 0, len(ids))
 
-		for _, k := range keys {
+		for _, id := range ids {
 			if amount == 0 {
 				break
 			} else if amount < 0 {
 				panic(fmt.Sprintf("amount < 0: %v", amount))
 			}
 			bill := models.Bill{}
-			if bill, err = facade.GetBillByID(c, tx, k.StringID()); err != nil {
+			if bill, err = facade.GetBillByID(c, tx, id); err != nil {
 				return
 			}
 			billMembers := bill.Data.GetBillMembers()

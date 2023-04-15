@@ -9,7 +9,6 @@ import (
 	"github.com/strongo/gotwilio"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/v2/datastore"
 )
 
 type TwilioDalGae struct {
@@ -57,7 +56,7 @@ func (TwilioDalGae) SaveTwilioSms(
 		counterparty := models.NewContact(transfer.Data.Counterparty().ContactID, nil)
 		if err := tx.GetMulti(tc, []dal.Record{user.Record, twilioSms.Record, transfer.Record, counterparty.Record}); err != nil {
 			if multiError, ok := err.(appengine.MultiError); ok {
-				if multiError[1] == datastore.ErrNoSuchEntity {
+				if multiError[1] == dal.ErrNoMoreRecords {
 					twilioSmsEntity = models.NewTwilioSmsFromSmsResponse(userID, smsResponse)
 					twilioSmsEntity.CreatorTgChatID = tgChatID
 					twilioSmsEntity.CreatorTgSmsStatusMessageID = smsStatusMessageID

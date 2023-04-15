@@ -10,7 +10,6 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/datastore"
 	"strconv"
 	"strings"
 	"time"
@@ -195,15 +194,18 @@ func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, invite mo
 		if invite.Data.MaxClaimsCount == 1 {
 			user.Data.InvitedByUserID = invite.Data.CreatedByUserID
 			userChanged = true
-			counterpartyQuery := datastore.NewQuery(models.ContactKind)
-			counterpartyQuery = counterpartyQuery.Filter("UserID =", claimedByUserID)
-			counterpartyQuery = counterpartyQuery.Filter("CounterpartyUserID =", invite.Data.CreatedByUserID)
-			var counterparties []*models.ContactData
-			counterpartiesKeys, err := counterpartyQuery.Limit(1).GetAll(c, &counterparties) // Use out-of-transaction context
+			counterpartyQuery := dal.From(models.ContactKind).
+				WhereField("UserID", dal.Equal, claimedByUserID).
+				WhereField("CounterpartyUserID", dal.Equal, invite.Data.CreatedByUserID).
+				SelectInto(models.NewContactRecord)
+			counterpartyQuery.Limit = 1
+
+			counterpartyRecords, err := db.SelectAll(c, counterpartyQuery)
+
 			if err != nil {
 				return fmt.Errorf("failed to load counterparty by CounterpartyUserID: %w", err)
 			}
-			if len(counterpartiesKeys) == 0 {
+			if len(counterpartyRecords) == 0 {
 				//counterpartyKey := NewContactIncompleteKey(tc)
 				inviteCreator, err := facade.User.GetUserByID(c, tx, invite.Data.CreatedByUserID)
 				if err != nil {

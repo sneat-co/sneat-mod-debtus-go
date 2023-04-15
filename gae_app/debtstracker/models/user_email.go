@@ -4,12 +4,10 @@ import (
 	"encoding/base64"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
-	"strings"
-	"time"
-
 	"github.com/strongo/app/user"
 	"golang.org/x/crypto/bcrypt"
-	"google.golang.org/appengine/v2/datastore"
+	"strings"
+	"time"
 )
 
 const UserEmailKind = "UserEmail"
@@ -134,20 +132,20 @@ func (entity *UserEmailData) AddProvider(v string) (changed bool) {
 	return
 }
 
-func (entity *UserEmailData) Load(ps []datastore.Property) error {
-	return datastore.LoadStruct(entity, ps)
-}
+//func (entity *UserEmailData) Load(ps []datastore.Property) error {
+//	return datastore.LoadStruct(entity, ps)
+//}
 
-func (entity *UserEmailData) Save() (properties []datastore.Property, err error) {
-	if properties, err = datastore.SaveStruct(entity); err != nil {
-		return
-	}
-	//return gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-	//	"DtUpdated":          gaedb.IsZeroTime,
-	//	"FirstName":          gaedb.IsEmptyString,
-	//	"LastName":           gaedb.IsEmptyString,
-	//	"NickName":           gaedb.IsEmptyString,
-	//	"PasswordBcryptHash": gaedb.IsEmptyByteArray,
-	//})
-	return nil, nil
-}
+//func (entity *UserEmailData) Save() (properties []datastore.Property, err error) {
+//	if properties, err = datastore.SaveStruct(entity); err != nil {
+//		return
+//	}
+//	//return gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
+//	//	"DtUpdated":          gaedb.IsZeroTime,
+//	//	"FirstName":          gaedb.IsEmptyString,
+//	//	"LastName":           gaedb.IsEmptyString,
+//	//	"NickName":           gaedb.IsEmptyString,
+//	//	"PasswordBcryptHash": gaedb.IsEmptyByteArray,
+//	//})
+//	return nil, nil
+//}

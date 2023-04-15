@@ -18,9 +18,6 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/maintainance"
 	"github.com/julienschmidt/httprouter"
-	"github.com/strongo/log"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/v2/datastore"
 )
 
 // Init initializes debts tracker server
@@ -45,7 +42,7 @@ func Init(botHost botsfw.BotHost) {
 
 	InitBots(httpRouter, botHost, common.TheAppContext)
 
-	httpRouter.GET("/test-pointer", testModelPointer)
+	//httpRouter.GET("/test-pointer", testModelPointer)
 	httpRouter.GET("/Users/astec/", NotFoundSilent)
 
 	maintainance.RegisterMappers()
@@ -75,32 +72,32 @@ type TestTransfer struct {
 	To   TestTransferCounterparty
 }
 
-func testModelPointer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	c := appengine.NewContext(r)
-	testTransfer := TestTransfer{
-		From: TestTransferCounterparty{UserID: 1, UserName: "First"},
-		To:   TestTransferCounterparty{UserID: 2, UserName: "Second"},
-	}
-	key := datastore.NewKey(c, "TestTransfer", "", 1, nil)
-	if _, err := datastore.Put(c, key, &testTransfer); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
-	var testTransfer2 TestTransfer
-	datastore.Get(c, key, &testTransfer2)
-	log.Debugf(c, "testTransfer2: %v", testTransfer2)
-	log.Debugf(c, "testTransfer2.From: %v", testTransfer2.From)
-	log.Debugf(c, "testTransfer2.To: %v", testTransfer2.To)
-	testTransfer2.From.Comment = "Comment #1"
-	if _, err := datastore.Put(c, key, &testTransfer); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
-	var testTransfer3 TestTransfer
-	datastore.Get(c, key, &testTransfer3)
-	log.Debugf(c, "testTransfer2: %v", testTransfer3)
-	log.Debugf(c, "testTransfer2.From: %v", testTransfer3.From)
-	log.Debugf(c, "testTransfer2.To: %v", testTransfer3.To)
-}
+//func testModelPointer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+//	c := appengine.NewContext(r)
+//	testTransfer := TestTransfer{
+//		From: TestTransferCounterparty{UserID: 1, UserName: "First"},
+//		To:   TestTransferCounterparty{UserID: 2, UserName: "Second"},
+//	}
+//	key := datastore.NewKey(c, "TestTransfer", "", 1, nil)
+//	if _, err := datastore.Put(c, key, &testTransfer); err != nil {
+//		w.WriteHeader(http.StatusInternalServerError)
+//		w.Write([]byte(err.Error()))
+//		return
+//	}
+//	var testTransfer2 TestTransfer
+//	datastore.Get(c, key, &testTransfer2)
+//	log.Debugf(c, "testTransfer2: %v", testTransfer2)
+//	log.Debugf(c, "testTransfer2.From: %v", testTransfer2.From)
+//	log.Debugf(c, "testTransfer2.To: %v", testTransfer2.To)
+//	testTransfer2.From.Comment = "Comment #1"
+//	if _, err := datastore.Put(c, key, &testTransfer); err != nil {
+//		w.WriteHeader(http.StatusInternalServerError)
+//		w.Write([]byte(err.Error()))
+//		return
+//	}
+//	var testTransfer3 TestTransfer
+//	datastore.Get(c, key, &testTransfer3)
+//	log.Debugf(c, "testTransfer2: %v", testTransfer3)
+//	log.Debugf(c, "testTransfer2.From: %v", testTransfer3.From)
+//	log.Debugf(c, "testTransfer2.To: %v", testTransfer3.To)
+//}

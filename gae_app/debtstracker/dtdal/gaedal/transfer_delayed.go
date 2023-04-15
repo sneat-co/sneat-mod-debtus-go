@@ -3,6 +3,7 @@ package gaedal
 import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
+	"reflect"
 	"sync"
 	"time"
 
@@ -14,11 +15,10 @@ import (
 	"errors"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/v2/datastore"
 	"google.golang.org/appengine/v2/delay"
 )
 
-func (TransferDalGae) DelayUpdateTransfersWithCounterparty(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) error {
+func (TransferDalGae) DelayUpdateTransfersWithCounterparty(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) (err error) {
 	log.Debugf(c, "DelayUpdateTransfersWithCounterparty(creatorCounterpartyID=%d, counterpartyCounterpartyID=%d)", creatorCounterpartyID, counterpartyCounterpartyID)
 	if creatorCounterpartyID == 0 {
 		return errors.New("creatorCounterpartyID == 0")
@@ -39,7 +39,7 @@ const (
 	DELAY_UPDATE_1_TRANSFER_WITH_COUNTERPARTY = "update-1-transfer-with-counterparty"
 )
 
-var delayedUpdateTransfersWithCounterparty = delay.MustRegister(DELAY_UPDATE_TRANSFERS_WITH_COUNTERPARTY, func(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) error {
+var delayedUpdateTransfersWithCounterparty = delay.MustRegister(DELAY_UPDATE_TRANSFERS_WITH_COUNTERPARTY, func(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) (err error) {
 	log.Infof(c, "delayedUpdateTransfersWithCounterparty(creatorCounterpartyID=%d, counterpartyCounterpartyID=%d)", creatorCounterpartyID, counterpartyCounterpartyID)
 	if creatorCounterpartyID == 0 {
 		log.Errorf(c, "creatorCounterpartyID == 0")
@@ -49,33 +49,40 @@ var delayedUpdateTransfersWithCounterparty = delay.MustRegister(DELAY_UPDATE_TRA
 		log.Errorf(c, "counterpartyCounterpartyID == 0")
 		return nil
 	}
-	query := datastore.NewQuery(models.TransferKind).KeysOnly()
-	query = query.Filter("BothCounterpartyIDs =", creatorCounterpartyID).Filter("BothCounterpartyIDs =", 0)
-	query = query.Order("-DtCreated") // We don't need order here, but it would be nice to update recent first and we have index in place anyway
-	var transfers []*models.TransferData
-	if keys, err := query.GetAll(c, transfers); err != nil {
+
+	var db dal.Database
+	if db, err = facade.GetDatabase(c); err != nil {
+		return fmt.Errorf("failed to create database: %w", err)
+	}
+	query := dal.From(models.TransferKind).
+		WhereField("BothCounterpartyIDs", dal.Equal, creatorCounterpartyID).WhereField("BothCounterpartyIDs", dal.Equal, 0).
+		OrderBy(dal.DescendingField("DtCreated")).
+		SelectKeysOnly(reflect.Int)
+
+	if transferIDs, err := db.SelectAllIntIDs(c, query); err != nil {
 		return fmt.Errorf("failed to load transfers: %w", err)
-	} else if len(keys) > 0 {
-		log.Infof(c, "Loaded %v keys: %v", len(keys), keys)
+	} else if len(transferIDs) > 0 {
+		log.Infof(c, "Loaded %d transfer IDs", len(transferIDs))
 		delayDuration := 10 * time.Microsecond
-		for _, key := range keys {
-			if task, err := gae.CreateDelayTask(common.QUEUE_TRANSFERS, DELAY_UPDATE_1_TRANSFER_WITH_COUNTERPARTY, delayedUpdateTransferWithCounterparty, key.IntID(), counterpartyCounterpartyID); err != nil {
-				return fmt.Errorf("failed to create task for transfer id=%v: %w", key.IntID(), err)
+		for _, transferID := range transferIDs {
+			if task, err := gae.CreateDelayTask(common.QUEUE_TRANSFERS, DELAY_UPDATE_1_TRANSFER_WITH_COUNTERPARTY, delayedUpdateTransferWithCounterparty, transferID, counterpartyCounterpartyID); err != nil {
+				return fmt.Errorf("failed to create task for transfer id=%d: %w", transferID, err)
 			} else {
 				task.Delay = delayDuration
 				delayDuration += 10 * time.Microsecond
 				if _, err = gae.AddTaskToQueue(c, task, common.QUEUE_TRANSFERS); err != nil {
-					return fmt.Errorf("failed to add task for transfer %v to queue [%v]: %w", key, common.QUEUE_TRANSFERS, err)
+					return fmt.Errorf("failed to add task for transfer %d to queue [%v]: %w", transferID, common.QUEUE_TRANSFERS, err)
 				}
 			}
 		}
 	} else {
-		query := datastore.NewQuery(models.TransferKind).KeysOnly()
-		query = query.Filter("BothCounterpartyIDs =", creatorCounterpartyID).Filter("BothCounterpartyIDs =", counterpartyCounterpartyID)
-		query = query.Limit(1).KeysOnly()
-		if keys, err := query.GetAll(c, nil); err != nil {
+		query := dal.From(models.TransferKind).
+			WhereField("BothCounterpartyIDs", dal.Equal, creatorCounterpartyID).WhereField("BothCounterpartyIDs", dal.Equal, counterpartyCounterpartyID).
+			SelectKeysOnly(reflect.Int)
+		query.Limit = 1
+		if transferIDs, err := db.SelectAllIntIDs(c, query); err != nil {
 			return fmt.Errorf("failed to load transfers by 2 counterparty IDs: %w", err)
-		} else if len(keys) > 0 {
+		} else if len(transferIDs) > 0 {
 			log.Infof(c, "No transfers found to update counterparty details")
 		} else {
 			log.Warningf(c, "No transfers found to update counterparty details")
@@ -251,7 +258,7 @@ var delayedUpdateTransfersWithCreatorName = delay.MustRegister(UPDATE_TRANSFERS_
 		}
 		trasfer := models.TransferFromRecord(transferRecord)
 		if err != nil {
-			if err == datastore.Done {
+			if err == dal.ErrNoMoreRecords {
 				return nil
 			}
 			log.Errorf(c, err.Error())
