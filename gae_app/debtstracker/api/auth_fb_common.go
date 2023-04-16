@@ -1,19 +1,15 @@
 package api
 
 import (
-	"fmt"
-	"github.com/dal-go/dalgo/dal"
-	"net/http"
-	"time"
-
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
+	"fmt"
 	fb "github.com/strongo/facebook"
 	"github.com/strongo/log"
+	"net/http"
 )
 
 var ErrUnauthorized = errors.New("Unauthorized")
@@ -34,7 +30,7 @@ func signInFbUser(c context.Context, fbAppID, fbUserID string, r *http.Request, 
 	signedRequest := r.PostFormValue("signed_request")
 	accessToken := r.PostFormValue("access_token")
 
-	var isFbm bool
+	//var isFbm bool
 
 	// Create FB API Session
 	{
@@ -86,37 +82,37 @@ func signInFbUser(c context.Context, fbAppID, fbUserID string, r *http.Request, 
 			err = fmt.Errorf("%w: Either access_token or signed_request should be passed", ErrBadRequest)
 			return
 		}
-		if err != nil {
-			err = fmt.Errorf("%w: %v", ErrUnauthorized, err.Error())
-			return
-		}
+		//if err != nil {
+		//	err = fmt.Errorf("%w: %v", ErrUnauthorized, err.Error())
+		//	return
+		//}
 	}
 
-	if userFacebook, err = dtdal.UserFacebook.GetFbUserByFbID(c, fbAppID, fbUserID); err != nil && !dal.IsNotFound(err) {
-		err = fmt.Errorf("%w: Failed to get UserFacebook record by ID", err)
-		return
-	} else if !dal.IsNotFound(err) && fbUserID != "" && fbUserID != userFacebook.FbUserOrPageScopeID {
-		err = fmt.Errorf("%w: fbUserID:%v != userFacebook.ID:%v", ErrUnauthorized, fbUserID, userFacebook.FbUserOrPageScopeID)
-		return
-	}
-
-	if accessToken != "" || userFacebook.Data == nil || userFacebook.Data.DtUpdated.Before(time.Now().Add(-1*time.Hour)) {
-		if user, userFacebook, isNewUser, err = createOrUpdateFbUserDbRecord(c, isFbm, fbAppID, fbUserID, fbSession, authInfo, models.NewClientInfoFromRequest(r)); err != nil {
-			return
-		}
-	} else {
-		log.Debugf(c, "Not updating FB user db record as last updated less then an hour ago")
-	}
-
-	if err != nil {
-		return
-	} else if user.ID == 0 {
-		panic("userID == 0")
-	} else if user.Data == nil {
-		panic("user.AppUserData == nil")
-	}
-
-	return
+	//if userFacebook, err = dtdal.UserFacebook.GetFbUserByFbID(c, fbAppID, fbUserID); err != nil && !dal.IsNotFound(err) {
+	//	err = fmt.Errorf("%w: Failed to get UserFacebook record by ID", err)
+	//	return
+	//} else if !dal.IsNotFound(err) && fbUserID != "" && fbUserID != userFacebook.FbUserOrPageScopeID {
+	//	err = fmt.Errorf("%w: fbUserID:%v != userFacebook.ID:%v", ErrUnauthorized, fbUserID, userFacebook.FbUserOrPageScopeID)
+	//	return
+	//}
+	//
+	//if accessToken != "" || userFacebook.Data == nil || userFacebook.Data.DtUpdated.Before(time.Now().Add(-1*time.Hour)) {
+	//	if user, userFacebook, isNewUser, err = createOrUpdateFbUserDbRecord(c, isFbm, fbAppID, fbUserID, fbSession, authInfo, models.NewClientInfoFromRequest(r)); err != nil {
+	//		return
+	//	}
+	//} else {
+	//	log.Debugf(c, "Not updating FB user db record as last updated less then an hour ago")
+	//}
+	//
+	//if err != nil {
+	//	return
+	//} else if user.ID == 0 {
+	//	panic("userID == 0")
+	//} else if user.Data == nil {
+	//	panic("user.AppUserData == nil")
+	//}
+	//
+	//return
 }
 
 func getFbUserInfo(c context.Context, fbSession *fb.Session, isFbm bool, fbUserID string,

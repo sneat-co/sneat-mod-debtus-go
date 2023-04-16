@@ -462,7 +462,7 @@ func sendReceiptToCounterpartyByTelegram(c context.Context, receiptID int, tgCha
 						//if err2 := gaehost.MarkTelegramChatAsForbidden(c, tgChat.Data.BotID, tgChat.Data.TelegramUserID, time.Now()); err2 != nil {
 						//	log.Errorf(c, "Failed to call MarkTelegramChatAsStopped(): %v", err2.Error())
 						//}
-						return nil
+						//return nil
 					}
 					return
 				}
