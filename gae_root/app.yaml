@@ -1,4 +1,5 @@
 runtime: go120
+# application: debtstracker
 # api_version: go111
 
 #automatic_scaling:
