@@ -6,6 +6,7 @@ Here some things to get you up & running the project.
 
 1. Install [Google App Engine SDK for Go](https://cloud.google.com/appengine/docs/standard/setting-up-environment?tab=go)
 2. Use [ngrok](https://ngrok.com/) - to expose local server to the internet
+3. Use [nginx](https://www.nginx.com/) or similar - to proxy HTTPS requests to the local dev server
 
 ## How to start project
 
