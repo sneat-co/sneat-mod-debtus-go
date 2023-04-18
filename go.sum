@@ -25,6 +25,8 @@ github.com/bots-go-framework/bots-fw-dalgo v0.0.5 h1:/dZgDebCPf7wG6LNoSzD8hgkgaQ
 github.com/bots-go-framework/bots-fw-dalgo v0.0.5/go.mod h1:9c2LME3Daoq+MEsbNSoq0Hn66TJj5BDhYG/sfDI8CoM=
 github.com/bots-go-framework/bots-fw-telegram v0.4.6 h1:ZGKFYB3cbfVsNsE661EzkET2NsFmTkQsG1yt0dp8ea8=
 github.com/bots-go-framework/bots-fw-telegram v0.4.6/go.mod h1:TISNxocj2qqi1Zhkvs3qj3e9YZ7p/C/kiqNCo2MTrwE=
+github.com/bots-go-framework/bots-fw-telegram v0.4.7 h1:DxLfNCAbdyYonBvmjeLtTmuv0fgUa38y5EaCYSmNQno=
+github.com/bots-go-framework/bots-fw-telegram v0.4.7/go.mod h1:TISNxocj2qqi1Zhkvs3qj3e9YZ7p/C/kiqNCo2MTrwE=
 github.com/bots-go-framework/bots-host-gae v0.3.7 h1:V9+HI7w1KRaXeLU8kkRBSXUjhHdJKxcnlo8hBFafqcQ=
 github.com/bots-go-framework/bots-host-gae v0.3.7/go.mod h1:x39R3KwI972sacZFuRn3wo4WF2k7UWtwJ0WBKzyHPZg=
 github.com/captaincodeman/datastore-locker v0.0.0-20170308203336-4eddc467484e h1:SJoKNBURy0VzeEc1htXwTqk8I41evmoJxdKqRm7VzdA=

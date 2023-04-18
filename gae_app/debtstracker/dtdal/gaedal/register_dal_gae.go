@@ -2,6 +2,7 @@ package gaedal
 
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	telegramBot "github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
 	strongo "github.com/strongo/app"
@@ -9,23 +10,22 @@ import (
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"context"
-	telegramBot "github.com/bots-go-framework/bots-fw-telegram"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
 )
 
 func RegisterDal() {
 	//dtdal.DB = gaedb.NewDatabase()
-	telegramBot.DAL.DB = dtdal.DB
+	telegramBot.Init(facade.GetDatabase)
 	//
 	dtdal.Contact = NewContactDalGae()
 	dtdal.Transfer = NewTransferDalGae()
-	dtdal.Reward = NewRewardDalGae()
+	//dtdal.Reward = NewRewardDalGae()
 	dtdal.User = NewUserDalGae()
 	dtdal.Bill = newBillDalGae()
-	dtdal.Split = splitDalGae{}
+	//dtdal.Split = splitDalGae{}
 	dtdal.TgGroup = newTgGroupDalGae()
-	dtdal.BillSchedule = NewBillScheduleDalGae()
+	//dtdal.BillSchedule = NewBillScheduleDalGae()
 	dtdal.Receipt = NewReceiptDalGae()
 	dtdal.Reminder = NewReminderDalGae()
 	dtdal.UserBrowser = NewUserBrowserDalGae()
@@ -33,7 +33,6 @@ func RegisterDal() {
 	dtdal.PasswordReset = NewPasswordResetDalGae()
 	dtdal.Email = NewEmailDalGae()
 	dtdal.UserGooglePlus = NewUserGooglePlusDalGae()
-	dtdal.UserVk = NewUserVkDalGae()
 	dtdal.UserEmail = NewUserEmailGaeDal()
 	dtdal.UserFacebook = NewUserFacebookDalGae()
 	dtdal.LoginPin = NewLoginPinDalGae()
@@ -44,10 +43,11 @@ func RegisterDal() {
 	dtdal.TgChat = NewTgChatDalGae()
 	dtdal.TgUser = NewTgUserDalGae()
 	dtdal.Group = NewGroupDalGae()
-	//dtdal.GroupMember = NewGroupMemberDalGae()
 	dtdal.UserOneSignal = NewUserOneSignalDalGae()
 	dtdal.UserGaClient = NewUserGaClientDalGae()
 	dtdal.Feedback = NewFeedbackDalGae()
+	//dtdal.UserVk = NewUserVkDalGae()
+	//dtdal.GroupMember = NewGroupMemberDalGae()
 	dtdal.HttpClient = func(c context.Context) *http.Client {
 		return urlfetch.Client(c)
 	}

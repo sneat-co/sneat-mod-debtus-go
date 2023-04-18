@@ -6,7 +6,7 @@ require (
 	github.com/aws/aws-sdk-go v1.42.26
 	github.com/bots-go-framework/bots-api-telegram v0.1.1
 	github.com/bots-go-framework/bots-fw v0.9.11
-	github.com/bots-go-framework/bots-fw-telegram v0.4.6
+	github.com/bots-go-framework/bots-fw-telegram v0.4.7
 	github.com/bots-go-framework/bots-host-gae v0.3.7
 	github.com/captaincodeman/datastore-mapper v0.0.0-20170320145307-cb380a4c4d13
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85

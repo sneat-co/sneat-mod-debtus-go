@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-func SetupMocks(c context.Context) {
+func SetupMocks(_ context.Context) {
 
 	//panic("TODO: fix this test")
 	//mockDB := mockdb.NewMockDB(nil, nil)

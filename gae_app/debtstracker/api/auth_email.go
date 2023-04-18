@@ -173,7 +173,11 @@ func handleChangePasswordAndSignIn(c context.Context, w http.ResponseWriter, r *
 
 		records := []dal.Record{appUser.Record, userEmail.Record, passwordReset.Record}
 
-		if err = dtdal.DB.GetMulti(c, records); err != nil {
+		var db dal.Database
+		if db, err = facade.GetDatabase(c); err != nil {
+			return err
+		}
+		if err = db.GetMulti(c, records); err != nil {
 			return err
 		}
 

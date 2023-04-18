@@ -10,7 +10,6 @@ func TestRegisterDal(t *testing.T) {
 	// Pre-clean
 	dtdal.Admin = nil
 	dtdal.Contact = nil
-	dtdal.DB = nil
 	dtdal.Group = nil
 	dtdal.Twilio = nil
 	dtdal.HttpClient = nil
@@ -40,9 +39,6 @@ func TestRegisterDal(t *testing.T) {
 	}
 	if dtdal.Contact == nil {
 		t.Error("dtdal.Contact == nil")
-	}
-	if dtdal.DB == nil {
-		t.Error("dtdal.DB == nil")
 	}
 	if dtdal.Receipt == nil {
 		t.Error("dtdal.Receipt == nil")

@@ -299,34 +299,37 @@ var (
 	UserFacebook   UserFacebookDal
 	UserGoogle     UserGoogleDal
 	UserGooglePlus UserGooglePlusDal
-	UserVk         UserVkDal
-	PasswordReset  PasswordResetDal
-	Email          EmailDal
-	UserEmail      UserEmailDal
-	UserBrowser    UserBrowserDal
-	UserOneSignal  UserOneSignalDal
-	UserGaClient   UserGaClientDal
-	Feedback       FeedbackDal
-	Bill           BillDal
-	Split          SplitDal
-	BillSchedule   BillScheduleDal
-	Receipt        ReceiptDal
-	Group          GroupDal
-	Reminder       ReminderDal
-	TgGroup        TgGroupDal
-	Transfer       TransferDal
-	Reward         RewardDal
-	LoginPin       LoginPinDal
-	LoginCode      LoginCodeDal
-	Twilio         TwilioDal
-	Invite         InviteDal
-	Admin          AdminDal
-	TgChat         TgChatDal
-	TgUser         TgUserDal
-	HttpClient     func(c context.Context) *http.Client
-	BotHost        botsfw.BotHost
-	//TaskQueue		   TaskQueueDal
+
+	PasswordReset     PasswordResetDal
+	Email             EmailDal
+	UserEmail         UserEmailDal
+	UserBrowser       UserBrowserDal
+	UserOneSignal     UserOneSignalDal
+	UserGaClient      UserGaClientDal
+	Feedback          FeedbackDal
+	Bill              BillDal
+	Receipt           ReceiptDal
+	Group             GroupDal
+	Reminder          ReminderDal
+	TgGroup           TgGroupDal
+	Transfer          TransferDal
+	LoginPin          LoginPinDal
+	LoginCode         LoginCodeDal
+	Twilio            TwilioDal
+	Invite            InviteDal
+	Admin             AdminDal
+	TgChat            TgChatDal
+	TgUser            TgUserDal
+	HttpClient        func(c context.Context) *http.Client
+	BotHost           botsfw.BotHost
 	HandleWithContext strongo.HandleWithContext
+
+	//Split        SplitDal
+	//BillSchedule BillScheduleDal
+	//Reward RewardDal
+	//TaskQueue		   TaskQueueDal
+	//UserVk         UserVkDal
+
 )
 
 func InsertWithRandomStringID(c context.Context, tx dal.ReadwriteTransaction, record dal.Record) error {

@@ -49,7 +49,11 @@ func (userFacade) GetUsersByIDs(c context.Context, userIDs []int64) (users []*mo
 
 	appUsers := models.NewAppUsers(userIDs)
 	records := models.AppUserRecords(appUsers)
-	if err = dtdal.DB.GetMulti(c, records); err != nil {
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return
+	}
+	if err = db.GetMulti(c, records); err != nil {
 		return
 	}
 	return
