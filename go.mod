@@ -28,7 +28,7 @@ require (
 	github.com/strongo/gamp v0.0.1
 	github.com/strongo/gotwilio v0.0.0-20160123000810-f024bbefe80f
 	github.com/strongo/log v0.0.1
-	github.com/strongo/nds v0.0.0-20180424162513-fa96c62eb788
+	github.com/strongo/nds 8f6af34f5e72
 	github.com/strongo/random v0.0.1
 	github.com/strongo/slice v0.1.2
 	github.com/strongo/slices v0.0.0-20180713073818-553769fcb80b
