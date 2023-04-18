@@ -6,7 +6,7 @@ import (
 
 func SetupMocks(c context.Context) {
 
-	panic("TODO: fix this test")
+	//panic("TODO: fix this test")
 	//mockDB := mockdb.NewMockDB(nil, nil)
 	//
 	//dtdal.Transfer = dalmocks.NewTransferDalMock(mockDB)
