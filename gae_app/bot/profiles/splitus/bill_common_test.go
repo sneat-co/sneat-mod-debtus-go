@@ -8,5 +8,5 @@ func TestGetBillID(t *testing.T) {
 			t.Fatal("should panic")
 		}
 	}()
-	GetBillID(nil)
+	_, _ = GetBillID(nil)
 }

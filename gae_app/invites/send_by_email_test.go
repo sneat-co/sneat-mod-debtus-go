@@ -8,5 +8,5 @@ func TestSendInviteByEmail(t *testing.T) {
 			t.Fatal("should panic")
 		}
 	}()
-	SendInviteByEmail(nil, "", "", "", "", "", "")
+	_, _ = SendInviteByEmail(nil, "", "", "", "", "", "")
 }

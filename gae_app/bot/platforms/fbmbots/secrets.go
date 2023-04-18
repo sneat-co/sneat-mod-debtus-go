@@ -14,11 +14,11 @@ const (
 // fbmSplitBillProdPageAccessToken = "TODO_DO_NOT_STORE_IN_GIT"
 )
 
-type fbAppSecrets struct {
-	AppID     string
-	AppSecret string
-	//app       *fb.App
-}
+//type fbAppSecrets struct {
+//	AppID     string
+//	AppSecret string
+//	//app       *fb.App
+//}
 
 //func (s *fbAppSecrets) App() *fb.App {
 //	if s.app == nil {

@@ -33,7 +33,7 @@ func RedirectHandlerToEntityPageWithIntID(path string, optionalParams ...string)
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		if id, err := strconv.ParseInt(r.URL.Query().Get("id"), 10, 64); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Value of 'id' parameter is not an integer"))
+			_, _ = w.Write([]byte("Value of 'id' parameter is not an integer"))
 			return
 		} else {
 			redirectToWebApp(w, r, true, fmt.Sprintf(path, id), nil, optionalParams)

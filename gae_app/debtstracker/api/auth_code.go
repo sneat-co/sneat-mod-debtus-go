@@ -66,9 +66,9 @@ func handleSignInWithPin(c context.Context, w http.ResponseWriter, r *http.Reque
 		if userID, err := facade.AuthFacade.SignInWithPin(c, loginID, int32(loginCode)); err != nil {
 			switch err {
 			case facade.ErrLoginExpired:
-				w.Write([]byte("expired"))
+				_, _ = w.Write([]byte("expired"))
 			case facade.ErrLoginAlreadySigned:
-				w.Write([]byte("claimed"))
+				_, _ = w.Write([]byte("claimed"))
 			default:
 				err = fmt.Errorf("failed to claim loginCode: %w", err)
 				ErrorAsJson(c, w, http.StatusInternalServerError, err)

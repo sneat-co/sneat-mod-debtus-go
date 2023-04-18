@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"context"
@@ -16,7 +15,10 @@ func handleSignUpAnonymously(c context.Context, w http.ResponseWriter, r *http.R
 	if user, err := dtdal.User.CreateAnonymousUser(c); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 	} else {
-		SaveUserAgent(c, user.ID, r.UserAgent())
+		if err = SaveUserAgent(c, user.ID, r.UserAgent()); err != nil {
+			ErrorAsJson(c, w, http.StatusInternalServerError, err)
+			return
+		}
 		ReturnToken(c, w, user.ID, true, false)
 	}
 }
@@ -40,16 +42,19 @@ func handleSignInAnonymous(c context.Context, w http.ResponseWriter, r *http.Req
 	}
 
 	if userEntity.Data.IsAnonymous {
-		SaveUserAgent(c, userID, r.UserAgent())
+		if err = SaveUserAgent(c, userID, r.UserAgent()); err != nil {
+			ErrorAsJson(c, w, http.StatusInternalServerError, err)
+			return
+		}
 		ReturnToken(c, w, userID, false, false)
 	} else {
 		ErrorAsJson(c, w, http.StatusForbidden, errors.New("User is not anonymous."))
 	}
 }
 
-func handleLinkOneSignal(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
-	_, err := dtdal.UserOneSignal.SaveUserOneSignal(c, authInfo.UserID, r.PostFormValue("OneSignalUserID"))
-	if err != nil {
-		ErrorAsJson(c, w, http.StatusInternalServerError, err)
-	}
-}
+//func handleLinkOneSignal(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
+//	_, err := dtdal.UserOneSignal.SaveUserOneSignal(c, authInfo.UserID, r.PostFormValue("OneSignalUserID"))
+//	if err != nil {
+//		ErrorAsJson(c, w, http.StatusInternalServerError, err)
+//	}
+//}

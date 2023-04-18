@@ -34,7 +34,7 @@ func redirectToWebApp(w http.ResponseWriter, r *http.Request, authRequired bool,
 			user, err := facade.User.GetUserByID(c, nil, authInfo.UserID)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(err.Error()))
+				_, _ = w.Write([]byte(err.Error()))
 				return
 			}
 			lang = strings.ToLower(user.Data.GetPreferredLocale()[:2])
@@ -55,7 +55,7 @@ func redirectToWebApp(w http.ResponseWriter, r *http.Request, authRequired bool,
 	for pn, pn2 := range p2p {
 		if pv := query.Get(pn); pv == "" {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("redirectToWebApp: missing required parameter: " + pn))
+			_, _ = w.Write([]byte("redirectToWebApp: missing required parameter: " + pn))
 			return
 		} else {
 			pv = url.QueryEscape(pv)
@@ -64,7 +64,7 @@ func redirectToWebApp(w http.ResponseWriter, r *http.Request, authRequired bool,
 				if err != nil {
 					log.Debugf(c, "Failed to decode receipt ID: %v", err)
 					w.WriteHeader(http.StatusBadRequest)
-					w.Write([]byte(fmt.Sprintf("Failed to decod receipt ID: %v", err)))
+					_, _ = w.Write([]byte(fmt.Sprintf("Failed to decod receipt ID: %v", err)))
 					return
 				}
 				pv = strconv.FormatInt(receiptID, 10)
@@ -82,7 +82,7 @@ func redirectToWebApp(w http.ResponseWriter, r *http.Request, authRequired bool,
 
 	if utm := query.Get("utm"); utm != "" {
 		matches := reUtm.FindAllStringSubmatch(r.URL.RawQuery, -1) // TODO: Looks like a hack. Consider replacing ';' char with something else?
-		if matches != nil && len(matches) == 1 {
+		if len(matches) == 1 {
 			utm = matches[0][1]
 			utmValues := strings.Split(utm, ";")
 			if len(utmValues) == 3 {
@@ -113,4 +113,4 @@ func redirectToWebApp(w http.ResponseWriter, r *http.Request, authRequired bool,
 	//w.Write([]byte(fmt.Sprintf(`<html><head><meta http-equiv="refresh" content="0;URL='%v'" /></head></html>`, redirectTo.String())))
 }
 
-var reUtm = regexp.MustCompile(`(?:&|#|\?)?(?:utm=)(.+?)(?:&|#|$)`)
+var reUtm = regexp.MustCompile(`[&#?]?utm=(.+?)(?:&|#|$)`)

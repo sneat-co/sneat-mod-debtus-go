@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -61,9 +60,7 @@ func TestBillApiCreateBill(t *testing.T) {
 
 	responseRecorder := httptest.NewRecorder()
 
-	var body io.Reader
-
-	body = strings.NewReader("")
+	body := strings.NewReader("")
 	request, err := http.NewRequest("POST", "/api/bill-create", body)
 	if err != nil {
 		t.Fatal(err)

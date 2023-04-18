@@ -65,12 +65,12 @@ func CreateInvitePage(w http.ResponseWriter, r *http.Request, authInfo auth.Auth
 	case http.MethodPost:
 		if err := r.ParseForm(); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
 		}
 		inviteCode := r.Form.Get("Code")
 		if !dtdal.InviteCodeRegex.Match([]byte(inviteCode)) {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(fmt.Sprintf("Invate code [%v] does not match pattern: %v", inviteCode, dtdal.InviteCodeRegex.String())))
+			_, _ = w.Write([]byte(fmt.Sprintf("Invate code [%v] does not match pattern: %v", inviteCode, dtdal.InviteCodeRegex.String())))
 			return
 		}
 		maxClaimsCount, err := strconv.ParseInt(r.Form.Get("MaxClaimsCount"), 10, 32)
@@ -93,10 +93,10 @@ func CreateInvitePage(w http.ResponseWriter, r *http.Request, authInfo auth.Auth
 		ec := strongo.NewExecutionContext(c, translator)
 		if _, err = dtdal.Invite.CreateMassInvite(ec, userID, inviteCode, int32(maxClaimsCount), "web"); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-		w.Write([]byte(fmt.Sprintf("Invite created, code: %v, MaxClaimsCount: %v", inviteCode, maxClaimsCount)))
+		_, _ = w.Write([]byte(fmt.Sprintf("Invite created, code: %v, MaxClaimsCount: %v", inviteCode, maxClaimsCount)))
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		return

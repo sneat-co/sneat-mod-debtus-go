@@ -1,9 +1,10 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -27,7 +28,7 @@ func getApiUser(c context.Context, w http.ResponseWriter, r *http.Request, authI
 	if user, err = facade.User.GetUserByID(c, nil, user.ID); hasError(c, w, err, models.AppUserKind, int(user.ID), 0) {
 		return
 	} else if user.Data == nil {
-		w.Write([]byte(fmt.Sprintf("User not found by ID=%v", user.ID)))
+		_, _ = w.Write([]byte(fmt.Sprintf("User not found by ID=%v", user.ID)))
 		http.NotFound(w, r) // TODO: Check response output
 		return
 	}
@@ -37,12 +38,12 @@ func getApiUser(c context.Context, w http.ResponseWriter, r *http.Request, authI
 func handleUserInfo(c context.Context, w http.ResponseWriter, r *http.Request) {
 	if userID, err := strconv.ParseInt(r.URL.Query().Get("id"), 10, 64); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(([]byte)(err.Error()))
+		_, _ = w.Write(([]byte)(err.Error()))
 	} else {
 		if err := SaveUserAgent(c, userID, r.UserAgent()); err != nil {
 			log.Errorf(c, err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(([]byte)(err.Error()))
+			_, _ = w.Write(([]byte)(err.Error()))
 		}
 	}
 }
@@ -57,10 +58,14 @@ func SaveUserAgent(c context.Context, userID int64, userAgent string) error {
 }
 
 func handleSaveVisitorData(c context.Context, w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	if err := r.ParseForm(); err != nil {
+		ErrorAsJson(c, w, http.StatusBadRequest, err)
+		return
+	}
 	gaClientId := r.FormValue("gaClientId")
 	if gaClientId == "" {
 		w.WriteHeader(http.StatusBadRequest)
+		ErrorAsJson(c, w, http.StatusBadRequest, errors.New("missing required parameter gaClientId"))
 		return
 	}
 
@@ -69,6 +74,7 @@ func handleSaveVisitorData(c context.Context, w http.ResponseWriter, r *http.Req
 
 	if _, err := dtdal.UserGaClient.SaveGaClient(c, gaClientId, userAgent, ipAddress); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
+		return
 	}
 }
 
@@ -103,7 +109,7 @@ func handleMe(c context.Context, w http.ResponseWriter, r *http.Request, authInf
 
 func setUserName(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
 
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 
 	if err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)

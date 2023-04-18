@@ -14,7 +14,9 @@ func TestOnSaveSerializeJson(t *testing.T) {
 		},
 	}
 
-	transferEntity.onSaveSerializeJson()
+	if err := transferEntity.onSaveSerializeJson(); err != nil {
+		t.Fatal("unexpected error", err)
+	}
 
 	if transferEntity.FromJson == "" {
 		t.Error("transferEntity.FromJson is empty")

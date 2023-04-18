@@ -45,16 +45,16 @@ func GetTransferUrlForUser(transferID int, userID int64, locale strongo.Locale, 
 
 func WriteTransferUrlForUser(writer io.Writer, transferID int, userID int64, locale strongo.Locale, utmParams UtmParams) {
 	host := GetWebsiteHost(utmParams.Source)
-	writer.Write([]byte(fmt.Sprintf(
+	_, _ = writer.Write([]byte(fmt.Sprintf(
 		"https://%v/transfer?id=%v&lang=%v",
 		host, strconv.Itoa(transferID), locale.SiteCode(),
 	)))
 	if !utmParams.IsEmpty() {
-		writer.Write([]byte(fmt.Sprintf("&%v", utmParams.ShortString())))
+		_, _ = writer.Write([]byte(fmt.Sprintf("&%v", utmParams.ShortString())))
 	}
 	if userID != 0 {
 		token := auth.IssueToken(userID, formatIssuer(utmParams.Medium, utmParams.Source), false)
-		writer.Write([]byte(fmt.Sprintf("&secret=%v", token)))
+		_, _ = writer.Write([]byte(fmt.Sprintf("&secret=%v", token)))
 	}
 }
 

@@ -83,11 +83,11 @@ type UserGoogle struct { // TODO: Move out to library?
 }
 
 func (userGoogle UserGoogle) Key() *dal.Key {
-	return userGoogle.Key()
+	return userGoogle.WithID.Key
 }
 
 func (userGoogle UserGoogle) Record() dal.Record {
-	return userGoogle.Record()
+	return userGoogle.WithID.Record
 }
 
 func (userGoogle UserGoogle) AccountData() user.AccountData {

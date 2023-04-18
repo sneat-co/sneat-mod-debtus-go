@@ -36,15 +36,15 @@ func (m *contactsAsyncJob) Contact(key *datastore.Key) (contact models.Contact) 
 
 type ContactWorker func(c context.Context, counters *asyncCounters, contact models.Contact) error
 
-func (m *contactsAsyncJob) startContactWorker(c context.Context, counters mapper.Counters, key *datastore.Key, contactWorker ContactWorker) error {
-	//log.Debugf(c, "*contactsAsyncJob.startContactWorker()")
-	contact := m.Contact(key)
-	createContactWorker := func() Worker {
-		//log.Debugf(c, "createContactWorker()")
-		return func(counters *asyncCounters) error {
-			//log.Debugf(c, "asyncContactWorker() => contact.ID: %v", contact.ID)
-			return contactWorker(c, counters, contact)
-		}
-	}
-	return m.startWorker(c, counters, createContactWorker)
-}
+//func (m *contactsAsyncJob) startContactWorker(c context.Context, counters mapper.Counters, key *datastore.Key, contactWorker ContactWorker) error {
+//	//log.Debugf(c, "*contactsAsyncJob.startContactWorker()")
+//	contact := m.Contact(key)
+//	createContactWorker := func() Worker {
+//		//log.Debugf(c, "createContactWorker()")
+//		return func(counters *asyncCounters) error {
+//			//log.Debugf(c, "asyncContactWorker() => contact.ID: %v", contact.ID)
+//			return contactWorker(c, counters, contact)
+//		}
+//	}
+//	return m.startWorker(c, counters, createContactWorker)
+//}

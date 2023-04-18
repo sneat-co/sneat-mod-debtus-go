@@ -25,7 +25,7 @@ func (u *UserFacebook) GetEmail() string {
 }
 
 func (u *UserFacebook) Key() *dal.Key {
-	return u.Key()
+	return u.WithID.Key
 }
 
 func (u *UserFacebook) Record() dal.Record {

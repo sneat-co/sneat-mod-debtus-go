@@ -731,7 +731,9 @@ func (billFacade) RestoreBill(c context.Context, billID string, userID int64) (b
 
 func GetBillByID(c context.Context, tx dal.ReadSession, billID string) (bill models.Bill, err error) {
 	if tx == nil {
-		tx, err = GetDatabase(c)
+		if tx, err = GetDatabase(c); err != nil {
+			return bill, err
+		}
 	}
 	bill.ID = billID
 	bill.Key = dal.NewKeyWithID(models.BillKind, billID)

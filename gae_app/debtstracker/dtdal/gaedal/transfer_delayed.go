@@ -28,7 +28,7 @@ func (TransferDalGae) DelayUpdateTransfersWithCounterparty(c context.Context, cr
 	}
 	if task, err := gae.CreateDelayTask(common.QUEUE_TRANSFERS, DELAY_UPDATE_TRANSFERS_WITH_COUNTERPARTY, delayedUpdateTransfersWithCounterparty, creatorCounterpartyID, counterpartyCounterpartyID); err != nil {
 		return err
-	} else if task, err = gae.AddTaskToQueue(c, task, common.QUEUE_TRANSFERS); err != nil {
+	} else if _, err = gae.AddTaskToQueue(c, task, common.QUEUE_TRANSFERS); err != nil {
 		return err
 	}
 	return nil
@@ -297,7 +297,6 @@ var delayedUpdateTransfersWithCreatorName = delay.Func(UPDATE_TRANSFERS_WITH_CRE
 			if err != nil {
 				log.Errorf(c, err.Error())
 			}
-			return
 		}(trasfer.ID)
 	}
 })

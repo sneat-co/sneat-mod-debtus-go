@@ -170,11 +170,15 @@ func viewReceiptCallbackAction(whc botsfw.WebhookContext, callbackUrl *url.URL) 
 
 	localeCode5 := callbackQuery.Get("locale")
 	if localeCode5 != "" {
-		whc.SetLocale(localeCode5)
+		if err = whc.SetLocale(localeCode5); err != nil {
+			return m, err
+		}
 		if appUser, err := whc.GetAppUser(); err != nil {
 			return m, err
 		} else {
-			appUser.SetPreferredLocale(localeCode5)
+			if _ = appUser.SetPreferredLocale(localeCode5); err != nil {
+				return m, err
+			}
 		}
 	}
 	receiptID, err := common.DecodeID(callbackQuery.Get("id"))

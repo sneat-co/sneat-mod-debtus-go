@@ -11,7 +11,7 @@ import (
 	"google.golang.org/appengine/user"
 )
 
-func ApiCreateInvite(c context.Context, w http.ResponseWriter, r *http.Request) {
+func CreateInvite(c context.Context, w http.ResponseWriter, r *http.Request) {
 	gaeUser := user.Current(c)
 	if !gaeUser.Admin {
 		w.WriteHeader(http.StatusForbidden)
@@ -24,6 +24,5 @@ func ApiCreateInvite(c context.Context, w http.ResponseWriter, r *http.Request) 
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	}
-	w.Write([]byte(strconv.FormatInt(userEmail.AppUserIntID, 10)))
-	return
+	_, _ = w.Write([]byte(strconv.FormatInt(userEmail.AppUserIntID, 10)))
 }

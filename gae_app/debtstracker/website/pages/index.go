@@ -60,7 +60,7 @@ func IndexRootPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) 
 			if len(al) == 2 {
 				for _, l := range supportedLocales {
 					if l == al {
-						c = context.WithValue(c, "locale", al)
+						c = context.WithValue(c, ContextLocale, al)
 						indexPage(c, w, r)
 						//w.Header().Add("Location", fmt.Sprintf("/%v/", al))
 						//w.WriteHeader(http.StatusTemporaryRedirect)
@@ -82,7 +82,7 @@ func IndexRootPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) 
 
 		if country != "" {
 			if localeCode, ok := countryToLocale[strings.ToUpper(country)]; ok {
-				c = context.WithValue(c, "locale", localeCode)
+				c = context.WithValue(c, ContextLocale, localeCode)
 				indexPage(c, w, r)
 				//w.Header().Add("Location", "/"+localeCode+"/")
 				//w.WriteHeader(http.StatusTemporaryRedirect)
@@ -93,6 +93,12 @@ func IndexRootPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) 
 
 	indexPage(c, w, r)
 }
+
+type contextLocale struct {
+	id string
+}
+
+var ContextLocale = contextLocale{id: "locale"}
 
 var indexTmpl *template.Template
 

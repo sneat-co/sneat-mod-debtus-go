@@ -103,7 +103,7 @@ type ReminderEntity struct {
 //	return
 //}
 
-func (r ReminderEntity) validate() (err error) {
+func (r *ReminderEntity) Validate() (err error) {
 	if err = validateString("Unknown reminder.Status", r.Status, ReminderStatuses); err != nil {
 		return err
 	}

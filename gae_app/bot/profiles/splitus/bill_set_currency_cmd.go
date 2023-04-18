@@ -42,7 +42,7 @@ var setBillCurrencyCommand = billCallbackCommand(setBillCurrencyCommandCode,
 							return
 						}
 					}
-					if dtdal.Group.SaveGroup(c, tx, group); err != nil {
+					if err = dtdal.Group.SaveGroup(c, tx, group); err != nil {
 						return
 					}
 					return nil

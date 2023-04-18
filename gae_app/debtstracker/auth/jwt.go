@@ -81,7 +81,7 @@ func Authenticate(w http.ResponseWriter, r *http.Request, required bool) (authIn
 		if err != nil && required {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Header().Add("Access-Control-Allow-Origin", "*")
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
 		}
 	}()
 

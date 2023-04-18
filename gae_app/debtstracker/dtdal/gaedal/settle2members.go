@@ -84,7 +84,7 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 			} else if amount < 0 {
 				panic(fmt.Sprintf("amount < 0: %v", amount))
 			}
-			bill := models.Bill{}
+			var bill models.Bill
 			if bill, err = facade.GetBillByID(c, tx, id); err != nil {
 				return
 			}

@@ -44,7 +44,7 @@ type UserCounterpartiesResponse struct {
 func handleCreateCounterparty(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
 	if err := r.ParseForm(); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 	name := strings.TrimSpace(r.PostForm.Get("name"))
@@ -61,7 +61,7 @@ func handleCreateCounterparty(c context.Context, w http.ResponseWriter, r *http.
 		telNumber, err := strconv.ParseInt(tel, 10, 64)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 		contactDetails.PhoneNumber = telNumber
@@ -89,7 +89,7 @@ func getContactID(w http.ResponseWriter, query url.Values) (int64, error) {
 	counterpartyID, err := strconv.ParseInt(query.Get("id"), 10, 64)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 	}
 	return counterpartyID, err
 }
@@ -103,7 +103,7 @@ func handleGetContact(c context.Context, w http.ResponseWriter, r *http.Request,
 	counterparty, err := facade.GetContactByID(c, nil, counterpartyID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 
@@ -119,7 +119,7 @@ func contactToResponse(c context.Context, w http.ResponseWriter, authInfo auth.A
 	transfers, hasMoreTransfers, err := dtdal.Transfer.LoadTransfersByContactID(c, contact.ID, 0, 100)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 
@@ -259,7 +259,7 @@ func handleUpdateCounterparty(c context.Context, w http.ResponseWriter, r *http.
 			values[k] = vals[0]
 		default:
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(fmt.Sprintf("Too many values for '%v'.", k)))
+			_, _ = w.Write([]byte(fmt.Sprintf("Too many values for '%v'.", k)))
 			return
 		}
 	}

@@ -185,7 +185,9 @@ func joinBillAction(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, bill
 			return
 		}
 		if isJoined {
-			delayUpdateBillCardOnUserJoin(c, bill.ID, whc.Translate(fmt.Sprintf("%v: ", time.Now())+trans.MESSAGE_TEXT_USER_JOINED_BILL, userName))
+			if err = delayUpdateBillCardOnUserJoin(c, bill.ID, whc.Translate(fmt.Sprintf("%v: ", time.Now())+trans.MESSAGE_TEXT_USER_JOINED_BILL, userName)); err != nil {
+				log.Errorf(c, "failed to daley update bill card on user join: %v", err)
+			}
 		}
 	}
 	//return

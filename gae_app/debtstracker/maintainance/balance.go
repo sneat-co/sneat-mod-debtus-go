@@ -10,7 +10,8 @@ func FixBalanceCurrencies(balance money.Balance) (changed bool) {
 	for c, v := range balance {
 		if c == euro {
 			c = money.CURRENCY_EUR
-		} else if len(c) == 3 {
+		}
+		if len(c) == 3 {
 			cc := strings.ToUpper(string(c))
 			if cc != string(c) {
 				if cu := money.Currency(cc); cu.IsMoney() {

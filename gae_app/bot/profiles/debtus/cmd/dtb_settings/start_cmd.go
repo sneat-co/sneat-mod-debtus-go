@@ -45,7 +45,9 @@ func startByLinkCode(whc botsfw.WebhookContext, matches []string) (m botsfw.Mess
 		if len(localeCode5) == 2 {
 			localeCode5 = common.Locale2to5(localeCode5)
 		}
-		whc.SetLocale(localeCode5)
+		if err = whc.SetLocale(localeCode5); err != nil {
+			return
+		}
 		chatEntity.SetPreferredLanguage(localeCode5)
 		if err = dtdal.User.DelaySetUserPreferredLocale(c, time.Second, whc.AppUserIntID(), localeCode5); err != nil {
 			return
@@ -83,12 +85,13 @@ func startInvite(whc botsfw.WebhookContext, inviteCode, operation, localeCode5 s
 
 func startReceipt(whc botsfw.WebhookContext, receiptCode, operation, localeCode5 string) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
-	receiptID, err := strconv.Atoi(receiptCode)
-	if err != nil {
-		receiptID, err = common.DecodeIntID(receiptCode) // TODO: remove obsolete in a while. 2017/11/19
+	var receiptID int
+	if receiptID, err = strconv.Atoi(receiptCode); err != nil {
+		if receiptID, err = common.DecodeIntID(receiptCode); err != nil { // TODO: remove obsolete in a while. 2017/11/19
+			return
+		}
 	} else if _, err = dtdal.Receipt.GetReceiptByID(c, nil, receiptID); err != nil {
 		if dal.IsNotFound(err) {
-			err = nil
 			if receiptID, err = common.DecodeIntID(receiptCode); err != nil {
 				err = fmt.Errorf("failed to decode receipt ID: %w", err)
 				return

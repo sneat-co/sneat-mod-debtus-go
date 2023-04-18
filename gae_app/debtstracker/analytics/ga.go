@@ -41,7 +41,7 @@ func SendSingleMessage(c context.Context, m gamp.Message) (err error) {
 		return err
 	}
 	var buffer bytes.Buffer
-	m.Write(&buffer)
+	_, _ = m.Write(&buffer)
 	log.Debugf(c, "Sent single message to GA: "+buffer.String())
 	return nil
 }

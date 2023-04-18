@@ -29,8 +29,8 @@ type transfersInfo struct {
 	balance money.Balance
 }
 
-func newContactWithBalances(now time.Time, contact models.Contact) contactWithBalances {
-	balanceWithInterest, err := contact.Data.BalanceWithInterest(nil, now)
+func newContactWithBalances(c context.Context, now time.Time, contact models.Contact) contactWithBalances {
+	balanceWithInterest, err := contact.Data.BalanceWithInterest(c, now)
 	result := contactWithBalances{
 		Contact:  contact,
 		balances: newBalances("contact", contact.Data.Balance(), balanceWithInterest),
@@ -131,13 +131,13 @@ func validateContacts(c context.Context,
 	contactsTotalWithoutInterest := make(money.Balance, len(userBalances.withoutInterest.byCurrency))
 	contactsTotalWithInterest := make(money.Balance, len(userBalances.withInterest.byCurrency))
 
-	updateBalance := func(contact models.Contact) (ci contactWithBalances) {
+	updateBalance := func(contact models.Contact) (ci contactWithBalances, err error) {
 		contactBalanceWithoutInterest := contact.Data.Balance()
 		contactBalanceWithInterest, err := contact.Data.BalanceWithInterest(c, now)
 		if err == nil {
-
+			return
 		}
-		ci = newContactWithBalances(now, contact)
+		ci = newContactWithBalances(c, now, contact)
 		for currency, value := range contactBalanceWithoutInterest {
 			contactsTotalWithoutInterest[currency] += value
 		}
@@ -152,7 +152,7 @@ func validateContacts(c context.Context,
 					ci.balances.withoutInterest.byCurrency[currency] = row
 				}
 
-				if userContactBalanceWithInterest, err := userContactJson.BalanceWithInterest(nil, now); err != nil {
+				if userContactBalanceWithInterest, err := userContactJson.BalanceWithInterest(c, now); err != nil {
 					ci.balances.withInterest.err = err
 				} else {
 					for currency, value := range userContactBalanceWithInterest {
@@ -176,7 +176,9 @@ func validateContacts(c context.Context,
 				panic(err)
 			}
 		}
-		contactInfos[i] = updateBalance(contact)
+		if contactInfos[i], err = updateBalance(contact); err != nil {
+			return
+		}
 		contactInfosByID[contact.ID] = contactInfos[i]
 	}
 
@@ -209,7 +211,9 @@ func validateContacts(c context.Context,
 			if contact, err = facade.GetContactByID(c, nil, key.IntID()); err != nil {
 				return
 			}
-			contactInfo = updateBalance(contact)
+			if contactInfo, err = updateBalance(contact); err != nil {
+				return
+			}
 			contactInfos = append(contactInfos, contactInfo)
 			contactsMissingInJson = append(contactInfos, contactInfo)
 		}
@@ -247,7 +251,7 @@ func userPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	userID, err := strconv.ParseInt(r.URL.Query().Get("id"), 10, 64)
 	if err != nil {
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 
@@ -257,7 +261,7 @@ func userPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		contactInfosNotFoundInDb                                      []models.UserContactJson
 	)
 	if user, err = facade.User.GetUserByID(c, nil, userID); err != nil {
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 

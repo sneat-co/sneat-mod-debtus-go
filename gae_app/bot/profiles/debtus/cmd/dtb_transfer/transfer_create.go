@@ -73,7 +73,7 @@ func CreateStartTransferWizardCommand(code, messageText string, commands []strin
 					return whc.NewMessageByCode(trans.MESSAGE_TEXT_CURRENCY_NAME_IS_NUMBER), nil
 					// User entered a number
 				} else { // TODO: Document why we allow this!?
-					err = nil // Ignore error from strconv.ParseFloat()
+					//err = nil // Ignore error from strconv.ParseFloat()
 					if strings.ToLower(mt) == "euro" {
 						mt = "EUR"
 					} else if len(mt) == 3 {
@@ -253,7 +253,7 @@ func processSetDate(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, date ti
 	c := whc.Context()
 
 	mt := strings.TrimSpace(whc.Input().(botsfw.WebhookTextMessage).Text())
-	if match := reDate.FindStringSubmatch(mt); match != nil && len(match) > 0 {
+	if match := reDate.FindStringSubmatch(mt); len(match) > 0 {
 		if match[2] != match[4] {
 			m = whc.NewMessageByCode(trans.MESSAGE_TEXT_INVALID_DATE)
 			return m, date, nil

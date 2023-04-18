@@ -87,13 +87,13 @@ func ReturnToken(_ context.Context, w http.ResponseWriter, userID int64, isNewUs
 	header := w.Header()
 	header.Add("Access-Control-Allow-Origin", "*")
 	header.Add("Content-Type", "application/json")
-	w.Write([]byte("{"))
+	_, _ = w.Write([]byte("{"))
 	if isNewUser {
-		w.Write([]byte(`"isNewUser":true,`))
+		_, _ = w.Write([]byte(`"isNewUser":true,`))
 	}
-	w.Write([]byte(`"token":"`))
-	w.Write([]byte(token))
-	w.Write([]byte(`"}`))
+	_, _ = w.Write([]byte(`"token":"`))
+	_, _ = w.Write([]byte(token))
+	_, _ = w.Write([]byte(`"}`))
 }
 
 func handleAuthLoginId(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
@@ -147,7 +147,7 @@ func handleAuthLoginId(c context.Context, w http.ResponseWriter, r *http.Request
 		}
 
 		if strings.Count(gaClientID, ".") != 1 {
-			BadRequestMessage(c, w, fmt.Sprintf("Google Client ID has wrong format, a '.' char expected"))
+			BadRequestMessage(c, w, "Google Client ID has wrong format, a '.' char expected")
 			return
 		}
 	}

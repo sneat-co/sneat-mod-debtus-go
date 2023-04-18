@@ -224,11 +224,12 @@ func (transferDalGae TransferDalGae) LoadTransferIDsByContactID(c context.Contex
 		return
 	}
 	var reader dal.Reader
-	reader, err = db.Select(c, q)
+	if reader, err = db.Select(c, q); err != nil {
+		return
+	}
 	var record dal.Record
 	for record, err = reader.Next(); err != nil; {
 		if dal.ErrNoMoreRecords == err {
-			err = nil
 			if endCursor, err = reader.Cursor(); err != nil {
 				return
 			}

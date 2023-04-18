@@ -56,12 +56,12 @@ func hasError(c context.Context, w http.ResponseWriter, err error, entity string
 		w.WriteHeader(notFoundStatus)
 		m := fmt.Sprintf("Entity %v not found by id: %d", entity, id)
 		log.Infof(c, m)
-		w.Write([]byte(m))
+		_, _ = w.Write([]byte(m))
 	default:
 		err = fmt.Errorf("failed to get entity %v by id=%v: %w", entity, id, err)
 		log.Errorf(c, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 	}
 	return true
 }
@@ -73,7 +73,7 @@ func jsonToResponse(c context.Context, w http.ResponseWriter, v interface{}) {
 		w.WriteHeader(http.StatusInternalServerError)
 		header.Add("Access-Control-Allow-Origin", "*")
 		log.Debugf(c, "w.Header(): %v", header)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 	} else {
 		markResponseAsJson(header)
 		log.Debugf(c, "w.Header(): %v", header)

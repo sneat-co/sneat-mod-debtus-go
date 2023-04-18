@@ -17,7 +17,7 @@ var CancelTransferWizardCommand = botsfw.Command{
 
 func cancelTransferWizardCommandAction(whc botsfw.WebhookContext) (botsfw.MessageFromBot, error) {
 	whc.ChatEntity().SetAwaitingReplyTo("")
-	var m botsfw.MessageFromBot
+	//var m botsfw.MessageFromBot
 	//userKey, _, err := whc.GetUser()
 	//if err != nil {
 	//	return m, err
@@ -28,7 +28,7 @@ func cancelTransferWizardCommandAction(whc botsfw.WebhookContext) (botsfw.Messag
 	//if err != nil {
 	//	return m, err
 	//}
-	m = whc.NewMessageByCode(trans.MESSAGE_TEXT_TRANSFER_CREATION_CANCELED)
+	m := whc.NewMessageByCode(trans.MESSAGE_TEXT_TRANSFER_CREATION_CANCELED)
 	//if len(transferKeys) == 0 {
 	//	m = tgbotapi.NewMessage(whc.ChatID(), Translate(trans.MESSAGE_TEXT_NOTHING_TO_CANCEL, whc))
 	//} else {

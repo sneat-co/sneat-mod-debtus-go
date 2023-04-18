@@ -38,7 +38,11 @@ var HistoryCommand = botsfw.Command{
 func showHistoryCard(whc botsfw.WebhookContext, limit int) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
-	transfers, hasMore, err := dtdal.Transfer.LoadTransfersByUserID(c, whc.AppUserIntID(), 0, limit)
+	var transfers []models.Transfer
+	var hasMore bool
+	if transfers, hasMore, err = dtdal.Transfer.LoadTransfersByUserID(c, whc.AppUserIntID(), 0, limit); err != nil {
+		return m, err
+	}
 
 	if len(transfers) == 0 {
 		m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_HISTORY_NO_RECORDS) + common.HORIZONTAL_LINE + dtb_general.AdSlot(whc, UTM_CAMPAIGN_TRANSFER_HISTORY))
@@ -50,7 +54,7 @@ func showHistoryCard(whc botsfw.WebhookContext, limit int) (m botsfw.MessageFrom
 			transferHistoryRows(whc, transfers),
 		) + common.HORIZONTAL_LINE + dtb_general.AdSlot(whc, UTM_CAMPAIGN_TRANSFER_HISTORY))
 		if hasMore {
-			transfers = transfers[:limit]
+			//transfers = transfers[:limit]
 			utmParams := common.FillUtmParams(whc, common.UtmParams{Campaign: UTM_CAMPAIGN_TRANSFER_HISTORY})
 			m.Keyboard = &tgbotapi.InlineKeyboardMarkup{
 				InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{

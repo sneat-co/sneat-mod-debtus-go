@@ -26,7 +26,7 @@ func TestCreateBillPanicOnNilContext(t *testing.T) {
 			}
 		}
 	}()
-	Bill.CreateBill(nil, nil, nil)
+	_, _ = Bill.CreateBill(context.Background(), nil, nil)
 }
 
 func TestCreateBillPanicOnNilBill(t *testing.T) {
@@ -61,7 +61,7 @@ func TestCreateBillErrorNoMembers(t *testing.T) {
 
 }
 
-const mockBillID = "1"
+//const mockBillID = "1"
 
 func TestCreateBillAmountZeroError(t *testing.T) {
 	dtmocks.SetupMocks(context.Background())
@@ -238,7 +238,7 @@ func TestCreateBillSuccess(t *testing.T) {
 	dtmocks.SetupMocks(c)
 	billEntity := createGoodBillSplitByPercentage(t)
 
-	members := billEntity.GetBillMembers()
+	//members := billEntity.GetBillMembers()
 
 	bill, err := Bill.CreateBill(c, nil, billEntity)
 	if err != nil {
@@ -250,7 +250,7 @@ func TestCreateBillSuccess(t *testing.T) {
 		return
 	}
 
-	members = billEntity.GetBillMembers()
+	members := billEntity.GetBillMembers()
 	if err != nil {
 		t.Error(err)
 		return

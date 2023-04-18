@@ -42,7 +42,9 @@ var LoginPinCommand = botsfw.Command{
 				}
 			case strings.HasPrefix(p, "lang-"):
 				lang = common.Locale2to5(p[len("lang-"):])
-				whc.SetLocale(lang)
+				if err = whc.SetLocale(lang); err != nil {
+					return m, err
+				}
 				whc.ChatEntity().SetPreferredLanguage(lang)
 				//case strings.HasPrefix(p,"gac-"):
 				//	gacID = p[len("gac-"):]

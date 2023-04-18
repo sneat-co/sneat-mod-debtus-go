@@ -87,5 +87,5 @@ func InitApi(router *httprouter.Router) {
 	GET("/api/test/email", reminders.TestEmail)
 	//POST("/api/invite-friend", inviteFriend)
 	POST("/api/send-receipt", reminders.SendReceipt)
-	POST("/api/invite/create", ApiCreateInvite)
+	POST("/api/invite/create", CreateInvite)
 }

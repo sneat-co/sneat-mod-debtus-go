@@ -5,23 +5,16 @@ import (
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"regexp"
 	"strings"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/sms"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/invites"
 	"errors"
-	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/sneat-co/debtstracker-translations/emoji"
-	"github.com/strongo/app"
-	"github.com/strongo/log"
 )
 
-var reEmail = regexp.MustCompile("^.+@.+\\.\\w+$")
+//var reEmail = regexp.MustCompile("^.+@.+\\.\\w+$")
 
 func handleInviteOnStart(whc botsfw.WebhookContext, inviteCode string, invite models.Invite) (m botsfw.MessageFromBot, err error) {
 	claimAndReply := func() {
@@ -297,10 +290,10 @@ func TextCommand(on string, message []string, icon, replyIcon string, hideKeyboa
 //}
 
 type ContactsChannelCommand struct {
-	code    string
-	icon    string
-	title   string
-	message string
+	//code    string
+	icon  string
+	title string
+	//message string
 }
 
 func (c ContactsChannelCommand) CommandText(whc botsfw.WebhookContext) string {
@@ -355,105 +348,105 @@ var OnboardingOnUserContactReceivedCommand = botsfw.Command{
 	},
 }
 
-func onboardingProcessPhoneContact(whc botsfw.WebhookContext, contact botsfw.WebhookContactMessage) (m botsfw.MessageFromBot, err error) {
-	c := whc.Context()
-	//whc.ChatEntity().SetAwaitingReplyTo(ON_USER_CONTACT_RECEIVED_COMMAND)
-	invite, err := dtdal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserIntID(), models.InviteBySms, contact.PhoneNumber(), whc.BotPlatform().ID(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
-	if err != nil {
-		return m, err
-	}
-
-	utmParams := common.UtmParams{
-		Source:   common.UtmSourceFromContext(whc),
-		Medium:   "sms",
-		Campaign: common.UTM_CAMPAIGN_ONBOARDING_INVITE,
-	}
-	templateParams := invites.InviteTemplateParams{
-		ToName:     contact.FirstName(),
-		FromName:   "DebtsTracker",
-		InviteCode: invite.ID,
-		TgBot:      whc.GetBotCode(),
-		Utm:        utmParams.String(),
-	}
-
-	smsText, err := common.TextTemplates.RenderTemplate(c, whc, trans.SMS_INVITE_TEXT, templateParams)
-	if err != nil {
-		return m, err
-	}
-	isTestSender, smsResponse, twilioException, err := sms.SendSms(whc.Context(), whc.GetBotSettings().Env == strongo.EnvProduction, contact.PhoneNumber(), smsText)
-	if err != nil {
-		return m, err
-	}
-	if twilioException != nil {
-		sms.TwilioExceptionToMessage(whc, twilioException)
-	}
-	if err != nil {
-		return m, err
-	}
-	m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_USER_CONTACT_FOR_INVITE_RECEIVED))
-
-	if isTestSender {
-		m.Text += "\n\n<b>SMS text</b>\n" + smsResponse.Body
-	}
-
-	m.Keyboard = &tgbotapi.InlineKeyboardMarkup{
-		InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{
-			{
-				{
-					Text: "Shares on FB to get instant invite",
-					URL:  "https://apps.facebook.com/debtstracker/",
-				},
-			},
-		},
-	}
-	return m, err
-}
+//func onboardingProcessPhoneContact(whc botsfw.WebhookContext, contact botsfw.WebhookContactMessage) (m botsfw.MessageFromBot, err error) {
+//	c := whc.Context()
+//	//whc.ChatEntity().SetAwaitingReplyTo(ON_USER_CONTACT_RECEIVED_COMMAND)
+//	invite, err := dtdal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserIntID(), models.InviteBySms, contact.PhoneNumber(), whc.BotPlatform().ID(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
+//	if err != nil {
+//		return m, err
+//	}
+//
+//	utmParams := common.UtmParams{
+//		Source:   common.UtmSourceFromContext(whc),
+//		Medium:   "sms",
+//		Campaign: common.UTM_CAMPAIGN_ONBOARDING_INVITE,
+//	}
+//	templateParams := invites.InviteTemplateParams{
+//		ToName:     contact.FirstName(),
+//		FromName:   "DebtsTracker",
+//		InviteCode: invite.ID,
+//		TgBot:      whc.GetBotCode(),
+//		Utm:        utmParams.String(),
+//	}
+//
+//	smsText, err := common.TextTemplates.RenderTemplate(c, whc, trans.SMS_INVITE_TEXT, templateParams)
+//	if err != nil {
+//		return m, err
+//	}
+//	isTestSender, smsResponse, twilioException, err := sms.SendSms(whc.Context(), whc.GetBotSettings().Env == strongo.EnvProduction, contact.PhoneNumber(), smsText)
+//	if err != nil {
+//		return m, err
+//	}
+//	if twilioException != nil {
+//		sms.TwilioExceptionToMessage(whc, twilioException)
+//	}
+//	if err != nil {
+//		return m, err
+//	}
+//	m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_USER_CONTACT_FOR_INVITE_RECEIVED))
+//
+//	if isTestSender {
+//		m.Text += "\n\n<b>SMS text</b>\n" + smsResponse.Body
+//	}
+//
+//	m.Keyboard = &tgbotapi.InlineKeyboardMarkup{
+//		InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{
+//			{
+//				{
+//					Text: "Shares on FB to get instant invite",
+//					URL:  "https://apps.facebook.com/debtstracker/",
+//				},
+//			},
+//		},
+//	}
+//	return m, err
+//}
 
 const EMAIL_CONFIRMATION_SENT_COMMAND = "email-confirmation-sent"
 
 const INVITE_IS_RELATED_TO_ONBOARDING = "onboarding=yes"
 
-func onboardingProcessEmail(messageText string, whc botsfw.WebhookContext, altCmd ContactsChannelCommand) (m botsfw.MessageFromBot, err error) {
-
-	log.Infof(whc.Context(), "onboardingProcessEmail(messageText=%v)", messageText)
-	email := strings.TrimSpace(messageText)
-
-	if !reEmail.MatchString(email) {
-		m = whc.NewMessageByCode(trans.MESSAGE_TEXT_WRONG_EMAIL)
-		m.Keyboard = tgbotapi.NewReplyKeyboardUsingStrings([][]string{
-			{whc.CommandText(trans.COMMAND_TEXT_MISTYPE_WILL_TRY_AGAIN, emoji.SORRY_ICON)}, //TODO: Reuse command from replies:
-			{altCmd.CommandText(whc)},
-			{whc.CommandText(trans.COMMAND_TEXT_TELL_ME_MORE_ABOUT_INVITES, emoji.QUESTION_ICON)},
-		})
-	} else {
-		//TODO: Try to send email and handle return codes & exceptions
-		invite, err := dtdal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserIntID(), models.InviteByEmail, email, whc.BotPlatform().ID(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
-		if err != nil {
-			return m, err
-		}
-		_, err = invites.SendInviteByEmail(whc.ExecutionContext(), "DebtsTracker", email, whc.GetSender().GetFirstName(), invite.ID, whc.GetBotCode(), common.UtmSourceFromContext(whc))
-		if err != nil {
-			return m, err
-		}
-		whc.ChatEntity().SetAwaitingReplyTo(EMAIL_CONFIRMATION_SENT_COMMAND)
-		mt := fmt.Sprintf(whc.Translate(trans.MESSAGE_TEXT_USER_EMAIL_FOR_INVITE_RECEIVED), email)
-		if whc.BotPlatform().ID() == telegram.PlatformID {
-			mt += "\n\n" + whc.Translate(trans.MESSAGE_TEXT_USER_EMAIL_FOR_INVITE_SENT_TELEGRAM)
-		}
-		m = whc.NewMessage(mt)
-		m.Keyboard = &tgbotapi.ReplyKeyboardMarkup{
-			ResizeKeyboard:  true,
-			OneTimeKeyboard: true,
-			Keyboard: [][]tgbotapi.KeyboardButton{
-				{
-					{Text: whc.Translate(trans.COMMAND_TEXT_I_HAVE_NOT_GOT_EMAIL)},
-				},
-				{
-					{Text: whc.CommandText(trans.COMMAND_TEXT_I_HAVE_INVITE, emoji.CLOSED_LOCK_WITH_KEY)},
-				},
-			},
-		}
-	}
-
-	return m, nil
-}
+//func onboardingProcessEmail(messageText string, whc botsfw.WebhookContext, altCmd ContactsChannelCommand) (m botsfw.MessageFromBot, err error) {
+//
+//	log.Infof(whc.Context(), "onboardingProcessEmail(messageText=%v)", messageText)
+//	email := strings.TrimSpace(messageText)
+//
+//	if !reEmail.MatchString(email) {
+//		m = whc.NewMessageByCode(trans.MESSAGE_TEXT_WRONG_EMAIL)
+//		m.Keyboard = tgbotapi.NewReplyKeyboardUsingStrings([][]string{
+//			{whc.CommandText(trans.COMMAND_TEXT_MISTYPE_WILL_TRY_AGAIN, emoji.SORRY_ICON)}, //TODO: Reuse command from replies:
+//			{altCmd.CommandText(whc)},
+//			{whc.CommandText(trans.COMMAND_TEXT_TELL_ME_MORE_ABOUT_INVITES, emoji.QUESTION_ICON)},
+//		})
+//	} else {
+//		//TODO: Try to send email and handle return codes & exceptions
+//		invite, err := dtdal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserIntID(), models.InviteByEmail, email, whc.BotPlatform().ID(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
+//		if err != nil {
+//			return m, err
+//		}
+//		_, err = invites.SendInviteByEmail(whc.ExecutionContext(), "DebtsTracker", email, whc.GetSender().GetFirstName(), invite.ID, whc.GetBotCode(), common.UtmSourceFromContext(whc))
+//		if err != nil {
+//			return m, err
+//		}
+//		whc.ChatEntity().SetAwaitingReplyTo(EMAIL_CONFIRMATION_SENT_COMMAND)
+//		mt := fmt.Sprintf(whc.Translate(trans.MESSAGE_TEXT_USER_EMAIL_FOR_INVITE_RECEIVED), email)
+//		if whc.BotPlatform().ID() == telegram.PlatformID {
+//			mt += "\n\n" + whc.Translate(trans.MESSAGE_TEXT_USER_EMAIL_FOR_INVITE_SENT_TELEGRAM)
+//		}
+//		m = whc.NewMessage(mt)
+//		m.Keyboard = &tgbotapi.ReplyKeyboardMarkup{
+//			ResizeKeyboard:  true,
+//			OneTimeKeyboard: true,
+//			Keyboard: [][]tgbotapi.KeyboardButton{
+//				{
+//					{Text: whc.Translate(trans.COMMAND_TEXT_I_HAVE_NOT_GOT_EMAIL)},
+//				},
+//				{
+//					{Text: whc.CommandText(trans.COMMAND_TEXT_I_HAVE_INVITE, emoji.CLOSED_LOCK_WITH_KEY)},
+//				},
+//			},
+//		}
+//	}
+//
+//	return m, nil
+//}

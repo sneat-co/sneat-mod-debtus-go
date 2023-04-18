@@ -33,12 +33,14 @@ var inlineQueryCommand = botsfw.Command{
 				return m, err
 			} else if preferredLocale := user.GetPreferredLocale(); preferredLocale != "" {
 				log.Debugf(c, "User has preferring locale")
-				whc.SetLocale(preferredLocale)
+				_ = whc.SetLocale(preferredLocale)
 			} else if tgLang := update.InlineQuery.From.LanguageCode; len(tgLang) >= 2 {
 				switch strings.ToLower(tgLang[:2]) {
 				case "ru":
 					log.Debugf(c, "Telegram client has known language code")
-					whc.SetLocale(strongo.LocaleRuRu.Code5)
+					if err = whc.SetLocale(strongo.LocaleRuRu.Code5); err != nil {
+						return m, err
+					}
 				}
 			}
 		}

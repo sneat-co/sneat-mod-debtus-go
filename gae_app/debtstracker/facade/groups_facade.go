@@ -236,19 +236,15 @@ func (userFacade) UpdateUserWithGroups(c context.Context, tx dal.ReadwriteTransa
 	log.Debugf(c, "updateUserWithGroup(user.ID=%d, len(groups2add)=%d, groups2remove=%v)", user.ID, len(groups2add), groups2remove)
 	groups := user.Data.ActiveGroups()
 	updated := false
-	if groups2add != nil {
-		for _, group2add := range groups2add {
-			updated = user.Data.AddGroup(group2add, "") || updated
-		}
+	for _, group2add := range groups2add {
+		updated = user.Data.AddGroup(group2add, "") || updated
 	}
-	if groups2remove != nil {
-		for _, group2remove := range groups2remove {
-			for i, group := range groups {
-				if group.ID == group2remove {
-					groups = append(groups[:i], groups[i+1:]...)
-					updated = true
-					continue
-				}
+	for _, group2remove := range groups2remove {
+		for i, group := range groups {
+			if group.ID == group2remove {
+				groups = append(groups[:i], groups[i+1:]...)
+				updated = true
+				continue
 			}
 		}
 	}

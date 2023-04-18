@@ -178,7 +178,6 @@ func addOrGetMember(members []MemberJson, memberID, userID, contactID, name stri
 		for i, m := range members {
 			if m.ID == memberID || m.UserID == userID {
 				member = m
-				index = i
 				if contactID != "" {
 					for _, cID := range m.ContactIDs {
 						if cID == contactID {
@@ -240,7 +239,7 @@ func (entity *GroupEntity) GetGroupMembers() []GroupMemberJson {
 	if len(members) != entity.MembersCount {
 		panic("len(members) != entity.MembersCount")
 	}
-	entity.members = make([]GroupMemberJson, entity.MembersCount, entity.MembersCount)
+	entity.members = make([]GroupMemberJson, entity.MembersCount)
 	copy(entity.members, members)
 	return members
 }

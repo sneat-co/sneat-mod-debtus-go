@@ -14,12 +14,11 @@ import (
 
 func showReceiptAnnouncement(whc botsfw.WebhookContext, receiptID int, creatorName string) (m botsfw.MessageFromBot, err error) {
 	var inlineMessageID string
-	input := whc.Input()
-	switch input.(type) {
+	switch input := whc.Input().(type) {
 	case botsfw.WebhookChosenInlineResult:
-		inlineMessageID = input.(botsfw.WebhookChosenInlineResult).GetInlineMessageID()
+		inlineMessageID = input.GetInlineMessageID()
 	case botsfw.WebhookCallbackQuery:
-		inlineMessageID = input.(botsfw.WebhookCallbackQuery).GetInlineMessageID()
+		inlineMessageID = input.GetInlineMessageID()
 	default:
 		return m, fmt.Errorf("showReceiptAnnouncement: Unsupported InputType=%T", input)
 	}

@@ -61,7 +61,7 @@ type UserRewardBalance struct {
 //	})
 //}
 
-func (rewardBalance UserRewardBalance) AddRewardPoints(rewardID int64, rewardPoints int) (changed bool) {
+func (rewardBalance *UserRewardBalance) AddRewardPoints(rewardID int64, rewardPoints int) (changed bool) {
 	for _, id := range rewardBalance.RewardIDs {
 		if id == rewardID {
 			return

@@ -84,7 +84,7 @@ func delayedDeleteContactTransfers(c context.Context, contactID int64, cursor st
 
 func (ContactDalGae) SaveContact(c context.Context, tx dal.ReadwriteTransaction, contact models.Contact) error {
 	if err := tx.Set(c, contact.Record); err != nil {
-		err = fmt.Errorf("failed to SaveContact(): %w", err)
+		return fmt.Errorf("failed to SaveContact(): %w", err)
 	}
 	return nil
 }

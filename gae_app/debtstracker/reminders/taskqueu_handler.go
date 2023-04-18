@@ -107,8 +107,6 @@ func sendReminderToUser(c context.Context, reminderID int, transfer models.Trans
 	}
 	// If sending notification failed do not try to resend - to prevent spamming.
 	if err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) (err error) {
-		reminder, err = dtdal.Reminder.GetReminderByID(c, tx, reminderID)
-
 		if reminder, err = dtdal.Reminder.GetReminderByID(c, tx, reminderID); err != nil {
 			return fmt.Errorf("failed to get reminder by id=%v: %w", reminderID, err)
 		}

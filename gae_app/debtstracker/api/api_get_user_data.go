@@ -99,20 +99,20 @@ func handleGetUserData(c context.Context, w http.ResponseWriter, r *http.Request
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
-	w.Write(([]byte)("{"))
+	_, _ = w.Write(([]byte)("{"))
 	needComma := false
 	for _, dataResult := range dataResults {
 		if dataResult.Len() > 0 {
 			if needComma {
-				w.Write([]byte(","))
+				_, _ = w.Write([]byte(","))
 			} else {
 				needComma = true
 			}
-			w.Write([]byte("\n"))
-			w.Write(dataResult.Bytes())
+			_, _ = w.Write([]byte("\n"))
+			_, _ = w.Write(dataResult.Bytes())
 		}
 	}
-	w.Write(([]byte)("\n}"))
+	_, _ = w.Write(([]byte)("\n}"))
 }
 
 func writeUserGroupsToJson(_ context.Context, w io.Writer, status string, user models.AppUser) bool {
@@ -127,8 +127,8 @@ func writeUserGroupsToJson(_ context.Context, w io.Writer, status string, user m
 		panicUnknownStatus(status)
 	}
 	if jsonVal != "" {
-		w.Write(([]byte)(`"Groups":`))
-		w.Write([]byte(jsonVal))
+		_, _ = w.Write(([]byte)(`"Groups":`))
+		_, _ = w.Write([]byte(jsonVal))
 		return true
 	}
 	return false
@@ -147,8 +147,8 @@ func writeUserContactsToJson(c context.Context, w io.Writer, status string, user
 	}
 
 	if jsonVal != "" {
-		w.Write(([]byte)(`"Contacts":`))
-		w.Write([]byte(jsonVal))
+		_, _ = w.Write(([]byte)(`"Contacts":`))
+		_, _ = w.Write([]byte(jsonVal))
 		return true
 	}
 	return false
@@ -160,8 +160,8 @@ func writeUserActiveBillsToJson(c context.Context, w io.Writer, user models.AppU
 		if user.Data.BillsCountActive == 0 {
 			log.Warningf(c, "User(id=%d).BillsJsonActive is not empty && BillsCountActive == 0", user.ID)
 		}
-		w.Write(([]byte)(`"Bills":`))
-		w.Write([]byte(user.Data.BillsJsonActive))
+		_, _ = w.Write(([]byte)(`"Bills":`))
+		_, _ = w.Write([]byte(user.Data.BillsJsonActive))
 		return true
 	}
 	return false
@@ -173,8 +173,8 @@ func writeUserActiveBillSchedulesToJson(c context.Context, w io.Writer, user mod
 		if user.Data.BillSchedulesCountActive == 0 {
 			log.Warningf(c, "User(id=%d).BillSchedulesJsonActive is not empty && BillSchedulesCountActive == 0", user.ID)
 		}
-		w.Write(([]byte)(`"BillSchedules":`))
-		w.Write([]byte(user.Data.BillSchedulesJsonActive))
+		_, _ = w.Write(([]byte)(`"BillSchedules":`))
+		_, _ = w.Write([]byte(user.Data.BillSchedulesJsonActive))
 		return true
 	}
 	return false

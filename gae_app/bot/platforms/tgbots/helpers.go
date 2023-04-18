@@ -1,6 +1,7 @@
 package tgbots
 
 import (
+	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"regexp"
@@ -24,35 +25,37 @@ var reTelegramStartCommandPrefix = regexp.MustCompile(`/start(@\w+)?\s+`)
 func ParseStartCommand(whc botsfw.WebhookContext) (startParam string, startParams []string) {
 	input := whc.Input()
 
-	switch input.(type) {
+	switch input := input.(type) {
 	case botsfw.WebhookTextMessage:
-		startParam = input.(botsfw.WebhookTextMessage).Text()
+		startParam = input.Text()
 	case botsfw.WebhookReferralMessage:
-		startParam = input.(botsfw.WebhookReferralMessage).RefData()
+		startParam = input.RefData()
 	default:
 		panic("Unknown input type")
 	}
 	if strings.HasPrefix(startParam, "/start") && startParam != "/start" {
-		if loc := reTelegramStartCommandPrefix.FindStringIndex(startParam); loc != nil && len(loc) > 0 {
+		if loc := reTelegramStartCommandPrefix.FindStringIndex(startParam); len(loc) > 0 {
 			startParam = startParam[loc[1]:]
-			var utm_medium, utm_source string
+			var utmMedium, utmSource string
 			startParams = strings.Split(startParam, "__")
 			for _, p := range startParams {
 				switch {
 				case strings.HasPrefix(p, "l="):
 					code5 := p[len("l="):]
 					if len(code5) == 5 {
-						whc.SetLocale(code5)
+						if err := whc.SetLocale(code5); err != nil {
+							panic(fmt.Errorf("failed to set locale: %w", err))
+						}
 						whc.ChatEntity().SetPreferredLanguage(code5)
 					}
 				case strings.HasPrefix(p, "utm_m="):
-					utm_medium = p[len("utm_m="):]
+					utmMedium = p[len("utm_m="):]
 				case strings.HasPrefix(p, "utm_s="):
-					utm_source = p[len("utm_s="):]
+					utmSource = p[len("utm_s="):]
 				}
 			}
-			if utm_medium != "" || utm_source != "" { // TODO: Handle analytics
-				log.Debugf(whc.Context(), "TODO: utm_medium=%v, utm_source=%v", utm_medium, utm_source)
+			if utmMedium != "" || utmSource != "" { // TODO: Handle analytics
+				log.Debugf(whc.Context(), "TODO: utm_medium=%v, utm_source=%v", utmMedium, utmSource)
 			}
 		} else {
 			log.Debugf(whc.Context(), "reTelegramStartCommandPrefix did not match - no start parameters")

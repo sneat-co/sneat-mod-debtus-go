@@ -157,17 +157,17 @@ func onStartCallbackInGroup(whc botsfw.WebhookContext, group models.Group) (m bo
 	// return inGroupWelcomeMessage(whc, group)
 }
 
-func inGroupWelcomeMessage(whc botsfw.WebhookContext, group models.Group) (m botsfw.MessageFromBot, err error) {
-	m, err = GroupSettingsAction(whc, group, false)
-	if err != nil {
-		return
-	}
-	if _, err = whc.Responder().SendMessage(whc.Context(), m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
-		return
-	}
-
-	return whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_HI)+
-		"\n\n"+whc.Translate(trans.SPLITUS_TEXT_HI_IN_GROUP)+
-		"\n\n"+whc.Translate(trans.SPLITUS_TEXT_ABOUT_ME_AND_CO),
-		botsfw.MessageFormatHTML)
-}
+//func inGroupWelcomeMessage(whc botsfw.WebhookContext, group models.Group) (m botsfw.MessageFromBot, err error) {
+//	m, err = GroupSettingsAction(whc, group, false)
+//	if err != nil {
+//		return
+//	}
+//	if _, err = whc.Responder().SendMessage(whc.Context(), m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
+//		return
+//	}
+//
+//	return whc.NewEditMessage(whc.Translate(trans.MESSAGE_TEXT_HI)+
+//		"\n\n"+whc.Translate(trans.SPLITUS_TEXT_HI_IN_GROUP)+
+//		"\n\n"+whc.Translate(trans.SPLITUS_TEXT_ABOUT_ME_AND_CO),
+//		botsfw.MessageFormatHTML)
+//}

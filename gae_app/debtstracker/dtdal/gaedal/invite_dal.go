@@ -25,7 +25,7 @@ func NewInviteDalGae() InviteDalGae {
 func (InviteDalGae) GetInvite(c context.Context, tx dal.ReadSession, inviteCode string) (invite models.Invite, err error) {
 	if tx == nil {
 		if tx, err = facade.GetDatabase(c); err != nil {
-
+			return
 		}
 	}
 	invite = models.NewInvite(inviteCode, nil)

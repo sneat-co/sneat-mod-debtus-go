@@ -224,11 +224,9 @@ func (linker *ReceiptUsersLinker) validateInput(changes *receiptDbChanges) error
 		transferCounterparty := changes.transfer.Data.Counterparty()
 
 		if transferCounterparty.UserID != 0 && transferCounterparty.UserID != changes.invitedUser.ID {
-			return errors.New(
-				fmt.Sprintf(
-					"transferCounterparty.UserID != invitedUser.ID : %d != %d",
-					transferCounterparty.UserID, changes.invitedUser.ID,
-				),
+			return fmt.Errorf(
+				"transferCounterparty.UserID != invitedUser.ID : %d != %d",
+				transferCounterparty.UserID, changes.invitedUser.ID,
 			)
 		}
 	}
@@ -318,10 +316,9 @@ func (linker *ReceiptUsersLinker) updateTransfer() (err error) {
 	//if inlineMessageID != "" {
 	//	transfer.CounterpartyTgReceiptInlineMessageID = inlineMessageID
 	//}
-	transferAmount := transfer.Data.GetAmount()
-	transferVal := transferAmount.Value
+	//transferAmount := transfer.Data.GetAmount()
 	if transfer.Data.Direction() == models.TransferDirectionUser2Counterparty {
-		transferVal *= -1
+		transfer.Data.AmountInCents *= -1
 	}
 
 	return

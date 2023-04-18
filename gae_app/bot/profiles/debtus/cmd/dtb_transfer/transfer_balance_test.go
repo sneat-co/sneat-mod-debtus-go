@@ -31,8 +31,8 @@ var (
 	enLinker = common.NewLinker(strongo.EnvLocal, 123, strongo.LocaleEnUS.Code5, "unit-Test")
 )
 
-type testBalanceDataProvider struct {
-}
+//type testBalanceDataProvider struct {
+//}
 
 func TestBalanceMessageSingleCounterparty(t *testing.T) {
 	balanceJson := json.RawMessage(`{"USD": 10}`)

@@ -127,9 +127,9 @@ func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request)
 	jsonToResponse(c, w, &receiptDto)
 }
 
-func transferContactToDto(transferContact models.TransferCounterpartyInfo) dto.ContactDto {
-	return dto.NewContactDto(transferContact)
-}
+//func transferContactToDto(transferContact models.TransferCounterpartyInfo) dto.ContactDto {
+//	return dto.NewContactDto(transferContact)
+//}
 
 func handleReceiptAccept(c context.Context, w http.ResponseWriter, r *http.Request) {
 	jsonToResponse(c, w, "ok")
@@ -146,14 +146,14 @@ func handleSendReceipt(c context.Context, w http.ResponseWriter, r *http.Request
 
 	if err := r.ParseForm(); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid form data"))
+		_, _ = w.Write([]byte("Invalid form data"))
 		return
 	}
 
 	receiptID, err := strconv.Atoi(r.FormValue("receipt"))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid receipt parameter: " + err.Error()))
+		_, _ = w.Write([]byte("Invalid receipt parameter: " + err.Error()))
 		return
 	}
 
@@ -213,7 +213,7 @@ func handleSendReceipt(c context.Context, w http.ResponseWriter, r *http.Request
 		log.Errorf(c, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		err = fmt.Errorf("failed to send receipt by email: %w", err)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 
@@ -272,7 +272,7 @@ func handleSetReceiptChannel(c context.Context, w http.ResponseWriter, r *http.R
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 	if err := r.ParseForm(); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid form data"))
+		_, _ = w.Write([]byte("Invalid form data"))
 		return
 	}
 
@@ -281,7 +281,7 @@ func handleSetReceiptChannel(c context.Context, w http.ResponseWriter, r *http.R
 		err = fmt.Errorf("invalid receipt parameter: %w", err)
 		log.Debugf(c, err.Error())
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 
@@ -291,10 +291,10 @@ func handleSetReceiptChannel(c context.Context, w http.ResponseWriter, r *http.R
 			m := "Unknown channel: " + channel
 			log.Debugf(c, m)
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(m))
+			_, _ = w.Write([]byte(m))
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
 		}
 	}
 
@@ -303,21 +303,21 @@ func handleSetReceiptChannel(c context.Context, w http.ResponseWriter, r *http.R
 		m := fmt.Sprintf("Status '%v' is not supported in this method", RECEIPT_CHANNEL_DRAFT)
 		log.Warningf(c, m)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(m))
+		_, _ = w.Write([]byte(m))
 	}
 
 	if _, _, err = updateReceiptAndTransferOnSent(c, receiptID, channel, "", ""); err != nil {
 		if dal.IsNotFound(err) {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Receipt not found by ID"))
+			_, _ = w.Write([]byte("Receipt not found by ID"))
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
 		}
 		return
 	}
 	log.Infof(c, "Done")
-	w.Write([]byte("ok"))
+	_, _ = w.Write([]byte("ok"))
 }
 
 var errUnknownChannel = errors.New("Unknown channel")
@@ -342,14 +342,14 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 	if err := r.ParseForm(); err != nil {
 		log.Debugf(c, "handleCreateReceipt() => Invalid form data: "+err.Error())
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid form data"))
+		_, _ = w.Write([]byte("Invalid form data"))
 		return
 	}
 	log.Debugf(c, "handleCreateReceipt() => r.Form: %v", r.Form)
 	transferID, err := strconv.Atoi(r.FormValue("transfer"))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Missing transfer parameter"))
+		_, _ = w.Write([]byte("Missing transfer parameter"))
 		return
 	}
 	transfer, err := facade.Transfers.GetTransferByID(c, nil, transferID)
@@ -360,7 +360,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 			w.WriteHeader(http.StatusInternalServerError)
 			log.Errorf(c, err.Error())
 		}
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 	var user models.AppUser
@@ -372,7 +372,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		if err == errUnknownChannel {
-			w.Write([]byte("Unknown channel: " + channel))
+			_, _ = w.Write([]byte("Unknown channel: " + channel))
 		}
 		return
 	}
@@ -455,7 +455,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 			w.WriteHeader(http.StatusInternalServerError)
 			err = fmt.Errorf("failed to render message template: %w", err)
 			log.Errorf(c, err.Error())
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
 		}
 	}
 

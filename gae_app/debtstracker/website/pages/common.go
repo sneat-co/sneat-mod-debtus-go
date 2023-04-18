@@ -91,7 +91,7 @@ func getLocale(c context.Context, w http.ResponseWriter, r *http.Request) (local
 				err = fmt.Errorf("Unsupported path: %v", path)
 				w.WriteHeader(http.StatusNotFound)
 				w.Header().Set("Content-Type", "text/plain")
-				w.Write(([]byte)(err.Error()))
+				_, _ = w.Write(([]byte)(err.Error()))
 				return
 			} else {
 				localeCode := path[1 : nextSlashIndex+1]
@@ -114,8 +114,8 @@ func RenderCachedPage(w http.ResponseWriter, r *http.Request, tmpl *template.Tem
 	var buffer bytes.Buffer
 	if err := tmpl.Execute(&buffer, data); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(buffer.Bytes())
-		w.Write([]byte("<hr><div style=color:red;position:absolute;padding:10px;background-color:white>" + err.Error() + "</div>"))
+		_, _ = w.Write(buffer.Bytes())
+		_, _ = w.Write([]byte("<hr><div style=color:red;position:absolute;padding:10px;background-color:white>" + err.Error() + "</div>"))
 		return
 	}
 	eTag := fmt.Sprintf("%x", md5.Sum(buffer.Bytes()))
@@ -131,6 +131,6 @@ func RenderCachedPage(w http.ResponseWriter, r *http.Request, tmpl *template.Tem
 			header.Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
 		}
 		header.Set("ETag", eTag)
-		w.Write(buffer.Bytes())
+		_, _ = w.Write(buffer.Bytes())
 	}
 }

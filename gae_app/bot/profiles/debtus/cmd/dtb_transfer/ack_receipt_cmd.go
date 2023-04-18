@@ -28,17 +28,21 @@ func AcknowledgeReceipt(whc botsfw.WebhookContext, receiptID int, operation stri
 		{ // Reporting to Google Analytics
 			ga := whc.GA()
 
-			ga.Queue(ga.GaEventWithLabel(
+			if err = ga.Queue(ga.GaEventWithLabel(
 				"receipts",
 				"receipt-acknowledged",
 				operation,
-			))
+			)); err != nil {
+				log.Errorf(c, "Failed to report receipt-acknowledged to Google Analytics: %v", err)
+			}
 
 			if isCounterpartiesJustConnected {
-				ga.Queue(ga.GaEvent(
+				if err = ga.Queue(ga.GaEvent(
 					"counterparties",
 					"counterparties-connected",
-				))
+				)); err != nil {
+					log.Errorf(c, "Failed to report counterparties-connected to Google Analytics: %v", err)
+				}
 			}
 		}
 

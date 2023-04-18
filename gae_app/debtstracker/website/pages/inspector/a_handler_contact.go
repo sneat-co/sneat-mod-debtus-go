@@ -24,6 +24,11 @@ func (h contactPage) contactPageHandler(w http.ResponseWriter, r *http.Request, 
 	c := appengine.NewContext(r)
 
 	contactID, err := strconv.ParseInt(r.URL.Query().Get("id"), 10, 64)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = fmt.Fprint(w, err)
+		return
+	}
 
 	var contact models.Contact
 
@@ -90,7 +95,9 @@ func (contactPage) verifyTransfers(c context.Context, contactID int64) (
 		SelectInto(models.NewTransferRecord)
 
 	var reader dal.Reader
-	reader, err = db.Select(c, query)
+	if reader, err = db.Select(c, query); err != nil {
+		return
+	}
 
 	for {
 		//transferEntity := new(models.TransferData)

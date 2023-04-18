@@ -13,5 +13,8 @@ func TestSendRefreshOrNothingChanged(t *testing.T) {
 	}()
 
 	var m botsfw.MessageFromBot
-	SendRefreshOrNothingChanged(nil, m)
+	_, err := SendRefreshOrNothingChanged(nil, m)
+	if err != nil {
+		t.Fatal(err)
+	}
 }

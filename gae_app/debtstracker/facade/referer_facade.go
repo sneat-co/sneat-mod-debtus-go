@@ -12,7 +12,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"errors"
 	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/datastore"
@@ -27,7 +26,7 @@ var Referer = refererFacade{}
 
 const lastTgReferrers = "lastTgReferrers"
 
-var errAlreadyReferred = errors.New("already referred")
+//var errAlreadyReferred = errors.New("already referred")
 
 func setUserReferrer(c context.Context, userID int64, referredBy string) (err error) {
 	userChanged := false
@@ -218,10 +217,10 @@ func (f refererFacade) TopTelegramReferrers(c context.Context, botID string, lim
 		counts[tgUsername] += 1
 	}
 
-	count := len(counts)
-	if count > limit {
-		count = limit
-	}
+	//count := len(counts)
+	//if count > limit {
+	//	count = limit
+	//}
 
 	topTelegramReferrers = rankByCount(counts, limit)
 

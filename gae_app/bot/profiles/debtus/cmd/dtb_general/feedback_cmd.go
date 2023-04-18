@@ -1,28 +1,25 @@
 package dtb_general
 
 import (
-	"fmt"
-	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
-	"github.com/bots-go-framework/bots-fw/botsfw"
-	"github.com/dal-go/dalgo/dal"
-	"github.com/sneat-co/debtstracker-translations/trans"
-	"net/url"
-	"strings"
-
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
-	"github.com/sneat-co/debtstracker-translations/emoji"
-	"github.com/strongo/app"
-	"github.com/strongo/log"
-	//"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/dtb_common"
-	"strconv"
-
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/admin"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
 	"context"
+	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-translations/emoji"
+	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/app"
+	"github.com/strongo/log"
+	"net/url"
+	"strconv"
+	"strings"
 )
 
 const (

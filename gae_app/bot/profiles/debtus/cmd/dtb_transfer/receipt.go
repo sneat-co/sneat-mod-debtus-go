@@ -174,7 +174,9 @@ func OnInlineChosenCreateReceipt(whc botsfw.WebhookContext, inlineMessageID stri
 	if err = dtdal.Receipt.DelayedMarkReceiptAsSent(c, receipt.ID, transferID, time.Now()); err != nil {
 		log.Errorf(c, "Failed DelayedMarkReceiptAsSent: %v", err)
 	}
-	m, err = showReceiptAnnouncement(whc, receipt.ID, creatorName)
+	if m, err = showReceiptAnnouncement(whc, receipt.ID, creatorName); err != nil {
+		return m, err
+	}
 
 	if err = analytics.ReceiptSentFromBot(whc, "telegram"); err != nil {
 		log.Errorf(c, "Failed to send analytics.ReceiptSentFromBot: %v", err)

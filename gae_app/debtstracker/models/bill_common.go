@@ -186,7 +186,9 @@ func (entity *BillCommon) marshalMembersToJsonAndSetMembersCount(members []BillM
 	} else {
 		entity.MembersCount = len(members)
 		entity.members = append(make([]BillMemberJson, 0, entity.MembersCount), members...)
-		entity.validateMembersForDuplicatesAndBasicChecks(entity.members)
+		if err = entity.validateMembersForDuplicatesAndBasicChecks(entity.members); err != nil {
+			return err
+		}
 		entity.MembersJson = string(json)
 	}
 	return nil

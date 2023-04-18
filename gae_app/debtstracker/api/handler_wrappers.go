@@ -1,10 +1,7 @@
 package api
 
 import (
-	"bytes"
-	"crypto/md5"
 	"fmt"
-	"hash"
 	"net/http"
 	"strings"
 
@@ -55,7 +52,7 @@ func optionsHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
 //func getOnly(handler dtdal.ContextHandler) func(w http.ResponseWriter, r *http.Request) {
 //	return dtdal.HandleWithContext(optionsHandler(func(c context.Context, w http.ResponseWriter, r *http.Request) {
 //		if r.Method != "GET" {
-//			BadRequestMessage(c, w, "Expecting to get request method GET, got: " + r.Method)
+//			BadRequestMessage(c, w, "Expecting to get request method GET, got: "+r.Method)
 //			return
 //		}
 //		hashedWriter := NewHashedResponseWriter(w)
@@ -63,11 +60,11 @@ func optionsHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
 //		hashedWriter.setETagOrNotModifiedAndFlushBuffer(c, w, r)
 //	}))
 //}
-
+//
 //func postOnly(handler dtdal.ContextHandler) func(w http.ResponseWriter, r *http.Request) {
 //	return dtdal.HandleWithContext(optionsHandler(func(c context.Context, w http.ResponseWriter, r *http.Request) {
 //		if r.Method != "POST" {
-//			BadRequestMessage(c, w, "Expecting to get request method POST, got: " + r.Method)
+//			BadRequestMessage(c, w, "Expecting to get request method POST, got: "+r.Method)
 //			return
 //		}
 //		handler(c, w, r)
@@ -77,7 +74,7 @@ func optionsHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
 func BadRequestMessage(c context.Context, w http.ResponseWriter, m string) {
 	log.Infof(c, m)
 	w.WriteHeader(http.StatusBadRequest)
-	w.Write([]byte(m))
+	_, _ = w.Write([]byte(m))
 }
 
 func BadRequestError(c context.Context, w http.ResponseWriter, err error) {
@@ -88,74 +85,80 @@ func InternalError(c context.Context, w http.ResponseWriter, err error) {
 	m := err.Error()
 	log.Errorf(c, m)
 	w.WriteHeader(http.StatusInternalServerError)
-	w.Write([]byte(m))
+	_, _ = w.Write([]byte(m))
 }
 
-type HashedResponseWriter struct {
-	status         int
-	hash           hash.Hash
-	buffer         *bytes.Buffer
-	responseWriter http.ResponseWriter
-}
+//type HashedResponseWriter struct {
+//	status         int
+//	hash           hash.Hash
+//	buffer         *bytes.Buffer
+//	responseWriter http.ResponseWriter
+//}
+//
+//func NewHashedResponseWriter(w http.ResponseWriter) HashedResponseWriter {
+//	return HashedResponseWriter{
+//		hash:           md5.New(),
+//		responseWriter: w,
+//		buffer:         new(bytes.Buffer),
+//	}
+//}
 
-func NewHashedResponseWriter(w http.ResponseWriter) HashedResponseWriter {
-	return HashedResponseWriter{
-		hash:           md5.New(),
-		responseWriter: w,
-		buffer:         new(bytes.Buffer),
-	}
-}
-
-var _ http.ResponseWriter = (*HashedResponseWriter)(nil)
-
-func (hashedWriter HashedResponseWriter) Header() http.Header {
-	return hashedWriter.responseWriter.Header()
-}
-
-func (hashedWriter HashedResponseWriter) Write(b []byte) (int, error) {
-	if _, err := hashedWriter.hash.Write(b); err != nil {
-		return 0, fmt.Errorf("failed to write to hash: %w", err)
-	}
-	return hashedWriter.buffer.Write(b)
-}
-
-func (hashedWriter HashedResponseWriter) WriteHeader(v int) {
-	hashedWriter.status = v
-	hashedWriter.responseWriter.WriteHeader(v)
-}
-
-func (hashedWriter HashedResponseWriter) flush(w http.ResponseWriter) (int, error) {
-	i, err := w.Write(hashedWriter.buffer.Bytes())
-	if err != nil {
-		err = fmt.Errorf("failed to flush buffer to response writer: %w", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		i2, _ := w.Write([]byte(err.Error()))
-		i += i2
-	}
-	return i, err
-}
-
-func (hashedWriter HashedResponseWriter) setETagOrNotModifiedAndFlushBuffer(c context.Context, w http.ResponseWriter, r *http.Request) {
-	if hashedWriter.status != 0 && hashedWriter.status != 200 {
-		hashedWriter.flush(w)
-		if hashedWriter.buffer.Len() > 0 {
-			log.Debugf(c, "No ETag check/set as response.status=%d", hashedWriter.status)
-		}
-		return
-	}
-	eTag := fmt.Sprintf("%x", hashedWriter.hash)
-	if match := r.Header.Get("If-None-Match"); match == eTag {
-		log.Debugf(c, "Setting response status to 304 - not modified")
-		w.WriteHeader(http.StatusNotModified)
-		log.Debugf(c, "Response status set to 304 - not modified")
-	} else {
-		contentLen := hashedWriter.buffer.Len()
-		if (len(eTag) + 5) < contentLen {
-			w.Header().Set("ETag", eTag)
-			log.Debugf(c, "ETag: "+eTag)
-		} else if contentLen > 0 {
-			log.Debugf(c, "ETag is not set as contentLength:%d is smaller then ETag header", contentLen)
-		}
-		hashedWriter.flush(w)
-	}
-}
+//var _ http.ResponseWriter = (*HashedResponseWriter)(nil)
+//
+//func (hashedWriter *HashedResponseWriter) Header() http.Header {
+//	return hashedWriter.responseWriter.Header()
+//}
+//
+//func (hashedWriter *HashedResponseWriter) Write(b []byte) (int, error) {
+//	if _, err := hashedWriter.hash.Write(b); err != nil {
+//		return 0, fmt.Errorf("failed to write to hash: %w", err)
+//	}
+//	return hashedWriter.buffer.Write(b)
+//}
+//
+//func (hashedWriter *HashedResponseWriter) WriteHeader(v int) {
+//	hashedWriter.status = v
+//	hashedWriter.responseWriter.WriteHeader(v)
+//}
+//
+//func (hashedWriter *HashedResponseWriter) flush(w http.ResponseWriter) (int, error) {
+//	i, err := w.Write(hashedWriter.buffer.Bytes())
+//	if err != nil {
+//		err = fmt.Errorf("failed to flush buffer to response writer: %w", err)
+//		w.WriteHeader(http.StatusInternalServerError)
+//		i2, _ := w.Write([]byte(err.Error()))
+//		i += i2
+//	}
+//	return i, err
+//}
+//
+//func (hashedWriter *HashedResponseWriter) setETagOrNotModifiedAndFlushBuffer(c context.Context, w http.ResponseWriter, r *http.Request) {
+//	if hashedWriter.status != 0 && hashedWriter.status != 200 {
+//		if _, err := hashedWriter.flush(w); err != nil {
+//			w.WriteHeader(http.StatusInternalServerError)
+//			return
+//		}
+//		if hashedWriter.buffer.Len() > 0 {
+//			log.Debugf(c, "No ETag check/set as response.status=%d", hashedWriter.status)
+//		}
+//		return
+//	}
+//	eTag := fmt.Sprintf("%x", hashedWriter.hash)
+//	if match := r.Header.Get("If-None-Match"); match == eTag {
+//		log.Debugf(c, "Setting response status to 304 - not modified")
+//		w.WriteHeader(http.StatusNotModified)
+//		log.Debugf(c, "Response status set to 304 - not modified")
+//	} else {
+//		contentLen := hashedWriter.buffer.Len()
+//		if (len(eTag) + 5) < contentLen {
+//			w.Header().Set("ETag", eTag)
+//			log.Debugf(c, "ETag: "+eTag)
+//		} else if contentLen > 0 {
+//			log.Debugf(c, "ETag is not set as contentLength:%d is smaller then ETag header", contentLen)
+//		}
+//		if _, err := hashedWriter.flush(w); err != nil {
+//			w.WriteHeader(http.StatusInternalServerError)
+//			return
+//		}
+//	}
+//}

@@ -129,7 +129,7 @@ func (uf userFacade) GetOrCreateEmailUser(
 		} else if !dal.IsNotFound(err) { //
 			return // Internal error
 		}
-		err = nil // Clear dtdal.ErrRecordNotFound
+		//err = nil // Clear dtdal.ErrRecordNotFound
 
 		now := time.Now()
 		isNewUser = true

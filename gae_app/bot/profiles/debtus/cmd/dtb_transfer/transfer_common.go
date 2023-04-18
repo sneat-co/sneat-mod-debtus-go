@@ -161,7 +161,7 @@ func AskTransferAmountCommand(code, messageTextFormat string, nextCommand botsfw
 				switch whc.Input().(type) {
 				case botsfw.WebhookTextMessage:
 					mt := strings.TrimSpace(whc.Input().(botsfw.WebhookTextMessage).Text())
-					if mt == "." || mt == "0" || strings.Index(mt, emoji.NO_ENTRY_SIGN_ICON) >= 0 {
+					if mt == "." || mt == "0" || strings.Contains(mt, emoji.NO_ENTRY_SIGN_ICON) {
 						return CancelTransferWizardCommand.Action(whc)
 					}
 					if strings.Count(mt, ",") == 1 && strings.Count(mt, ".") == 0 {
@@ -172,7 +172,7 @@ func AskTransferAmountCommand(code, messageTextFormat string, nextCommand botsfw
 						mt = strings.Replace(mt, ",", "", -1)
 					}
 					if _, err := strconv.ParseFloat(mt, 64); err != nil {
-						err = nil
+						//err = nil
 						m = whc.NewMessage(emoji.NO_ENTRY_SIGN_ICON +
 							" " + whc.Translate(trans.MESSAGE_TEXT_INVALID_FLOAT) +
 							"\n\n" + whc.Translate(messageTextFormat, html.EscapeString(chatEntity.GetWizardParam("currency"))))
@@ -620,7 +620,7 @@ func CreateTransferFromBot(
 			log.Warningf(c, "Attempt to create return but no outstanding debts: %v", err)
 			return
 		case facade.ErrAttemptToCreateDebtWithInterestAffectingOutstandingTransfers:
-			err = nil
+			//err = nil
 			buf := new(bytes.Buffer)
 			buf.WriteString(whc.Translate(trans.MT_ATTEMPT_TO_CREATE_DEBT_WITH_INTEREST_AFFECTING_OUTSTANDING) + "\n")
 			var db dal.Database

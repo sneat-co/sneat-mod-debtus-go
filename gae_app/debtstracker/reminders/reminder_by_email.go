@@ -3,6 +3,7 @@ package reminders
 import (
 	"bytes"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"net/http"
 	"time"
 
@@ -17,7 +18,7 @@ import (
 	"google.golang.org/appengine/urlfetch"
 )
 
-func sendReminderByEmail(c context.Context, reminder models.Reminder, emailTo string, transfer models.Transfer, user models.AppUserData) error {
+func sendReminderByEmail(c context.Context, reminder models.Reminder, emailTo string, transfer models.Transfer, user models.AppUserData) (err error) {
 	log.Debugf(c, "sendReminderByEmail(reminder.ID=%v, emailTo=%v)", reminder.ID, emailTo)
 	// TODO: Do we really need to pass "w http.ResponseWriter" here?
 	var text bytes.Buffer
@@ -25,8 +26,11 @@ func sendReminderByEmail(c context.Context, reminder models.Reminder, emailTo st
 
 	subj.WriteString("Due payment notification")
 	text.WriteString(fmt.Sprintf("Hi %v, you have a due payment to %v: %v%v.", transfer.Data.Counterparty().ContactName, user.Username, transfer.Data.AmountInCents, transfer.Data.Currency))
-
-	svc := ses.New(common.AwsSessionInstance)
+	var awsSession *session.Session
+	if awsSession, err = common.NewAwsSession(); err != nil {
+		return
+	}
+	svc := ses.New(awsSession)
 	params := &ses.SendEmailInput{
 		Destination: &ses.Destination{ // Required
 			ToAddresses: []*string{
@@ -78,7 +82,9 @@ func sendReminderByEmail(c context.Context, reminder models.Reminder, emailTo st
 	}
 
 	if err = dtdal.Reminder.SetReminderIsSent(c, reminder.ID, sentAt, 0, emailMessageID, strongo.LocaleCodeEnUS, errDetails); err != nil {
-		dtdal.Reminder.DelaySetReminderIsSent(c, reminder.ID, sentAt, 0, emailMessageID, strongo.LocaleCodeEnUS, errDetails)
+		if err = dtdal.Reminder.DelaySetReminderIsSent(c, reminder.ID, sentAt, 0, emailMessageID, strongo.LocaleCodeEnUS, errDetails); err != nil {
+			return fmt.Errorf("failed to delay setting reminder as sent: %w", err)
+		}
 	}
 
 	if err != nil {

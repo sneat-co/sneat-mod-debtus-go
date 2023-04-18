@@ -92,7 +92,7 @@ func handleAdminLatestUsers(c context.Context, w http.ResponseWriter, r *http.Re
 		if userBytes, err := json.Marshal(record); err != nil {
 			log.Errorf(c, err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		} else {
 			buffer.Write(userBytes)
@@ -109,6 +109,6 @@ func handleAdminLatestUsers(c context.Context, w http.ResponseWriter, r *http.Re
 	if _, err = w.Write(buffer.Bytes()); err != nil {
 		log.Errorf(c, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 	}
 }

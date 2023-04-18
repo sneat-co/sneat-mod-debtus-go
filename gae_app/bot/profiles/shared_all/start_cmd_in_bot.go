@@ -15,22 +15,20 @@ var ErrUnknownStartParam = errors.New("unknown start parameter")
 
 func startInBotAction(whc botsfw.WebhookContext, startParams []string, botParams BotParams) (m botsfw.MessageFromBot, err error) {
 	log.Debugf(whc.Context(), "startInBotAction() => startParams: %v", startParams)
-	if m, err = botParams.StartInBotAction(whc, startParams); err == nil || err != ErrUnknownStartParam {
+	if m, err = botParams.StartInBotAction(whc, startParams); err != nil {
+		if err == ErrUnknownStartParam {
+			if whc.ChatEntity().GetPreferredLanguage() == "" {
+				return onboardingAskLocaleAction(whc, whc.Translate(trans.MESSAGE_TEXT_HI)+"\n\n", botParams)
+			}
+		}
 		return
 	}
-	if err == ErrUnknownStartParam {
-		if whc.ChatEntity().GetPreferredLanguage() == "" {
-			return onboardingAskLocaleAction(whc, whc.Translate(trans.MESSAGE_TEXT_HI)+"\n\n", botParams)
-		}
-	}
-	err = nil
 	if len(startParams) > 0 {
 		switch {
 		case strings.HasPrefix(startParams[0], "how-to"):
 			return howToCommand.Action(whc)
 		}
 	}
-
 	return startInBotWelcomeAction(whc, botParams)
 }
 
@@ -58,13 +56,13 @@ func startInBotWelcomeAction(whc botsfw.WebhookContext, botParams BotParams) (m 
 	return
 }
 
-func onStartCallbackInBot(whc botsfw.WebhookContext, params BotParams) (m botsfw.MessageFromBot, err error) {
-	c := whc.Context()
-	log.Debugf(c, "onStartCallbackInBot()")
-
-	if m, err = params.InBotWelcomeMessage(whc); err != nil {
-		return
-	}
-
-	return
-}
+//func onStartCallbackInBot(whc botsfw.WebhookContext, params BotParams) (m botsfw.MessageFromBot, err error) {
+//	c := whc.Context()
+//	log.Debugf(c, "onStartCallbackInBot()")
+//
+//	if m, err = params.InBotWelcomeMessage(whc); err != nil {
+//		return
+//	}
+//
+//	return
+//}

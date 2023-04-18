@@ -75,25 +75,25 @@ func newReceiptTextBuilder(ec strongo.ExecutionContext, transfer models.Transfer
 	return r
 }
 
-func (r receiptTextBuilder) validateRequiredParams() {
-}
+//func (r receiptTextBuilder) validateRequiredParams() {
+//}
 
 func (r receiptTextBuilder) receiptCommonFooter(buffer *bytes.Buffer) {
 	transfer := r.transfer
 	if r.showReceiptTo == ShowReceiptToCreator && transfer.Data.Creator().Note != "" {
-		buffer.WriteString("\n" + fmt.Sprintf(emoji.MEMO_ICON+" <b>%v</b>: %v", r.Translate(trans.MESSAGE_TEXT_NOTE), html.EscapeString(transfer.Data.Creator().Note)))
+		_, _ = buffer.WriteString("\n" + fmt.Sprintf(emoji.MEMO_ICON+" <b>%v</b>: %v", r.Translate(trans.MESSAGE_TEXT_NOTE), html.EscapeString(transfer.Data.Creator().Note)))
 	}
 	if r.showReceiptTo == ShowReceiptToCounterparty && transfer.Data.Counterparty().Note != "" {
-		buffer.WriteString("\n" + fmt.Sprintf(emoji.MEMO_ICON+" <b>%v</b>: %v", r.Translate(trans.MESSAGE_TEXT_NOTE), html.EscapeString(transfer.Data.Counterparty().Note)))
+		_, _ = buffer.WriteString("\n" + fmt.Sprintf(emoji.MEMO_ICON+" <b>%v</b>: %v", r.Translate(trans.MESSAGE_TEXT_NOTE), html.EscapeString(transfer.Data.Counterparty().Note)))
 	}
 
 	if transfer.Data.Creator().Comment != "" {
 		label := r.Translate(trans.MESSAGE_TEXT_COMMENT)
-		buffer.WriteString("\n" + fmt.Sprintf(emoji.NEWSPAPER_ICON+" <b>%v</b>: %v", label, html.EscapeString(transfer.Data.Creator().Comment)))
+		_, _ = buffer.WriteString("\n" + fmt.Sprintf(emoji.NEWSPAPER_ICON+" <b>%v</b>: %v", label, html.EscapeString(transfer.Data.Creator().Comment)))
 	}
 	if transfer.Data.Counterparty().Comment != "" {
 		label := r.Translate(trans.MESSAGE_TEXT_COMMENT)
-		buffer.WriteString("\n" + fmt.Sprintf(emoji.NEWSPAPER_ICON+" <b>%v</b>: %v", label, html.EscapeString(transfer.Data.Counterparty().Comment)))
+		_, _ = buffer.WriteString("\n" + fmt.Sprintf(emoji.NEWSPAPER_ICON+" <b>%v</b>: %v", label, html.EscapeString(transfer.Data.Counterparty().Comment)))
 	}
 
 	//if r.counterpartyID > 0 {
@@ -184,10 +184,10 @@ func (r receiptTextBuilder) getReceiptCounterparty() *models.TransferCounterpart
 	}
 }
 
-func (r receiptTextBuilder) receiptOnReturn(utmParams UtmParams) string {
-	var messageTextToTranslate string
-	return r.translateAndFormatMessage(messageTextToTranslate, r.transfer.Data.GetAmount(), utmParams)
-}
+//func (r receiptTextBuilder) receiptOnReturn(utmParams UtmParams) string {
+//	var messageTextToTranslate string
+//	return r.translateAndFormatMessage(messageTextToTranslate, r.transfer.Data.GetAmount(), utmParams)
+//}
 
 func (r receiptTextBuilder) WriteReceiptText(buffer *bytes.Buffer, utmParams UtmParams) {
 	var messageTextToTranslate string

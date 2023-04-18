@@ -136,7 +136,7 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 				if strconv.FormatInt(contact.ID, 10) == member.ContactID {
 					contactName := contact.Data.FullName()
 					billMembers[i].ContactByUser = models.MemberContactsJsonByUser{
-						strconv.FormatInt(contact.Data.UserID, 10): {
+						strconv.FormatInt(contact.Data.UserID, 10): models.MemberContactJson{
 							ContactID:   member.ContactID,
 							ContactName: contactName,
 						},

@@ -29,7 +29,7 @@ func mergeContactsHandler(w http.ResponseWriter, r *http.Request) {
 	for i, scID := range sourceContacts {
 		if sourceContactIDs[i], err = strconv.ParseInt(scID, 10, 64); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
 		}
 	}
 	var db dal.Database
@@ -47,7 +47,7 @@ func mergeContactsHandler(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
-	w.Write([]byte("done"))
+	_, _ = w.Write([]byte("done"))
 }
 
 func mergeContacts(c context.Context, tx dal.ReadwriteTransaction, targetContactID int64, sourceContactIDs ...int64) (err error) {
@@ -135,9 +135,7 @@ func mergeContacts(c context.Context, tx dal.ReadwriteTransaction, targetContact
 					}
 					var sourceContact models.Contact
 					if sourceContact, err = facade.GetContactByID(c, tx, sourceContactID); err != nil {
-						if dal.IsNotFound(err) {
-							err = nil
-						} else {
+						if !dal.IsNotFound(err) {
 							return
 						}
 					} else {
@@ -149,9 +147,7 @@ func mergeContacts(c context.Context, tx dal.ReadwriteTransaction, targetContact
 						if sourceContact.Data.CounterpartyCounterpartyID != 0 {
 							var counterpartyContact models.Contact
 							if counterpartyContact, err = facade.GetContactByID(c, tx, sourceContact.Data.CounterpartyCounterpartyID); err != nil {
-								if dal.IsNotFound(err) {
-									err = nil
-								} else {
+								if !dal.IsNotFound(err) {
 									return
 								}
 							} else if counterpartyContact.Data.CounterpartyCounterpartyID == sourceContactID {

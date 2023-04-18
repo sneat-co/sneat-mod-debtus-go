@@ -311,7 +311,9 @@ var AskToChooseDebtToReturnCommand = botsfw.Command{
 			}
 		} else {
 			var counterparty models.Contact
-			counterparty, err = getCounterparty(whc, counterpartyID)
+			if counterparty, err = getCounterparty(whc, counterpartyID); err != nil {
+				return m, err
+			}
 			if balance, err = counterparty.Data.BalanceWithInterest(c, time.Now()); err != nil {
 				err = fmt.Errorf("failed to get balance with interest for contact %v: %w", counterparty.ID, err)
 				return

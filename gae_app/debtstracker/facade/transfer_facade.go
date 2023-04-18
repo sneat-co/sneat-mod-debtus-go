@@ -542,26 +542,26 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 
 	// In case if we just loaded above missing counterparty we need to check for missing user
 	{
-		loadUserIfNeeded := func(who string, userID int64, appUser models.AppUser) (models.AppUser, models.AppUser, error) {
+		loadUserIfNeeded := func(who string, userID int64, appUser models.AppUser) (models.AppUser, error) {
 			log.Debugf(c, "%v.UserID: %d, %vUser.AppUserData: %v", who, userID, who, appUser.Data)
 			if userID != 0 {
 				if appUser.Data == nil {
 					if appUser, err = User.GetUserByID(c, tx, userID); err != nil {
 						err = fmt.Errorf("failed to get %vUser for linked counterparty: %w", who, err)
-						return appUser, appUser, err
+						return appUser, err
 					}
 					records = append(records, appUser.Record)
 				} else if userID != appUser.ID {
 					panic("userID != appUser.ID")
 				}
 			}
-			return appUser, appUser, err
+			return appUser, err
 		}
 
-		if fromUser, output.From.User, err = loadUserIfNeeded("from", from.UserID, fromUser); err != nil {
+		if output.From.User, err = loadUserIfNeeded("from", from.UserID, fromUser); err != nil {
 			return
 		}
-		if toUser, output.To.User, err = loadUserIfNeeded("to", to.UserID, toUser); err != nil {
+		if output.To.User, err = loadUserIfNeeded("to", to.UserID, toUser); err != nil {
 			return
 		}
 	}

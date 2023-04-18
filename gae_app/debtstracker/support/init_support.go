@@ -77,7 +77,7 @@ func ValidateUsersHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	log.Errorf(c, "(NOT error) Users count: %v", usersCount)
-	w.Write([]byte(fmt.Sprintf("Users count: %v", usersCount)))
+	_, _ = w.Write([]byte(fmt.Sprintf("Users count: %v", usersCount)))
 }
 
 type int64sortable []int64
@@ -384,7 +384,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 				err = fmt.Errorf("failed to fix user balance: %w", err)
 				log.Errorf(c, err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(err.Error()))
+				_, _ = w.Write([]byte(err.Error()))
 				return
 			}
 			log.Infof(c, "Fixed user balance")

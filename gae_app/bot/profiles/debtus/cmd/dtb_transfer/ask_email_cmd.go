@@ -23,7 +23,7 @@ var AskEmailForReceiptCommand = botsfw.Command{
 
 		log.Debugf(c, "AskEmailForReceiptCommand.Action()")
 		email := whc.Input().(botsfw.WebhookTextMessage).Text()
-		if strings.Index(email, "@") < 0 {
+		if !strings.Contains(email, "@") {
 			return whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_INVALID_EMAIL)), nil
 		}
 
@@ -48,7 +48,10 @@ func sendReceiptByEmail(whc botsfw.WebhookContext, toEmail, toName string, trans
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
 	})
-	receipt, err := dtdal.Receipt.CreateReceipt(c, receiptEntity)
+	var receipt models.Receipt
+	if receipt, err = dtdal.Receipt.CreateReceipt(c, receiptEntity); err != nil {
+		return m, err
+	}
 
 	emailID := ""
 	if emailID, err = invites.SendReceiptByEmail(

@@ -8,5 +8,7 @@ func TestGetUserWithNilContext(t *testing.T) {
 			t.Fatal("should panic")
 		}
 	}()
-	GetUser(nil)
+	if _, err := GetUser(nil); err != nil {
+		t.Error("unexpected error", err)
+	}
 }

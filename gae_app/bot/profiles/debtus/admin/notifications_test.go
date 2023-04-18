@@ -2,6 +2,7 @@ package admin
 
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"context"
 	"testing"
 )
 
@@ -11,5 +12,5 @@ func TestSendFeedbackToAdmins(t *testing.T) {
 			t.Fatal("should panic")
 		}
 	}()
-	SendFeedbackToAdmins(nil, "", models.Feedback{})
+	_ = SendFeedbackToAdmins(context.Background(), "", models.Feedback{})
 }

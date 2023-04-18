@@ -21,9 +21,9 @@ var ParseTransferCommand = botsfw.Command{
 	Code: "parse-transfer",
 	Matcher: func(c botsfw.Command, whc botsfw.WebhookContext) bool {
 		input := whc.Input()
-		switch input.(type) {
+		switch input := input.(type) {
 		case botsfw.WebhookTextMessage:
-			return transferRegex.MatchString(input.(botsfw.WebhookTextMessage).Text())
+			return transferRegex.MatchString(input.Text())
 		default:
 			return false
 		}
@@ -91,7 +91,9 @@ var ParseTransferCommand = botsfw.Command{
 		from, to := facade.TransferCounterparties(direction, creatorInfo)
 
 		var botUserEntity botsfw.BotAppUser
-		botUserEntity, err = whc.GetAppUser()
+		if botUserEntity, err = whc.GetAppUser(); err != nil {
+			return m, err
+		}
 		creatorUser := models.NewAppUser(whc.AppUserIntID(), botUserEntity.(*models.AppUserData))
 
 		newTransfer := facade.NewTransferInput(whc.Environment(),

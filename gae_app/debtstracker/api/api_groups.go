@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/validation"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -24,7 +24,7 @@ import (
 func handlerCreateGroup(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo, user models.AppUser) {
 	if err := r.ParseForm(); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 	name := strings.TrimSpace(r.PostForm.Get("name"))
@@ -44,13 +44,16 @@ func handlerCreateGroup(c context.Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 	log.Infof(c, "Group created, ID: %v", group.ID)
-	groupToResponse(c, w, group, user)
+	if err = groupToResponse(c, w, group, user); err != nil {
+		ErrorAsJson(c, w, http.StatusInternalServerError, err)
+		return
+	}
 }
 
 func handlerGetGroup(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo, user models.AppUser) {
 	groupID := r.URL.Query().Get("id")
 	if groupID == "" {
-		BadRequestError(c, w, errors.New("Missing id parameter"))
+		BadRequestError(c, w, errors.New("missing id parameter: id"))
 		return
 	}
 	db, err := facade.GetDatabase(c)
@@ -74,7 +77,7 @@ func groupToResponse(c context.Context, w http.ResponseWriter, group models.Grou
 		return err
 	} else {
 		markResponseAsJson(w.Header())
-		w.Write(jsons[0])
+		_, _ = w.Write(jsons[0])
 		return nil
 	}
 }
@@ -137,7 +140,7 @@ func handleJoinGroups(c context.Context, w http.ResponseWriter, r *http.Request,
 	defer r.Body.Close()
 
 	var groupIDs []string
-	if body, err := ioutil.ReadAll(r.Body); err != nil {
+	if body, err := io.ReadAll(r.Body); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 	} else if groupIDs = strings.Split(string(body), ","); len(groupIDs) == 0 {
 		BadRequestError(c, w, errors.New("Missing body"))
@@ -210,15 +213,15 @@ func handleJoinGroups(c context.Context, w http.ResponseWriter, r *http.Request,
 	if err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 	}
-	w.Write(([]byte)("["))
+	_, _ = w.Write(([]byte)("["))
 	lastJsonIndex := len(jsons) - 1
 	for i, json := range jsons {
-		w.Write(json)
+		_, _ = w.Write(json)
 		if i < lastJsonIndex {
-			w.Write([]byte(","))
+			_, _ = w.Write([]byte(","))
 		}
 	}
-	w.Write(([]byte)("]"))
+	_, _ = w.Write(([]byte)("]"))
 }
 
 func handlerDeleteGroup(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {

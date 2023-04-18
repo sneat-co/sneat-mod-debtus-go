@@ -19,17 +19,17 @@ func CounterpartyPage(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 	counterpartyID, err := common.DecodeID(encodedCounterpartyID)
 	if err != nil {
 		w.WriteHeader(404)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 
 	counterparty, err := facade.GetContactByID(c, nil, counterpartyID)
 	if err != nil {
 		w.WriteHeader(500)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
-	w.Write([]byte(fmt.Sprintf(`<html>
+	_, _ = w.Write([]byte(fmt.Sprintf(`<html>
 	<head><title>Contact: %v</title>
 	<meta name="description" content="Transfered amount: %v">
 	<link rel="canonical" href="./counterparty?id=%v" />

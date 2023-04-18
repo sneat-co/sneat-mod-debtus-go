@@ -8,5 +8,5 @@ func TestGetGroup(t *testing.T) {
 			t.Fatal("should panic")
 		}
 	}()
-	GetGroup(nil, nil)
+	_, _ = GetGroup(nil, nil)
 }

@@ -20,9 +20,6 @@ func NewLoginPinDalGae() LoginPinDalGae {
 }
 
 func (LoginPinDalGae) GetLoginPinByID(c context.Context, tx dal.ReadSession, id int) (loginPin models.LoginPin, err error) {
-	if tx, err = facade.GetDatabase(c); err != nil {
-		return
-	}
 	loginPin = models.NewLoginPin(id, nil)
 	return loginPin, tx.Get(c, loginPin.Record)
 }

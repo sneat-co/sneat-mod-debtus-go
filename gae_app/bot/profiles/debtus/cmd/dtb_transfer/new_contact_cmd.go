@@ -43,10 +43,9 @@ func NewCounterpartyCommand(nextCommand botsfw.Command) botsfw.Command {
 					existingContact bool
 				)
 
-				switch input.(type) {
+				switch input2 := input.(type) {
 				case botsfw.WebhookTextMessage:
-					webhookMessage := input.(botsfw.WebhookTextMessage)
-					mt := strings.TrimSpace(webhookMessage.Text())
+					mt := strings.TrimSpace(input2.Text())
 					if mt == "." {
 						return dtb_general.MainMenuAction(whc, "", false)
 					}
@@ -61,17 +60,16 @@ func NewCounterpartyCommand(nextCommand botsfw.Command) botsfw.Command {
 						Username: mt,
 					}
 				case botsfw.WebhookContactMessage:
-					contactMessage := input.(botsfw.WebhookContactMessage)
-					if contactMessage == nil {
+					if input == nil {
 						return m, errors.New("failed to get WebhookContactMessage: contactMessage == nil")
 					}
 
 					contactDetails = models.ContactDetails{
-						FirstName: contactMessage.FirstName(),
-						LastName:  contactMessage.LastName(),
+						FirstName: input2.FirstName(),
+						LastName:  input2.LastName(),
 						//Username: username,
 					}
-					phoneStr := contactMessage.PhoneNumber()
+					phoneStr := input2.PhoneNumber()
 					if phoneNum, err := strconv.ParseInt(phoneStr, 10, 64); err != nil {
 						log.Warningf(c, "Failed to parse phone string to int (%v)", phoneStr)
 					} else {
@@ -83,7 +81,7 @@ func NewCounterpartyCommand(nextCommand botsfw.Command) botsfw.Command {
 
 					switch input.InputType() {
 					case botsfw.WebhookInputContact:
-						contactDetails.TelegramUserID = int64(contactMessage.UserID().(int)) // TODO: check we are on Telegram
+						contactDetails.TelegramUserID = input2.UserID().(int64) // TODO: check we are on Telegram
 						if contactDetails.TelegramUserID != 0 {
 							for _, userContactJson := range user.Data.Contacts() {
 								if userContactJson.TgUserID == contactDetails.TelegramUserID {
@@ -120,17 +118,21 @@ func NewCounterpartyCommand(nextCommand botsfw.Command) botsfw.Command {
 						return m, err
 					}
 					ga := whc.GA()
-					ga.Queue(ga.GaEventWithLabel(
+					if err = ga.Queue(ga.GaEventWithLabel(
 						"contacts",
 						"contact-created",
 						fmt.Sprintf("user-%v", whc.AppUserIntID()),
-					))
+					)); err != nil {
+						return m, err
+					}
 					if contact.Data.PhoneNumber != 0 && contact.Data.PhoneNumberConfirmed {
-						ga.Queue(ga.GaEventWithLabel(
+						if err = ga.Queue(ga.GaEventWithLabel(
 							"contacts",
 							"contact-details-added",
 							"phone-number",
-						))
+						)); err != nil {
+							return m, err
+						}
 					}
 				}
 				if contact.ID == 0 {

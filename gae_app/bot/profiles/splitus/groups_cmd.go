@@ -130,7 +130,7 @@ func groupsAction(whc botsfw.WebhookContext, isEdit bool, groupsMessageID int) (
 	if !isEdit {
 		var msg botsfw.OnMessageSentResponse
 		if msg, err = whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
-
+			return
 		}
 		return groupsAction(whc, true, msg.TelegramMessage.(tgbotapi.Message).MessageID)
 	}

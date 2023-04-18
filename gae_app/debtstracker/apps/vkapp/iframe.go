@@ -33,7 +33,7 @@ func IFrameHandler(w http.ResponseWriter, r *http.Request) {
 	_, ok := vkbots.BotsBy.ByCode[apiID]
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Unknown app id"))
+		_, _ = w.Write([]byte("Unknown app id"))
 		return
 	}
 

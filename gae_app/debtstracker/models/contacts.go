@@ -52,7 +52,7 @@ type ContactDetails struct {
 
 func (contact *ContactDetails) FullName() string {
 	addUserNameIfNotSame := func(name string) string {
-		if contact.Username == "" || strings.ToLower(contact.Username) == strings.ToLower(name) {
+		if contact.Username == "" || strings.EqualFold(contact.Username, name) {
 			return name
 		} else {
 			return fmt.Sprintf("%v (@%v)", name, contact.Username)

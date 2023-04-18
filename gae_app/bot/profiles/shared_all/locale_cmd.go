@@ -136,7 +136,7 @@ func setPreferredLanguageAction(whc botsfw.WebhookContext, code5, mode string, b
 		log.Debugf(c, "PreferredLanguage will be updated for userEntity & chat entities.")
 		for _, locale := range trans.SupportedLocalesByCode5 {
 			if locale.Code5 == code5 {
-				whc.SetLocale(locale.Code5)
+				_ = whc.SetLocale(locale.Code5)
 
 				var db dal.Database
 				if db, err = facade.GetDatabase(c); err != nil {
@@ -148,7 +148,7 @@ func setPreferredLanguageAction(whc botsfw.WebhookContext, code5, mode string, b
 						return
 					}
 					if err = user.Data.SetPreferredLocale(locale.Code5); err != nil {
-						err = fmt.Errorf("%w: failed to set preferred locale for user", err)
+						return fmt.Errorf("%w: failed to set preferred locale for user", err)
 					}
 					chatEntity.SetPreferredLanguage(locale.Code5)
 					chatEntity.SetAwaitingReplyTo("")
@@ -193,7 +193,9 @@ func setPreferredLanguageAction(whc botsfw.WebhookContext, code5, mode string, b
 		return aboutDrawAction(whc, nil)
 	case "settings":
 		if localeChanged {
-			m, err = dtb_general.MainMenuAction(whc, whc.Translate(trans.MESSAGE_TEXT_LOCALE_CHANGED, selectedLocale.TitleWithIcon()), false)
+			if m, err = dtb_general.MainMenuAction(whc, whc.Translate(trans.MESSAGE_TEXT_LOCALE_CHANGED, selectedLocale.TitleWithIcon()), false); err != nil {
+				return
+			}
 			if _, err = whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 				return m, err
 			}

@@ -104,7 +104,7 @@ func delayedCreateReminderForTransferUser(c context.Context, transferID int, use
 		}
 		reminderID := reminder.Key.ID.(int)
 		log.Infof(c, "Created reminder id=%v", reminderID)
-		if err = QueueSendReminder(c, reminderID, next.Sub(time.Now())); err != nil {
+		if err = QueueSendReminder(c, reminderID, time.Until(next)); err != nil {
 			return fmt.Errorf("failed to queue reminder for sending: %w", err)
 		}
 		transferUserInfo.ReminderID = reminderID

@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/strongo/log"
 	"net/http"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
@@ -43,7 +44,9 @@ func NewApiWebhookContext(r *http.Request, appUser *models.AppUserData, userID, 
 			nil,
 		),
 	}
-	whc.SetLocale(chatEntity.GetPreferredLanguage())
+	if err := whc.SetLocale(chatEntity.GetPreferredLanguage()); err != nil {
+		log.Errorf(r.Context(), "failed to set locale: %v", err)
+	}
 	return whc
 }
 

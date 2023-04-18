@@ -9,7 +9,6 @@ import (
 	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/decimal"
 	"reflect"
-	"strings"
 	"time"
 )
 
@@ -749,6 +748,7 @@ func (t *TransferData) Validate() (err error) {
 	// }
 
 	if t.IsReturn {
+		return errors.New("not implemented: temporally disabled this on 11 May 2018 to fix migration mapreduce")
 		// TODO: Temporally commented just this if on 11 May 2018 to fix migration mapreduce
 		// if len(t.ReturnToTransferIDs) == 0 {
 		// 	err = errors.New("*TransferData: IsReturn == true && len(ReturnToTransferIDs) == 0")
@@ -831,14 +831,14 @@ func (t *TransferData) Validate() (err error) {
 	return
 }
 
-func (*TransferData) movedToJson(propName string) bool {
-	return propName == "CounterpartyUserID" || (strings.HasPrefix(propName, "Creator") || strings.HasPrefix(propName, "Counterparty")) && (strings.HasSuffix(propName, "CounterpartyID") ||
-		strings.HasSuffix(propName, "CounterpartyName") ||
-		strings.HasSuffix(propName, "Note") ||
-		strings.HasSuffix(propName, "Comment") ||
-		strings.HasSuffix(propName, "TgBotID") ||
-		strings.HasSuffix(propName, "TgChatID"))
-}
+//func (*TransferData) movedToJson(propName string) bool {
+//	return propName == "CounterpartyUserID" || (strings.HasPrefix(propName, "Creator") || strings.HasPrefix(propName, "Counterparty")) && (strings.HasSuffix(propName, "CounterpartyID") ||
+//		strings.HasSuffix(propName, "CounterpartyName") ||
+//		strings.HasSuffix(propName, "Note") ||
+//		strings.HasSuffix(propName, "Comment") ||
+//		strings.HasSuffix(propName, "TgBotID") ||
+//		strings.HasSuffix(propName, "TgChatID"))
+//}
 
 //func (t *TransferData) Save() (properties []datastore.Property, err error) {
 //	if err = t.BeforeSave(); err != nil {

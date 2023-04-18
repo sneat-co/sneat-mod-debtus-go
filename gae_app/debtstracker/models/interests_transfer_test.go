@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/crediterra/money"
 	"testing"
@@ -116,7 +117,7 @@ func TestUserContactJson_BalanceWithInterest(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf("%+v", userContact.Transfers.OutstandingWithInterest[0])
-	balanceWithInterest, _ := userContact.BalanceWithInterest(nil, time.Now())
+	balanceWithInterest, _ := userContact.BalanceWithInterest(context.Background(), time.Now())
 	if len(balanceWithInterest) != 1 {
 		t.Fatalf("len(balanceWithInterest) != 1: %v", len(balanceWithInterest))
 	}

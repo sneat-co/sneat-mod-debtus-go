@@ -51,7 +51,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if expiresAt.Before(time.Now()) {
 		w.WriteHeader(http.StatusUnauthorized)
 		log.Infof(c, "expiresAt.Before(time.Now())")
-		w.Write([]byte("<html><body style=font-size:xx-large>Your secret has expired. Please generate a new link</body></html>"))
+		_, _ = w.Write([]byte("<html><body style=font-size:xx-large>Your secret has expired. Please generate a new link</body></html>"))
 		return
 	}
 

@@ -108,7 +108,7 @@ func linkUsersByReceipt(c context.Context, receipt models.Receipt, invitedUserID
 	receipt.CreatorUserID: %d
 	receipt.CounterpartyUserID: %d
 				`, invitedUserID, receipt.Data.CreatorUserID, receipt.Data.CounterpartyUserID)
-	} else {
+		//} else {
 		// receipt.CounterpartyUserID == currentUserID - we are fine
 	}
 	return nil

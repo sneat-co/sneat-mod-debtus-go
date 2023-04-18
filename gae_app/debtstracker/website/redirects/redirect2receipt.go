@@ -32,7 +32,7 @@ func ReceiptRedirect(w http.ResponseWriter, r *http.Request, _ httprouter.Params
 		return
 	}
 	log.Debugf(c, "Receipt ID: %v", receiptID)
-	receipt, err := dtdal.Receipt.GetReceiptByID(c, nil, receiptID)
+	_, err = dtdal.Receipt.GetReceiptByID(c, nil, receiptID)
 	switch err {
 	case nil: //pass
 	case datastore.ErrNoSuchEntity:
@@ -46,10 +46,10 @@ func ReceiptRedirect(w http.ResponseWriter, r *http.Request, _ httprouter.Params
 		return
 	}
 
-	lang := query.Get("lang")
-	if lang == "" {
-		lang = receipt.Data.Lang
-	}
+	//lang := query.Get("lang")
+	//if lang == "" {
+	//	lang = receipt.Data.Lang
+	//}
 
 	if strings.HasPrefix(r.UserAgent(), "facebookexternalhit/") || query.Get("for") == "fb" {
 		if receiptOpenGraphPageTmpl == nil {

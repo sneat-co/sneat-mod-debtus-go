@@ -14,7 +14,7 @@ func handleAdminLatestTransfers(c context.Context, w http.ResponseWriter, r *htt
 	transfers, err := dtdal.Transfer.LoadLatestTransfers(c, 0, 20)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(([]byte)(err.Error()))
+		_, _ = w.Write(([]byte)(err.Error()))
 	}
 	transfersToResponse(c, w, 0, transfers, true)
 }

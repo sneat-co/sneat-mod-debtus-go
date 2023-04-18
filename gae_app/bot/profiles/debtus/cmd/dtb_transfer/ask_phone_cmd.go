@@ -72,7 +72,7 @@ var AskPhoneNumberForReceiptCommand = botsfw.Command{
 					phoneNumberStr = cleanPhoneNumber(contact.PhoneNumber())
 					if phoneNumber, err = strconv.ParseInt(phoneNumberStr, 10, 64); err != nil {
 						log.Warningf(c, "Failed to parse contact's phone number: [%v]", phoneNumberStr)
-						err = nil
+						return err
 					} else if user.Data.PhoneNumber == 0 {
 						user, err := facade.User.GetUserByID(c, tx, whc.AppUserIntID())
 						if err != nil {
@@ -317,7 +317,9 @@ func sendReceiptBySms(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, ph
 	smsResponseStr, _ := json.Marshal(smsResponse)
 	log.Debugf(c, "Twilio response: %v", string(smsResponseStr))
 
-	analytics.ReceiptSentFromBot(whc, "sms")
+	if err = analytics.ReceiptSentFromBot(whc, "sms"); err != nil {
+		log.Errorf(c, "Failed to send to analytics receipt sent event: %v", err)
+	}
 
 	if _, err = dtdal.Twilio.SaveTwilioSms(
 		whc.Context(),

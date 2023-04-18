@@ -17,8 +17,8 @@ const (
 )
 
 type SendReceipt struct {
-	transferID int
-	By         string
+	//transferID int
+	By string
 }
 
 func SendReceiptCallbackData(transferID int, by string) string {

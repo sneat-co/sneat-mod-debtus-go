@@ -7,9 +7,7 @@ import (
 )
 
 func TestUpdateMemberOwesForEqualSplit(t *testing.T) {
-	var members []BillMemberJson
-
-	members = []BillMemberJson{{}, {}, {}, {}}
+	members := []BillMemberJson{{}, {}, {}, {}}
 	updateMemberOwesForEqualSplit(1001, "", members)
 	verifyMemberOwes := func(i int, expecting decimal.Decimal64p2) {
 		t.Helper()
@@ -25,9 +23,7 @@ func TestUpdateMemberOwesForEqualSplit(t *testing.T) {
 }
 
 func TestUpdateMemberOwesForEqualSplitWithAdjustment(t *testing.T) {
-	var members []BillMemberJson
-
-	members = []BillMemberJson{{}, {Adjustment: 200}, {}, {}}
+	members := []BillMemberJson{{}, {Adjustment: 200}, {}, {}}
 	updateMemberOwesForEqualSplit(1001, "", members)
 	verifyMemberOwes := func(i int, expecting decimal.Decimal64p2) {
 		t.Helper()

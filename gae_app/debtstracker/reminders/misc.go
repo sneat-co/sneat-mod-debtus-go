@@ -33,7 +33,10 @@ func allowOrigin(w http.ResponseWriter) {
 
 func InviteFriend(w http.ResponseWriter, r *http.Request) {
 	allowOrigin(w)
-	r.ParseForm()
+	if err := r.ParseForm(); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(err.Error()))
+	}
 	fromName := r.Form["from_name"][0]
 
 	if err := SendEmail(

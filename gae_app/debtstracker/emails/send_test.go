@@ -1,8 +1,8 @@
 package emails
 
 import (
-	"testing"
 	"context"
+	"testing"
 )
 
 func TestGetEmailTextWithoutTranslator(t *testing.T) {
@@ -12,7 +12,7 @@ func TestGetEmailTextWithoutTranslator(t *testing.T) {
 		}
 	}()
 	c := context.Background()
-	GetEmailText(c, nil, "some-template", nil)
+	_, _ = GetEmailText(c, nil, "some-template", nil)
 }
 
 func TestGetEmailHtmlWithoutTranslator(t *testing.T) {
@@ -22,5 +22,5 @@ func TestGetEmailHtmlWithoutTranslator(t *testing.T) {
 		}
 	}()
 	c := context.Background()
-	GetEmailHtml(c, nil, "some-template", nil)
+	_, _ = GetEmailHtml(c, nil, "some-template", nil)
 }

@@ -66,7 +66,7 @@ func (s transferSourceSetToAPI) PopulateTransfer(t *models.TransferData) {
 func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
 	if err := r.ParseForm(); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 	var direction models.TransferDirection
@@ -79,24 +79,24 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 		w.WriteHeader(http.StatusBadRequest)
 		m := "Unknown direction: " + r.PostFormValue("direction")
 		log.Debugf(c, m)
-		w.Write([]byte(m))
+		_, _ = w.Write([]byte(m))
 		return
 	}
 	amountValue, err := decimal.ParseDecimal64p2(r.PostFormValue("amount"))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 	if amountValue < 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("amount < 0"))
+		_, _ = w.Write([]byte("amount < 0"))
 		return
 	}
 	currency := r.PostFormValue("currency")
 	if len(currency) > 30 {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("len(currency) > 30"))
+		_, _ = w.Write([]byte("len(currency) > 30"))
 		return
 	}
 
@@ -170,7 +170,7 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 	platform := r.PostFormValue("platform")
 	if len(platform) > 20 {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("len(platform) > 20"))
+		_, _ = w.Write([]byte("len(platform) > 20"))
 	}
 	switch platform {
 	case "web":
@@ -198,7 +198,7 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 

@@ -2,7 +2,6 @@ package api
 
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
@@ -115,57 +114,57 @@ func signInFbUser(c context.Context, fbAppID, fbUserID string, r *http.Request, 
 	//return
 }
 
-func getFbUserInfo(c context.Context, fbSession *fb.Session, isFbm bool, fbUserID string,
-) (
-	emailConfirmed bool, email, firstName, lastName string, err error,
-) {
-	var (
-		endPoint string
-		fields   string
-	)
-	if isFbm {
-		endPoint = "/" + fbUserID
-		fields = "first_name,last_name,profile_pic,locale,timezone,gender,is_payment_enabled,last_ad_referral"
-	} else {
-		endPoint = "/me"
-		fields = "email,first_name,last_name" //TODO: Try to add fields matching FBM case above. profile_pic is not OK :(
-	}
-	fbResp, err := fbSession.Get(endPoint, fb.Params{
-		"fields": fields,
-	})
-
-	if err != nil {
-		err = fmt.Errorf("%w: Failed to call Facebook API", err)
-		return
-	}
-
-	log.Debugf(c, "Facebook API response: %v", fbResp)
-
-	var ok bool
-	if email, ok = fbResp["email"].(string); ok && email != "" {
-		emailConfirmed = true
-	} else {
-		email = fmt.Sprintf("%v@fb", fbUserID)
-	}
-
-	firstName, _ = fbResp["first_name"].(string)
-	lastName, _ = fbResp["last_name"].(string)
-	return
-}
-
-func createOrUpdateFbUserDbRecord(c context.Context, isFbm bool, fbAppID, fbUserID string, fbSession *fb.Session, authInfo auth.AuthInfo, clientInfo models.ClientInfo) (user models.AppUser, userFacebook models.UserFacebook, isNewUser bool, err error) {
-	var (
-		emailConfirmed             bool
-		email, firstName, lastName string
-	)
-	emailConfirmed, email, firstName, lastName, err = getFbUserInfo(c, fbSession, isFbm, fbUserID)
-
-	userFacebook, user, err = facade.User.GetOrCreateUserFacebookOnSignIn(c, authInfo.UserID, fbAppID, fbUserID, firstName, lastName, email, emailConfirmed, clientInfo)
-	if err != nil {
-		return
-	}
-	return
-}
+//func getFbUserInfo(c context.Context, fbSession *fb.Session, isFbm bool, fbUserID string,
+//) (
+//	emailConfirmed bool, email, firstName, lastName string, err error,
+//) {
+//	var (
+//		endPoint string
+//		fields   string
+//	)
+//	if isFbm {
+//		endPoint = "/" + fbUserID
+//		fields = "first_name,last_name,profile_pic,locale,timezone,gender,is_payment_enabled,last_ad_referral"
+//	} else {
+//		endPoint = "/me"
+//		fields = "email,first_name,last_name" //TODO: Try to add fields matching FBM case above. profile_pic is not OK :(
+//	}
+//	fbResp, err := fbSession.Get(endPoint, fb.Params{
+//		"fields": fields,
+//	})
+//
+//	if err != nil {
+//		err = fmt.Errorf("%w: Failed to call Facebook API", err)
+//		return
+//	}
+//
+//	log.Debugf(c, "Facebook API response: %v", fbResp)
+//
+//	var ok bool
+//	if email, ok = fbResp["email"].(string); ok && email != "" {
+//		emailConfirmed = true
+//	} else {
+//		email = fmt.Sprintf("%v@fb", fbUserID)
+//	}
+//
+//	firstName, _ = fbResp["first_name"].(string)
+//	lastName, _ = fbResp["last_name"].(string)
+//	return
+//}
+//
+//func createOrUpdateFbUserDbRecord(c context.Context, isFbm bool, fbAppID, fbUserID string, fbSession *fb.Session, authInfo auth.AuthInfo, clientInfo models.ClientInfo) (user models.AppUser, userFacebook models.UserFacebook, isNewUser bool, err error) {
+//	var (
+//		emailConfirmed             bool
+//		email, firstName, lastName string
+//	)
+//	emailConfirmed, email, firstName, lastName, err = getFbUserInfo(c, fbSession, isFbm, fbUserID)
+//
+//	userFacebook, user, err = facade.User.GetOrCreateUserFacebookOnSignIn(c, authInfo.UserID, fbAppID, fbUserID, firstName, lastName, email, emailConfirmed, clientInfo)
+//	if err != nil {
+//		return
+//	}
+//	return
+//}
 
 func authWriteResponseForAuthFailed(c context.Context, w http.ResponseWriter, err error) {
 	if errors.Is(err, ErrUnauthorized) {
@@ -175,7 +174,7 @@ func authWriteResponseForAuthFailed(c context.Context, w http.ResponseWriter, er
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Errorf(c, "Auth failed: %v", err.Error())
 	}
-	w.Write([]byte(err.Error()))
+	_, _ = w.Write([]byte(err.Error()))
 }
 
 func authWriteResponseForUser(c context.Context, w http.ResponseWriter, user models.AppUser, isNewUser bool) {

@@ -4,6 +4,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bytes"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/dal-go/dalgo/dal"
 	"net/http"
 	"strings"
@@ -57,7 +58,11 @@ func SendEmail(c context.Context, from, to, subject, bodyText, bodyHtml string) 
 	if bodyText == "" && bodyHtml == "" {
 		panic(`bodyText == "" && bodyHtml == ""`)
 	}
-	svc := ses.New(common.AwsSessionInstance)
+	var awsSession *session.Session
+	if awsSession, err = common.NewAwsSession(); err != nil {
+		return
+	}
+	svc := ses.New(awsSession)
 	params := &ses.SendEmailInput{
 		Destination: &ses.Destination{ // Required
 			ToAddresses: []*string{

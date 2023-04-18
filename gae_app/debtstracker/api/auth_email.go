@@ -130,7 +130,6 @@ func handleRequestPasswordReset(c context.Context, w http.ResponseWriter, r *htt
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	}
-	return
 }
 
 func handleChangePasswordAndSignIn(c context.Context, w http.ResponseWriter, r *http.Request) {

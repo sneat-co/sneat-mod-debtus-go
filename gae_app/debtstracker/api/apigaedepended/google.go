@@ -31,7 +31,7 @@ func handleSigninWithGoogle(c context.Context, w http.ResponseWriter, r *http.Re
 	destinationUrl := query.Get("to")
 	if destinationUrl == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Missing 'to' parameter"))
+		_, _ = w.Write([]byte("Missing 'to' parameter"))
 		return
 	}
 
@@ -44,7 +44,7 @@ func handleSigninWithGoogle(c context.Context, w http.ResponseWriter, r *http.Re
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 	http.Redirect(w, r, loginUrl, http.StatusFound)
@@ -55,7 +55,7 @@ func handleSignedWithGoogle(c context.Context, w http.ResponseWriter, r *http.Re
 	if authInfo, _, err := auth.Authenticate(w, r, false); err != nil {
 		if err != auth.ErrNoToken {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
 		}
 	} else {
 		userID = authInfo.UserID
@@ -68,7 +68,7 @@ func handleSignedWithGoogle(c context.Context, w http.ResponseWriter, r *http.Re
 		err := errors.New("handleSignedWithGoogle(): googleUser == nil")
 		log.Errorf(c, err.Error())
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 
@@ -76,13 +76,13 @@ func handleSignedWithGoogle(c context.Context, w http.ResponseWriter, r *http.Re
 	if err != nil {
 		log.Errorf(c, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 	}
 
 	if userGoogle.Data == nil {
 		log.Errorf(c, "userGoogle.UserGoogleData == nil")
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("userGoogle.UserGoogleData == nil"))
+		_, _ = w.Write([]byte("userGoogle.UserGoogleData == nil"))
 	}
 
 	log.Debugf(c, "userGoogle.AppUserIntID: %d", userGoogle.Data.AppUserIntID)

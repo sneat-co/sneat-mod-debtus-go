@@ -332,10 +332,9 @@ func getTranslator(c context.Context, localeCode string) (translator strongo.Sin
 	log.Debugf(c, "getTranslator(localeCode=%v)", localeCode)
 	var locale strongo.Locale
 	if locale, err = common.TheAppContext.SupportedLocales().GetLocaleByCode5(localeCode); errors.Is(err, trans.ErrUnsupportedLocale) {
-		localeCode = strongo.LocaleCodeEnUS
-	}
-	if locale, err = common.TheAppContext.SupportedLocales().GetLocaleByCode5(localeCode); err != nil {
-		return
+		if locale, err = common.TheAppContext.SupportedLocales().GetLocaleByCode5(strongo.LocaleCodeEnUS); err != nil {
+			return
+		}
 	}
 	translator = strongo.NewSingleMapTranslator(locale, common.TheAppContext.GetTranslator(c))
 	return
@@ -454,9 +453,9 @@ func sendReceiptToCounterpartyByTelegram(c context.Context, receiptID int, tgCha
 			}
 			if tgChat.Data.DtForbiddenLast.IsZero() {
 				if err = sendReceiptToTelegramChat(c, receipt, transfer, tgChat); err != nil {
-					failedToSend = true
+					//failedToSend = true
 					if _, forbidden := err.(tgbotapi.ErrAPIForbidden); forbidden || strings.Contains(err.Error(), "Bad Request: chat not found") {
-						chatsForbidden = true
+						//chatsForbidden = true
 						log.Infof(c, "Telegram chat not found or disabled (%v): %v", tgChat.ID, err)
 						panic("not implemented - commented out as needs to be refactored")
 						//if err2 := gaehost.MarkTelegramChatAsForbidden(c, tgChat.Data.BotID, tgChat.Data.TelegramUserID, time.Now()); err2 != nil {
@@ -632,14 +631,14 @@ var delayedCreateAndSendReceiptToCounterpartyByTelegram = delay.Func("delayedCre
 			CreatedOnPlatform: transfer.Data.CreatedOnPlatform,
 		}))
 		if err := tx.Set(c, receipt.Record); err != nil {
-			err = fmt.Errorf("failed to save receipt to DB: %w", err)
+			return fmt.Errorf("failed to save receipt to DB: %w", err)
 		} else {
 			receiptID = receipt.Record.Key().ID.(int)
 		}
 		if err != nil {
 			return fmt.Errorf("failed to create receipt entity: %w", err)
 		}
-		tgChatID := (int64)(tgChat.BaseChatData().TelegramUserID)
+		tgChatID := tgChat.BaseChatData().TelegramUserID
 		if err = delaySendReceiptToCounterpartyByTelegram(c, receiptID, tgChatID, localeCode); err != nil { // TODO: ideally should be called inside transaction
 			log.Errorf(c, "failed to queue receipt sending: %v", err)
 			return nil
