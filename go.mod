@@ -3,7 +3,7 @@ module bitbucket.org/asterus/debtstracker-server
 go 1.20
 
 require (
-	github.com/aws/aws-sdk-go v1.42.26
+	github.com/aws/aws-sdk-go v1.44.245
 	github.com/bots-go-framework/bots-api-telegram v0.1.1
 	github.com/bots-go-framework/bots-fw v0.9.11
 	github.com/bots-go-framework/bots-fw-telegram v0.4.7
@@ -13,13 +13,13 @@ require (
 	github.com/crediterra/money v0.0.1
 	github.com/dal-go/dalgo v0.2.10
 	github.com/dal-go/mocks4dalgo v0.1.1
-	github.com/golang-jwt/jwt/v4 v4.2.0
+	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/gorilla/sessions v1.2.1
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/matryer/is v1.4.1
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
-	github.com/sanity-io/litter v1.5.1
-	github.com/sendgrid/sendgrid-go v3.10.4+incompatible
+	github.com/sanity-io/litter v1.5.5
+	github.com/sendgrid/sendgrid-go v3.12.0+incompatible
 	github.com/shiyanhui/hero v0.0.2
 	github.com/sneat-co/debtstracker-translations v0.0.2
 	github.com/strongo/app v0.0.6
@@ -32,7 +32,7 @@ require (
 	github.com/strongo/slice v0.1.2
 	github.com/strongo/slices v0.0.0-20180713073818-553769fcb80b
 	github.com/strongo/validation v0.0.1
-	github.com/yaa110/go-persian-calendar v1.0.2
+	github.com/yaa110/go-persian-calendar v1.1.3
 	golang.org/x/crypto v0.8.0
 	golang.org/x/net v0.9.0
 	google.golang.org/appengine v1.6.7
@@ -47,8 +47,8 @@ require (
 	cloud.google.com/go/compute v1.19.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/datastore v1.11.0 // indirect
-	cloud.google.com/go/iam v0.13.0 // indirect
-	cloud.google.com/go/storage v1.28.1 // indirect
+	cloud.google.com/go/iam v1.0.0 // indirect
+	cloud.google.com/go/storage v1.30.1 // indirect
 	github.com/bots-go-framework/bots-fw-dalgo v0.0.5 // indirect
 	github.com/captaincodeman/datastore-locker v0.0.0-20170308203336-4eddc467484e // indirect
 	github.com/dal-go/dalgo2datastore v0.0.5 // indirect
@@ -62,7 +62,7 @@ require (
 	github.com/googleapis/gax-go/v2 v2.8.0 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
-	github.com/sendgrid/rest v2.6.6+incompatible // indirect
+	github.com/sendgrid/rest v2.6.9+incompatible // indirect
 	github.com/strongo/emoji v0.0.1 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
