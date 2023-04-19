@@ -22,7 +22,7 @@ require (
 	github.com/shiyanhui/hero v0.0.2
 	github.com/sneat-co/debtstracker-translations v0.0.2
 	github.com/strongo/app v0.0.6
-	github.com/strongo/db v0.0.0-20210908182344-952d1cfe3eb0
+	github.com/strongo/db v0.2.9
 	github.com/strongo/decimal v0.0.0-20180523215323-a1521d8f65fa
 	github.com/strongo/facebook v1.8.1
 	github.com/strongo/gamp v0.0.1
