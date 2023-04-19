@@ -11,7 +11,8 @@ require (
 	github.com/captaincodeman/datastore-mapper v0.0.0-20170320145307-cb380a4c4d13
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85
 	github.com/crediterra/money v0.0.1
-	github.com/dal-go/dalgo v0.2.9
+	github.com/dal-go/dalgo v0.2.10
+	github.com/dal-go/mocks4dalgo v0.1.1
 	github.com/golang-jwt/jwt/v4 v4.2.0
 	github.com/gorilla/sessions v1.2.1
 	github.com/julienschmidt/httprouter v1.3.0
@@ -22,13 +23,11 @@ require (
 	github.com/shiyanhui/hero v0.0.2
 	github.com/sneat-co/debtstracker-translations v0.0.2
 	github.com/strongo/app v0.0.6
-	github.com/strongo/db v0.0.0-20210908182344-952d1cfe3eb0
 	github.com/strongo/decimal v0.0.0-20180523215323-a1521d8f65fa
 	github.com/strongo/facebook v1.8.1
 	github.com/strongo/gamp v0.0.1
 	github.com/strongo/gotwilio v0.0.0-20160123000810-f024bbefe80f
 	github.com/strongo/log v0.0.1
-	github.com/strongo/nds v0.0.0-20180424162513-fa96c62eb788
 	github.com/strongo/random v0.0.1
 	github.com/strongo/slice v0.1.2
 	github.com/strongo/slices v0.0.0-20180713073818-553769fcb80b
@@ -37,7 +36,6 @@ require (
 	golang.org/x/crypto v0.8.0
 	golang.org/x/net v0.9.0
 	google.golang.org/appengine v1.6.7
-	google.golang.org/appengine/v2 v2.0.2
 )
 
 //replace github.com/dal-go/dalgo => ../dal-go/dalgo
@@ -55,6 +53,7 @@ require (
 	github.com/captaincodeman/datastore-locker v0.0.0-20170308203336-4eddc467484e // indirect
 	github.com/dal-go/dalgo2datastore v0.0.5 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/s2a-go v0.1.1 // indirect
@@ -63,7 +62,6 @@ require (
 	github.com/googleapis/gax-go/v2 v2.8.0 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sendgrid/rest v2.6.6+incompatible // indirect
 	github.com/strongo/emoji v0.0.1 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect

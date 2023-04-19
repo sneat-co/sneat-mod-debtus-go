@@ -1,22 +1,21 @@
 package dalmocks
 
 import (
-	"github.com/crediterra/money"
-	"time"
-
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/strongo/db/mockdb"
+	"github.com/crediterra/money"
+	"github.com/dal-go/mocks4dalgo/mocks4dal"
+	"time"
 )
 
 const NOT_IMPLEMENTED_YET = "NOT_IMPLEMENTED_YET"
 
 type TransferDalMock struct {
-	mockDB *mockdb.MockDB
+	mockDB *mocks4dal.MockDatabase
 }
 
-func NewTransferDalMock(mockDB *mockdb.MockDB) *TransferDalMock {
+func NewTransferDalMock(mockDB *mocks4dal.MockDatabase) *TransferDalMock {
 	return &TransferDalMock{
 		mockDB: mockDB,
 	}
