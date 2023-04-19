@@ -27,7 +27,7 @@ func NewTransferDalGae() TransferDalGae {
 
 var _ dtdal.TransferDal = (*TransferDalGae)(nil)
 
-func _loadDueOnTransfers(c context.Context, tx dal.ReadSession, userID int64, limit int, filter func(q dal.Selector) dal.Selector) (transfers []models.Transfer, err error) {
+func _loadDueOnTransfers(c context.Context, tx dal.ReadSession, userID int64, limit int, filter func(q dal.QueryBuilder) dal.QueryBuilder) (transfers []models.Transfer, err error) {
 	q := dal.From(models.TransferKind).
 		WhereField("BothUserIDs", "=", userID).
 		WhereField("IsOutstanding", "=", true).OrderBy(dal.AscendingField("DtDueOn"))
@@ -51,13 +51,13 @@ func _loadDueOnTransfers(c context.Context, tx dal.ReadSession, userID int64, li
 }
 
 func (transferDalGae TransferDalGae) LoadOverdueTransfers(c context.Context, tx dal.ReadSession, userID int64, limit int) ([]models.Transfer, error) {
-	return _loadDueOnTransfers(c, tx, userID, limit, func(q dal.Selector) dal.Selector {
+	return _loadDueOnTransfers(c, tx, userID, limit, func(q dal.QueryBuilder) dal.QueryBuilder {
 		return q.WhereField("DtDueOn", dal.GreaterThen, time.Time{}).WhereField("DtDueOn", dal.LessThen, time.Now())
 	})
 }
 
 func (transferDalGae TransferDalGae) LoadDueTransfers(c context.Context, tx dal.ReadSession, userID int64, limit int) ([]models.Transfer, error) {
-	return _loadDueOnTransfers(c, tx, userID, limit, func(q dal.Selector) dal.Selector {
+	return _loadDueOnTransfers(c, tx, userID, limit, func(q dal.QueryBuilder) dal.QueryBuilder {
 		return q.WhereField("DtDueOn", dal.GreaterThen, time.Now())
 	})
 }

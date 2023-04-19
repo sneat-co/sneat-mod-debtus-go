@@ -89,11 +89,11 @@ func (ContactDalGae) SaveContact(c context.Context, tx dal.ReadwriteTransaction,
 	return nil
 }
 
-func newUserActiveContactsQuery(userID int64) dal.Selector {
+func newUserActiveContactsQuery(userID int64) dal.QueryBuilder {
 	return newUserContactsQuery(userID).WhereField("Status", dal.Equal, models.STATUS_ACTIVE)
 }
 
-func newUserContactsQuery(userID int64) dal.Selector {
+func newUserContactsQuery(userID int64) dal.QueryBuilder {
 	return dal.From(models.ContactKind).WhereField("UserID", dal.Equal, userID)
 }
 
