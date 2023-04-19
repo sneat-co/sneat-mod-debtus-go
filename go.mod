@@ -15,7 +15,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.2.0
 	github.com/gorilla/sessions v1.2.1
 	github.com/julienschmidt/httprouter v1.3.0
-	github.com/matryer/is v1.4.0
+	github.com/matryer/is v1.4.1
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
 	github.com/sanity-io/litter v1.5.1
 	github.com/sendgrid/sendgrid-go v3.10.4+incompatible
