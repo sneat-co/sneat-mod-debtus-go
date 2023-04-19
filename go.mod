@@ -3,7 +3,7 @@ module bitbucket.org/asterus/debtstracker-server
 go 1.20
 
 require (
-	github.com/aws/aws-sdk-go v1.44.245
+	github.com/aws/aws-sdk-go v1.44.246
 	github.com/bots-go-framework/bots-api-telegram v0.1.1
 	github.com/bots-go-framework/bots-fw v0.9.11
 	github.com/bots-go-framework/bots-fw-telegram v0.4.7
