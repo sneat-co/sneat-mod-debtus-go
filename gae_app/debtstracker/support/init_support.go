@@ -112,7 +112,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 	query := dal.From(models.ContactKind).WhereField("UserID", dal.Equal, userID).SelectInto(func() dal.Record {
 		return dal.NewRecordWithoutKey(models.AppUserKind, reflect.Int64, new(models.AppUserData))
 	})
-	userCounterpartyRecords, err := db.SelectAll(c, query)
+	userCounterpartyRecords, err := db.QueryAllRecords(c, query)
 	if err != nil {
 		log.Errorf(c, "Failed to load user counterparties: %v", err)
 		return
@@ -139,7 +139,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return dal.NewRecordWithoutKey(models.AppUserKind, reflect.Int64, new(models.AppUserData))
 	})
 
-	transferRecords, err := db.SelectAll(c, query)
+	transferRecords, err := db.QueryAllRecords(c, query)
 
 	if err != nil {
 		log.Errorf(c, "Failed to load transfers: %v", err)

@@ -49,7 +49,7 @@ func (reminderDalGae ReminderDalGae) GetSentReminderIDsByTransferID(c context.Co
 		dal.WhereField("Status", dal.Equal, models.ReminderStatusSent),
 	).SelectKeysOnly(reflect.Int)
 
-	records, err := tx.SelectAll(c, q)
+	records, err := tx.QueryAllRecords(c, q)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (reminderDalGae ReminderDalGae) GetActiveReminderIDsByTransferID(c context.
 		dal.WhereField("TransferID", dal.Equal, transferID),
 		dal.WhereField("DtNext", dal.GreaterThen, time.Time{}),
 	).SelectKeysOnly(reflect.Int)
-	records, err := tx.SelectAll(c, q)
+	records, err := tx.QueryAllRecords(c, q)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get active reminders by transfer id=%v: %w", transferID, err)
 	}

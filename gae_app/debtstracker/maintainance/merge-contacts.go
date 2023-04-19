@@ -201,7 +201,7 @@ func mergeContactTransfers(c context.Context, tx dal.ReadwriteTransaction, wg *s
 		SelectInto(func() dal.Record {
 			return models.NewTransfer(0, nil).Record
 		})
-	transfers, err := tx.Select(c, transfersQ)
+	transfers, err := tx.QueryReader(c, transfersQ)
 	if err != nil {
 		return fmt.Errorf("failed to select transfers: %w", err)
 	}

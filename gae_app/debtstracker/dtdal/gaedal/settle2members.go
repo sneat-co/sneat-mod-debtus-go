@@ -28,7 +28,15 @@ func Settle2members(c context.Context, groupID, debtorID, sponsorID string, curr
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
-	ids, err := db.SelectAllStrIDs(c, query)
+	var reader dal.Reader
+
+	if reader, err = db.QueryReader(c, query); err != nil {
+		return err
+	}
+	var ids []string
+	if ids, err = dal.SelectAllIDs[string](reader, query.Limit); err != nil {
+		return err
+	}
 
 	if len(ids) == 0 {
 		log.Errorf(c, "No bills found to settle")

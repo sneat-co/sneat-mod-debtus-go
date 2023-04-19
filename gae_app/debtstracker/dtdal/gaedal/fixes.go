@@ -109,7 +109,7 @@ func FixTransfers(c context.Context) (loadedCount int, fixedCount int, failedCou
 		return
 	}
 	var reader dal.Reader
-	reader, err = db.Select(c, query)
+	reader, err = db.QueryReader(c, query)
 	if err != nil {
 		return
 	}

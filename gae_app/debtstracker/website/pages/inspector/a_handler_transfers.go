@@ -115,7 +115,7 @@ func (h transfersPage) processTransfers(c context.Context, tx dal.ReadSession, c
 		SelectInto(models.NewTransferRecord)
 
 	var reader dal.Reader
-	if reader, err = tx.Select(c, query); err != nil {
+	if reader, err = tx.QueryReader(c, query); err != nil {
 		return
 	}
 	for {

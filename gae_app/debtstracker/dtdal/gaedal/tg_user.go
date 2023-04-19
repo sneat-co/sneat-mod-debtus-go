@@ -31,7 +31,7 @@ func (TgUserDalGae) FindByUserName(c context.Context, tx dal.ReadSession, userNa
 	})
 	var records []dal.Record
 
-	if records, err = tx.SelectAll(c, query); err != nil {
+	if records, err = tx.QueryAllRecords(c, query); err != nil {
 		return
 	}
 	tgUsers = make([]tgstore.TgUser, len(records))

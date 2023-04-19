@@ -117,7 +117,7 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 	}
 }
 
-var delayedChangeTransfersCounterparty = delay.Func("changeTransfersCounterparty", func(c context.Context, oldID, newID int64, cursor string) error {
+var delayedChangeTransfersCounterparty = delay.Func("changeTransfersCounterparty", func(c context.Context, oldID, newID int64, cursor string) (err error) {
 	log.Debugf(c, "delayedChangeTransfersCounterparty(oldID=%d, newID=%d)", oldID, newID)
 
 	query := dal.From(models.TransferKind).
@@ -125,7 +125,11 @@ var delayedChangeTransfersCounterparty = delay.Func("changeTransfersCounterparty
 		SelectKeysOnly(reflect.Int)
 	query.Limit = 100
 
-	transferIDs, err := facade.DB().SelectAllIDs(c, query)
+	var reader dal.Reader
+	if reader, err = facade.DB().QueryReader(c, query); err != nil {
+		return err
+	}
+	transferIDs, err := dal.SelectAllIDs[int](reader, query.Limit)
 	if err != nil {
 		return err
 	}
@@ -133,7 +137,7 @@ var delayedChangeTransfersCounterparty = delay.Func("changeTransfersCounterparty
 	log.Infof(c, "Loaded %d transferIDs", len(transferIDs))
 	tasks := make([]*taskqueue.Task, len(transferIDs))
 	for i, id := range transferIDs {
-		if tasks[i], err = gae.CreateDelayTask(common.QUEUE_SUPPORT, "changeTransferCounterparty", delayedChangeTransferCounterparty, id.(int), oldID, newID, ""); err != nil {
+		if tasks[i], err = gae.CreateDelayTask(common.QUEUE_SUPPORT, "changeTransferCounterparty", delayedChangeTransferCounterparty, id, oldID, newID, ""); err != nil {
 			return err
 		}
 	}

@@ -104,7 +104,7 @@ func (ContactDalGae) GetContactsWithDebts(c context.Context, tx dal.ReadSession,
 	//var (
 	//	counterpartyEntities []*models.ContactData
 	//)
-	records, err := tx.SelectAll(c, query)
+	records, err := tx.QueryAllRecords(c, query)
 	counterparties = make([]models.Contact, len(records))
 	for i, record := range records {
 		counterparties[i] = models.NewContact(record.Key().ID.(int64), record.Data().(*models.ContactData))
@@ -126,7 +126,7 @@ func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, tx dal.ReadSes
 		}
 	}
 	var records []dal.Record
-	records, err = tx.SelectAll(c, query)
+	records, err = tx.QueryAllRecords(c, query)
 	var contactsCount = len(records)
 	log.Debugf(c, "GetLatestContacts(limit=%v, totalCount=%v): %v", limit, totalCount, contactsCount)
 	if (limit == 0 && contactsCount < totalCount) || (limit > 0 && totalCount > 0 && contactsCount < limit && contactsCount < totalCount) {
@@ -136,7 +136,7 @@ func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, tx dal.ReadSes
 		if limit > 0 {
 			query.Limit = limit
 		}
-		if records, err = tx.SelectAll(c, query); err != nil {
+		if records, err = tx.QueryAllRecords(c, query); err != nil {
 			return
 		}
 	}

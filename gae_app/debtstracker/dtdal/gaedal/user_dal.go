@@ -84,7 +84,7 @@ func (userDal UserDalGae) getUserByQuery(c context.Context, query dal.Query, sea
 	}
 	var userRecords []dal.Record
 
-	if userRecords, err = db.SelectAll(c, query); err != nil {
+	if userRecords, err = db.QueryAllRecords(c, query); err != nil {
 		return
 	}
 	switch len(userRecords) {

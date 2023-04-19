@@ -48,7 +48,7 @@ func (userBrowserDalGae UserBrowserDalGae) SaveUserBrowser(c context.Context, us
 	}
 
 	var records []dal.Record
-	if records, err = db.SelectAll(c, query); err != nil {
+	if records, err = db.QueryAllRecords(c, query); err != nil {
 		return
 	}
 

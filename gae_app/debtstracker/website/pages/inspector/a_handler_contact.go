@@ -95,7 +95,7 @@ func (contactPage) verifyTransfers(c context.Context, contactID int64) (
 		SelectInto(models.NewTransferRecord)
 
 	var reader dal.Reader
-	if reader, err = db.Select(c, query); err != nil {
+	if reader, err = db.QueryReader(c, query); err != nil {
 		return
 	}
 

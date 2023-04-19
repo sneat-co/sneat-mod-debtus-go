@@ -29,7 +29,7 @@ func (TwilioDalGae) GetLastTwilioSmsesForUser(c context.Context, tx dal.ReadSess
 	query := q.SelectInto(models.NewTwilioSmsRecord)
 	query.Limit = limit
 	var records []dal.Record
-	if records, err = tx.SelectAll(c, query); err != nil {
+	if records, err = tx.QueryAllRecords(c, query); err != nil {
 		return
 	}
 	result = models.NewTwilioSmsFromRecords(records)

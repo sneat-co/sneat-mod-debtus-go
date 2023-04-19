@@ -40,7 +40,7 @@ func _loadDueOnTransfers(c context.Context, tx dal.ReadSession, userID int64, li
 		transferRecords []dal.Record
 	)
 
-	transferRecords, err = tx.SelectAll(c, query)
+	transferRecords, err = tx.QueryAllRecords(c, query)
 
 	transfers = make([]models.Transfer, len(transferRecords))
 	for i, transferRecord := range transferRecords {
@@ -89,7 +89,7 @@ func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context,
 		SelectInto(models.NewTransferRecord)
 	q.Limit = limit
 	var transferRecords []dal.Record
-	transferRecords, err = tx.SelectAll(c, q)
+	transferRecords, err = tx.QueryAllRecords(c, q)
 	transfers = models.TransfersFromRecords(transferRecords)
 	var errorMessages, warnings, debugs bytes.Buffer
 	var transfersIDsToFixIsOutstanding []int
@@ -224,7 +224,7 @@ func (transferDalGae TransferDalGae) LoadTransferIDsByContactID(c context.Contex
 		return
 	}
 	var reader dal.Reader
-	if reader, err = db.Select(c, q); err != nil {
+	if reader, err = db.QueryReader(c, q); err != nil {
 		return
 	}
 	var record dal.Record
@@ -280,7 +280,7 @@ func (transferDalGae TransferDalGae) loadTransfers(c context.Context, q dal.Quer
 		return
 	}
 	var records []dal.Record
-	if records, err = db.SelectAll(c, q); err != nil {
+	if records, err = db.QueryAllRecords(c, q); err != nil {
 		return
 	}
 	transfers = make([]models.Transfer, len(records))

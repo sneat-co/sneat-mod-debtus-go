@@ -200,7 +200,7 @@ func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, invite mo
 				SelectInto(models.NewContactRecord)
 			counterpartyQuery.Limit = 1
 
-			counterpartyRecords, err := db.SelectAll(c, counterpartyQuery)
+			counterpartyRecords, err := db.QueryAllRecords(c, counterpartyQuery)
 
 			if err != nil {
 				return fmt.Errorf("failed to load counterparty by CounterpartyUserID: %w", err)

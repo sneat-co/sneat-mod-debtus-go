@@ -31,9 +31,14 @@ func CronSendReminders(c context.Context, w http.ResponseWriter, r *http.Request
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	var reminderIDs []any
-
-	if reminderIDs, err = db.SelectAllIDs(c, query); err != nil {
+	var reader dal.Reader
+	if reader, err = db.QueryReader(c, query); err != nil {
+		log.Errorf(c, "Failed to load due transfers: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	var reminderIDs []int
+	if reminderIDs, err = dal.SelectAllIDs[int](reader, query.Limit); err != nil {
 		log.Errorf(c, "Failed to load due transfers: %v", err)
 		return
 	}
@@ -46,11 +51,10 @@ func CronSendReminders(c context.Context, w http.ResponseWriter, r *http.Request
 	log.Debugf(c, "Loaded %d reminder(s)", len(reminderIDs))
 
 	for _, reminderID := range reminderIDs {
-		id := reminderID.(int)
-		task := gaedal.CreateSendReminderTask(c, id)
-		task.Name = fmt.Sprintf("r_%d_%v", id, time.Now().Format("200601021504"))
+		task := gaedal.CreateSendReminderTask(c, reminderID)
+		task.Name = fmt.Sprintf("r_%d_%v", reminderID, time.Now().Format("200601021504"))
 		if _, err := gae.AddTaskToQueue(c, task, common.QUEUE_REMINDERS); err != nil {
-			log.Errorf(c, "Failed to add delayed task for reminder %d", id)
+			log.Errorf(c, "Failed to add delayed task for reminder %d", reminderID)
 			return
 		}
 	}

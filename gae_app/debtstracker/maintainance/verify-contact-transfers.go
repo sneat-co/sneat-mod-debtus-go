@@ -65,7 +65,7 @@ package maintainance
 //		return err
 //	}
 //	var transferRecords []dal.Record
-//	if transferRecords, err = db.SelectAll(c, q); err != nil {
+//	if transferRecords, err = db.QueryAllRecords(c, q); err != nil {
 //		return err
 //	}
 //	transfers = make([]models.Transfer, len(transferRecords))

@@ -132,7 +132,7 @@ func GetTelegramChatByUserID(c context.Context, userID int64) (entityID string, 
 	}
 
 	var tgChatRecords []dal.Record
-	if tgChatRecords, err = db.SelectAll(c, tgChatQuery); err != nil {
+	if tgChatRecords, err = db.QueryAllRecords(c, tgChatQuery); err != nil {
 		err = fmt.Errorf("failed to load telegram chat by app user id=%v: %w", userID, err)
 		return
 	}
@@ -688,8 +688,13 @@ var delayedUpdateUserHasDueTransfers = delay.Func("delayedUpdateUserHasDueTransf
 		return err
 	}
 
+	var reader dal.Reader
+	if reader, err = db.QueryReader(c, q); err != nil {
+		return err
+	}
+
 	var transferIDs []int
-	transferIDs, err = db.SelectAllIntIDs(c, q)
+	transferIDs, err = dal.SelectAllIDs[int](reader, q.Limit)
 
 	if len(transferIDs) > 0 {
 		// panic("Not implemented - refactoring in progress")

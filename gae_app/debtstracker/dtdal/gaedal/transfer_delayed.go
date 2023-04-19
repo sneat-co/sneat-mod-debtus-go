@@ -59,7 +59,11 @@ var delayedUpdateTransfersWithCounterparty = delay.Func(DELAY_UPDATE_TRANSFERS_W
 		OrderBy(dal.DescendingField("DtCreated")).
 		SelectKeysOnly(reflect.Int)
 
-	if transferIDs, err := db.SelectAllIntIDs(c, query); err != nil {
+	var reader dal.Reader
+	if reader, err = db.QueryReader(c, query); err != nil {
+		return err
+	}
+	if transferIDs, err := dal.SelectAllIDs[int](reader, query.Limit); err != nil {
 		return fmt.Errorf("failed to load transfers: %w", err)
 	} else if len(transferIDs) > 0 {
 		log.Infof(c, "Loaded %d transfer IDs", len(transferIDs))
@@ -80,9 +84,15 @@ var delayedUpdateTransfersWithCounterparty = delay.Func(DELAY_UPDATE_TRANSFERS_W
 			WhereField("BothCounterpartyIDs", dal.Equal, creatorCounterpartyID).WhereField("BothCounterpartyIDs", dal.Equal, counterpartyCounterpartyID).
 			SelectKeysOnly(reflect.Int)
 		query.Limit = 1
-		if transferIDs, err := db.SelectAllIntIDs(c, query); err != nil {
+		var reader dal.Reader
+		if reader, err = db.QueryReader(c, query); err != nil {
+			return err
+		}
+		var transferIDs []int
+		if transferIDs, err = dal.SelectAllIDs[int](reader, query.Limit); err != nil {
 			return fmt.Errorf("failed to load transfers by 2 counterparty IDs: %w", err)
-		} else if len(transferIDs) > 0 {
+		}
+		if len(transferIDs) > 0 {
 			log.Infof(c, "No transfers found to update counterparty details")
 		} else {
 			log.Warningf(c, "No transfers found to update counterparty details")
@@ -247,7 +257,7 @@ var delayedUpdateTransfersWithCreatorName = delay.Func(UPDATE_TRANSFERS_WITH_CRE
 		SelectInto(models.NewTransferRecord)
 
 	var reader dal.Reader
-	reader, err = db.Select(c, query)
+	reader, err = db.QueryReader(c, query)
 
 	var wg sync.WaitGroup
 	defer wg.Wait()
