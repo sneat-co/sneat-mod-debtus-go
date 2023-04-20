@@ -123,8 +123,8 @@ func GetTelegramChatByUserID(c context.Context, userID int64) (entityID string, 
 	tgChatQuery := dal.From(tgstore.TgChatCollection).
 		WhereField("AppUserIntID", dal.Equal, userID).
 		OrderBy(dal.DescendingField("DtUpdated")).
+		Limit(1).
 		SelectInto(models.NewDebtusTelegramChatRecord)
-	tgChatQuery.Limit = 1
 
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
@@ -137,7 +137,7 @@ func GetTelegramChatByUserID(c context.Context, userID int64) (entityID string, 
 		return
 	}
 	switch len(tgChatRecords) {
-	case tgChatQuery.Limit:
+	case tgChatQuery.Limit():
 		entityID = fmt.Sprintf("%v", tgChatRecords[0].Key().ID)
 		tgChatBase := tgChatRecords[0].Data().(models.DebtusTelegramChatData).TgChatBase
 		chat = &tgChatBase
@@ -680,8 +680,8 @@ var delayedUpdateUserHasDueTransfers = delay.Func("delayedUpdateUserHasDueTransf
 		WhereField("BothUserIDs", dal.Equal, userID).
 		WhereField("IsOutstanding", dal.Equal, true).
 		WhereField("DtDueOn", dal.GreaterThen, time.Time{}).
+		Limit(1).
 		SelectKeysOnly(reflect.Int)
-	q.Limit = 1
 
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
@@ -694,7 +694,7 @@ var delayedUpdateUserHasDueTransfers = delay.Func("delayedUpdateUserHasDueTransf
 	}
 
 	var transferIDs []int
-	transferIDs, err = dal.SelectAllIDs[int](reader, q.Limit)
+	transferIDs, err = dal.SelectAllIDs[int](reader, q.Limit())
 
 	if len(transferIDs) > 0 {
 		// panic("Not implemented - refactoring in progress")

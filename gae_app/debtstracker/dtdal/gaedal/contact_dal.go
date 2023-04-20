@@ -116,10 +116,8 @@ func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, tx dal.ReadSes
 	c := whc.Context()
 	query := newUserActiveContactsQuery(whc.AppUserIntID()).
 		OrderBy(dal.DescendingField("LastTransferAt")).
+		Limit(limit).
 		SelectInto(models.NewContactRecord)
-	if limit > 0 {
-		query.Limit = limit
-	}
 	if tx == nil {
 		if tx, err = facade.GetDatabase(c); err != nil {
 			return
@@ -132,10 +130,8 @@ func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, tx dal.ReadSes
 	if (limit == 0 && contactsCount < totalCount) || (limit > 0 && totalCount > 0 && contactsCount < limit && contactsCount < totalCount) {
 		log.Debugf(c, "Querying counterparties without index -LastTransferAt")
 		query = newUserActiveContactsQuery(whc.AppUserIntID()).
+			Limit(limit).
 			SelectInto(models.NewTransferRecord)
-		if limit > 0 {
-			query.Limit = limit
-		}
 		if records, err = tx.QueryAllRecords(c, query); err != nil {
 			return
 		}

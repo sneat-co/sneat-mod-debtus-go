@@ -39,8 +39,7 @@ func (userBrowserDalGae UserBrowserDalGae) SaveUserBrowser(c context.Context, us
 	q := dal.From(models.UserBrowserKind).
 		WhereField("AppUserIntID", dal.Equal, userID).
 		WhereField("UserAgent", dal.Equal, userAgent)
-	query := q.SelectInto(models.NewUserBrowserRecord)
-	query.Limit = limit
+	query := q.Limit(limit).SelectInto(models.NewUserBrowserRecord)
 
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {

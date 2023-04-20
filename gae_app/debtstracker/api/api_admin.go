@@ -122,14 +122,14 @@ var delayedChangeTransfersCounterparty = delay.Func("changeTransfersCounterparty
 
 	query := dal.From(models.TransferKind).
 		WhereField("BothCounterpartyIDs", dal.Equal, oldID).
+		Limit(100).
 		SelectKeysOnly(reflect.Int)
-	query.Limit = 100
 
 	var reader dal.Reader
 	if reader, err = facade.DB().QueryReader(c, query); err != nil {
 		return err
 	}
-	transferIDs, err := dal.SelectAllIDs[int](reader, query.Limit)
+	transferIDs, err := dal.SelectAllIDs[int](reader, query.Limit())
 	if err != nil {
 		return err
 	}

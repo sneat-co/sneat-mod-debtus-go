@@ -63,7 +63,7 @@ var delayedUpdateTransfersWithCounterparty = delay.Func(DELAY_UPDATE_TRANSFERS_W
 	if reader, err = db.QueryReader(c, query); err != nil {
 		return err
 	}
-	if transferIDs, err := dal.SelectAllIDs[int](reader, query.Limit); err != nil {
+	if transferIDs, err := dal.SelectAllIDs[int](reader, query.Limit()); err != nil {
 		return fmt.Errorf("failed to load transfers: %w", err)
 	} else if len(transferIDs) > 0 {
 		log.Infof(c, "Loaded %d transfer IDs", len(transferIDs))
@@ -82,14 +82,14 @@ var delayedUpdateTransfersWithCounterparty = delay.Func(DELAY_UPDATE_TRANSFERS_W
 	} else {
 		query := dal.From(models.TransferKind).
 			WhereField("BothCounterpartyIDs", dal.Equal, creatorCounterpartyID).WhereField("BothCounterpartyIDs", dal.Equal, counterpartyCounterpartyID).
+			Limit(1).
 			SelectKeysOnly(reflect.Int)
-		query.Limit = 1
 		var reader dal.Reader
 		if reader, err = db.QueryReader(c, query); err != nil {
 			return err
 		}
 		var transferIDs []int
-		if transferIDs, err = dal.SelectAllIDs[int](reader, query.Limit); err != nil {
+		if transferIDs, err = dal.SelectAllIDs[int](reader, query.Limit()); err != nil {
 			return fmt.Errorf("failed to load transfers by 2 counterparty IDs: %w", err)
 		}
 		if len(transferIDs) > 0 {

@@ -22,8 +22,8 @@ func CronSendReminders(c context.Context, w http.ResponseWriter, r *http.Request
 		WhereField("DtNext", dal.GreaterThen, time.Time{}).
 		WhereField("DtNext", dal.LessThen, time.Now()).
 		OrderBy(dal.AscendingField("DtNext")).
+		Limit(100).
 		SelectKeysOnly(reflect.Int)
-	query.Limit = 100
 
 	db, err := facade.GetDatabase(c)
 	if err != nil {
@@ -38,7 +38,7 @@ func CronSendReminders(c context.Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 	var reminderIDs []int
-	if reminderIDs, err = dal.SelectAllIDs[int](reader, query.Limit); err != nil {
+	if reminderIDs, err = dal.SelectAllIDs[int](reader, query.Limit()); err != nil {
 		log.Errorf(c, "Failed to load due transfers: %v", err)
 		return
 	}

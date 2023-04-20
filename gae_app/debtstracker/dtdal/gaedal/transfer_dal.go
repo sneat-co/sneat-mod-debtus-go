@@ -31,11 +31,8 @@ func _loadDueOnTransfers(c context.Context, tx dal.ReadSession, userID int64, li
 	q := dal.From(models.TransferKind).
 		WhereField("BothUserIDs", "=", userID).
 		WhereField("IsOutstanding", "=", true).OrderBy(dal.AscendingField("DtDueOn"))
-	q = filter(q)
+	q = filter(q).Limit(limit)
 	query := q.SelectInto(models.NewTransferRecord)
-	if limit > 0 {
-		query.Limit = limit
-	}
 	var (
 		transferRecords []dal.Record
 	)
@@ -85,9 +82,10 @@ func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context,
 			dal.WhereField("BothUserIDs", dal.Equal, userID),
 			dal.WhereField("Currency", dal.Equal, string(currency)),
 			dal.WhereField("IsOutstanding", dal.Equal, true),
-		).OrderBy(dal.AscendingField("DtCreated")).
+		).
+		OrderBy(dal.AscendingField("DtCreated")).
+		Limit(limit).
 		SelectInto(models.NewTransferRecord)
-	q.Limit = limit
 	var transferRecords []dal.Record
 	transferRecords, err = tx.QueryAllRecords(c, q)
 	transfers = models.TransfersFromRecords(transferRecords)
@@ -205,9 +203,9 @@ func (transferDalGae TransferDalGae) LoadTransferIDsByContactID(c context.Contex
 	}
 	q := dal.From(models.TransferKind).
 		WhereField("BothCounterpartyIDs", dal.Equal, contactID).
+		Limit(limit).
+		StartFrom(dal.Cursor(startCursor)).
 		SelectInto(models.NewTransferRecord)
-	q.Limit = limit
-	q.StartCursor = startCursor
 
 	//if startCursor != "" {
 	//	var decodedCursor datastore.Cursor
@@ -254,9 +252,9 @@ func (transferDalGae TransferDalGae) LoadTransfersByContactID(c context.Context,
 	q := dal.From(models.TransferKind).
 		WhereField("BothCounterpartyIDs", dal.Equal, contactID).
 		OrderBy(dal.DescendingField("DtCreated")).
+		Limit(limit).
+		Offset(offset).
 		SelectInto(models.NewTransferRecord)
-	q.Limit = limit
-	q.Offset = offset
 
 	if transfers, err = transferDalGae.loadTransfers(c, q); err != nil {
 		return
@@ -268,9 +266,9 @@ func (transferDalGae TransferDalGae) LoadTransfersByContactID(c context.Context,
 func (transferDalGae TransferDalGae) LoadLatestTransfers(c context.Context, offset, limit int) ([]models.Transfer, error) {
 	q := dal.From(models.TransferKind).
 		OrderBy(dal.DescendingField("DtCreated")).
+		Limit(limit).
+		Offset(offset).
 		SelectInto(models.NewTransferRecord)
-	q.Limit = limit
-	q.Offset = offset
 	return transferDalGae.loadTransfers(c, q)
 }
 
@@ -279,6 +277,10 @@ func (transferDalGae TransferDalGae) loadTransfers(c context.Context, q dal.Quer
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
+	//var reader dal.Reader
+	//if reader, err = db.QueryReader(c, q); err != nil {
+	//	return
+	//}
 	var records []dal.Record
 	if records, err = db.QueryAllRecords(c, q); err != nil {
 		return

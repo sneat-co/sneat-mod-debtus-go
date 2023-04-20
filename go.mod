@@ -11,7 +11,7 @@ require (
 	github.com/captaincodeman/datastore-mapper v0.0.0-20170320145307-cb380a4c4d13
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85
 	github.com/crediterra/money v0.0.1
-	github.com/dal-go/dalgo v0.2.14
+	github.com/dal-go/dalgo v0.2.19
 	github.com/dal-go/mocks4dalgo v0.1.1
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/gorilla/sessions v1.2.1
@@ -51,7 +51,7 @@ require (
 	cloud.google.com/go/storage v1.30.1 // indirect
 	github.com/bots-go-framework/bots-fw-dalgo v0.0.5 // indirect
 	github.com/captaincodeman/datastore-locker v0.0.0-20170308203336-4eddc467484e // indirect
-	github.com/dal-go/dalgo2datastore v0.0.7 // indirect
+	github.com/dal-go/dalgo2datastore v0.0.8 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect

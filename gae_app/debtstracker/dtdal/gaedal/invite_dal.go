@@ -197,8 +197,8 @@ func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, invite mo
 			counterpartyQuery := dal.From(models.ContactKind).
 				WhereField("UserID", dal.Equal, claimedByUserID).
 				WhereField("CounterpartyUserID", dal.Equal, invite.Data.CreatedByUserID).
+				Limit(1).
 				SelectInto(models.NewContactRecord)
-			counterpartyQuery.Limit = 1
 
 			counterpartyRecords, err := db.QueryAllRecords(c, counterpartyQuery)
 
