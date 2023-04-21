@@ -11,7 +11,7 @@ require (
 	github.com/captaincodeman/datastore-mapper v0.0.0-20170320145307-cb380a4c4d13
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85
 	github.com/crediterra/money v0.0.1
-	github.com/dal-go/dalgo v0.2.23
+	github.com/dal-go/dalgo v0.2.25
 	github.com/dal-go/mocks4dalgo v0.1.1
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/gorilla/sessions v1.2.1
