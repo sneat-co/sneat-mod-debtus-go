@@ -120,16 +120,16 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 var delayedChangeTransfersCounterparty = delay.Func("changeTransfersCounterparty", func(c context.Context, oldID, newID int64, cursor string) (err error) {
 	log.Debugf(c, "delayedChangeTransfersCounterparty(oldID=%d, newID=%d)", oldID, newID)
 
-	query := dal.From(models.TransferKind).
+	var q = dal.From(models.TransferKind).
 		WhereField("BothCounterpartyIDs", dal.Equal, oldID).
 		Limit(100).
 		SelectKeysOnly(reflect.Int)
 
 	var reader dal.Reader
-	if reader, err = facade.DB().QueryReader(c, query); err != nil {
+	if reader, err = facade.DB().QueryReader(c, q); err != nil {
 		return err
 	}
-	transferIDs, err := dal.SelectAllIDs[int](reader, query.Limit())
+	transferIDs, err := dal.SelectAllIDs[int](reader, q.Limit())
 	if err != nil {
 		return err
 	}
