@@ -3,7 +3,7 @@ module bitbucket.org/asterus/debtstracker-server
 go 1.20
 
 require (
-	github.com/aws/aws-sdk-go v1.44.246
+	github.com/aws/aws-sdk-go v1.44.247
 	github.com/bots-go-framework/bots-api-telegram v0.1.1
 	github.com/bots-go-framework/bots-fw v0.9.11
 	github.com/bots-go-framework/bots-fw-telegram v0.4.7
@@ -11,7 +11,7 @@ require (
 	github.com/captaincodeman/datastore-mapper v0.0.0-20170320145307-cb380a4c4d13
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85
 	github.com/crediterra/money v0.0.1
-	github.com/dal-go/dalgo v0.2.19
+	github.com/dal-go/dalgo v0.2.23
 	github.com/dal-go/mocks4dalgo v0.1.1
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/gorilla/sessions v1.2.1
@@ -51,12 +51,12 @@ require (
 	cloud.google.com/go/storage v1.30.1 // indirect
 	github.com/bots-go-framework/bots-fw-dalgo v0.0.5 // indirect
 	github.com/captaincodeman/datastore-locker v0.0.0-20170308203336-4eddc467484e // indirect
-	github.com/dal-go/dalgo2datastore v0.0.8 // indirect
+	github.com/dal-go/dalgo2datastore v0.0.10 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
-	github.com/google/s2a-go v0.1.1 // indirect
+	github.com/google/s2a-go v0.1.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.8.0 // indirect
@@ -70,7 +70,7 @@ require (
 	golang.org/x/sys v0.7.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
-	google.golang.org/api v0.118.0 // indirect
+	google.golang.org/api v0.119.0 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	google.golang.org/grpc v1.54.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect

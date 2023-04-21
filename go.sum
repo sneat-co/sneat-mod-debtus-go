@@ -25,6 +25,8 @@ github.com/aws/aws-sdk-go v1.44.245 h1:KtY2s4q31/kn33AdV63R5t77mdxsI7rq3YT7Mgo80
 github.com/aws/aws-sdk-go v1.44.245/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
 github.com/aws/aws-sdk-go v1.44.246 h1:iLxPX6JU0bxAci9R6/bp8rX0kL871ByCTx0MZlQWv1U=
 github.com/aws/aws-sdk-go v1.44.246/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
+github.com/aws/aws-sdk-go v1.44.247 h1:oUJZr62HT8RIo9nRCwam8iXzXnSIwwndSVGH0/gym+E=
+github.com/aws/aws-sdk-go v1.44.247/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
 github.com/bots-go-framework/bots-api-telegram v0.1.1 h1:Q3M3ZkNYttLOzsa6RAJGro/5iP0Ngeoj4q61kCUzUUM=
 github.com/bots-go-framework/bots-api-telegram v0.1.1/go.mod h1:RBwFLRmHBiC/K/Cw+AdTDehcuwkvSkfRc9zU03twJzA=
 github.com/bots-go-framework/bots-fw v0.9.11 h1:7OrRWGrbtePRuSpH6UXarW192bJxMX+NdWUeF77YsCM=
@@ -64,6 +66,8 @@ github.com/dal-go/dalgo v0.2.18 h1:mroYKkfi59o4dVlVSdMYyRVt3ZzrMtBHTAX/cG9ccOI=
 github.com/dal-go/dalgo v0.2.18/go.mod h1:b0U+y2xjE5xY+HJ+vAt1DDcJe32N98tbRWDp5tPTwIc=
 github.com/dal-go/dalgo v0.2.19 h1:5TuYl8oBGgh65Pn/xoOzIIn/v/zk9W8ItQQeYID0MmA=
 github.com/dal-go/dalgo v0.2.19/go.mod h1:b0U+y2xjE5xY+HJ+vAt1DDcJe32N98tbRWDp5tPTwIc=
+github.com/dal-go/dalgo v0.2.23 h1:q5iT2RY1StuzheqYiA8eL92Z2IXOn6LhbH5Jqci5QIQ=
+github.com/dal-go/dalgo v0.2.23/go.mod h1:b0U+y2xjE5xY+HJ+vAt1DDcJe32N98tbRWDp5tPTwIc=
 github.com/dal-go/dalgo2datastore v0.0.5 h1:ejVqUAgQ75/XYO5KvmZS09HoSlu9aupIVzDd+YSXRnM=
 github.com/dal-go/dalgo2datastore v0.0.5/go.mod h1:keIOit6GxfdQ61KeQhmtPd8la2OcS2cXxbkcOizgyp4=
 github.com/dal-go/dalgo2datastore v0.0.6 h1:z+aZaeWTDxX3h7Tii1oPBuHzVIJfI93a/BDKULpPblY=
@@ -72,6 +76,8 @@ github.com/dal-go/dalgo2datastore v0.0.7 h1:0xshf2dKJN5CSl4TE6hUTbz9AaDFk7k7JDFx
 github.com/dal-go/dalgo2datastore v0.0.7/go.mod h1:RGgwH1DkxHv+iHiMY+G9l2Zza/izcT/C8Z5u39Albg8=
 github.com/dal-go/dalgo2datastore v0.0.8 h1:ManSn5bnKiC0zQYpDag8CXeMcTvAAKbOJuMF65swAzQ=
 github.com/dal-go/dalgo2datastore v0.0.8/go.mod h1:VNXBMxlp4nKgiQf/PpnKAK3MRTkiV/ZHNFUPld0t6a4=
+github.com/dal-go/dalgo2datastore v0.0.10 h1:dHP9e3sp3yx72cV9Hb+8Z9sxPul+DkyEficp4WOAgeg=
+github.com/dal-go/dalgo2datastore v0.0.10/go.mod h1:XPDBsE145cPd09+dffnLSVP4FuRj38pQqm5TF7edISs=
 github.com/dal-go/mocks4dalgo v0.1.1 h1:ZRrgNgi5yVtU+/LLn9n8uqmfPJ9+3eG/hW6HXEXPS/8=
 github.com/dal-go/mocks4dalgo v0.1.1/go.mod h1:mZXaaZAqGvCIfw0SiJzjaWwshcGJCOj69NI3/7/aKP0=
 github.com/davecgh/go-spew v0.0.0-20161028175848-04cdfd42973b/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -124,6 +130,8 @@ github.com/google/go-cmp v0.5.9/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeN
 github.com/google/martian/v3 v3.3.2 h1:IqNFLAmvJOgVlpdEBiQbDc2EwKW77amAycfTuWKdfvw=
 github.com/google/s2a-go v0.1.1 h1:XJQvZvUdPzOGdf4ZMQc78wYt9XrdIZOl//n03i8P68Q=
 github.com/google/s2a-go v0.1.1/go.mod h1:OJpEgntRZo8ugHpF9hkoLJbS5dSI20XZeXJ9JVywLlM=
+github.com/google/s2a-go v0.1.2 h1:WVtYAYuYxKeYajAmThMRYWP6K3wXkcqbGHeUgeubUHY=
+github.com/google/s2a-go v0.1.2/go.mod h1:OJpEgntRZo8ugHpF9hkoLJbS5dSI20XZeXJ9JVywLlM=
 github.com/google/uuid v1.1.2/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
 github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
@@ -295,6 +303,8 @@ golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 h1:H2TDz8ibqkAF6YGhCdN3j
 golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2/go.mod h1:K8+ghG5WaK9qNqU5K3HdILfMLy1f3aNYFI/wnl100a8=
 google.golang.org/api v0.118.0 h1:FNfHq9Z2GKULxu7cEhCaB0wWQHg43UpomrrN+24ZRdE=
 google.golang.org/api v0.118.0/go.mod h1:76TtD3vkgmZ66zZzp72bUUklpmQmKlhh6sYtIjYK+5E=
+google.golang.org/api v0.119.0 h1:Dzq+ARD6+8jmd5wknJE1crpuzu1JiovEU6gCp9PkoKA=
+google.golang.org/api v0.119.0/go.mod h1:CrSvlNEFCFLae9ZUtL1z+61+rEBD7J/aCYwVYKZoWFU=
 google.golang.org/appengine v1.1.0/go.mod h1:EbEs0AVv82hx2wNQdGPgUI5lhzA/G0D9YwlJXL52JkM=
 google.golang.org/appengine v1.4.0/go.mod h1:xpcJRLb0r/rnEns0DIKYYv+WjYCduHsrkT7/EB5XEv4=
 google.golang.org/appengine v1.6.7 h1:FZR1q0exgwxzPzp/aF+VccGrSfxfPpkBqjIIEq3ru6c=
