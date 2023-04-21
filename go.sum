@@ -27,6 +27,8 @@ github.com/aws/aws-sdk-go v1.44.246 h1:iLxPX6JU0bxAci9R6/bp8rX0kL871ByCTx0MZlQWv
 github.com/aws/aws-sdk-go v1.44.246/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
 github.com/aws/aws-sdk-go v1.44.247 h1:oUJZr62HT8RIo9nRCwam8iXzXnSIwwndSVGH0/gym+E=
 github.com/aws/aws-sdk-go v1.44.247/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
+github.com/aws/aws-sdk-go v1.44.248 h1:GvkxpgsxqNc03LmhXiaxKpzbyxndnex7V+OThLx4g5M=
+github.com/aws/aws-sdk-go v1.44.248/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
 github.com/bots-go-framework/bots-api-telegram v0.1.1 h1:Q3M3ZkNYttLOzsa6RAJGro/5iP0Ngeoj4q61kCUzUUM=
 github.com/bots-go-framework/bots-api-telegram v0.1.1/go.mod h1:RBwFLRmHBiC/K/Cw+AdTDehcuwkvSkfRc9zU03twJzA=
 github.com/bots-go-framework/bots-fw v0.9.11 h1:7OrRWGrbtePRuSpH6UXarW192bJxMX+NdWUeF77YsCM=
