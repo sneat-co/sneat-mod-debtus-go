@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/aws/aws-sdk-go v1.44.248
 	github.com/bots-go-framework/bots-api-telegram v0.1.1
-	github.com/bots-go-framework/bots-fw v0.9.11
+	github.com/bots-go-framework/bots-fw v0.9.12
 	github.com/bots-go-framework/bots-fw-telegram v0.4.7
 	github.com/bots-go-framework/bots-host-gae v0.3.7
 	github.com/captaincodeman/datastore-mapper v0.0.0-20170320145307-cb380a4c4d13
