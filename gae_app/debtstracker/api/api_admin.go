@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
+	apphostgae "github.com/strongo/app-host-gae"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -15,7 +16,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
-	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/taskqueue"
@@ -98,7 +98,7 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 				return err
 			}
 		}
-		if task, err := gae.CreateDelayTask(common.QUEUE_SUPPORT, "changeTransfersCounterparty", delayedChangeTransfersCounterparty, deleteID, keepID, ""); err != nil {
+		if task, err := apphostgae.CreateDelayTask(common.QUEUE_SUPPORT, "changeTransfersCounterparty", delayedChangeTransfersCounterparty, deleteID, keepID, ""); err != nil {
 			return err
 		} else {
 			if _, err = taskqueue.Add(c, task, common.QUEUE_SUPPORT); err != nil {
@@ -137,7 +137,7 @@ var delayedChangeTransfersCounterparty = delay.Func("changeTransfersCounterparty
 	log.Infof(c, "Loaded %d transferIDs", len(transferIDs))
 	tasks := make([]*taskqueue.Task, len(transferIDs))
 	for i, id := range transferIDs {
-		if tasks[i], err = gae.CreateDelayTask(common.QUEUE_SUPPORT, "changeTransferCounterparty", delayedChangeTransferCounterparty, id, oldID, newID, ""); err != nil {
+		if tasks[i], err = apphostgae.CreateDelayTask(common.QUEUE_SUPPORT, "changeTransferCounterparty", delayedChangeTransferCounterparty, id, oldID, newID, ""); err != nil {
 			return err
 		}
 	}

@@ -7,7 +7,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/strongo/app/gae"
+	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
 )
@@ -51,7 +51,7 @@ func (GroupDalGae) GetGroupByID(c context.Context, tx dal.ReadSession, groupID s
 }
 
 func (GroupDalGae) DelayUpdateGroupWithBill(c context.Context, groupID, billID string) (err error) {
-	if err = gae.CallDelayFunc(c, common.QUEUE_BILLS, "UpdateGroupWithBill", delayedUpdateGroupWithBill, groupID, billID); err != nil {
+	if err = apphostgae.CallDelayFunc(c, common.QUEUE_BILLS, "UpdateGroupWithBill", delayedUpdateGroupWithBill, groupID, billID); err != nil {
 		return
 	}
 	return

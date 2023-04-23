@@ -7,12 +7,12 @@ require (
 	github.com/bots-go-framework/bots-api-telegram v0.1.1
 	github.com/bots-go-framework/bots-fw v0.9.12
 	github.com/bots-go-framework/bots-fw-telegram v0.4.8
-	github.com/bots-go-framework/bots-host-gae v0.3.8
+	github.com/bots-go-framework/bots-host-gae v0.3.9
 	github.com/captaincodeman/datastore-mapper v0.0.0-20170320145307-cb380a4c4d13
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85
 	github.com/crediterra/money v0.0.1
 	github.com/dal-go/dalgo v0.2.26
-	github.com/dal-go/mocks4dalgo v0.1.6
+	github.com/dal-go/mocks4dalgo v0.1.3
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/gorilla/sessions v1.2.1
 	github.com/julienschmidt/httprouter v1.3.0
@@ -22,7 +22,8 @@ require (
 	github.com/sendgrid/sendgrid-go v3.12.0+incompatible
 	github.com/shiyanhui/hero v0.0.2
 	github.com/sneat-co/debtstracker-translations v0.0.2
-	github.com/strongo/app v0.0.6
+	github.com/strongo/app v0.1.0
+	github.com/strongo/app-host-gae v0.0.1
 	github.com/strongo/decimal v0.0.0-20180523215323-a1521d8f65fa
 	github.com/strongo/facebook v1.8.1
 	github.com/strongo/gamp v0.0.1

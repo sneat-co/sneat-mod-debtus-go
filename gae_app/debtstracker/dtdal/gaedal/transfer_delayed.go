@@ -3,6 +3,7 @@ package gaedal
 import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
+	apphostgae "github.com/strongo/app-host-gae"
 	"reflect"
 	"sync"
 	"time"
@@ -13,7 +14,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
-	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
 )
@@ -26,9 +26,9 @@ func (TransferDalGae) DelayUpdateTransfersWithCounterparty(c context.Context, cr
 	if counterpartyCounterpartyID == 0 {
 		return errors.New("counterpartyCounterpartyID == 0")
 	}
-	if task, err := gae.CreateDelayTask(common.QUEUE_TRANSFERS, DELAY_UPDATE_TRANSFERS_WITH_COUNTERPARTY, delayedUpdateTransfersWithCounterparty, creatorCounterpartyID, counterpartyCounterpartyID); err != nil {
+	if task, err := apphostgae.CreateDelayTask(common.QUEUE_TRANSFERS, DELAY_UPDATE_TRANSFERS_WITH_COUNTERPARTY, delayedUpdateTransfersWithCounterparty, creatorCounterpartyID, counterpartyCounterpartyID); err != nil {
 		return err
-	} else if _, err = gae.AddTaskToQueue(c, task, common.QUEUE_TRANSFERS); err != nil {
+	} else if _, err = apphostgae.AddTaskToQueue(c, task, common.QUEUE_TRANSFERS); err != nil {
 		return err
 	}
 	return nil
@@ -69,12 +69,12 @@ var delayedUpdateTransfersWithCounterparty = delay.Func(DELAY_UPDATE_TRANSFERS_W
 		log.Infof(c, "Loaded %d transfer IDs", len(transferIDs))
 		delayDuration := 10 * time.Microsecond
 		for _, transferID := range transferIDs {
-			if task, err := gae.CreateDelayTask(common.QUEUE_TRANSFERS, DELAY_UPDATE_1_TRANSFER_WITH_COUNTERPARTY, delayedUpdateTransferWithCounterparty, transferID, counterpartyCounterpartyID); err != nil {
+			if task, err := apphostgae.CreateDelayTask(common.QUEUE_TRANSFERS, DELAY_UPDATE_1_TRANSFER_WITH_COUNTERPARTY, delayedUpdateTransferWithCounterparty, transferID, counterpartyCounterpartyID); err != nil {
 				return fmt.Errorf("failed to create task for transfer id=%d: %w", transferID, err)
 			} else {
 				task.Delay = delayDuration
 				delayDuration += 10 * time.Microsecond
-				if _, err = gae.AddTaskToQueue(c, task, common.QUEUE_TRANSFERS); err != nil {
+				if _, err = apphostgae.AddTaskToQueue(c, task, common.QUEUE_TRANSFERS); err != nil {
 					return fmt.Errorf("failed to add task for transfer %d to queue [%v]: %w", transferID, common.QUEUE_TRANSFERS, err)
 				}
 			}
@@ -231,7 +231,7 @@ const (
 )
 
 func DelayUpdateTransfersWithCreatorName(c context.Context, userID int64) error {
-	return gae.CallDelayFunc(c, common.QUEUE_TRANSFERS, UPDATE_TRANSFERS_WITH_CREATOR_NAME, delayedUpdateTransfersWithCreatorName, userID)
+	return apphostgae.CallDelayFunc(c, common.QUEUE_TRANSFERS, UPDATE_TRANSFERS_WITH_CREATOR_NAME, delayedUpdateTransfersWithCreatorName, userID)
 }
 
 var delayedUpdateTransfersWithCreatorName = delay.Func(UPDATE_TRANSFERS_WITH_CREATOR_NAME, func(c context.Context, userID int64) (err error) {

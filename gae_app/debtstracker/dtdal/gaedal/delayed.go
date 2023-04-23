@@ -18,8 +18,7 @@ import (
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
-	"github.com/strongo/app/gae"
-	"github.com/strongo/app/gaestandard"
+	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/urlfetch"
@@ -30,11 +29,11 @@ import (
 )
 
 func (UserDalGae) DelaySetUserPreferredLocale(c context.Context, delay time.Duration, userID int64, localeCode5 string) error {
-	if task, err := gae.CreateDelayTask(common.QUEUE_USERS, "set-user-preferred-locale", delayedSetUserPreferredLocale, userID, localeCode5); err != nil {
+	if task, err := apphostgae.CreateDelayTask(common.QUEUE_USERS, "set-user-preferred-locale", delayedSetUserPreferredLocale, userID, localeCode5); err != nil {
 		return fmt.Errorf("failed to create delayed task delayedSetUserPreferredLocale: %w", err)
 	} else {
 		task.Delay = delay
-		if _, err = gae.AddTaskToQueue(c, task, common.QUEUE_REMINDERS); err != nil {
+		if _, err = apphostgae.AddTaskToQueue(c, task, common.QUEUE_REMINDERS); err != nil {
 			return fmt.Errorf("failed to add update-users task to taskqueue: %w", err)
 		}
 		return nil
@@ -67,7 +66,7 @@ var delayedSetUserPreferredLocale = delay.Func("SetUserPreferredLocale", func(c 
 func (TransferDalGae) DelayUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCode string, transferID int, creatorTgChatID, creatorTgReceiptMessageID int64) error {
 	// log.Debugf(c, "delayUpdateTransferWithCreatorReceiptTgMessageID(botCode=%v, transferID=%v, creatorTgChatID=%v, creatorTgReceiptMessageID=%v)", botCode, transferID, creatorTgChatID, creatorTgReceiptMessageID)
 
-	if err := gae.CallDelayFunc(
+	if err := apphostgae.CallDelayFunc(
 		c, common.QUEUE_TRANSFERS, "update-transfer-with-creator-receipt-tg-message-id",
 		delayedUpdateTransferWithCreatorReceiptTgMessageID,
 		botCode, transferID, creatorTgChatID, creatorTgReceiptMessageID); err != nil {
@@ -108,11 +107,11 @@ var delayedUpdateTransferWithCreatorReceiptTgMessageID = delay.Func("UpdateTrans
 func (ReceiptDalGae) DelayCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongo.Environment, transferID int, userID int64) error {
 	log.Debugf(c, "delaySendReceiptToCounterpartyByTelegram(env=%v, transferID=%v, userID=%v)", env, transferID, userID)
 
-	if task, err := gae.CreateDelayTask(common.QUEUE_RECEIPTS, "create-and-send-receipt-for-counterparty-by-telegram", delayedCreateAndSendReceiptToCounterpartyByTelegram, env, transferID, userID); err != nil {
+	if task, err := apphostgae.CreateDelayTask(common.QUEUE_RECEIPTS, "create-and-send-receipt-for-counterparty-by-telegram", delayedCreateAndSendReceiptToCounterpartyByTelegram, env, transferID, userID); err != nil {
 		return err
 	} else {
 		task.Delay = time.Duration(1 * time.Second / 10)
-		if _, err = gae.AddTaskToQueue(c, task, common.QUEUE_RECEIPTS); err != nil {
+		if _, err = apphostgae.AddTaskToQueue(c, task, common.QUEUE_RECEIPTS); err != nil {
 			return err
 		}
 	}
@@ -158,7 +157,7 @@ func DelayOnReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, t
 	if transferID == 0 {
 		return errors.New("transferID == 0")
 	}
-	if err := gae.CallDelayFunc(c, common.QUEUE_RECEIPTS, "on-receipt-sent-success", delayedOnReceiptSentSuccess, sentAt, receiptID, transferID, tgChatID, tgMsgID, tgBotID, locale); err != nil {
+	if err := apphostgae.CallDelayFunc(c, common.QUEUE_RECEIPTS, "on-receipt-sent-success", delayedOnReceiptSentSuccess, sentAt, receiptID, transferID, tgChatID, tgMsgID, tgBotID, locale); err != nil {
 		log.Errorf(c, err.Error())
 		return onReceiptSentSuccess(c, sentAt, receiptID, transferID, tgChatID, tgMsgID, tgBotID, locale)
 	}
@@ -172,7 +171,7 @@ func DelayOnReceiptSendFail(c context.Context, receiptID int, tgChatID int64, tg
 	if failedAt.IsZero() {
 		return errors.New("failedAt.IsZero()")
 	}
-	if err := gae.CallDelayFunc(c, common.QUEUE_RECEIPTS, "on-receipt-send-fail", delayedOnReceiptSendFail, receiptID, tgChatID, tgMsgID, failedAt, locale, details); err != nil {
+	if err := apphostgae.CallDelayFunc(c, common.QUEUE_RECEIPTS, "on-receipt-send-fail", delayedOnReceiptSendFail, receiptID, tgChatID, tgMsgID, failedAt, locale, details); err != nil {
 		log.Errorf(c, err.Error())
 		return onReceiptSendFail(c, receiptID, tgChatID, tgMsgID, failedAt, locale, details)
 	}
@@ -342,7 +341,7 @@ func getTranslator(c context.Context, localeCode string) (translator strongo.Sin
 
 func editTgMessageText(c context.Context, tgBotID string, tgChatID int64, tgMsgID int, text string) (err error) {
 	msg := tgbotapi.NewEditMessageText(tgChatID, tgMsgID, "", text)
-	telegramBots := tgbots.Bots(gaestandard.GetEnvironment(c), nil)
+	telegramBots := tgbots.Bots(dtdal.HttpAppHost.GetEnvironment(c, nil), nil)
 	botSettings, ok := telegramBots.ByCode[tgBotID]
 	if !ok {
 		return fmt.Errorf("Bot settings not found by tgChat.BotID=%v, out of %v items", tgBotID, len(telegramBots.ByCode))
@@ -364,11 +363,11 @@ func sendToTelegram(c context.Context, msg tgbotapi.Chattable, botSettings botsf
 var errReceiptStatusIsNotCreated = errors.New("receipt is not in 'created' status")
 
 func delaySendReceiptToCounterpartyByTelegram(c context.Context, receiptID int, tgChatID int64, localeCode string) error {
-	if task, err := gae.CreateDelayTask(common.QUEUE_RECEIPTS, "send-receipt-to-counterparty-by-telegram", delayedSendReceiptToCounterpartyByTelegram, receiptID, tgChatID, localeCode); err != nil {
+	if task, err := apphostgae.CreateDelayTask(common.QUEUE_RECEIPTS, "send-receipt-to-counterparty-by-telegram", delayedSendReceiptToCounterpartyByTelegram, receiptID, tgChatID, localeCode); err != nil {
 		return err
 	} else {
 		task.Delay = time.Duration(1 * time.Second / 10)
-		if _, err = gae.AddTaskToQueue(c, task, common.QUEUE_RECEIPTS); err != nil {
+		if _, err = apphostgae.AddTaskToQueue(c, task, common.QUEUE_RECEIPTS); err != nil {
 			return err
 		}
 	}
@@ -654,7 +653,7 @@ func (UserDalGae) DelayUpdateUserHasDueTransfers(c context.Context, userID int64
 	if userID == 0 {
 		panic("userID == 0")
 	}
-	return gae.CallDelayFunc(c, common.QUEUE_USERS, "update-user-has-due-transfers", delayedUpdateUserHasDueTransfers, userID)
+	return apphostgae.CallDelayFunc(c, common.QUEUE_USERS, "update-user-has-due-transfers", delayedUpdateUserHasDueTransfers, userID)
 }
 
 var delayedUpdateUserHasDueTransfers = delay.Func("delayedUpdateUserHasDueTransfers", func(c context.Context, userID int64) (err error) {

@@ -2,7 +2,7 @@ package gaedal
 
 //import (
 //	"context"
-//	"github.com/strongo/app/gae"
+//	apphostgae "github.com/strongo/app-host-gae"
 //	"google.golang.org/appengine/delay"
 //)
 //
@@ -10,5 +10,5 @@ package gaedal
 //}
 //
 //func (TaskQueueDalGae) CallDelayFunc(c context.Context, queueName, subPath, key string, f interface{}, args ...interface{}) error {
-//	return gae.CallDelayFunc(c, queueName, subPath, delay.Func(key, f), args...)
+//	return apphostgae.CallDelayFunc(c, queueName, subPath, delay.Func(key, f), args...)
 //}

@@ -3,6 +3,7 @@ package gaedal
 import (
 	"errors"
 	"github.com/dal-go/dalgo/dal"
+	apphostgae "github.com/strongo/app-host-gae"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
@@ -10,7 +11,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
 )
@@ -106,7 +106,7 @@ func (receiptDalGae ReceiptDalGae) MarkReceiptAsSent(c context.Context, receiptI
 }
 
 func (receiptDalGae ReceiptDalGae) DelayedMarkReceiptAsSent(c context.Context, receiptID, transferID int, sentTime time.Time) error {
-	return gae.CallDelayFunc(c, common.QUEUE_TRANSFERS, "set-receipt-as-sent", delayedMarkReceiptAsSent, receiptID, transferID, sentTime)
+	return apphostgae.CallDelayFunc(c, common.QUEUE_TRANSFERS, "set-receipt-as-sent", delayedMarkReceiptAsSent, receiptID, transferID, sentTime)
 }
 
 var delayedMarkReceiptAsSent = delay.Func("delayedMarkReceiptAsSent", func(c context.Context, receiptID, transferID int, sentTime time.Time) (err error) {

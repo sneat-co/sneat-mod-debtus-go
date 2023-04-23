@@ -4,6 +4,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
+	apphostgae "github.com/strongo/app-host-gae"
 	"net/http"
 	"reflect"
 	"time"
@@ -12,7 +13,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal/gaedal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
 )
 
@@ -53,7 +53,7 @@ func CronSendReminders(c context.Context, w http.ResponseWriter, r *http.Request
 	for _, reminderID := range reminderIDs {
 		task := gaedal.CreateSendReminderTask(c, reminderID)
 		task.Name = fmt.Sprintf("r_%d_%v", reminderID, time.Now().Format("200601021504"))
-		if _, err := gae.AddTaskToQueue(c, task, common.QUEUE_REMINDERS); err != nil {
+		if _, err := apphostgae.AddTaskToQueue(c, task, common.QUEUE_REMINDERS); err != nil {
 			log.Errorf(c, "Failed to add delayed task for reminder %d", reminderID)
 			return
 		}

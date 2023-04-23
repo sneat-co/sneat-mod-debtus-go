@@ -15,8 +15,7 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
-	"github.com/strongo/app/gae"
-	"github.com/strongo/app/gaestandard"
+	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/urlfetch"
@@ -47,7 +46,7 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 
 	translator := strongo.NewSingleMapTranslator(locale, strongo.NewMapTranslator(c, trans.TRANS))
 
-	env := gaestandard.GetEnvironment(c)
+	env := dtdal.HttpAppHost.GetEnvironment(c, nil)
 
 	if botSettings, ok := tgbots.Bots(env, nil).ByCode[tgBot]; !ok {
 		err = fmt.Errorf("bot settings not found (env=%v, tgBotID=%v)", env, tgBot)
@@ -128,7 +127,7 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 }
 
 func DelaySetChatIsForbidden(c context.Context, botID string, tgChatID int64, at time.Time) error {
-	return gae.CallDelayFunc(c, common.QUEUE_CHATS, "set-chat-is-forbidden", delaySetChatIsForbidden, botID, tgChatID, at)
+	return apphostgae.CallDelayFunc(c, common.QUEUE_CHATS, "set-chat-is-forbidden", delaySetChatIsForbidden, botID, tgChatID, at)
 }
 
 var delaySetChatIsForbidden = delay.Func("SetChatIsForbidden", SetChatIsForbidden)

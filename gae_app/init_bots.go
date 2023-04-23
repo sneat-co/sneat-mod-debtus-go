@@ -7,13 +7,13 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/splitus"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"context"
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
-	"github.com/strongo/app/gaestandard"
 )
 
 func newTranslator(c context.Context) strongo.Translator {
@@ -46,7 +46,7 @@ func InitBots(httpRouter *httprouter.Router, botHost botsfw.BotHost, appContext 
 }
 
 func telegramBotsWithRouter(c context.Context) botsfw.SettingsBy {
-	return tgbots.Bots(gaestandard.GetEnvironment(c), func(profile string) botsfw.WebhooksRouter {
+	return tgbots.Bots(dtdal.HttpAppHost.GetEnvironment(c, nil), func(profile string) botsfw.WebhooksRouter {
 		switch profile {
 		case bot.ProfileDebtus:
 			return debtus.Router

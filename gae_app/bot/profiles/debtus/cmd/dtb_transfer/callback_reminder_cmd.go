@@ -15,9 +15,9 @@ import (
 	"github.com/strongo/log"
 	//"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/telegram"
 	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	//"github.com/strongo/app/gaestandard"
+	//apphostgae "github.com/strongo/app-host-gae"
 	//"github.com/strongo/app"
-	//"github.com/strongo/app/gae"
+	//apphostgae "github.com/strongo/app-host-gae"
 	//"context"
 	//"google.golang.org/appengine/delay"
 	//"google.golang.org/appengine/urlfetch"
@@ -130,12 +130,12 @@ func rescheduleReminder(whc botsfw.WebhookContext, reminderID int, remindInDurat
 //const ASK_FOR_FEEDBACK_TASK = "ask-for-feedback"
 //
 //func delayAskForFeedback(c context.Context, botCode string, chatID int64, userID int64) error {
-//	task, err := gae.CreateDelayTask(common.QUEUE_CHATS, ASK_FOR_FEEDBACK_TASK, delayedAskForFeedback, botCode, chatID, userID)
+//	task, err := apphostgae.CreateDelayTask(common.QUEUE_CHATS, ASK_FOR_FEEDBACK_TASK, delayedAskForFeedback, botCode, chatID, userID)
 //	if err != nil {
 //		return err
 //	}
 //	task.Delay = time.Second / 2
-//	task, err = gae.AddTaskToQueue(c, task, common.QUEUE_CHATS)
+//	task, err = apphostgae.AddTaskToQueue(c, task, common.QUEUE_CHATS)
 //	return err
 //}
 //

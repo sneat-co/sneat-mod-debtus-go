@@ -23,7 +23,6 @@ import (
 	"context"
 	"errors"
 	"github.com/strongo/app"
-	"github.com/strongo/app/gaestandard"
 	"github.com/strongo/log"
 )
 
@@ -99,12 +98,12 @@ func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request)
 		if lang == "" {
 			lang = receipt.Data.Lang
 		}
-		env := gaestandard.GetEnvironmentFromHost(r.Host)
+		env := dtdal.HttpAppHost.GetEnvironment(c, r)
 		if env == strongo.EnvUnknown {
 			w.WriteHeader(http.StatusBadRequest)
 			log.Warningf(c, "Unknown host")
 		}
-		botSettings, err := tgbots.GetBotSettingsByLang(gaestandard.GetEnvironment(c), bot.ProfileDebtus, lang)
+		botSettings, err := tgbots.GetBotSettingsByLang(env, bot.ProfileDebtus, lang)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			log.Errorf(c, fmt.Errorf("failed to get bot settings by lang: %w", err).Error())

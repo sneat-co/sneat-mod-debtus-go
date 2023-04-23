@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/strongo/app/gae"
+	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
 	"strconv"
@@ -135,7 +135,7 @@ func (userDal UserDalGae) CreateUser(c context.Context, userData *models.AppUser
 }
 
 func (UserDalGae) DelayUpdateUserWithBill(c context.Context, userID, billID string) (err error) {
-	if err = gae.CallDelayFunc(c, common.QUEUE_BILLS, "UpdateUserWithBill", delayedUpdateUserWithBill, userID, billID); err != nil {
+	if err = apphostgae.CallDelayFunc(c, common.QUEUE_BILLS, "UpdateUserWithBill", delayedUpdateUserWithBill, userID, billID); err != nil {
 		return
 	}
 	return
@@ -152,7 +152,7 @@ var delayedUpdateUserWithBill = delay.Func("delayedUpdateWithBill", func(c conte
 })
 
 func (UserDalGae) DelayUpdateUserWithContact(c context.Context, userID, billID int64) (err error) {
-	if err = gae.CallDelayFuncWithDelay(c, time.Second/10, common.QUEUE_USERS, "updateUserWithContact", delayedUpdateUserWithContact, userID, billID); err != nil {
+	if err = apphostgae.CallDelayFuncWithDelay(c, time.Second/10, common.QUEUE_USERS, "updateUserWithContact", delayedUpdateUserWithContact, userID, billID); err != nil {
 		return
 	}
 	return

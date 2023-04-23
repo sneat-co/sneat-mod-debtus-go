@@ -8,7 +8,7 @@ import (
 	"context"
 	"errors"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/strongo/app/gae"
+	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
 )
@@ -33,7 +33,7 @@ func (billDalGae) SaveBill(c context.Context, tx dal.ReadwriteTransaction, bill 
 }
 
 func (billDalGae) DelayUpdateBillDependencies(c context.Context, billID string) (err error) {
-	if err = gae.CallDelayFunc(c, common.QUEUE_BILLS, "UpdateBillDependencies", delayedUpdateBillDependencies, billID); err != nil {
+	if err = apphostgae.CallDelayFunc(c, common.QUEUE_BILLS, "UpdateBillDependencies", delayedUpdateBillDependencies, billID); err != nil {
 		return
 	}
 	return

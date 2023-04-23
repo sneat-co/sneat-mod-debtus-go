@@ -2,13 +2,13 @@ package gaedal
 
 import (
 	"fmt"
+	apphostgae "github.com/strongo/app-host-gae"
 	"strings"
 	"testing"
 	"time"
 
 	"context"
 	"github.com/strongo/app"
-	"github.com/strongo/app/gae"
 	"google.golang.org/appengine/delay"
 )
 
@@ -51,7 +51,7 @@ func TestDelaySetReminderIsSent(t *testing.T) {
 	}
 
 	countOfCallsToDelay := 0
-	gae.CallDelayFunc = func(c context.Context, queueName, subPath string, f *delay.Function, args ...interface{}) error {
+	apphostgae.CallDelayFunc = func(c context.Context, queueName, subPath string, f *delay.Function, args ...interface{}) error {
 		countOfCallsToDelay += 1
 		return nil
 	}

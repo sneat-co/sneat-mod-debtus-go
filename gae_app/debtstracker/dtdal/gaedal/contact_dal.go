@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/strongo/app/gae"
+	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
 	"strings"
@@ -44,7 +44,7 @@ func init() {
 }
 
 func delayDeleteContactTransfers(c context.Context, contactID int64, cursor string) error {
-	if err := gae.CallDelayFunc(c, common.QUEUE_TRANSFERS, DeleteContactTransfersFuncKey, deleteContactTransfersDelayFunc, contactID, cursor); err != nil {
+	if err := apphostgae.CallDelayFunc(c, common.QUEUE_TRANSFERS, DeleteContactTransfersFuncKey, deleteContactTransfersDelayFunc, contactID, cursor); err != nil {
 		return err
 	}
 	return nil

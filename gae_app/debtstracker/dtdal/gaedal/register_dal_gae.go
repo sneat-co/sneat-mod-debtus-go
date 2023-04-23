@@ -5,7 +5,7 @@ import (
 	telegramBot "github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
-	strongo "github.com/strongo/app"
+	apphostgae "github.com/strongo/app-host-gae"
 	"net/http"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
@@ -51,11 +51,12 @@ func RegisterDal() {
 	dtdal.HttpClient = func(c context.Context) *http.Client {
 		return urlfetch.Client(c)
 	}
-	dtdal.HandleWithContext = func(handler strongo.ContextHandler) func(w http.ResponseWriter, r *http.Request) {
-		return func(w http.ResponseWriter, r *http.Request) {
-			handler(appengine.NewContext(r), w, r)
-		}
-	}
+	dtdal.HttpAppHost = apphostgae.NewHttpAppHostGAE()
+	//dtdal.HandleWithContext = func(handler strongo.HttpHandlerWithContext) func(w http.ResponseWriter, r *http.Request) {
+	//	return func(w http.ResponseWriter, r *http.Request) {
+	//		handler(appengine.NewContext(r), w, r)
+	//	}
+	//}
 	//dtdal.TaskQueue = TaskQueueDalGae{}
 	dtdal.BotHost = ApiBotHost{}
 }

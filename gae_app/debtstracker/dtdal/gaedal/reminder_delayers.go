@@ -2,6 +2,7 @@ package gaedal
 
 import (
 	"fmt"
+	apphostgae "github.com/strongo/app-host-gae"
 	"net/url"
 	"strconv"
 	"time"
@@ -10,7 +11,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"context"
 	"errors"
-	"github.com/strongo/app/gae"
 	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/taskqueue"
 )
@@ -31,7 +31,7 @@ func (ReminderDalGae) DelaySetReminderIsSent(c context.Context, reminderID int, 
 	if err := _validateSetReminderIsSentMessageIDs(messageIntID, messageStrID, sentAt); err != nil {
 		return err
 	}
-	if err := gae.CallDelayFunc(c, common.QUEUE_REMINDERS, "set-reminder-is-sent", delayedSetReminderIsSent, reminderID, sentAt, messageIntID, messageStrID, locale, errDetails); err != nil {
+	if err := apphostgae.CallDelayFunc(c, common.QUEUE_REMINDERS, "set-reminder-is-sent", delayedSetReminderIsSent, reminderID, sentAt, messageIntID, messageStrID, locale, errDetails); err != nil {
 		return fmt.Errorf("failed to delay execution of setReminderIsSent: %w", err)
 	}
 	return nil
@@ -57,7 +57,7 @@ func QueueSendReminder(c context.Context, reminderID int, dueIn time.Duration) e
 		if dueIn > time.Duration(0) {
 			task.Delay = dueIn + (3 * time.Second)
 		}
-		if _, err := gae.AddTaskToQueue(c, task, common.QUEUE_REMINDERS); err != nil {
+		if _, err := apphostgae.AddTaskToQueue(c, task, common.QUEUE_REMINDERS); err != nil {
 			return fmt.Errorf("failed to add task(name='%v', delay=%v) to '%v' queue: %w", task.Name, task.Delay, common.QUEUE_REMINDERS, err)
 		}
 	}

@@ -17,8 +17,7 @@ import (
 	"errors"
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/strongo/app"
-	"github.com/strongo/app/gae"
-	"github.com/strongo/app/gaestandard"
+	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/taskqueue"
@@ -34,11 +33,11 @@ func (ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, tran
 	//if !dtdal.DB.IsInTransaction(c) {
 	//	panic("This function should be called within transaction")
 	//}
-	if task, err := gae.CreateDelayTask(common.QUEUE_REMINDERS, "create-reminder-4-transfer-user", delayCreateReminderForTransferUser, transferID, userID); err != nil {
+	if task, err := apphostgae.CreateDelayTask(common.QUEUE_REMINDERS, "create-reminder-4-transfer-user", delayCreateReminderForTransferUser, transferID, userID); err != nil {
 		return fmt.Errorf("failed to create a task for reminder creation. transferID=%v, userID=%v: %w", transferID, userID, err)
 	} else {
 		task.Delay = time.Duration(time.Second)
-		if _, err = gae.AddTaskToQueue(c, task, common.QUEUE_REMINDERS); err != nil {
+		if _, err = apphostgae.AddTaskToQueue(c, task, common.QUEUE_REMINDERS); err != nil {
 			return fmt.Errorf("failed to add a task for reminder creation, transfer id=%v: %w", transferID, err)
 		}
 		log.Debugf(c, "Added task(%v) to create reminder for transfer id=%v", task.Path, transferID)
@@ -119,7 +118,7 @@ func delayedCreateReminderForTransferUser(c context.Context, transferID int, use
 
 func (ReminderDalGae) DelayDiscardReminders(c context.Context, transferIDs []int, returnTransferID int) error {
 	if len(transferIDs) > 0 {
-		return gae.CallDelayFunc(c, common.QUEUE_REMINDERS, "discard-reminders", delayDiscardReminders, transferIDs, returnTransferID)
+		return apphostgae.CallDelayFunc(c, common.QUEUE_REMINDERS, "discard-reminders", delayDiscardReminders, transferIDs, returnTransferID)
 	} else {
 		log.Warningf(c, "DelayDiscardReminders(): len(transferIDs)==0")
 		return nil
@@ -136,7 +135,7 @@ func discardReminders(c context.Context, transferIDs []int, returnTransferID int
 	const queueName = common.QUEUE_REMINDERS
 	tasks := make([]*taskqueue.Task, len(transferIDs))
 	for i, transferID := range transferIDs {
-		if task, err := gae.CreateDelayTask(queueName, "discard-reminders-for-transfer", delayDiscardRemindersForTransfer, transferID, returnTransferID); err != nil {
+		if task, err := apphostgae.CreateDelayTask(queueName, "discard-reminders-for-transfer", delayDiscardRemindersForTransfer, transferID, returnTransferID); err != nil {
 			return fmt.Errorf("failed to create delay task to dicard reminder for transfer id=%v: %w", transferID, err)
 		} else {
 			tasks[i] = task
@@ -167,7 +166,7 @@ func discardRemindersForTransfer(c context.Context, transferID, returnTransferID
 		} else if len(reminderIDs) > 0 {
 			log.Debugf(c, loadedFormat, len(reminderIDs), transferID)
 			for _, reminderID := range reminderIDs {
-				if task, err := gae.CreateDelayTask(common.QUEUE_REMINDERS, "discard-reminder", delayDiscardReminder, reminderID, transferID, returnTransferID); err != nil {
+				if task, err := apphostgae.CreateDelayTask(common.QUEUE_REMINDERS, "discard-reminder", delayDiscardReminder, reminderID, transferID, returnTransferID); err != nil {
 					return fmt.Errorf("failed to create a task for reminder ID=%v: %w", reminderID, err)
 				} else {
 					task.Delay = delayDuration
@@ -267,7 +266,7 @@ func discardReminder(c context.Context, tx dal.ReadwriteTransaction, reminderID,
 				return err
 			} else if user.Data.PreferredLanguage != "" {
 				reminder.Data.Locale = user.Data.PreferredLanguage
-			} else if s, ok := tgbots.Bots(gaestandard.GetEnvironment(c), nil).ByCode[reminder.Data.BotID]; ok {
+			} else if s, ok := tgbots.Bots(dtdal.HttpAppHost.GetEnvironment(c, nil), nil).ByCode[reminder.Data.BotID]; ok {
 				reminder.Data.Locale = s.Locale.Code5
 			}
 		}

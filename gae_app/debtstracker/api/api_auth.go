@@ -21,7 +21,7 @@ type AuthHandler func(c context.Context, w http.ResponseWriter, r *http.Request,
 
 type AuthHandlerWithUser func(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo, user models.AppUser)
 
-func AuthOnly(handler AuthHandler) strongo.ContextHandler {
+func AuthOnly(handler AuthHandler) strongo.HttpHandlerWithContext {
 	return func(c context.Context, w http.ResponseWriter, r *http.Request) {
 		log.Debugf(c, "AuthOnly(%v)", handler)
 		if authInfo, _, err := auth.Authenticate(w, r, true); err == nil {
@@ -32,7 +32,7 @@ func AuthOnly(handler AuthHandler) strongo.ContextHandler {
 	}
 }
 
-func AuthOnlyWithUser(handler AuthHandlerWithUser) strongo.ContextHandler {
+func AuthOnlyWithUser(handler AuthHandlerWithUser) strongo.HttpHandlerWithContext {
 	return AuthOnly(func(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
 		var userID int64
 
@@ -50,7 +50,7 @@ func AuthOnlyWithUser(handler AuthHandlerWithUser) strongo.ContextHandler {
 	})
 }
 
-func OptionalAuth(handler AuthHandler) strongo.ContextHandler {
+func OptionalAuth(handler AuthHandler) strongo.HttpHandlerWithContext {
 	return func(c context.Context, w http.ResponseWriter, r *http.Request) {
 		authInfo, _, _ := auth.Authenticate(w, r, false)
 		if authInfo.UserID == 0 {
@@ -62,7 +62,7 @@ func OptionalAuth(handler AuthHandler) strongo.ContextHandler {
 	}
 }
 
-func adminOnly(handler AuthHandler) strongo.ContextHandler {
+func adminOnly(handler AuthHandler) strongo.HttpHandlerWithContext {
 	return func(c context.Context, w http.ResponseWriter, r *http.Request) {
 		log.Debugf(c, "adminOnly(%v)", handler)
 		if authInfo, _, err := auth.Authenticate(w, r, true); err == nil {

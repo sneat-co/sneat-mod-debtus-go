@@ -11,7 +11,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
-	"github.com/strongo/app/gae"
+	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
 	"github.com/strongo/slices"
 	"google.golang.org/appengine/delay"
@@ -169,7 +169,7 @@ func (groupFacade) DelayUpdateGroupUsers(c context.Context, groupID string) erro
 	if groupID == "" {
 		panic("groupID is empty string")
 	}
-	return gae.CallDelayFunc(c, common.QUEUE_USERS, "update-group-users", delayUpdateGroupUsers, groupID)
+	return apphostgae.CallDelayFunc(c, common.QUEUE_USERS, "update-group-users", delayUpdateGroupUsers, groupID)
 }
 
 func updateGroupUsers(c context.Context, groupID string) (err error) {
@@ -191,7 +191,7 @@ func updateGroupUsers(c context.Context, groupID string) (err error) {
 		var tasks []*taskqueue.Task
 		for _, member := range group.Data.GetGroupMembers() {
 			if member.UserID != "" {
-				task, err := gae.CreateDelayTask(common.QUEUE_USERS, "update-user-with-groups", delayUpdateUserWithGroups, member.UserID, []string{groupID}, []string{})
+				task, err := apphostgae.CreateDelayTask(common.QUEUE_USERS, "update-user-with-groups", delayUpdateUserWithGroups, member.UserID, []string{groupID}, []string{})
 				if err != nil {
 					return err
 				}
@@ -262,7 +262,7 @@ func (userFacade) UpdateUserWithGroups(c context.Context, tx dal.ReadwriteTransa
 var delayUpdateContactWithGroups = delay.Func("UpdateContactWithGroups", delayedUpdateContactWithGroup)
 
 func (userFacade) DelayUpdateContactWithGroups(c context.Context, contactID int64, addGroupIDs, removeGroupIDs []string) error {
-	return gae.CallDelayFunc(c, common.QUEUE_USERS, "update-contact-groups", delayUpdateContactWithGroups, contactID, addGroupIDs, removeGroupIDs)
+	return apphostgae.CallDelayFunc(c, common.QUEUE_USERS, "update-contact-groups", delayUpdateContactWithGroups, contactID, addGroupIDs, removeGroupIDs)
 }
 
 func delayedUpdateContactWithGroup(c context.Context, contactID int64, addGroupIDs, removeGroupIDs []string) (err error) {

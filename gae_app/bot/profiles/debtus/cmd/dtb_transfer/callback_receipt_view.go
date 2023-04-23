@@ -12,7 +12,7 @@ import (
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/strongo/app/gae"
+	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
 	"net/url"
@@ -66,7 +66,7 @@ const delayLinkUserByReceiptKeyName = "delayLinkUserByReceipt"
 var delayLinkUserByReceipt = delay.Func(delayLinkUserByReceiptKeyName, delayedLinkUsersByReceipt)
 
 func DelayLinkUsersByReceipt(c context.Context, receiptID int, invitedUserID int64) (err error) {
-	return gae.CallDelayFunc(c, common.QUEUE_RECEIPTS, delayLinkUserByReceiptKeyName, delayLinkUserByReceipt, receiptID, invitedUserID)
+	return apphostgae.CallDelayFunc(c, common.QUEUE_RECEIPTS, delayLinkUserByReceiptKeyName, delayLinkUserByReceipt, receiptID, invitedUserID)
 }
 
 func delayedLinkUsersByReceipt(c context.Context, receiptID int, invitedUserID int64) error {

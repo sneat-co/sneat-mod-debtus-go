@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
+	apphostgae "github.com/strongo/app-host-gae"
 	"time"
 
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
@@ -13,7 +14,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
-	"github.com/strongo/app/gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
 )
@@ -115,7 +115,7 @@ func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context,
 		}
 	}
 	if len(transfersIDsToFixIsOutstanding) > 0 {
-		if err = gae.CallDelayFunc(c, common.QUEUE_TRANSFERS, "fix-transfers-is-outstanding", delayFixTransfersIsOutstanding, transfersIDsToFixIsOutstanding); err != nil {
+		if err = apphostgae.CallDelayFunc(c, common.QUEUE_TRANSFERS, "fix-transfers-is-outstanding", delayFixTransfersIsOutstanding, transfersIDsToFixIsOutstanding); err != nil {
 			log.Errorf(c, "failed to delay task to fix transfers IsOutstanding")
 			err = nil
 		}

@@ -1,6 +1,7 @@
 package pages
 
 import (
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bytes"
 	"crypto/md5"
 	"fmt"
@@ -14,7 +15,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"context"
 	"github.com/strongo/app"
-	"github.com/strongo/app/gaestandard"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
 )
@@ -35,11 +35,11 @@ func pageContext(r *http.Request, locale strongo.Locale) (translator strongo.Sin
 		translator = strongo.NewSingleLocaleTranslatorWithBackup(translator, strongo.NewSingleMapTranslator(strongo.LocaleEnUS, appTranslator))
 	}
 
-	env := gaestandard.GetEnvironmentFromHost(r.Host)
+	env := dtdal.HttpAppHost.GetEnvironment(c, r)
 	if env == strongo.EnvUnknown {
 		panic("Unknown host: " + r.Host)
 	}
-	botSettings, err := tgbots.GetBotSettingsByLang(gaestandard.GetEnvironment(c), bot.ProfileDebtus, locale.Code5)
+	botSettings, err := tgbots.GetBotSettingsByLang(env, bot.ProfileDebtus, locale.Code5)
 	if err != nil {
 		panic(err)
 	}

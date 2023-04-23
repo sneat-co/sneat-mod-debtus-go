@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/strongo/app/gae"
+	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
@@ -30,7 +30,7 @@ func (TransferDalGae) DelayUpdateTransfersOnReturn(c context.Context, returnTran
 			panic(fmt.Sprintf("transferReturnsUpdates[%d].Amount <= 0: %v", i, transferReturnUpdate.ReturnedAmount))
 		}
 	}
-	return gae.CallDelayFunc(c, common.QUEUE_TRANSFERS, "update-transfers-on-return", delayUpdateTransfersOnReturn, returnTransferID, transferReturnsUpdate)
+	return apphostgae.CallDelayFunc(c, common.QUEUE_TRANSFERS, "update-transfers-on-return", delayUpdateTransfersOnReturn, returnTransferID, transferReturnsUpdate)
 }
 
 var delayUpdateTransfersOnReturn = delay.Func("updateTransfersOnReturn", updateTransfersOnReturn)
@@ -52,7 +52,7 @@ func updateTransfersOnReturn(c context.Context, returnTransferID int, transferRe
 }
 
 func DelayUpdateTransferOnReturn(c context.Context, returnTransferID, transferID int, returnedAmount decimal.Decimal64p2) error {
-	return gae.CallDelayFunc(c, common.QUEUE_TRANSFERS, "update-transfer-on-return", delayUpdateTransferOnReturn, returnTransferID, transferID, returnedAmount)
+	return apphostgae.CallDelayFunc(c, common.QUEUE_TRANSFERS, "update-transfer-on-return", delayUpdateTransferOnReturn, returnTransferID, transferID, returnedAmount)
 }
 
 var delayUpdateTransferOnReturn = delay.Func("updateTransferOnReturn", updateTransferOnReturn)

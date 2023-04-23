@@ -11,16 +11,16 @@ import (
 func InitApi(router *httprouter.Router) {
 	router.HandlerFunc("GET", "/api/ping", botsfw.PingHandler)
 
-	HandlerFunc := func(method, path string, handler strongo.ContextHandler) {
+	HandlerFunc := func(method, path string, handler strongo.HttpHandlerWithContext) {
 		// TODO: Refactor optionsHandler so it's does not handle GET requests (see AuthOnly() for example)
-		router.HandlerFunc(method, path, dtdal.HandleWithContext(handler))
-		router.HandlerFunc("OPTIONS", path, dtdal.HandleWithContext(optionsHandler))
+		router.HandlerFunc(method, path, dtdal.HttpAppHost.HandleWithContext(handler))
+		router.HandlerFunc("OPTIONS", path, dtdal.HttpAppHost.HandleWithContext(optionsHandler))
 	}
 
-	GET := func(path string, handler strongo.ContextHandler) {
+	GET := func(path string, handler strongo.HttpHandlerWithContext) {
 		HandlerFunc("GET", path, handler)
 	}
-	POST := func(path string, handler strongo.ContextHandler) {
+	POST := func(path string, handler strongo.HttpHandlerWithContext) {
 		HandlerFunc("POST", path, handler)
 	}
 

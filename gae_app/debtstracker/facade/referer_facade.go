@@ -12,7 +12,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/strongo/app/gae"
+	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/delay"
@@ -59,7 +59,7 @@ func setUserReferrer(c context.Context, userID int64, referredBy string) (err er
 var delayedSetUserReferrer = delay.Func("setUserReferrer", setUserReferrer)
 
 func delaySetUserReferrer(c context.Context, userID int64, referredBy string) (err error) {
-	return gae.CallDelayFuncWithDelay(c, time.Second/2, common.QUEUE_USERS, "set-user-referrer", delayedSetUserReferrer, userID, referredBy)
+	return apphostgae.CallDelayFuncWithDelay(c, time.Second/2, common.QUEUE_USERS, "set-user-referrer", delayedSetUserReferrer, userID, referredBy)
 }
 
 var topReferralsCacheTime = time.Hour

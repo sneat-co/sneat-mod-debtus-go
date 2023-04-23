@@ -18,7 +18,6 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
-	"github.com/strongo/app/gaestandard"
 	"github.com/strongo/log"
 )
 
@@ -111,7 +110,7 @@ func handleTgHelperCurrencySelected(c context.Context, w http.ResponseWriter, r 
 
 // TODO: This is some serious architecture sheet. Too sleepy to make it right, just make it working.
 func sendToTelegram(c context.Context, user models.AppUser, tgChatID int64, tgChat tgstore.TgChat, userTask *sync.WaitGroup, r *http.Request) (err error) {
-	telegramBots := tgbots.Bots(gaestandard.GetEnvironment(c), nil)
+	telegramBots := tgbots.Bots(dtdal.HttpAppHost.GetEnvironment(c, nil), nil)
 	baseChatData := tgChat.Data.BaseChatData()
 	botID := baseChatData.BotID
 	botSettings, ok := telegramBots.ByCode[botID]

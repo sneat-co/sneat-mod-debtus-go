@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/strongo/app/gae"
+	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
@@ -19,7 +19,7 @@ import (
 const updateUsersWithBillKeyName = "update-users-with-bill"
 
 func DelayUpdateUsersWithBill(c context.Context, billID string, userIDs []string) (err error) {
-	return gae.CallDelayFunc(c, common.QUEUE_BILLS, updateUsersWithBillKeyName, delayUpdateUsersWithBill, billID, userIDs)
+	return apphostgae.CallDelayFunc(c, common.QUEUE_BILLS, updateUsersWithBillKeyName, delayUpdateUsersWithBill, billID, userIDs)
 }
 
 var delayUpdateUsersWithBill = delay.Func(updateUsersWithBillKeyName, updateUsersWithBill)
@@ -30,7 +30,7 @@ func updateUsersWithBill(c context.Context, billID string, userIDs []string) (er
 	for i := range userIDs {
 		go func(i int) {
 			defer wg.Done()
-			if err2 := gae.CallDelayFunc(c, common.QUEUE_BILLS, updateUserWithBillKeyName, delayUpdateUserWithBill, billID, userIDs[i]); err != nil {
+			if err2 := apphostgae.CallDelayFunc(c, common.QUEUE_BILLS, updateUserWithBillKeyName, delayUpdateUserWithBill, billID, userIDs[i]); err != nil {
 				err = err2
 			}
 		}(i)

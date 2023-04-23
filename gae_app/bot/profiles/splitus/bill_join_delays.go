@@ -3,6 +3,7 @@ package splitus
 import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
@@ -10,8 +11,7 @@ import (
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
-	"github.com/strongo/app/gae"
-	"github.com/strongo/app/gaestandard"
+	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/urlfetch"
@@ -24,7 +24,7 @@ var (
 )
 
 func delayUpdateBillCardOnUserJoin(c context.Context, billID string, message string) error {
-	if err := gae.CallDelayFunc(
+	if err := apphostgae.CallDelayFunc(
 		c,
 		common.QUEUE_BILLS,
 		"update-bill-cards",
@@ -43,7 +43,7 @@ func delayedUpdateBillCards(c context.Context, billID string, footer string) err
 		return err
 	} else {
 		for _, tgChatMessageID := range bill.Data.TgChatMessageIDs {
-			if err = gae.CallDelayFunc(c, common.QUEUE_BILLS, "update-bill-tg-chat-card", delayUpdateBillTgChatCard, billID, tgChatMessageID, footer); err != nil {
+			if err = apphostgae.CallDelayFunc(c, common.QUEUE_BILLS, "update-bill-tg-chat-card", delayUpdateBillTgChatCard, billID, tgChatMessageID, footer); err != nil {
 				log.Errorf(c, "Failed to queue updated for %v: %v", tgChatMessageID, err)
 				return err
 			}
@@ -68,7 +68,7 @@ func delayedUpdateBillTgChartCard(c context.Context, billID string, tgChatMessag
 		if err := updateInlineBillCardMessage(c, translator, true, editMessage, bill, botCode, footer); err != nil {
 			return err
 		} else {
-			telegramBots := tgbots.Bots(gaestandard.GetEnvironment(c), nil)
+			telegramBots := tgbots.Bots(dtdal.HttpAppHost.GetEnvironment(c, nil), nil)
 			botSettings, ok := telegramBots.ByCode[botCode]
 			if !ok {
 				log.Errorf(c, "No bot settings for bot: "+botCode)

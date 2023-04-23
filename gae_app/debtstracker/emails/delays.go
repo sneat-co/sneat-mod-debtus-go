@@ -11,7 +11,7 @@ import (
 	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
-	"github.com/strongo/app/gae"
+	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
 )
@@ -19,7 +19,7 @@ import (
 const SEND_EMAIL_TASK = "send-email"
 
 func DelaySendEmail(c context.Context, id int64) error {
-	return gae.CallDelayFunc(c, common.QUEUE_EMAILS, SEND_EMAIL_TASK, delayEmail, id)
+	return apphostgae.CallDelayFunc(c, common.QUEUE_EMAILS, SEND_EMAIL_TASK, delayEmail, id)
 }
 
 var delayEmail = delay.Func(SEND_EMAIL_TASK, delayedSendEmail)

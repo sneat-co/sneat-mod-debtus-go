@@ -19,8 +19,8 @@ import (
 var handleFunc = http.HandleFunc
 
 func InitApiGaeDepended() {
-	handleFunc("/auth/google/signin", dtdal.HandleWithContext(handleSigninWithGoogle))
-	handleFunc("/auth/google/signed", dtdal.HandleWithContext(handleSignedWithGoogle))
+	handleFunc("/auth/google/signin", dtdal.HttpAppHost.HandleWithContext(handleSigninWithGoogle))
+	handleFunc("/auth/google/signed", dtdal.HttpAppHost.HandleWithContext(handleSignedWithGoogle))
 }
 
 const REDIRECT_DESTINATION_PARAM_NAME = "redirect-to"
