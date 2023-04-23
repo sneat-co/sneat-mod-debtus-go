@@ -12,7 +12,7 @@ require (
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85
 	github.com/crediterra/money v0.0.1
 	github.com/dal-go/dalgo v0.2.26
-	github.com/dal-go/mocks4dalgo v0.1.3
+	github.com/dal-go/mocks4dalgo v0.1.6
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/gorilla/sessions v1.2.1
 	github.com/julienschmidt/httprouter v1.3.0
