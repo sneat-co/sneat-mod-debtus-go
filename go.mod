@@ -4,9 +4,9 @@ go 1.20
 
 require (
 	github.com/aws/aws-sdk-go v1.44.248
-	github.com/bots-go-framework/bots-api-telegram v0.1.1
-	github.com/bots-go-framework/bots-fw v0.9.12
-	github.com/bots-go-framework/bots-fw-telegram v0.4.8
+	github.com/bots-go-framework/bots-api-telegram v0.2.1
+	github.com/bots-go-framework/bots-fw v0.10.0
+	github.com/bots-go-framework/bots-fw-telegram v0.4.10
 	github.com/bots-go-framework/bots-host-gae v0.3.9
 	github.com/captaincodeman/datastore-mapper v0.0.0-20170320145307-cb380a4c4d13
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85
@@ -51,6 +51,7 @@ require (
 	cloud.google.com/go/iam v1.0.0 // indirect
 	cloud.google.com/go/storage v1.30.1 // indirect
 	github.com/bots-go-framework/bots-fw-dalgo v0.0.5 // indirect
+	github.com/bots-go-framework/bots-go-core v0.0.1 // indirect
 	github.com/captaincodeman/datastore-locker v0.0.0-20170308203336-4eddc467484e // indirect
 	github.com/dal-go/dalgo2datastore v0.0.12 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect

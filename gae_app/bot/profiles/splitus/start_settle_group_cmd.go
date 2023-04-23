@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	botsgocore "github.com/bots-go-framework/bots-go-core"
 	"github.com/crediterra/money"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/log"
@@ -101,7 +102,7 @@ userMemberFound:
 		//case 1:
 		//	return settleGroupCounterpartyChosenAction(whc, group, userMember.ID)
 	default:
-		membersToKeyboard := func() botsfw.Keyboard {
+		membersToKeyboard := func() botsgocore.Keyboard {
 			keyboard := make([][]tgbotapi.InlineKeyboardButton, len(groupMembers))
 			for i, m := range groupMembers {
 				keyboard[i] = []tgbotapi.InlineKeyboardButton{
