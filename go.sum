@@ -39,6 +39,8 @@ github.com/bots-go-framework/bots-go-core v0.0.1 h1:Br7j+Ir3R6U8x1mnFZFq1G1K0bup
 github.com/bots-go-framework/bots-go-core v0.0.1/go.mod h1:txRZn1MlcJEiCUra3bQtpkt9IM2EFGaeUvqS1VLyl30=
 github.com/bots-go-framework/bots-host-gae v0.3.9 h1:HB34ZE+lWrE2R4sVEAqLb8tpCgIFlXIC5PjU1xClzTQ=
 github.com/bots-go-framework/bots-host-gae v0.3.9/go.mod h1:4iekVn3HuW7N+BkJ04s+rpsgZGleQkoRn+40FNT1HjA=
+github.com/bots-go-framework/bots-host-gae v0.3.10 h1:WvQ9EMEbXbw2KKZgsaOBmxfb+QuUeWnILGK1SxGguNo=
+github.com/bots-go-framework/bots-host-gae v0.3.10/go.mod h1:pydLH3UIONkt/zqf1Zbe6qHK2lDhBLMvi+6KG58LzgM=
 github.com/captaincodeman/datastore-locker v0.0.0-20170308203336-4eddc467484e h1:SJoKNBURy0VzeEc1htXwTqk8I41evmoJxdKqRm7VzdA=
 github.com/captaincodeman/datastore-locker v0.0.0-20170308203336-4eddc467484e/go.mod h1:cfbNKs2bgtqUSICVQ/5kZQmmV+dfjV0GZEs0Dic1ymg=
 github.com/captaincodeman/datastore-mapper v0.0.0-20170320145307-cb380a4c4d13 h1:iRzHagI4qlAzIqRuZShPS+4Y5i7jjXvjcDVjoZP9hvo=
