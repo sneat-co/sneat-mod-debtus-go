@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal/gaedal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/julienschmidt/httprouter"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal/gaedal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/log"
 	"golang.org/x/net/html"
 	"google.golang.org/appengine"

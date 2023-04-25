@@ -1,13 +1,13 @@
 package gaedal
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"strings"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/log"
 )
 

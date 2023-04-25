@@ -1,8 +1,8 @@
 package dtb_settings
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/shared_all"
 	"net/url"
 )
 

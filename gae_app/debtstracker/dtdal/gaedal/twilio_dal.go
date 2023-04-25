@@ -1,10 +1,10 @@
 package gaedal
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/decimal"
 	"github.com/strongo/gotwilio"
 	"github.com/strongo/log"

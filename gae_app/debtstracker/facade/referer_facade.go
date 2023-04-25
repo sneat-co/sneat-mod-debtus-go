@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/datastore"

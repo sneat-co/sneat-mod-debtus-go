@@ -5,11 +5,11 @@ import (
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"html"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"errors"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_general"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/strongo/log"
 )
 

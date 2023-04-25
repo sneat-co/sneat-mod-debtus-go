@@ -1,10 +1,10 @@
 package models
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
 	"errors"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
+	"github.com/sneat-co/debtstracker-go/gae_app/general"
 	"reflect"
 	"time"
 )

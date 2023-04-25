@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"context"
 	"errors"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 )
 
 func handleSignUpAnonymously(c context.Context, w http.ResponseWriter, r *http.Request) {

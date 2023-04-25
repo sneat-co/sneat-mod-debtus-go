@@ -1,10 +1,6 @@
 package dtb_transfer
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
 	"fmt"
@@ -12,6 +8,10 @@ import (
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"

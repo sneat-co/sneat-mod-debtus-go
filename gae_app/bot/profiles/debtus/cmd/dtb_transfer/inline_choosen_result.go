@@ -1,14 +1,14 @@
 package dtb_transfer
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_inline"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_inline"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-translations/trans"
 )
 

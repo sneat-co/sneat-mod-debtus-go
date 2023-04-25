@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"net/http"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_general"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"google.golang.org/appengine"
 )

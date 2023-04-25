@@ -1,10 +1,10 @@
 package shared_all
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"context"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"net/url"
 )
 

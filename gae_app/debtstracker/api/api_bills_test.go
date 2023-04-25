@@ -8,12 +8,12 @@ import (
 	"strings"
 	"testing"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtmocks"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/api/dto"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/auth"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtmocks"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/decimal"
 )
 

@@ -1,11 +1,6 @@
 package splitus
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_group"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
 	"fmt"
@@ -14,6 +9,11 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/shared_all"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/shared_group"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/decimal"

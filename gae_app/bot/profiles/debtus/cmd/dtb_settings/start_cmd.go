@@ -1,14 +1,14 @@
 package dtb_settings
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/shared_all"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/log"
 	"regexp"
 	"strconv"

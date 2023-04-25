@@ -12,7 +12,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/app"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"

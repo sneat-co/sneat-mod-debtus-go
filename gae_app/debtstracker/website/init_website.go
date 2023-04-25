@@ -7,18 +7,18 @@ import (
 	"net/http"
 	"strconv"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/website/admin"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/website/pages"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/website/redirects"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/website/admin"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/website/pages"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/website/redirects"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
-	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/api"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/website/pages/inspector"
+	//"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/auth"
+	//"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/api"
 	"github.com/julienschmidt/httprouter"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/website/pages/inspector"
 )
 
 type router interface {

@@ -1,10 +1,10 @@
 package admin
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"google.golang.org/appengine/urlfetch"
 )
 

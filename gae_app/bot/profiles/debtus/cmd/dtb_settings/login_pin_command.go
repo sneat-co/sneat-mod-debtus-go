@@ -1,11 +1,11 @@
 package dtb_settings
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"errors"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"strconv"
 	"strings"
 )

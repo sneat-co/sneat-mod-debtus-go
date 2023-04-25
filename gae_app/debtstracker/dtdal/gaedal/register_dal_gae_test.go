@@ -3,7 +3,7 @@ package gaedal
 import (
 	"testing"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 )
 
 func TestRegisterDal(t *testing.T) {

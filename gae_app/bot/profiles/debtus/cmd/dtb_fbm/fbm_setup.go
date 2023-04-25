@@ -6,7 +6,7 @@ package dtb_fbm
 //	"net/http"
 //	"time"
 //
-//	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/fbmbots"
+//	"github.com/sneat-co/debtstracker-go/gae_app/bot/platforms/fbmbots"
 //	"context"
 //	"github.com/julienschmidt/httprouter"
 //	"github.com/strongo/bots-api-fbm"

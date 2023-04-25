@@ -4,7 +4,7 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"net/url"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 )
 
 const ACKNOWLEDGE_RECEIPT_CALLBACK_COMMAND = "ack-receipt"

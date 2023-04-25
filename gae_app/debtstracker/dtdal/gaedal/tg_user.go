@@ -1,11 +1,11 @@
 package gaedal
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"context"
 	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"reflect"
 )
 

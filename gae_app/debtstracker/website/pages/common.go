@@ -1,19 +1,19 @@
 package pages
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"bytes"
 	"crypto/md5"
 	"fmt"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"html/template"
 	"net/http"
 	"strings"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"context"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot/platforms/tgbots"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"

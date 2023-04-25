@@ -6,7 +6,7 @@ import (
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"strings"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 )
 
 const LOGIN2WEB_COMMAND = "login2web"

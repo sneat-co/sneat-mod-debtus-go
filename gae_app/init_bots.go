@@ -1,17 +1,17 @@
 package gaeapp
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/collectus"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/splitus"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"context"
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/julienschmidt/httprouter"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot/platforms/tgbots"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/collectus"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/splitus"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
 )

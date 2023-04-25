@@ -1,8 +1,8 @@
 package dtb_common
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 )
 
 func GetUser(whc botsfw.WebhookContext) (user models.AppUser, err error) {

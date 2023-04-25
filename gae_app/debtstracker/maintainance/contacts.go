@@ -3,9 +3,9 @@ package maintainance
 import (
 	"net/http"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"github.com/captaincodeman/datastore-mapper"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"google.golang.org/appengine/datastore"
 )
 

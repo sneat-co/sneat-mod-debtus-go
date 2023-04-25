@@ -1,11 +1,11 @@
 package dtb_settings
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"context"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 )
 
 var FixBalanceCommand = botsfw.Command{

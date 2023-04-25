@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"strings"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"context"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/strongo/log"
 )
 

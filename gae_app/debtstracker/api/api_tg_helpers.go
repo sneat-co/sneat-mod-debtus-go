@@ -12,12 +12,12 @@ import (
 	"strings"
 	"sync"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/tgbots"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot/platforms/tgbots"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/auth"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/log"
 )
 

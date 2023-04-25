@@ -1,4 +1,4 @@
-module bitbucket.org/asterus/debtstracker-server
+module github.com/sneat-co/debtstracker-go
 
 go 1.20
 

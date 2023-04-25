@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"sync"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/api/dto"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"context"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/api/dto"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/auth"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/strongo/log"
 )
 

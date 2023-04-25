@@ -4,8 +4,8 @@ import (
 	"github.com/crediterra/money"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 )
 
 type UserDalMock struct {

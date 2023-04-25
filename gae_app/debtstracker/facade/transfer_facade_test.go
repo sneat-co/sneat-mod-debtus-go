@@ -1,14 +1,14 @@
 package facade
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtmocks"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/crediterra/go-interest"
 	"github.com/crediterra/money"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtmocks"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/app"
 	"github.com/strongo/decimal"
 	"runtime/debug"

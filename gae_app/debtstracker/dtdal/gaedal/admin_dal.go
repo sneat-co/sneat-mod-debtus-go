@@ -1,9 +1,9 @@
 package gaedal
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
 	"errors"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 )
 
 type AdminDalGae struct {

@@ -1,15 +1,15 @@
 package gaedal
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	telegramBot "github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	apphostgae "github.com/strongo/app-host-gae"
 	"net/http"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
 	"context"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
 )

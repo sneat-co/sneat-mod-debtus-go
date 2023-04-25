@@ -1,23 +1,23 @@
 package gaeapp
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/api"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/api/apigaedepended"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/apps/vkapp"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal/gaedal"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/reminders"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/support"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/webhooks"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/website"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/api"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/api/apigaedepended"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/apps/vkapp"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal/gaedal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/reminders"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/support"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/webhooks"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/website"
 
 	//"github.com/strongo/app"
 	"net/http"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/maintainance"
 	"github.com/julienschmidt/httprouter"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/maintainance"
 )
 
 // Init initializes debts tracker server

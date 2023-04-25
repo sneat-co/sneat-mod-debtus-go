@@ -4,8 +4,8 @@ import (
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"strings"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"context"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/strongo/app"
 	"github.com/strongo/gotwilio"
 	"github.com/strongo/log"

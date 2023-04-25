@@ -4,9 +4,9 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"testing"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtmocks"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtmocks"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 )
 
 func TestUsersLinker_LinkUsersWithinTransaction(t *testing.T) {

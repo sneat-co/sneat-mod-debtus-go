@@ -1,7 +1,7 @@
 package maintainance
 
 //import (
-//	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+//	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 //	"context"
 //	"errors"
 //	"github.com/captaincodeman/datastore-mapper"

@@ -10,8 +10,8 @@ import (
 	"net/url"
 	"strings"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
 	"errors"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/strongo/log"
 	"golang.org/x/net/html"
 )

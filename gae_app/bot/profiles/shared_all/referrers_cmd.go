@@ -8,7 +8,7 @@ import (
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/facade"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-translations/emoji"
 )
 

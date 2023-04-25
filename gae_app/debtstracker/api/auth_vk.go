@@ -3,19 +3,19 @@ package api
 import (
 	"net/http"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
 	"context"
-	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal/gaedal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/auth"
+	//"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal/gaedal"
 	//"google.golang.org/appengine/datastore"
 	//"errors"
-	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/auth"
+	//"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/auth"
 	//"strconv"
-	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/dtdal"
+	//"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	//"github.com/strongo/nds"
 	//"github.com/strongo/vk"
 	//"strings"
 	//"fmt"
-	//"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
+	//"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 )
 
 //const VK_USER_ALEXT = 7631716

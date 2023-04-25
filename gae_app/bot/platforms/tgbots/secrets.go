@@ -5,9 +5,9 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"strings"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/strongo/app"
 )
 

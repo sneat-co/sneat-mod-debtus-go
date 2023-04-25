@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/crediterra/money"
 	"github.com/pquerna/ffjson/ffjson"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/decimal"
 )
 

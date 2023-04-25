@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/common"
 	"context"
 	"errors"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/strongo/gamp"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/urlfetch"

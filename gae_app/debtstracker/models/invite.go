@@ -5,7 +5,7 @@ import (
 	"github.com/dal-go/dalgo/record"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/general"
+	"github.com/sneat-co/debtstracker-go/gae_app/general"
 )
 
 type InviteBy string

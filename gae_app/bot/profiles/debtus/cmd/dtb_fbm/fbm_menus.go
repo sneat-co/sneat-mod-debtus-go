@@ -3,8 +3,8 @@ package dtb_fbm
 //import (
 //	"fmt"
 //
-//	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/platforms/fbmbots"
-//	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
+//	"github.com/sneat-co/debtstracker-go/gae_app/bot/platforms/fbmbots"
+//	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
 //	"github.com/sneat-co/debtstracker-translations/emoji"
 //	"github.com/sneat-co/debtstracker-translations/trans"
 //	"github.com/strongo/app"

@@ -3,7 +3,7 @@ package tgbots
 import (
 	"testing"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot"
 	"github.com/strongo/app"
 )
 

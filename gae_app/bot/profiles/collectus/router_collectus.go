@@ -1,10 +1,10 @@
 package collectus
 
 import (
-	"bitbucket.org/asterus/debtstracker-server/gae_app/bot/profiles/shared_all"
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/shared_all"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/sneat-co/debtstracker-translations/trans"
 )

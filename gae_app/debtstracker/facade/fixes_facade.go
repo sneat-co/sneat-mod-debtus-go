@@ -5,8 +5,8 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"time"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/log"
 )
 

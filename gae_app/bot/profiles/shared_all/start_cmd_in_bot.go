@@ -6,8 +6,8 @@ import (
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"strings"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"errors"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/log"
 )
 

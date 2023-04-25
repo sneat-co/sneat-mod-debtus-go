@@ -3,8 +3,8 @@ package emails
 import (
 	"fmt"
 
-	"bitbucket.org/asterus/debtstracker-server/gae_app/debtstracker/models"
 	"context"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 )
 
 func CreateConfirmationEmailAndQueueForSending(c context.Context, user models.AppUser, userEmail models.UserEmail) error {
