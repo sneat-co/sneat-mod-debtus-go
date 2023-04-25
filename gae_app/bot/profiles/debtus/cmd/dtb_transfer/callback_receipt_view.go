@@ -66,7 +66,7 @@ const delayLinkUserByReceiptKeyName = "delayLinkUserByReceipt"
 var delayLinkUserByReceipt = delay.Func(delayLinkUserByReceiptKeyName, delayedLinkUsersByReceipt)
 
 func DelayLinkUsersByReceipt(c context.Context, receiptID int, invitedUserID int64) (err error) {
-	return apphostgae.CallDelayFunc(c, common.QUEUE_RECEIPTS, delayLinkUserByReceiptKeyName, delayLinkUserByReceipt, receiptID, invitedUserID)
+	return apphostgae.EnqueueWork(c, common.QUEUE_RECEIPTS, delayLinkUserByReceiptKeyName, 0, delayLinkUserByReceipt, receiptID, invitedUserID)
 }
 
 func delayedLinkUsersByReceipt(c context.Context, receiptID int, invitedUserID int64) error {

@@ -19,7 +19,7 @@ import (
 const updateUsersWithBillKeyName = "update-users-with-bill"
 
 func DelayUpdateUsersWithBill(c context.Context, billID string, userIDs []string) (err error) {
-	return apphostgae.CallDelayFunc(c, common.QUEUE_BILLS, updateUsersWithBillKeyName, delayUpdateUsersWithBill, billID, userIDs)
+	return apphostgae.EnqueueWork(c, common.QUEUE_BILLS, updateUsersWithBillKeyName, 0, delayUpdateUsersWithBill, billID, userIDs)
 }
 
 var delayUpdateUsersWithBill = delay.Func(updateUsersWithBillKeyName, updateUsersWithBill)

@@ -59,7 +59,7 @@ func setUserReferrer(c context.Context, userID int64, referredBy string) (err er
 var delayedSetUserReferrer = delay.Func("setUserReferrer", setUserReferrer)
 
 func delaySetUserReferrer(c context.Context, userID int64, referredBy string) (err error) {
-	return apphostgae.CallDelayFuncWithDelay(c, time.Second/2, common.QUEUE_USERS, "set-user-referrer", delayedSetUserReferrer, userID, referredBy)
+	return apphostgae.EnqueueWork(c, common.QUEUE_USERS, "set-user-referrer", time.Second/2, delayedSetUserReferrer, userID, referredBy)
 }
 
 var topReferralsCacheTime = time.Hour

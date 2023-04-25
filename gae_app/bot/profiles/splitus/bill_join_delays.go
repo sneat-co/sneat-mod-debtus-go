@@ -23,10 +23,11 @@ var (
 )
 
 func delayUpdateBillCardOnUserJoin(c context.Context, billID string, message string) error {
-	if err := apphostgae.CallDelayFunc(
+	if err := apphostgae.EnqueueWork(
 		c,
 		common.QUEUE_BILLS,
 		"update-bill-cards",
+		0,
 		delayUpdateBillCards,
 		billID,
 		message,
@@ -42,7 +43,7 @@ func delayedUpdateBillCards(c context.Context, billID string, footer string) err
 		return err
 	} else {
 		for _, tgChatMessageID := range bill.Data.TgChatMessageIDs {
-			if err = apphostgae.CallDelayFunc(c, common.QUEUE_BILLS, "update-bill-tg-chat-card", delayUpdateBillTgChatCard, billID, tgChatMessageID, footer); err != nil {
+			if err = apphostgae.EnqueueWork(c, common.QUEUE_BILLS, "update-bill-tg-chat-card", 0, delayUpdateBillTgChatCard, billID, tgChatMessageID, footer); err != nil {
 				log.Errorf(c, "Failed to queue updated for %v: %v", tgChatMessageID, err)
 				return err
 			}

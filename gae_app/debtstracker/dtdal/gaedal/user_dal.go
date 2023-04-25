@@ -152,7 +152,7 @@ var delayedUpdateUserWithBill = delay.Func("delayedUpdateWithBill", func(c conte
 })
 
 func (UserDalGae) DelayUpdateUserWithContact(c context.Context, userID, billID int64) (err error) {
-	if err = apphostgae.CallDelayFuncWithDelay(c, time.Second/10, common.QUEUE_USERS, "updateUserWithContact", delayedUpdateUserWithContact, userID, billID); err != nil {
+	if err = apphostgae.EnqueueWork(c, common.QUEUE_USERS, "updateUserWithContact", time.Second/10, delayedUpdateUserWithContact, userID, billID); err != nil {
 		return
 	}
 	return

@@ -33,7 +33,7 @@ func (billDalGae) SaveBill(c context.Context, tx dal.ReadwriteTransaction, bill 
 }
 
 func (billDalGae) DelayUpdateBillDependencies(c context.Context, billID string) (err error) {
-	if err = apphostgae.CallDelayFunc(c, common.QUEUE_BILLS, "UpdateBillDependencies", delayedUpdateBillDependencies, billID); err != nil {
+	if err = apphostgae.EnqueueWork(c, common.QUEUE_BILLS, "UpdateBillDependencies", 0, delayedUpdateBillDependencies, billID); err != nil {
 		return
 	}
 	return

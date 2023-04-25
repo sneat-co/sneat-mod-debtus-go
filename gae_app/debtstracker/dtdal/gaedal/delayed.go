@@ -57,9 +57,9 @@ var delayedSetUserPreferredLocale = delay.Func("SetUserPreferredLocale", func(c 
 func (TransferDalGae) DelayUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCode string, transferID int, creatorTgChatID, creatorTgReceiptMessageID int64) error {
 	// log.Debugf(c, "delayUpdateTransferWithCreatorReceiptTgMessageID(botCode=%v, transferID=%v, creatorTgChatID=%v, creatorTgReceiptMessageID=%v)", botCode, transferID, creatorTgChatID, creatorTgReceiptMessageID)
 
-	if err := apphostgae.CallDelayFunc(
+	if err := apphostgae.EnqueueWork(
 		c, common.QUEUE_TRANSFERS, "update-transfer-with-creator-receipt-tg-message-id",
-		delayedUpdateTransferWithCreatorReceiptTgMessageID,
+		0, delayedUpdateTransferWithCreatorReceiptTgMessageID,
 		botCode, transferID, creatorTgChatID, creatorTgReceiptMessageID); err != nil {
 		return fmt.Errorf("failed to create delayed task update-transfer-with-creator-receipt-tg-message-id: %w", err)
 	}
