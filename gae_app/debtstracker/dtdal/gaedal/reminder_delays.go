@@ -20,7 +20,6 @@ import (
 	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
-	"google.golang.org/appengine/taskqueue"
 )
 
 func (ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, transferID int, userID int64) (err error) {
@@ -33,15 +32,10 @@ func (ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, tran
 	//if !dtdal.DB.IsInTransaction(c) {
 	//	panic("This function should be called within transaction")
 	//}
-	if task, err := apphostgae.CreateDelayTask(common.QUEUE_REMINDERS, "create-reminder-4-transfer-user", delayCreateReminderForTransferUser, transferID, userID); err != nil {
+	if err = apphostgae.EnqueueWork(c, common.QUEUE_REMINDERS, "create-reminder-4-transfer-user", 0, delayCreateReminderForTransferUser, transferID, userID); err != nil {
 		return fmt.Errorf("failed to create a task for reminder creation. transferID=%v, userID=%v: %w", transferID, userID, err)
-	} else {
-		task.Delay = time.Duration(time.Second)
-		if _, err = apphostgae.AddTaskToQueue(c, task, common.QUEUE_REMINDERS); err != nil {
-			return fmt.Errorf("failed to add a task for reminder creation, transfer id=%v: %w", transferID, err)
-		}
-		log.Debugf(c, "Added task(%v) to create reminder for transfer id=%v", task.Path, transferID)
 	}
+	log.Debugf(c, "Added task(%v) to create reminder for transfer id=%v", transferID)
 	return
 }
 
@@ -133,18 +127,11 @@ func discardReminders(c context.Context, transferIDs []int, returnTransferID int
 		return errors.New("len(transferIDs) == 0")
 	}
 	const queueName = common.QUEUE_REMINDERS
-	tasks := make([]*taskqueue.Task, len(transferIDs))
+	args := make([][]interface{}, len(transferIDs))
 	for i, transferID := range transferIDs {
-		if task, err := apphostgae.CreateDelayTask(queueName, "discard-reminders-for-transfer", delayDiscardRemindersForTransfer, transferID, returnTransferID); err != nil {
-			return fmt.Errorf("failed to create delay task to dicard reminder for transfer id=%v: %w", transferID, err)
-		} else {
-			tasks[i] = task
-		}
+		args[i] = []interface{}{transferID, returnTransferID}
 	}
-	if _, err := taskqueue.AddMulti(c, tasks, queueName); err != nil {
-		return fmt.Errorf("failed to add %v task(s) to queue '%v': %w", len(tasks), queueName, err)
-	}
-	return nil
+	return apphostgae.EnqueueWorkMulti(c, queueName, "discard-reminders-for-transfer", 0, delayDiscardRemindersForTransfer, args...)
 }
 
 var delayDiscardRemindersForTransfer = delay.Func("discardRemindersForTransfer", discardRemindersForTransfer)
@@ -155,7 +142,6 @@ func discardRemindersForTransfer(c context.Context, transferID, returnTransferID
 		log.Errorf(c, "transferID == 0")
 		return nil
 	}
-	var tasks []*taskqueue.Task
 	delayDuration := time.Millisecond * 10
 	var _discard = func(
 		getIDs func(context.Context, dal.ReadSession, int) ([]int, error),
@@ -166,13 +152,10 @@ func discardRemindersForTransfer(c context.Context, transferID, returnTransferID
 		} else if len(reminderIDs) > 0 {
 			log.Debugf(c, loadedFormat, len(reminderIDs), transferID)
 			for _, reminderID := range reminderIDs {
-				if task, err := apphostgae.CreateDelayTask(common.QUEUE_REMINDERS, "discard-reminder", delayDiscardReminder, reminderID, transferID, returnTransferID); err != nil {
+				if err := apphostgae.EnqueueWork(c, common.QUEUE_REMINDERS, "discard-reminder", delayDuration, delayDiscardReminder, reminderID, transferID, returnTransferID); err != nil {
 					return fmt.Errorf("failed to create a task for reminder ID=%v: %w", reminderID, err)
-				} else {
-					task.Delay = delayDuration
-					tasks = append(tasks, task)
-					delayDuration += time.Millisecond * 10
 				}
+				delayDuration += time.Millisecond * 10
 			}
 		} else {
 			log.Infof(c, notLoadedFormat, transferID)
@@ -184,11 +167,6 @@ func discardRemindersForTransfer(c context.Context, transferID, returnTransferID
 	}
 	if err := _discard(dtdal.Reminder.GetSentReminderIDsByTransferID, "Loaded %v keys of sent reminders for transfer id=%v", "The are no sent reminders for transfer id=%v"); err != nil {
 		return err
-	}
-	if len(tasks) > 0 {
-		if _, err := taskqueue.AddMulti(c, tasks, common.QUEUE_REMINDERS); err != nil {
-			return fmt.Errorf("failed to put tasks to queue: %d tasks: %w", len(tasks), err)
-		}
 	}
 	return nil
 }

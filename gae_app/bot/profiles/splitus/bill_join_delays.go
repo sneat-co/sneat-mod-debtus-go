@@ -14,7 +14,6 @@ import (
 	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
-	"google.golang.org/appengine/urlfetch"
 	"strings"
 )
 
@@ -75,7 +74,7 @@ func delayedUpdateBillTgChartCard(c context.Context, billID string, tgChatMessag
 				return nil
 			}
 
-			tgApi := tgbotapi.NewBotAPIWithClient(botSettings.Token, urlfetch.Client(c))
+			tgApi := tgbotapi.NewBotAPIWithClient(botSettings.Token, dtdal.HttpClient(c))
 			if _, err := tgApi.Send(editMessage); err != nil {
 				log.Errorf(c, "Failed to sent message to Telegram: %v", err)
 				return err

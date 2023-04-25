@@ -11,7 +11,6 @@ import (
 	"context"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/urlfetch"
 )
 
 func RegisterDal() {
@@ -49,7 +48,8 @@ func RegisterDal() {
 	//dtdal.UserVk = NewUserVkDalGae()
 	//dtdal.GroupMember = NewGroupMemberDalGae()
 	dtdal.HttpClient = func(c context.Context) *http.Client {
-		return urlfetch.Client(c)
+		return http.DefaultClient
+		//return urlfetch.Client(c)
 	}
 	dtdal.HttpAppHost = apphostgae.NewHttpAppHostGAE()
 	//dtdal.HandleWithContext = func(handler strongo.HttpHandlerWithContext) func(w http.ResponseWriter, r *http.Request) {

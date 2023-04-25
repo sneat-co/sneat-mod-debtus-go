@@ -18,8 +18,6 @@ import (
 	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
-	"google.golang.org/appengine/urlfetch"
-	"net/http"
 	"time"
 )
 
@@ -52,7 +50,7 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 		err = fmt.Errorf("bot settings not found (env=%v, tgBotID=%v)", env, tgBot)
 		return
 	} else {
-		tgBotApi := tgbotapi.NewBotAPIWithClient(botSettings.Token, &http.Client{Transport: &urlfetch.Transport{Context: c}})
+		tgBotApi := tgbotapi.NewBotAPIWithClient(botSettings.Token, dtdal.HttpClient(c))
 		messageText := fmt.Sprintf(
 			"<b>%v</b>\n%v\n\n",
 			translator.Translate(trans.MESSAGE_TEXT_REMINDER),

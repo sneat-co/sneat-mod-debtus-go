@@ -1,17 +1,16 @@
 package dtb_transfer
 
 import (
+	"errors"
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botsfw"
-	"github.com/sneat-co/debtstracker-translations/trans"
-
-	"errors"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/dtb_common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/log"
 	//"github.com/sneat-co/debtstracker-go/gae_app/bot/platforms/telegram"
 	//"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
@@ -20,7 +19,6 @@ import (
 	//apphostgae "github.com/strongo/app-host-gae"
 	//"context"
 	//"google.golang.org/appengine/delay"
-	//"google.golang.org/appengine/urlfetch"
 	//"net/http"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"net/url"
@@ -130,7 +128,7 @@ func rescheduleReminder(whc botsfw.WebhookContext, reminderID int, remindInDurat
 //const ASK_FOR_FEEDBACK_TASK = "ask-for-feedback"
 //
 //func delayAskForFeedback(c context.Context, botCode string, chatID int64, userID int64) error {
-//	task, err := apphostgae.CreateDelayTask(common.QUEUE_CHATS, ASK_FOR_FEEDBACK_TASK, delayedAskForFeedback, botCode, chatID, userID)
+//	task, err := apphostgae.EnqueueWork(c, common.QUEUE_CHATS, ASK_FOR_FEEDBACK_TASK, 0, delayedAskForFeedback, botCode, chatID, userID)
 //	if err != nil {
 //		return err
 //	}

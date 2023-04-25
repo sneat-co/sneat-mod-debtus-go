@@ -2,17 +2,16 @@ package analytics
 
 import (
 	"bytes"
-	"fmt"
-	"github.com/bots-go-framework/bots-fw/botsfw"
-	"net/http"
-	"strconv"
-
 	"context"
 	"errors"
+	"fmt"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/strongo/gamp"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/urlfetch"
+	"net/http"
+	"strconv"
 )
 
 const (
@@ -33,7 +32,7 @@ func SendSingleMessage(c context.Context, m gamp.Message) (err error) {
 	if c == nil {
 		return errors.New("Parameter 'c context.Context' is nil")
 	}
-	gaMeasurement := gamp.NewBufferedClient("", urlfetch.Client(c), nil)
+	gaMeasurement := gamp.NewBufferedClient("", dtdal.HttpClient(c), nil)
 	if err = gaMeasurement.Queue(m); err != nil {
 		return err
 	}

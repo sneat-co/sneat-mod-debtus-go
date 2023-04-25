@@ -26,9 +26,7 @@ func (TransferDalGae) DelayUpdateTransfersWithCounterparty(c context.Context, cr
 	if counterpartyCounterpartyID == 0 {
 		return errors.New("counterpartyCounterpartyID == 0")
 	}
-	if task, err := apphostgae.CreateDelayTask(common.QUEUE_TRANSFERS, DELAY_UPDATE_TRANSFERS_WITH_COUNTERPARTY, delayedUpdateTransfersWithCounterparty, creatorCounterpartyID, counterpartyCounterpartyID); err != nil {
-		return err
-	} else if _, err = apphostgae.AddTaskToQueue(c, task, common.QUEUE_TRANSFERS); err != nil {
+	if err := apphostgae.EnqueueWork(c, common.QUEUE_TRANSFERS, DELAY_UPDATE_TRANSFERS_WITH_COUNTERPARTY, 0, delayedUpdateTransfersWithCounterparty, creatorCounterpartyID, counterpartyCounterpartyID); err != nil {
 		return err
 	}
 	return nil
@@ -69,15 +67,10 @@ var delayedUpdateTransfersWithCounterparty = delay.Func(DELAY_UPDATE_TRANSFERS_W
 		log.Infof(c, "Loaded %d transfer IDs", len(transferIDs))
 		delayDuration := 10 * time.Microsecond
 		for _, transferID := range transferIDs {
-			if task, err := apphostgae.CreateDelayTask(common.QUEUE_TRANSFERS, DELAY_UPDATE_1_TRANSFER_WITH_COUNTERPARTY, delayedUpdateTransferWithCounterparty, transferID, counterpartyCounterpartyID); err != nil {
+			if err := apphostgae.EnqueueWork(c, common.QUEUE_TRANSFERS, DELAY_UPDATE_1_TRANSFER_WITH_COUNTERPARTY, delayDuration, delayedUpdateTransferWithCounterparty, transferID, counterpartyCounterpartyID); err != nil {
 				return fmt.Errorf("failed to create task for transfer id=%d: %w", transferID, err)
-			} else {
-				task.Delay = delayDuration
-				delayDuration += 10 * time.Microsecond
-				if _, err = apphostgae.AddTaskToQueue(c, task, common.QUEUE_TRANSFERS); err != nil {
-					return fmt.Errorf("failed to add task for transfer %d to queue [%v]: %w", transferID, common.QUEUE_TRANSFERS, err)
-				}
 			}
+			delayDuration += 10 * time.Microsecond
 		}
 	} else {
 		query := dal.From(models.TransferKind).

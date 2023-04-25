@@ -21,7 +21,6 @@ import (
 	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/delay"
-	"google.golang.org/appengine/urlfetch"
 	"reflect"
 	"strconv"
 	"strings"
@@ -29,15 +28,7 @@ import (
 )
 
 func (UserDalGae) DelaySetUserPreferredLocale(c context.Context, delay time.Duration, userID int64, localeCode5 string) error {
-	if task, err := apphostgae.CreateDelayTask(common.QUEUE_USERS, "set-user-preferred-locale", delayedSetUserPreferredLocale, userID, localeCode5); err != nil {
-		return fmt.Errorf("failed to create delayed task delayedSetUserPreferredLocale: %w", err)
-	} else {
-		task.Delay = delay
-		if _, err = apphostgae.AddTaskToQueue(c, task, common.QUEUE_REMINDERS); err != nil {
-			return fmt.Errorf("failed to add update-users task to taskqueue: %w", err)
-		}
-		return nil
-	}
+	return apphostgae.EnqueueWork(c, common.QUEUE_USERS, "set-user-preferred-locale", delay, delayedSetUserPreferredLocale, userID, localeCode5)
 }
 
 var delayedSetUserPreferredLocale = delay.Func("SetUserPreferredLocale", func(c context.Context, userID int64, localeCode5 string) (err error) {
@@ -106,16 +97,7 @@ var delayedUpdateTransferWithCreatorReceiptTgMessageID = delay.Func("UpdateTrans
 
 func (ReceiptDalGae) DelayCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongo.Environment, transferID int, userID int64) error {
 	log.Debugf(c, "delaySendReceiptToCounterpartyByTelegram(env=%v, transferID=%v, userID=%v)", env, transferID, userID)
-
-	if task, err := apphostgae.CreateDelayTask(common.QUEUE_RECEIPTS, "create-and-send-receipt-for-counterparty-by-telegram", delayedCreateAndSendReceiptToCounterpartyByTelegram, env, transferID, userID); err != nil {
-		return err
-	} else {
-		task.Delay = time.Duration(1 * time.Second / 10)
-		if _, err = apphostgae.AddTaskToQueue(c, task, common.QUEUE_RECEIPTS); err != nil {
-			return err
-		}
-	}
-	return nil
+	return apphostgae.EnqueueWork(c, common.QUEUE_RECEIPTS, "create-and-send-receipt-for-counterparty-by-telegram", 0, delayedCreateAndSendReceiptToCounterpartyByTelegram, env, transferID, userID)
 }
 
 func GetTelegramChatByUserID(c context.Context, userID int64) (entityID string, chat tgstore.TgChatData, err error) {
@@ -353,7 +335,7 @@ func editTgMessageText(c context.Context, tgBotID string, tgChatID int64, tgMsgI
 }
 
 func sendToTelegram(c context.Context, msg tgbotapi.Chattable, botSettings botsfw.BotSettings) (err error) { // TODO: Merge with same in API package
-	tgApi := tgbotapi.NewBotAPIWithClient(botSettings.Token, urlfetch.Client(c))
+	tgApi := tgbotapi.NewBotAPIWithClient(botSettings.Token, dtdal.HttpClient(c))
 	if _, err = tgApi.Send(msg); err != nil {
 		return
 	}
@@ -363,15 +345,7 @@ func sendToTelegram(c context.Context, msg tgbotapi.Chattable, botSettings botsf
 var errReceiptStatusIsNotCreated = errors.New("receipt is not in 'created' status")
 
 func delaySendReceiptToCounterpartyByTelegram(c context.Context, receiptID int, tgChatID int64, localeCode string) error {
-	if task, err := apphostgae.CreateDelayTask(common.QUEUE_RECEIPTS, "send-receipt-to-counterparty-by-telegram", delayedSendReceiptToCounterpartyByTelegram, receiptID, tgChatID, localeCode); err != nil {
-		return err
-	} else {
-		task.Delay = time.Duration(1 * time.Second / 10)
-		if _, err = apphostgae.AddTaskToQueue(c, task, common.QUEUE_RECEIPTS); err != nil {
-			return err
-		}
-	}
-	return nil
+	return apphostgae.EnqueueWork(c, common.QUEUE_RECEIPTS, "send-receipt-to-counterparty-by-telegram", time.Second/10, delayedSendReceiptToCounterpartyByTelegram, receiptID, tgChatID, localeCode)
 }
 
 var delayedSendReceiptToCounterpartyByTelegram = delay.Func("delayedSendReceiptToCounterpartyByTelegram", sendReceiptToCounterpartyByTelegram)

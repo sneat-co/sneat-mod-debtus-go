@@ -1,15 +1,14 @@
 package sms
 
 import (
-	"github.com/sneat-co/debtstracker-translations/trans"
-	"strings"
-
 	"context"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/gotwilio"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/urlfetch"
+	"strings"
 )
 
 func SendSms(c context.Context, isLive bool, toPhoneNumber, smsText string) (isTestSender bool, smsResponse *gotwilio.SmsResponse, twilioException *gotwilio.Exception, err error) {
@@ -29,7 +28,7 @@ func SendSms(c context.Context, isLive bool, toPhoneNumber, smsText string) (isT
 		fromNumber = common.TWILIO_TEST_FROM
 	}
 
-	twilio := gotwilio.NewTwilioClientCustomHTTP(accountSid, accountToken, urlfetch.Client(c))
+	twilio := gotwilio.NewTwilioClientCustomHTTP(accountSid, accountToken, dtdal.HttpClient(c))
 
 	if smsResponse, twilioException, err = twilio.SendSMS(
 		fromNumber,

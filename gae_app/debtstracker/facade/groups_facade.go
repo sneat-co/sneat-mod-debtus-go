@@ -15,7 +15,6 @@ import (
 	"github.com/strongo/log"
 	"github.com/strongo/slices"
 	"google.golang.org/appengine/delay"
-	"google.golang.org/appengine/taskqueue"
 )
 
 type groupFacade struct {
@@ -188,18 +187,13 @@ func updateGroupUsers(c context.Context, groupID string) (err error) {
 		if err != nil {
 			return err
 		}
-		var tasks []*taskqueue.Task
+		var args [][]interface{}
 		for _, member := range group.Data.GetGroupMembers() {
 			if member.UserID != "" {
-				task, err := apphostgae.CreateDelayTask(common.QUEUE_USERS, "update-user-with-groups", delayUpdateUserWithGroups, member.UserID, []string{groupID}, []string{})
-				if err != nil {
-					return err
-				}
-				tasks = append(tasks, task)
+				args = append(args, []interface{}{member.UserID, []string{groupID}, []string{}})
 			}
 		}
-		_, err = taskqueue.AddMulti(c, tasks, common.QUEUE_USERS)
-		return err
+		return apphostgae.EnqueueWorkMulti(c, common.QUEUE_USERS, "update-user-with-groups", 0, delayUpdateUserWithGroups, args...)
 	}); err != nil {
 		return err
 	}

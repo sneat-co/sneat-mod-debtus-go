@@ -1,15 +1,14 @@
 package reminders
 
 import (
-	"fmt"
-	"net/http"
-
 	"context"
+	"fmt"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/urlfetch"
+	"net/http"
 )
 
 type TransferReminderTo int
@@ -57,7 +56,7 @@ func SendEmail(c context.Context, fromName, subject, html string) (err error) {
 	}
 	sgClient := sendgrid.NewSendClient("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")
 	// set http.Client to use the appengine client
-	sendgrid.DefaultClient.HTTPClient = urlfetch.Client(c) //Just perform this swap, and you are good to go.
+	sendgrid.DefaultClient.HTTPClient = dtdal.HttpClient(c) //Just perform this swap, and you are good to go.
 	from := mail.NewEmail(fromName, "hello@debtstracker.io")
 	to := mail.NewEmail("Example User", "test@example.com")
 	message := mail.NewSingleEmail(from, subject, to, "", html)

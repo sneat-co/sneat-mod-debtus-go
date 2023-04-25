@@ -2,20 +2,18 @@ package reminders
 
 import (
 	"bytes"
-	"fmt"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"net/http"
-	"time"
-
 	"context"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/urlfetch"
+	"net/http"
+	"time"
 )
 
 func sendReminderByEmail(c context.Context, reminder models.Reminder, emailTo string, transfer models.Transfer, user models.AppUserData) (err error) {
@@ -63,8 +61,8 @@ func sendReminderByEmail(c context.Context, reminder models.Reminder, emailTo st
 		//SourceArn:     aws.String("AmazonResourceName"),
 	}
 
-	http.DefaultClient = urlfetch.Client(c)
-	http.DefaultTransport = &urlfetch.Transport{Context: c, AllowInvalidServerCertificate: false}
+	http.DefaultClient = dtdal.HttpClient(c)
+	//http.DefaultTransport = &urlfetch.Transport{Context: c, AllowInvalidServerCertificate: false}
 	resp, err := svc.SendEmail(params)
 
 	sentAt := time.Now()

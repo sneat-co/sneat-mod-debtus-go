@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	"google.golang.org/appengine/urlfetch"
 )
 
 func SendFeedbackToAdmins(c context.Context, botToken string, feedback models.Feedback) (err error) {
-	bot := tgbotapi.NewBotAPIWithClient(botToken, urlfetch.Client(c))
+	bot := tgbotapi.NewBotAPIWithClient(botToken, dtdal.HttpClient(c))
 	text := fmt.Sprintf("%v user #%d @%v (rate=%v):\n%v", feedback.CreatedOnPlatform, feedback.UserID, feedback.CreatedOnID, feedback.Rate, feedback.Text)
 	message := tgbotapi.NewMessageToChannel("-1001128307094", text)
 	message.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(

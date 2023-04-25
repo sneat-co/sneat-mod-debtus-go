@@ -2,22 +2,19 @@ package emails
 
 import (
 	"bytes"
-	"fmt"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/dal-go/dalgo/dal"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
-	"net/http"
-	"strings"
-
 	"context"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/urlfetch"
+	"strings"
 )
 
 func CreateEmailRecordAndQueueForSending(c context.Context, emailEntity *models.EmailData) (id int64, err error) {
@@ -99,8 +96,8 @@ func SendEmail(c context.Context, from, to, subject, bodyText, bodyHtml string) 
 		}
 	}
 
-	http.DefaultClient = urlfetch.Client(c)
-	http.DefaultTransport = &urlfetch.Transport{Context: c, AllowInvalidServerCertificate: false}
+	//http.DefaultClient = urlfetch.Client(c)
+	//http.DefaultTransport = &urlfetch.Transport{Context: c, AllowInvalidServerCertificate: false}
 	log.Debugf(c, "Sending email through AWS SES: %v", params)
 
 	resp, err := svc.SendEmail(params)
