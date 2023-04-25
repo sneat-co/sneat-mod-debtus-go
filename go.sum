@@ -17,6 +17,8 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/aws/aws-sdk-go v1.44.248 h1:GvkxpgsxqNc03LmhXiaxKpzbyxndnex7V+OThLx4g5M=
 github.com/aws/aws-sdk-go v1.44.248/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
+github.com/aws/aws-sdk-go v1.44.249 h1:UbUvh/oYHdAD3vZjNi316M0NIupJsrqAcJckVuhaCB8=
+github.com/aws/aws-sdk-go v1.44.249/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
 github.com/bots-go-framework/bots-api-telegram v0.1.1 h1:Q3M3ZkNYttLOzsa6RAJGro/5iP0Ngeoj4q61kCUzUUM=
 github.com/bots-go-framework/bots-api-telegram v0.1.1/go.mod h1:RBwFLRmHBiC/K/Cw+AdTDehcuwkvSkfRc9zU03twJzA=
 github.com/bots-go-framework/bots-api-telegram v0.2.0 h1:E8mybJ1lN+vxlf+2q7I8XzLMoRnAA/DkuKQcmc09g3E=
