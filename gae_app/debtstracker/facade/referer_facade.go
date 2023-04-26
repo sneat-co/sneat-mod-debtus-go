@@ -2,20 +2,21 @@ package facade
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
+	"errors"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/app/delaying"
+	"github.com/strongo/log"
+	"google.golang.org/appengine/memcache"
 	"math/rand"
+	"reflect"
 	"sort"
 	"strings"
 	"time"
-
-	"context"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	"github.com/strongo/log"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/memcache"
 )
 
 type refererFacade struct {
@@ -184,18 +185,28 @@ func (f refererFacade) TopTelegramReferrers(c context.Context, botID string, lim
 		tgUsernames = strings.Split(string(item.Value), ",")
 		item = nil
 	} else {
-		query := datastore.NewQuery(models.RefererKind).Filter("p =", "tg").Filter("to =", botID).Order("-t").Limit(100)
-		iterator := query.Run(c)
-		refererEntity := new(models.RefererEntity)
+		q := dal.From(models.RefererKind).
+			WhereField("p", "=", "tg").
+			WhereField("to", "=", botID).
+			OrderBy(dal.DescendingField("t")).
+			Limit(100).
+			SelectInto(func() dal.Record {
+				return dal.NewRecordWithIncompleteKey(models.RefererKind, reflect.String, new(models.RefererEntity))
+			})
+		var reader dal.Reader
+		if reader, err = dtdal.DB.QueryReader(c, q); err != nil {
+			return nil, err
+		}
 		for {
-			if _, err = iterator.Next(refererEntity); err != nil {
-				if err == datastore.Done {
+			var record dal.Record
+			if record, err = reader.Next(); err != nil {
+				if errors.Is(err, dal.ErrNoMoreRecords) {
 					err = nil
 					break
 				}
 				return
 			}
-			tgUsernames = append(tgUsernames, refererEntity.ReferredBy)
+			tgUsernames = append(tgUsernames, record.Data().(*models.RefererEntity).ReferredBy)
 		}
 		if !isLockItem() {
 			if item, err = memcache.Get(c, lastTgReferrers); err == nil && isLockItem() {
