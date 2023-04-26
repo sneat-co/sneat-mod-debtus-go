@@ -21,8 +21,6 @@ func DelaySendEmail(c context.Context, id int64) error {
 	return delayEmail.EnqueueWork(c, delaying.With(common.QUEUE_EMAILS, SEND_EMAIL_TASK, 0), id)
 }
 
-var delayEmail = delaying.MustRegisterFunc(SEND_EMAIL_TASK, delayedSendEmail)
-
 var ErrEmailIsInWrongStatus = errors.New("email is already sending or sent")
 
 func delayedSendEmail(c context.Context, id int64) (err error) {

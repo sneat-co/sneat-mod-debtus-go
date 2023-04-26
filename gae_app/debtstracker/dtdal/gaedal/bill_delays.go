@@ -21,8 +21,6 @@ func DelayUpdateUsersWithBill(c context.Context, billID string, userIDs []string
 	return delayUpdateUsersWithBill.EnqueueWork(c, delaying.With(common.QUEUE_BILLS, updateUsersWithBillKeyName, 0), billID, userIDs)
 }
 
-var delayUpdateUsersWithBill = delaying.MustRegisterFunc(updateUsersWithBillKeyName, updateUsersWithBill)
-
 func updateUsersWithBill(c context.Context, billID string, userIDs []string) (err error) {
 	wg := new(sync.WaitGroup)
 	wg.Add(len(userIDs))
@@ -38,12 +36,10 @@ func updateUsersWithBill(c context.Context, billID string, userIDs []string) (er
 	return
 }
 
-const updateUserWithBillKeyName = "update-user-with-bill"
+const updateUserWithBillKeyName = "delayedUpdateUserWithBill"
 
-var delayUpdateUserWithBill = delaying.MustRegisterFunc(updateUserWithBillKeyName, updateUserWithBill)
-
-func updateUserWithBill(c context.Context, billID, userID string) (err error) {
-	log.Debugf(c, "updateUserWithBill(billID=%v, userID=%v)", billID, userID)
+func delayedUpdateUserWithBill(c context.Context, billID, userID string) (err error) {
+	log.Debugf(c, "delayedUpdateUserWithBill(billID=%v, userID=%v)", billID, userID)
 	var (
 		bill             models.Bill
 		wg               sync.WaitGroup

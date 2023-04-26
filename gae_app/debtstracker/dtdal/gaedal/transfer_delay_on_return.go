@@ -32,8 +32,6 @@ func (TransferDalGae) DelayUpdateTransfersOnReturn(c context.Context, returnTran
 	return delayUpdateTransfersOnReturn.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, "update-transfers-on-return", 0), returnTransferID, transferReturnsUpdate)
 }
 
-var delayUpdateTransfersOnReturn = delaying.MustRegisterFunc("updateTransfersOnReturn", updateTransfersOnReturn)
-
 func updateTransfersOnReturn(c context.Context, returnTransferID int, transferReturnsUpdate []dtdal.TransferReturnUpdate) (err error) {
 	log.Debugf(c, "updateTransfersOnReturn(returnTransferID=%v, transferReturnsUpdate=%+v)", returnTransferID, transferReturnsUpdate)
 	for i, transferReturnUpdate := range transferReturnsUpdate {
@@ -53,8 +51,6 @@ func updateTransfersOnReturn(c context.Context, returnTransferID int, transferRe
 func DelayUpdateTransferOnReturn(c context.Context, returnTransferID, transferID int, returnedAmount decimal.Decimal64p2) error {
 	return delayUpdateTransferOnReturn.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, "update-transfer-on-return", 0), returnTransferID, transferID, returnedAmount)
 }
-
-var delayUpdateTransferOnReturn = delaying.MustRegisterFunc("updateTransferOnReturn", updateTransferOnReturn)
 
 func updateTransferOnReturn(c context.Context, returnTransferID, transferID int, returnedAmount decimal.Decimal64p2) (err error) {
 	log.Debugf(c, "updateTransferOnReturn(returnTransferID=%v, transferID=%v, returnedAmount=%v)", returnTransferID, transferID, returnedAmount)

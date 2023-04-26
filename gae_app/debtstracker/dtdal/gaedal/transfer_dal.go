@@ -131,8 +131,6 @@ func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context,
 	return
 }
 
-var delayFixTransfersIsOutstanding = delaying.MustRegisterFunc("fix-transfers-is-outstanding", fixTransfersIsOutstanding)
-
 func fixTransfersIsOutstanding(c context.Context, transferIDs []int) (err error) {
 	log.Debugf(c, "fixTransfersIsOutstanding(%v)", transferIDs)
 	for _, transferID := range transferIDs {

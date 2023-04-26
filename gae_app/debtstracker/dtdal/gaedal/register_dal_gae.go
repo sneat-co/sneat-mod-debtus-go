@@ -1,19 +1,19 @@
 package gaedal
 
 import (
+	"context"
 	telegramBot "github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	apphostgae "github.com/strongo/app-host-gae"
-	"net/http"
-
-	"context"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"google.golang.org/appengine"
+	"net/http"
 )
 
 func RegisterDal() {
+
 	//dtdal.DB = gaedb.NewDatabase()
 	telegramBot.Init(facade.GetDatabase)
 	//
@@ -52,7 +52,7 @@ func RegisterDal() {
 		//return urlfetch.Client(c)
 	}
 	dtdal.HttpAppHost = apphostgae.NewHttpAppHostGAE()
-	apphostgae.RegisterDelaying()
+
 	//dtdal.HandleWithContext = func(handler strongo.HttpHandlerWithContext) func(w http.ResponseWriter, r *http.Request) {
 	//	return func(w http.ResponseWriter, r *http.Request) {
 	//		handler(appengine.NewContext(r), w, r)

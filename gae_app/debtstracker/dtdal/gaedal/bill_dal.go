@@ -32,14 +32,14 @@ func (billDalGae) SaveBill(c context.Context, tx dal.ReadwriteTransaction, bill 
 }
 
 func (billDalGae) DelayUpdateBillDependencies(c context.Context, billID string) (err error) {
-	if err = delayedUpdateBillDependencies.EnqueueWork(c, delaying.With(common.QUEUE_BILLS, "UpdateBillDependencies", 0), billID); err != nil {
+	if err = delayUpdateBillDependencies.EnqueueWork(c, delaying.With(common.QUEUE_BILLS, "UpdateBillDependencies", 0), billID); err != nil {
 		return
 	}
 	return
 }
 
-var delayedUpdateBillDependencies = delaying.MustRegisterFunc("delayedUpdateBillDependencies", func(c context.Context, billID string) (err error) {
-	log.Debugf(c, "delayedUpdateBillDependencies(billID=%d)", billID)
+func delayedUpdateBillDependencies(c context.Context, billID string) (err error) {
+	log.Debugf(c, "delayUpdateBillDependencies(billID=%d)", billID)
 	var bill models.Bill
 	if bill, err = facade.GetBillByID(c, nil, billID); err != nil {
 		if dal.IsNotFound(err) {
@@ -61,7 +61,7 @@ var delayedUpdateBillDependencies = delaying.MustRegisterFunc("delayedUpdateBill
 		}
 	}
 	return
-})
+}
 
 func (billDalGae) UpdateBillsHolder(c context.Context, tx dal.ReadwriteTransaction, billID string, getBillsHolder dtdal.BillsHolderGetter) (err error) {
 	_, _, _, _ = c, tx, billID, getBillsHolder

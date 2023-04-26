@@ -28,16 +28,20 @@ func _validateSetReminderIsSentMessageIDs(messageIntID int64, messageStrID strin
 }
 
 func (ReminderDalGae) DelaySetReminderIsSent(c context.Context, reminderID int, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error {
+	if reminderID == 0 {
+		return errors.New("reminderID == 0")
+	}
+	if sentAt.IsZero() {
+		return errors.New("sentAt.IsZero()")
+	}
 	if err := _validateSetReminderIsSentMessageIDs(messageIntID, messageStrID, sentAt); err != nil {
 		return err
 	}
-	if err := delayedSetReminderIsSent.EnqueueWork(c, delaying.With(common.QUEUE_REMINDERS, "set-reminder-is-sent", 0), reminderID, sentAt, messageIntID, messageStrID, locale, errDetails); err != nil {
+	if err := delaySetReminderIsSent.EnqueueWork(c, delaying.With(common.QUEUE_REMINDERS, "set-reminder-is-sent", 0), reminderID, sentAt, messageIntID, messageStrID, locale, errDetails); err != nil {
 		return fmt.Errorf("failed to delay execution of setReminderIsSent: %w", err)
 	}
 	return nil
 }
-
-var delayedSetReminderIsSent = delaying.MustRegisterFunc("setReminderIsSent", setReminderIsSent)
 
 func setReminderIsSent(c context.Context, reminderID int, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error {
 	return dtdal.Reminder.SetReminderIsSent(c, reminderID, sentAt, messageIntID, messageStrID, locale, errDetails)

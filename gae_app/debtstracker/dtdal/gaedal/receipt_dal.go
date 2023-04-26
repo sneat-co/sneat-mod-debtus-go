@@ -105,11 +105,11 @@ func (receiptDalGae ReceiptDalGae) MarkReceiptAsSent(c context.Context, receiptI
 }
 
 func (receiptDalGae ReceiptDalGae) DelayedMarkReceiptAsSent(c context.Context, receiptID, transferID int, sentTime time.Time) error {
-	return delayedMarkReceiptAsSent.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, "set-receipt-as-sent", 0), receiptID, transferID, sentTime)
+	return delayMarkReceiptAsSent.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, "set-receipt-as-sent", 0), receiptID, transferID, sentTime)
 }
 
-var delayedMarkReceiptAsSent = delaying.MustRegisterFunc("delayedMarkReceiptAsSent", func(c context.Context, receiptID, transferID int, sentTime time.Time) (err error) {
-	log.Debugf(c, "delayedMarkReceiptAsSent(receiptID=%v, transferID=%v, sentTime=%v)", receiptID, transferID, sentTime)
+func delayedMarkReceiptAsSent(c context.Context, receiptID, transferID int, sentTime time.Time) (err error) {
+	log.Debugf(c, "delayMarkReceiptAsSent(receiptID=%v, transferID=%v, sentTime=%v)", receiptID, transferID, sentTime)
 	if receiptID == 0 {
 		log.Errorf(c, "receiptID == 0")
 		return nil
@@ -124,4 +124,4 @@ var delayedMarkReceiptAsSent = delaying.MustRegisterFunc("delayedMarkReceiptAsSe
 		return nil
 	}
 	return
-})
+}

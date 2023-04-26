@@ -2,22 +2,25 @@ package gaeapp
 
 import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/julienschmidt/httprouter"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
+	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/splitus"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/api"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/api/apigaedepended"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/apps/vkapp"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal/gaedal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/emails"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/maintainance"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/reminders"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/support"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/webhooks"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/website"
-
-	//"github.com/strongo/app"
+	apphostgae "github.com/strongo/app-host-gae"
+	"github.com/strongo/app/delaying"
 	"net/http"
-
-	"github.com/julienschmidt/httprouter"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/maintainance"
 )
 
 // Init initializes debts tracker server
@@ -25,6 +28,9 @@ func Init(botHost botsfw.BotHost) {
 	if botHost == nil {
 		panic("botHost parameter is required")
 	}
+
+	initDelaying()
+
 	gaedal.RegisterDal()
 	apigaedepended.InitApiGaeDepended()
 
@@ -46,6 +52,17 @@ func Init(botHost botsfw.BotHost) {
 	httpRouter.GET("/Users/astec/", NotFoundSilent)
 
 	maintainance.RegisterMappers()
+}
+
+func initDelaying() {
+	delaying.Init(apphostgae.MustRegisterDelayedFunc)
+	gaedal.InitDelaying(delaying.MustRegisterFunc)
+	facade.InitDelaying(delaying.MustRegisterFunc)
+	emails.InitDelaying(delaying.MustRegisterFunc)
+	dtb_transfer.InitDelaying(delaying.MustRegisterFunc)
+	splitus.InitDelaying(delaying.MustRegisterFunc)
+	reminders.InitDelaying(delaying.MustRegisterFunc)
+	api.InitDelaying(delaying.MustRegisterFunc)
 }
 
 func NotFoundSilent(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

@@ -161,8 +161,6 @@ func (groupFacade) AddUsersToTheGroupAndOutstandingBills(c context.Context, grou
 	return group, newUsers, err
 }
 
-var delayUpdateGroupUsers = delaying.MustRegisterFunc("updateGroupUsers", updateGroupUsers)
-
 func (groupFacade) DelayUpdateGroupUsers(c context.Context, groupID string) error { // TODO: Move to DAL?
 	if groupID == "" {
 		panic("groupID is empty string")
@@ -198,8 +196,6 @@ func updateGroupUsers(c context.Context, groupID string) (err error) {
 	}
 	return err
 }
-
-var delayUpdateUserWithGroups = delaying.MustRegisterFunc("UpdateUserWithGroups", delayedUpdateUserWithGroups)
 
 func delayedUpdateUserWithGroups(c context.Context, userID string, groupIDs2add, groupIDs2remove []string) (err error) {
 	log.Debugf(c, "delayedUpdateUserWithGroups(userID=%d, groupIDs2add=%v, groupIDs2remove=%v)", userID, groupIDs2add, groupIDs2remove)
@@ -251,8 +247,6 @@ func (userFacade) UpdateUserWithGroups(c context.Context, tx dal.ReadwriteTransa
 	}
 	return
 }
-
-var delayUpdateContactWithGroups = delaying.MustRegisterFunc("UpdateContactWithGroups", delayedUpdateContactWithGroup)
 
 func (userFacade) DelayUpdateContactWithGroups(c context.Context, contactID int64, addGroupIDs, removeGroupIDs []string) error {
 	return delayUpdateContactWithGroups.EnqueueWork(c, delaying.With(common.QUEUE_USERS, "update-contact-groups", 0), contactID, addGroupIDs, removeGroupIDs)

@@ -34,16 +34,10 @@ func (contactDalGae ContactDalGae) DeleteContact(c context.Context, tx dal.Readw
 	return
 }
 
-var deleteContactTransfersDelayFunc delaying.Function
-
 const DeleteContactTransfersFuncKey = "DeleteContactTransfers"
 
-func init() {
-	deleteContactTransfersDelayFunc = delaying.MustRegisterFunc(DeleteContactTransfersFuncKey, delayedDeleteContactTransfers)
-}
-
 func delayDeleteContactTransfers(c context.Context, contactID int64, cursor string) error {
-	if err := deleteContactTransfersDelayFunc.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, DeleteContactTransfersFuncKey, 0), contactID, cursor); err != nil {
+	if err := delayDeleteContactTransfersDelayFunc.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, DeleteContactTransfersFuncKey, 0), contactID, cursor); err != nil {
 		return err
 	}
 	return nil

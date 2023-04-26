@@ -134,21 +134,11 @@ func (userDal UserDalGae) CreateUser(c context.Context, userData *models.AppUser
 }
 
 func (UserDalGae) DelayUpdateUserWithBill(c context.Context, userID, billID string) (err error) {
-	if err = delayedUpdateUserWithBill.EnqueueWork(c, delaying.With(common.QUEUE_BILLS, "UpdateUserWithBill", 0), userID, billID); err != nil {
+	if err = delayUpdateUserWithBill.EnqueueWork(c, delaying.With(common.QUEUE_BILLS, "UpdateUserWithBill", 0), userID, billID); err != nil {
 		return
 	}
 	return
 }
-
-var delayedUpdateUserWithBill = delaying.MustRegisterFunc("delayedUpdateWithBill", func(c context.Context, userID, billID string) (err error) {
-	var user models.AppUser
-
-	if user, err = dtdal.User.GetUserByStrID(c, userID); err != nil {
-		return
-	}
-	log.Debugf(c, "User: %v", user)
-	return
-})
 
 func (UserDalGae) DelayUpdateUserWithContact(c context.Context, userID, billID int64) (err error) {
 	if err = delayedUpdateUserWithContact.EnqueueWork(c, delaying.With(common.QUEUE_USERS, "updateUserWithContact", time.Second/10), userID, billID); err != nil {
@@ -156,8 +146,6 @@ func (UserDalGae) DelayUpdateUserWithContact(c context.Context, userID, billID i
 	}
 	return
 }
-
-var delayedUpdateUserWithContact = delaying.MustRegisterFunc("updateUserWithContact", updateUserWithContact)
 
 func updateUserWithContact(c context.Context, userID, contactID int64) (err error) {
 	log.Debugf(c, "updateUserWithContact(userID=%v, contactID=%v)", userID, contactID)

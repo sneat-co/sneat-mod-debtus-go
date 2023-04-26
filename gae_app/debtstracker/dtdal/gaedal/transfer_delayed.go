@@ -25,7 +25,7 @@ func (TransferDalGae) DelayUpdateTransfersWithCounterparty(c context.Context, cr
 	if counterpartyCounterpartyID == 0 {
 		return errors.New("counterpartyCounterpartyID == 0")
 	}
-	if err := delayedUpdateTransfersWithCounterparty.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, DELAY_UPDATE_TRANSFERS_WITH_COUNTERPARTY, 0), creatorCounterpartyID, counterpartyCounterpartyID); err != nil {
+	if err := delayUpdateTransfersWithCounterparty.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, DELAY_UPDATE_TRANSFERS_WITH_COUNTERPARTY, 0), creatorCounterpartyID, counterpartyCounterpartyID); err != nil {
 		return err
 	}
 	return nil
@@ -36,8 +36,8 @@ const (
 	DELAY_UPDATE_1_TRANSFER_WITH_COUNTERPARTY = "update-1-transfer-with-counterparty"
 )
 
-var delayedUpdateTransfersWithCounterparty = delaying.MustRegisterFunc(DELAY_UPDATE_TRANSFERS_WITH_COUNTERPARTY, func(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) (err error) {
-	log.Infof(c, "delayedUpdateTransfersWithCounterparty(creatorCounterpartyID=%d, counterpartyCounterpartyID=%d)", creatorCounterpartyID, counterpartyCounterpartyID)
+func delayedUpdateTransfersWithCounterparty(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) (err error) {
+	log.Infof(c, "delayUpdateTransfersWithCounterparty(creatorCounterpartyID=%d, counterpartyCounterpartyID=%d)", creatorCounterpartyID, counterpartyCounterpartyID)
 	if creatorCounterpartyID == 0 {
 		log.Errorf(c, "creatorCounterpartyID == 0")
 		return nil
@@ -66,7 +66,7 @@ var delayedUpdateTransfersWithCounterparty = delaying.MustRegisterFunc(DELAY_UPD
 		log.Infof(c, "Loaded %d transfer IDs", len(transferIDs))
 		delayDuration := 10 * time.Microsecond
 		for _, transferID := range transferIDs {
-			if err := delayedUpdateTransferWithCounterparty.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, DELAY_UPDATE_1_TRANSFER_WITH_COUNTERPARTY, delayDuration), transferID, counterpartyCounterpartyID); err != nil {
+			if err := delayUpdateTransferWithCounterparty.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, DELAY_UPDATE_1_TRANSFER_WITH_COUNTERPARTY, delayDuration), transferID, counterpartyCounterpartyID); err != nil {
 				return fmt.Errorf("failed to create task for transfer id=%d: %w", transferID, err)
 			}
 			delayDuration += 10 * time.Microsecond
@@ -91,142 +91,141 @@ var delayedUpdateTransfersWithCounterparty = delaying.MustRegisterFunc(DELAY_UPD
 		}
 	}
 	return nil
-})
+}
 
-var delayedUpdateTransferWithCounterparty = delaying.MustRegisterFunc(DELAY_UPDATE_1_TRANSFER_WITH_COUNTERPARTY,
-	func(c context.Context, transferID int, counterpartyCounterpartyID int64) (err error) {
-		log.Debugf(c, "delayedUpdateTransferWithCounterparty(transferID=%d, counterpartyCounterpartyID=%d)", transferID, counterpartyCounterpartyID)
-		if transferID == 0 {
-			log.Errorf(c, "transferID == 0")
+func delayedUpdateTransferWithCounterparty(c context.Context, transferID int, counterpartyCounterpartyID int64) (err error) {
+	log.Debugf(c, "delayUpdateTransferWithCounterparty(transferID=%d, counterpartyCounterpartyID=%d)", transferID, counterpartyCounterpartyID)
+	if transferID == 0 {
+		log.Errorf(c, "transferID == 0")
+		return nil
+	}
+	if counterpartyCounterpartyID == 0 {
+		log.Errorf(c, "counterpartyCounterpartyID == 0")
+		return nil
+	}
+
+	var db dal.Database
+	if db, err = GetDatabase(c); err != nil {
+		return err
+	}
+
+	counterpartyCounterparty, err := facade.GetContactByID(c, db, counterpartyCounterpartyID)
+	if err != nil {
+		log.Errorf(c, err.Error())
+		if dal.IsNotFound(err) {
 			return nil
 		}
-		if counterpartyCounterpartyID == 0 {
-			log.Errorf(c, "counterpartyCounterpartyID == 0")
+		return err
+	}
+
+	log.Debugf(c, "counterpartyCounterparty: %v", counterpartyCounterparty)
+
+	counterpartyUser, err := facade.User.GetUserByID(c, db, counterpartyCounterparty.Data.UserID)
+	if err != nil {
+		log.Errorf(c, err.Error())
+		if dal.IsNotFound(err) {
 			return nil
 		}
+		return err
+	}
 
-		var db dal.Database
-		if db, err = GetDatabase(c); err != nil {
-			return err
-		}
+	log.Debugf(c, "counterpartyUser: %v", *counterpartyUser.Data)
 
-		counterpartyCounterparty, err := facade.GetContactByID(c, db, counterpartyCounterpartyID)
+	if err := db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) error {
+		transfer, err := facade.Transfers.GetTransferByID(tc, tx, transferID)
 		if err != nil {
-			log.Errorf(c, err.Error())
-			if dal.IsNotFound(err) {
-				return nil
-			}
 			return err
 		}
+		changed := false
 
-		log.Debugf(c, "counterpartyCounterparty: %v", counterpartyCounterparty)
+		// TODO: allow to pass creator counterparty as well. Match by userID
 
-		counterpartyUser, err := facade.User.GetUserByID(c, db, counterpartyCounterparty.Data.UserID)
-		if err != nil {
-			log.Errorf(c, err.Error())
-			if dal.IsNotFound(err) {
-				return nil
+		log.Debugf(c, "transfer.From() before: %v", transfer.Data.From())
+		log.Debugf(c, "transfer.To() before: %v", transfer.Data.To())
+
+		// Update transfer creator
+		{
+			transferCreator := transfer.Data.Creator()
+			log.Debugf(c, "transferCreator before: %v", transferCreator)
+			if transferCreator.ContactID == 0 {
+				transferCreator.ContactID = counterpartyCounterparty.ID
+				changed = true
+			} else if transferCreator.ContactID != counterpartyCounterparty.ID {
+				err = fmt.Errorf("transferCounterparty.ContactID != counterpartyCounterparty.ID: %d != %d", transferCreator.ContactID, counterpartyCounterparty.ID)
+				return err
+			} else {
+				log.Debugf(c, "transferCounterparty.ContactID == counterpartyCounterparty.ID: %d", transferCreator.ContactID)
 			}
-			return err
+			if transferCreator.ContactName == "" || transferCreator.ContactName != counterpartyCounterparty.Data.FullName() {
+				transferCreator.ContactName = counterpartyCounterparty.Data.FullName()
+				changed = true
+			}
+			log.Debugf(c, "transferCreator after: %v", transferCreator)
+			log.Debugf(c, "transfer.Creator() after: %v", transfer.Data.Creator())
 		}
 
-		log.Debugf(c, "counterpartyUser: %v", *counterpartyUser.Data)
+		// Update transfer counterparty
+		{
+			transferCounterparty := transfer.Data.Counterparty()
+			log.Debugf(c, "transferCounterparty before: %v", transferCounterparty)
+			if transferCounterparty.UserID == 0 {
+				transferCounterparty.UserID = counterpartyCounterparty.Data.UserID
+				changed = true
+			} else if transferCounterparty.UserID != counterpartyCounterparty.Data.UserID {
+				err = fmt.Errorf("transferCounterparty.UserID != counterpartyCounterparty.UserID: %d != %d", transferCounterparty.UserID, counterpartyCounterparty.Data.UserID)
+				return err
+			} else {
+				log.Debugf(c, "transferCounterparty.UserID == counterpartyCounterparty.UserID: %d", transferCounterparty.UserID)
+			}
+			if transferCounterparty.UserName == "" || transferCounterparty.UserName != counterpartyUser.Data.FullName() {
+				transferCounterparty.UserName = counterpartyUser.Data.FullName()
+				changed = true
+			}
+			log.Debugf(c, "transferCounterparty after: %v", transferCounterparty)
+			log.Debugf(c, "transfer.Contact() after: %v", transfer.Data.Counterparty())
+		}
+		log.Debugf(c, "transfer.From() after: %v", transfer.Data.From())
+		log.Debugf(c, "transfer.To() after: %v", transfer.Data.To())
 
-		if err := db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) error {
-			transfer, err := facade.Transfers.GetTransferByID(tc, tx, transferID)
-			if err != nil {
+		if changed {
+			if err = facade.Transfers.SaveTransfer(tc, tx, transfer); err != nil {
 				return err
 			}
-			changed := false
-
-			// TODO: allow to pass creator counterparty as well. Match by userID
-
-			log.Debugf(c, "transfer.From() before: %v", transfer.Data.From())
-			log.Debugf(c, "transfer.To() before: %v", transfer.Data.To())
-
-			// Update transfer creator
-			{
-				transferCreator := transfer.Data.Creator()
-				log.Debugf(c, "transferCreator before: %v", transferCreator)
-				if transferCreator.ContactID == 0 {
-					transferCreator.ContactID = counterpartyCounterparty.ID
-					changed = true
-				} else if transferCreator.ContactID != counterpartyCounterparty.ID {
-					err = fmt.Errorf("transferCounterparty.ContactID != counterpartyCounterparty.ID: %d != %d", transferCreator.ContactID, counterpartyCounterparty.ID)
-					return err
-				} else {
-					log.Debugf(c, "transferCounterparty.ContactID == counterpartyCounterparty.ID: %d", transferCreator.ContactID)
-				}
-				if transferCreator.ContactName == "" || transferCreator.ContactName != counterpartyCounterparty.Data.FullName() {
-					transferCreator.ContactName = counterpartyCounterparty.Data.FullName()
-					changed = true
-				}
-				log.Debugf(c, "transferCreator after: %v", transferCreator)
-				log.Debugf(c, "transfer.Creator() after: %v", transfer.Data.Creator())
-			}
-
-			// Update transfer counterparty
-			{
-				transferCounterparty := transfer.Data.Counterparty()
-				log.Debugf(c, "transferCounterparty before: %v", transferCounterparty)
-				if transferCounterparty.UserID == 0 {
-					transferCounterparty.UserID = counterpartyCounterparty.Data.UserID
-					changed = true
-				} else if transferCounterparty.UserID != counterpartyCounterparty.Data.UserID {
-					err = fmt.Errorf("transferCounterparty.UserID != counterpartyCounterparty.UserID: %d != %d", transferCounterparty.UserID, counterpartyCounterparty.Data.UserID)
-					return err
-				} else {
-					log.Debugf(c, "transferCounterparty.UserID == counterpartyCounterparty.UserID: %d", transferCounterparty.UserID)
-				}
-				if transferCounterparty.UserName == "" || transferCounterparty.UserName != counterpartyUser.Data.FullName() {
-					transferCounterparty.UserName = counterpartyUser.Data.FullName()
-					changed = true
-				}
-				log.Debugf(c, "transferCounterparty after: %v", transferCounterparty)
-				log.Debugf(c, "transfer.Contact() after: %v", transfer.Data.Counterparty())
-			}
-			log.Debugf(c, "transfer.From() after: %v", transfer.Data.From())
-			log.Debugf(c, "transfer.To() after: %v", transfer.Data.To())
-
-			if changed {
-				if err = facade.Transfers.SaveTransfer(tc, tx, transfer); err != nil {
+			if !transfer.Data.DtDueOn.IsZero() {
+				var counterpartyUser models.AppUser
+				if counterpartyUser, err = facade.User.GetUserByID(c, tx, counterpartyCounterparty.Data.UserID); err != nil {
 					return err
 				}
-				if !transfer.Data.DtDueOn.IsZero() {
-					var counterpartyUser models.AppUser
-					if counterpartyUser, err = facade.User.GetUserByID(c, tx, counterpartyCounterparty.Data.UserID); err != nil {
+
+				if !counterpartyUser.Data.HasDueTransfers {
+					if err = dtdal.User.DelayUpdateUserHasDueTransfers(tc, counterpartyCounterparty.Data.UserID); err != nil {
 						return err
 					}
-
-					if !counterpartyUser.Data.HasDueTransfers {
-						if err = dtdal.User.DelayUpdateUserHasDueTransfers(tc, counterpartyCounterparty.Data.UserID); err != nil {
-							return err
-						}
-					}
 				}
-				log.Infof(c, "Transfer saved to datastore")
-				return nil
-			} else {
-				log.Infof(c, "No chanes for the transfer")
 			}
+			log.Infof(c, "Transfer saved to datastore")
 			return nil
-		}, nil); err != nil {
-			panic(fmt.Sprintf("Failed to update transfer (%d): %v", transferID, err.Error()))
 		} else {
-			log.Infof(c, "Transaction succesfully completed")
+			log.Infof(c, "No chanes for the transfer")
 		}
 		return nil
-	})
+	}, nil); err != nil {
+		panic(fmt.Sprintf("Failed to update transfer (%d): %v", transferID, err.Error()))
+	} else {
+		log.Infof(c, "Transaction succesfully completed")
+	}
+	return nil
+}
 
 const (
 	UPDATE_TRANSFERS_WITH_CREATOR_NAME = "update-transfers-with-creator-name"
 )
 
 func DelayUpdateTransfersWithCreatorName(c context.Context, userID int64) error {
-	return delayedUpdateTransfersWithCreatorName.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, UPDATE_TRANSFERS_WITH_CREATOR_NAME, 0), userID)
+	return delayUpdateTransfersWithCreatorName.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, UPDATE_TRANSFERS_WITH_CREATOR_NAME, 0), userID)
 }
 
-var delayedUpdateTransfersWithCreatorName = delaying.MustRegisterFunc(UPDATE_TRANSFERS_WITH_CREATOR_NAME, func(c context.Context, userID int64) (err error) {
+func delayedUpdateTransfersWithCreatorName(c context.Context, userID int64) (err error) {
 	log.Debugf(c, "delayedUpdateTransfersWithCreatorName(userID=%d)", userID)
 
 	var db dal.Database
@@ -301,4 +300,4 @@ var delayedUpdateTransfersWithCreatorName = delaying.MustRegisterFunc(UPDATE_TRA
 			}
 		}(trasfer.ID)
 	}
-})
+}

@@ -16,11 +16,6 @@ import (
 	"strings"
 )
 
-var (
-	delayUpdateBillCards      = delaying.MustRegisterFunc("UpdateBillCards", delayedUpdateBillCards)
-	delayUpdateBillTgChatCard = delaying.MustRegisterFunc("UpdateBillTgChatCard", delayedUpdateBillTgChartCard)
-)
-
 func delayUpdateBillCardOnUserJoin(c context.Context, billID string, message string) error {
 	if err := delayUpdateBillCards.EnqueueWork(
 		c,

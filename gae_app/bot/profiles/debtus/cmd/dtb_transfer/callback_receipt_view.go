@@ -62,8 +62,6 @@ var ViewReceiptInTelegramCallbackCommand = botsfw.NewCallbackCommand(
 
 const delayLinkUserByReceiptKeyName = "delayLinkUserByReceipt"
 
-var delayLinkUserByReceipt = delaying.MustRegisterFunc(delayLinkUserByReceiptKeyName, delayedLinkUsersByReceipt)
-
 func DelayLinkUsersByReceipt(c context.Context, receiptID int, invitedUserID int64) (err error) {
 	return delayLinkUserByReceipt.EnqueueWork(c, delaying.With(common.QUEUE_RECEIPTS, delayLinkUserByReceiptKeyName, 0), receiptID, invitedUserID)
 }

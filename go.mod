@@ -23,8 +23,8 @@ require (
 	github.com/sendgrid/sendgrid-go v3.12.0+incompatible
 	github.com/shiyanhui/hero v0.0.2
 	github.com/sneat-co/debtstracker-translations v0.0.2
-	github.com/strongo/app v0.2.3
-	github.com/strongo/app-host-gae v0.1.7
+	github.com/strongo/app v0.2.4
+	github.com/strongo/app-host-gae v0.1.8
 	github.com/strongo/decimal v0.0.0-20180523215323-a1521d8f65fa
 	github.com/strongo/facebook v1.8.1
 	github.com/strongo/gamp v0.0.1

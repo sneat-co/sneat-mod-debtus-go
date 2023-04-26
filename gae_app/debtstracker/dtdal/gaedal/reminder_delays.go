@@ -38,8 +38,6 @@ func (ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, tran
 	return
 }
 
-var delayCreateReminderForTransferUser = delaying.MustRegisterFunc("delayedCreateReminderForTransferUser", delayedCreateReminderForTransferUser)
-
 func delayedCreateReminderForTransferUser(c context.Context, transferID int, userID int64) (err error) {
 	log.Debugf(c, "delayedCreateReminderForTransferUser(transferID=%d, userID=%d)", transferID, userID)
 	if transferID == 0 {
@@ -118,8 +116,6 @@ func (ReminderDalGae) DelayDiscardReminders(c context.Context, transferIDs []int
 	}
 }
 
-var delayDiscardReminders = delaying.MustRegisterFunc("discardReminders", discardReminders)
-
 func discardReminders(c context.Context, transferIDs []int, returnTransferID int) error {
 	log.Debugf(c, "discardReminders(transferIDs=%v, returnTransferID=%returnTransferID)", transferIDs, returnTransferID)
 	if len(transferIDs) == 0 {
@@ -132,8 +128,6 @@ func discardReminders(c context.Context, transferIDs []int, returnTransferID int
 	}
 	return delayDiscardRemindersForTransfer.EnqueueWorkMulti(c, delaying.With(queueName, "discard-reminders-for-transfer", 0), args...)
 }
-
-var delayDiscardRemindersForTransfer = delaying.MustRegisterFunc("discardRemindersForTransfer", discardRemindersForTransfer)
 
 func discardRemindersForTransfer(c context.Context, transferID, returnTransferID int) error {
 	log.Debugf(c, "discardReminders(transferID=%v, returnTransferID=%v)", transferID, returnTransferID)
@@ -169,8 +163,6 @@ func discardRemindersForTransfer(c context.Context, transferID, returnTransferID
 	}
 	return nil
 }
-
-var delayDiscardReminder = delaying.MustRegisterFunc("DiscardReminder", delayedDiscardReminder)
 
 func DiscardReminder(c context.Context, reminderID, transferID, returnTransferID int) (err error) {
 	var db dal.Database

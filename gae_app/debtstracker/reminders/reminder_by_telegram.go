@@ -127,8 +127,6 @@ func DelaySetChatIsForbidden(c context.Context, botID string, tgChatID int64, at
 	return delaySetChatIsForbidden.EnqueueWork(c, delaying.With(common.QUEUE_CHATS, "set-chat-is-forbidden", 0), botID, tgChatID, at)
 }
 
-var delaySetChatIsForbidden = delaying.MustRegisterFunc("SetChatIsForbidden", SetChatIsForbidden)
-
 func SetChatIsForbidden(c context.Context, botID string, tgChatID int64, at time.Time) error {
 	log.Debugf(c, "SetChatIsForbidden(tgChatID=%v, at=%v)", tgChatID, at)
 	panic("TODO: Implement SetChatIsForbidden")

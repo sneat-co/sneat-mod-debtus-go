@@ -50,13 +50,13 @@ func (GroupDalGae) GetGroupByID(c context.Context, tx dal.ReadSession, groupID s
 }
 
 func (GroupDalGae) DelayUpdateGroupWithBill(c context.Context, groupID, billID string) (err error) {
-	if err = delayedUpdateGroupWithBill.EnqueueWork(c, delaying.With(common.QUEUE_BILLS, "UpdateGroupWithBill", 0), groupID, billID); err != nil {
+	if err = delayUpdateGroupWithBill.EnqueueWork(c, delaying.With(common.QUEUE_BILLS, "UpdateGroupWithBill", 0), groupID, billID); err != nil {
 		return
 	}
 	return
 }
 
-var delayedUpdateGroupWithBill = delaying.MustRegisterFunc("delayedUpdateWithBill", func(c context.Context, groupID, billID string) (err error) {
+func delayedUpdateGroupWithBill(c context.Context, groupID, billID string) (err error) {
 	log.Debugf(c, "delayedUpdateGroupWithBill(groupID=%d, billID=%d)", groupID, billID)
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
@@ -84,4 +84,4 @@ var delayedUpdateGroupWithBill = delaying.MustRegisterFunc("delayedUpdateWithBil
 		return
 	}
 	return
-})
+}

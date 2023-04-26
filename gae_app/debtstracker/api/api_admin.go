@@ -96,7 +96,7 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 				return err
 			}
 		}
-		if err := delayedChangeTransfersCounterparty.EnqueueWork(c, delaying.With(common.QUEUE_SUPPORT, "changeTransfersCounterparty", 0), deleteID, keepID, ""); err != nil {
+		if err := delayChangeTransfersCounterparty.EnqueueWork(c, delaying.With(common.QUEUE_SUPPORT, "changeTransfersCounterparty", 0), deleteID, keepID, ""); err != nil {
 			return err
 		}
 		if err := tx.Delete(c, models.NewContactKey(deleteID)); err != nil {
@@ -111,7 +111,7 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 	}
 }
 
-var delayedChangeTransfersCounterparty = delaying.MustRegisterFunc("changeTransfersCounterparty", func(c context.Context, oldID, newID int64, cursor string) (err error) {
+func delayedChangeTransfersCounterparty(c context.Context, oldID, newID int64, cursor string) (err error) {
 	log.Debugf(c, "delayedChangeTransfersCounterparty(oldID=%d, newID=%d)", oldID, newID)
 
 	var q = dal.From(models.TransferKind).
@@ -133,10 +133,10 @@ var delayedChangeTransfersCounterparty = delaying.MustRegisterFunc("changeTransf
 	for i, id := range transferIDs {
 		args[i] = []interface{}{id, oldID, newID, ""}
 	}
-	return delayedChangeTransferCounterparty.EnqueueWorkMulti(c, delaying.With(common.QUEUE_SUPPORT, "changeTransferCounterparty", 0), args...)
-})
+	return delayChangeTransferCounterparty.EnqueueWorkMulti(c, delaying.With(common.QUEUE_SUPPORT, "changeTransferCounterparty", 0), args...)
+}
 
-var delayedChangeTransferCounterparty = delaying.MustRegisterFunc("changeTransferCounterparty", func(c context.Context, transferID int, oldID, newID int64, cursor string) (err error) {
+func delayedChangeTransferCounterparty(c context.Context, transferID int, oldID, newID int64, cursor string) (err error) {
 	log.Debugf(c, "delayedChangeTransferCounterparty(oldID=%d, newID=%d, cursor=%v)", oldID, newID, cursor)
 	if _, err = facade.GetContactByID(c, nil, newID); err != nil {
 		return err
@@ -169,4 +169,4 @@ var delayedChangeTransferCounterparty = delaying.MustRegisterFunc("changeTransfe
 		return err
 	})
 	return err
-})
+}

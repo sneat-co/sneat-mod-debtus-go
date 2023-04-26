@@ -13,11 +13,11 @@ import (
 )
 
 func DelayUpdateInviteClaimedCount(c context.Context, claimID int64) error {
-	return delayedUpdateInviteClaimedCount.EnqueueWork(c, delaying.With(common.QueueInvites, "UpdateInviteClaimedCount", 0), claimID)
+	return delayUpdateInviteClaimedCount.EnqueueWork(c, delaying.With(common.QueueInvites, "UpdateInviteClaimedCount", 0), claimID)
 }
 
-var delayedUpdateInviteClaimedCount = delaying.MustRegisterFunc("UpdateInviteClaimedCount", func(c context.Context, claimID int64) (err error) {
-	log.Debugf(c, "delayedUpdateInviteClaimedCount(claimID=%v)", claimID)
+func delayedUpdateInviteClaimedCount(c context.Context, claimID int64) (err error) {
+	log.Debugf(c, "delayUpdateInviteClaimedCount(claimID=%v)", claimID)
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {
 		return err
@@ -64,4 +64,4 @@ var delayedUpdateInviteClaimedCount = delaying.MustRegisterFunc("UpdateInviteCla
 		log.Errorf(c, "Failed to update Invite.ClaimedCount for claimID=%v", claimID)
 	}
 	return err
-})
+}

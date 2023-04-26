@@ -56,8 +56,6 @@ func setUserReferrer(c context.Context, userID int64, referredBy string) (err er
 	return nil
 }
 
-var delayedSetUserReferrer = delaying.MustRegisterFunc("setUserReferrer", setUserReferrer)
-
 func delaySetUserReferrer(c context.Context, userID int64, referredBy string) (err error) {
 	return delayedSetUserReferrer.EnqueueWork(c, delaying.With(common.QUEUE_USERS, "set-user-referrer", time.Second/2), userID, referredBy)
 }
