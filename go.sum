@@ -152,8 +152,12 @@ github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o
 github.com/stretchr/testify v1.8.2 h1:+h33VjcLVPDHtOdpUCuF+7gSuG3yGIftsP1YvFihtJ8=
 github.com/strongo/app v0.2.2 h1:Y+X/55VbjW4oekJ7mpMO0SGWZ2fcD6E/3AUq80eOtWg=
 github.com/strongo/app v0.2.2/go.mod h1:GxRrxCm3DYVZmKWOQWLBFpGD7KgmUozQfogIPGOHKUk=
+github.com/strongo/app v0.2.3 h1:rnkbEqZYWV74vrv63sx6cfoxRPtBJHWQAvGU+eOKs2k=
+github.com/strongo/app v0.2.3/go.mod h1:GxRrxCm3DYVZmKWOQWLBFpGD7KgmUozQfogIPGOHKUk=
 github.com/strongo/app-host-gae v0.1.6 h1:6EKmfTNxFiMWwlqKwL1tnABIHDqkDvssJgcXi/elUek=
 github.com/strongo/app-host-gae v0.1.6/go.mod h1:7Vt+QTq7DTY3DGC9ZioOPPLRjZImstmm52zWf1u/R+M=
+github.com/strongo/app-host-gae v0.1.7 h1:fd/j3vRMUlHC7FPn/05Ivywcb+WHGOCaYAf2hD2ecfQ=
+github.com/strongo/app-host-gae v0.1.7/go.mod h1:hozMrXIFMV2l18uUjUQn1+nf+M4aJAsHZLLBhavbjLU=
 github.com/strongo/decimal v0.0.0-20180523215323-a1521d8f65fa h1:AOb2mf7fUvA1CYS+J9+2arVJnugLoOMDRtuGePY/ijc=
 github.com/strongo/decimal v0.0.0-20180523215323-a1521d8f65fa/go.mod h1:YhdeiZouB+DobdQUZ2h5/VVAp7nvRFwh1FJ3rp/jsng=
 github.com/strongo/emoji v0.0.1 h1:0Zev257CEmTVSyMiAovjqtgP+JKclp2e1c2V/jfVqwc=
