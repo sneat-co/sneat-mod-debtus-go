@@ -3,6 +3,7 @@ package gaedal
 import (
 	"fmt"
 	apphostgae "github.com/strongo/app-host-gae"
+	"github.com/strongo/app/delaying"
 	"net/url"
 	"strconv"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"errors"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
-	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/taskqueue"
 )
 
@@ -31,13 +31,13 @@ func (ReminderDalGae) DelaySetReminderIsSent(c context.Context, reminderID int, 
 	if err := _validateSetReminderIsSentMessageIDs(messageIntID, messageStrID, sentAt); err != nil {
 		return err
 	}
-	if err := apphostgae.CallDelayFunc(c, common.QUEUE_REMINDERS, "set-reminder-is-sent", delayedSetReminderIsSent, reminderID, sentAt, messageIntID, messageStrID, locale, errDetails); err != nil {
+	if err := delayedSetReminderIsSent.EnqueueWork(c, delaying.With(common.QUEUE_REMINDERS, "set-reminder-is-sent", 0), reminderID, sentAt, messageIntID, messageStrID, locale, errDetails); err != nil {
 		return fmt.Errorf("failed to delay execution of setReminderIsSent: %w", err)
 	}
 	return nil
 }
 
-var delayedSetReminderIsSent = delay.Func("setReminderIsSent", setReminderIsSent)
+var delayedSetReminderIsSent = delaying.MustRegisterFunc("setReminderIsSent", setReminderIsSent)
 
 func setReminderIsSent(c context.Context, reminderID int, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error {
 	return dtdal.Reminder.SetReminderIsSent(c, reminderID, sentAt, messageIntID, messageStrID, locale, errDetails)

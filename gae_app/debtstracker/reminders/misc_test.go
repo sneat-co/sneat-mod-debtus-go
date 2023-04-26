@@ -1,8 +1,8 @@
 package reminders
 
 import (
-	"testing"
 	"net/http/httptest"
+	"testing"
 )
 
 func TestAllowOrigin(t *testing.T) {

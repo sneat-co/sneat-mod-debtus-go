@@ -9,9 +9,8 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	apphostgae "github.com/strongo/app-host-gae"
+	"github.com/strongo/app/delaying"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
 	"strconv"
 	"strings"
 	"time"
@@ -135,13 +134,13 @@ func (userDal UserDalGae) CreateUser(c context.Context, userData *models.AppUser
 }
 
 func (UserDalGae) DelayUpdateUserWithBill(c context.Context, userID, billID string) (err error) {
-	if err = apphostgae.CallDelayFunc(c, common.QUEUE_BILLS, "UpdateUserWithBill", delayedUpdateUserWithBill, userID, billID); err != nil {
+	if err = delayedUpdateUserWithBill.EnqueueWork(c, delaying.With(common.QUEUE_BILLS, "UpdateUserWithBill", 0), userID, billID); err != nil {
 		return
 	}
 	return
 }
 
-var delayedUpdateUserWithBill = delay.Func("delayedUpdateWithBill", func(c context.Context, userID, billID string) (err error) {
+var delayedUpdateUserWithBill = delaying.MustRegisterFunc("delayedUpdateWithBill", func(c context.Context, userID, billID string) (err error) {
 	var user models.AppUser
 
 	if user, err = dtdal.User.GetUserByStrID(c, userID); err != nil {
@@ -152,13 +151,13 @@ var delayedUpdateUserWithBill = delay.Func("delayedUpdateWithBill", func(c conte
 })
 
 func (UserDalGae) DelayUpdateUserWithContact(c context.Context, userID, billID int64) (err error) {
-	if err = apphostgae.EnqueueWork(c, common.QUEUE_USERS, "updateUserWithContact", time.Second/10, delayedUpdateUserWithContact, userID, billID); err != nil {
+	if err = delayedUpdateUserWithContact.EnqueueWork(c, delaying.With(common.QUEUE_USERS, "updateUserWithContact", time.Second/10), userID, billID); err != nil {
 		return
 	}
 	return
 }
 
-var delayedUpdateUserWithContact = delay.Func("updateUserWithContact", updateUserWithContact)
+var delayedUpdateUserWithContact = delaying.MustRegisterFunc("updateUserWithContact", updateUserWithContact)
 
 func updateUserWithContact(c context.Context, userID, contactID int64) (err error) {
 	log.Debugf(c, "updateUserWithContact(userID=%v, contactID=%v)", userID, contactID)

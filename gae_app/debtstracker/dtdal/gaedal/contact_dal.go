@@ -9,9 +9,8 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	apphostgae "github.com/strongo/app-host-gae"
+	"github.com/strongo/app/delaying"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
 	"strings"
 )
 
@@ -35,16 +34,16 @@ func (contactDalGae ContactDalGae) DeleteContact(c context.Context, tx dal.Readw
 	return
 }
 
-var deleteContactTransfersDelayFunc *delay.Function
+var deleteContactTransfersDelayFunc delaying.Function
 
 const DeleteContactTransfersFuncKey = "DeleteContactTransfers"
 
 func init() {
-	deleteContactTransfersDelayFunc = delay.Func(DeleteContactTransfersFuncKey, delayedDeleteContactTransfers)
+	deleteContactTransfersDelayFunc = delaying.MustRegisterFunc(DeleteContactTransfersFuncKey, delayedDeleteContactTransfers)
 }
 
 func delayDeleteContactTransfers(c context.Context, contactID int64, cursor string) error {
-	if err := apphostgae.CallDelayFunc(c, common.QUEUE_TRANSFERS, DeleteContactTransfersFuncKey, deleteContactTransfersDelayFunc, contactID, cursor); err != nil {
+	if err := deleteContactTransfersDelayFunc.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, DeleteContactTransfersFuncKey, 0), contactID, cursor); err != nil {
 		return err
 	}
 	return nil

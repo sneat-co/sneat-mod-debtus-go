@@ -5,6 +5,7 @@ import (
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/app/delaying"
 	"strings"
 	"time"
 
@@ -17,9 +18,7 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/app"
-	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
 )
 
 func (ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, transferID int, userID int64) (err error) {
@@ -32,14 +31,14 @@ func (ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, tran
 	//if !dtdal.DB.IsInTransaction(c) {
 	//	panic("This function should be called within transaction")
 	//}
-	if err = apphostgae.EnqueueWork(c, common.QUEUE_REMINDERS, "create-reminder-4-transfer-user", 0, delayCreateReminderForTransferUser, transferID, userID); err != nil {
+	if err = delayCreateReminderForTransferUser.EnqueueWork(c, delaying.With(common.QUEUE_REMINDERS, "create-reminder-4-transfer-user", 0), transferID, userID); err != nil {
 		return fmt.Errorf("failed to create a task for reminder creation. transferID=%v, userID=%v: %w", transferID, userID, err)
 	}
 	log.Debugf(c, "Added task(%v) to create reminder for transfer id=%v", transferID)
 	return
 }
 
-var delayCreateReminderForTransferUser = delay.Func("delayedCreateReminderForTransferUser", delayedCreateReminderForTransferUser)
+var delayCreateReminderForTransferUser = delaying.MustRegisterFunc("delayedCreateReminderForTransferUser", delayedCreateReminderForTransferUser)
 
 func delayedCreateReminderForTransferUser(c context.Context, transferID int, userID int64) (err error) {
 	log.Debugf(c, "delayedCreateReminderForTransferUser(transferID=%d, userID=%d)", transferID, userID)
@@ -112,14 +111,14 @@ func delayedCreateReminderForTransferUser(c context.Context, transferID int, use
 
 func (ReminderDalGae) DelayDiscardReminders(c context.Context, transferIDs []int, returnTransferID int) error {
 	if len(transferIDs) > 0 {
-		return apphostgae.CallDelayFunc(c, common.QUEUE_REMINDERS, "discard-reminders", delayDiscardReminders, transferIDs, returnTransferID)
+		return delayDiscardReminders.EnqueueWork(c, delaying.With(common.QUEUE_REMINDERS, "discard-reminders", 0), transferIDs, returnTransferID)
 	} else {
 		log.Warningf(c, "DelayDiscardReminders(): len(transferIDs)==0")
 		return nil
 	}
 }
 
-var delayDiscardReminders = delay.Func("discardReminders", discardReminders)
+var delayDiscardReminders = delaying.MustRegisterFunc("discardReminders", discardReminders)
 
 func discardReminders(c context.Context, transferIDs []int, returnTransferID int) error {
 	log.Debugf(c, "discardReminders(transferIDs=%v, returnTransferID=%returnTransferID)", transferIDs, returnTransferID)
@@ -131,10 +130,10 @@ func discardReminders(c context.Context, transferIDs []int, returnTransferID int
 	for i, transferID := range transferIDs {
 		args[i] = []interface{}{transferID, returnTransferID}
 	}
-	return apphostgae.EnqueueWorkMulti(c, queueName, "discard-reminders-for-transfer", 0, delayDiscardRemindersForTransfer, args...)
+	return delayDiscardRemindersForTransfer.EnqueueWorkMulti(c, delaying.With(queueName, "discard-reminders-for-transfer", 0), args...)
 }
 
-var delayDiscardRemindersForTransfer = delay.Func("discardRemindersForTransfer", discardRemindersForTransfer)
+var delayDiscardRemindersForTransfer = delaying.MustRegisterFunc("discardRemindersForTransfer", discardRemindersForTransfer)
 
 func discardRemindersForTransfer(c context.Context, transferID, returnTransferID int) error {
 	log.Debugf(c, "discardReminders(transferID=%v, returnTransferID=%v)", transferID, returnTransferID)
@@ -152,7 +151,7 @@ func discardRemindersForTransfer(c context.Context, transferID, returnTransferID
 		} else if len(reminderIDs) > 0 {
 			log.Debugf(c, loadedFormat, len(reminderIDs), transferID)
 			for _, reminderID := range reminderIDs {
-				if err := apphostgae.EnqueueWork(c, common.QUEUE_REMINDERS, "discard-reminder", delayDuration, delayDiscardReminder, reminderID, transferID, returnTransferID); err != nil {
+				if err := delayDiscardReminder.EnqueueWork(c, delaying.With(common.QUEUE_REMINDERS, "discard-reminder", delayDuration), reminderID, transferID, returnTransferID); err != nil {
 					return fmt.Errorf("failed to create a task for reminder ID=%v: %w", reminderID, err)
 				}
 				delayDuration += time.Millisecond * 10
@@ -171,7 +170,7 @@ func discardRemindersForTransfer(c context.Context, transferID, returnTransferID
 	return nil
 }
 
-var delayDiscardReminder = delay.Func("DiscardReminder", delayedDiscardReminder)
+var delayDiscardReminder = delaying.MustRegisterFunc("DiscardReminder", delayedDiscardReminder)
 
 func DiscardReminder(c context.Context, reminderID, transferID, returnTransferID int) (err error) {
 	var db dal.Database

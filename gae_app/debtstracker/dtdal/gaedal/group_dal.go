@@ -7,9 +7,8 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	apphostgae "github.com/strongo/app-host-gae"
+	"github.com/strongo/app/delaying"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
 )
 
 var _ dtdal.GroupDal = (*GroupDalGae)(nil)
@@ -51,13 +50,13 @@ func (GroupDalGae) GetGroupByID(c context.Context, tx dal.ReadSession, groupID s
 }
 
 func (GroupDalGae) DelayUpdateGroupWithBill(c context.Context, groupID, billID string) (err error) {
-	if err = apphostgae.CallDelayFunc(c, common.QUEUE_BILLS, "UpdateGroupWithBill", delayedUpdateGroupWithBill, groupID, billID); err != nil {
+	if err = delayedUpdateGroupWithBill.EnqueueWork(c, delaying.With(common.QUEUE_BILLS, "UpdateGroupWithBill", 0), groupID, billID); err != nil {
 		return
 	}
 	return
 }
 
-var delayedUpdateGroupWithBill = delay.Func("delayedUpdateWithBill", func(c context.Context, groupID, billID string) (err error) {
+var delayedUpdateGroupWithBill = delaying.MustRegisterFunc("delayedUpdateWithBill", func(c context.Context, groupID, billID string) (err error) {
 	log.Debugf(c, "delayedUpdateGroupWithBill(groupID=%d, billID=%d)", groupID, billID)
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {

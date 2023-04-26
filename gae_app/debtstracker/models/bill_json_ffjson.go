@@ -8,8 +8,8 @@ package models
 import (
 	"bytes"
 	"fmt"
-	fflib "github.com/pquerna/ffjson/fflib/v1"
 	"github.com/crediterra/money"
+	fflib "github.com/pquerna/ffjson/fflib/v1"
 )
 
 // MarshalJSON marshal bytes to json - template

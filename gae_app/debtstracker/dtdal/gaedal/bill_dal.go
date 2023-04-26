@@ -8,9 +8,8 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	apphostgae "github.com/strongo/app-host-gae"
+	"github.com/strongo/app/delaying"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
 )
 
 type billDalGae struct {
@@ -33,13 +32,13 @@ func (billDalGae) SaveBill(c context.Context, tx dal.ReadwriteTransaction, bill 
 }
 
 func (billDalGae) DelayUpdateBillDependencies(c context.Context, billID string) (err error) {
-	if err = apphostgae.EnqueueWork(c, common.QUEUE_BILLS, "UpdateBillDependencies", 0, delayedUpdateBillDependencies, billID); err != nil {
+	if err = delayedUpdateBillDependencies.EnqueueWork(c, delaying.With(common.QUEUE_BILLS, "UpdateBillDependencies", 0), billID); err != nil {
 		return
 	}
 	return
 }
 
-var delayedUpdateBillDependencies = delay.Func("delayedUpdateBillDependencies", func(c context.Context, billID string) (err error) {
+var delayedUpdateBillDependencies = delaying.MustRegisterFunc("delayedUpdateBillDependencies", func(c context.Context, billID string) (err error) {
 	log.Debugf(c, "delayedUpdateBillDependencies(billID=%d)", billID)
 	var bill models.Bill
 	if bill, err = facade.GetBillByID(c, nil, billID); err != nil {

@@ -10,4 +10,3 @@ func TestInitAdmin(t *testing.T) {
 	}()
 	InitAdmin(nil)
 }
-

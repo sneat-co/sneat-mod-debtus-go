@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
-	apphostgae "github.com/strongo/app-host-gae"
+	"github.com/strongo/app/delaying"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -17,7 +17,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
 )
 
 func handleAdminFindUser(c context.Context, w http.ResponseWriter, r *http.Request, _ auth.AuthInfo) {
@@ -97,7 +96,7 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 				return err
 			}
 		}
-		if err := apphostgae.EnqueueWork(c, common.QUEUE_SUPPORT, "changeTransfersCounterparty", 0, delayedChangeTransfersCounterparty, deleteID, keepID, ""); err != nil {
+		if err := delayedChangeTransfersCounterparty.EnqueueWork(c, delaying.With(common.QUEUE_SUPPORT, "changeTransfersCounterparty", 0), deleteID, keepID, ""); err != nil {
 			return err
 		}
 		if err := tx.Delete(c, models.NewContactKey(deleteID)); err != nil {
@@ -112,7 +111,7 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 	}
 }
 
-var delayedChangeTransfersCounterparty = delay.Func("changeTransfersCounterparty", func(c context.Context, oldID, newID int64, cursor string) (err error) {
+var delayedChangeTransfersCounterparty = delaying.MustRegisterFunc("changeTransfersCounterparty", func(c context.Context, oldID, newID int64, cursor string) (err error) {
 	log.Debugf(c, "delayedChangeTransfersCounterparty(oldID=%d, newID=%d)", oldID, newID)
 
 	var q = dal.From(models.TransferKind).
@@ -134,10 +133,10 @@ var delayedChangeTransfersCounterparty = delay.Func("changeTransfersCounterparty
 	for i, id := range transferIDs {
 		args[i] = []interface{}{id, oldID, newID, ""}
 	}
-	return apphostgae.EnqueueWorkMulti(c, common.QUEUE_SUPPORT, "changeTransferCounterparty", 0, delayedChangeTransferCounterparty, args...)
+	return delayedChangeTransferCounterparty.EnqueueWorkMulti(c, delaying.With(common.QUEUE_SUPPORT, "changeTransferCounterparty", 0), args...)
 })
 
-var delayedChangeTransferCounterparty = delay.Func("changeTransferCounterparty", func(c context.Context, transferID int, oldID, newID int64, cursor string) (err error) {
+var delayedChangeTransferCounterparty = delaying.MustRegisterFunc("changeTransferCounterparty", func(c context.Context, transferID int, oldID, newID int64, cursor string) (err error) {
 	log.Debugf(c, "delayedChangeTransferCounterparty(oldID=%d, newID=%d, cursor=%v)", oldID, newID, cursor)
 	if _, err = facade.GetContactByID(c, nil, newID); err != nil {
 		return err

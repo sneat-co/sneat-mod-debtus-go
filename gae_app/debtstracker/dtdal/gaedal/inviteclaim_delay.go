@@ -4,18 +4,19 @@ import (
 	"context"
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
+	"github.com/strongo/app/delaying"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
 )
 
 func DelayUpdateInviteClaimedCount(c context.Context, claimID int64) error {
-	return delayedUpdateInviteClaimedCount.Call(c, claimID)
+	return delayedUpdateInviteClaimedCount.EnqueueWork(c, delaying.With(common.QueueInvites, "UpdateInviteClaimedCount", 0), claimID)
 }
 
-var delayedUpdateInviteClaimedCount = delay.Func("UpdateInviteClaimedCount", func(c context.Context, claimID int64) (err error) {
+var delayedUpdateInviteClaimedCount = delaying.MustRegisterFunc("UpdateInviteClaimedCount", func(c context.Context, claimID int64) (err error) {
 	log.Debugf(c, "delayedUpdateInviteClaimedCount(claimID=%v)", claimID)
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {

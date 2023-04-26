@@ -11,24 +11,20 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
-	apphostgae "github.com/strongo/app-host-gae"
+	"github.com/strongo/app/delaying"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
 	"strings"
 )
 
 var (
-	delayUpdateBillCards      = delay.Func("UpdateBillCards", delayedUpdateBillCards)
-	delayUpdateBillTgChatCard = delay.Func("UpdateBillTgChatCard", delayedUpdateBillTgChartCard)
+	delayUpdateBillCards      = delaying.MustRegisterFunc("UpdateBillCards", delayedUpdateBillCards)
+	delayUpdateBillTgChatCard = delaying.MustRegisterFunc("UpdateBillTgChatCard", delayedUpdateBillTgChartCard)
 )
 
 func delayUpdateBillCardOnUserJoin(c context.Context, billID string, message string) error {
-	if err := apphostgae.EnqueueWork(
+	if err := delayUpdateBillCards.EnqueueWork(
 		c,
-		common.QUEUE_BILLS,
-		"update-bill-cards",
-		0,
-		delayUpdateBillCards,
+		delaying.With(common.QUEUE_BILLS, "update-bill-cards", 0),
 		billID,
 		message,
 	); err != nil {
@@ -43,7 +39,7 @@ func delayedUpdateBillCards(c context.Context, billID string, footer string) err
 		return err
 	} else {
 		for _, tgChatMessageID := range bill.Data.TgChatMessageIDs {
-			if err = apphostgae.EnqueueWork(c, common.QUEUE_BILLS, "update-bill-tg-chat-card", 0, delayUpdateBillTgChatCard, billID, tgChatMessageID, footer); err != nil {
+			if err = delayUpdateBillTgChatCard.EnqueueWork(c, delaying.With(common.QUEUE_BILLS, "update-bill-tg-chat-card", 0), billID, tgChatMessageID, footer); err != nil {
 				log.Errorf(c, "Failed to queue updated for %v: %v", tgChatMessageID, err)
 				return err
 			}

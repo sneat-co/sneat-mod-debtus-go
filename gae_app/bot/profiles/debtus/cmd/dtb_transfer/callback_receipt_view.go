@@ -12,9 +12,8 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	apphostgae "github.com/strongo/app-host-gae"
+	"github.com/strongo/app/delaying"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
 	"net/url"
 	"strings"
 )
@@ -63,10 +62,10 @@ var ViewReceiptInTelegramCallbackCommand = botsfw.NewCallbackCommand(
 
 const delayLinkUserByReceiptKeyName = "delayLinkUserByReceipt"
 
-var delayLinkUserByReceipt = delay.Func(delayLinkUserByReceiptKeyName, delayedLinkUsersByReceipt)
+var delayLinkUserByReceipt = delaying.MustRegisterFunc(delayLinkUserByReceiptKeyName, delayedLinkUsersByReceipt)
 
 func DelayLinkUsersByReceipt(c context.Context, receiptID int, invitedUserID int64) (err error) {
-	return apphostgae.EnqueueWork(c, common.QUEUE_RECEIPTS, delayLinkUserByReceiptKeyName, 0, delayLinkUserByReceipt, receiptID, invitedUserID)
+	return delayLinkUserByReceipt.EnqueueWork(c, delaying.With(common.QUEUE_RECEIPTS, delayLinkUserByReceiptKeyName, 0), receiptID, invitedUserID)
 }
 
 func delayedLinkUsersByReceipt(c context.Context, receiptID int, invitedUserID int64) error {

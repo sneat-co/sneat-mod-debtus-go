@@ -1,8 +1,8 @@
 package dtmocks
 
 import (
-	"testing"
 	"context"
+	"testing"
 )
 
 func TestSetupMocks(t *testing.T) {

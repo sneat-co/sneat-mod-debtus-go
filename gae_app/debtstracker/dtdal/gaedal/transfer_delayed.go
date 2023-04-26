@@ -3,7 +3,7 @@ package gaedal
 import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
-	apphostgae "github.com/strongo/app-host-gae"
+	"github.com/strongo/app/delaying"
 	"reflect"
 	"sync"
 	"time"
@@ -15,7 +15,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
 )
 
 func (TransferDalGae) DelayUpdateTransfersWithCounterparty(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) (err error) {
@@ -26,7 +25,7 @@ func (TransferDalGae) DelayUpdateTransfersWithCounterparty(c context.Context, cr
 	if counterpartyCounterpartyID == 0 {
 		return errors.New("counterpartyCounterpartyID == 0")
 	}
-	if err := apphostgae.EnqueueWork(c, common.QUEUE_TRANSFERS, DELAY_UPDATE_TRANSFERS_WITH_COUNTERPARTY, 0, delayedUpdateTransfersWithCounterparty, creatorCounterpartyID, counterpartyCounterpartyID); err != nil {
+	if err := delayedUpdateTransfersWithCounterparty.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, DELAY_UPDATE_TRANSFERS_WITH_COUNTERPARTY, 0), creatorCounterpartyID, counterpartyCounterpartyID); err != nil {
 		return err
 	}
 	return nil
@@ -37,7 +36,7 @@ const (
 	DELAY_UPDATE_1_TRANSFER_WITH_COUNTERPARTY = "update-1-transfer-with-counterparty"
 )
 
-var delayedUpdateTransfersWithCounterparty = delay.Func(DELAY_UPDATE_TRANSFERS_WITH_COUNTERPARTY, func(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) (err error) {
+var delayedUpdateTransfersWithCounterparty = delaying.MustRegisterFunc(DELAY_UPDATE_TRANSFERS_WITH_COUNTERPARTY, func(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) (err error) {
 	log.Infof(c, "delayedUpdateTransfersWithCounterparty(creatorCounterpartyID=%d, counterpartyCounterpartyID=%d)", creatorCounterpartyID, counterpartyCounterpartyID)
 	if creatorCounterpartyID == 0 {
 		log.Errorf(c, "creatorCounterpartyID == 0")
@@ -67,7 +66,7 @@ var delayedUpdateTransfersWithCounterparty = delay.Func(DELAY_UPDATE_TRANSFERS_W
 		log.Infof(c, "Loaded %d transfer IDs", len(transferIDs))
 		delayDuration := 10 * time.Microsecond
 		for _, transferID := range transferIDs {
-			if err := apphostgae.EnqueueWork(c, common.QUEUE_TRANSFERS, DELAY_UPDATE_1_TRANSFER_WITH_COUNTERPARTY, delayDuration, delayedUpdateTransferWithCounterparty, transferID, counterpartyCounterpartyID); err != nil {
+			if err := delayedUpdateTransferWithCounterparty.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, DELAY_UPDATE_1_TRANSFER_WITH_COUNTERPARTY, delayDuration), transferID, counterpartyCounterpartyID); err != nil {
 				return fmt.Errorf("failed to create task for transfer id=%d: %w", transferID, err)
 			}
 			delayDuration += 10 * time.Microsecond
@@ -94,7 +93,7 @@ var delayedUpdateTransfersWithCounterparty = delay.Func(DELAY_UPDATE_TRANSFERS_W
 	return nil
 })
 
-var delayedUpdateTransferWithCounterparty = delay.Func(DELAY_UPDATE_1_TRANSFER_WITH_COUNTERPARTY,
+var delayedUpdateTransferWithCounterparty = delaying.MustRegisterFunc(DELAY_UPDATE_1_TRANSFER_WITH_COUNTERPARTY,
 	func(c context.Context, transferID int, counterpartyCounterpartyID int64) (err error) {
 		log.Debugf(c, "delayedUpdateTransferWithCounterparty(transferID=%d, counterpartyCounterpartyID=%d)", transferID, counterpartyCounterpartyID)
 		if transferID == 0 {
@@ -224,10 +223,10 @@ const (
 )
 
 func DelayUpdateTransfersWithCreatorName(c context.Context, userID int64) error {
-	return apphostgae.CallDelayFunc(c, common.QUEUE_TRANSFERS, UPDATE_TRANSFERS_WITH_CREATOR_NAME, delayedUpdateTransfersWithCreatorName, userID)
+	return delayedUpdateTransfersWithCreatorName.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, UPDATE_TRANSFERS_WITH_CREATOR_NAME, 0), userID)
 }
 
-var delayedUpdateTransfersWithCreatorName = delay.Func(UPDATE_TRANSFERS_WITH_CREATOR_NAME, func(c context.Context, userID int64) (err error) {
+var delayedUpdateTransfersWithCreatorName = delaying.MustRegisterFunc(UPDATE_TRANSFERS_WITH_CREATOR_NAME, func(c context.Context, userID int64) (err error) {
 	log.Debugf(c, "delayedUpdateTransfersWithCreatorName(userID=%d)", userID)
 
 	var db dal.Database

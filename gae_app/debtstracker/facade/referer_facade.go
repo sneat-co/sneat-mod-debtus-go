@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/strongo/app/delaying"
 	"math/rand"
 	"sort"
 	"strings"
@@ -12,10 +13,8 @@ import (
 	"context"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/memcache"
 )
 
@@ -56,10 +55,10 @@ func setUserReferrer(c context.Context, userID int64, referredBy string) (err er
 	return nil
 }
 
-var delayedSetUserReferrer = delay.Func("setUserReferrer", setUserReferrer)
+var delayedSetUserReferrer = delaying.MustRegisterFunc("setUserReferrer", setUserReferrer)
 
 func delaySetUserReferrer(c context.Context, userID int64, referredBy string) (err error) {
-	return apphostgae.EnqueueWork(c, common.QUEUE_USERS, "set-user-referrer", time.Second/2, delayedSetUserReferrer, userID, referredBy)
+	return delayedSetUserReferrer.EnqueueWork(c, delaying.With(common.QUEUE_USERS, "set-user-referrer", time.Second/2), userID, referredBy)
 }
 
 var topReferralsCacheTime = time.Hour

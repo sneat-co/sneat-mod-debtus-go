@@ -137,7 +137,7 @@ func rescheduleReminder(whc botsfw.WebhookContext, reminderID int, remindInDurat
 //	return err
 //}
 //
-//var delayedAskForFeedback = delay.Func(ASK_FOR_FEEDBACK_TASK,
+//var delayedAskForFeedback = delaying.MustRegisterFunc(ASK_FOR_FEEDBACK_TASK,
 //	func(c context.Context, botID string, chatID, userID int64) error {
 //		log.Debugf(c, "delayedAskForFeedback(botID=%v, chatID=%d, userID=%d)", botID, chatID, userID)
 //		if botSettings, ok := telegram.Bots(gaestandard.GetEnvironment(c), nil).ByCode[botID]; !ok {

@@ -8,10 +8,9 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	apphostgae "github.com/strongo/app-host-gae"
+	"github.com/strongo/app/delaying"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
 )
 
 func (TransferDalGae) DelayUpdateTransfersOnReturn(c context.Context, returnTransferID int, transferReturnsUpdate []dtdal.TransferReturnUpdate) (err error) {
@@ -30,10 +29,10 @@ func (TransferDalGae) DelayUpdateTransfersOnReturn(c context.Context, returnTran
 			panic(fmt.Sprintf("transferReturnsUpdates[%d].Amount <= 0: %v", i, transferReturnUpdate.ReturnedAmount))
 		}
 	}
-	return apphostgae.CallDelayFunc(c, common.QUEUE_TRANSFERS, "update-transfers-on-return", delayUpdateTransfersOnReturn, returnTransferID, transferReturnsUpdate)
+	return delayUpdateTransfersOnReturn.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, "update-transfers-on-return", 0), returnTransferID, transferReturnsUpdate)
 }
 
-var delayUpdateTransfersOnReturn = delay.Func("updateTransfersOnReturn", updateTransfersOnReturn)
+var delayUpdateTransfersOnReturn = delaying.MustRegisterFunc("updateTransfersOnReturn", updateTransfersOnReturn)
 
 func updateTransfersOnReturn(c context.Context, returnTransferID int, transferReturnsUpdate []dtdal.TransferReturnUpdate) (err error) {
 	log.Debugf(c, "updateTransfersOnReturn(returnTransferID=%v, transferReturnsUpdate=%+v)", returnTransferID, transferReturnsUpdate)
@@ -52,10 +51,10 @@ func updateTransfersOnReturn(c context.Context, returnTransferID int, transferRe
 }
 
 func DelayUpdateTransferOnReturn(c context.Context, returnTransferID, transferID int, returnedAmount decimal.Decimal64p2) error {
-	return apphostgae.CallDelayFunc(c, common.QUEUE_TRANSFERS, "update-transfer-on-return", delayUpdateTransferOnReturn, returnTransferID, transferID, returnedAmount)
+	return delayUpdateTransferOnReturn.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, "update-transfer-on-return", 0), returnTransferID, transferID, returnedAmount)
 }
 
-var delayUpdateTransferOnReturn = delay.Func("updateTransferOnReturn", updateTransferOnReturn)
+var delayUpdateTransferOnReturn = delaying.MustRegisterFunc("updateTransferOnReturn", updateTransferOnReturn)
 
 func updateTransferOnReturn(c context.Context, returnTransferID, transferID int, returnedAmount decimal.Decimal64p2) (err error) {
 	log.Debugf(c, "updateTransferOnReturn(returnTransferID=%v, transferID=%v, returnedAmount=%v)", returnTransferID, transferID, returnedAmount)

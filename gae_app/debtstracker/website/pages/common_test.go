@@ -1,8 +1,8 @@
 package pages
 
 import (
-	"testing"
 	"github.com/strongo/app"
+	"testing"
 )
 
 func TestRenderCachedPageWithoutArguemnts(t *testing.T) {

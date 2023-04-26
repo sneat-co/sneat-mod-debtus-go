@@ -1,8 +1,8 @@
 package dto
 
 import (
-	"testing"
 	"github.com/pquerna/ffjson/ffjson"
+	"testing"
 )
 
 func TestContactDto_MarshalJSON(t *testing.T) {

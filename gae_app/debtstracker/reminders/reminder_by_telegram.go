@@ -15,9 +15,8 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
-	apphostgae "github.com/strongo/app-host-gae"
+	"github.com/strongo/app/delaying"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
 	"time"
 )
 
@@ -125,10 +124,10 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 }
 
 func DelaySetChatIsForbidden(c context.Context, botID string, tgChatID int64, at time.Time) error {
-	return apphostgae.CallDelayFunc(c, common.QUEUE_CHATS, "set-chat-is-forbidden", delaySetChatIsForbidden, botID, tgChatID, at)
+	return delaySetChatIsForbidden.EnqueueWork(c, delaying.With(common.QUEUE_CHATS, "set-chat-is-forbidden", 0), botID, tgChatID, at)
 }
 
-var delaySetChatIsForbidden = delay.Func("SetChatIsForbidden", SetChatIsForbidden)
+var delaySetChatIsForbidden = delaying.MustRegisterFunc("SetChatIsForbidden", SetChatIsForbidden)
 
 func SetChatIsForbidden(c context.Context, botID string, tgChatID int64, at time.Time) error {
 	log.Debugf(c, "SetChatIsForbidden(tgChatID=%v, at=%v)", tgChatID, at)

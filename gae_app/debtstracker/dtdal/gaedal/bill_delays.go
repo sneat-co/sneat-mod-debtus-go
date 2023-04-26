@@ -9,20 +9,19 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	apphostgae "github.com/strongo/app-host-gae"
+	"github.com/strongo/app/delaying"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
 	"sync"
 )
 
 const updateUsersWithBillKeyName = "update-users-with-bill"
 
 func DelayUpdateUsersWithBill(c context.Context, billID string, userIDs []string) (err error) {
-	return apphostgae.EnqueueWork(c, common.QUEUE_BILLS, updateUsersWithBillKeyName, 0, delayUpdateUsersWithBill, billID, userIDs)
+	return delayUpdateUsersWithBill.EnqueueWork(c, delaying.With(common.QUEUE_BILLS, updateUsersWithBillKeyName, 0), billID, userIDs)
 }
 
-var delayUpdateUsersWithBill = delay.Func(updateUsersWithBillKeyName, updateUsersWithBill)
+var delayUpdateUsersWithBill = delaying.MustRegisterFunc(updateUsersWithBillKeyName, updateUsersWithBill)
 
 func updateUsersWithBill(c context.Context, billID string, userIDs []string) (err error) {
 	wg := new(sync.WaitGroup)
@@ -30,7 +29,7 @@ func updateUsersWithBill(c context.Context, billID string, userIDs []string) (er
 	for i := range userIDs {
 		go func(i int) {
 			defer wg.Done()
-			if err2 := apphostgae.CallDelayFunc(c, common.QUEUE_BILLS, updateUserWithBillKeyName, delayUpdateUserWithBill, billID, userIDs[i]); err != nil {
+			if err2 := delayUpdateUserWithBill.EnqueueWork(c, delaying.With(common.QUEUE_BILLS, updateUserWithBillKeyName, 0), billID, userIDs[i]); err != nil {
 				err = err2
 			}
 		}(i)
@@ -41,7 +40,7 @@ func updateUsersWithBill(c context.Context, billID string, userIDs []string) (er
 
 const updateUserWithBillKeyName = "update-user-with-bill"
 
-var delayUpdateUserWithBill = delay.Func(updateUserWithBillKeyName, updateUserWithBill)
+var delayUpdateUserWithBill = delaying.MustRegisterFunc(updateUserWithBillKeyName, updateUserWithBill)
 
 func updateUserWithBill(c context.Context, billID, userID string) (err error) {
 	log.Debugf(c, "updateUserWithBill(billID=%v, userID=%v)", billID, userID)

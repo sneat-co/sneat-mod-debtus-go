@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
+	"github.com/strongo/app/delaying"
 	"time"
 
 	"context"
@@ -11,18 +12,16 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
 )
 
 const SEND_EMAIL_TASK = "send-email"
 
 func DelaySendEmail(c context.Context, id int64) error {
-	return apphostgae.CallDelayFunc(c, common.QUEUE_EMAILS, SEND_EMAIL_TASK, delayEmail, id)
+	return delayEmail.EnqueueWork(c, delaying.With(common.QUEUE_EMAILS, SEND_EMAIL_TASK, 0), id)
 }
 
-var delayEmail = delay.Func(SEND_EMAIL_TASK, delayedSendEmail)
+var delayEmail = delaying.MustRegisterFunc(SEND_EMAIL_TASK, delayedSendEmail)
 
 var ErrEmailIsInWrongStatus = errors.New("email is already sending or sent")
 

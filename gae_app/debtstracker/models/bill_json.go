@@ -3,8 +3,8 @@ package models
 //go:generate ffjson $GOFILE
 
 import (
-	"github.com/strongo/decimal"
 	"github.com/crediterra/money"
+	"github.com/strongo/decimal"
 )
 
 type BillJson struct {
@@ -13,7 +13,7 @@ type BillJson struct {
 	Name         string              `json:"n"`
 	MembersCount int                 `json:"m"`
 	Total        decimal.Decimal64p2 `json:"t"`
-	Currency     money.Currency            `json:"c"`
+	Currency     money.Currency      `json:"c"`
 	UserBalance  decimal.Decimal64p2 `json:"u,omitempty"`
 }
 

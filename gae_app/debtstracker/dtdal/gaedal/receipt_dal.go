@@ -3,7 +3,7 @@ package gaedal
 import (
 	"errors"
 	"github.com/dal-go/dalgo/dal"
-	apphostgae "github.com/strongo/app-host-gae"
+	"github.com/strongo/app/delaying"
 	"time"
 
 	"context"
@@ -12,7 +12,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
 )
 
 type ReceiptDalGae struct {
@@ -106,10 +105,10 @@ func (receiptDalGae ReceiptDalGae) MarkReceiptAsSent(c context.Context, receiptI
 }
 
 func (receiptDalGae ReceiptDalGae) DelayedMarkReceiptAsSent(c context.Context, receiptID, transferID int, sentTime time.Time) error {
-	return apphostgae.CallDelayFunc(c, common.QUEUE_TRANSFERS, "set-receipt-as-sent", delayedMarkReceiptAsSent, receiptID, transferID, sentTime)
+	return delayedMarkReceiptAsSent.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, "set-receipt-as-sent", 0), receiptID, transferID, sentTime)
 }
 
-var delayedMarkReceiptAsSent = delay.Func("delayedMarkReceiptAsSent", func(c context.Context, receiptID, transferID int, sentTime time.Time) (err error) {
+var delayedMarkReceiptAsSent = delaying.MustRegisterFunc("delayedMarkReceiptAsSent", func(c context.Context, receiptID, transferID int, sentTime time.Time) (err error) {
 	log.Debugf(c, "delayedMarkReceiptAsSent(receiptID=%v, transferID=%v, sentTime=%v)", receiptID, transferID, sentTime)
 	if receiptID == 0 {
 		log.Errorf(c, "receiptID == 0")

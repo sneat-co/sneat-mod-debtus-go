@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/strongo/app/delaying"
 	"strconv"
 
 	"context"
@@ -11,10 +12,8 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/log"
 	"github.com/strongo/slices"
-	"google.golang.org/appengine/delay"
 )
 
 type groupFacade struct {
@@ -162,13 +161,13 @@ func (groupFacade) AddUsersToTheGroupAndOutstandingBills(c context.Context, grou
 	return group, newUsers, err
 }
 
-var delayUpdateGroupUsers = delay.Func("updateGroupUsers", updateGroupUsers)
+var delayUpdateGroupUsers = delaying.MustRegisterFunc("updateGroupUsers", updateGroupUsers)
 
 func (groupFacade) DelayUpdateGroupUsers(c context.Context, groupID string) error { // TODO: Move to DAL?
 	if groupID == "" {
 		panic("groupID is empty string")
 	}
-	return apphostgae.CallDelayFunc(c, common.QUEUE_USERS, "update-group-users", delayUpdateGroupUsers, groupID)
+	return delayUpdateGroupUsers.EnqueueWork(c, delaying.With(common.QUEUE_USERS, "update-group-users", 0), groupID)
 }
 
 func updateGroupUsers(c context.Context, groupID string) (err error) {
@@ -193,14 +192,14 @@ func updateGroupUsers(c context.Context, groupID string) (err error) {
 				args = append(args, []interface{}{member.UserID, []string{groupID}, []string{}})
 			}
 		}
-		return apphostgae.EnqueueWorkMulti(c, common.QUEUE_USERS, "update-user-with-groups", 0, delayUpdateUserWithGroups, args...)
+		return delayUpdateUserWithGroups.EnqueueWorkMulti(c, delaying.With(common.QUEUE_USERS, "update-user-with-groups", 0), args...)
 	}); err != nil {
 		return err
 	}
 	return err
 }
 
-var delayUpdateUserWithGroups = delay.Func("UpdateUserWithGroups", delayedUpdateUserWithGroups)
+var delayUpdateUserWithGroups = delaying.MustRegisterFunc("UpdateUserWithGroups", delayedUpdateUserWithGroups)
 
 func delayedUpdateUserWithGroups(c context.Context, userID string, groupIDs2add, groupIDs2remove []string) (err error) {
 	log.Debugf(c, "delayedUpdateUserWithGroups(userID=%d, groupIDs2add=%v, groupIDs2remove=%v)", userID, groupIDs2add, groupIDs2remove)
@@ -253,10 +252,10 @@ func (userFacade) UpdateUserWithGroups(c context.Context, tx dal.ReadwriteTransa
 	return
 }
 
-var delayUpdateContactWithGroups = delay.Func("UpdateContactWithGroups", delayedUpdateContactWithGroup)
+var delayUpdateContactWithGroups = delaying.MustRegisterFunc("UpdateContactWithGroups", delayedUpdateContactWithGroup)
 
 func (userFacade) DelayUpdateContactWithGroups(c context.Context, contactID int64, addGroupIDs, removeGroupIDs []string) error {
-	return apphostgae.CallDelayFunc(c, common.QUEUE_USERS, "update-contact-groups", delayUpdateContactWithGroups, contactID, addGroupIDs, removeGroupIDs)
+	return delayUpdateContactWithGroups.EnqueueWork(c, delaying.With(common.QUEUE_USERS, "update-contact-groups", 0), contactID, addGroupIDs, removeGroupIDs)
 }
 
 func delayedUpdateContactWithGroup(c context.Context, contactID int64, addGroupIDs, removeGroupIDs []string) (err error) {

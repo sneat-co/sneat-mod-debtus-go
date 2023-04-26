@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
-	apphostgae "github.com/strongo/app-host-gae"
+	"github.com/strongo/app/delaying"
 	"time"
 
 	"context"
@@ -15,7 +15,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/delay"
 )
 
 type TransferDalGae struct {
@@ -115,7 +114,7 @@ func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context,
 		}
 	}
 	if len(transfersIDsToFixIsOutstanding) > 0 {
-		if err = apphostgae.CallDelayFunc(c, common.QUEUE_TRANSFERS, "fix-transfers-is-outstanding", delayFixTransfersIsOutstanding, transfersIDsToFixIsOutstanding); err != nil {
+		if err = delayFixTransfersIsOutstanding.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, "fix-transfers-is-outstanding", 0), transfersIDsToFixIsOutstanding); err != nil {
 			log.Errorf(c, "failed to delay task to fix transfers IsOutstanding")
 			err = nil
 		}
@@ -132,7 +131,7 @@ func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context,
 	return
 }
 
-var delayFixTransfersIsOutstanding = delay.Func("fix-transfers-is-outstanding", fixTransfersIsOutstanding)
+var delayFixTransfersIsOutstanding = delaying.MustRegisterFunc("fix-transfers-is-outstanding", fixTransfersIsOutstanding)
 
 func fixTransfersIsOutstanding(c context.Context, transferIDs []int) (err error) {
 	log.Debugf(c, "fixTransfersIsOutstanding(%v)", transferIDs)

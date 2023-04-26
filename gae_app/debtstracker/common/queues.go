@@ -10,4 +10,5 @@ const (
 	QUEUE_SUPPORT   = "support"
 	QUEUE_EMAILS    = "emails"
 	QUEUE_MAPREDUCE = "mapreduce"
+	QueueInvites    = "invites"
 )

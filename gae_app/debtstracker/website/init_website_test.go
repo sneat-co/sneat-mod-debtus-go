@@ -10,4 +10,3 @@ func TestInitWebsite(t *testing.T) {
 	}()
 	InitWebsite(nil)
 }
-
