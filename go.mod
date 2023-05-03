@@ -31,7 +31,7 @@ require (
 	github.com/strongo/gotwilio v0.0.0-20160123000810-f024bbefe80f
 	github.com/strongo/log v0.0.2
 	github.com/strongo/random v0.0.1
-	github.com/strongo/slice v0.1.2
+	github.com/strongo/slice v0.1.3
 	github.com/strongo/slices v0.0.0-20180713073818-553769fcb80b
 	github.com/strongo/validation v0.0.1
 	github.com/yaa110/go-persian-calendar v1.1.3
