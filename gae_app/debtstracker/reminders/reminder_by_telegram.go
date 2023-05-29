@@ -14,8 +14,8 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/strongo/app"
-	"github.com/strongo/app/delaying"
+	"github.com/strongo/delaying"
+	"github.com/strongo/i18n"
 	"github.com/strongo/log"
 	"time"
 )
@@ -30,7 +30,7 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 		panic("tgBot is empty string")
 	}
 
-	var locale strongo.Locale
+	var locale i18n.Locale
 
 	if locale, err = facade.GetLocale(c, tgBot, tgChatID, reminder.Data.UserID); err != nil {
 		return
@@ -41,7 +41,7 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 	//	return false
 	//}
 
-	translator := strongo.NewSingleMapTranslator(locale, strongo.NewMapTranslator(c, trans.TRANS))
+	translator := i18n.NewSingleMapTranslator(locale, i18n.NewMapTranslator(c, trans.TRANS))
 
 	env := dtdal.HttpAppHost.GetEnvironment(c, nil)
 
@@ -56,13 +56,12 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 			translator.Translate(trans.MESSAGE_TEXT_REMINDER_ASK_IF_RETURNED),
 		)
 
-		executionContext := strongo.NewExecutionContext(c, translator)
 		utm := common.UtmParams{
 			Source:   "TODO",
 			Medium:   telegram.PlatformID,
 			Campaign: common.UTM_CAMPAIGN_REMINDER,
 		}
-		messageText += common.TextReceiptForTransfer(executionContext, transfer, reminder.Data.UserID, common.ShowReceiptToAutodetect, utm)
+		messageText += common.TextReceiptForTransfer(c, translator, transfer, reminder.Data.UserID, common.ShowReceiptToAutodetect, utm)
 
 		messageConfig := tgbotapi.NewMessage(tgChatID, messageText)
 

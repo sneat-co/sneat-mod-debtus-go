@@ -69,7 +69,7 @@ package dtb_fbm
 //		Title:    whc.Translate(trans.MESSAGE_TEXT_HI),
 //		Subtitle: "Please choose your language:",
 //	}
-//	for _, lang := range []strongo.Locale{strongo.LocaleEnUS, strongo.LocaleRuRu} {
+//	for _, lang := range []i18n.Locale{i18n.LocaleEnUS, i18n.LocaleRuRu} {
 //		requestElement.Buttons = append(requestElement.Buttons, newPostbackButton(lang.FlagIcon, lang.NativeTitle, "fbm-set-lang?code5="+lang.Code5))
 //	}
 //	requestElement.Buttons = append(requestElement.Buttons, newUrlButton("", "More...", fbmAppBaseUrl(whc), "#set-locale"))

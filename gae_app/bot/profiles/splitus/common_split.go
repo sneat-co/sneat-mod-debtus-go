@@ -8,12 +8,12 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/i18n"
 	"html"
 	"net/url"
 	"strconv"
 
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	"github.com/strongo/app"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 )
@@ -170,7 +170,7 @@ func writeSplitMembers(buffer *bytes.Buffer, members []models.BillMemberJson, cu
 	}
 }
 
-func addEditSplitInlineKeyboardButtons(kb [][]tgbotapi.InlineKeyboardButton, translator strongo.SingleLocaleTranslator, membersCount int, billID, callbackDataPrefix, backCallbackData string) [][]tgbotapi.InlineKeyboardButton {
+func addEditSplitInlineKeyboardButtons(kb [][]tgbotapi.InlineKeyboardButton, translator i18n.SingleLocaleTranslator, membersCount int, billID, callbackDataPrefix, backCallbackData string) [][]tgbotapi.InlineKeyboardButton {
 	var lastRow []tgbotapi.InlineKeyboardButton
 	if membersCount > 1 {
 		kb = append(kb, // TODO: Move to Telegram specific package

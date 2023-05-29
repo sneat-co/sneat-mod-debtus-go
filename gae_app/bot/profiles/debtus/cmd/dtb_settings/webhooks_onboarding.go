@@ -18,7 +18,7 @@ import (
 
 func handleInviteOnStart(whc botsfw.WebhookContext, inviteCode string, invite models.Invite) (m botsfw.MessageFromBot, err error) {
 	claimAndReply := func() {
-		if err = dtdal.Invite.ClaimInvite2(whc.Context(), inviteCode, invite, whc.AppUserIntID(), whc.BotPlatform().ID(), whc.GetBotCode()); err != nil {
+		if err = dtdal.Invite.ClaimInvite2(whc.Context(), inviteCode, invite, whc.AppUserID(), whc.BotPlatform().ID(), whc.GetBotCode()); err != nil {
 			err = fmt.Errorf("failed to ClaimInvite(): %w", err)
 			return
 		}
@@ -26,13 +26,13 @@ func handleInviteOnStart(whc botsfw.WebhookContext, inviteCode string, invite mo
 		dtb_general.SetMainMenuKeyboard(whc, &m)
 	}
 	if invite.Data.Related == INVITE_IS_RELATED_TO_ONBOARDING {
-		if invite.Data.CreatedByUserID != whc.AppUserIntID() {
-			return m, errors.New("invite.Related == INVITE_IS_RELATED_TO_ONBOARDING && invite.CreatedByUserID != whc.AppUserIntID()")
+		if invite.Data.CreatedByUserID != whc.AppUserInt64ID() {
+			return m, errors.New("invite.Related == INVITE_IS_RELATED_TO_ONBOARDING && invite.CreatedByUserID != whc.AppUserInt64ID()")
 		}
 		claimAndReply()
 		return
 	} else {
-		if invite.Data.CreatedByUserID == whc.AppUserIntID() {
+		if invite.Data.CreatedByUserID == whc.AppUserInt64ID() {
 			m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_ATTEMPT_TO_USE_OWN_INVITE))
 			dtb_general.SetMainMenuKeyboard(whc, &m)
 			return m, nil
@@ -62,7 +62,7 @@ func handleInviteOnStart(whc botsfw.WebhookContext, inviteCode string, invite mo
 //	keyboard.ResizeKeyboard = true
 //	m.Keyboard = keyboard
 //	m.Format = botsfw.MessageFormatHTML
-//	whc.ChatEntity().SetAwaitingReplyTo(TELL_ABOUT_INVITE_CODE_COMMAND)
+//	whc.ChatData().SetAwaitingReplyTo(TELL_ABOUT_INVITE_CODE_COMMAND)
 //	return m, nil
 //}
 
@@ -118,7 +118,7 @@ func handleInviteOnStart(whc botsfw.WebhookContext, inviteCode string, invite mo
 //				},
 //			}
 //			m.Keyboard = telegramKeyboard
-//			chatEntity := whc.ChatEntity()
+//			chatEntity := whc.ChatData()
 //			chatEntity.PushStepToAwaitingReplyTo(ASK_INVITE_CHANNEL_COMMAND)
 //			return m, nil
 //		}
@@ -137,7 +137,7 @@ func handleInviteOnStart(whc botsfw.WebhookContext, inviteCode string, invite mo
 //	},
 //	Action: func(whc botsfw.WebhookContext) (botsfw.MessageFromBot, error) {
 //		if whc.Input().(botsfw.WebhookTextMessage).Text() == whc.CommandText(trans.COMMAND_TEXT_I_HAVE_INVITE, emoji.CLOSED_LOCK_WITH_KEY) {
-//			chatEntity := whc.ChatEntity()
+//			chatEntity := whc.ChatData()
 //			chatEntity.PopStepsFromAwaitingReplyUpToSpecificParent(TELL_ABOUT_INVITE_CODE_COMMAND)
 //			chatEntity.PushStepToAwaitingReplyTo(ASK_INVITE_CODE_COMMAND)
 //			m := whc.NewMessageByCode(trans.MESSAGE_TEXT_PLEASE_ENTER_INVITE_CODE)
@@ -175,10 +175,10 @@ func NewMistypedCommand(messageToAdd string) botsfw.Command {
 //		// Check for code
 //
 //		c := whc.Context()
-//		chatEntity := whc.ChatEntity()
+//		chatEntity := whc.ChatData()
 //		chatEntity.PushStepToAwaitingReplyTo(CHECK_INVITE_COMMAND)
 //		inviteCode := strings.ToUpper(whc.Input().(botsfw.WebhookTextMessage).Text())
-//		userID := whc.AppUserIntID()
+//		userID := whc.AppUserInt64ID()
 //
 //		if err = dtdal.Invite.ClaimInvite(c, userID, inviteCode, whc.BotPlatform().ID(), whc.GetBotCode()); err != nil {
 //			if dal.IsNotFound(err) {
@@ -242,7 +242,7 @@ func TextCommand(on string, message []string, icon, replyIcon string, hideKeyboa
 //			c := whc.Context()
 //
 //			log.Infof(c, "Command(code=%v).Action()", cmd.code)
-//			chatEntity := whc.ChatEntity()
+//			chatEntity := whc.ChatData()
 //			awaitingReplyTo := chatEntity.GetAwaitingReplyTo()
 //
 //			input := whc.Input()
@@ -350,8 +350,8 @@ var OnboardingOnUserContactReceivedCommand = botsfw.Command{
 
 //func onboardingProcessPhoneContact(whc botsfw.WebhookContext, contact botsfw.WebhookContactMessage) (m botsfw.MessageFromBot, err error) {
 //	c := whc.Context()
-//	//whc.ChatEntity().SetAwaitingReplyTo(ON_USER_CONTACT_RECEIVED_COMMAND)
-//	invite, err := dtdal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserIntID(), models.InviteBySms, contact.PhoneNumber(), whc.BotPlatform().ID(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
+//	//whc.ChatData().SetAwaitingReplyTo(ON_USER_CONTACT_RECEIVED_COMMAND)
+//	invite, err := dtdal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserInt64ID(), models.InviteBySms, contact.PhoneNumber(), whc.BotPlatform().ID(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
 //	if err != nil {
 //		return m, err
 //	}
@@ -420,7 +420,7 @@ const INVITE_IS_RELATED_TO_ONBOARDING = "onboarding=yes"
 //		})
 //	} else {
 //		//TODO: Try to send email and handle return codes & exceptions
-//		invite, err := dtdal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserIntID(), models.InviteByEmail, email, whc.BotPlatform().ID(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
+//		invite, err := dtdal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserInt64ID(), models.InviteByEmail, email, whc.BotPlatform().ID(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
 //		if err != nil {
 //			return m, err
 //		}
@@ -428,7 +428,7 @@ const INVITE_IS_RELATED_TO_ONBOARDING = "onboarding=yes"
 //		if err != nil {
 //			return m, err
 //		}
-//		whc.ChatEntity().SetAwaitingReplyTo(EMAIL_CONFIRMATION_SENT_COMMAND)
+//		whc.ChatData().SetAwaitingReplyTo(EMAIL_CONFIRMATION_SENT_COMMAND)
 //		mt := fmt.Sprintf(whc.Translate(trans.MESSAGE_TEXT_USER_EMAIL_FOR_INVITE_RECEIVED), email)
 //		if whc.BotPlatform().ID() == telegram.PlatformID {
 //			mt += "\n\n" + whc.Translate(trans.MESSAGE_TEXT_USER_EMAIL_FOR_INVITE_SENT_TELEGRAM)

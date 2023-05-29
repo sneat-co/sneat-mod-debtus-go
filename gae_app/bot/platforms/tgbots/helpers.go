@@ -46,7 +46,7 @@ func ParseStartCommand(whc botsfw.WebhookContext) (startParam string, startParam
 						if err := whc.SetLocale(code5); err != nil {
 							panic(fmt.Errorf("failed to set locale: %w", err))
 						}
-						whc.ChatEntity().SetPreferredLanguage(code5)
+						whc.ChatData().SetPreferredLanguage(code5)
 					}
 				case strings.HasPrefix(p, "utm_m="):
 					utmMedium = p[len("utm_m="):]

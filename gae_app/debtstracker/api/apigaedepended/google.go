@@ -1,19 +1,19 @@
 package apigaedepended
 
 import (
-	"fmt"
-	"net/http"
-	"net/url"
-	"strings"
-
 	"context"
 	"errors"
+	"fmt"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/auth"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
+	strongouser "github.com/strongo/app/user"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/user"
+	"net/http"
+	"net/url"
+	"strings"
 )
 
 var handleFunc = http.HandleFunc
@@ -79,14 +79,16 @@ func handleSignedWithGoogle(c context.Context, w http.ResponseWriter, r *http.Re
 		_, _ = w.Write([]byte(err.Error()))
 	}
 
-	if userGoogle.Data == nil {
+	if !userGoogle.Record.Exists() {
 		log.Errorf(c, "userGoogle.UserGoogleData == nil")
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("userGoogle.UserGoogleData == nil"))
 	}
 
-	log.Debugf(c, "userGoogle.AppUserIntID: %d", userGoogle.Data.AppUserIntID)
-	token := auth.IssueToken(userGoogle.Data.AppUserIntID, "web", userGoogle.Data.Email == "alexander.trakhimenok@gmail.com")
+	accountData := userGoogle.Data().(*strongouser.AccountDataBase)
+	appUserID := userGoogle.Data().GetAppUserID()
+	log.Debugf(c, "userGoogle.AppUserIntID: %s", appUserID)
+	token := auth.IssueToken(appUserID, "web", accountData.EmailLowerCase == "alexander.trakhimenok@gmail.com")
 	destinationUrl := r.URL.Query().Get(REDIRECT_DESTINATION_PARAM_NAME)
 
 	var delimiter string

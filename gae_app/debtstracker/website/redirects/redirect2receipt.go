@@ -2,6 +2,7 @@ package redirects
 
 import (
 	"fmt"
+	"github.com/strongo/i18n"
 	"html/template"
 	"net/http"
 	"strings"
@@ -10,7 +11,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/website/pages"
-	"github.com/strongo/app"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
@@ -55,7 +55,7 @@ func ReceiptRedirect(w http.ResponseWriter, r *http.Request, _ httprouter.Params
 		if receiptOpenGraphPageTmpl == nil {
 			receiptOpenGraphPageTmpl = template.Must(template.ParseFiles(pages.TEMPLATES_PATH + "receipt-opengraph.html"))
 		}
-		locale := strongo.LocaleEnUS // strongo.GetLocaleByCode5(receipt.Lang) // TODO: Check for empty
+		locale := i18n.LocaleEnUS // strongo.GetLocaleByCode5(receipt.Lang) // TODO: Check for empty
 		pages.RenderCachedPage(w, r, receiptOpenGraphPageTmpl, locale, map[string]interface{}{
 			"host":      r.Host,
 			"ogUrl":     r.URL.String(),

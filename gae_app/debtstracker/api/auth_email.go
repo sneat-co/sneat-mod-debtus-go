@@ -93,13 +93,13 @@ func handleSignInWithEmail(c context.Context, w http.ResponseWriter, r *http.Req
 			ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		}
 		return
-	} else if err = userEmail.CheckPassword(password); err != nil {
+	} else if err = userEmail.Data.CheckPassword(password); err != nil {
 		log.Debugf(c, "Invalid password: %v", err.Error())
 		ErrorAsJson(c, w, http.StatusForbidden, errors.New("Invalid password"))
 		return
 	}
 
-	ReturnToken(c, w, userEmail.AppUserIntID, false, userEmail.ID == "alexander.trakhimenok@gmail.com")
+	ReturnToken(c, w, userEmail.Data.AppUserIntID, false, userEmail.ID == "alexander.trakhimenok@gmail.com")
 }
 
 func handleRequestPasswordReset(c context.Context, w http.ResponseWriter, r *http.Request) {
@@ -113,9 +113,9 @@ func handleRequestPasswordReset(c context.Context, w http.ResponseWriter, r *htt
 	now := time.Now()
 
 	pwdResetEntity := models.PasswordResetData{
-		Email:                userEmail.ID,
-		Status:               "created",
-		OwnedByUserWithIntID: user.NewOwnedByUserWithIntID(userEmail.AppUserIntID, now),
+		Email:             userEmail.ID,
+		Status:            "created",
+		OwnedByUserWithID: user.NewOwnedByUserWithID(userEmail.Data.AppUserID, now),
 	}
 
 	var db dal.Database
@@ -181,17 +181,17 @@ func handleChangePasswordAndSignIn(c context.Context, w http.ResponseWriter, r *
 			return err
 		}
 
-		if err = userEmail.SetPassword(pwd); err != nil {
+		if err = userEmail.Data.SetPassword(pwd); err != nil {
 			return err
 		}
 
 		passwordReset.Data.Status = "changed"
 		passwordReset.Data.Email = "" // Clean email as we don't need it anymore
 		passwordReset.Data.DtUpdated = now
-		if changed := userEmail.AddProvider("password-reset"); changed {
-			userEmail.DtUpdated = now
+		if changed := userEmail.Data.AddProvider("password-reset"); changed {
+			userEmail.Data.DtUpdated = now
 		}
-		userEmail.SetLastLogin(now)
+		userEmail.Data.SetLastLogin(now)
 		appUser.Data.SetLastLogin(now)
 
 		if err = tx.SetMulti(c, records); err != nil {
@@ -238,18 +238,18 @@ func handleConfirmEmailAndSignIn(c context.Context, w http.ResponseWriter, r *ht
 		}
 
 		var appUser models.AppUser
-		if appUser, err = facade.User.GetUserByID(c, tx, userEmail.AppUserIntID); err != nil {
+		if appUser, err = facade.User.GetUserByID(c, tx, userEmail.Data.AppUserIntID); err != nil {
 			return err
 		}
 
-		if userEmail.ConfirmationPin() != pin {
+		if userEmail.Data.ConfirmationPin() != pin {
 			return errInvalidEmailConformationPin
 		}
 
-		userEmail.IsConfirmed = true
-		userEmail.SetUpdatedTime(now)
-		userEmail.PasswordBcryptHash = []byte{}
-		userEmail.SetLastLogin(now)
+		userEmail.Data.IsConfirmed = true
+		userEmail.Data.SetUpdatedTime(now)
+		userEmail.Data.PasswordBcryptHash = []byte{}
+		userEmail.Data.SetLastLogin(now)
 		appUser.Data.SetLastLogin(now)
 
 		entities := []dal.Record{appUser.Record, userEmail.Record}
@@ -269,5 +269,5 @@ func handleConfirmEmailAndSignIn(c context.Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	ReturnToken(c, w, userEmail.AppUserIntID, false, IsAdmin(userEmail.ID))
+	ReturnToken(c, w, userEmail.Data.AppUserIntID, false, IsAdmin(userEmail.ID))
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	"github.com/strongo/app/delaying"
+	"github.com/strongo/delaying"
 	"github.com/strongo/log"
 	"strconv"
 	"strings"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
+	"github.com/bots-go-framework/bots-fw-telegram-models/botsfwtgmodels"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal/gaedal"
@@ -82,6 +82,7 @@ func sendReminder(c context.Context, reminderID int) (err error) {
 
 	if !transfer.Data.IsOutstanding {
 		log.Infof(c, "Transfer(id=%v) is not outstanding, transfer.Amount=%v, transfer.AmountInCentsReturned=%v", reminder.Data.TransferID, transfer.Data.AmountInCents, transfer.Data.AmountReturned())
+
 		if err := gaedal.DiscardReminder(c, reminderID, reminder.Data.TransferID, 0); err != nil {
 			return fmt.Errorf("failed to discard a reminder for non outstanding transfer id=%v: %w", reminder.Data.TransferID, err)
 		}
@@ -145,7 +146,7 @@ func sendReminderToUser(c context.Context, reminderID int, transfer models.Trans
 			tgChatID = transferUserInfo.TgChatID
 			tgBotID = transferUserInfo.TgBotID
 		} else {
-			var tgChat tgstore.TgChatData
+			var tgChat botsfwtgmodels.TgChatData
 			_, tgChat, err = gaedal.GetTelegramChatByUserID(c, reminder.Data.UserID) // TODO: replace with DAL method
 			if err != nil {
 				if dal.IsNotFound(err) { // TODO: Get rid of datastore reference
@@ -153,8 +154,8 @@ func sendReminderToUser(c context.Context, reminderID int, transfer models.Trans
 					return
 				}
 			} else {
-				tgChatID = tgChat.BaseChatData().TelegramUserID
-				tgBotID = tgChat.BaseChatData().BotID
+				tgChatID = tgChat.BaseTgChatData().TelegramUserID
+				tgBotID = tgChat.BaseTgChatData().BotID
 			}
 		}
 		if tgChatID != 0 {

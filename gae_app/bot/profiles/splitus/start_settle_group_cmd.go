@@ -53,7 +53,7 @@ func settleGroupAskForCounterpartyAction(whc botsfw.WebhookContext, group models
 
 	groupMembers := group.Data.GetGroupMembers()
 
-	userID := whc.AppUserStrID()
+	userID := whc.AppUserID()
 
 	var userMember models.GroupMemberJson
 
@@ -154,7 +154,7 @@ var settleGroupCounterpartyChosenCommand = shared_group.GroupCallbackCommand(
 func settleGroupCounterpartyChosenAction(whc botsfw.WebhookContext, group models.Group, memberID string) (m botsfw.MessageFromBot, err error) {
 
 	var userMember, counterpartyMember models.GroupMemberJson
-	userID := whc.AppUserStrID()
+	userID := whc.AppUserID()
 	for _, m := range group.Data.GetGroupMembers() {
 		if m.UserID == userID {
 			userMember = m
@@ -214,7 +214,7 @@ func settleGroupCounterpartyConfirmedAction(whc botsfw.WebhookContext, group mod
 		return
 	}
 
-	userID := whc.AppUserStrID()
+	userID := whc.AppUserID()
 
 	for _, m := range group.Data.GetGroupMembers() {
 		if m.UserID == userID {

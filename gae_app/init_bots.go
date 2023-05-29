@@ -2,8 +2,13 @@ package gaeapp
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/bots-go-framework/dalgo4botsfw"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/platforms/tgbots"
@@ -13,11 +18,22 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/strongo/app"
+	"github.com/strongo/i18n"
+	"net/http"
 )
 
-func newTranslator(c context.Context) strongo.Translator {
-	return strongo.NewMapTranslator(c, trans.TRANS)
+func newTranslator(c context.Context) i18n.Translator {
+	return i18n.NewMapTranslator(c, trans.TRANS)
+}
+
+type botsHttpRouter struct {
+	r *httprouter.Router
+}
+
+func (v botsHttpRouter) Handle(method, path string, handle http.HandlerFunc) {
+	v.r.Handle(method, path, func(writer http.ResponseWriter, request *http.Request, _ httprouter.Params) {
+		handle(writer, request)
+	})
 }
 
 func InitBots(httpRouter *httprouter.Router, botHost botsfw.BotHost, appContext botsfw.BotAppContext) {
@@ -29,10 +45,40 @@ func InitBots(httpRouter *httprouter.Router, botHost botsfw.BotHost, appContext 
 		"Please report any issues to @DebtsTrackerGroup", // Is it wrong place? Router has similar.
 	)
 
-	driver.RegisterWebhookHandlers(httpRouter, "/bot",
+	makeAppUserDto := func(botID string) (appUser botsfwmodels.AppUserData, err error) {
+		return nil, fmt.Errorf("%w: makeAppUserDto() is not implemented", botsfw.ErrNotImplemented)
+	}
+	var recordsMaker = botsfwmodels.NewBotRecordsMaker(
+		"*",
+		makeAppUserDto,
+		telegram.BaseTgUserDtoMaker,
+		telegram.BaseTgChatDtoMaker,
+	)
+
+	var getDb dalgo4botsfw.DbProvider = func(c context.Context, botID string) (dal.Database, error) {
+		return nil, errors.New("not implemented")
+		//fsClient, err := firestore.NewClient(c, "demo-local-sneat-app")
+		//if err != nil {
+		//	return nil, err
+		//}
+		//return dalgo2firestore.NewDatabase("sneat", fsClient), nil
+	}
+
+	dataAccess := dalgo4botsfw.NewDataAccess(telegram.PlatformID, getDb, recordsMaker)
+
+	driver.RegisterWebhookHandlers(botsHttpRouter{httpRouter}, "/bot",
+		//telegram.NewTelegramWebhookHandler(
+		//	telegramBotsWithRouter, // Maps of bots by code, language, token, etc...
+		//	newTranslator,          // Creates translator that gets a context.Context (for logging purpose)
+		//),
 		telegram.NewTelegramWebhookHandler(
+			dataAccess,
 			telegramBotsWithRouter, // Maps of bots by code, language, token, etc...
 			newTranslator,          // Creates translator that gets a context.Context (for logging purpose)
+			recordsMaker,
+			func(data botsfwmodels.AppUserData, sender botsfw.WebhookSender) error { // TODO: implement?
+				return nil
+			},
 		),
 		//viber.NewViberWebhookHandler(
 		//	viberbots.Bots,

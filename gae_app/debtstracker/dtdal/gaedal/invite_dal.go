@@ -33,7 +33,7 @@ func (InviteDalGae) GetInvite(c context.Context, tx dal.ReadSession, inviteCode 
 }
 
 // ClaimInvite claims invite by user - TODO compare with ClaimInvite2 and get rid of one of them
-func (InviteDalGae) ClaimInvite(c context.Context, userID int64, inviteCode, claimedOn, claimedVia string) (err error) {
+func (InviteDalGae) ClaimInvite(c context.Context, userID string, inviteCode, claimedOn, claimedVia string) (err error) {
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
@@ -46,9 +46,13 @@ func (InviteDalGae) ClaimInvite(c context.Context, userID int64, inviteCode, cla
 		}
 		log.Debugf(c, "Invite found")
 		// TODO: Check invite.For
-		inviteClaim := models.NewInviteClaimWithoutID(models.NewInviteClaimData(inviteCode, userID, claimedOn, claimedVia))
 		//invite.ClaimedCount += 1
-		user := models.NewAppUser(userID, nil)
+		var userIntID int64
+		if userIntID, err = strconv.ParseInt(userID, 10, 64); err != nil {
+			return fmt.Errorf("failed to parse userID as int: %w", err)
+		}
+		inviteClaim := models.NewInviteClaimWithoutID(models.NewInviteClaimData(inviteCode, userIntID, claimedOn, claimedVia))
+		user := models.NewAppUser(userIntID, nil)
 		if err = tx.Get(tc, user.Record); err != nil {
 			return err
 		}
@@ -73,16 +77,16 @@ const (
 	PERSONAL_INVITE           = 1
 )
 
-func (InviteDalGae) CreatePersonalInvite(ec strongo.ExecutionContext, userID int64, inviteBy models.InviteBy, inviteToAddress, createdOnPlatform, createdOnID, related string) (models.Invite, error) {
+func (InviteDalGae) CreatePersonalInvite(ec strongo.ExecutionContext, userID string, inviteBy models.InviteBy, inviteToAddress, createdOnPlatform, createdOnID, related string) (models.Invite, error) {
 	return createInvite(ec, models.InviteTypePersonal, userID, inviteBy, inviteToAddress, createdOnPlatform, createdOnID, INVITE_CODE_LENGTH, AUTO_GENERATE_INVITE_CODE, related, PERSONAL_INVITE)
 }
 
-func (InviteDalGae) CreateMassInvite(ec strongo.ExecutionContext, userID int64, inviteCode string, maxClaimsCount int32, createdOnPlatform string) (invite models.Invite, err error) {
+func (InviteDalGae) CreateMassInvite(ec strongo.ExecutionContext, userID string, inviteCode string, maxClaimsCount int32, createdOnPlatform string) (invite models.Invite, err error) {
 	invite, err = createInvite(ec, models.InviteTypePublic, userID, "", "", createdOnPlatform, "", uint8(len(inviteCode)), inviteCode, "", maxClaimsCount)
 	return
 }
 
-func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, userID int64, inviteBy models.InviteBy, inviteToAddress, createdOnPlatform, createdOnID string, inviteCodeLen uint8, inviteCode, related string, maxClaimsCount int32) (invite models.Invite, err error) {
+func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, userID string, inviteBy models.InviteBy, inviteToAddress, createdOnPlatform, createdOnID string, inviteCodeLen uint8, inviteCode, related string, maxClaimsCount int32) (invite models.Invite, err error) {
 	if inviteCode != AUTO_GENERATE_INVITE_CODE && !dtdal.InviteCodeRegex.Match([]byte(inviteCode)) {
 		err = fmt.Errorf("Invalid invite code: %v", inviteCode)
 		return
@@ -93,6 +97,10 @@ func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, use
 	c := ec.Context()
 
 	dtCreated := time.Now()
+	var userIntID int64
+	if userIntID, err = strconv.ParseInt(userID, 10, 64); err != nil {
+		return invite, fmt.Errorf("failed to parse userID as int: %w", err)
+	}
 	invite = models.NewInvite(inviteCode, &models.InviteData{
 		Type:    string(inviteType),
 		Channel: string(inviteBy),
@@ -101,7 +109,7 @@ func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, use
 			CreatedOnID:       createdOnID,
 		},
 		DtCreated:       dtCreated,
-		CreatedByUserID: userID,
+		CreatedByUserID: userIntID,
 		Related:         related,
 		MaxClaimsCount:  maxClaimsCount,
 		DtActiveFrom:    dtCreated,
@@ -161,15 +169,20 @@ func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, use
 }
 
 // ClaimInvite2 claims invite by user - TODO compare with ClaimInvite and get rid of one of them
-func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, invite models.Invite, claimedByUserID int64, claimedOn, claimedVia string) (err error) {
+func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, invite models.Invite, claimedByUserID string, claimedOn, claimedVia string) (err error) {
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {
 		return fmt.Errorf("failed to create database: %w", err)
 	}
 
+	var claimedByUserIntID int64
+	if claimedByUserIntID, err = strconv.ParseInt(claimedByUserID, 10, 64); err != nil {
+		return fmt.Errorf("failed to parse claimedByUserID as int: %w", err)
+	}
+
 	err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) error {
 		//userKey := models.NewAppUserKey(claimedByUserID)
-		user := models.NewAppUser(claimedByUserID, nil)
+		user := models.NewAppUser(claimedByUserIntID, nil)
 		if err = tx.GetMulti(tc, []dal.Record{invite.Record, user.Record}); err != nil {
 			return err
 		}
@@ -178,7 +191,7 @@ func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, invite mo
 		if invite.Data.MaxClaimsCount > 0 && invite.Data.ClaimedCount > invite.Data.MaxClaimsCount {
 			return fmt.Errorf("invite.ClaimedCount > invite.MaxClaimsCount: %v > %v", invite.Data.ClaimedCount, invite.Data.MaxClaimsCount)
 		}
-		inviteClaimData := models.NewInviteClaimData(inviteCode, claimedByUserID, claimedOn, claimedVia)
+		inviteClaimData := models.NewInviteClaimData(inviteCode, claimedByUserIntID, claimedOn, claimedVia)
 		inviteClaim := models.NewInviteClaim(0, inviteClaimData)
 		if err = tx.Insert(c, inviteClaim.Record); err != nil {
 			return err
@@ -212,7 +225,7 @@ func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, invite mo
 					return fmt.Errorf("ailed to get invite creator user: %w", err)
 				}
 
-				counterparty := models.NewContact(0, models.NewContactEntity(claimedByUserID, models.ContactDetails{
+				counterparty := models.NewContact(0, models.NewContactEntity(claimedByUserIntID, models.ContactDetails{
 					FirstName:    inviteCreator.Data.FirstName,
 					LastName:     inviteCreator.Data.LastName,
 					Username:     inviteCreator.Data.Username,

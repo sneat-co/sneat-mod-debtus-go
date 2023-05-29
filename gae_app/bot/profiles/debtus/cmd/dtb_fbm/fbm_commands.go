@@ -18,7 +18,7 @@ package dtb_fbm
 //			Type: fbmbotapi.RequestAttachmentTypeTemplate,
 //		}
 //
-//		if whc.ChatEntity().GetPreferredLanguage() == "" {
+//		if whc.ChatData().GetPreferredLanguage() == "" {
 //			m.FbmAttachment.Payload = askLanguageCard(whc)
 //		} else {
 //			m.FbmAttachment.Payload = fbmbotapi.NewGenericTemplate(

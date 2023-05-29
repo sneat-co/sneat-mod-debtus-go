@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
+	"github.com/bots-go-framework/bots-fw-telegram-models/botsfwtgmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
@@ -181,9 +181,9 @@ type GroupDal interface {
 //}
 
 type UserGoogleDal interface {
-	GetUserGoogleByID(c context.Context, googleUserID string) (userGoogle models.UserGoogle, err error)
+	GetUserGoogleByID(c context.Context, googleUserID string) (userGoogle models.UserAccount, err error)
 	DeleteUserGoogle(c context.Context, googleUserID string) (err error)
-	SaveUserGoogle(c context.Context, userGoogle models.UserGoogle) (err error)
+	SaveUserGoogle(c context.Context, userGoogle models.UserAccount) (err error)
 }
 
 type UserVkDal interface {
@@ -248,10 +248,10 @@ func RandomCode(n uint8) string {
 
 type InviteDal interface {
 	GetInvite(c context.Context, tx dal.ReadSession, inviteCode string) (models.Invite, error)
-	ClaimInvite(c context.Context, userID int64, inviteCode, claimedOn, claimedVia string) (err error)
-	ClaimInvite2(c context.Context, inviteCode string, invite models.Invite, claimedByUserID int64, claimedOn, claimedVia string) (err error)
-	CreatePersonalInvite(ec strongo.ExecutionContext, userID int64, inviteBy models.InviteBy, inviteToAddress, createdOnPlatform, createdOnID, related string) (models.Invite, error)
-	CreateMassInvite(ec strongo.ExecutionContext, userID int64, inviteCode string, maxClaimsCount int32, createdOnPlatform string) (invite models.Invite, err error)
+	ClaimInvite(c context.Context, userID string, inviteCode, claimedOn, claimedVia string) (err error)
+	ClaimInvite2(c context.Context, inviteCode string, invite models.Invite, claimedByUserID string, claimedOn, claimedVia string) (err error)
+	CreatePersonalInvite(ec strongo.ExecutionContext, userID string, inviteBy models.InviteBy, inviteToAddress, createdOnPlatform, createdOnID, related string) (models.Invite, error)
+	CreateMassInvite(ec strongo.ExecutionContext, userID string, inviteCode string, maxClaimsCount int32, createdOnPlatform string) (invite models.Invite, err error)
 }
 
 type AdminDal interface {
@@ -260,11 +260,11 @@ type AdminDal interface {
 }
 
 type UserBrowserDal interface {
-	SaveUserBrowser(c context.Context, userID int64, userAgent string) (userBrowser models.UserBrowser, err error)
+	SaveUserBrowser(c context.Context, userID string, userAgent string) (userBrowser models.UserBrowser, err error)
 }
 
 type UserOneSignalDal interface {
-	SaveUserOneSignal(c context.Context, userID int64, oneSignalUserID string) (userOneSignal models.UserOneSignal, err error)
+	SaveUserOneSignal(c context.Context, userID string, oneSignalUserID string) (userOneSignal models.UserOneSignal, err error)
 }
 
 type UserGaClientDal interface {
@@ -280,12 +280,12 @@ type TgChatDal interface {
 		tgChatID int64,
 		authInfo auth.AuthInfo,
 		user models.AppUser,
-		sendToTelegram func(tgChat tgstore.TgChat) error,
+		sendToTelegram func(tgChat botsfwtgmodels.TgChatData) error,
 	) (err error)
 }
 
 type TgUserDal interface {
-	FindByUserName(c context.Context, tx dal.ReadSession, userName string) (tgUsers []tgstore.TgUser, err error)
+	FindByUserName(c context.Context, tx dal.ReadSession, userName string) (tgUsers []botsfwtgmodels.TgBotUser, err error)
 }
 
 //type TaskQueueDal interface {

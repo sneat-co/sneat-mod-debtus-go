@@ -3,9 +3,11 @@ package shared_all
 import (
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/i18n"
 	"net/url"
 	"strings"
 
@@ -27,16 +29,16 @@ const onboardingAskLocaleCommandCode = "onboarding-ask-locale"
 
 var localesReplyKeyboard = tgbotapi.NewReplyKeyboard(
 	[]tgbotapi.KeyboardButton{
-		{Text: strongo.LocaleEnUS.TitleWithIcon()},
-		{Text: strongo.LocaleRuRu.TitleWithIcon()},
+		{Text: i18n.LocaleEnUS.TitleWithIcon()},
+		{Text: i18n.LocaleRuRu.TitleWithIcon()},
 	},
 	[]tgbotapi.KeyboardButton{
-		{Text: strongo.LocaleEsEs.TitleWithIcon()},
-		{Text: strongo.LocaleItIt.TitleWithIcon()},
+		{Text: i18n.LocaleEsEs.TitleWithIcon()},
+		{Text: i18n.LocaleItIt.TitleWithIcon()},
 	},
 	[]tgbotapi.KeyboardButton{
-		{Text: strongo.LocaleDeDe.TitleWithIcon()},
-		{Text: strongo.LocaleFaIr.TitleWithIcon()},
+		{Text: i18n.LocaleDeDe.TitleWithIcon()},
+		{Text: i18n.LocaleFaIr.TitleWithIcon()},
 	},
 )
 
@@ -51,7 +53,7 @@ func createOnboardingAskLocaleCommand(botParams BotParams) botsfw.Command {
 }
 
 func onboardingAskLocaleAction(whc botsfw.WebhookContext, messagePrefix string, botParams BotParams) (m botsfw.MessageFromBot, err error) {
-	chatEntity := whc.ChatEntity()
+	chatEntity := whc.ChatData()
 
 	if chatEntity.IsAwaitingReplyTo(onboardingAskLocaleCommandCode) {
 		messageText := whc.Input().(botsfw.WebhookTextMessage).Text()
@@ -79,16 +81,16 @@ var askPreferredLocaleFromSettingsCallback = botsfw.Command{
 		callbackData := fmt.Sprintf("%v?mode=settings&code5=", SettingsLocaleSetCallbackPath)
 		keyboard := tgbotapi.NewInlineKeyboardMarkup(
 			[]tgbotapi.InlineKeyboardButton{
-				{Text: strongo.LocaleEnUS.TitleWithIcon(), CallbackData: callbackData + strongo.LocaleEnUS.Code5},
-				{Text: strongo.LocaleRuRu.TitleWithIcon(), CallbackData: callbackData + strongo.LocaleRuRu.Code5},
+				{Text: i18n.LocaleEnUS.TitleWithIcon(), CallbackData: callbackData + i18n.LocaleEnUS.Code5},
+				{Text: i18n.LocaleRuRu.TitleWithIcon(), CallbackData: callbackData + i18n.LocaleRuRu.Code5},
 			},
 			[]tgbotapi.InlineKeyboardButton{
-				{Text: strongo.LocaleEsEs.TitleWithIcon(), CallbackData: callbackData + strongo.LocaleEsEs.Code5},
-				{Text: strongo.LocaleItIt.TitleWithIcon(), CallbackData: callbackData + strongo.LocaleItIt.Code5},
+				{Text: i18n.LocaleEsEs.TitleWithIcon(), CallbackData: callbackData + i18n.LocaleEsEs.Code5},
+				{Text: i18n.LocaleItIt.TitleWithIcon(), CallbackData: callbackData + i18n.LocaleItIt.Code5},
 			},
 			[]tgbotapi.InlineKeyboardButton{
-				{Text: strongo.LocaleDeDe.TitleWithIcon(), CallbackData: callbackData + strongo.LocaleDeDe.Code5},
-				{Text: strongo.LocaleFaIr.TitleWithIcon(), CallbackData: callbackData + strongo.LocaleFaIr.Code5},
+				{Text: i18n.LocaleDeDe.TitleWithIcon(), CallbackData: callbackData + i18n.LocaleDeDe.Code5},
+				{Text: i18n.LocaleFaIr.TitleWithIcon(), CallbackData: callbackData + i18n.LocaleFaIr.Code5},
 			},
 		) //dtb_general.LanguageOptions(whc, false)
 		log.Debugf(whc.Context(), "AskPreferredLanguage(): locale: %v", whc.Locale().Code5)
@@ -115,7 +117,7 @@ func setLocaleCallbackCommand(botParams BotParams) botsfw.Command {
 func setPreferredLanguageAction(whc botsfw.WebhookContext, code5, mode string, botParams BotParams) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	log.Debugf(c, "setPreferredLanguageAction(code5=%v, mode=%v)", code5, mode)
-	appUser, err := whc.GetAppUser()
+	appUser, err := whc.AppUserData()
 	if err != nil {
 		log.Errorf(c, ": %v", err)
 		return m, fmt.Errorf("%w: failed to load userEntity", err)
@@ -127,12 +129,12 @@ func setPreferredLanguageAction(whc botsfw.WebhookContext, code5, mode string, b
 
 	var (
 		localeChanged  bool
-		selectedLocale strongo.Locale
+		selectedLocale i18n.Locale
 	)
 
-	chatEntity := whc.ChatEntity()
-	log.Debugf(c, "userEntity.PreferredLanguage: %v, chatEntity.GetPreferredLanguage(): %v, code5: %v", userEntity.PreferredLanguage, chatEntity.GetPreferredLanguage(), code5)
-	if userEntity.PreferredLanguage != code5 || chatEntity.GetPreferredLanguage() != code5 {
+	chatData := whc.ChatData()
+	log.Debugf(c, "userEntity.PreferredLanguage: %v, chatData.GetPreferredLanguage(): %v, code5: %v", userEntity.PreferredLanguage, chatData.GetPreferredLanguage(), code5)
+	if userEntity.PreferredLanguage != code5 || chatData.GetPreferredLanguage() != code5 {
 		log.Debugf(c, "PreferredLanguage will be updated for userEntity & chat entities.")
 		for _, locale := range trans.SupportedLocalesByCode5 {
 			if locale.Code5 == code5 {
@@ -144,15 +146,16 @@ func setPreferredLanguageAction(whc botsfw.WebhookContext, code5, mode string, b
 				}
 				if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 					var user models.AppUser
-					if user, err = facade.User.GetUserByID(c, tx, whc.AppUserIntID()); err != nil {
+					if user, err = facade.User.GetUserByID(c, tx, whc.AppUserInt64ID()); err != nil {
 						return
 					}
 					if err = user.Data.SetPreferredLocale(locale.Code5); err != nil {
 						return fmt.Errorf("%w: failed to set preferred locale for user", err)
 					}
-					chatEntity.SetPreferredLanguage(locale.Code5)
-					chatEntity.SetAwaitingReplyTo("")
-					if err = whc.SaveBotChat(c, whc.GetBotCode(), whc.MustBotChatID(), chatEntity); err != nil {
+					chatData.SetPreferredLanguage(locale.Code5)
+					chatData.SetAwaitingReplyTo("")
+					chatKey := botsfwmodels.NewChatKey(whc.GetBotCode(), whc.MustBotChatID())
+					if err = whc.Store().SaveBotChatData(c, chatKey, chatData); err != nil {
 						return
 					}
 					return facade.User.SaveUser(c, tx, user)
@@ -177,7 +180,7 @@ func setPreferredLanguageAction(whc botsfw.WebhookContext, code5, mode string, b
 			log.Errorf(c, "Unknown locale: %v", code5)
 		}
 	} else {
-		selectedLocale = strongo.GetLocaleByCode5(chatEntity.GetPreferredLanguage())
+		selectedLocale = i18n.GetLocaleByCode5(chatData.GetPreferredLanguage())
 	}
 	//if localeChanged {
 

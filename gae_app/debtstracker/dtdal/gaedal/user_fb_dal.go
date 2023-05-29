@@ -14,7 +14,7 @@ func NewUserFacebookKey(c context.Context, fbAppOrPageID, fbUserOrPageScopeID st
 	if fbUserOrPageScopeID == "" {
 		panic("fbUserOrPageScopeID is empty string")
 	}
-	return dal.NewKeyWithID(models.UserFacebookKind, fbAppOrPageID+":"+fbUserOrPageScopeID)
+	return dal.NewKeyWithID(models.UserFacebookCollection, fbAppOrPageID+":"+fbUserOrPageScopeID)
 }
 
 type UserFacebookDalGae struct {
@@ -47,7 +47,7 @@ func (UserFacebookDalGae) GetFbUserByFbID(c context.Context, fbAppOrPageID, fbUs
 	//var entity models.UserFacebookData
 	//if err = gaedb.Get(c, NewUserFacebookKey(c, fbAppOrPageID, fbUserOrPageScopeID), &entity); err != nil {
 	//	if err == datastore.ErrNoSuchEntity {
-	//		err = db.NewErrNotFoundByStrID(models.UserFacebookKind, fbUserOrPageScopeID, err)
+	//		err = db.NewErrNotFoundByStrID(models.UserFacebookCollection, fbUserOrPageScopeID, err)
 	//	}
 	//	return
 	//}

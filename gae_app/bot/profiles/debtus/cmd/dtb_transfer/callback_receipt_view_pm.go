@@ -33,12 +33,12 @@ func ShowReceipt(whc botsfw.WebhookContext, receiptID int) (m botsfw.MessageFrom
 		return m, err
 	}
 
-	if receipt.Data.CreatorUserID == whc.AppUserIntID() {
+	if receipt.Data.CreatorUserID == whc.AppUserInt64ID() {
 		m.Text = whc.Translate(trans.MESSAGE_TEXT_RECEIPT_ATTEMPT_TO_VIEW_OWN)
 		return
 	}
 
-	receipt, err = facade.MarkReceiptAsViewed(c, receiptID, whc.AppUserIntID())
+	receipt, err = facade.MarkReceiptAsViewed(c, receiptID, whc.AppUserInt64ID())
 	if err != nil {
 		return
 	}
@@ -72,13 +72,13 @@ func ShowReceipt(whc botsfw.WebhookContext, receiptID int) (m botsfw.MessageFrom
 		return m, err
 	}
 	utm := common.NewUtmParams(whc, common.UTM_CAMPAIGN_REMINDER)
-	mt = common.TextReceiptForTransfer(whc, transfer, whc.AppUserIntID(), common.ShowReceiptToAutodetect, utm)
+	mt = common.TextReceiptForTransfer(c, whc, transfer, whc.AppUserInt64ID(), common.ShowReceiptToAutodetect, utm)
 
 	log.Debugf(c, "Receipt text: %v", mt)
 
 	var inlineKeyboard *tgbotapi.InlineKeyboardMarkup
 
-	if receipt.Data.CreatorUserID == whc.AppUserIntID() {
+	if receipt.Data.CreatorUserID == whc.AppUserInt64ID() {
 		mt += "\n" + whc.Translate(trans.MESSAGE_TEXT_SELF_ACKNOWLEDGEMENT, html.EscapeString(transfer.Data.Counterparty().ContactName))
 	} else {
 		isAcknowledgedAlready := !transfer.Data.AcknowledgeTime.IsZero()
@@ -173,7 +173,7 @@ func viewReceiptCallbackAction(whc botsfw.WebhookContext, callbackUrl *url.URL) 
 		if err = whc.SetLocale(localeCode5); err != nil {
 			return m, err
 		}
-		if appUser, err := whc.GetAppUser(); err != nil {
+		if appUser, err := whc.AppUserData(); err != nil {
 			return m, err
 		} else {
 			if _ = appUser.SetPreferredLocale(localeCode5); err != nil {
@@ -198,7 +198,7 @@ func viewReceiptCallbackAction(whc botsfw.WebhookContext, callbackUrl *url.URL) 
 //			err = fmt.Errorf("Invite not found by code: %v", inviteCode)
 //			return
 //		}
-//		if invite.CreatedByUserID == whc.AppUserIntID() {
+//		if invite.CreatedByUserID == whc.AppUserInt64ID() {
 //			if transferID, err = invite.RelatedIntID(); err != nil {
 //				return
 //			}

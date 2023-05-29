@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/app"
 	"github.com/strongo/app/user"
+	"github.com/strongo/i18n"
 	"net/http"
 	"reflect"
 	"time"
@@ -515,7 +515,7 @@ func (entity *AppUserData) SetActiveGroups(groups []UserGroupJson) {
 	}
 }
 
-var _ botsfw.BotAppUser = (*AppUserData)(nil)
+var _ botsfwmodels.AppUserData = (*AppUserData)(nil)
 
 func (entity *AppUserData) GetCurrencies() []string {
 	return entity.LastCurrencies
@@ -533,7 +533,7 @@ func (entity *AppUserData) GetPreferredLocale() string {
 	if entity.PreferredLanguage != "" {
 		return entity.PreferredLanguage
 	} else {
-		return strongo.LocaleEnUS.Code5
+		return i18n.LocaleEnUS.Code5
 	}
 }
 

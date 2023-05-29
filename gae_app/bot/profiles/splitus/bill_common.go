@@ -62,7 +62,7 @@ func billCallbackAction(f billCallbackActionHandler) func(whc botsfw.WebhookCont
 					if group.ID, err = shared_group.GetUserGroupID(whc); err != nil {
 						return
 					}
-					if bill, group, err = facade.Bill.AssignBillToGroup(c, tx, bill, group.ID, whc.AppUserStrID()); err != nil {
+					if bill, group, err = facade.Bill.AssignBillToGroup(c, tx, bill, group.ID, whc.AppUserID()); err != nil {
 						return
 					}
 				} else {

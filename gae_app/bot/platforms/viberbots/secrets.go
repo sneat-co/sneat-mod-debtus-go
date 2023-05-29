@@ -13,7 +13,7 @@ func Bots(c context.Context) botsfw.SettingsBy { //TODO: Consider to do pre-depl
 	//	//if host == "" || strings.Contains(host, "dev") {
 	//		//_bots = botsfw.NewBotSettingsBy(nil,
 	//		//	// Development bot
-	//		//	viber.NewViberBot(strongo.EnvDevTest, bot.ProfileDebtus, "DebtsTrackerDev", "451be8dd024fbbc7-4fb4285be8dbb24e-1b2d99610f798855", "", strongo.LocalesByCode5[strongo.LocaleCodeEnUS]),
+	//		//	viber.NewViberBot(strongo.EnvDevTest, bot.ProfileDebtus, "DebtsTrackerDev", "451be8dd024fbbc7-4fb4285be8dbb24e-1b2d99610f798855", "", i18n.LocalesByCode5[i18n.LocaleCodeEnUS]),
 	//		//)
 	//		//} else if strings.Contains(host, "st1") {
 	//		//_bots = botsfw.NewBotSettingsBy(
@@ -22,7 +22,7 @@ func Bots(c context.Context) botsfw.SettingsBy { //TODO: Consider to do pre-depl
 	//		//} else if strings.HasPrefix(host, "debtstracker-io.") {
 	//		//_bots = botsfw.NewBotSettingsBy(nil,
 	//		//	// Production bot
-	//		//	viber.NewViberBot(strongo.EnvProduction, bot.ProfileDebtus, "DebtsTracker", "xxxx-xxx-xxxx", common.GA_TRACKING_ID, strongo.LocalesByCode5[strongo.LocaleCodeEnUS]),
+	//		//	viber.NewViberBot(strongo.EnvProduction, bot.ProfileDebtus, "DebtsTracker", "xxxx-xxx-xxxx", common.GA_TRACKING_ID, i18n.LocalesByCode5[i18n.LocaleCodeEnUS]),
 	//		//)
 	//	}
 	//}

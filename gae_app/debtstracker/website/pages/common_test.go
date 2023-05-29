@@ -1,7 +1,7 @@
 package pages
 
 import (
-	"github.com/strongo/app"
+	"github.com/strongo/i18n"
 	"testing"
 )
 
@@ -11,5 +11,5 @@ func TestRenderCachedPageWithoutArguemnts(t *testing.T) {
 			t.Fatal("should panic")
 		}
 	}()
-	RenderCachedPage(nil, nil, nil, strongo.LocaleEnUS, nil, 0)
+	RenderCachedPage(nil, nil, nil, i18n.LocaleEnUS, nil, 0)
 }

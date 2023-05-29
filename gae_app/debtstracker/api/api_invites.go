@@ -1,14 +1,12 @@
 package api
 
 import (
-	"net/http"
-	"strconv"
-
 	"context"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"google.golang.org/appengine/user"
+	"net/http"
 )
 
 func CreateInvite(c context.Context, w http.ResponseWriter, r *http.Request) {
@@ -24,5 +22,5 @@ func CreateInvite(c context.Context, w http.ResponseWriter, r *http.Request) {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	}
-	_, _ = w.Write([]byte(strconv.FormatInt(userEmail.AppUserIntID, 10)))
+	_, _ = w.Write([]byte(userEmail.Data.AppUserID))
 }

@@ -14,7 +14,7 @@ func NewUserOneSignalDalGae() UserOneSignalDalGae {
 	return UserOneSignalDalGae{}
 }
 
-func (userOneSignalDalGae UserOneSignalDalGae) SaveUserOneSignal(c context.Context, userID int64, oneSignalUserID string) (userOneSignal models.UserOneSignal, err error) {
+func (userOneSignalDalGae UserOneSignalDalGae) SaveUserOneSignal(c context.Context, userID string, oneSignalUserID string) (userOneSignal models.UserOneSignal, err error) {
 	//key := userOneSignalDalGae.NewUserOneSignalKey(c, oneSignalUserID)
 	//var entity models.UserOneSignalEntity
 	//// Save if no entity or AppUserIntID changed

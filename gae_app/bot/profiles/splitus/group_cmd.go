@@ -3,9 +3,11 @@ package splitus
 import (
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/i18n"
 	"net/url"
 	"strconv"
 
@@ -14,7 +16,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	"github.com/strongo/app"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 )
@@ -27,8 +28,8 @@ var groupCommand = botsfw.NewCallbackCommand(groupCommandCode,
 		c := whc.Context()
 		log.Debugf(c, "groupCommand.CallbackAction()")
 
-		var user botsfw.BotAppUser
-		if user, err = whc.GetAppUser(); err != nil {
+		var user botsfwmodels.AppUserData
+		if user, err = whc.AppUserData(); err != nil {
 			return
 		}
 		appUserEntity := user.(*models.AppUserData) // TODO: Create shortcut function
@@ -65,7 +66,7 @@ var groupCommand = botsfw.NewCallbackCommand(groupCommandCode,
 		do := query.Get("do")
 		switch do {
 		case "leave":
-			if _, _, err = facade.Group.LeaveGroup(c, userGroupJson.ID, strconv.FormatInt(whc.AppUserIntID(), 10)); err != nil {
+			if _, _, err = facade.Group.LeaveGroup(c, userGroupJson.ID, strconv.FormatInt(whc.AppUserInt64ID(), 10)); err != nil {
 				if err == facade.ErrAttemptToLeaveUnsettledGroup {
 					err = nil
 					m.BotMessage = telegram.CallbackAnswer(tgbotapi.AnswerCallbackQueryConfig{Text: "Please settle group debts before leaving it."})
@@ -85,7 +86,7 @@ var groupCommand = botsfw.NewCallbackCommand(groupCommandCode,
 
 		fmt.Fprintf(buf, "<b>Group #%d</b>: %v", i+1, userGroupJson.Name)
 		var groupMemberJson models.GroupMemberJson
-		if groupMemberJson, err = group.Data.GetGroupMemberByUserID(strconv.FormatInt(whc.AppUserIntID(), 10)); err != nil {
+		if groupMemberJson, err = group.Data.GetGroupMemberByUserID(strconv.FormatInt(whc.AppUserInt64ID(), 10)); err != nil {
 			return
 		}
 		writeBalanceSide := func(title string, sign decimal.Decimal64p2, b money.Balance) {
@@ -123,7 +124,7 @@ var groupCommand = botsfw.NewCallbackCommand(groupCommandCode,
 	},
 )
 
-func groupsNavButtons(translator strongo.SingleLocaleTranslator, groups []models.UserGroupJson, currentGroupID string) []tgbotapi.InlineKeyboardButton {
+func groupsNavButtons(translator i18n.SingleLocaleTranslator, groups []models.UserGroupJson, currentGroupID string) []tgbotapi.InlineKeyboardButton {
 	var currentGroupIndex = -1
 	if currentGroupID != "" {
 

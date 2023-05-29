@@ -15,7 +15,7 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/general"
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/strongo/app"
+	"github.com/strongo/i18n"
 	"github.com/strongo/log"
 	"net/url"
 	"strconv"
@@ -27,14 +27,14 @@ const (
 	FEEDBACK_UNDECIDED = "undecided"
 )
 
-func AskToTranslate(t strongo.SingleLocaleTranslator) string {
+func AskToTranslate(t i18n.SingleLocaleTranslator) string {
 	return strings.Replace(t.Translate(trans.MESSAGE_TEXT_ASK_TO_TRANSLATE),
 		"<a>",
 		`<a href="https://goo.gl/tZsqW1">`, // https://github.com/senat-co/debtstracker-translations
 		1)
 }
 
-func YouCanHelp(t strongo.SingleLocaleTranslator, s, botCode string) string {
+func YouCanHelp(t i18n.SingleLocaleTranslator, s, botCode string) string {
 	s = t.Translate(s)
 	s = strings.Replace(s, "<a storebot>", Ahref(StorebotUrl(botCode)), 1)
 	s = strings.Replace(s, "<a share-vk>", Ahref(ShareToVkUrl()), 1)
@@ -43,7 +43,7 @@ func YouCanHelp(t strongo.SingleLocaleTranslator, s, botCode string) string {
 	return s
 }
 
-func FeedbackLinks(t strongo.SingleLocaleTranslator, s string) string {
+func FeedbackLinks(t i18n.SingleLocaleTranslator, s string) string {
 	s = strings.Replace(s, "<a suggest-idea>", Ahref(getUserReportUrl(t, "idea")), 1)
 	s = strings.Replace(s, "<a submit-bug>", Ahref(getUserReportUrl(t, "bug")), 1)
 	return s
@@ -81,7 +81,7 @@ var FeedbackCommand = botsfw.Command{
 	Icon:     emoji.STAR_ICON,
 	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		FeedbackCommand.Action(whc)
-		chatEntity := whc.ChatEntity()
+		chatEntity := whc.ChatData()
 		switch chatEntity.GetAwaitingReplyTo() {
 		//case "":
 		//	return showFeedbackOptions(whc, chatEntity)
@@ -89,7 +89,7 @@ var FeedbackCommand = botsfw.Command{
 			mt := whc.Input().(botsfw.WebhookTextMessage).Text()
 			words := strings.SplitN(mt, " ", 2)
 			feedbackEntity := models.FeedbackData{
-				UserID: whc.AppUserIntID(),
+				UserID: whc.AppUserInt64ID(),
 			}
 			//mainMenuButton := []tgbotapi.InlineKeyboardButton{
 			//	{
@@ -157,7 +157,7 @@ var FeedbackCommand = botsfw.Command{
 		}
 	},
 	CallbackAction: func(whc botsfw.WebhookContext, _ *url.URL) (m botsfw.MessageFromBot, err error) {
-		m, err = showFeedbackOptions(whc, whc.ChatEntity())
+		m, err = showFeedbackOptions(whc, whc.ChatData())
 		if _, err = whc.Responder().SendMessage(whc.Context(), m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 			return m, err
 		}
@@ -186,7 +186,7 @@ var FeedbackCommand = botsfw.Command{
 			return
 		}
 		feedbackEntity := models.FeedbackData{
-			UserID: whc.AppUserIntID(),
+			UserStrID: whc.AppUserID(),
 			CreatedOn: general.CreatedOn{
 				CreatedOnPlatform: whc.BotPlatform().ID(),
 				CreatedOnID:       whc.GetBotCode(),
@@ -253,7 +253,7 @@ const CAN_YOU_RATE_COMMAND = "can-you-rate"
 var CanYouRateCommand = botsfw.Command{
 	Code: CAN_YOU_RATE_COMMAND,
 	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
-		log.Debugf(whc.Context(), "CanYouRateCommand.CallbackAction): whc.ChatEntity().GetPreferredLanguage()=%v", whc.ChatEntity().GetPreferredLanguage())
+		log.Debugf(whc.Context(), "CanYouRateCommand.CallbackAction): whc.ChatData().GetPreferredLanguage()=%v", whc.ChatData().GetPreferredLanguage())
 		if callbackUrl == nil || callbackUrl.RawQuery == "" {
 			m, err = askIfCanRateAtStoreBot(whc)
 		} else {
@@ -290,9 +290,9 @@ var CanYouRateCommand = botsfw.Command{
 func askToWriteFeedback(whc botsfw.WebhookContext, feedbackID int64) (m botsfw.MessageFromBot, err error) {
 	m = whc.NewMessageByCode(trans.MESSAGE_TEXT_ASK_TO_WRITE_FEEDBACK_WITHIN_MESSENGER)
 	//m, err = editTelegramMessageText(whc, FEEDBACK_TEXT_COMMAND, whc.Translate(trans.MESSAGE_TEXT_ASK_TO_WRITE_FEEDBACK_WITHIN_MESSENGER))
-	whc.ChatEntity().SetAwaitingReplyTo(FEEDBACK_TEXT_COMMAND)
+	whc.ChatData().SetAwaitingReplyTo(FEEDBACK_TEXT_COMMAND)
 	if feedbackID != 0 {
-		whc.ChatEntity().AddWizardParam("feedback", strconv.FormatInt(feedbackID, 10))
+		whc.ChatData().AddWizardParam("feedback", strconv.FormatInt(feedbackID, 10))
 	}
 	m.Keyboard = tgbotapi.NewHideKeyboard(false)
 	return
@@ -321,7 +321,7 @@ func editTelegramMessageText(whc botsfw.WebhookContext, awaitingReplyTo, text st
 		if awaitingReplyTo == "/" {
 			awaitingReplyTo = ""
 		}
-		whc.ChatEntity().SetAwaitingReplyTo(awaitingReplyTo)
+		whc.ChatData().SetAwaitingReplyTo(awaitingReplyTo)
 	}
 	return
 }
@@ -334,7 +334,7 @@ var FeedbackTextCommand = botsfw.Command{
 		switch whc.Input().(type) {
 		case botsfw.WebhookTextMessage:
 			mt := whc.Input().(botsfw.WebhookTextMessage).Text()
-			feedbackParam := whc.ChatEntity().GetWizardParam("feedback")
+			feedbackParam := whc.ChatData().GetWizardParam("feedback")
 
 			var feedback models.Feedback
 			c := whc.Context()
@@ -345,9 +345,9 @@ var FeedbackTextCommand = botsfw.Command{
 			if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 				if feedbackParam == "" {
 					feedback.FeedbackData = &models.FeedbackData{
-						Rate:   "none",
-						UserID: whc.AppUserIntID(),
-						Text:   mt,
+						Rate:      "none",
+						UserStrID: whc.AppUserID(),
+						Text:      mt,
 						CreatedOn: general.CreatedOn{
 							CreatedOnPlatform: whc.BotPlatform().ID(),
 							CreatedOnID:       whc.GetBotCode(),

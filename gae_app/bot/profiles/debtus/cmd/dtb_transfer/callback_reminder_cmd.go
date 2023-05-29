@@ -88,7 +88,7 @@ func rescheduleReminder(whc botsfw.WebhookContext, reminderID int, remindInDurat
 		messageText = whc.Translate(trans.MESSAGE_TEXT_REMINDER_SET, newReminder.Data.DtNext.Format("Mon, 2 Jan 15:04:05 MST (-0700) 2006"))
 	}
 
-	chatEntity := whc.ChatEntity()
+	chatEntity := whc.ChatData()
 	if chatEntity.IsAwaitingReplyTo(SET_NEXT_REMINDER_DATE_COMMAND) {
 		chatEntity.SetAwaitingReplyTo("")
 	}
@@ -117,7 +117,7 @@ func rescheduleReminder(whc botsfw.WebhookContext, reminderID int, remindInDurat
 	//		log.Errorf(c, "Failed to parse BotChatID to int: %v\nwhc.BotChatID(): %v", err, chatID)
 	//		return
 	//	}
-	//	if err = delayAskForFeedback(c, whc.GetBotCode(), intChatID, whc.AppUserIntID()); err != nil {
+	//	if err = delayAskForFeedback(c, whc.GetBotCode(), intChatID, whc.AppUserInt64ID()); err != nil {
 	//		log.Errorf(c, "Failed to create task for asking feedback: %v", err)
 	//	}
 	//}()
@@ -148,7 +148,7 @@ func rescheduleReminder(whc botsfw.WebhookContext, reminderID int, remindInDurat
 //			if err != nil {
 //				return err
 //			}
-//			translator := strongo.NewSingleMapTranslator(locale, strongo.NewMapTranslator(c, trans.TRANS))
+//			translator := i18n.NewSingleMapTranslator(locale, strongo.NewMapTranslator(c, trans.TRANS))
 //			text := translator.Translate(trans.MESSAGE_TEXT_ASK_FOR_FEEDBAСK)
 //			messageConfig := tgbotapi.NewMessage(chatID, text)
 //			messageConfig.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
@@ -171,7 +171,7 @@ func rescheduleReminder(whc botsfw.WebhookContext, reminderID int, remindInDurat
 //func disableReminders(whc botsfw.WebhookContext, transferID int) (m botsfw.MessageFromBot, err error) {
 //	c := whc.Context()
 //	transferKey, transfer, err := facade.Transfers.GetTransferByID(c, transferID)
-//	userID := whc.AppUserIntID()
+//	userID := whc.AppUserInt64ID()
 //	if !transfer.IsRemindersDisabled(userID) {
 //		err = dtdal.DB.RunInTransaction(c, func(tc context.Context) error {
 //			transferKey, transfer, err = gaedal.GetTransferByID(tc, transferID)

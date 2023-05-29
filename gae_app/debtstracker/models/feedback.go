@@ -12,10 +12,12 @@ const FeedbackKind = "Feedback"
 
 type FeedbackData struct {
 	general.CreatedOn
-	UserID  int64
-	Created time.Time
-	Rate    string
-	Text    string `datastore:",noindex"`
+	// Deprecated: use UserStrID instead
+	UserID    int64
+	UserStrID string
+	Created   time.Time
+	Rate      string
+	Text      string `datastore:",noindex"`
 }
 
 //var _ db.EntityHolder = (*Feedback)(nil)

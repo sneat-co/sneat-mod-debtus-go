@@ -19,7 +19,7 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/webhooks"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/website"
 	apphostgae "github.com/strongo/app-host-gae"
-	"github.com/strongo/app/delaying"
+	"github.com/strongo/delaying"
 	"net/http"
 )
 

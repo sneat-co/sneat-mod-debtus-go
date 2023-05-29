@@ -2,8 +2,10 @@ package invites
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/i18n"
 	"html/template"
 
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
@@ -22,7 +24,7 @@ type InviteTemplateParams struct {
 	Utm        string
 }
 
-func SendInviteByEmail(ec strongo.ExecutionContext, fromName, toEmail, toName, inviteCode, telegramBotID, utmSource string) (emailID string, err error) {
+func SendInviteByEmail(ec strongo.ExecutionContext, translator i18n.SingleLocaleTranslator, fromName, toEmail, toName, inviteCode, telegramBotID, utmSource string) (emailID string, err error) {
 	//cred := credentials.NewStaticCredentials(, , "")
 	//credStaticProvider := credentials.StaticProvider{}
 	//credStaticProvider.AccessKeyID = "AKIAIT2ZJZOT2CKJ2JFQ"
@@ -49,17 +51,17 @@ func SendInviteByEmail(ec strongo.ExecutionContext, fromName, toEmail, toName, i
 
 	c := ec.Context()
 
-	subject, err := emails.GetEmailText(c, ec, trans.EMAIL_INVITE_SUBJ, templateParams)
+	subject, err := emails.GetEmailText(c, translator, trans.EMAIL_INVITE_SUBJ, templateParams)
 	if err != nil {
 		return "", err
 	}
 
-	bodyText, err := emails.GetEmailText(c, ec, trans.EMAIL_INVITE_TEXT, templateParams)
+	bodyText, err := emails.GetEmailText(c, translator, trans.EMAIL_INVITE_TEXT, templateParams)
 	if err != nil {
 		return "", err
 	}
 
-	bodyHtml, err := emails.GetEmailHtml(c, ec, trans.EMAIL_INVITE_HTML, templateParams)
+	bodyHtml, err := emails.GetEmailHtml(c, translator, trans.EMAIL_INVITE_HTML, templateParams)
 	if err != nil {
 		return "", err
 	}
@@ -68,9 +70,7 @@ func SendInviteByEmail(ec strongo.ExecutionContext, fromName, toEmail, toName, i
 	return
 }
 
-func SendReceiptByEmail(ec strongo.ExecutionContext, receipt models.Receipt, fromName, toName, toEmail string) (emailID string, err error) {
-	c := ec.Context()
-
+func SendReceiptByEmail(c context.Context, translator i18n.SingleLocaleTranslator, receipt models.Receipt, fromName, toName, toEmail string) (emailID string, err error) {
 	templateParams := struct {
 		ToName     string
 		FromName   string
@@ -83,12 +83,12 @@ func SendReceiptByEmail(ec strongo.ExecutionContext, receipt models.Receipt, fro
 		template.HTML(""),
 	}
 
-	subject, err := common.TextTemplates.RenderTemplate(c, ec, trans.EMAIL_RECEIPT_SUBJ, templateParams)
+	subject, err := common.TextTemplates.RenderTemplate(c, translator, trans.EMAIL_RECEIPT_SUBJ, templateParams)
 	if err != nil {
 		return "", err
 	}
 
-	bodyText, err := common.TextTemplates.RenderTemplate(c, ec, trans.EMAIL_RECEIPT_BODY_TEXT, templateParams)
+	bodyText, err := common.TextTemplates.RenderTemplate(c, translator, trans.EMAIL_RECEIPT_BODY_TEXT, templateParams)
 	if err != nil {
 		return "", err
 	}
@@ -97,7 +97,7 @@ func SendReceiptByEmail(ec strongo.ExecutionContext, receipt models.Receipt, fro
 	//displayUrl := strings.Split(string(templateParams.ReceiptURL), "#")[0]
 	templateParams.ReceiptURL = template.HTML(fmt.Sprintf(`<a href="%v">%v</a>`, receiptURL, receiptURL))
 	var bodyHtml bytes.Buffer
-	if err = common.HtmlTemplates.RenderTemplate(c, &bodyHtml, ec, trans.EMAIL_RECEIPT_BODY_HTML, templateParams); err != nil {
+	if err = common.HtmlTemplates.RenderTemplate(c, &bodyHtml, translator, trans.EMAIL_RECEIPT_BODY_HTML, templateParams); err != nil {
 		return "", err
 	}
 	return emails.SendEmail(c, "receipt@debtstracker.io", toEmail, subject, bodyText, bodyHtml.String())

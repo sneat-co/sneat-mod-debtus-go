@@ -30,7 +30,7 @@ func (UserBrowserDalGae) insertUserBrowser(c context.Context, data *models.UserB
 	})
 }
 
-func (userBrowserDalGae UserBrowserDalGae) SaveUserBrowser(c context.Context, userID int64, userAgent string) (userBrowser models.UserBrowser, err error) {
+func (userBrowserDalGae UserBrowserDalGae) SaveUserBrowser(c context.Context, userID string, userAgent string) (userBrowser models.UserBrowser, err error) {
 	userAgent = strings.TrimSpace(userAgent)
 	if userAgent == "" {
 		panic("Missign required parameter userAgent")

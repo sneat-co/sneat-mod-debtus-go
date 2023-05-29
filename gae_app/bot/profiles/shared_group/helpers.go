@@ -2,6 +2,7 @@ package shared_group
 
 import (
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
@@ -69,7 +70,7 @@ func GetUserGroupID(whc botsfw.WebhookContext) (groupID string, err error) {
 	return
 }
 
-func createGroupFromTelegram(c context.Context, whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, chatEntity *models.DebtusTelegramChatData, tgChat *tgbotapi.Chat) (group models.Group, err error) {
+func createGroupFromTelegram(c context.Context, whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, chatData *models.DebtusTelegramChatData, tgChat *tgbotapi.Chat) (group models.Group, err error) {
 	log.Debugf(c, "createGroupFromTelegram()")
 	var user *models.AppUserData
 	if user, err = shared_all.GetUser(whc); err != nil {
@@ -88,7 +89,7 @@ func createGroupFromTelegram(c context.Context, whc botsfw.WebhookContext, tx da
 		}
 	}
 
-	userID := whc.AppUserStrID()
+	userID := whc.AppUserID()
 	groupEntity := models.GroupEntity{
 		CreatorUserID: userID,
 		Name:          tgChat.Title,
@@ -136,8 +137,9 @@ func createGroupFromTelegram(c context.Context, whc botsfw.WebhookContext, tx da
 		}
 
 		_ = user.Data.AddGroup(group, whc.GetBotCode())
-		chatEntity.UserGroupID = group.ID // TODO: !!! has to be updated in transaction!!!
-		if err = whc.SaveBotChat(c, whc.GetBotCode(), whc.MustBotChatID(), chatEntity); err != nil {
+		chatData.UserGroupID = group.ID // TODO: !!! has to be updated in transaction!!!
+		chatKey := botsfwmodels.NewChatKey(whc.GetBotCode(), whc.MustBotChatID())
+		if err = whc.Store().SaveBotChatData(c, chatKey, chatData); err != nil {
 			return
 		}
 		return
@@ -150,7 +152,7 @@ func createGroupFromTelegram(c context.Context, whc botsfw.WebhookContext, tx da
 }
 
 func getTgChatEntity(whc botsfw.WebhookContext) (tgChatEntity *models.DebtusTelegramChatData, err error) {
-	chatEntity := whc.ChatEntity()
+	chatEntity := whc.ChatData()
 	if chatEntity == nil {
 		whc.LogRequest()
 		log.Debugf(whc.Context(), "can't get group as chatEntity == nil")
@@ -158,7 +160,7 @@ func getTgChatEntity(whc botsfw.WebhookContext) (tgChatEntity *models.DebtusTele
 	}
 	var ok bool
 	if tgChatEntity, ok = chatEntity.(*models.DebtusTelegramChatData); !ok {
-		log.Debugf(whc.Context(), "whc.ChatEntity() is not TgChatEntityBase")
+		log.Debugf(whc.Context(), "whc.ChatData() is not TgChatEntityBase")
 		return
 	}
 	return tgChatEntity, nil

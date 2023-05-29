@@ -8,5 +8,5 @@ func TestTwilioExceptionToMessageWithoutArguments(t *testing.T) {
 			t.Fatal("should fail")
 		}
 	}()
-	TwilioExceptionToMessage(nil, nil)
+	TwilioExceptionToMessage(nil, nil, nil)
 }

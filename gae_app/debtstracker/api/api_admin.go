@@ -1,22 +1,20 @@
 package api
 
 import (
-	"fmt"
-	"github.com/dal-go/dalgo/dal"
-	"github.com/strongo/app/delaying"
-	"net/http"
-	"reflect"
-	"strconv"
-
 	"context"
 	"errors"
+	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/api/dto"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/auth"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
+	"github.com/strongo/delaying"
 	"github.com/strongo/log"
+	"net/http"
+	"reflect"
 )
 
 func handleAdminFindUser(c context.Context, w http.ResponseWriter, r *http.Request, _ auth.AuthInfo) {
@@ -47,8 +45,8 @@ func handleAdminFindUser(c context.Context, w http.ResponseWriter, r *http.Reque
 
 		for i, tgUser := range tgUsers {
 			users[i] = dto.ApiUserDto{
-				ID:   strconv.FormatInt(tgUser.Data.AppUserIntID, 10),
-				Name: tgUser.Data.Name(),
+				ID:   tgUser.GetAppUserID(),
+				Name: tgUser.BaseData().UserName,
 			}
 		}
 

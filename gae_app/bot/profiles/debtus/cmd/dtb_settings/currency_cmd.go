@@ -32,7 +32,7 @@ var AskCurrencySettingsCommand = botsfw.Command{ // TODO: make used
 				"Other",
 			},
 		})
-		whc.ChatEntity().SetAwaitingReplyTo(ASK_CURRENCY_SETTING_COMMAND)
+		whc.ChatData().SetAwaitingReplyTo(ASK_CURRENCY_SETTING_COMMAND)
 		return m, nil
 	},
 }
@@ -44,7 +44,7 @@ var SetPrimaryCurrency = botsfw.Command{
 	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 		log.Debugf(c, "SetPrimaryCurrency.Action()")
-		whc.ChatEntity().SetAwaitingReplyTo("")
+		whc.ChatData().SetAwaitingReplyTo("")
 		primaryCurrency := whc.Input().(botsfw.WebhookTextMessage).Text()
 		var db dal.Database
 		if db, err = facade.GetDatabase(c); err != nil {
@@ -52,7 +52,9 @@ var SetPrimaryCurrency = botsfw.Command{
 		}
 		if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 			var user models.AppUser
-			if user, err = facade.User.GetUserByID(c, tx, whc.AppUserIntID()); err != nil {
+
+			//goland:noinspection GoDeprecation
+			if user, err = facade.User.GetUserByID(c, tx, whc.AppUserInt64ID()); err != nil {
 				return
 			}
 			user.Data.PrimaryCurrency = primaryCurrency

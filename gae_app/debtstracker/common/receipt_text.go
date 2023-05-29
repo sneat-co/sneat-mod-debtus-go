@@ -2,18 +2,19 @@ package common
 
 import (
 	"bytes"
+	"context"
 	"fmt"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/crediterra/money"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/app"
+	"github.com/strongo/i18n"
+	"github.com/strongo/log"
 	"html"
 	"html/template"
 	"time"
-
-	"github.com/bots-go-framework/bots-fw-telegram"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	"github.com/sneat-co/debtstracker-translations/emoji"
-	"github.com/strongo/app"
-	"github.com/strongo/log"
 )
 
 type ShowReceiptTo int8
@@ -33,6 +34,7 @@ const (
 
 type receiptTextBuilder struct {
 	//whc botsfw.WebhookContext
+	translator    i18n.SingleLocaleTranslator
 	transfer      models.Transfer
 	showReceiptTo ShowReceiptTo
 	viewerUserID  int64
@@ -43,14 +45,14 @@ type receiptTextBuilder struct {
 	//showAds        bool
 }
 
-func newReceiptTextBuilder(ec strongo.ExecutionContext, transfer models.Transfer, showReceiptTo ShowReceiptTo) receiptTextBuilder {
+func newReceiptTextBuilder(translator i18n.SingleLocaleTranslator, transfer models.Transfer, showReceiptTo ShowReceiptTo) receiptTextBuilder {
 	if transfer.ID == 0 {
 		panic("transferID == 0")
 	}
 	r := receiptTextBuilder{
-		transfer:         transfer,
-		showReceiptTo:    showReceiptTo,
-		ExecutionContext: ec,
+		translator:    translator,
+		transfer:      transfer,
+		showReceiptTo: showReceiptTo,
 	}
 	switch showReceiptTo {
 	case ShowReceiptToCreator:
@@ -81,18 +83,18 @@ func newReceiptTextBuilder(ec strongo.ExecutionContext, transfer models.Transfer
 func (r receiptTextBuilder) receiptCommonFooter(buffer *bytes.Buffer) {
 	transfer := r.transfer
 	if r.showReceiptTo == ShowReceiptToCreator && transfer.Data.Creator().Note != "" {
-		_, _ = buffer.WriteString("\n" + fmt.Sprintf(emoji.MEMO_ICON+" <b>%v</b>: %v", r.Translate(trans.MESSAGE_TEXT_NOTE), html.EscapeString(transfer.Data.Creator().Note)))
+		_, _ = buffer.WriteString("\n" + fmt.Sprintf(emoji.MEMO_ICON+" <b>%v</b>: %v", r.translator.Translate(trans.MESSAGE_TEXT_NOTE), html.EscapeString(transfer.Data.Creator().Note)))
 	}
 	if r.showReceiptTo == ShowReceiptToCounterparty && transfer.Data.Counterparty().Note != "" {
-		_, _ = buffer.WriteString("\n" + fmt.Sprintf(emoji.MEMO_ICON+" <b>%v</b>: %v", r.Translate(trans.MESSAGE_TEXT_NOTE), html.EscapeString(transfer.Data.Counterparty().Note)))
+		_, _ = buffer.WriteString("\n" + fmt.Sprintf(emoji.MEMO_ICON+" <b>%v</b>: %v", r.translator.Translate(trans.MESSAGE_TEXT_NOTE), html.EscapeString(transfer.Data.Counterparty().Note)))
 	}
 
 	if transfer.Data.Creator().Comment != "" {
-		label := r.Translate(trans.MESSAGE_TEXT_COMMENT)
+		label := r.translator.Translate(trans.MESSAGE_TEXT_COMMENT)
 		_, _ = buffer.WriteString("\n" + fmt.Sprintf(emoji.NEWSPAPER_ICON+" <b>%v</b>: %v", label, html.EscapeString(transfer.Data.Creator().Comment)))
 	}
 	if transfer.Data.Counterparty().Comment != "" {
-		label := r.Translate(trans.MESSAGE_TEXT_COMMENT)
+		label := r.translator.Translate(trans.MESSAGE_TEXT_COMMENT)
 		_, _ = buffer.WriteString("\n" + fmt.Sprintf(emoji.NEWSPAPER_ICON+" <b>%v</b>: %v", label, html.EscapeString(transfer.Data.Counterparty().Comment)))
 	}
 
@@ -106,7 +108,7 @@ func (r receiptTextBuilder) receiptCommonFooter(buffer *bytes.Buffer) {
 	//	counterpartyBalance, _ := counterparty.Balance()
 	//	utmParams := NewUtmParams(whc, UTM_CAMPAIGN_RECEIPT)
 	//	if len(counterpartyBalance) == 0 {
-	//		counterpartyLink := GetCounterpartyLink(whc.AppUserIntID(), whc.Locale(), counterparty.Info(counterpartyID, "", ""), utmParams)
+	//		counterpartyLink := GetCounterpartyLink(whc.AppUserInt64ID(), whc.Locale(), counterparty.Info(counterpartyID, "", ""), utmParams)
 	//		switch transfer.Direction {
 	//		case TransferDirectionCounterparty2User:
 	//			buffer.WriteString(whc.Translate(trans.MESSAGE_TEXT_ON_RETURN_COUNTERPARTY_DOES_NOT_OWE_ANYTHING_TO_USER_ANYMORE, counterpartyLink))
@@ -128,8 +130,7 @@ func (r receiptTextBuilder) receiptCommonFooter(buffer *bytes.Buffer) {
 	//}
 }
 
-func TextReceiptForTransfer(ec strongo.ExecutionContext, transfer models.Transfer, showToUserID int64, showReceiptTo ShowReceiptTo, utmParams UtmParams) string {
-	c := ec.Context()
+func TextReceiptForTransfer(c context.Context, translator i18n.SingleLocaleTranslator, transfer models.Transfer, showToUserID int64, showReceiptTo ShowReceiptTo, utmParams UtmParams) string {
 	log.Debugf(c, "TextReceiptForTransfer(transferID=%v, showToUserID=%v, showReceiptTo=%v)", transfer.ID, showToUserID, showReceiptTo)
 
 	if transfer.ID == 0 {
@@ -165,7 +166,7 @@ func TextReceiptForTransfer(ec strongo.ExecutionContext, transfer models.Transfe
 		}
 	}
 
-	r := newReceiptTextBuilder(ec, transfer, showReceiptTo)
+	r := newReceiptTextBuilder(translator, transfer, showReceiptTo)
 
 	var buffer bytes.Buffer
 	r.WriteReceiptText(&buffer, utmParams)
@@ -215,11 +216,11 @@ func (r receiptTextBuilder) WriteReceiptText(buffer *bytes.Buffer, utmParams Utm
 
 	if r.transfer.Data.HasInterest() {
 		buffer.WriteString("\n")
-		WriteTransferInterest(buffer, r.transfer, r)
+		WriteTransferInterest(buffer, r.transfer, r.translator)
 	}
 
 	if !r.transfer.Data.DtDueOn.IsZero() {
-		buffer.WriteString("\n" + emoji.ALARM_CLOCK_ICON + " " + fmt.Sprintf(r.Translate(trans.MESSAGE_TEXT_DUE_ON), r.transfer.Data.DtDueOn.Format("2006-01-02 15:04")))
+		buffer.WriteString("\n" + emoji.ALARM_CLOCK_ICON + " " + fmt.Sprintf(r.translator.Translate(trans.MESSAGE_TEXT_DUE_ON), r.transfer.Data.DtDueOn.Format("2006-01-02 15:04")))
 	}
 
 	if amountReturned := r.transfer.Data.AmountReturned(); amountReturned > 0 && amountReturned != r.transfer.Data.AmountInCents {
@@ -231,14 +232,14 @@ func (r receiptTextBuilder) WriteReceiptText(buffer *bytes.Buffer, utmParams Utm
 	}
 }
 
-func WriteTransferInterest(buffer *bytes.Buffer, transfer models.Transfer, translator strongo.SingleLocaleTranslator) {
+func WriteTransferInterest(buffer *bytes.Buffer, transfer models.Transfer, translator i18n.SingleLocaleTranslator) {
 	buffer.WriteString(translator.Translate(trans.MESSAGE_TEXT_INTEREST, transfer.Data.InterestPercent, days(translator, int(transfer.Data.InterestPeriod))))
 	if transfer.Data.InterestMinimumPeriod > 1 {
 		buffer.WriteString(", " + translator.Translate(trans.MESSAGE_TEXT_INTEREST_MIN_PERIOD, days(translator, transfer.Data.InterestMinimumPeriod)))
 	}
 }
 
-func days(t strongo.SingleLocaleTranslator, d int) string {
+func days(t i18n.SingleLocaleTranslator, d int) string {
 	var messageTextToTranslate string
 	if d == 1 {
 		messageTextToTranslate = trans.DAY
@@ -261,7 +262,7 @@ func (r receiptTextBuilder) translateAndFormatMessage(messageTextToTranslate str
 		if userID == 0 || utmParams.Medium == UTM_MEDIUM_SMS || utmParams.Medium == telegram.PlatformID {
 			counterpartyText = counterpartyInfo.Name()
 		} else {
-			counterpartyUrl := GetCounterpartyUrl(counterpartyInfo.ContactID, userID, r.Locale(), utmParams)
+			counterpartyUrl := GetCounterpartyUrl(counterpartyInfo.ContactID, userID, r.translator.Locale(), utmParams)
 			counterpartyText = fmt.Sprintf(`<a href="%v"><b>%v</b></a>`, counterpartyUrl, html.EscapeString(counterpartyInfo.Name()))
 		}
 		// TODO: Add a @counterparty Telegram nickname if sending receipt to Telegram channel
@@ -278,7 +279,7 @@ func (r receiptTextBuilder) translateAndFormatMessage(messageTextToTranslate str
 	//}
 	amountText := fmt.Sprintf("<b>%v</b>", amount)
 
-	return r.Translate(messageTextToTranslate, map[string]interface{}{
+	return r.translator.Translate(messageTextToTranslate, map[string]interface{}{
 		"Counterparty": template.HTML(counterpartyText),
 		"Amount":       template.HTML(amountText),
 	})
@@ -297,7 +298,7 @@ func (r receiptTextBuilder) translateAndFormatMessage(messageTextToTranslate str
 //		}
 //	}
 //	if showBalanceMessage {
-//		counterpartyLink := GetCounterpartyLink(whc.AppUserIntID(), whc.Locale(), counterparty.Info(counterpartyID, "", ""), utmParams)
+//		counterpartyLink := GetCounterpartyLink(whc.AppUserInt64ID(), whc.Locale(), counterparty.Info(counterpartyID, "", ""), utmParams)
 //		buffer.WriteString(BalanceForCounterpartyWithHeader(counterpartyLink, counterpartyBalance, tm.executionContext.Logger(), tm.executionContext))
 //	}
 //	return buffer.String()

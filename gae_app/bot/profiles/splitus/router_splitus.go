@@ -8,7 +8,7 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/strongo/app"
+	"github.com/strongo/i18n"
 )
 
 var botParams = shared_all.BotParams{
@@ -116,7 +116,7 @@ func init() {
 	shared_all.AddSharedRoutes(Router, botParams)
 }
 
-func getWhoPaidInlineKeyboard(translator strongo.SingleLocaleTranslator, billID string) *tgbotapi.InlineKeyboardMarkup {
+func getWhoPaidInlineKeyboard(translator i18n.SingleLocaleTranslator, billID string) *tgbotapi.InlineKeyboardMarkup {
 	callbackDataPrefix := billCallbackCommandData(joinBillCommandCode, billID)
 	return &tgbotapi.InlineKeyboardMarkup{
 		InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{

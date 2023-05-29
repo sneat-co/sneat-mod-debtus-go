@@ -3,7 +3,7 @@ package website
 import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/i18n"
 	"net/http"
 	"strconv"
 
@@ -30,7 +30,7 @@ func InitWebsite(router router) {
 
 	redirects.InitRedirects(router)
 
-	for _, locale := range strongo.LocalesByCode5 {
+	for _, locale := range i18n.LocalesByCode5 {
 		localeSiteCode := locale.SiteCode()
 		router.GET(fmt.Sprintf("/%v/ads", localeSiteCode), pages.AdsPage)
 		router.GET(fmt.Sprintf("/%v/help-us", localeSiteCode), pages.HelpUsPage)
@@ -89,9 +89,9 @@ func CreateInvitePage(w http.ResponseWriter, r *http.Request, authInfo auth.Auth
 			}
 			return
 		}
-		translator := strongo.NewSingleMapTranslator(strongo.GetLocaleByCode5(strongo.LocaleCodeEnUS), strongo.NewMapTranslator(c, trans.TRANS))
-		ec := strongo.NewExecutionContext(c, translator)
-		if _, err = dtdal.Invite.CreateMassInvite(ec, userID, inviteCode, int32(maxClaimsCount), "web"); err != nil {
+		//translator := i18n.NewSingleMapTranslator(i18n.GetLocaleByCode5(i18n.LocaleCodeEnUS), i18n.NewMapTranslator(c, trans.TRANS))
+		ec := strongo.NewExecutionContext(c)
+		if _, err = dtdal.Invite.CreateMassInvite(ec, strconv.FormatInt(userID, 10), inviteCode, int32(maxClaimsCount), "web"); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write([]byte(err.Error()))
 			return

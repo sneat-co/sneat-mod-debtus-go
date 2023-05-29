@@ -3,19 +3,23 @@ package facade
 import (
 	"context"
 	"fmt"
-	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
-	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw-telegram-models/botsfwtgmodels"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	"github.com/strongo/app"
+	"github.com/strongo/i18n"
 	"github.com/strongo/log"
 	"strconv"
 )
 
-func GetLocale(c context.Context, botID string, tgChatIntID, userID int64) (locale strongo.Locale, err error) {
-	chatID := botsfw.NewChatID(botID, strconv.FormatInt(tgChatIntID, 10))
-	//var tgChatEntity tgstore.ChatEntity
-	tgChat := tgstore.NewTgChat(chatID, new(models.DebtusTelegramChatData))
+func GetLocale(c context.Context, botID string, tgChatIntID, userID int64) (locale i18n.Locale, err error) {
+	chatID := botsfwmodels.NewChatID(botID, strconv.FormatInt(tgChatIntID, 10))
+	//var tgChatEntity botsfwtgmodels.ChatEntity
+	//tgChatBaseData := botsfwtgmodels.NewTelegramChatBaseData()
+	//chatID, new(models.DebtusTelegramChatData)
+	key := dal.NewKeyWithID(botsfwtgmodels.TgChatCollection, chatID)
+	var tgChat = record.NewDataWithID[string, *models.DebtusTelegramChatData](chatID, key, new(models.DebtusTelegramChatData))
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
 		return
@@ -24,7 +28,7 @@ func GetLocale(c context.Context, botID string, tgChatIntID, userID int64) (loca
 		log.Debugf(c, "Failed to get TgChat entity by string ID=%v: %v", tgChat.ID, err) // TODO: Replace with error once load by int ID removed
 		if dal.IsNotFound(err) {
 			panic("TODO: Remove this load by int ID")
-			//if err = nds.Get(c, datastore.NewKey(c, tgstore.TgChatCollection, "", tgChatIntID, nil), &tgChatEntity); err != nil { // TODO: Remove this load by int ID
+			//if err = nds.Get(c, datastore.NewKey(c, botsfwtgmodels.TgChatCollection, "", tgChatIntID, nil), &tgChatEntity); err != nil { // TODO: Remove this load by int ID
 			//	log.Errorf(c, "Failed to get TgChat entity by int ID=%v: %v", tgChatIntID, err)
 			//	return
 			//}
@@ -50,10 +54,10 @@ func GetLocale(c context.Context, botID string, tgChatIntID, userID int64) (loca
 			tgChatPreferredLanguage = user.Data.PreferredLanguage
 		}
 		if tgChatPreferredLanguage == "" {
-			tgChatPreferredLanguage = strongo.LocaleCodeEnUS
-			log.Warningf(c, "tgChat.PreferredLanguage == '' && user.PreferredLanguage == '', set to %v", strongo.LocaleCodeEnUS)
+			tgChatPreferredLanguage = i18n.LocaleCodeEnUS
+			log.Warningf(c, "tgChat.PreferredLanguage == '' && user.PreferredLanguage == '', set to %v", i18n.LocaleCodeEnUS)
 		}
 	}
-	locale = strongo.LocalesByCode5[tgChatPreferredLanguage]
+	locale = i18n.LocalesByCode5[tgChatPreferredLanguage]
 	return
 }

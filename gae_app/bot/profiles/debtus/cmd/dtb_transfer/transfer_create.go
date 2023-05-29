@@ -3,6 +3,7 @@ package dtb_transfer
 import (
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
@@ -25,7 +26,7 @@ func CreateStartTransferWizardCommand(code, messageText string, commands []strin
 		Commands: commands,
 		Replies:  []botsfw.Command{askTransferAmountCommand},
 		Matcher: func(c botsfw.Command, whc botsfw.WebhookContext) bool {
-			if m, ok := whc.Input().(botsfw.WebhookTextMessage); ok && IsCurrencyIcon(m.Text()) && whc.ChatEntity().GetAwaitingReplyTo() == code {
+			if m, ok := whc.Input().(botsfw.WebhookTextMessage); ok && IsCurrencyIcon(m.Text()) && whc.ChatData().GetAwaitingReplyTo() == code {
 				return true
 			}
 			return false
@@ -34,7 +35,7 @@ func CreateStartTransferWizardCommand(code, messageText string, commands []strin
 			c := whc.Context()
 			log.Debugf(c, "CreateStartTransferWizardCommand(code=%v).Action()", code)
 			mt := strings.TrimSpace(whc.Input().(botsfw.WebhookTextMessage).Text())
-			chatEntity := whc.ChatEntity()
+			chatEntity := whc.ChatData()
 			switch {
 			case money.HasCurrencyPrefix(mt) || IsCurrencyIcon(mt):
 				currency := money.CleanupCurrency(mt)
@@ -56,13 +57,13 @@ func CreateStartTransferWizardCommand(code, messageText string, commands []strin
 					}
 				}
 				if isMainMenuCommand {
-					whc.ChatEntity().SetAwaitingReplyTo(code)
+					whc.ChatData().SetAwaitingReplyTo(code)
 					m = whc.NewMessageByCode(messageText)
 					m.Text += "\n\n" + strings.Replace(whc.Translate(trans.MESSAGE_TEXT_CHOOSE_CURRENCY), "<a>", fmt.Sprintf(
 						`<a href="%v">`,
 						common.GetChooseCurrencyUrlForUser(
-							whc.AppUserIntID(), whc.Locale(), whc.BotPlatform().ID(), whc.GetBotCode(),
-							"tg-chat="+botsfw.NewChatID(whc.GetBotCode(), whc.MustBotChatID()),
+							whc.AppUserInt64ID(), whc.Locale(), whc.BotPlatform().ID(), whc.GetBotCode(),
+							"tg-chat="+botsfwmodels.NewChatID(whc.GetBotCode(), whc.MustBotChatID()),
 						),
 					), 1)
 					buttons := AskTransferCurrencyButtons(whc)
@@ -127,7 +128,7 @@ const SET_DUE_DATE_COMMAND = "set-due-date"
 var SetDueDateCommand = botsfw.Command{
 	Code: SET_DUE_DATE_COMMAND,
 	Action: func(whc botsfw.WebhookContext) (botsfw.MessageFromBot, error) {
-		whc.ChatEntity().SetAwaitingReplyTo("")
+		whc.ChatData().SetAwaitingReplyTo("")
 		m := whc.NewMessage("Due date to be saved")
 		return m, nil
 	},
@@ -150,7 +151,7 @@ const ASK_DUE_DATE_COMMAND = "ask-due-date"
 //		<i>Example: on 12/30/2016</i>
 //	<code>on DD Month</code>
 //		<i>Example: on 12 March</i>`)
-//		chatEntity := whc.ChatEntity()
+//		chatEntity := whc.ChatData()
 //		awaitingReplyTo := chatEntity.GetAwaitingReplyTo()
 //		transferID := strings.Split(awaitingReplyTo, ":")[1]
 //		chatEntity.SetAwaitingReplyTo(fmt.Sprintf("asked-for-deadline:transferID=%v", transferID))
@@ -180,7 +181,7 @@ func TransferAskDueDateCommand(code string, nextCommand botsfw.Command) botsfw.C
 			c := whc.Context()
 			log.Infof(c, "TransferAskDueDateCommand(code=%v).Action()", code)
 			m := whc.NewMessageByCode(trans.MESSAGE_TEXT_ASK_DUE)
-			chatEntity := whc.ChatEntity()
+			chatEntity := whc.ChatData()
 			if chatEntity.IsAwaitingReplyTo(code) {
 				mt := strings.TrimSpace(whc.Input().(botsfw.WebhookTextMessage).Text())
 				log.Debugf(c, "Chat is awating reply to %v", code)

@@ -7,7 +7,7 @@ import (
 )
 
 func TestUserEmail(t *testing.T) {
-	var _ user.AccountData = (*UserEmail)(nil)
+	var _ user.AccountData = (*UserEmailData)(nil)
 }
 
 func TestUserEmailEntity(t *testing.T) {

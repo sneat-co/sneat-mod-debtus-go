@@ -22,7 +22,7 @@ package dtb_transfer
 //	//}
 //
 //	transfer = new(models.Transfer)
-//	userID := whc.AppUserIntID()
+//	userID := whc.AppUserInt64ID()
 //	err = dtdal.DB.RunInTransaction(c, func(tc context.Context) (err error) {
 //		inviteKey := datastore.NewKey(tc, invites.InviteKind, inviteCode, 0, nil)
 //		invite := new(invites.Invite)

@@ -8,7 +8,7 @@ import (
 const UserGooglePlusKind = "UserGooglePlus"
 
 type UserGooglePlusEntity struct {
-	user.OwnedByUserWithIntID
+	user.OwnedByUserWithID
 	Email          string `datastore:",noindex"`
 	DisplayName    string `datastore:",noindex"`
 	RefreshToken   string `datastore:",noindex"`

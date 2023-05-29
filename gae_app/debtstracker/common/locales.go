@@ -2,9 +2,8 @@ package common
 
 import (
 	"fmt"
+	"github.com/strongo/i18n"
 	"strings"
-
-	"github.com/strongo/app"
 )
 
 func Locale2to5(locale2 string) string {
@@ -12,7 +11,7 @@ func Locale2to5(locale2 string) string {
 		panic("len(locale2) != 2")
 	}
 	if strings.ToLower(locale2) == "en" {
-		return strongo.LocaleCodeEnUS
+		return i18n.LocaleCodeEnUS
 	} else {
 		return fmt.Sprintf("%v-%v", strings.ToLower(locale2), strings.ToUpper(locale2))
 	}

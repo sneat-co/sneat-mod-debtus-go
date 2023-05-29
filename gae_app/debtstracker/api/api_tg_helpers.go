@@ -1,24 +1,23 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
-	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
+	"github.com/bots-go-framework/bots-fw-telegram-models/botsfwtgmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
-	"net/http"
-	"strconv"
-	"strings"
-	"sync"
-
-	"context"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/platforms/tgbots"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/auth"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/log"
+	"net/http"
+	"strconv"
+	"strings"
+	"sync"
 )
 
 func handleError(w http.ResponseWriter, statusCode int, err error) {
@@ -89,7 +88,7 @@ func handleTgHelperCurrencySelected(c context.Context, w http.ResponseWriter, r 
 			}
 		}()
 		errs <- dtdal.TgChat.DoSomething(c, &userTask, currency, tgChatID, authInfo, user,
-			func(tgChat tgstore.TgChat) error {
+			func(tgChat botsfwtgmodels.TgChatData) error {
 				// TODO: This is some serious architecture sheet. Too sleepy to make it right, just make it working.
 				return sendToTelegram(c, user, tgChatID, tgChat, &userTask, r)
 			},
@@ -109,9 +108,9 @@ func handleTgHelperCurrencySelected(c context.Context, w http.ResponseWriter, r 
 }
 
 // TODO: This is some serious architecture sheet. Too sleepy to make it right, just make it working.
-func sendToTelegram(c context.Context, user models.AppUser, tgChatID int64, tgChat tgstore.TgChat, userTask *sync.WaitGroup, r *http.Request) (err error) {
+func sendToTelegram(c context.Context, user models.AppUser, tgChatID int64, tgChat botsfwtgmodels.TgChatData, userTask *sync.WaitGroup, r *http.Request) (err error) {
 	telegramBots := tgbots.Bots(dtdal.HttpAppHost.GetEnvironment(c, nil), nil)
-	baseChatData := tgChat.Data.BaseChatData()
+	baseChatData := tgChat.BaseTgChatData()
 	botID := baseChatData.BotID
 	botSettings, ok := telegramBots.ByCode[botID]
 	if !ok {

@@ -26,7 +26,7 @@ Creator of https://DebtsTracker.io
 We are social:
   FB page - https://www.facebook.com/debtstracker
   Twitter - https://twitter.com/debtstracker
-`, user.Data.FullName(), userEmail.ID, userEmail.ConfirmationPin()),
+`, user.Data.FullName(), userEmail.ID, userEmail.Data.ConfirmationPin()),
 	}
 	_, err := CreateEmailRecordAndQueueForSending(c, emailEntity)
 	return err

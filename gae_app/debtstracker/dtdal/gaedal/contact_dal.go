@@ -9,8 +9,9 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	"github.com/strongo/app/delaying"
+	"github.com/strongo/delaying"
 	"github.com/strongo/log"
+	"strconv"
 	"strings"
 )
 
@@ -107,7 +108,11 @@ func (ContactDalGae) GetContactsWithDebts(c context.Context, tx dal.ReadSession,
 
 func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, tx dal.ReadSession, limit, totalCount int) (counterparties []models.Contact, err error) {
 	c := whc.Context()
-	query := newUserActiveContactsQuery(whc.AppUserIntID()).
+	var appUserID int64
+	if appUserID, err = strconv.ParseInt(whc.AppUserID(), 10, 64); err != nil {
+		return
+	}
+	query := newUserActiveContactsQuery(appUserID).
 		OrderBy(dal.DescendingField("LastTransferAt")).
 		Limit(limit).
 		SelectInto(models.NewContactRecord)
@@ -122,7 +127,7 @@ func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, tx dal.ReadSes
 	log.Debugf(c, "GetLatestContacts(limit=%v, totalCount=%v): %v", limit, totalCount, contactsCount)
 	if (limit == 0 && contactsCount < totalCount) || (limit > 0 && totalCount > 0 && contactsCount < limit && contactsCount < totalCount) {
 		log.Debugf(c, "Querying counterparties without index -LastTransferAt")
-		query = newUserActiveContactsQuery(whc.AppUserIntID()).
+		query = newUserActiveContactsQuery(appUserID).
 			Limit(limit).
 			SelectInto(models.NewTransferRecord)
 		if records, err = tx.QueryAllRecords(c, query); err != nil {

@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"github.com/crediterra/money"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/i18n"
 	"regexp"
 	"testing"
 
 	"context"
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	"github.com/strongo/app"
 )
 
 func TestWriteReceiptText(t *testing.T) {
@@ -28,8 +28,7 @@ func TestWriteReceiptText(t *testing.T) {
 
 	//logger := &bots.MockLogger{T: t}
 
-	translator := strongo.NewSingleMapTranslator(strongo.LocaleEnUS, strongo.NewMapTranslator(c, trans.TRANS))
-	ec := strongo.NewExecutionContext(c, translator)
+	translator := i18n.NewSingleMapTranslator(i18n.LocaleEnUS, i18n.NewMapTranslator(c, trans.TRANS))
 
 	transfer := models.NewTransfer(123, models.NewTransferData(
 		12,
@@ -45,7 +44,7 @@ func TestWriteReceiptText(t *testing.T) {
 		},
 	))
 
-	receiptTextBuilder := newReceiptTextBuilder(ec, transfer, ShowReceiptToCounterparty)
+	receiptTextBuilder := newReceiptTextBuilder(translator, transfer, ShowReceiptToCounterparty)
 
 	utmParams := UtmParams{
 		Source:   "BotIdUnitTest",

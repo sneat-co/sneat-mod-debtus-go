@@ -19,13 +19,13 @@ func (deeplink) AppHashPathToReceipt(receiptID int) string {
 var Deeplink = deeplink{}
 
 type Linker struct {
-	userID int64
+	userID string
 	locale string
 	issuer string
 	host   string
 }
 
-func NewLinker(environment strongo.Environment, userID int64, locale, issuer string) Linker {
+func NewLinker(environment strongo.Environment, userID string, locale, issuer string) Linker {
 	return Linker{
 		userID: userID,
 		locale: locale,
@@ -35,7 +35,7 @@ func NewLinker(environment strongo.Environment, userID int64, locale, issuer str
 }
 
 func NewLinkerFromWhc(whc botsfw.WebhookContext) Linker {
-	return NewLinker(whc.Environment(), whc.AppUserIntID(), whc.Locale().SiteCode(), formatIssuer(whc.BotPlatform().ID(), whc.GetBotCode()))
+	return NewLinker(whc.Environment(), whc.AppUserID(), whc.Locale().SiteCode(), formatIssuer(whc.BotPlatform().ID(), whc.GetBotCode()))
 }
 
 func host(environment strongo.Environment) string {

@@ -40,7 +40,7 @@ func handleUserInfo(c context.Context, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write(([]byte)(err.Error()))
 	} else {
-		if err := SaveUserAgent(c, userID, r.UserAgent()); err != nil {
+		if err := SaveUserAgent(c, strconv.FormatInt(userID, 10), r.UserAgent()); err != nil {
 			log.Errorf(c, err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write(([]byte)(err.Error()))
@@ -48,7 +48,7 @@ func handleUserInfo(c context.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func SaveUserAgent(c context.Context, userID int64, userAgent string) error {
+func SaveUserAgent(c context.Context, userID string, userAgent string) error {
 	userAgent = strings.TrimSpace(userAgent)
 	if userAgent == "" {
 		return nil

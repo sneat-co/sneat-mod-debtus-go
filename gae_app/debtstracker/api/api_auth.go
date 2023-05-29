@@ -6,6 +6,7 @@ import (
 	strongo "github.com/strongo/app"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"context"
@@ -83,7 +84,7 @@ func IsAdmin(email string) bool {
 }
 
 func ReturnToken(_ context.Context, w http.ResponseWriter, userID int64, isNewUser, isAdmin bool) {
-	token := auth.IssueToken(userID, "api", isAdmin)
+	token := auth.IssueToken(strconv.FormatInt(userID, 10), "api", isAdmin)
 	header := w.Header()
 	header.Add("Access-Control-Allow-Origin", "*")
 	header.Add("Content-Type", "application/json")

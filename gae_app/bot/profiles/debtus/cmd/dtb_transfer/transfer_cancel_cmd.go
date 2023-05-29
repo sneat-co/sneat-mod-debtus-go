@@ -16,7 +16,7 @@ var CancelTransferWizardCommand = botsfw.Command{
 }
 
 func cancelTransferWizardCommandAction(whc botsfw.WebhookContext) (botsfw.MessageFromBot, error) {
-	whc.ChatEntity().SetAwaitingReplyTo("")
+	whc.ChatData().SetAwaitingReplyTo("")
 	//var m botsfw.MessageFromBot
 	//userKey, _, err := whc.GetUser()
 	//if err != nil {

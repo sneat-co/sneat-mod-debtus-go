@@ -28,13 +28,13 @@ func AskInviteAddress(channel, icon, commandText, messageCode, invalidMessageCod
 		Icon:  icon,
 		Title: commandText,
 		Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
-			chatEntity := whc.ChatEntity()
+			chatEntity := whc.ChatData()
 
 			if chatEntity.IsAwaitingReplyTo(code) {
 				email := strings.TrimSpace(whc.Input().(botsfw.WebhookTextMessage).Text())
 				isValid := channel == string(models.InviteByEmail) && strings.Contains(email, "@") && strings.Contains(email, ".")
 				if isValid {
-					invite, err := dtdal.Invite.CreatePersonalInvite(whc, whc.AppUserIntID(), models.InviteByEmail, email, whc.BotPlatform().ID(), whc.GetBotCode(), "counterparty=?")
+					invite, err := dtdal.Invite.CreatePersonalInvite(whc, whc.AppUserID(), models.InviteByEmail, email, whc.BotPlatform().ID(), whc.GetBotCode(), "counterparty=?")
 					if err != nil {
 						log.Errorf(whc.Context(), "Failed to call invites.CreateInvite()")
 						return m, err
@@ -42,6 +42,7 @@ func AskInviteAddress(channel, icon, commandText, messageCode, invalidMessageCod
 					var emailID string
 					emailID, err = invites.SendInviteByEmail(
 						whc.ExecutionContext(),
+						whc,
 						whc.GetSender().GetFirstName(),
 						"alex@debtstracker.io",
 						"Stranger",
@@ -81,7 +82,7 @@ var AskInviteAddressCallbackCommand = botsfw.Command{
 			_, err := whc.Responder().SendMessage(whc.Context(), m, botsfw.BotAPISendMessageOverHTTPS)
 			return fmt.Errorf("failed to edit callback message: %w", err)
 		}
-		_ = whc.ChatEntity() // To switch locale
+		_ = whc.ChatData() // To switch locale
 		switch q.Get("by") {
 		case string(models.InviteByEmail):
 			if err = echoSelection(whc.Translate(trans.MESSAGE_TEXT_YOU_SELECTED_INVITE_BY_EMAIL)); err != nil {

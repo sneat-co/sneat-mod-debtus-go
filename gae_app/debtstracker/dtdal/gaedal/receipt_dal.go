@@ -3,7 +3,7 @@ package gaedal
 import (
 	"errors"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/strongo/app/delaying"
+	"github.com/strongo/delaying"
 	"time"
 
 	"context"

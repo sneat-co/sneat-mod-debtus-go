@@ -19,7 +19,7 @@ func interestAction(whc botsfw.WebhookContext, nextAction botsfw.CommandAction) 
 	mt := whc.Input().(botsfw.WebhookTextMessage).Text()
 
 	if matches := reInterest.FindStringSubmatch(mt); len(matches) > 0 {
-		chatEntity := whc.ChatEntity()
+		chatEntity := whc.ChatData()
 
 		var data models.TransferInterest
 

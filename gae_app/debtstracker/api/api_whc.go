@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/strongo/log"
 	"net/http"
@@ -15,7 +16,7 @@ type ApiWebhookContext struct {
 	appUser      *models.AppUserData
 	appUserIntID int64
 	botChatID    int64
-	chatEntity   botsfw.BotChat
+	chatEntity   botsfwmodels.ChatData
 	*botsfw.WebhookContextBase
 }
 
@@ -25,44 +26,50 @@ func (ApiWebhookContext) IsInGroup() bool {
 	panic("not supported")
 }
 
-func NewApiWebhookContext(r *http.Request, appUser *models.AppUserData, userID, botChatID int64, chatEntity botsfw.BotChat) ApiWebhookContext {
+func NewApiWebhookContext(r *http.Request, appUser *models.AppUserData, userID, botChatID int64, chatData botsfwmodels.ChatData) ApiWebhookContext {
 	var botSettings botsfw.BotSettings
 	whc := ApiWebhookContext{
 		appUser:      appUser,
 		appUserIntID: userID,
 		botChatID:    botChatID,
-		chatEntity:   chatEntity,
+		chatEntity:   chatData,
 		WebhookContextBase: botsfw.NewWebhookContextBase(
 			r,
 			common.TheAppContext,
-			telegram.Platform{},
+			telegram.Platform,
 			*botsfw.NewBotContext(dtdal.BotHost, botSettings),
 			nil, // webhookInput
-			botsfw.BotCoreStores{},
+			nil,
+			nil, // records fields setter
 			nil, // GaMeasurement
 			func() bool { return false },
 			nil,
 		),
 	}
-	if err := whc.SetLocale(chatEntity.GetPreferredLanguage()); err != nil {
+	if err := whc.SetLocale(chatData.GetPreferredLanguage()); err != nil {
 		log.Errorf(r.Context(), "failed to set locale: %v", err)
 	}
 	return whc
 }
 
 func (whc ApiWebhookContext) AppUserIntID() int64 {
-	return whc.appUserIntID
+	return whc.AppUserInt64ID()
+}
+
+func (whc ApiWebhookContext) AppUserData() (botsfwmodels.AppUserData, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (whc ApiWebhookContext) BotChatIntID() int64 {
 	return whc.botChatID
 }
 
-func (whc ApiWebhookContext) ChatEntity() botsfw.BotChat {
+func (whc ApiWebhookContext) ChatEntity() botsfwmodels.ChatData {
 	return whc.chatEntity
 }
 
-func (whc ApiWebhookContext) GetAppUser() (botsfw.BotAppUser, error) {
+func (whc ApiWebhookContext) GetAppUser() (botsfwmodels.AppUserData, error) {
 	return whc.appUser, nil
 }
 
@@ -70,7 +77,7 @@ func (whc ApiWebhookContext) Init(w http.ResponseWriter, r *http.Request) error 
 	return nil
 }
 
-func (whc ApiWebhookContext) IsNewerThen(chatEntity botsfw.BotChat) bool {
+func (whc ApiWebhookContext) IsNewerThen(chatEntity botsfwmodels.ChatData) bool {
 	return true
 }
 
@@ -86,6 +93,6 @@ func (whc ApiWebhookContext) Responder() botsfw.WebhookResponder {
 	panic("Not implemented")
 }
 
-func (whc ApiWebhookContext) UpdateLastProcessed(chatEntity botsfw.BotChat) error {
+func (whc ApiWebhookContext) UpdateLastProcessed(chatEntity botsfwmodels.ChatData) error {
 	panic("Not implemented")
 }

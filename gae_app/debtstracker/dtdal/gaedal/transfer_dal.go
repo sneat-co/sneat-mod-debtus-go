@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/strongo/app/delaying"
+	"github.com/strongo/delaying"
 	"time"
 
 	"context"

@@ -2,12 +2,12 @@ package common
 
 import (
 	"bytes"
+	"github.com/strongo/i18n"
 	html "html/template"
 	"sync"
 	text "text/template"
 
 	"context"
-	"github.com/strongo/app"
 	"github.com/strongo/log"
 )
 
@@ -32,7 +32,7 @@ func NewHtmlTemplates() HtmlTemplateProvider {
 var TextTemplates = NewTextTemplates()
 var HtmlTemplates = NewHtmlTemplates()
 
-func (templates *TextTemplateProvider) RenderTemplate(c context.Context, translator strongo.SingleLocaleTranslator, templateName string, params interface{}) (string, error) {
+func (templates *TextTemplateProvider) RenderTemplate(c context.Context, translator i18n.SingleLocaleTranslator, templateName string, params interface{}) (string, error) {
 	var t *text.Template
 	var err error
 	var ok bool
@@ -56,7 +56,7 @@ func (templates *TextTemplateProvider) RenderTemplate(c context.Context, transla
 	return wr.String(), nil
 }
 
-func (templates *HtmlTemplateProvider) RenderTemplate(c context.Context, wr *bytes.Buffer, translator strongo.SingleLocaleTranslator, templateName string, params interface{}) (err error) {
+func (templates *HtmlTemplateProvider) RenderTemplate(c context.Context, wr *bytes.Buffer, translator i18n.SingleLocaleTranslator, templateName string, params interface{}) (err error) {
 	var t *html.Template
 	var ok bool
 	cacheCode := templateName + ":" + translator.Locale().Code5

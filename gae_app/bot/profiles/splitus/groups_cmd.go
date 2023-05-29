@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot"
@@ -54,11 +55,11 @@ func groupsAction(whc botsfw.WebhookContext, isEdit bool, groupsMessageID int) (
 
 	fmt.Fprintf(buf, "<b>%v</b>\n\n", whc.Translate(trans.MESSAGE_TEXT_YOUR_BILL_SPLITTING_GROUPS))
 
-	var user botsfw.BotAppUser
-	if user, err = whc.GetAppUser(); err != nil {
+	var appUserData botsfwmodels.AppUserData
+	if appUserData, err = whc.AppUserData(); err != nil {
 		return
 	}
-	appUserEntity := user.(*models.AppUserData)
+	appUserEntity := appUserData.(*models.AppUserData)
 
 	groups := appUserEntity.ActiveGroups()
 

@@ -2,7 +2,7 @@ package gaedal
 
 import (
 	"fmt"
-	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
+	"github.com/bots-go-framework/bots-fw-telegram-models/botsfwtgmodels"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"strconv"
@@ -24,13 +24,11 @@ func NewTgChatDalGae() TgChatDalGae {
 
 func (TgChatDalGae) GetTgChatByID(c context.Context, tgBotID string, tgChatID int64) (tgChat models.DebtusTelegramChat, err error) {
 	tgChatFullID := fmt.Sprintf("%s:%d", tgBotID, tgChatID)
-	key := dal.NewKeyWithID(tgstore.TgChatCollection, tgChatFullID)
+	key := dal.NewKeyWithID(botsfwtgmodels.TgChatCollection, tgChatFullID)
 	data := new(models.DebtusTelegramChatData)
 	tgChat = models.DebtusTelegramChat{
-		TgChat: tgstore.TgChat{
-			WithID: record.NewWithID[string](tgChatFullID, key, data),
-		},
-		Data: data,
+		WithID: record.NewWithID(tgChatFullID, key, data),
+		Data:   data,
 	}
 	//tgChat.SetID(tgBotID, tgChatID)
 
@@ -48,13 +46,15 @@ func (TgChatDalGae) GetTgChatByID(c context.Context, tgBotID string, tgChatID in
 
 func (TgChatDalGae) /* TODO: rename properly! */ DoSomething(c context.Context,
 	userTask *sync.WaitGroup, currency string, tgChatID int64, authInfo auth.AuthInfo, user models.AppUser,
-	sendToTelegram func(tgChat tgstore.TgChat) error,
+	sendToTelegram func(tgChat botsfwtgmodels.TgChatData) error,
 ) (err error) {
 	var isSentToTelegram bool // Needed in case of failed to save to DB and is auto-retry
 	debtusTgChatData := &models.DebtusTelegramChatData{}
 
+	id := strconv.FormatInt(tgChatID, 10)
 	debtusTgChat := models.DebtusTelegramChat{
-		TgChat: tgstore.NewTgChat(strconv.FormatInt(tgChatID, 10), debtusTgChatData),
+		WithID: record.NewWithID(id, dal.NewKeyWithID(botsfwtgmodels.TgChatCollection, id), debtusTgChatData),
+		Data:   debtusTgChatData,
 	}
 
 	var db dal.Database
@@ -79,7 +79,7 @@ func (TgChatDalGae) /* TODO: rename properly! */ DoSomething(c context.Context,
 		debtusTgChat.Data.AddWizardParam("currency", string(currency))
 
 		if !isSentToTelegram {
-			if err = sendToTelegram(debtusTgChat.TgChat); err != nil { // This is some serious architecture sheet. Too sleepy to make it right, just make it working.
+			if err = sendToTelegram(debtusTgChat.Data); err != nil { // This is some serious architecture sheet. Too sleepy to make it right, just make it working.
 				return err
 			}
 			isSentToTelegram = true

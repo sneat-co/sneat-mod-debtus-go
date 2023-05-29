@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"github.com/sneat-co/debtstracker-translations/trans"
@@ -83,18 +84,18 @@ var ParseTransferCommand = botsfw.Command{
 		const isReturn = false
 
 		creatorInfo := models.TransferCounterpartyInfo{
-			UserID:      whc.AppUserIntID(),
+			UserID:      whc.AppUserInt64ID(),
 			ContactName: counterpartyName,
 		}
 		c := whc.Context()
 
 		from, to := facade.TransferCounterparties(direction, creatorInfo)
 
-		var botUserEntity botsfw.BotAppUser
-		if botUserEntity, err = whc.GetAppUser(); err != nil {
+		var botUserEntity botsfwmodels.AppUserData
+		if botUserEntity, err = whc.AppUserData(); err != nil {
 			return m, err
 		}
-		creatorUser := models.NewAppUser(whc.AppUserIntID(), botUserEntity.(*models.AppUserData))
+		creatorUser := models.NewAppUser(whc.AppUserInt64ID(), botUserEntity.(*models.AppUserData))
 
 		newTransfer := facade.NewTransferInput(whc.Environment(),
 			GetTransferSource(whc),
@@ -117,7 +118,7 @@ var ParseTransferCommand = botsfw.Command{
 			return m, err
 		}
 
-		whc.ChatEntity().SetAwaitingReplyTo(fmt.Sprintf("ask-for-deadline:transferID=%v", output.Transfer.ID))
+		whc.ChatData().SetAwaitingReplyTo(fmt.Sprintf("ask-for-deadline:transferID=%v", output.Transfer.ID))
 
 		m.Keyboard = tgbotapi.NewReplyKeyboardUsingStrings([][]string{
 			{whc.Translate(trans.COMMAND_TEXT_YES_IT_HAS_RETURN_DEADLINE) + " " + emoji.ALARM_CLOCK_ICON},

@@ -2,11 +2,11 @@ package pages
 
 import (
 	"github.com/julienschmidt/httprouter"
+	"github.com/strongo/i18n"
 	"html/template"
 	"net/http"
 
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/strongo/app"
 )
 
 var iouADanceTmpl *template.Template
@@ -21,7 +21,7 @@ func AnnieIOUaDancePage(w http.ResponseWriter, r *http.Request, _ httprouter.Par
 		))
 	}
 
-	translator, data := pageContext(r, strongo.LocaleEnUS)
+	translator, data := pageContext(r, i18n.LocaleEnUS)
 	for _, key := range []string{
 		trans.WS_SHORT_DESC,
 		trans.WS_LIVE_DEMO,
@@ -29,7 +29,7 @@ func AnnieIOUaDancePage(w http.ResponseWriter, r *http.Request, _ httprouter.Par
 		data[key] = template.HTML(translator.Translate(key))
 	}
 	data["SubLocalePath"] = "/"
-	RenderCachedPage(w, r, iouADanceTmpl, strongo.LocaleEnUS, data, 0)
+	RenderCachedPage(w, r, iouADanceTmpl, i18n.LocaleEnUS, data, 0)
 }
 
 var iouDappyTmpl *template.Template
@@ -44,7 +44,7 @@ func IOWDappyPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		))
 	}
 
-	translator, data := pageContext(r, strongo.LocaleEnUS)
+	translator, data := pageContext(r, i18n.LocaleEnUS)
 	data["SubLocalePath"] = "/"
 	for _, key := range []string{
 		trans.WS_SHORT_DESC,
@@ -52,5 +52,5 @@ func IOWDappyPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	} {
 		data[key] = template.HTML(translator.Translate(key))
 	}
-	RenderCachedPage(w, r, iouDappyTmpl, strongo.LocaleEnUS, data, 0)
+	RenderCachedPage(w, r, iouDappyTmpl, i18n.LocaleEnUS, data, 0)
 }

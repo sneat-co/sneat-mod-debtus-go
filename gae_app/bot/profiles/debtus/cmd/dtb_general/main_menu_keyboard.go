@@ -33,10 +33,10 @@ func getMainMenuParams(whc botsfw.WebhookContext, onReceiptAck bool) (params mai
 	)
 
 	c := whc.Context()
-	if userEntity, err := whc.GetAppUser(); err != nil {
+	if userEntity, err := whc.AppUserData(); err != nil {
 		log.Errorf(c, "Failed to get user: %v", err)
 	} else if user, isAppUser = userEntity.(*models.AppUserData); !isAppUser {
-		log.Errorf(c, "Failed to caset user to *models.AppUser: %T", userEntity)
+		log.Errorf(c, "Failed to case user to *models.AppUserData: %T", userEntity)
 	} else if onReceiptAck || !user.Balance().IsZero() {
 		params.showReturn = true
 	}
@@ -171,7 +171,7 @@ const (
 //		}
 //	}
 //	if params.showBalanceAndHistory {
-//		userID := whc.AppUserIntID()
+//		userID := whc.AppUserInt64ID()
 //		locale := whc.Locale()
 //		balanceUrl := common.GetBalanceUrlForUser(userID, locale, whc.BotPlatform().ID(), whc.GetBotCode())
 //		historyUrl := common.GetHistoryUrlForUser(userID, locale, whc.BotPlatform().ID(), whc.GetBotCode())

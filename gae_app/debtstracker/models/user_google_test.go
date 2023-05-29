@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/strongo/app/user"
 	"testing"
 
 	isLib "github.com/matryer/is"
@@ -9,7 +10,9 @@ import (
 func TestUserGoogleEntity_GetEmail(t *testing.T) {
 	is := isLib.New(t)
 
-	entity := UserGoogleData{}
-	entity.Email = "test@example.com"
-	is.Equal(entity.Email, entity.GetEmail())
+	entity := UserAccount{
+		data: &user.AccountDataBase{},
+	}
+	entity.data.EmailLowerCase = "test@example.com"
+	is.Equal("test@example.com", entity.Data().GetEmailLowerCase())
 }

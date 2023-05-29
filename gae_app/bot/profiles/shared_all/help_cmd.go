@@ -28,7 +28,7 @@ func createHelpRootCommand(params BotParams) botsfw.Command {
 			return helpRootAction(whc, false)
 		},
 		CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
-			_ = whc.ChatEntity()
+			_ = whc.ChatData()
 			q := callbackUrl.Query().Get("q")
 			switch q {
 			case "":

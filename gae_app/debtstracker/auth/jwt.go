@@ -16,8 +16,11 @@ var secret = []byte("very-secret-abc")
 
 const SECRET_PREFIX = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
 
-func IssueToken(userID int64, issuer string, isAdmin bool) string {
-	if userID == 0 {
+func IssueToken(userID string, issuer string, isAdmin bool) string {
+	switch userID {
+	case "":
+		panic("IssueToken(userID - empty)")
+	case "0":
 		panic("IssueToken(userID == 0)")
 	}
 

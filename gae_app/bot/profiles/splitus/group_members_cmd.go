@@ -6,6 +6,7 @@ import (
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/i18n"
 	"net/url"
 
 	"context"
@@ -14,7 +15,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/debtstracker-translations/emoji"
-	"github.com/strongo/app"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 )
@@ -39,7 +39,7 @@ var groupMembersCommand = botsfw.Command{
 
 func groupMembersCard(
 	c context.Context,
-	t strongo.SingleLocaleTranslator,
+	t i18n.SingleLocaleTranslator,
 	group models.Group,
 	selectedMemberID int64,
 ) (text string, err error) {

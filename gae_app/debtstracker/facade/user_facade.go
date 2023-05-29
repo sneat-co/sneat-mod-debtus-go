@@ -1,19 +1,19 @@
 package facade
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
-	"strings"
-	"time"
-
-	"context"
-	"errors"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/app/user"
 	"github.com/strongo/log"
 	gae_user "google.golang.org/appengine/user"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type userFacade struct {
@@ -87,17 +87,18 @@ func (uf userFacade) CreateUserByEmail(
 			userEmail.ID = strings.ToLower(strings.TrimSpace(email))
 		}
 
-		userEntity := dtdal.CreateUserEntity(dtdal.CreateUserData{
+		userData := dtdal.CreateUserEntity(dtdal.CreateUserData{
 			ScreenName: name,
 		})
-		userEntity.AddAccount(userEmail.UserAccount())
+		userData.AddAccount(userEmail.UserAccount())
 
-		if user, err = dtdal.User.CreateUser(c, userEntity); err != nil {
+		if user, err = dtdal.User.CreateUser(c, userData); err != nil {
 			return
 		}
 
-		userEmail.UserEmailData = models.NewUserEmailData(user.ID, false, "email")
-		if err = userEmail.SetPassword(dtdal.RandomCode(8)); err != nil {
+		userEmail.Data.Provider = "email"
+		userEmail.Data.EmailLowerCase = email
+		if err = userEmail.Data.SetPassword(dtdal.RandomCode(8)); err != nil {
 			return
 		}
 
@@ -147,7 +148,7 @@ func (uf userFacade) GetOrCreateEmailUser(
 		if err = User.SaveUser(c, tx, appUser); err != nil {
 			return fmt.Errorf("failed to save new appUser to datastore: %w", err)
 		}
-		userEmail.DtCreated = now
+		userEmail.Data.DtCreated = now
 
 		if err = dtdal.UserEmail.SaveUserEmail(c, tx, userEmail); err != nil {
 			return err
@@ -161,7 +162,7 @@ func (uf userFacade) GetOrCreateEmailUser(
 func (uf userFacade) GetOrCreateUserGoogleOnSignIn(
 	c context.Context, googleUser *gae_user.User, appUserID int64, clientInfo models.ClientInfo,
 ) (
-	userGoogle models.UserGoogle, appUser models.AppUser, err error,
+	userGoogle models.UserAccount, appUser models.AppUser, err error,
 ) {
 	if googleUser == nil {
 		panic("googleUser == nil")
@@ -174,9 +175,13 @@ func (uf userFacade) GetOrCreateUserGoogleOnSignIn(
 		if googleUser.Email == "" {
 			return nil, errors.New("Not implemented yet: Google did not provided appUser email")
 		}
-		userGoogle = models.NewUserGoogle(googleUser.ID)
-		userGoogle.Data.User = *googleUser
-		userGoogle.Data.OwnedByUserWithIntID.AppUserIntID = appUserID
+		userGoogle = models.NewUserAccount(googleUser.ID)
+		data := userGoogle.DataStruct()
+		data.EmailData = user.NewEmailData(googleUser.Email)
+		data.ClientID = googleUser.ClientID
+		data.FederatedProvider = googleUser.FederatedProvider
+		data.FederatedIdentity = googleUser.FederatedIdentity
+		data.OwnedByUserWithID.AppUserID = strconv.FormatInt(appUserID, 10)
 		return &userGoogle, nil
 	}
 
@@ -204,27 +209,32 @@ func getOrCreateUserAccountRecordOnSignIn(
 	appUser models.AppUser, err error,
 ) {
 	log.Debugf(c, "getOrCreateUserAccountRecordOnSignIn(provider=%v, userID=%d)", provider, userID)
+	userStrID := strconv.FormatInt(userID, 10)
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
-	var userAccountRecord user.AccountRecord
+	var userAccount user.AccountRecord
 	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
-		if userAccountRecord, err = getUserAccountRecordFromDB(c); err != nil && !dal.IsNotFound(err) {
-			// Technical error
-			return err
+		if userAccount, err = getUserAccountRecordFromDB(c); err != nil {
+			if !dal.IsNotFound(err) {
+				// Technical error
+				return fmt.Errorf("failed to get user account record: %w", err)
+			}
 		}
+
+		userAccountRecord := dal.NewRecordWithData(dal.NewKeyWithID("User"+userAccount.Key().Provider, userAccount.Key().ID), userAccount.Data())
 
 		now := time.Now()
 
 		isNewUser := userID == 0
 
-		accountData := userAccountRecord.AccountData()
+		accountData := userAccount.Data()
 
 		updateUser := func() {
 			appUser.Data.SetLastLogin(now)
 			appUser.Data.SetLastLogin(now)
-			if !appUser.Data.EmailConfirmed && accountData.IsEmailConfirmed() {
+			if !appUser.Data.EmailConfirmed && accountData.GetEmailConfirmed() {
 				appUser.Data.EmailConfirmed = true
 			}
 			names := accountData.GetNames()
@@ -240,49 +250,54 @@ func getOrCreateUserAccountRecordOnSignIn(
 		}
 
 		if err == nil { // User account record found
-			uaRecordUserID := accountData.GetAppUserID().(int64)
-			if !isNewUser && uaRecordUserID != userID {
-				panic(fmt.Sprintf("Relinking of appUser accounts us not implemented yet => userAccountRecord.GetAppUserIntID():%d != userID:%d", uaRecordUserID, userID))
+			uaRecordUserID := accountData.GetAppUserID()
+			if !isNewUser && uaRecordUserID != strconv.FormatInt(userID, 10) {
+				panic(fmt.Sprintf("Relinking of appUser accounts us not implemented yet => userAccount.GetAppUserIntID():%s != userID:%d", uaRecordUserID, userID))
 			}
-			if appUser, err = User.GetUserByID(c, tx, uaRecordUserID); err != nil {
+			var uaRecordUserIntID int64
+			if uaRecordUserIntID, err = strconv.ParseInt(uaRecordUserID, 10, 64); err != nil {
+				return fmt.Errorf("failed to parse uaRecordUserID:%s to int64: %w", uaRecordUserID, err)
+			}
+			if appUser, err = User.GetUserByID(c, tx, uaRecordUserIntID); err != nil {
 				if dal.IsNotFound(err) {
-					err = fmt.Errorf("record UserGoogle is referencing non existing appUser: %w", err)
+					err = fmt.Errorf("record UserAccount is referencing non existing appUser: %w", err)
 				}
 				return
 			}
 			accountData.SetLastLogin(now)
 			updateUser()
 
-			if err = tx.SetMulti(c, []dal.Record{userAccountRecord.Record(), appUser.Record}); err != nil {
+			if err = tx.SetMulti(c, []dal.Record{userAccountRecord, appUser.Record}); err != nil {
 				return fmt.Errorf("failed to update User & UserFacebook with DtLastLogin: %w", err)
 			}
 			return
 		}
 
-		// UserGoogle record not found
-		// Lets create new UserGoogle record
-		if userAccountRecord, err = newUserAccountRecord(c); err != nil {
+		// UserAccount record not found
+		// Lets create new UserAccount record
+		if userAccount, err = newUserAccountRecord(c); err != nil {
 			return
 		}
 
-		if !isNewUser {
+		if isNewUser {
+			//if i, ok := userAccount.(user.CreatedTimesSetter); ok {
+			//	i.SetCreatedTime(now)
+			//}
+		} else {
 			if appUser, err = User.GetUserByID(c, tx, userID); err != nil {
 				return
 			}
 		}
 
-		if i, ok := userAccountRecord.(user.CreatedTimesSetter); ok {
-			i.SetCreatedTime(now)
-		}
-		if i, ok := userAccountRecord.(user.UpdatedTimeSetter); ok {
-			i.SetUpdatedTime(now)
-		}
+		//if i, ok := userAccount.(user.UpdatedTimeSetter); ok {
+		//	i.SetUpdatedTime(now)
+		//}
 		accountData.SetLastLogin(now)
 
-		email := models.GetEmailID(userAccountRecord.GetEmail())
+		email := models.GetEmailID(accountData.GetEmailLowerCase())
 
 		if email == "" {
-			panic("Not implemented: userAccountRecord.GetEmail() returned empty string")
+			panic("Not implemented: userAccount.GetEmail() returned empty string")
 		}
 
 		var userEmail models.UserEmail
@@ -292,15 +307,15 @@ func getOrCreateUserAccountRecordOnSignIn(
 
 		if dal.IsNotFound(err) { // UserEmail record NOT found
 			userEmail := models.NewUserEmail(email, models.NewUserEmailData(0, true, provider))
-			userEmail.DtCreated = now
+			userEmail.Data.DtCreated = now
 
 			// We need to create new User entity
 			if isNewUser {
 				appUser = models.NewUser(clientInfo)
 				appUser.Data.DtCreated = now
 			}
-			appUser.Data.AddAccount(userAccountRecord.UserAccount()) // No need to check for changed as new appUser
-			appUser.Data.AddAccount(userEmail.UserAccount())         // No need to check for changed as new appUser
+			appUser.Data.AddAccount(userAccount.Key())       // No need to check for changed as new appUser
+			appUser.Data.AddAccount(userEmail.UserAccount()) // No need to check for changed as new appUser
 			updateUser()
 
 			if isNewUser {
@@ -311,20 +326,21 @@ func getOrCreateUserAccountRecordOnSignIn(
 				return
 			}
 
-			userAccountRecord.(user.BelongsToUserWithIntID).SetAppUserIntID(appUser.ID)
-			userEmail.AppUserIntID = appUser.ID
-			if err = tx.SetMulti(c, []dal.Record{userAccountRecord.Record(), userEmail.Record}); err != nil {
+			userAccount.(user.BelongsToUserWithIntID).SetAppUserIntID(appUser.ID)
+			userEmail.Data.AppUserIntID = appUser.ID
+
+			if err = tx.SetMulti(c, []dal.Record{userAccountRecord, userEmail.Record}); err != nil {
 				return
 			}
 			return
 		} else { // UserEmail record found
-			userAccountRecord.(user.BelongsToUserWithIntID).SetAppUserIntID(userEmail.AppUserIntID) // No need to create a new appUser, link to existing
-			if !isNewUser && userEmail.AppUserIntID != userID {
-				panic(fmt.Sprintf("Relinking of appUser accounts us not implemented yet => userEmail.AppUserIntID:%d != userID:%d", userEmail.AppUserIntID, userID))
+			userAccount.(user.BelongsToUserWithIntID).SetAppUserIntID(userEmail.Data.AppUserIntID) // No need to create a new appUser, link to existing
+			if !isNewUser && userEmail.Data.AppUserID != userStrID {
+				panic(fmt.Sprintf("Relinking of appUser accounts us not implemented yet => userEmail.AppUserID:%s != userID:%d", userEmail.Data.AppUserID, userID))
 			}
 
 			if isNewUser {
-				if appUser, err = User.GetUserByID(c, tx, userEmail.AppUserIntID); err != nil {
+				if appUser, err = User.GetUserByID(c, tx, userEmail.Data.AppUserIntID); err != nil {
 					if dal.IsNotFound(err) {
 						err = fmt.Errorf("record UserEmail is referencing non existing User: %w", err)
 					}
@@ -332,15 +348,15 @@ func getOrCreateUserAccountRecordOnSignIn(
 				}
 			}
 
-			if changed := userEmail.AddProvider(provider); changed || !userEmail.IsConfirmed {
-				userEmail.IsConfirmed = true
+			if changed := userEmail.Data.AddProvider(provider); changed || !userEmail.Data.IsConfirmed {
+				userEmail.Data.IsConfirmed = true
 				if err = dtdal.UserEmail.SaveUserEmail(c, tx, userEmail); err != nil {
 					return
 				}
 			}
-			appUser.Data.AddAccount(userAccountRecord.UserAccount())
+			appUser.Data.AddAccount(userAccount.Key())
 			updateUser()
-			if err = tx.SetMulti(c, []dal.Record{userAccountRecord.Record(), appUser.Record}); err != nil {
+			if err = tx.SetMulti(c, []dal.Record{userAccountRecord, appUser.Record}); err != nil {
 				return fmt.Errorf("failed to create UserFacebook & update User: %w", err)
 			}
 			return
@@ -349,68 +365,69 @@ func getOrCreateUserAccountRecordOnSignIn(
 	return
 }
 
-func (uf userFacade) GetOrCreateUserFacebookOnSignIn(
-	c context.Context,
-	appUserID int64,
-	fbAppOrPageID, fbUserOrPageScopeID, firstName, lastName string,
-	email string, isEmailConfirmed bool,
-	clientInfo models.ClientInfo,
-) (
-	userFacebook models.UserFacebook, appUser models.AppUser, err error,
-) {
-	log.Debugf(c, "GetOrCreateUserFacebookOnSignIn(firstName=%v, lastName=%v)", firstName, lastName)
-	if fbAppOrPageID == "" {
-		panic("fbAppOrPageID is empty string")
-	}
-	if fbAppOrPageID == "" {
-		panic("fbUserOrPageScopeID is empty string")
-	}
-
-	updateNames := func(entity *models.UserFacebookData) {
-		if firstName != "" && userFacebook.Data.FirstName != firstName {
-			userFacebook.Data.FirstName = firstName
-		}
-		if lastName != "" && userFacebook.Data.LastName != lastName {
-			userFacebook.Data.LastName = lastName
-		}
-	}
-
-	getUserAccountRecordFromDB := func(c context.Context) (user.AccountRecord, error) {
-		if userFacebook, err = dtdal.UserFacebook.GetFbUserByFbID(c, fbAppOrPageID, fbUserOrPageScopeID); err != nil {
-			return &userFacebook, err
-		}
-		updateNames(userFacebook.Data)
-		return &userFacebook, err
-	}
-
-	newUserAccountRecord := func(c context.Context) (user.AccountRecord, error) {
-		userFacebook = models.UserFacebook{
-			FbAppOrPageID:       fbAppOrPageID,
-			FbUserOrPageScopeID: fbUserOrPageScopeID,
-			Data: &models.UserFacebookData{
-				Email: email,
-				Names: user.Names{
-					FirstName: firstName,
-					LastName:  lastName,
-				},
-				EmailIsConfirmed: isEmailConfirmed,
-				OwnedByUserWithIntID: user.OwnedByUserWithIntID{
-					AppUserIntID: appUserID,
-				},
-			},
-		}
-		updateNames(userFacebook.Data)
-		return &userFacebook, nil
-	}
-	if appUser, err = getOrCreateUserAccountRecordOnSignIn(
-		c,
-		"fb",
-		appUserID,
-		getUserAccountRecordFromDB,
-		newUserAccountRecord,
-		clientInfo,
-	); err != nil {
-		return
-	}
-	return
-}
+//func (uf userFacade) GetOrCreateUserFacebookOnSignIn(
+//	c context.Context,
+//	appUserID int64,
+//	fbAppOrPageID, fbUserOrPageScopeID, firstName, lastName string,
+//	email string, isEmailConfirmed bool,
+//	clientInfo models.ClientInfo,
+//) (
+//	userFacebook models.UserFacebook, appUser models.AppUser, err error,
+//) {
+//	log.Debugf(c, "GetOrCreateUserFacebookOnSignIn(firstName=%v, lastName=%v)", firstName, lastName)
+//	if fbAppOrPageID == "" {
+//		panic("fbAppOrPageID is empty string")
+//	}
+//	if fbAppOrPageID == "" {
+//		panic("fbUserOrPageScopeID is empty string")
+//	}
+//
+//	updateNames := func(entity *models.UserFacebookData) {
+//		if firstName != "" && userFacebook.Data.FirstName != firstName {
+//			userFacebook.Data.FirstName = firstName
+//		}
+//		if lastName != "" && userFacebook.Data.LastName != lastName {
+//			userFacebook.Data.LastName = lastName
+//		}
+//	}
+//
+//	getUserAccountRecordFromDB := func(c context.Context) (user.AccountRecord, error) {
+//		if userFacebook, err = dtdal.UserFacebook.GetFbUserByFbID(c, fbAppOrPageID, fbUserOrPageScopeID); err != nil {
+//			return &userFacebook, err
+//		}
+//		updateNames(userFacebook.Data)
+//		return &userFacebook, err
+//	}
+//
+//	newUserAccountRecord := func(c context.Context) (user.AccountRecord, error) {
+//		userFacebook = models.UserFacebook{
+//			FbAppOrPageID:       fbAppOrPageID,
+//			FbUserOrPageScopeID: fbUserOrPageScopeID,
+//			Data: &models.UserFacebookData{
+//				Email: email,
+//				Names: user.Names{
+//					FirstName: firstName,
+//					LastName:  lastName,
+//				},
+//				EmailIsConfirmed: isEmailConfirmed,
+//				OwnedByUserWithID: user.OwnedByUserWithID{
+//					AppUserIntID: appUserID,
+//					AppUserID:    strconv.FormatInt(appUserID, 10),
+//				},
+//			},
+//		}
+//		updateNames(userFacebook.Data)
+//		return &userFacebook, nil
+//	}
+//	if appUser, err = getOrCreateUserAccountRecordOnSignIn(
+//		c,
+//		"fb",
+//		appUserID,
+//		getUserAccountRecordFromDB,
+//		newUserAccountRecord,
+//		clientInfo,
+//	); err != nil {
+//		return
+//	}
+//	return
+//}

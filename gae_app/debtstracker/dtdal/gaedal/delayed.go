@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw-telegram"
-	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
+	"github.com/bots-go-framework/bots-fw-telegram-models/botsfwtgmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/platforms/tgbots"
@@ -18,7 +18,8 @@ import (
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
-	"github.com/strongo/app/delaying"
+	"github.com/strongo/delaying"
+	"github.com/strongo/i18n"
 	"github.com/strongo/log"
 	"reflect"
 	"strconv"
@@ -98,8 +99,8 @@ func (ReceiptDalGae) DelayCreateAndSendReceiptToCounterpartyByTelegram(c context
 	return delayCreateAndSendReceiptToCounterpartyByTelegram.EnqueueWork(c, delaying.With(common.QUEUE_RECEIPTS, "create-and-send-receipt-for-counterparty-by-telegram", 0), env, transferID, userID)
 }
 
-func GetTelegramChatByUserID(c context.Context, userID int64) (entityID string, chat tgstore.TgChatData, err error) {
-	tgChatQuery := dal.From(tgstore.TgChatCollection).
+func GetTelegramChatByUserID(c context.Context, userID int64) (entityID string, chat botsfwtgmodels.TgChatData, err error) {
+	tgChatQuery := dal.From(botsfwtgmodels.TgChatCollection).
 		WhereField("AppUserIntID", dal.Equal, userID).
 		OrderBy(dal.DescendingField("DtUpdated")).
 		Limit(1).
@@ -118,7 +119,7 @@ func GetTelegramChatByUserID(c context.Context, userID int64) (entityID string, 
 	switch len(tgChatRecords) {
 	case tgChatQuery.Limit():
 		entityID = fmt.Sprintf("%v", tgChatRecords[0].Key().ID)
-		tgChatBase := tgChatRecords[0].Data().(models.DebtusTelegramChatData).TgChatBase
+		tgChatBase := tgChatRecords[0].Data().(models.DebtusTelegramChatData).TgChatBaseData
 		chat = &tgChatBase
 		return
 	case 0:
@@ -217,7 +218,7 @@ func onReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transf
 	}); err != nil {
 		mt = err.Error()
 	} else {
-		var translator strongo.SingleLocaleTranslator
+		var translator i18n.SingleLocaleTranslator
 		if translator, err = getTranslator(c, locale); err != nil {
 			return
 		}
@@ -278,7 +279,7 @@ func onReceiptSendFail(c context.Context, receiptID int, tgChatID int64, tgMsgID
 	return
 }
 
-// func getTranslatorAndTgChatID(c context.Context, userID int64) (translator strongo.SingleLocaleTranslator, tgChatID int64, err error) {
+// func getTranslatorAndTgChatID(c context.Context, userID int64) (translator i18n.SingleLocaleTranslator, tgChatID int64, err error) {
 // 	var (
 // 		//transfer models.Transfer
 // 		user models.AppUser
@@ -304,15 +305,15 @@ func onReceiptSendFail(c context.Context, receiptID int, tgChatID int64, tgMsgID
 // 	return
 // }
 
-func getTranslator(c context.Context, localeCode string) (translator strongo.SingleLocaleTranslator, err error) {
+func getTranslator(c context.Context, localeCode string) (translator i18n.SingleLocaleTranslator, err error) {
 	log.Debugf(c, "getTranslator(localeCode=%v)", localeCode)
-	var locale strongo.Locale
+	var locale i18n.Locale
 	if locale, err = common.TheAppContext.SupportedLocales().GetLocaleByCode5(localeCode); errors.Is(err, trans.ErrUnsupportedLocale) {
-		if locale, err = common.TheAppContext.SupportedLocales().GetLocaleByCode5(strongo.LocaleCodeEnUS); err != nil {
+		if locale, err = common.TheAppContext.SupportedLocales().GetLocaleByCode5(i18n.LocaleCodeEnUS); err != nil {
 			return
 		}
 	}
-	translator = strongo.NewSingleMapTranslator(locale, common.TheAppContext.GetTranslator(c))
+	translator = i18n.NewSingleMapTranslator(locale, common.TheAppContext.GetTranslator(c))
 	return
 }
 
@@ -442,7 +443,7 @@ func sendReceiptToCounterpartyByTelegram(c context.Context, receiptID int, tgCha
 		}
 
 		if failedToSend { // Notify creator that receipt has not been sent
-			var translator strongo.SingleLocaleTranslator
+			var translator i18n.SingleLocaleTranslator
 			if translator, err = getTranslator(c, localeCode); err != nil {
 				return err
 			}
@@ -487,7 +488,7 @@ func sendReceiptToTelegramChat(c context.Context, receipt models.Receipt, transf
 		TransferCurrency: string(transfer.Data.Currency),
 	}
 
-	var translator strongo.SingleLocaleTranslator
+	var translator i18n.SingleLocaleTranslator
 	if translator, err = getTranslator(c, tgChat.Data.GetPreferredLanguage()); err != nil {
 		return err
 	}
@@ -563,7 +564,7 @@ func delayedCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env 
 		log.Infof(c, "No telegram for user")
 		return nil
 	}
-	localeCode := tgChat.BaseChatData().PreferredLanguage
+	localeCode := tgChat.BaseTgChatData().PreferredLanguage
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
 		return err
@@ -585,14 +586,14 @@ func delayedCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env 
 			localeCode = toUser.Data.GetPreferredLocale()
 		}
 
-		var translator strongo.SingleLocaleTranslator
+		var translator i18n.SingleLocaleTranslator
 		if translator, err = getTranslator(c, localeCode); err != nil {
 			return err
 		}
 		locale := translator.Locale()
 
 		var receiptID int
-		receipt := models.NewReceipt(0, models.NewReceiptEntity(transfer.Data.CreatorUserID, transferID, transfer.Data.Counterparty().UserID, locale.Code5, telegram.PlatformID, strconv.FormatInt(tgChat.BaseChatData().TelegramUserID, 10), general.CreatedOn{
+		receipt := models.NewReceipt(0, models.NewReceiptEntity(transfer.Data.CreatorUserID, transferID, transfer.Data.Counterparty().UserID, locale.Code5, telegram.PlatformID, strconv.FormatInt(tgChat.BaseTgChatData().TelegramUserID, 10), general.CreatedOn{
 			CreatedOnID:       transfer.Data.Creator().TgBotID, // TODO: Replace with method call.
 			CreatedOnPlatform: transfer.Data.CreatedOnPlatform,
 		}))
@@ -604,7 +605,7 @@ func delayedCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env 
 		if err != nil {
 			return fmt.Errorf("failed to create receipt entity: %w", err)
 		}
-		tgChatID := tgChat.BaseChatData().TelegramUserID
+		tgChatID := tgChat.BaseTgChatData().TelegramUserID
 		if err = delaySendReceiptToCounterpartyByTelegram(c, receiptID, tgChatID, localeCode); err != nil { // TODO: ideally should be called inside transaction
 			log.Errorf(c, "failed to queue receipt sending: %v", err)
 			return nil

@@ -3,6 +3,7 @@ package splitus
 import (
 	"context"
 	"fmt"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
@@ -44,7 +45,7 @@ var newBillCommand = botsfw.Command{
 			paidAmount = amountValue
 		}
 
-		strUserID := whc.AppUserStrID()
+		strUserID := whc.AppUserID()
 
 		billEntity := models.NewBillEntity(
 			models.BillCommon{
@@ -61,8 +62,8 @@ var newBillCommand = botsfw.Command{
 		tgChatMessageID := fmt.Sprintf("%v@%v@%v", whc.Input().(botsfw.WebhookCallbackQuery).GetInlineMessageID(), whc.GetBotCode(), whc.Locale().Code5)
 		billEntity.TgChatMessageIDs = []string{tgChatMessageID}
 
-		var appUser botsfw.BotAppUser
-		if appUser, err = whc.GetAppUser(); err != nil {
+		var appUser botsfwmodels.AppUserData
+		if appUser, err = whc.AppUserData(); err != nil {
 			return
 		}
 		user := appUser.(*models.AppUserData)
@@ -76,7 +77,7 @@ var newBillCommand = botsfw.Command{
 			Paid: paidAmount,
 		}
 
-		//appUserID := whc.AppUserIntID()
+		//appUserID := whc.AppUserInt64ID()
 
 		if err = billEntity.SetBillMembers([]models.BillMemberJson{billMember}); err != nil {
 			return

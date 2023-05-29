@@ -8,6 +8,7 @@ import (
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/i18n"
 	"net/url"
 
 	"context"
@@ -16,7 +17,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/debtstracker-translations/emoji"
-	"github.com/strongo/app"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 )
@@ -97,7 +97,7 @@ var billMembersCommand = billCallbackCommand(billMembersCommandCode,
 func writeBillMembersList(
 	c context.Context,
 	buffer *bytes.Buffer,
-	translator strongo.SingleLocaleTranslator,
+	translator i18n.SingleLocaleTranslator,
 	bill models.Bill,
 	selectedMemberID string,
 ) {
@@ -211,7 +211,7 @@ func ShowBillCard(whc botsfw.WebhookContext, isEdit bool, bill models.Bill, foot
 	return
 }
 
-func writeBillCardTitle(c context.Context, bill models.Bill, botID string, buffer *bytes.Buffer, translator strongo.SingleLocaleTranslator) error {
+func writeBillCardTitle(c context.Context, bill models.Bill, botID string, buffer *bytes.Buffer, translator i18n.SingleLocaleTranslator) error {
 	var amount interface{}
 	if bill.Data.Currency == "" {
 		amount = bill.Data.AmountTotal
@@ -229,7 +229,7 @@ func writeBillCardTitle(c context.Context, bill models.Bill, botID string, buffe
 	return nil
 }
 
-func getBillCardMessageText(c context.Context, botID string, translator strongo.SingleLocaleTranslator, bill models.Bill, showMembers bool, footer string) (string, error) {
+func getBillCardMessageText(c context.Context, botID string, translator i18n.SingleLocaleTranslator, bill models.Bill, showMembers bool, footer string) (string, error) {
 	log.Debugf(c, "getBillCardMessageText() => bill.BillEntity: %v", bill.Data)
 
 	var buffer bytes.Buffer

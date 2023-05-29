@@ -1,6 +1,7 @@
 package tgbots
 
 import (
+	"github.com/strongo/i18n"
 	"testing"
 
 	"github.com/sneat-co/debtstracker-go/gae_app/bot"
@@ -17,6 +18,6 @@ func TestGetBotSettingsByLang(t *testing.T) {
 			t.Error(code + " not found in settings, got: " + botSettings.Code)
 		}
 	}
-	verify(bot.ProfileDebtus, strongo.LocalCodeRuRu, "DebtsTrackerRuBot")
-	verify(bot.ProfileDebtus, strongo.LocaleCodeEnUS, "DebtsTrackerBot")
+	verify(bot.ProfileDebtus, i18n.LocalCodeRuRu, "DebtsTrackerRuBot")
+	verify(bot.ProfileDebtus, i18n.LocaleCodeEnUS, "DebtsTrackerBot")
 }

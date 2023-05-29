@@ -1,13 +1,13 @@
 package vkapp
 
 import (
+	"github.com/strongo/i18n"
 	"html/template"
 	"net/http"
 
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/website/pages"
 	//"github.com/strongo/app"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/platforms/vkbots"
-	"github.com/strongo/app"
 )
 
 type router interface {
@@ -48,7 +48,7 @@ func IFrameHandler(w http.ResponseWriter, r *http.Request) {
 		"hash":    query.Get("hash"),
 	}
 
-	pages.RenderCachedPage(w, r, vkIFrameTemplate, strongo.LocaleRuRu, data, 0)
+	pages.RenderCachedPage(w, r, vkIFrameTemplate, i18n.LocaleRuRu, data, 0)
 }
 
 var vkIFrameTemplate *template.Template

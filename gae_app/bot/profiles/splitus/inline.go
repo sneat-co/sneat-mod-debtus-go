@@ -5,6 +5,7 @@ import (
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/i18n"
 	"html"
 	"net/url"
 	"regexp"
@@ -14,7 +15,6 @@ import (
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	"github.com/strongo/app"
 	"github.com/strongo/log"
 )
 
@@ -29,7 +29,7 @@ var inlineQueryCommand = botsfw.Command{
 		if tgInput, ok := whc.Input().(telegram.TgWebhookInput); ok {
 			update := tgInput.TgUpdate()
 
-			if user, err := whc.GetAppUser(); err != nil {
+			if user, err := whc.AppUserData(); err != nil {
 				return m, err
 			} else if preferredLocale := user.GetPreferredLocale(); preferredLocale != "" {
 				log.Debugf(c, "User has preferring locale")
@@ -38,7 +38,7 @@ var inlineQueryCommand = botsfw.Command{
 				switch strings.ToLower(tgLang[:2]) {
 				case "ru":
 					log.Debugf(c, "Telegram client has known language code")
-					if err = whc.SetLocale(strongo.LocaleRuRu.Code5); err != nil {
+					if err = whc.SetLocale(i18n.LocaleRuRu.Code5); err != nil {
 						return m, err
 					}
 				}

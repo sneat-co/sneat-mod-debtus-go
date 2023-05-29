@@ -3,8 +3,11 @@ package splitus
 import (
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"strconv"
+	"time"
 
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/shared_group"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
@@ -40,22 +43,31 @@ var newChatMembersCommand = botsfw.Command{
 
 		var newUsers []facade.NewUser
 
+		botID := whc.GetBotCode()
+
 		{ // Get or create related user records
 			for _, chatMember := range newMembers {
 				tgChatMember := chatMember.(tgbotapi.ChatMember)
-				var botUser botsfw.BotUser
-				if botUser, err = whc.GetBotUserByID(c, tgChatMember.ID); err != nil {
+				var botUserData botsfwmodels.BotUserData
+				store := whc.Store()
+				botUserID := strconv.Itoa(tgChatMember.ID)
+				if botUserData, err = store.GetBotUserByID(c, botID, botUserID); err != nil {
 					return
 				}
-				if botUser == nil {
-					if botUser, err = whc.CreateBotUser(c, whc.GetBotCode(), chatMember); err != nil {
+				if botUserData == nil {
+					botUserData = &botsfwmodels.BotUserBaseData{
+						BotBaseData: botsfwmodels.BotBaseData{
+							DtCreated: time.Now(),
+						},
+					}
+					if err = store.SaveBotUser(c, botID, botUserID, botUserData); err != nil {
 						return
 					}
 				}
 				newUsers = append(newUsers, facade.NewUser{
-					Name:       tgChatMember.GetFullName(),
-					BotUser:    botUser,
-					ChatMember: chatMember,
+					Name:        tgChatMember.GetFullName(),
+					BotUserData: botUserData,
+					ChatMember:  chatMember,
 				})
 			}
 		}

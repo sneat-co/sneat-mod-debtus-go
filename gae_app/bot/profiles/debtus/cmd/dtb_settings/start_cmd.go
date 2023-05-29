@@ -35,7 +35,7 @@ func StartInBotAction(whc botsfw.WebhookContext, startParams []string) (m botsfw
 func startByLinkCode(whc botsfw.WebhookContext, matches []string) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	log.Debugf(c, "startByLinkCode() => matches: %v", matches)
-	chatEntity := whc.ChatEntity()
+	chatEntity := whc.ChatData()
 	entityType := matches[1]
 	entityCode := matches[2]
 	operation := matches[4]
@@ -49,7 +49,7 @@ func startByLinkCode(whc botsfw.WebhookContext, matches []string) (m botsfw.Mess
 			return
 		}
 		chatEntity.SetPreferredLanguage(localeCode5)
-		if err = dtdal.User.DelaySetUserPreferredLocale(c, time.Second, whc.AppUserIntID(), localeCode5); err != nil {
+		if err = dtdal.User.DelaySetUserPreferredLocale(c, time.Second, whc.AppUserInt64ID(), localeCode5); err != nil {
 			return
 		}
 

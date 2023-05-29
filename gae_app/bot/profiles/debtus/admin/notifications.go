@@ -10,7 +10,7 @@ import (
 
 func SendFeedbackToAdmins(c context.Context, botToken string, feedback models.Feedback) (err error) {
 	bot := tgbotapi.NewBotAPIWithClient(botToken, dtdal.HttpClient(c))
-	text := fmt.Sprintf("%v user #%d @%v (rate=%v):\n%v", feedback.CreatedOnPlatform, feedback.UserID, feedback.CreatedOnID, feedback.Rate, feedback.Text)
+	text := fmt.Sprintf("%v user #%s @%v (rate=%v):\n%v", feedback.CreatedOnPlatform, feedback.UserStrID, feedback.CreatedOnID, feedback.Rate, feedback.Text)
 	message := tgbotapi.NewMessageToChannel("-1001128307094", text)
 	message.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{

@@ -6,11 +6,12 @@ import (
 )
 
 func GetUser(whc botsfw.WebhookContext) (user models.AppUser, err error) {
-	var appUser botsfw.BotAppUser
-	if appUser, err = whc.GetAppUser(); err != nil {
-		return
-	}
-	user.Data = appUser.(*models.AppUserData)
-	user.ID = whc.AppUserIntID()
-	return
+	panic("not implemented")
+	//var appUser botsfwmodels.BotAppUser
+	//if appUser, err = whc.GetAppUser(); err != nil {
+	//	return
+	//}
+	//user.Data = appUser.(*models.AppUserData)
+	//user.ID, err = strconv.ParseInt(whc.AppUserID(), 10, 64)
+	//return
 }

@@ -6,8 +6,6 @@ import (
 	"github.com/strongo/app/user"
 )
 
-const UserFacebookKind = "UserFb"
-
 var _ user.AccountData = (*UserFacebookData)(nil)
 
 var _ user.AccountRecord = (*UserFacebook)(nil)
@@ -17,15 +15,23 @@ type UserFacebook struct {
 	record.WithID[string]
 	FbAppOrPageID       string
 	FbUserOrPageScopeID string
-	Data                *UserFacebookData
+	data                *UserFacebookData
 }
 
-func (u *UserFacebook) GetEmail() string {
-	return u.Data.Email
+//func (u *UserFacebook) Key() *dal.Key {
+//	return u.WithID.Key
+//}
+
+func (u *UserFacebook) Key() user.Account {
+	return u.data.Account
 }
 
-func (u *UserFacebook) Key() *dal.Key {
-	return u.WithID.Key
+func (u *UserFacebook) Data() user.AccountData {
+	return u.data
+}
+
+func (u *UserFacebook) FbUserData() user.AccountData {
+	return u.data
 }
 
 func (u *UserFacebook) Record() dal.Record {
@@ -33,7 +39,7 @@ func (u *UserFacebook) Record() dal.Record {
 }
 
 func (u *UserFacebook) AccountData() user.AccountData {
-	return u.Data
+	return u.data
 }
 
 //var _ user.AccountRecord = (*UserFacebook)(nil)
@@ -49,7 +55,7 @@ func UserFacebookID(fbAppOrPageID, fbUserOrPageScopeID string) string {
 }
 
 //func (*UserFacebook) Kind() string {
-//	return UserFacebookKind
+//	return UserFacebookCollection
 //}
 
 //func (UserFacebook) TypeOfID() db.TypeOfID {
@@ -85,12 +91,12 @@ func (u *UserFacebook) SetStrID(id string) {
 //	u.Data = entity.(*UserFacebookData)
 //}
 
+// UserFacebookData - TODO: consider migrating to https://github.com/dal-go/dalgo4auth
 type UserFacebookData struct {
-	user.LastLogin
-	user.Names
+	user.AccountDataBase
 	Email            string `datastore:",noindex"`
 	EmailIsConfirmed bool   `datastore:",noindex"`
-	user.OwnedByUserWithIntID
+	user.OwnedByUserWithID
 }
 
 var _ user.AccountData = (*UserFacebookData)(nil)

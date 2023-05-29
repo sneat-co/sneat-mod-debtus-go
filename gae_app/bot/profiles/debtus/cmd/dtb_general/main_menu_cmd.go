@@ -35,7 +35,7 @@ func MainMenuAction(whc botsfw.WebhookContext, messageText string, showHint bool
 		//}
 	}
 	log.Infof(whc.Context(), "MainMenuCommand.Action()")
-	whc.ChatEntity().SetAwaitingReplyTo("")
+	whc.ChatData().SetAwaitingReplyTo("")
 	m = whc.NewMessage(messageText)
 	SetMainMenuKeyboard(whc, &m)
 	return m, nil

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
@@ -15,8 +16,8 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/strongo/app"
 	"github.com/strongo/decimal"
+	"github.com/strongo/i18n"
 	"github.com/strongo/log"
 	"net/url"
 	"strconv"
@@ -52,7 +53,7 @@ var joinBillCommand = botsfw.Command{
 		return
 	},
 	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
-		_ = whc.AppUserIntID() // Make sure we have user before transaction starts, TODO: it smells, should be refactored?
+		_ = whc.AppUserInt64ID() // Make sure we have user before transaction starts, TODO: it smells, should be refactored?
 		//
 		return shared_all.TransactionalCallbackAction(billCallbackAction(func(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 			c := whc.Context()
@@ -71,9 +72,9 @@ func joinBillAction(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, bill
 	c := whc.Context()
 	log.Debugf(c, "joinBillAction(bill.ID=%v)", bill.ID)
 
-	userID := strconv.FormatInt(whc.AppUserIntID(), 10)
-	var appUser botsfw.BotAppUser
-	if appUser, err = whc.GetAppUser(); err != nil {
+	userID := strconv.FormatInt(whc.AppUserInt64ID(), 10)
+	var appUser botsfwmodels.AppUserData
+	if appUser, err = whc.AppUserData(); err != nil {
 		return
 	}
 	user := appUser.(*models.AppUserData)
@@ -126,17 +127,17 @@ func joinBillAction(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, bill
 	if bill.Data.Currency == "" {
 		guessCurrency := func() money.Currency {
 			switch whc.Locale().Code5 {
-			case strongo.LocalCodeRuRu:
+			case i18n.LocalCodeRuRu:
 				return money.CURRENCY_RUB
-			case strongo.LocaleCodeDeDE:
+			case i18n.LocaleCodeDeDE:
 				return money.CURRENCY_EUR
-			case strongo.LocaleCodeFrFR:
+			case i18n.LocaleCodeFrFR:
 				return money.CURRENCY_EUR
-			case strongo.LocaleCodeItIT:
+			case i18n.LocaleCodeItIT:
 				return money.CURRENCY_EUR
-			case strongo.LocaleCodePtPT:
+			case i18n.LocaleCodePtPT:
 				return money.CURRENCY_EUR
-			case strongo.LocaleCodeEnUK:
+			case i18n.LocaleCodeEnUK:
 				return money.CURRENCY_GBP
 			default:
 				return money.CURRENCY_USD

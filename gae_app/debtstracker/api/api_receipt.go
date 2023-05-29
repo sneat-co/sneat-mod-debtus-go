@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/i18n"
 	"net/http"
 	"strconv"
 	"strings"
@@ -204,11 +205,10 @@ func handleSendReceipt(c context.Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	locale := strongo.GetLocaleByCode5(user.Data.GetPreferredLocale()) // TODO: Get language from request
-	translator := strongo.NewSingleMapTranslator(locale, common.TheAppContext.GetTranslator(c))
-	ec := strongo.NewExecutionContext(c, translator)
+	locale := i18n.GetLocaleByCode5(user.Data.GetPreferredLocale()) // TODO: Get language from request
+	translator := i18n.NewSingleMapTranslator(locale, common.TheAppContext.GetTranslator(c))
 
-	if _, err = invites.SendReceiptByEmail(ec, receipt, user.Data.FullName(), transfer.Data.Counterparty().ContactName, toAddress); err != nil {
+	if _, err = invites.SendReceiptByEmail(c, translator, receipt, user.Data.FullName(), transfer.Data.Counterparty().ContactName, toAddress); err != nil {
 		log.Errorf(c, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		err = fmt.Errorf("failed to send receipt by email: %w", err)
@@ -403,7 +403,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 		}
 	}
 	if lang == "" {
-		lang = strongo.LocaleCodeEnUS
+		lang = i18n.LocaleCodeEnUS
 	}
 	receiptData := models.NewReceiptEntity(creatorUserID, transferID, transfer.Data.Counterparty().UserID, lang, channel, "", general.CreatedOn{
 		CreatedOnPlatform: "api", // TODO: Replace with actual, pass from client
@@ -438,8 +438,8 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 		}
 		messageToSend = fmt.Sprintf("https://telegram.me/%v?start=send-receipt_%v", tgBotID, common.EncodeIntID(receipt.ID)) // TODO:
 	} else {
-		locale := strongo.GetLocaleByCode5(user.Data.GetPreferredLocale())
-		translator := strongo.NewSingleMapTranslator(locale, common.TheAppContext.GetTranslator(c))
+		locale := i18n.GetLocaleByCode5(user.Data.GetPreferredLocale())
+		translator := i18n.NewSingleMapTranslator(locale, common.TheAppContext.GetTranslator(c))
 		//ec := strongo.NewExecutionContext(c, translator)
 
 		log.Debugf(c, "r.Host: %v", r.Host)

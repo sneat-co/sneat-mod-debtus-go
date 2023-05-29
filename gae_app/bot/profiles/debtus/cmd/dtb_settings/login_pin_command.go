@@ -45,13 +45,14 @@ var LoginPinCommand = botsfw.Command{
 				if err = whc.SetLocale(lang); err != nil {
 					return m, err
 				}
-				whc.ChatEntity().SetPreferredLanguage(lang)
+				whc.ChatData().SetPreferredLanguage(lang)
 				//case strings.HasPrefix(p,"gac-"):
 				//	gacID = p[len("gac-"):]
 			}
 		}
 		c := whc.Context()
-		if pinCode, err := facade.AuthFacade.AssignPinCode(c, loginID, whc.AppUserIntID()); err != nil {
+		//goland:noinspection GoDeprecation
+		if pinCode, err := facade.AuthFacade.AssignPinCode(c, loginID, whc.AppUserInt64ID()); err != nil {
 			return m, err
 		} else {
 			return whc.NewMessage(fmt.Sprintf("Login PIN code: %v", pinCode)), nil

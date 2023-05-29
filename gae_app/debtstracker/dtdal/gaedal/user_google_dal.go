@@ -8,7 +8,7 @@ import (
 )
 
 func NewUserGoogleKey(id string) *dal.Key {
-	return dal.NewKeyWithID(models.UserGoogleKind, id)
+	return dal.NewKeyWithID(models.UserGoogleCollection, id)
 }
 
 type UserGoogleDalGae struct {
@@ -18,7 +18,7 @@ func NewUserGoogleDalGae() UserGoogleDalGae {
 	return UserGoogleDalGae{}
 }
 
-func (UserGoogleDalGae) GetUserGoogleByID(c context.Context, googleUserID string) (userGoogle models.UserGoogle, err error) {
+func (UserGoogleDalGae) GetUserGoogleByID(c context.Context, googleUserID string) (userGoogle models.UserAccount, err error) {
 	//userGoogle.ID = googleUserID
 	//userGoogle.Data = new(models.UserGoogleData)
 	//if err = gaedb.Get(c, NewUserGoogleKey(googleUserID), userGoogle.Data); err != nil {
@@ -38,7 +38,7 @@ func (UserGoogleDalGae) DeleteUserGoogle(c context.Context, googleUserID string)
 	return errors.New("not implemented")
 }
 
-func (UserGoogleDalGae) SaveUserGoogle(c context.Context, userGoogle models.UserGoogle) (err error) {
+func (UserGoogleDalGae) SaveUserGoogle(c context.Context, userGoogle models.UserAccount) (err error) {
 	//if _, err = gaedb.Put(c, NewUserGoogleKey(userGoogle.ID), userGoogle.Data); err != nil {
 	//	return
 	//}
@@ -133,7 +133,7 @@ func (UserGoogleDalGae) SaveUserGoogle(c context.Context, userGoogle models.User
 //			case 1:
 //				entity.AppUserIntID = appUserKeys[0].IntegerID()
 //			case 0:
-//				query = datastore.NewQuery(models.UserGoogleKind).Filter("Email =", user.Email).Limit(2)
+//				query = datastore.NewQuery(models.UserGoogleCollection).Filter("Email =", user.Email).Limit(2)
 //				var (
 //					googleUserKeys []*datastore.Key
 //					googleUsers    []models.UserGoogleData

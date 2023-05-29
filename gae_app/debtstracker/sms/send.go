@@ -7,6 +7,7 @@ import (
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/app"
 	"github.com/strongo/gotwilio"
+	"github.com/strongo/i18n"
 	"github.com/strongo/log"
 	"strings"
 )
@@ -54,23 +55,23 @@ func SendSms(c context.Context, isLive bool, toPhoneNumber, smsText string) (isT
 	return
 }
 
-func TwilioExceptionToMessage(ec strongo.ExecutionContext, ex *gotwilio.Exception) (messageText string, tryAnotherNumber bool) {
+func TwilioExceptionToMessage(ec strongo.ExecutionContext, t i18n.SingleLocaleTranslator, ex *gotwilio.Exception) (messageText string, tryAnotherNumber bool) {
 	switch ex.Code {
 	case 21211: // Is not a valid phone number. https://www.twilio.com/docs/errors/21211
 		tryAnotherNumber = true
-		messageText = ec.Translate(trans.MESSAGE_TEXT_INVALID_PHONE_NUMBER)
+		messageText = t.Translate(trans.MESSAGE_TEXT_INVALID_PHONE_NUMBER)
 	case 21614: // Is is not a mobile number https://www.twilio.com/docs/errors/21614}
 		tryAnotherNumber = true
-		messageText = ec.Translate(trans.MESSAGE_TEXT_PHONE_NUMBER_IS_NOT_SMS_CAPABLE)
+		messageText = t.Translate(trans.MESSAGE_TEXT_PHONE_NUMBER_IS_NOT_SMS_CAPABLE)
 	case 21612: // is not currently reachable using the 'From' phone number via SMS. https://www.twilio.com/docs/errors/21612
 		tryAnotherNumber = true
-		messageText = ec.Translate("is not currently reachable using the 'From' phone number via SMS")
+		messageText = t.Translate("is not currently reachable using the 'From' phone number via SMS")
 	case 21408: // Permission to send an SMS has not been enabled for the region indicated by the 'To' number: https://www.twilio.com/docs/errors/21408
 		tryAnotherNumber = true
-		messageText = ec.Translate("Permission to send an SMS has not been enabled for the region indicated by the 'To' number")
+		messageText = t.Translate("Permission to send an SMS has not been enabled for the region indicated by the 'To' number")
 	case 21610: // The message From/To pair violates a blacklist rule. https://www.twilio.com/docs/errors/21610
 		tryAnotherNumber = true
-		messageText = ec.Translate("The message From/To pair violates a blacklist rule.")
+		messageText = t.Translate("The message From/To pair violates a blacklist rule.")
 	}
 	return
 }

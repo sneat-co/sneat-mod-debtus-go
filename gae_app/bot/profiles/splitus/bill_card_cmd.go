@@ -6,10 +6,10 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/strongo/app"
+	"github.com/strongo/i18n"
 )
 
-func getGroupBillCardInlineKeyboard(translator strongo.SingleLocaleTranslator, bill models.Bill) *tgbotapi.InlineKeyboardMarkup {
+func getGroupBillCardInlineKeyboard(translator i18n.SingleLocaleTranslator, bill models.Bill) *tgbotapi.InlineKeyboardMarkup {
 	//	//{{Text: "I paid for the bill alone", CallbackData: joinBillCallbackPrefix + "&i=paid-alone"}},
 	//	//{{Text:"I paid part of this bill",CallbackData:  joinBillCallbackPrefix + "&i=paid-part"}},
 	//	//{{Text: "I owe for this bill", CallbackData: joinBillCallbackPrefix + "&i=owe"}},
@@ -42,7 +42,7 @@ func getGroupBillCardInlineKeyboard(translator strongo.SingleLocaleTranslator, b
 	}
 }
 
-func getPrivateBillCardInlineKeyboard(translator strongo.SingleLocaleTranslator, botCode string, bill models.Bill) *tgbotapi.InlineKeyboardMarkup {
+func getPrivateBillCardInlineKeyboard(translator i18n.SingleLocaleTranslator, botCode string, bill models.Bill) *tgbotapi.InlineKeyboardMarkup {
 	callbackData := fmt.Sprintf("split-mode?bill=%v&mode=", bill.ID)
 	return tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{

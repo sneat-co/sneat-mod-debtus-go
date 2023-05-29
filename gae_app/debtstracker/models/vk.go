@@ -10,7 +10,7 @@ const (
 )
 
 type UserVkEntity struct {
-	user.OwnedByUserWithIntID
+	user.OwnedByUserWithID
 	FirstName  string
 	LastName   string
 	ScreenName string

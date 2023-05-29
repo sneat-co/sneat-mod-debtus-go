@@ -16,7 +16,7 @@ import (
 func AcknowledgeReceipt(whc botsfw.WebhookContext, receiptID int, operation string) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
-	_, transfer, isCounterpartiesJustConnected, err := facade.AcknowledgeReceipt(c, receiptID, whc.AppUserIntID(), operation)
+	_, transfer, isCounterpartiesJustConnected, err := facade.AcknowledgeReceipt(c, receiptID, whc.AppUserInt64ID(), operation)
 	if err != nil {
 		if errors.Is(err, facade.ErrSelfAcknowledgement) {
 			m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_SELF_ACKNOWLEDGEMENT, html.EscapeString(transfer.Data.Counterparty().ContactName)))
@@ -59,11 +59,11 @@ func AcknowledgeReceipt(whc botsfw.WebhookContext, receiptID int, operation stri
 
 		utm := common.NewUtmParams(whc, common.UTM_CAMPAIGN_RECEIPT)
 		if whc.InputType() == botsfw.WebhookInputCallbackQuery {
-			if m, err = whc.NewEditMessage(common.TextReceiptForTransfer(whc, transfer, 0, common.ShowReceiptToCounterparty, utm)+"\n\n"+operationMessage, botsfw.MessageFormatHTML); err != nil {
+			if m, err = whc.NewEditMessage(common.TextReceiptForTransfer(c, whc, transfer, 0, common.ShowReceiptToCounterparty, utm)+"\n\n"+operationMessage, botsfw.MessageFormatHTML); err != nil {
 				return
 			}
 		} else {
-			m = whc.NewMessage(operationMessage + "\n\n" + common.TextReceiptForTransfer(whc, transfer, 0, common.ShowReceiptToCounterparty, utm))
+			m = whc.NewMessage(operationMessage + "\n\n" + common.TextReceiptForTransfer(c, whc, transfer, 0, common.ShowReceiptToCounterparty, utm))
 			m.Keyboard = dtb_general.MainMenuKeyboardOnReceiptAck(whc)
 			m.Format = botsfw.MessageFormatHTML
 		}
@@ -81,7 +81,7 @@ func AcknowledgeReceipt(whc botsfw.WebhookContext, receiptID int, operation stri
 			default:
 				err = errors.New("Expected accept or decline as operation, got: " + operation)
 			}
-			askMsgToCreator.Text = operationMsg + "\n\n" + common.TextReceiptForTransfer(whc, transfer, transfer.Data.CreatorUserID, common.ShowReceiptToAutodetect, utm)
+			askMsgToCreator.Text = operationMsg + "\n\n" + common.TextReceiptForTransfer(c, whc, transfer, transfer.Data.CreatorUserID, common.ShowReceiptToAutodetect, utm)
 
 			if transfer.Data.Creator().TgBotID != whc.GetBotCode() {
 				log.Warningf(c, "TODO: transferEntity.Creator().TgBotID != whc.GetBotCode(): "+askMsgToCreator.Text)

@@ -6,6 +6,7 @@ import (
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/i18n"
 	"net/url"
 	"strings"
 	"time"
@@ -15,7 +16,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/debtstracker-translations/emoji"
-	"github.com/strongo/app"
 	"github.com/yaa110/go-persian-calendar"
 )
 
@@ -40,7 +40,7 @@ func showHistoryCard(whc botsfw.WebhookContext, limit int) (m botsfw.MessageFrom
 
 	var transfers []models.Transfer
 	var hasMore bool
-	if transfers, hasMore, err = dtdal.Transfer.LoadTransfersByUserID(c, whc.AppUserIntID(), 0, limit); err != nil {
+	if transfers, hasMore, err = dtdal.Transfer.LoadTransfersByUserID(c, whc.AppUserInt64ID(), 0, limit); err != nil {
 		return m, err
 	}
 
@@ -62,7 +62,7 @@ func showHistoryCard(whc botsfw.WebhookContext, limit int) (m botsfw.MessageFrom
 						tgbotapi.NewInlineKeyboardButtonURL(
 							whc.Translate(trans.INLINE_BUTTON_SHOW_FULL_HISTORY),
 							//fmt.Sprintf("transfer-history?offset=%v", len(transfers)),
-							fmt.Sprintf("https://debtstracker.io/%v/history?user=%v#%v", whc.Locale().SiteCode(), common.EncodeID(whc.AppUserIntID()), utmParams),
+							fmt.Sprintf("https://debtstracker.io/%v/history?user=%v#%v", whc.Locale().SiteCode(), common.EncodeID(whc.AppUserInt64ID()), utmParams),
 						),
 					},
 				},
@@ -82,7 +82,7 @@ const (
 func transferHistoryRows(whc botsfw.WebhookContext, transfers []models.Transfer) string {
 	var s bytes.Buffer
 	for _, transfer := range transfers {
-		isCreator := whc.AppUserIntID() == transfer.Data.CreatorUserID
+		isCreator := whc.AppUserInt64ID() == transfer.Data.CreatorUserID
 		var counterpartyName string
 		if isCreator {
 			counterpartyName = transfer.Data.Counterparty().ContactName
@@ -92,7 +92,7 @@ func transferHistoryRows(whc botsfw.WebhookContext, transfers []models.Transfer)
 		amount := fmt.Sprintf(`<a href="%v">%s</a>`,
 			common.GetTransferUrlForUser(
 				transfer.ID,
-				whc.AppUserIntID(),
+				whc.AppUserInt64ID(),
 				whc.Locale(),
 				common.NewUtmParams(whc, "history"),
 			),
@@ -119,11 +119,11 @@ func callbackTransferHistory(whc botsfw.WebhookContext, _ *url.URL) (botsfw.Mess
 	return whc.NewMessage("TODO: Show more history records"), nil
 }
 
-func shortDate(t time.Time, translator strongo.SingleLocaleTranslator) string {
+func shortDate(t time.Time, translator i18n.SingleLocaleTranslator) string {
 	switch translator.Locale().Code5 {
-	case strongo.LocaleCodeEnUS:
+	case i18n.LocaleCodeEnUS:
 		return t.Format("02 Jan 2006")
-	case strongo.LocaleCodeFaIR:
+	case i18n.LocaleCodeFaIR:
 		pt := ptime.New(t)
 		return pt.Format("dd MMM yyyy")
 	default:

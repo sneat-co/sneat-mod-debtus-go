@@ -3,7 +3,7 @@ package gaedal
 import (
 	"fmt"
 	apphostgae "github.com/strongo/app-host-gae"
-	"github.com/strongo/app/delaying"
+	"github.com/strongo/delaying"
 	"net/url"
 	"strconv"
 	"time"

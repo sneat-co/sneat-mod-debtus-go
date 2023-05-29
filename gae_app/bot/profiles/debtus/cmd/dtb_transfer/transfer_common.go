@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/i18n"
 	"math"
 	"net/url"
 	"regexp"
@@ -26,7 +28,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/debtstracker-translations/emoji"
-	"github.com/strongo/app"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 	"golang.org/x/net/html"
@@ -87,7 +88,7 @@ var currenciesByPriority = []money.Currency{
 }
 
 func AskTransferCurrencyButtons(whc botsfw.WebhookContext) [][]string {
-	user, _ := whc.GetAppUser()
+	user, _ := whc.AppUserData()
 	user.GetPreferredLocale()
 
 	var (
@@ -151,13 +152,13 @@ func AskTransferAmountCommand(code, messageTextFormat string, nextCommand botsfw
 			c := whc.Context()
 
 			//amount := 0
-			//whc.chatEntity.AwaitingReplyTo = fmt.Sprintf("%v>%v?%v&amount=%v", whc.AwaitingReplyToPath(), code, whc.AwaitingReplyToQuery(), amount)
+			//whc.chatData.AwaitingReplyTo = fmt.Sprintf("%v>%v?%v&amount=%v", whc.AwaitingReplyToPath(), code, whc.AwaitingReplyToQuery(), amount)
 
-			chatEntity := whc.ChatEntity()
-			awaitingReplyTo := chatEntity.GetAwaitingReplyTo()
-			awaitingReplyToPath := botsfw.AwaitingReplyToPath(awaitingReplyTo)
+			chatData := whc.ChatData()
+			awaitingReplyTo := chatData.GetAwaitingReplyTo()
+			awaitingReplyToPath := botsfwmodels.AwaitingReplyToPath(awaitingReplyTo)
 			switch {
-			case chatEntity.IsAwaitingReplyTo(code):
+			case chatData.IsAwaitingReplyTo(code):
 				switch whc.Input().(type) {
 				case botsfw.WebhookTextMessage:
 					mt := strings.TrimSpace(whc.Input().(botsfw.WebhookTextMessage).Text())
@@ -175,10 +176,10 @@ func AskTransferAmountCommand(code, messageTextFormat string, nextCommand botsfw
 						//err = nil
 						m = whc.NewMessage(emoji.NO_ENTRY_SIGN_ICON +
 							" " + whc.Translate(trans.MESSAGE_TEXT_INVALID_FLOAT) +
-							"\n\n" + whc.Translate(messageTextFormat, html.EscapeString(chatEntity.GetWizardParam("currency"))))
+							"\n\n" + whc.Translate(messageTextFormat, html.EscapeString(chatData.GetWizardParam("currency"))))
 						m.Format = botsfw.MessageFormatHTML
 					} else {
-						chatEntity.AddWizardParam("value", mt)
+						chatData.AddWizardParam("value", mt)
 						return nextCommand.Action(whc)
 					}
 				case botsfw.WebhookContactMessage:
@@ -199,10 +200,10 @@ func AskTransferAmountCommand(code, messageTextFormat string, nextCommand botsfw
 				//}
 				return m, fmt.Errorf("Command %v is incorrectly matched, whc.AwaitingReplyToPath(): %v", code, awaitingReplyToPath)
 			default:
-				chatEntity.PushStepToAwaitingReplyTo(code)
-				currencyText := chatEntity.GetWizardParam("currency")
+				chatData.PushStepToAwaitingReplyTo(code)
+				currencyText := chatData.GetWizardParam("currency")
 				if currencyText == "" {
-					awaitingReplyToQuery := botsfw.AwaitingReplyToQuery(awaitingReplyTo)
+					awaitingReplyToQuery := botsfwmodels.AwaitingReplyToQuery(awaitingReplyTo)
 					log.Warningf(c, "No currency in params: %v", awaitingReplyToQuery)
 				}
 				m = whc.NewMessageByCode(messageTextFormat, html.EscapeString(currencyText))
@@ -253,9 +254,9 @@ func CreateAskTransferCounterpartyCommand(
 			//whc.chatEntity.AwaitingReplyTo = fmt.Sprintf("%v>%v?%v&amount=%v", whc.AwaitingReplyToPath(), code, whc.AwaitingReplyToQuery(), amount)
 
 			log.Debugf(c, "AskTransferCounterpartyCommand.Action(command.code=%v)", code)
-			chatEntity := whc.ChatEntity()
+			chatEntity := whc.ChatData()
 			awaitingReplyTo := chatEntity.GetAwaitingReplyTo()
-			awaitingReplyToPath := botsfw.AwaitingReplyToPath(awaitingReplyTo)
+			awaitingReplyToPath := botsfwmodels.AwaitingReplyToPath(awaitingReplyTo)
 			switch {
 			case strings.HasSuffix(awaitingReplyToPath, code): // If ends with it's own code display list of counterparties
 				log.Debugf(c, "strings.HasSuffix(awaitingReplyToPath, code)")
@@ -270,7 +271,7 @@ func CreateAskTransferCounterpartyCommand(
 						return cancelTransferWizardCommandAction(whc)
 					}
 					var contactIDs []int64
-					if contactIDs, err = dtdal.Contact.GetContactIDsByTitle(c, nil, whc.AppUserIntID(), mt, true); err != nil {
+					if contactIDs, err = dtdal.Contact.GetContactIDsByTitle(c, nil, whc.AppUserInt64ID(), mt, true); err != nil {
 						return m, err
 					}
 					if mt == whc.Translate(trans.COMMAND_TEXT_SHOW_ALL_CONTACTS) {
@@ -304,7 +305,7 @@ func CreateAskTransferCounterpartyCommand(
 			default:
 				log.Debugf(c, "default:")
 				var user models.AppUser
-				if user, err = facade.User.GetUserByID(c, nil, whc.AppUserIntID()); err != nil {
+				if user, err = facade.User.GetUserByID(c, nil, whc.AppUserInt64ID()); err != nil {
 					return
 				}
 				if isReturn && user.Data.BalanceCount <= 3 && user.Data.TotalContactsCount() <= 3 {
@@ -354,7 +355,7 @@ func listCounterpartiesAsButtons(whc botsfw.WebhookContext, user models.AppUser,
 	c := whc.Context()
 
 	log.Debugf(c, "listCounterpartiesAsButtons")
-	queryString, err := url.ParseQuery(botsfw.AwaitingReplyToQuery(whc.ChatEntity().GetAwaitingReplyTo()))
+	queryString, err := url.ParseQuery(botsfwmodels.AwaitingReplyToQuery(whc.ChatData().GetAwaitingReplyTo()))
 	if err != nil {
 		return m, err
 	}
@@ -372,7 +373,7 @@ func listCounterpartiesAsButtons(whc botsfw.WebhookContext, user models.AppUser,
 	}
 	m.Format = botsfw.MessageFormatHTML
 	if user.Data == nil {
-		if user, err = facade.User.GetUserByID(c, nil, whc.AppUserIntID()); err != nil {
+		if user, err = facade.User.GetUserByID(c, nil, whc.AppUserInt64ID()); err != nil {
 			return
 		}
 	}
@@ -442,9 +443,9 @@ type TransferWizard struct {
 }
 
 func NewTransferWizard(whc botsfw.WebhookContext) (TransferWizard, error) {
-	awaitingReplyTo := whc.ChatEntity().GetAwaitingReplyTo()
+	awaitingReplyTo := whc.ChatData().GetAwaitingReplyTo()
 	log.Debugf(whc.Context(), "AwaitingReplyTo: %v", awaitingReplyTo)
-	params, err := url.ParseQuery(botsfw.AwaitingReplyToQuery(awaitingReplyTo))
+	params, err := url.ParseQuery(botsfwmodels.AwaitingReplyToQuery(awaitingReplyTo))
 	return TransferWizard{params: params}, err
 }
 
@@ -471,7 +472,7 @@ func TransferWizardCompletedCommand(code string) botsfw.Command {
 		Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 			c := whc.Context()
 
-			if chatEntity := whc.ChatEntity(); strings.Contains(chatEntity.GetAwaitingReplyTo(), "counterparty=0") {
+			if chatEntity := whc.ChatData(); strings.Contains(chatEntity.GetAwaitingReplyTo(), "counterparty=0") {
 				return dtb_general.MainMenuAction(whc, trans.MESSGE_TEXT_DEBT_ERROR_FIXED_START_OVER, false)
 			}
 
@@ -527,7 +528,7 @@ func TransferWizardCompletedCommand(code string) botsfw.Command {
 			amount := money.Amount{Currency: currency, Value: value}
 
 			creatorInfo := models.TransferCounterpartyInfo{
-				UserID:      whc.AppUserIntID(),
+				UserID:      whc.AppUserInt64ID(),
 				ContactID:   counterpartyId,
 				ContactName: "",
 			}
@@ -553,7 +554,7 @@ func TransferWizardCompletedCommand(code string) botsfw.Command {
 			}
 
 			//SetMainMenuKeyboard(whc, &m)
-			whc.ChatEntity().SetAwaitingReplyTo("")
+			whc.ChatData().SetAwaitingReplyTo("")
 			return m, nil
 		},
 	}
@@ -596,7 +597,7 @@ func CreateTransferFromBot(
 	from, to := facade.TransferCounterparties(direction, creatorInfo)
 
 	var appUser models.AppUser
-	if appUser, err = facade.User.GetUserByID(c, nil, whc.AppUserIntID()); err != nil {
+	if appUser, err = facade.User.GetUserByID(c, nil, whc.AppUserInt64ID()); err != nil {
 		return
 	}
 	newTransfer := facade.NewTransferInput(whc.Environment(),
@@ -689,7 +690,7 @@ func CreateTransferFromBot(
 
 	{
 		utm := common.NewUtmParams(whc, common.UTM_CAMPAIGN_RECEIPT)
-		receiptMessageText := common.TextReceiptForTransfer(whc, output.Transfer, whc.AppUserIntID(), common.ShowReceiptToAutodetect, utm)
+		receiptMessageText := common.TextReceiptForTransfer(c, whc, output.Transfer, whc.AppUserInt64ID(), common.ShowReceiptToAutodetect, utm)
 
 		switch whc.BotPlatform().ID() {
 		case telegram.PlatformID:
@@ -712,7 +713,7 @@ func CreateTransferFromBot(
 					if err = dtdal.Transfer.DelayUpdateTransferWithCreatorReceiptTgMessageID(whc.Context(), whc.GetBotCode(), output.Transfer.ID, tgMessage.Chat.ID, int64(tgMessage.MessageID)); err != nil {
 						return m, err
 					}
-					whc.ChatEntity().SetAwaitingReplyTo("")
+					whc.ChatData().SetAwaitingReplyTo("")
 				}
 			}
 		//case viber.PlatformID:
@@ -726,7 +727,7 @@ func CreateTransferFromBot(
 	return dtb_general.MainMenuAction(whc, "", false)
 }
 
-func sendReceiptByTelegramButton(transferEncodedID string, translator strongo.SingleLocaleTranslator) tgbotapi.InlineKeyboardButton {
+func sendReceiptByTelegramButton(transferEncodedID string, translator i18n.SingleLocaleTranslator) tgbotapi.InlineKeyboardButton {
 	return tgbotapi.NewInlineKeyboardButtonSwitchInlineQuery(
 		translator.Translate(trans.COMMAND_TEXT_SEND_RECEIPT_BY_TELEGRAM),
 		fmt.Sprintf("receipt?id=%v", transferEncodedID),
@@ -745,9 +746,9 @@ func createSendReceiptOptionsMessage(whc botsfw.WebhookContext, transfer models.
 		utmCampaign = common.UTM_CAMPAIGN_DEBT_CREATED
 	}
 	utmParams := common.NewUtmParams(whc, utmCampaign)
-	transferUrlForUser := common.GetTransferUrlForUser(transfer.ID, whc.AppUserIntID(), whc.Locale(), utmParams)
+	transferUrlForUser := common.GetTransferUrlForUser(transfer.ID, whc.AppUserInt64ID(), whc.Locale(), utmParams)
 	mt = strings.Replace(mt, "<a receipt>", fmt.Sprintf(`<a href="%v">`, transferUrlForUser), 1)
-	mt = strings.Replace(mt, "<a counterparty>", fmt.Sprintf(`<a href="%v">`, common.GetCounterpartyUrl(transfer.Data.Counterparty().ContactID, whc.AppUserIntID(), whc.Locale(), utmParams)), 1)
+	mt = strings.Replace(mt, "<a counterparty>", fmt.Sprintf(`<a href="%v">`, common.GetCounterpartyUrl(transfer.Data.Counterparty().ContactID, whc.AppUserInt64ID(), whc.Locale(), utmParams)), 1)
 
 	if whc.InputType() == botsfw.WebhookInputCallbackQuery {
 		if m, err = whc.NewEditMessage(mt, botsfw.MessageFormatHTML); err != nil {
@@ -794,7 +795,7 @@ func createSendReceiptOptionsMessage(whc botsfw.WebhookContext, transfer models.
 			Medium:   common.UTM_MEDIUM_BOT,
 			Campaign: common.UTM_CAMPAIGN_TRANSFER_SEND_RECEIPT,
 		}
-		transferUrl := common.GetTransferUrlForUser(transfer.ID, whc.AppUserIntID(), whc.Locale(), utmParams)
+		transferUrl := common.GetTransferUrlForUser(transfer.ID, whc.AppUserInt64ID(), whc.Locale(), utmParams)
 
 		transferUrl += "&send=menu"
 

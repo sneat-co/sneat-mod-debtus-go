@@ -1,7 +1,7 @@
 package reminders
 
 import (
-	"github.com/strongo/app/delaying"
+	"github.com/strongo/delaying"
 )
 
 func init() {

@@ -24,9 +24,8 @@ func NewCounterpartyCommand(nextCommand botsfw.Command) botsfw.Command {
 		Title:   trans.COMMAND_TEXT_NEW_COUNTERPARTY,
 		Replies: []botsfw.Command{nextCommand},
 		Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
-			c := whc.Context()
 
-			chatEntity := whc.ChatEntity()
+			chatEntity := whc.ChatData()
 			if chatEntity.IsAwaitingReplyTo(NEW_COUNTERPARTY_COMMAND) {
 				var user models.AppUser
 				if user, err = dtb_common.GetUser(whc); err != nil {
@@ -71,7 +70,7 @@ func NewCounterpartyCommand(nextCommand botsfw.Command) botsfw.Command {
 					}
 					phoneStr := input2.PhoneNumber()
 					if phoneNum, err := strconv.ParseInt(phoneStr, 10, 64); err != nil {
-						log.Warningf(c, "Failed to parse phone string to int (%v)", phoneStr)
+						log.Warningf(whc.Context(), "Failed to parse phone string to int (%v)", phoneStr)
 					} else {
 						contactDetails.PhoneContact = models.PhoneContact{
 							PhoneNumber:          phoneNum,
@@ -85,7 +84,7 @@ func NewCounterpartyCommand(nextCommand botsfw.Command) botsfw.Command {
 						if contactDetails.TelegramUserID != 0 {
 							for _, userContactJson := range user.Data.Contacts() {
 								if userContactJson.TgUserID == contactDetails.TelegramUserID {
-									log.Debugf(c, "Matched contact my TelegramUserID=%d", contactDetails.TelegramUserID)
+									log.Debugf(whc.Context(), "Matched contact my TelegramUserID=%d", contactDetails.TelegramUserID)
 									existingContact = true
 									contact.ID = userContactJson.ID
 								}
@@ -99,7 +98,7 @@ func NewCounterpartyCommand(nextCommand botsfw.Command) botsfw.Command {
 
 				if !existingContact {
 					var user models.AppUser
-					if user, err = facade.User.GetUserByID(c, nil, whc.AppUserIntID()); err != nil {
+					if user, err = facade.User.GetUserByID(whc.Context(), nil, whc.AppUserInt64ID()); err != nil {
 						return
 					}
 
@@ -114,14 +113,14 @@ func NewCounterpartyCommand(nextCommand botsfw.Command) botsfw.Command {
 				}
 
 				if !existingContact {
-					if contact, user, err = facade.CreateContact(c, nil, whc.AppUserIntID(), contactDetails); err != nil {
+					if contact, user, err = facade.CreateContact(whc.Context(), nil, whc.AppUserInt64ID(), contactDetails); err != nil {
 						return m, err
 					}
 					ga := whc.GA()
 					if err = ga.Queue(ga.GaEventWithLabel(
 						"contacts",
 						"contact-created",
-						fmt.Sprintf("user-%v", whc.AppUserIntID()),
+						fmt.Sprintf("user-%v", whc.AppUserInt64ID()),
 					)); err != nil {
 						return m, err
 					}

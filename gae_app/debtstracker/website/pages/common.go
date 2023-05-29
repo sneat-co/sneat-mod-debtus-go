@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/i18n"
 	"html/template"
 	"net/http"
 	"strings"
@@ -19,20 +20,20 @@ import (
 	"google.golang.org/appengine"
 )
 
-func pageContext(r *http.Request, locale strongo.Locale) (translator strongo.SingleLocaleTranslator, data map[string]interface{}) {
+func pageContext(r *http.Request, locale i18n.Locale) (translator i18n.SingleLocaleTranslator, data map[string]interface{}) {
 	userVoiceID := "6ed87444-76e3-43ee-8b6e-fd28d345e79c" // English
 	c := appengine.NewContext(r)
 
 	switch locale.Code5 {
-	case strongo.LocalCodeRuRu:
+	case i18n.LocalCodeRuRu:
 		userVoiceID = "47c67b85-d064-4727-b149-bda58cfe6c2d"
 	}
 
 	appTranslator := common.TheAppContext.GetTranslator(c)
-	translator = strongo.NewSingleMapTranslator(locale, appTranslator)
+	translator = i18n.NewSingleMapTranslator(locale, appTranslator)
 
-	if locale.Code5 != strongo.LocaleCodeEnUS {
-		translator = strongo.NewSingleLocaleTranslatorWithBackup(translator, strongo.NewSingleMapTranslator(strongo.LocaleEnUS, appTranslator))
+	if locale.Code5 != i18n.LocaleCodeEnUS {
+		translator = i18n.NewSingleLocaleTranslatorWithBackup(translator, i18n.NewSingleMapTranslator(i18n.LocaleEnUS, appTranslator))
 	}
 
 	env := dtdal.HttpAppHost.GetEnvironment(c, r)
@@ -55,9 +56,9 @@ func pageContext(r *http.Request, locale strongo.Locale) (translator strongo.Sin
 	return translator, data
 }
 
-func getLocale(c context.Context, w http.ResponseWriter, r *http.Request) (locale strongo.Locale, err error) {
+func getLocale(c context.Context, w http.ResponseWriter, r *http.Request) (locale i18n.Locale, err error) {
 	getLocaleBySiteCode := func(localeCode string) {
-		for _, supportedLocale := range strongo.LocalesByCode5 {
+		for _, supportedLocale := range i18n.LocalesByCode5 {
 			if supportedLocale.SiteCode() == localeCode {
 				locale = supportedLocale
 				break
@@ -68,23 +69,23 @@ func getLocale(c context.Context, w http.ResponseWriter, r *http.Request) (local
 	path := r.URL.Path
 	if path == "/" {
 		if localeCode, ok := c.Value("locale").(string); !ok {
-			locale = strongo.LocaleEnUS
+			locale = i18n.LocaleEnUS
 		} else {
 			getLocaleBySiteCode(localeCode)
 			if locale.Code5 == "" {
-				locale = strongo.LocaleEnUS
+				locale = i18n.LocaleEnUS
 			}
 		}
 		return
 	} else {
 		if strings.HasPrefix(path, "/ru/") {
-			locale = strongo.LocaleRuRu
+			locale = i18n.LocaleRuRu
 		} else if strings.HasPrefix(path, "/zh/") {
-			locale = strongo.LocaleZhCn
+			locale = i18n.LocaleZhCn
 		} else if strings.HasPrefix(path, "/ja/") {
-			locale = strongo.LocaleJaJp
+			locale = i18n.LocaleJaJp
 		} else if strings.HasPrefix(path, "/fa/") {
-			locale = strongo.LocaleFaIr
+			locale = i18n.LocaleFaIr
 		} else {
 			nextSlashIndex := strings.Index(path[1:], "/")
 			if nextSlashIndex == -1 {
@@ -110,7 +111,7 @@ func getLocale(c context.Context, w http.ResponseWriter, r *http.Request) (local
 	return
 }
 
-func RenderCachedPage(w http.ResponseWriter, r *http.Request, tmpl *template.Template, locale strongo.Locale, data map[string]interface{}, maxAge int) {
+func RenderCachedPage(w http.ResponseWriter, r *http.Request, tmpl *template.Template, locale i18n.Locale, data map[string]interface{}, maxAge int) {
 	var buffer bytes.Buffer
 	if err := tmpl.Execute(&buffer, data); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

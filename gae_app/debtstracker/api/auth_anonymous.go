@@ -15,7 +15,7 @@ func handleSignUpAnonymously(c context.Context, w http.ResponseWriter, r *http.R
 	if user, err := dtdal.User.CreateAnonymousUser(c); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 	} else {
-		if err = SaveUserAgent(c, user.ID, r.UserAgent()); err != nil {
+		if err = SaveUserAgent(c, strconv.FormatInt(user.ID, 10), r.UserAgent()); err != nil {
 			ErrorAsJson(c, w, http.StatusInternalServerError, err)
 			return
 		}
@@ -42,7 +42,7 @@ func handleSignInAnonymous(c context.Context, w http.ResponseWriter, r *http.Req
 	}
 
 	if userEntity.Data.IsAnonymous {
-		if err = SaveUserAgent(c, userID, r.UserAgent()); err != nil {
+		if err = SaveUserAgent(c, strconv.FormatInt(userID, 10), r.UserAgent()); err != nil {
 			ErrorAsJson(c, w, http.StatusInternalServerError, err)
 			return
 		}

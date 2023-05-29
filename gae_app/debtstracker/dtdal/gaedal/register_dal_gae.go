@@ -2,7 +2,7 @@ package gaedal
 
 import (
 	"context"
-	telegramBot "github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/bots-go-framework/bots-fw-store/botsfwdal"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
@@ -15,7 +15,7 @@ import (
 func RegisterDal() {
 
 	//dtdal.DB = gaedb.NewDatabase()
-	telegramBot.Init(facade.GetDatabase)
+	//telegramBot.Init(facade.GetDatabase)
 	//
 	dtdal.Contact = NewContactDalGae()
 	dtdal.Transfer = NewTransferDalGae()
@@ -73,7 +73,7 @@ func (h ApiBotHost) GetHTTPClient(c context.Context) *http.Client {
 	return dtdal.HttpClient(c)
 }
 
-func (h ApiBotHost) GetBotCoreStores(platform string, appContext botsfw.BotAppContext, r *http.Request) botsfw.BotCoreStores {
+func (h ApiBotHost) GetBotCoreStores(platform string, appContext botsfw.BotAppContext, r *http.Request) botsfwdal.DataAccess {
 	panic("Not implemented")
 }
 

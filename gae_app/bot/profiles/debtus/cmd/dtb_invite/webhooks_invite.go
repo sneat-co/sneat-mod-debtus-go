@@ -36,7 +36,7 @@ var InviteCommand = botsfw.Command{
 				},
 			},
 		}
-		whc.ChatEntity().SetAwaitingReplyTo(INVITE_COMMAND)
+		whc.ChatData().SetAwaitingReplyTo(INVITE_COMMAND)
 		return m, nil
 	},
 }

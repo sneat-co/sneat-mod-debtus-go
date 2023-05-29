@@ -5,7 +5,7 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/strongo/app"
+	"github.com/strongo/i18n"
 )
 
 func HelpCommandAction(whc botsfw.WebhookContext, showFeedbackButton bool) (m botsfw.MessageFromBot, err error) {
@@ -42,9 +42,9 @@ func HelpCommandAction(whc botsfw.WebhookContext, showFeedbackButton bool) (m bo
 	return m, err
 }
 
-func getUserReportUrl(t strongo.SingleLocaleTranslator, submit string) string {
+func getUserReportUrl(t i18n.SingleLocaleTranslator, submit string) string {
 	switch t.Locale().Code5 {
-	case strongo.LocalCodeRuRu:
+	case i18n.LocalCodeRuRu:
 		switch submit {
 		case "idea":
 			return "https://goo.gl/dAKHFC"
@@ -92,12 +92,12 @@ var AdsCommand = botsfw.Command{
 	Title:    trans.COMMAND_TEXT_HELP,
 	Titles:   map[string]string{botsfw.ShortTitle: ""},
 	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
-		chatEntity := whc.ChatEntity()
+		chatData := whc.ChatData()
 
 		yesOption := emoji.PHONE_ICON + " " + whc.Translate(trans.COMMAND_TEXT_SUBSCRIBE_TO_APP)
 		noOption := whc.Translate(trans.COMMAND_TEXT_I_AM_FINE_WITH_BOT)
-		if chatEntity.GetAwaitingReplyTo() == "" {
-			chatEntity.SetAwaitingReplyTo(ADS_COMMAND)
+		if chatData.GetAwaitingReplyTo() == "" {
+			chatData.SetAwaitingReplyTo(ADS_COMMAND)
 			m = whc.NewMessage(emoji.NEWSPAPER_ICON + " " + whc.Translate(trans.MESSAGE_TEXT_YOUR_ABOUT_ADS))
 			m.DisableWebPagePreview = true
 			m.Keyboard = tgbotapi.NewReplyKeyboard(
@@ -110,11 +110,11 @@ var AdsCommand = botsfw.Command{
 			case yesOption:
 				m = whc.NewMessageByCode(trans.MESSAGE_TEXT_SUBSCRIBED_TO_APP)
 				SetMainMenuKeyboard(whc, &m)
-				chatEntity.SetAwaitingReplyTo("")
+				chatData.SetAwaitingReplyTo("")
 			case noOption:
 				m = whc.NewMessageByCode(trans.MESSAGE_TEXT_NOT_INTERESTED_IN_APP)
 				SetMainMenuKeyboard(whc, &m)
-				chatEntity.SetAwaitingReplyTo("")
+				chatData.SetAwaitingReplyTo("")
 			default:
 				m = whc.NewMessageByCode(trans.MESSAGE_TEXT_PLEASE_CHOOSE_FROM_OPTIONS_PROVIDED)
 			}

@@ -51,7 +51,7 @@ func createBillFromInlineChosenResult(whc botsfw.WebhookContext, chosenResult bo
 
 	switch {
 	case true:
-		userID := whc.AppUserStrID()
+		userID := whc.AppUserID()
 		var values url.Values
 		if values, err = url.ParseQuery(resultID[len(prefix):]); err != nil {
 			return
@@ -242,7 +242,7 @@ var EditedBillCardHookCommand = botsfw.Command{ // TODO: seems to be not used an
 			}
 
 			if groupID != "" && bill.Data.GetUserGroupID() != groupID { // TODO: Should we check for empty bill.GetUserGroupID() or better fail?
-				if bill, _, err = facade.Bill.AssignBillToGroup(c, tx, bill, groupID, whc.AppUserStrID()); err != nil {
+				if bill, _, err = facade.Bill.AssignBillToGroup(c, tx, bill, groupID, whc.AppUserID()); err != nil {
 					return err
 				}
 				changed = true

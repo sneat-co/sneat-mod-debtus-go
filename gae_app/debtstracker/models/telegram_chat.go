@@ -1,31 +1,32 @@
 package models
 
 import (
-	tgstore "github.com/bots-go-framework/bots-fw-telegram/store"
+	"github.com/bots-go-framework/bots-fw-telegram-models/botsfwtgmodels"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
 	"reflect"
 )
 
 type DebtusTelegramChat struct {
-	tgstore.TgChat
-	//tgstore.ChatEntity
+	record.WithID[string]
+	//botsfwtgmodels.ChatEntity
 	Data *DebtusTelegramChatData
 }
 
-var _ tgstore.TgChatData = (*DebtusTelegramChatData)(nil)
+var _ botsfwtgmodels.TgChatData = (*DebtusTelegramChatData)(nil)
 
 // DebtusTelegramChatData is a data structure for storing debtus data related to specific telegram chat
 type DebtusTelegramChatData struct {
-	tgstore.TgChatBase
+	botsfwtgmodels.TgChatBaseData
 	DebtusChatData
 }
 
 func NewDebtusTelegramChatRecord() dal.Record {
-	return dal.NewRecordWithIncompleteKey(tgstore.TgChatCollection, reflect.String, new(DebtusTelegramChatData))
+	return dal.NewRecordWithIncompleteKey(botsfwtgmodels.TgChatCollection, reflect.String, new(DebtusTelegramChatData))
 }
 
-func (v *DebtusTelegramChatData) BaseChatData() *tgstore.TgChatBase {
-	return &v.TgChatBase
+func (v *DebtusTelegramChatData) BaseChatData() *botsfwtgmodels.TgChatBaseData {
+	return &v.TgChatBaseData
 }
 
 func (v *DebtusTelegramChatData) Validate() (err error) {

@@ -17,7 +17,7 @@ func startInBotAction(whc botsfw.WebhookContext, startParams []string, botParams
 	log.Debugf(whc.Context(), "startInBotAction() => startParams: %v", startParams)
 	if m, err = botParams.StartInBotAction(whc, startParams); err != nil {
 		if err == ErrUnknownStartParam {
-			if whc.ChatEntity().GetPreferredLanguage() == "" {
+			if whc.ChatData().GetPreferredLanguage() == "" {
 				return onboardingAskLocaleAction(whc, whc.Translate(trans.MESSAGE_TEXT_HI)+"\n\n", botParams)
 			}
 		}

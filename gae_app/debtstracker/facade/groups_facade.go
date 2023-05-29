@@ -2,9 +2,10 @@ package facade
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/strongo/app/delaying"
+	"github.com/strongo/delaying"
 	"strconv"
 
 	"context"
@@ -110,7 +111,7 @@ func (groupFacade groupFacade) CreateGroup(c context.Context,
 
 type NewUser struct {
 	Name string
-	botsfw.BotUser
+	botsfwmodels.BotUserData
 	ChatMember botsfw.WebhookActor
 }
 
@@ -136,7 +137,7 @@ func (groupFacade) AddUsersToTheGroupAndOutstandingBills(c context.Context, grou
 		log.Debugf(c, "group: %+v", group.Data)
 		j := 0
 		for _, newUser := range newUsers {
-			_, isChanged, _, _, groupMembers := group.Data.AddOrGetMember(strconv.FormatInt(newUser.GetAppUserIntID(), 10), "", newUser.Name)
+			_, isChanged, _, _, groupMembers := group.Data.AddOrGetMember(newUser.GetAppUserID(), "", newUser.Name)
 			changed = changed || isChanged
 			if isChanged {
 				group.Data.SetGroupMembers(groupMembers)

@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/dal-go/dalgo/dal"
 	"net/http"
+	"strconv"
 
 	"context"
 	"errors"
@@ -36,12 +37,12 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 				if err != dal.ErrRecordNotFound {
 					return err
 				}
-			} else if userFb.Data.AppUserIntID == appUser.ID {
+			} else if fbUserAppID := userFb.FbUserData().GetAppUserID(); fbUserAppID == strconv.FormatInt(appUser.ID, 10) {
 				if err = dtdal.UserFacebook.DeleteFbUser(c, userAccount.App, userAccount.ID); err != nil {
 					return err
 				}
 			} else {
-				log.Warningf(c, "TODO: Handle case if userFb.AppUserIntID:%d != appUser.ID:%d", userFb.Data.AppUserIntID, appUser.ID)
+				log.Warningf(c, "TODO: Handle case if userFb.AppUserIntID:%s != appUser.ID:%d", fbUserAppID, appUser.ID)
 			}
 			return nil
 		}
@@ -63,13 +64,13 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 					if err != dal.ErrRecordNotFound {
 						return err
 					}
-				} else if userGoogle.Data.AppUserIntID == appUser.ID {
-					userGoogle.Data.AppUserIntID = 0
+				} else if userGoogle.Data().GetAppUserID() == strconv.FormatInt(appUser.ID, 10) {
+					userGoogle.Data().SetAppUserID("")
 					if err = dtdal.UserGoogle.DeleteUserGoogle(c, userGoogle.ID); err != nil {
 						return err
 					}
 				} else {
-					log.Warningf(c, "TODO: Handle case if userGoogle.AppUserIntID:%d != appUser.ID:%d", userGoogle.Data.AppUserIntID, appUser.ID)
+					log.Warningf(c, "TODO: Handle case if userGoogle.AppUserIntID:%d != appUser.ID:%d", userGoogle.Data().GetAppUserID(), appUser.ID)
 				}
 				_ = appUser.Data.RemoveAccount(*userAccount)
 				changed = true

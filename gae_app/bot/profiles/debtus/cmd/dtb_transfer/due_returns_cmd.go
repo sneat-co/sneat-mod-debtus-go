@@ -8,6 +8,7 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/i18n"
 	"html"
 	"net/url"
 	"strings"
@@ -16,7 +17,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/debtstracker-translations/emoji"
-	"github.com/strongo/app"
 	"github.com/strongo/log"
 )
 
@@ -27,7 +27,7 @@ var DueReturnsCallbackCommand = botsfw.NewCallbackCommand(DUE_RETURNS_COMMAND, d
 func dueReturnsCallbackAction(whc botsfw.WebhookContext, _ *url.URL) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
-	userID := whc.AppUserIntID()
+	userID := whc.AppUserInt64ID()
 	var (
 		overdueTransfers, dueTransfers []models.Transfer
 	)
@@ -111,7 +111,7 @@ func dueReturnsCallbackAction(whc botsfw.WebhookContext, _ *url.URL) (m botsfw.M
 	return m, err
 }
 
-func DurationToString(d time.Duration, translator strongo.SingleLocaleTranslator) string {
+func DurationToString(d time.Duration, translator i18n.SingleLocaleTranslator) string {
 	hours := d.Hours()
 	switch hours {
 	case 0:

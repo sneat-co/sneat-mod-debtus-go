@@ -17,7 +17,8 @@ var FixBalanceCommand = botsfw.Command{
 			return
 		}
 		if err = db.RunReadwriteTransaction(whc.Context(), func(c context.Context, tx dal.ReadwriteTransaction) error {
-			user, err := facade.User.GetUserByID(c, tx, whc.AppUserIntID())
+			//goland:noinspection GoDeprecation
+			user, err := facade.User.GetUserByID(c, tx, whc.AppUserInt64ID())
 			if err != nil {
 				return err
 			}

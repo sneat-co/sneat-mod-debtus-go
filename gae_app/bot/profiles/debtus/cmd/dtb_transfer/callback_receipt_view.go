@@ -12,7 +12,7 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	"github.com/strongo/app/delaying"
+	"github.com/strongo/delaying"
 	"github.com/strongo/log"
 	"net/url"
 	"strings"
@@ -33,7 +33,7 @@ var ViewReceiptInTelegramCallbackCommand = botsfw.NewCallbackCommand(
 		if err != nil {
 			return m, err
 		}
-		currentUserID := whc.AppUserIntID()
+		currentUserID := whc.AppUserInt64ID()
 		if receipt.Data.CreatorUserID != currentUserID {
 			if err = linkUsersByReceiptNowOrDelay(c, receipt, currentUserID); err != nil {
 				log.Errorf(c, err.Error())
@@ -49,7 +49,7 @@ var ViewReceiptInTelegramCallbackCommand = botsfw.NewCallbackCommand(
 			GetUrlForReceiptInTelegram(whc.GetBotCode(), receiptID, localeCode5),
 			//common.GetReceiptUrlForUser(
 			//	receiptID,
-			//	whc.AppUserIntID(),
+			//	whc.AppUserInt64ID(),
 			//	whc.BotPlatform().ID(),
 			//	whc.GetBotCode(),
 			//) + "&lang=" + localeCode5,

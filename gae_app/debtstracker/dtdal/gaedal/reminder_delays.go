@@ -5,7 +5,8 @@ import (
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/strongo/app/delaying"
+	"github.com/strongo/delaying"
+	"github.com/strongo/i18n"
 	"strings"
 	"time"
 
@@ -17,7 +18,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	"github.com/strongo/app"
 	"github.com/strongo/log"
 )
 
@@ -240,7 +240,7 @@ func discardReminder(c context.Context, tx dal.ReadwriteTransaction, reminderID,
 			}
 		}
 
-		executionContext := GetExecutionContextForReminder(c, reminder.Data)
+		translator := GetTranslatorForReminder(c, reminder.Data)
 
 		utmParams := common.UtmParams{
 			Source:   "TODO", // TODO: Get bot ID
@@ -249,20 +249,21 @@ func discardReminder(c context.Context, tx dal.ReadwriteTransaction, reminderID,
 		}
 
 		receiptMessageText := common.TextReceiptForTransfer(
-			executionContext,
+			c,
+			translator,
 			transfer,
 			reminder.Data.UserID,
 			common.ShowReceiptToAutodetect,
 			utmParams,
 		)
 
-		locale := strongo.GetLocaleByCode5(reminder.Data.Locale) // TODO: Check for supported locales
+		locale := i18n.GetLocaleByCode5(reminder.Data.Locale) // TODO: Check for supported locales
 
 		transferUrlForUser := common.GetTransferUrlForUser(transferID, reminder.Data.UserID, locale, utmParams)
 
 		receiptMessageText += "\n\n" + strings.Join([]string{
-			executionContext.Translate(trans.MESSAGE_TEXT_DEBT_IS_RETURNED),
-			fmt.Sprintf(`<a href="%v">%v</a>`, transferUrlForUser, executionContext.Translate(trans.MESSAGE_TEXT_DETAILS_ARE_HERE)),
+			translator.Translate(trans.MESSAGE_TEXT_DEBT_IS_RETURNED),
+			fmt.Sprintf(`<a href="%v">%v</a>`, transferUrlForUser, translator.Translate(trans.MESSAGE_TEXT_DETAILS_ARE_HERE)),
 		}, "\n")
 
 		tgMessage := tgbotapi.NewEditMessageText(reminder.Data.ChatIntID, int(reminder.Data.MessageIntID), "", receiptMessageText)
@@ -278,9 +279,8 @@ func discardReminder(c context.Context, tx dal.ReadwriteTransaction, reminderID,
 	return err
 }
 
-func GetExecutionContextForReminder(c context.Context, reminder *models.ReminderEntity) strongo.ExecutionContext {
-	translator := strongo.NewSingleMapTranslator(strongo.GetLocaleByCode5(reminder.Locale), strongo.NewMapTranslator(c, trans.TRANS))
-	return strongo.NewExecutionContext(c, translator)
+func GetTranslatorForReminder(c context.Context, reminder *models.ReminderEntity) i18n.SingleLocaleTranslator {
+	return i18n.NewSingleMapTranslator(i18n.GetLocaleByCode5(reminder.Locale), i18n.NewMapTranslator(c, trans.TRANS))
 }
 
 var ErrDuplicateAttemptToDiscardReminder = errors.New("Duplicate attempt to close reminder by same return transfer")

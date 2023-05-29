@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/platforms/tgbots"
@@ -12,7 +13,7 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/strongo/app"
+	"github.com/strongo/i18n"
 	"github.com/strongo/log"
 	"net/url"
 	"strings"
@@ -44,7 +45,7 @@ func createStartCommand(botParams BotParams) botsfw.Command {
 			if whc.IsInGroup() {
 				return botParams.StartInGroupAction(whc)
 			} else {
-				chatEntity := whc.ChatEntity()
+				chatEntity := whc.ChatData()
 				chatEntity.SetAwaitingReplyTo("")
 
 				switch {
@@ -59,7 +60,7 @@ func createStartCommand(botParams BotParams) botsfw.Command {
 					//case strings.HasPrefix(textToMatchNoStart, JOIN_BILL_COMMAND):
 					//	return JoinBillCommand.Action(whc)
 				case strings.HasPrefix(startParam, "refbytguser-") && startParam != "refbytguser-YOUR_CHANNEL":
-					facade.Referer.AddTelegramReferrer(c, whc.AppUserIntID(), strings.TrimPrefix(startParam, "refbytguser-"), whc.GetBotCode())
+					facade.Referer.AddTelegramReferrer(c, whc.AppUserInt64ID(), strings.TrimPrefix(startParam, "refbytguser-"), whc.GetBotCode())
 				}
 				return startInBotAction(whc, startParams, botParams)
 			}
@@ -70,7 +71,7 @@ func createStartCommand(botParams BotParams) botsfw.Command {
 func startLoginGac(whc botsfw.WebhookContext, loginID int) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	var loginPin models.LoginPin
-	if loginPin, err = facade.AuthFacade.AssignPinCode(c, loginID, whc.AppUserIntID()); err != nil {
+	if loginPin, err = facade.AuthFacade.AssignPinCode(c, loginID, whc.AppUserInt64ID()); err != nil {
 		return
 	}
 	return whc.NewMessageByCode(trans.MESSAGE_TEXT_LOGIN_CODE, models.LoginCodeToString(loginPin.Data.Code)), nil
@@ -91,8 +92,8 @@ func startInlineHelp(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err er
 }
 
 func GetUser(whc botsfw.WebhookContext) (userEntity *models.AppUserData, err error) { // TODO: Make library and use across app
-	var botAppUser botsfw.BotAppUser
-	if botAppUser, err = whc.GetAppUser(); err != nil {
+	var botAppUser botsfwmodels.AppUserData
+	if botAppUser, err = whc.AppUserData(); err != nil {
 		return
 	}
 	userEntity = botAppUser.(*models.AppUserData)
@@ -102,12 +103,12 @@ func GetUser(whc botsfw.WebhookContext) (userEntity *models.AppUserData, err err
 var LangKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	[]tgbotapi.InlineKeyboardButton{
 		{
-			Text:         strongo.LocaleEnUS.TitleWithIcon(),
-			CallbackData: onStartCallbackCommandCode + "?lang=" + strongo.LocaleCodeEnUS,
+			Text:         i18n.LocaleEnUS.TitleWithIcon(),
+			CallbackData: onStartCallbackCommandCode + "?lang=" + i18n.LocaleCodeEnUS,
 		},
 		{
-			Text:         strongo.LocaleRuRu.TitleWithIcon(),
-			CallbackData: onStartCallbackCommandCode + "?lang=" + strongo.LocalCodeRuRu,
+			Text:         i18n.LocaleRuRu.TitleWithIcon(),
+			CallbackData: onStartCallbackCommandCode + "?lang=" + i18n.LocalCodeRuRu,
 		},
 	},
 )
@@ -121,7 +122,7 @@ func onStartCallbackCommand(params BotParams) botsfw.Command {
 			c := whc.Context()
 			log.Debugf(c, "Locale: "+lang)
 
-			whc.ChatEntity().SetPreferredLanguage(lang)
+			whc.ChatData().SetPreferredLanguage(lang)
 
 			var db dal.Database
 			if db, err = facade.GetDatabase(c); err != nil {
@@ -129,7 +130,7 @@ func onStartCallbackCommand(params BotParams) botsfw.Command {
 			}
 
 			if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
-				user, err := facade.User.GetUserByID(c, tx, whc.AppUserIntID())
+				user, err := facade.User.GetUserByID(c, tx, whc.AppUserInt64ID())
 				if err != nil {
 					return err
 				}

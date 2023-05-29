@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
-	"github.com/strongo/app/delaying"
+	"github.com/strongo/delaying"
 	"time"
 
 	"context"

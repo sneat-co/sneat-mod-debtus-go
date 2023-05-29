@@ -3,6 +3,7 @@ package splitus
 import (
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/shared_all"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/shared_group"
@@ -20,24 +21,24 @@ func startInGroupAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err
 	if group, err = shared_group.GetGroup(whc, nil); err != nil {
 		return
 	}
-	var user botsfw.BotAppUser
-	if user, err = whc.GetAppUser(); err != nil {
+	var appUserD botsfwmodels.AppUserData
+	if appUserD, err = whc.AppUserData(); err != nil {
 		return
 	}
 
-	appUser := user.(*models.AppUserData)
+	appUser := appUserD.(*models.AppUserData)
 
-	var botUser botsfw.BotUser
+	var botUserData botsfwmodels.BotUserData
 
-	if botUser, err = whc.GetBotUserByID(c, whc.Input().GetSender().GetID()); err != nil {
+	if botUserData, err = whc.Store().GetBotUserByID(c, whc.GetBotCode(), whc.Input().GetSender().GetID().(string)); err != nil {
 		return
 	}
 
 	if group, _, err = facade.Group.AddUsersToTheGroupAndOutstandingBills(c, group.ID, []facade.NewUser{
 		{
-			Name:       appUser.FullName(),
-			BotUser:    botUser,
-			ChatMember: whc.Input().GetSender(),
+			Name:        appUser.FullName(),
+			BotUserData: botUserData,
+			ChatMember:  whc.Input().GetSender(),
 		},
 	}); err != nil {
 		err = fmt.Errorf("%w: failed to add user to the group", err)

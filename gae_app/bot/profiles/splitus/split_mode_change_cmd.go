@@ -20,7 +20,8 @@ var billChangeSplitModeCommand = botsfw.Command{
 		if bill.ID, err = GetBillID(callbackUrl); err != nil {
 			return
 		}
-		if err = whc.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+		if err = whc.Store().RunInTransaction(c, whc.GetBotCode(), func(c context.Context) (err error) {
+			tx := dal.GetTransaction(c).(dal.ReadwriteTransaction)
 			if bill, err = facade.GetBillByID(c, tx, bill.ID); err != nil {
 				return
 			}

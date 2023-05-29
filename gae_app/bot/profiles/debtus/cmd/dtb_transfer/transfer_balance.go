@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/crediterra/money"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/i18n"
 	"strconv"
 	"time"
 
@@ -12,22 +13,21 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/debtstracker-translations/emoji"
-	"github.com/strongo/app"
 	"github.com/strongo/log"
 	"golang.org/x/net/html"
 )
 
 type BalanceMessageBuilder struct {
-	translator strongo.SingleLocaleTranslator
+	translator i18n.SingleLocaleTranslator
 	NeedsTotal bool
 }
 
-func NewBalanceMessageBuilder(translator strongo.SingleLocaleTranslator) BalanceMessageBuilder {
+func NewBalanceMessageBuilder(translator i18n.SingleLocaleTranslator) BalanceMessageBuilder {
 	return BalanceMessageBuilder{translator: translator}
 }
 
 type simpleTranslator struct {
-	t strongo.SingleLocaleTranslator
+	t i18n.SingleLocaleTranslator
 }
 
 func (t simpleTranslator) Translate(key string) string {
@@ -111,7 +111,7 @@ func (m BalanceMessageBuilder) ByCurrency(isTotal bool, balance money.Balance) s
 	return buffer.String()
 }
 
-func BalanceForCounterpartyWithHeader(counterpartyLink string, b money.Balance, translator strongo.SingleLocaleTranslator) string {
+func BalanceForCounterpartyWithHeader(counterpartyLink string, b money.Balance, translator i18n.SingleLocaleTranslator) string {
 	balanceMessageBuilder := NewBalanceMessageBuilder(translator)
 	header := fmt.Sprintf("<b>%v</b>: %v", translator.Translate(trans.MESSAGE_TEXT_BALANCE_HEADER), counterpartyLink)
 	return "\n" + header + common.HORIZONTAL_LINE + balanceMessageBuilder.ByCurrency(false, b) + common.HORIZONTAL_LINE

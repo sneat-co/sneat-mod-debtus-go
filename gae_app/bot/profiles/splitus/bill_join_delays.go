@@ -10,8 +10,8 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/strongo/app"
-	"github.com/strongo/app/delaying"
+	"github.com/strongo/delaying"
+	"github.com/strongo/i18n"
 	"github.com/strongo/log"
 	"strings"
 )
@@ -50,7 +50,7 @@ func delayedUpdateBillTgChartCard(c context.Context, billID string, tgChatMessag
 	} else {
 		ids := strings.Split(tgChatMessageID, "@")
 		inlineMessageID, botCode, localeCode5 := ids[0], ids[1], ids[2]
-		translator := strongo.NewSingleMapTranslator(strongo.GetLocaleByCode5(localeCode5), strongo.NewMapTranslator(c, trans.TRANS))
+		translator := i18n.NewSingleMapTranslator(i18n.GetLocaleByCode5(localeCode5), i18n.NewMapTranslator(c, trans.TRANS))
 
 		editMessage := tgbotapi.NewEditMessageText(0, 0, inlineMessageID, "")
 		editMessage.ParseMode = "HTML"
@@ -76,7 +76,7 @@ func delayedUpdateBillTgChartCard(c context.Context, billID string, tgChatMessag
 	return nil
 }
 
-func updateInlineBillCardMessage(c context.Context, translator strongo.SingleLocaleTranslator, isGroupChat bool, editedMessage *tgbotapi.EditMessageTextConfig, bill models.Bill, botCode string, footer string) (err error) {
+func updateInlineBillCardMessage(c context.Context, translator i18n.SingleLocaleTranslator, isGroupChat bool, editedMessage *tgbotapi.EditMessageTextConfig, bill models.Bill, botCode string, footer string) (err error) {
 	if bill.ID == "" {
 		panic("bill.ID is empty string")
 	}
@@ -96,7 +96,7 @@ func updateInlineBillCardMessage(c context.Context, translator strongo.SingleLoc
 	return
 }
 
-func getPublicBillCardInlineKeyboard(translator strongo.SingleLocaleTranslator, botCode string, billID string) *tgbotapi.InlineKeyboardMarkup {
+func getPublicBillCardInlineKeyboard(translator i18n.SingleLocaleTranslator, botCode string, billID string) *tgbotapi.InlineKeyboardMarkup {
 	goToBotLink := func(command string) string {
 		return fmt.Sprintf("https://t.me/%v?start=%v-%v", botCode, command, billID)
 	}

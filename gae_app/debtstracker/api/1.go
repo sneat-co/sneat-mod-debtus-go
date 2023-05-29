@@ -1,6 +1,6 @@
 package api
 
-import "github.com/strongo/app/delaying"
+import "github.com/strongo/delaying"
 
 func InitDelaying(mustRegisterFunc func(key string, i any) delaying.Function) {
 	delayChangeTransfersCounterparty = mustRegisterFunc("changeTransfersCounterparty", delayedChangeTransfersCounterparty)

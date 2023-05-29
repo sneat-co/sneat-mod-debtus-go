@@ -106,7 +106,7 @@ func ProcessFullReturn(whc botsfw.WebhookContext, transfer models.Transfer) (m b
 		counterpartyID int64
 		direction      models.TransferDirection
 	)
-	userID := whc.AppUserIntID()
+	userID := whc.AppUserInt64ID()
 	if transfer.Data.CreatorUserID == userID {
 		counterpartyID = transfer.Data.Counterparty().ContactID
 		switch transfer.Data.Direction() {
@@ -148,16 +148,16 @@ func ProcessFullReturn(whc botsfw.WebhookContext, transfer models.Transfer) (m b
 
 func ProcessPartialReturn(whc botsfw.WebhookContext, transfer models.Transfer) (botsfw.MessageFromBot, error) {
 	var counterpartyID int64
-	switch whc.AppUserIntID() {
+	switch whc.AppUserInt64ID() {
 	case transfer.Data.CreatorUserID:
 		counterpartyID = transfer.Data.Counterparty().ContactID
 	case transfer.Data.Counterparty().UserID:
 		counterpartyID = transfer.Data.Creator().ContactID
 	default:
-		panic(fmt.Sprintf("whc.whc.AppUserIntID()=%v not in (transfer.Counterparty().ContactID=%v, transfer.Creator().ContactID=%v)",
-			whc.AppUserIntID(), transfer.Data.Counterparty().ContactID, transfer.Data.Creator().ContactID))
+		panic(fmt.Sprintf("whc.whc.AppUserInt64ID()=%v not in (transfer.Counterparty().ContactID=%v, transfer.Creator().ContactID=%v)",
+			whc.AppUserInt64ID(), transfer.Data.Counterparty().ContactID, transfer.Data.Creator().ContactID))
 	}
-	chatEntity := whc.ChatEntity()
+	chatEntity := whc.ChatData()
 	chatEntity.SetAwaitingReplyTo("")
 	chatEntity.AddWizardParam(WIZARD_PARAM_COUNTERPARTY, strconv.FormatInt(counterpartyID, 10))
 	chatEntity.AddWizardParam(WIZARD_PARAM_TRANSFER, strconv.Itoa(transfer.ID))
@@ -229,7 +229,7 @@ var SetNextReminderDateCallbackCommand = botsfw.Command{
 			return m, fmt.Errorf("failed to decode transfer id: %w", err)
 		}
 
-		chatEntity := whc.ChatEntity()
+		chatEntity := whc.ChatData()
 		chatEntity.SetAwaitingReplyTo(SET_NEXT_REMINDER_DATE_COMMAND)
 		chatEntity.AddWizardParam(WIZARD_PARAM_REMINDER, strconv.Itoa(reminderID))
 
@@ -257,7 +257,7 @@ var SetNextReminderDateCallbackCommand = botsfw.Command{
 	Action: func(whc botsfw.WebhookContext) (botsfw.MessageFromBot, error) {
 		m, date, err := processSetDate(whc)
 		if !date.IsZero() {
-			chatEntity := whc.ChatEntity()
+			chatEntity := whc.ChatData()
 
 			encodedReminderID := chatEntity.GetWizardParam(WIZARD_PARAM_REMINDER)
 			reminderID, err := strconv.Atoi(encodedReminderID)

@@ -3,7 +3,7 @@ package gaedal
 import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/strongo/app/delaying"
+	"github.com/strongo/delaying"
 	"reflect"
 	"sync"
 	"time"

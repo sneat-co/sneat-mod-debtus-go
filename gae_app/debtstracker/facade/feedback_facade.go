@@ -3,6 +3,7 @@ package facade
 import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
+	"strconv"
 	"time"
 
 	"context"
@@ -18,14 +19,19 @@ func SaveFeedback(c context.Context, tx dal.ReadwriteTransaction, feedbackID int
 	if feedbackEntity == nil {
 		panic("feedbackEntity == nil")
 	}
-	if feedbackEntity.UserID == 0 {
-		panic("feedbackEntity.UserID == 0")
+	if feedbackEntity.UserStrID == "" {
+		panic("feedbackEntity.UserStrID is empty string")
 	}
 	if feedbackEntity.Rate == "" {
 		panic("feedbackEntity.Rate is empty string")
 	}
 	feedback = models.Feedback{FeedbackData: feedbackEntity}
-	if user, err = User.GetUserByID(c, tx, feedbackEntity.UserID); err != nil {
+	var userIntID int64
+	if userIntID, err = strconv.ParseInt(feedbackEntity.UserStrID, 10, 64); err != nil {
+		err = fmt.Errorf("failed to parse userStrID: %v", err)
+		return
+	}
+	if user, err = User.GetUserByID(c, tx, userIntID); err != nil {
 		return
 	}
 	user.Data.LastFeedbackRate = feedbackEntity.Rate

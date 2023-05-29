@@ -12,7 +12,7 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	"github.com/strongo/app"
+	"github.com/strongo/i18n"
 	"github.com/strongo/log"
 	"strings"
 )
@@ -41,11 +41,11 @@ func CreateEmailRecordAndQueueForSending(c context.Context, emailEntity *models.
 	return email.ID, err
 }
 
-func GetEmailText(c context.Context, translator strongo.SingleLocaleTranslator, templateName string, templateParams interface{}) (string, error) {
+func GetEmailText(c context.Context, translator i18n.SingleLocaleTranslator, templateName string, templateParams interface{}) (string, error) {
 	return common.TextTemplates.RenderTemplate(c, translator, templateName, templateParams)
 }
 
-func GetEmailHtml(c context.Context, translator strongo.SingleLocaleTranslator, templateName string, templateParams interface{}) (s string, err error) {
+func GetEmailHtml(c context.Context, translator i18n.SingleLocaleTranslator, templateName string, templateParams interface{}) (s string, err error) {
 	var buffer bytes.Buffer
 	err = common.HtmlTemplates.RenderTemplate(c, &buffer, translator, templateName, templateParams)
 	return buffer.String(), err

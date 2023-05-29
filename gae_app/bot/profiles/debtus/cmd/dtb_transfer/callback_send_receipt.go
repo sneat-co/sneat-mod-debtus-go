@@ -47,7 +47,7 @@ func CallbackSendReceipt(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 		if err != nil {
 			return fmt.Errorf("failed to get transfer by ID: %w", err)
 		}
-		//chatEntity := whc.ChatEntity() //TODO: Need this to get appUser, has to be refactored
+		//chatEntity := whc.ChatData() //TODO: Need this to get appUser, has to be refactored
 		//appUser, err := whc.GetAppUser()
 		counterparty, err := facade.GetContactByID(c, tx, transfer.Data.Counterparty().ContactID)
 		if err != nil {
@@ -57,7 +57,7 @@ func CallbackSendReceipt(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 			m = whc.NewMessage(trans.MESSAGE_TEXT_USER_BLOCKED_TRANSFER_NOTIFICATIONS_BY)
 			return err
 		}
-		chatEntity := whc.ChatEntity()
+		chatEntity := whc.ChatData()
 		switch sendBy {
 		case SEND_RECEIPT_BY_CHOOSE_CHANNEL:
 			m, err = createSendReceiptOptionsMessage(whc, transfer)
@@ -143,7 +143,7 @@ func CallbackSendReceipt(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 }
 
 func showLinkForReceiptInTelegram(whc botsfw.WebhookContext, transfer models.Transfer) (m botsfw.MessageFromBot, err error) {
-	receiptData := models.NewReceiptEntity(whc.AppUserIntID(), transfer.ID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, "link", "telegram", general.CreatedOn{
+	receiptData := models.NewReceiptEntity(whc.AppUserInt64ID(), transfer.ID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, "link", "telegram", general.CreatedOn{
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
 	})

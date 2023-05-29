@@ -57,7 +57,7 @@ func Bots(_ context.Context) botsfw.SettingsBy {
 	//			fbmProdPageAccessToken,
 	//			"d6087a01-c728-4fdf-983c-1695d76236dc",
 	//			common.GA_TRACKING_ID,
-	//			trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
+	//			trans.SupportedLocalesByCode5[i18n.LocaleCodeEnUS],
 	//		),
 	//		fbm.NewFbmBot(
 	//			strongo.EnvProduction,
@@ -67,7 +67,7 @@ func Bots(_ context.Context) botsfw.SettingsBy {
 	//			fbmSplitBillProdPageAccessToken,
 	//			"e8535dd1-df3b-4c3f-bd2c-d4a822509bb3",
 	//			common.GA_TRACKING_ID,
-	//			trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
+	//			trans.SupportedLocalesByCode5[i18n.LocaleCodeEnUS],
 	//		),
 	//		fbm.NewFbmBot(
 	//			strongo.EnvDevTest,
@@ -77,7 +77,7 @@ func Bots(_ context.Context) botsfw.SettingsBy {
 	//			fbmTestPageAccessToken,
 	//			"4afb645e-b592-48e6-882c-89f0ec126fbb",
 	//			"",
-	//			trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
+	//			trans.SupportedLocalesByCode5[i18n.LocaleCodeEnUS],
 	//		),
 	//		fbm.NewFbmBot(
 	//			strongo.EnvLocal,
@@ -87,7 +87,7 @@ func Bots(_ context.Context) botsfw.SettingsBy {
 	//			fbmLocalPageAccessToken,
 	//			"4afb645e-b592-48e6-882c-89f0ec126fbb",
 	//			"",
-	//			trans.SupportedLocalesByCode5[strongo.LocaleCodeEnUS],
+	//			trans.SupportedLocalesByCode5[i18n.LocaleCodeEnUS],
 	//		),
 	//	)
 	//}

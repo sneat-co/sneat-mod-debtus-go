@@ -24,7 +24,7 @@ var joinGroupCommand = shared_group.GroupCallbackCommand(joinGroupCommanCode,
 	func(whc botsfw.WebhookContext, callbackUrl *url.URL, group models.Group) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 
-		userID := whc.AppUserStrID()
+		userID := whc.AppUserID()
 		var appUser models.AppUser
 		if group.Data.UserIsMember(userID) {
 			if appUser, err = dtdal.User.GetUserByStrID(c, userID); err != nil {

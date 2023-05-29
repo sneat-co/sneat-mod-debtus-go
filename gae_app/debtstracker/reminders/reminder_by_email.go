@@ -10,7 +10,7 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	"github.com/strongo/app"
+	"github.com/strongo/i18n"
 	"github.com/strongo/log"
 	"net/http"
 	"time"
@@ -79,8 +79,8 @@ func sendReminderByEmail(c context.Context, reminder models.Reminder, emailTo st
 		errDetails = err.Error()
 	}
 
-	if err = dtdal.Reminder.SetReminderIsSent(c, reminder.ID, sentAt, 0, emailMessageID, strongo.LocaleCodeEnUS, errDetails); err != nil {
-		if err = dtdal.Reminder.DelaySetReminderIsSent(c, reminder.ID, sentAt, 0, emailMessageID, strongo.LocaleCodeEnUS, errDetails); err != nil {
+	if err = dtdal.Reminder.SetReminderIsSent(c, reminder.ID, sentAt, 0, emailMessageID, i18n.LocaleCodeEnUS, errDetails); err != nil {
+		if err = dtdal.Reminder.DelaySetReminderIsSent(c, reminder.ID, sentAt, 0, emailMessageID, i18n.LocaleCodeEnUS, errDetails); err != nil {
 			return fmt.Errorf("failed to delay setting reminder as sent: %w", err)
 		}
 	}

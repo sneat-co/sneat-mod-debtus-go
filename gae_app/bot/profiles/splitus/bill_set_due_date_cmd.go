@@ -14,7 +14,7 @@ var setBillDueDateCommand = botsfw.Command{
 	Code: setBillDueDateCommandCode,
 	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
-		chatEntity := whc.ChatEntity()
+		chatEntity := whc.ChatData()
 		chatEntity.SetAwaitingReplyTo(setBillDueDateCommandCode)
 		chatEntity.AddWizardParam("bill", callbackUrl.Query().Get("id"))
 		log.Debugf(c, "setBillDueDateCommand.CallbackAction()")

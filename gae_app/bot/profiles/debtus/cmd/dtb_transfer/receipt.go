@@ -6,6 +6,7 @@ import (
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/i18n"
 	"html/template"
 	"net/url"
 	"strings"
@@ -18,7 +19,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/debtstracker-go/gae_app/general"
-	"github.com/strongo/app"
 	"github.com/strongo/log"
 )
 
@@ -122,7 +122,7 @@ func InlineSendReceipt(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err 
 	return m, err
 }
 
-func getInlineReceiptMessageText(t strongo.SingleLocaleTranslator, botCode, localeCode5, creator string, receiptID int) string {
+func getInlineReceiptMessageText(t i18n.SingleLocaleTranslator, botCode, localeCode5, creator string, receiptID int) string {
 	data := map[string]interface{}{
 		"Creator":  creator,
 		"SiteLink": template.HTML(`<a href="https://debtstracker.io/#utm_source=telegram&utm_medium=bot&utm_campaign=receipt-inline">DebtsTracker.IO</a>`),
@@ -162,7 +162,7 @@ func OnInlineChosenCreateReceipt(whc botsfw.WebhookContext, inlineMessageID stri
 	if err != nil {
 		return m, err
 	}
-	receiptData := models.NewReceiptEntity(whc.AppUserIntID(), transferID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, telegram.PlatformID, "", general.CreatedOn{
+	receiptData := models.NewReceiptEntity(whc.AppUserInt64ID(), transferID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, telegram.PlatformID, "", general.CreatedOn{
 		CreatedOnID:       whc.GetBotCode(), // TODO: Replace with method call.
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 	})

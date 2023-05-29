@@ -33,7 +33,7 @@ var ContactsListCommand = botsfw.Command{
 
 func contactsAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 	var user *models.AppUserData
-	if appUser, err := whc.GetAppUser(); err != nil {
+	if appUser, err := whc.AppUserData(); err != nil {
 		return m, err
 	} else {
 		user = appUser.(*models.AppUserData)

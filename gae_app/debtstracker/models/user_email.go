@@ -1,11 +1,10 @@
 package models
 
 import (
-	"encoding/base64"
-	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/app/user"
 	"golang.org/x/crypto/bcrypt"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -13,43 +12,17 @@ import (
 const UserEmailKind = "UserEmail"
 
 type UserEmailData struct {
-	user.LastLogin
+	user.AccountDataBase
 	user.Names
-	user.OwnedByUserWithIntID
+	user.OwnedByUserWithID
 	IsConfirmed        bool
 	PasswordBcryptHash []byte   `datastore:",noindex"`
 	Providers          []string `datastore:",noindex"` // E.g. facebook, vk, user
 }
 
-var _ user.AccountData = (*UserEmailData)(nil)
-
-func NewUserEmailKey(email string) *dal.Key {
-	return dal.NewKeyWithID(UserEmailKind, GetEmailID(email))
-}
-
-func NewUserEmail(email string, data *UserEmailData) UserEmail {
-	id := GetEmailID(email)
-	if data == nil {
-		data = new(UserEmailData)
-	}
-	return UserEmail{
-		WithID:        record.NewWithID(id, NewUserEmailKey(email), data),
-		UserEmailData: data,
-	}
-}
-
-func (entity UserEmailData) ConfirmationPin() string {
-	pin := base64.RawURLEncoding.EncodeToString(entity.PasswordBcryptHash)
-	//if len(pin) > 20 {
-	//	pin = pin[:20]
-	//}
-	return pin
-}
-
 type UserEmail struct {
 	record.WithID[string]
-	user.Names
-	*UserEmailData
+	Data *UserEmailData
 }
 
 //var _ user.AccountRecord = (*UserEmail)(nil)
@@ -62,49 +35,22 @@ func (userEmail UserEmail) Kind() string {
 	return UserEmailKind
 }
 
-func (userEmail *UserEmail) SetEntity(entity interface{}) {
-	if entity == nil {
-		userEmail.UserEmailData = entity.(*UserEmailData)
-	} else {
-		userEmail.UserEmailData = entity.(*UserEmailData)
-	}
-}
-
-func (userEmail UserEmail) Entity() interface{} {
-	return userEmail.UserEmailData
-}
-
 func (UserEmail) NewEntity() interface{} {
 	return new(UserEmailData)
 }
-
-//func (userEmail *UserEmail) SetStrID(id string) {
-//	userEmail.ID = id
-//}
 
 func GetEmailID(email string) string {
 	return strings.ToLower(strings.TrimSpace(email))
 }
 
-//func NewUserEmail(email string, isConfirmed bool, provider string) UserEmail {
-//	return UserEmail{
-//		WithID:        record.WithID[string]{ID: GetEmailID(email)},
-//		UserEmailData: NewUserEmailData(0, isConfirmed, provider),
-//	}
-//}
-
 func (userEmail UserEmail) GetEmail() string {
 	return userEmail.ID
 }
 
-func (entity *UserEmailData) IsEmailConfirmed() bool {
-	return entity.IsConfirmed
-}
-
 func NewUserEmailData(userID int64, isConfirmed bool, provider string) *UserEmailData {
 	entity := &UserEmailData{
-		OwnedByUserWithIntID: user.NewOwnedByUserWithIntID(userID, time.Now()),
-		IsConfirmed:          isConfirmed,
+		OwnedByUserWithID: user.NewOwnedByUserWithID(strconv.FormatInt(userID, 10), time.Now()),
+		IsConfirmed:       isConfirmed,
 	}
 	entity.AddProvider(provider)
 	return entity

@@ -19,7 +19,7 @@ type PasswordReset struct {
 type PasswordResetData struct {
 	Email  string
 	Status string
-	user.OwnedByUserWithIntID
+	user.OwnedByUserWithID
 }
 
 func NewPasswordReset(id int, data *PasswordResetData) PasswordReset {

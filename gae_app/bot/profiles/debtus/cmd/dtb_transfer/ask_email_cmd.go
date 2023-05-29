@@ -27,7 +27,7 @@ var AskEmailForReceiptCommand = botsfw.Command{
 			return whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_INVALID_EMAIL)), nil
 		}
 
-		chatEntity := whc.ChatEntity()
+		chatEntity := whc.ChatData()
 		var transferID int
 		transferID, err = strconv.Atoi(chatEntity.GetWizardParam(WIZARD_PARAM_TRANSFER))
 		if err != nil {
@@ -44,7 +44,7 @@ var AskEmailForReceiptCommand = botsfw.Command{
 
 func sendReceiptByEmail(whc botsfw.WebhookContext, toEmail, toName string, transfer models.Transfer) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
-	receiptEntity := models.NewReceiptEntity(whc.AppUserIntID(), transfer.ID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, string(models.InviteByEmail), toEmail, general.CreatedOn{
+	receiptEntity := models.NewReceiptEntity(whc.AppUserInt64ID(), transfer.ID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, string(models.InviteByEmail), toEmail, general.CreatedOn{
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
 	})
@@ -55,7 +55,8 @@ func sendReceiptByEmail(whc botsfw.WebhookContext, toEmail, toName string, trans
 
 	emailID := ""
 	if emailID, err = invites.SendReceiptByEmail(
-		whc.ExecutionContext(),
+		c,
+		whc,
 		receipt,
 		whc.GetSender().GetFirstName(),
 		toName,

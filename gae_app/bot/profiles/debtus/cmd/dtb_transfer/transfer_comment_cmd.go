@@ -47,7 +47,7 @@ const (
 //			if code != ADD_NOTE_COMMAND && code != ADD_COMMENT_COMMAND {
 //				panic(fmt.Sprintf("Unknown code: %v", code))
 //			}
-//			chatEntity := whc.ChatEntity()
+//			chatEntity := whc.ChatData()
 //			if chatEntity.IsAwaitingReplyTo(code) {
 //				switch code {
 //				case ADD_NOTE_COMMAND:
@@ -108,7 +108,7 @@ func createTransferAskNoteOrCommentCommand(code string, nextCommand botsfw.Comma
 		Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 			c := whc.Context()
 			log.Infof(c, "createTransferAskNoteOrCommentCommand().Action()")
-			chatEntity := whc.ChatEntity()
+			chatEntity := whc.ChatData()
 			//noOptionSelected := false
 			if chatEntity.IsAwaitingReplyTo(code) {
 				if m, err = interestAction(whc, nextCommand.Action); err != nil || m.Text != "" {
