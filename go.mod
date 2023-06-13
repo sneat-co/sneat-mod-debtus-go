@@ -3,20 +3,20 @@ module github.com/sneat-co/debtstracker-go
 go 1.20
 
 require (
-	github.com/aws/aws-sdk-go v1.44.271
-	github.com/bots-go-framework/bots-api-telegram v0.3.0
-	github.com/bots-go-framework/bots-fw v0.16.14
+	github.com/aws/aws-sdk-go v1.44.282
+	github.com/bots-go-framework/bots-api-telegram v0.4.1
+	github.com/bots-go-framework/bots-fw v0.17.2
 	github.com/bots-go-framework/bots-fw-store v0.0.7
-	github.com/bots-go-framework/bots-fw-telegram v0.6.12
-	github.com/bots-go-framework/bots-fw-telegram-models v0.0.11
+	github.com/bots-go-framework/bots-fw-telegram v0.6.13
+	github.com/bots-go-framework/bots-fw-telegram-models v0.0.12
 	github.com/bots-go-framework/bots-go-core v0.0.1
-	github.com/bots-go-framework/bots-host-gae v0.4.3
-	github.com/bots-go-framework/dalgo4botsfw v0.0.13
+	github.com/bots-go-framework/bots-host-gae v0.4.4
+	github.com/bots-go-framework/dalgo4botsfw v0.0.14
 	github.com/captaincodeman/datastore-mapper v0.0.0-20170320145307-cb380a4c4d13
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85
 	github.com/crediterra/money v0.0.1
-	github.com/dal-go/dalgo v0.2.30
-	github.com/dal-go/mocks4dalgo v0.1.9
+	github.com/dal-go/dalgo v0.2.31
+	github.com/dal-go/mocks4dalgo v0.1.11
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/gorilla/sessions v1.2.1
 	github.com/julienschmidt/httprouter v1.3.0
@@ -25,9 +25,9 @@ require (
 	github.com/sanity-io/litter v1.5.5
 	github.com/sendgrid/sendgrid-go v3.12.0+incompatible
 	github.com/shiyanhui/hero v0.0.2
-	github.com/sneat-co/debtstracker-translations v0.0.6
-	github.com/strongo/app v0.5.5
-	github.com/strongo/app-host-gae v0.1.12
+	github.com/sneat-co/debtstracker-translations v0.0.8
+	github.com/strongo/app v0.5.7
+	github.com/strongo/app-host-gae v0.1.14
 	github.com/strongo/decimal v0.0.0-20180523215323-a1521d8f65fa
 	github.com/strongo/delaying v0.0.1
 	github.com/strongo/facebook v1.8.1
@@ -40,8 +40,8 @@ require (
 	github.com/strongo/slices v0.0.0-20180713073818-553769fcb80b
 	github.com/strongo/validation v0.0.5
 	github.com/yaa110/go-persian-calendar v1.1.4
-	golang.org/x/crypto v0.9.0
-	golang.org/x/net v0.10.0
+	golang.org/x/crypto v0.10.0
+	golang.org/x/net v0.11.0
 	google.golang.org/appengine v1.6.7
 )
 
@@ -72,8 +72,8 @@ require (
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/oauth2 v0.8.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/sys v0.9.0 // indirect
+	golang.org/x/text v0.10.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.123.0 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
