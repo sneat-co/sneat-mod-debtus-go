@@ -3,7 +3,7 @@ package auth
 import (
 	"errors"
 	"fmt"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
 	"net/http"
@@ -106,21 +106,20 @@ func Authenticate(w http.ResponseWriter, r *http.Request, required bool) (authIn
 		return
 	}
 
-	if err = token.Claims.Valid(); err != nil {
-		if claims, ok := token.Claims.(SneatClaims); ok {
-			if claims.Issuer != "" {
-				authInfo.Issuer = claims.Issuer
-			} else {
-				err = errors.New("JWT is missing 'issuer' claim.")
-				return
-			}
-			if authInfo.UserID, err = strconv.ParseInt(claims.Subject, 10, 64); err == nil {
-				authInfo.IsAdmin = claims.Admin
-			}
-		}
-	} else {
-		err = errors.New("JWT is missing 'sub' claim.")
+	if !token.Valid {
+		err = fmt.Errorf("invalid token: %v", token)
 		return
+	}
+	if claims, ok := token.Claims.(SneatClaims); ok {
+		if claims.Issuer != "" {
+			authInfo.Issuer = claims.Issuer
+		} else {
+			err = errors.New("token is missing 'issuer' claim")
+			return
+		}
+		if authInfo.UserID, err = strconv.ParseInt(claims.Subject, 10, 64); err == nil {
+			authInfo.IsAdmin = claims.Admin
+		}
 	}
 	return
 }
