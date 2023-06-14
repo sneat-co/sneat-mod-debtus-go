@@ -18,6 +18,7 @@ require (
 	github.com/dal-go/dalgo v0.2.31
 	github.com/dal-go/mocks4dalgo v0.1.11
 	github.com/golang-jwt/jwt/v4 v4.5.0
+	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/gorilla/sessions v1.2.1
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/matryer/is v1.4.1
