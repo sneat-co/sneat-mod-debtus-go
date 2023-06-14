@@ -2,24 +2,22 @@ package tgbots
 
 import (
 	"fmt"
-	"github.com/bots-go-framework/bots-fw/botsfw"
-	"github.com/strongo/i18n"
-	"strings"
-
 	"github.com/bots-go-framework/bots-fw-telegram"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/strongo/app"
+	"github.com/strongo/i18n"
 )
 
 var _bots botsfw.SettingsBy
 
-const DEFAULT_LOCALE = i18n.LocaleCodeEnUS
+const DefaultLocale = i18n.LocaleCodeEnUS
 
 const DebtusBotToken = "467112035:AAG9Hij0ofnI6GGXyuc6zol0F4XGQ4OK5Tk"
 
 func Bots(environment strongo.Environment, router func(profile string) botsfw.WebhooksRouter) botsfw.SettingsBy { //TODO: Consider to do pre-deployment replace
-	if len(_bots.ByCode) == 0 || (!_bots.HasRouter && router != nil) {
+	if len(_bots.ByCode) == 0 {
 		//log.Debugf(c, "Bots() => hostname:%v, environment:%v:%v", hostname, environment, strongo.EnvironmentNames[environment])
 		switch environment {
 		case strongo.EnvProduction:
@@ -65,26 +63,15 @@ func Bots(environment strongo.Environment, router func(profile string) botsfw.We
 
 func GetBotSettingsByLang(environment strongo.Environment, profile, lang string) (botsfw.BotSettings, error) {
 	botSettingsBy := Bots(environment, nil)
-	langLen := len(lang)
-	if langLen == 2 {
-		lang = fmt.Sprintf("%v-%v", strings.ToLower(lang), strings.ToUpper(lang))
-	} else if langLen != 5 {
-		return botsfw.BotSettings{}, fmt.Errorf("Invalid length of lang parameter: %v, %v", langLen, lang)
-	}
-	findByProfile := func(botSettings []botsfw.BotSettings) (botsfw.BotSettings, error) {
-		for _, bs := range botSettings {
-			if bs.Profile == profile {
-				return bs, nil
-			}
-		}
-		return botsfw.BotSettings{}, fmt.Errorf("Not found by locale=%v + profile=%v", lang, profile)
-	}
-	if botSettings, ok := botSettingsBy.ByLocale[lang]; ok {
-		return findByProfile(botSettings)
-	} else if lang != DEFAULT_LOCALE {
-		if botSettings, ok = botSettingsBy.ByLocale[DEFAULT_LOCALE]; ok {
-			return findByProfile(botSettings)
+	for _, bs := range botSettingsBy.ByCode {
+		if bs.Profile == profile && bs.Locale.Code5 == lang {
+			return *bs, nil
 		}
 	}
-	return botsfw.BotSettings{}, fmt.Errorf("no bot setting for both %s & %s locales", lang, DEFAULT_LOCALE)
+	for _, bs := range botSettingsBy.ByCode {
+		if bs.Profile == profile && bs.Locale.Code5 == DefaultLocale {
+			return *bs, nil
+		}
+	}
+	return botsfw.BotSettings{}, fmt.Errorf("no bot setting for both %s & %s locales", lang, DefaultLocale)
 }

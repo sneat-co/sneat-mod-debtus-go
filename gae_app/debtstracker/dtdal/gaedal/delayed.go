@@ -324,7 +324,7 @@ func editTgMessageText(c context.Context, tgBotID string, tgChatID int64, tgMsgI
 	if !ok {
 		return fmt.Errorf("Bot settings not found by tgChat.BotID=%v, out of %v items", tgBotID, len(telegramBots.ByCode))
 	}
-	if err = sendToTelegram(c, msg, botSettings); err != nil {
+	if err = sendToTelegram(c, msg, *botSettings); err != nil {
 		return
 	}
 	return
