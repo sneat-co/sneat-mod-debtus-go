@@ -1,13 +1,7 @@
 package vkapp
 
 import (
-	"github.com/strongo/i18n"
-	"html/template"
 	"net/http"
-
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/website/pages"
-	//"github.com/strongo/app"
-	"github.com/sneat-co/debtstracker-go/gae_app/bot/platforms/vkbots"
 )
 
 type router interface {
@@ -18,37 +12,38 @@ func InitVkIFrameApp(router router) {
 	router.HandlerFunc("GET", "/apps/vk/iframe", IFrameHandler)
 }
 
+//var vkIFrameTemplate *template.Template
+
 func IFrameHandler(w http.ResponseWriter, r *http.Request) {
-	if vkIFrameTemplate == nil {
-		vkIFrameTemplate = template.Must(
-			template.ParseFiles(
-				pages.TEMPLATES_PATH+"vk-iframe.html",
-				pages.TEMPLATES_PATH+"device-switcher.html",
-				pages.TEMPLATES_PATH+"device.js.html",
-			),
-		)
-	}
-	query := r.URL.Query()
-	apiID := query.Get("api_id")
-	_, ok := vkbots.BotsBy.ByCode[apiID]
-	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("Unknown app id"))
-		return
-	}
-
-	lang := "ru"
-	if query.Get("language") == "3" {
-		lang = "en"
-	}
-
-	data := map[string]interface{}{
-		"vkApiId": apiID,
-		"lang":    lang,
-		"hash":    query.Get("hash"),
-	}
-
-	pages.RenderCachedPage(w, r, vkIFrameTemplate, i18n.LocaleRuRu, data, 0)
+	panic("not implemented")
+	//if vkIFrameTemplate == nil {
+	//	vkIFrameTemplate = template.Must(
+	//		template.ParseFiles(
+	//			pages.TEMPLATES_PATH+"vk-iframe.html",
+	//			pages.TEMPLATES_PATH+"device-switcher.html",
+	//			pages.TEMPLATES_PATH+"device.js.html",
+	//		),
+	//	)
+	//}
+	//query := r.URL.Query()
+	//apiID := query.Get("api_id")
+	//_, ok := vkbots.BotsBy.ByCode[apiID]
+	//if !ok {
+	//	w.WriteHeader(http.StatusBadRequest)
+	//	_, _ = w.Write([]byte("Unknown app id"))
+	//	return
+	//}
+	//
+	//lang := "ru"
+	//if query.Get("language") == "3" {
+	//	lang = "en"
+	//}
+	//
+	//data := map[string]interface{}{
+	//	"vkApiId": apiID,
+	//	"lang":    lang,
+	//	"hash":    query.Get("hash"),
+	//}
+	//
+	//pages.RenderCachedPage(w, r, vkIFrameTemplate, i18n.LocaleRuRu, data, 0)
 }
-
-var vkIFrameTemplate *template.Template
