@@ -1,10 +1,6 @@
 package vkbots
 
-import (
-	"github.com/bots-go-framework/bots-fw/botsfw"
-)
-
-var BotsBy = botsfw.NewBotSettingsBy(nil)
+//var BotsBy = botsfw.NewBotSettingsBy(nil)
 
 //vk.NewVkBot(
 //	strongo.EnvLocal,
