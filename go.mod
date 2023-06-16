@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	cloud.google.com/go/firestore v1.10.0
-	github.com/aws/aws-sdk-go v1.44.282
+	github.com/aws/aws-sdk-go v1.44.284
 	github.com/bots-go-framework/bots-api-telegram v0.4.1
 	github.com/bots-go-framework/bots-fw v0.17.2
 	github.com/bots-go-framework/bots-fw-store v0.0.7
@@ -17,6 +17,7 @@ require (
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85
 	github.com/crediterra/money v0.0.1
 	github.com/dal-go/dalgo v0.2.31
+	github.com/dal-go/dalgo2firestore v0.1.9
 	github.com/dal-go/mocks4dalgo v0.1.11
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/gorilla/sessions v1.2.1
@@ -60,7 +61,6 @@ require (
 	cloud.google.com/go/storage v1.30.1 // indirect
 	github.com/captaincodeman/datastore-locker v0.0.0-20170308203336-4eddc467484e // indirect
 	github.com/dal-go/dalgo2datastore v0.0.12 // indirect
-	github.com/dal-go/dalgo2firestore v0.1.9 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
