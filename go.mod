@@ -8,7 +8,7 @@ require (
 	github.com/bots-go-framework/bots-api-telegram v0.4.1
 	github.com/bots-go-framework/bots-fw v0.17.2
 	github.com/bots-go-framework/bots-fw-store v0.0.7
-	github.com/bots-go-framework/bots-fw-telegram v0.6.13
+	github.com/bots-go-framework/bots-fw-telegram v0.6.14
 	github.com/bots-go-framework/bots-fw-telegram-models v0.0.12
 	github.com/bots-go-framework/bots-go-core v0.0.1
 	github.com/bots-go-framework/bots-host-gae v0.4.4
