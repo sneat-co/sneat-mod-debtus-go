@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	cloud.google.com/go/firestore v1.11.0
-	github.com/aws/aws-sdk-go v1.44.295
+	github.com/aws/aws-sdk-go v1.44.298
 	github.com/bots-go-framework/bots-api-telegram v0.4.1
 	github.com/bots-go-framework/bots-fw v0.17.2
 	github.com/bots-go-framework/bots-fw-store v0.0.7
@@ -17,7 +17,7 @@ require (
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85
 	github.com/crediterra/money v0.0.1
 	github.com/dal-go/dalgo v0.2.31
-	github.com/dal-go/dalgo2firestore v0.1.12
+	github.com/dal-go/dalgo2firestore v0.1.13
 	github.com/dal-go/mocks4dalgo v0.1.11
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/gorilla/sessions v1.2.1
@@ -42,8 +42,8 @@ require (
 	github.com/strongo/slices v0.0.0-20180713073818-553769fcb80b
 	github.com/strongo/validation v0.0.5
 	github.com/yaa110/go-persian-calendar v1.1.4
-	golang.org/x/crypto v0.10.0
-	golang.org/x/net v0.11.0
+	golang.org/x/crypto v0.11.0
+	golang.org/x/net v0.12.0
 	google.golang.org/appengine v1.6.7
 )
 
@@ -77,14 +77,14 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/oauth2 v0.9.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.9.0 // indirect
-	golang.org/x/text v0.10.0 // indirect
+	golang.org/x/sys v0.10.0 // indirect
+	golang.org/x/text v0.11.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
-	google.golang.org/api v0.129.0 // indirect
+	google.golang.org/api v0.130.0 // indirect
 	google.golang.org/genproto v0.0.0-20230530153820-e85fd2cbaebc // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230530153820-e85fd2cbaebc // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc // indirect
-	google.golang.org/grpc v1.56.1 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230629202037-9506855d4529 // indirect
+	google.golang.org/grpc v1.56.2 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 )
