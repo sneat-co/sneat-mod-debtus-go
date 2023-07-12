@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	cloud.google.com/go/firestore v1.11.0
-	github.com/aws/aws-sdk-go v1.44.298
+	github.com/aws/aws-sdk-go v1.44.299
 	github.com/bots-go-framework/bots-api-telegram v0.4.1
 	github.com/bots-go-framework/bots-fw v0.17.2
 	github.com/bots-go-framework/bots-fw-store v0.0.7
@@ -41,7 +41,7 @@ require (
 	github.com/strongo/slice v0.1.4
 	github.com/strongo/slices v0.0.0-20180713073818-553769fcb80b
 	github.com/strongo/validation v0.0.5
-	github.com/yaa110/go-persian-calendar v1.1.4
+	github.com/yaa110/go-persian-calendar v1.1.5
 	golang.org/x/crypto v0.11.0
 	golang.org/x/net v0.12.0
 	google.golang.org/appengine v1.6.7
