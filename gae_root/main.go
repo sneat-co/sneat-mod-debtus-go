@@ -4,7 +4,7 @@ import (
 	"github.com/bots-go-framework/bots-host-gae"
 	gaeapp "github.com/sneat-co/debtstracker-go/gae_app"
 	"github.com/strongo/log"
-	"google.golang.org/appengine"
+	"google.golang.org/appengine/v2"
 )
 
 func main() {

@@ -3,6 +3,7 @@ package admin
 import (
 	"bufio"
 	"fmt"
+	"google.golang.org/appengine/v2"
 	"net/http"
 	"strconv"
 
@@ -12,9 +13,8 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/log"
 	"golang.org/x/net/html"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
-	gaeUser "google.golang.org/appengine/user"
+	"google.golang.org/appengine/v2/datastore"
+	gaeUser "google.golang.org/appengine/v2/user"
 )
 
 func LatestPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

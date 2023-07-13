@@ -10,7 +10,7 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	strongouser "github.com/strongo/app/user"
 	"github.com/strongo/log"
-	"google.golang.org/appengine/user"
+	"google.golang.org/appengine/v2/user"
 	"net/http"
 	"net/url"
 	"strings"

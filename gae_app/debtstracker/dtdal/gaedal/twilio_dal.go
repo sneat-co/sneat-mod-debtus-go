@@ -8,7 +8,7 @@ import (
 	"github.com/strongo/decimal"
 	"github.com/strongo/gotwilio"
 	"github.com/strongo/log"
-	"google.golang.org/appengine"
+	"google.golang.org/appengine/v2"
 )
 
 type TwilioDalGae struct {

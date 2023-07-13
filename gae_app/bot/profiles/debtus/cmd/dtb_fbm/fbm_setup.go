@@ -11,7 +11,7 @@ package dtb_fbm
 //	"github.com/julienschmidt/httprouter"
 //	"github.com/strongo/bots-api-fbm"
 //	"github.com/strongo/log"
-//	"google.golang.org/appengine"
+//	"google.golang.org/appengine/v2"
 //)
 //
 //func SetupFbm(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

@@ -18,7 +18,7 @@ import (
 	//"github.com/strongo/app"
 	//apphostgae "github.com/strongo/app-host-gae"
 	//"context"
-	//"google.golang.org/appengine/delay"
+	//"google.golang.org/appengine/v2/delay"
 	//"net/http"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"net/url"

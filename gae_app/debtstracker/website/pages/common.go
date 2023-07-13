@@ -7,6 +7,7 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/i18n"
+	"google.golang.org/appengine/v2"
 	"html/template"
 	"net/http"
 	"strings"
@@ -17,7 +18,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
-	"google.golang.org/appengine"
 )
 
 func pageContext(r *http.Request, locale i18n.Locale) (translator i18n.SingleLocaleTranslator, data map[string]interface{}) {

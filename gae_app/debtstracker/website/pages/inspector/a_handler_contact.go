@@ -3,6 +3,7 @@ package inspector
 import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
+	"google.golang.org/appengine/v2"
 	"net/http"
 	"strconv"
 	//"sync"
@@ -13,8 +14,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 type contactPage struct {

@@ -10,7 +10,7 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/app/user"
 	"github.com/strongo/log"
-	gae_user "google.golang.org/appengine/user"
+	gae_user "google.golang.org/appengine/v2/user"
 	"strconv"
 	"strings"
 	"time"

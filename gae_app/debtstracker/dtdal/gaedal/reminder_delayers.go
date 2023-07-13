@@ -12,7 +12,7 @@ import (
 	"errors"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
-	"google.golang.org/appengine/taskqueue"
+	"google.golang.org/appengine/v2/taskqueue"
 )
 
 func _validateSetReminderIsSentMessageIDs(messageIntID int64, messageStrID string, sentAt time.Time) error {
