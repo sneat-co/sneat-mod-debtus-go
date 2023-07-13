@@ -6,7 +6,7 @@ import (
 	"context"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/auth"
 	//"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal/gaedal"
-	//"google.golang.org/appengine/datastore"
+	//"google.golang.org/appengine/v2/datastore"
 	//"errors"
 	//"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/auth"
 	//"strconv"

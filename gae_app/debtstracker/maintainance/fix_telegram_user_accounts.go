@@ -6,7 +6,7 @@ package maintainance
 //	"errors"
 //	"github.com/captaincodeman/datastore-mapper"
 //	"github.com/dal-go/dalgo/dal"
-//	"google.golang.org/appengine/datastore"
+//	"google.golang.org/appengine/v2/datastore"
 //	"net/http"
 //)
 //

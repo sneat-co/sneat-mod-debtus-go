@@ -3,6 +3,7 @@ package website
 import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
+	"google.golang.org/appengine/v2"
 	"net/http"
 	"strconv"
 	"strings"
@@ -13,8 +14,7 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/strongo/log"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/user"
+	"google.golang.org/appengine/v2/user"
 )
 
 func LoginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

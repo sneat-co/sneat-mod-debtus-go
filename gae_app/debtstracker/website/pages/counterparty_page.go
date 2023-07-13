@@ -2,6 +2,7 @@ package pages
 
 import (
 	"fmt"
+	"google.golang.org/appengine/v2"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -9,7 +10,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/strongo/log"
 	"golang.org/x/net/html"
-	"google.golang.org/appengine"
 )
 
 func CounterpartyPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

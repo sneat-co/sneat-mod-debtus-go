@@ -8,8 +8,8 @@ package maintainance
 //	"github.com/captaincodeman/datastore-mapper"
 //	"github.com/dal-go/dalgo/dal"
 //	"github.com/strongo/nds"
-//	"google.golang.org/appengine/datastore"
-//	"google.golang.org/appengine/log"
+//	"google.golang.org/appengine/v2/datastore"
+//	"google.golang.org/appengine/v2/log"
 //)
 //
 //type verifyContacts struct {

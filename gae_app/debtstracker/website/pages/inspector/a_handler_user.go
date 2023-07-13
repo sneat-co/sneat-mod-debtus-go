@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
+	"google.golang.org/appengine/v2"
 	"net/http"
 	"strconv"
 	"sync"
@@ -14,8 +15,7 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 type contactWithBalances struct {

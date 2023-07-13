@@ -8,7 +8,7 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	apphostgae "github.com/strongo/app-host-gae"
-	"google.golang.org/appengine"
+	"google.golang.org/appengine/v2"
 	"net/http"
 )
 

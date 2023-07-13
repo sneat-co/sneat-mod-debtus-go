@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/strongo/log"
-	"google.golang.org/appengine"
+	"google.golang.org/appengine/v2"
 	"net/http"
 	"strconv"
 	"strings"

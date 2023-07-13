@@ -1,6 +1,7 @@
 package maintainance
 
 import (
+	"google.golang.org/appengine/v2"
 	"net/http"
 	"strconv"
 	"sync"
@@ -9,8 +10,7 @@ import (
 	"fmt"
 	"github.com/captaincodeman/datastore-mapper"
 	"github.com/strongo/log"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 	"net/url"
 )
 

@@ -3,6 +3,7 @@ package redirects
 import (
 	"bytes"
 	"fmt"
+	"google.golang.org/appengine/v2"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -13,7 +14,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/strongo/log"
-	"google.golang.org/appengine"
 )
 
 func redirectToWebApp(w http.ResponseWriter, r *http.Request, authRequired bool, path string, p2p map[string]string, optionalParams []string) {

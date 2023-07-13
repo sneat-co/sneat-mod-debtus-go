@@ -3,6 +3,7 @@ package redirects
 import (
 	"fmt"
 	"github.com/strongo/i18n"
+	"google.golang.org/appengine/v2"
 	"html/template"
 	"net/http"
 	"strings"
@@ -12,8 +13,7 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/website/pages"
 	"github.com/strongo/log"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 var receiptOpenGraphPageTmpl *template.Template

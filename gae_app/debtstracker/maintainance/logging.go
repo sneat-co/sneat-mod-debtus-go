@@ -3,8 +3,8 @@ package maintainance
 import (
 	"context"
 	"github.com/sanity-io/litter"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/v2/log"
 )
 
 func logJobCompletion(c context.Context, id string) {

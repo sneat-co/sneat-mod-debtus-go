@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/i18n"
+	"google.golang.org/appengine/v2"
 	"net/http"
 	"strconv"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/website/redirects"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
-	"google.golang.org/appengine"
 	//"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/auth"
 	//"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/api"

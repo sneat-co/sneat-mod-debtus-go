@@ -6,6 +6,7 @@ import (
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
+	"google.golang.org/appengine/v2"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -18,9 +19,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/log"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/taskqueue"
+	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/v2/taskqueue"
 )
 
 func InitSupportHandlers(router *httprouter.Router) {

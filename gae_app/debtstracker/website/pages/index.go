@@ -2,6 +2,7 @@ package pages
 
 import (
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"google.golang.org/appengine/v2"
 	"html/template"
 	"net/http"
 	"strings"
@@ -9,7 +10,6 @@ import (
 	"context"
 	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/log"
-	"google.golang.org/appengine"
 )
 
 const TEMPLATES_PATH = "templates/" //"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/pages/templates/"

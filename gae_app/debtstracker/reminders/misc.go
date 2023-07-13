@@ -7,7 +7,7 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/strongo/log"
-	"google.golang.org/appengine"
+	"google.golang.org/appengine/v2"
 	"net/http"
 )
 

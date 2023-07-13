@@ -1,11 +1,11 @@
 package common
 
 import (
+	"google.golang.org/appengine/v2"
 	"net/http"
 
 	"github.com/gorilla/sessions"
 	"github.com/strongo/log"
-	"google.golang.org/appengine"
 	//"fmt"
 	//"encoding/base64"
 	//"crypto/sha1"
