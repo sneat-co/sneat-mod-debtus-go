@@ -45,6 +45,7 @@ require (
 	golang.org/x/crypto v0.11.0
 	golang.org/x/net v0.12.0
 	google.golang.org/appengine v1.6.7
+	google.golang.org/appengine/v2 v2.0.4
 )
 
 //replace github.com/dal-go/dalgo => ../dal-go/dalgo
