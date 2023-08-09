@@ -148,7 +148,7 @@ func writeSplitInstructions(buffer *bytes.Buffer, tgUserID, memberName string) {
 	}
 }
 
-func writeSplitMembers(buffer *bytes.Buffer, members []models.BillMemberJson, currentMemberID string, currency money.Currency) {
+func writeSplitMembers(buffer *bytes.Buffer, members []models.BillMemberJson, currentMemberID string, currency money.CurrencyCode) {
 	var totalShares int
 	for _, m := range members {
 		totalShares += m.Shares

@@ -12,7 +12,7 @@ package models
 //	//	}{kind, properties})
 //	//	return
 //	//}
-//	currency := money.CURRENCY_IRR
+//	currency := money.CurrencyCode_IRR
 //	creator := TransferCounterpartyInfo{
 //		UserID:      1,
 //		ContactID:   2,

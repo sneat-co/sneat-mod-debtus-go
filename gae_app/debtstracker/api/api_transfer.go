@@ -100,7 +100,7 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	amountWithCurrency := money.NewAmount(money.Currency(currency), amountValue)
+	amountWithCurrency := money.NewAmount(money.CurrencyCode(currency), amountValue)
 
 	contactID, err := strconv.ParseInt(r.PostFormValue("contactID"), 10, 64)
 	if err != nil {

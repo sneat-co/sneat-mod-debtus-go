@@ -33,7 +33,7 @@ var ParseTransferCommand = botsfw.Command{
 		match := transferRegex.FindStringSubmatch(whc.Input().(botsfw.WebhookTextMessage).Text())
 		var verb, valueS, counterpartyName, when string
 		var direction models.TransferDirection
-		var currency money.Currency
+		var currency money.CurrencyCode
 
 		for i, name := range transferRegex.SubexpNames() {
 			if i != 0 && len(name) > 0 {
@@ -46,9 +46,9 @@ var ParseTransferCommand = botsfw.Command{
 						valueS = v
 					case "currency":
 						if string(v) == "" {
-							currency = money.CURRENCY_USD //TODO: Replace with user's default currency
+							currency = money.CurrencyUSD //TODO: Replace with user's default currency
 						} else {
-							currency = money.Currency(strings.ToUpper(v))
+							currency = money.CurrencyCode(strings.ToUpper(v))
 						}
 					case "direction":
 						direction = models.TransferDirection(v)

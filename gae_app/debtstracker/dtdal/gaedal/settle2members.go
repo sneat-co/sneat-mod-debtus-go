@@ -13,7 +13,7 @@ import (
 	"reflect"
 )
 
-func Settle2members(c context.Context, groupID, debtorID, sponsorID string, currency money.Currency, amount decimal.Decimal64p2) (err error) {
+func Settle2members(c context.Context, groupID, debtorID, sponsorID string, currency money.CurrencyCode, amount decimal.Decimal64p2) (err error) {
 	log.Debugf(c, "Settle2members(groupID=%v, debtorID=%v, sponsorID=%v, currency=%v, amount=%v)", groupID, debtorID, sponsorID, currency, amount)
 	query := dal.From(models.BillKind).
 		WhereField("GetUserGroupID", dal.Equal, groupID).

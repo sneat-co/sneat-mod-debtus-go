@@ -50,7 +50,7 @@ type TransferDal interface {
 	LoadTransfersByContactID(c context.Context, contactID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error)
 	LoadTransferIDsByContactID(c context.Context, contactID int64, limit int, startCursor string) (transferIDs []int, endCursor string, err error)
 	LoadOverdueTransfers(c context.Context, tx dal.ReadSession, userID int64, limit int) (transfers []models.Transfer, err error)
-	LoadOutstandingTransfers(c context.Context, tx dal.ReadSession, periodEnds time.Time, userID, contactID int64, currency money.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error)
+	LoadOutstandingTransfers(c context.Context, tx dal.ReadSession, periodEnds time.Time, userID, contactID int64, currency money.CurrencyCode, direction models.TransferDirection) (transfers []models.Transfer, err error)
 	LoadDueTransfers(c context.Context, tx dal.ReadSession, userID int64, limit int) (transfers []models.Transfer, err error)
 	LoadLatestTransfers(c context.Context, offset, limit int) ([]models.Transfer, error)
 	DelayUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCode string, transferID int, creatorTgChatID, creatorTgReceiptMessageID int64) error
@@ -114,7 +114,7 @@ type UserDal interface {
 	CreateUser(c context.Context, userEntity *models.AppUserData) (models.AppUser, error)
 	DelaySetUserPreferredLocale(c context.Context, delay time.Duration, userID int64, localeCode5 string) error
 	DelayUpdateUserHasDueTransfers(c context.Context, userID int64) error
-	SetLastCurrency(c context.Context, userID int64, currency money.Currency) error
+	SetLastCurrency(c context.Context, userID int64, currency money.CurrencyCode) error
 	DelayUpdateUserWithBill(c context.Context, userID, billID string) error
 	DelayUpdateUserWithContact(c context.Context, userID, contactID int64) error
 }

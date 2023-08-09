@@ -74,7 +74,7 @@ func (billFacade) AssignBillToGroup(c context.Context, tx dal.ReadwriteTransacti
 			if err = bill.Data.SetBillMembers(billMembers); err != nil {
 				return
 			}
-			if bill.Data.Currency != money.Currency("") {
+			if bill.Data.Currency != money.CurrencyCode("") {
 				if _, err = group.Data.ApplyBillBalanceDifference(bill.Data.Currency, bill.Data.GetBalance().BillBalanceDifference(models.BillBalanceByMember{})); err != nil {
 					return
 				}
@@ -311,7 +311,7 @@ func (billFacade) CreateBill(c context.Context, tx dal.ReadwriteTransaction, bil
 				return
 			}
 		case models.SplitModePercentage:
-			if totalPercentageByMembers != decimal.FromInt(100) {
+			if totalPercentageByMembers != decimal.NewDecimal64p2FromInt(100) {
 				err = fmt.Errorf("%w: total percentage for all members should be 100%%, got %v%%", ErrBadInput, totalPercentageByMembers)
 				return
 			}
@@ -457,7 +457,7 @@ func (billFacade) CreateBill(c context.Context, tx dal.ReadwriteTransaction, bil
 //		//	false,
 //		//	0,
 //		//	from, to,
-//		//	 money.AmountTotal{Currency: money.Currency(bill.Currency), Value: bill.AmountTotal},
+//		//	 money.AmountTotal{Currency: money.CurrencyCode(bill.Currency), Value: bill.AmountTotal},
 //		//	time.Time{},
 //		//)
 //		//if err != nil {

@@ -463,7 +463,7 @@ handle_Total:
 
 handle_Currency:
 
-	/* handler: j.Currency type=money.Currency kind=string quoted=false*/
+	/* handler: j.Currency type=money.CurrencyCode kind=string quoted=false*/
 
 	{
 
@@ -479,7 +479,7 @@ handle_Currency:
 
 			outBuf := fs.Output.Bytes()
 
-			j.Currency = money.Currency(string(outBuf))
+			j.Currency = money.CurrencyCode(string(outBuf))
 
 		}
 	}

@@ -13,7 +13,7 @@ type BillJson struct {
 	Name         string              `json:"n"`
 	MembersCount int                 `json:"m"`
 	Total        decimal.Decimal64p2 `json:"t"`
-	Currency     money.Currency      `json:"c"`
+	Currency     money.CurrencyCode  `json:"c"`
 	UserBalance  decimal.Decimal64p2 `json:"u,omitempty"`
 }
 

@@ -65,7 +65,7 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 		SplitMode:     splitMode,
 		CreatorUserID: strconv.FormatInt(authInfo.UserID, 10),
 		Name:          r.PostFormValue("name"),
-		Currency:      money.Currency(r.PostFormValue("currency")),
+		Currency:      money.CurrencyCode(r.PostFormValue("currency")),
 		AmountTotal:   amount,
 	})
 
@@ -208,7 +208,7 @@ func billToResponse(c context.Context, w http.ResponseWriter, userID int64, bill
 		ID:   bill.ID,
 		Name: bill.Data.Name,
 		Amount: money.Amount{
-			Currency: money.Currency(bill.Data.Currency),
+			Currency: money.CurrencyCode(bill.Data.Currency),
 			Value:    decimal.Decimal64p2(bill.Data.AmountTotal),
 		},
 	}

@@ -53,7 +53,7 @@ var newBillCommand = botsfw.Command{
 				SplitMode:     models.SplitModeEqually,
 				CreatorUserID: strUserID,
 				AmountTotal:   amountValue,
-				Currency:      money.Currency(query.Get("c")),
+				Currency:      money.CurrencyCode(query.Get("c")),
 				UserIDs:       []string{strUserID},
 			},
 		)

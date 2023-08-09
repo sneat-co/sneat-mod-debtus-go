@@ -54,7 +54,7 @@ func TestCreateTransfer(t *testing.T) {
 
 	source := dtdal.NewTransferSourceBot(telegram.PlatformID, "test-bot", "444")
 
-	currency := money.CURRENCY_EUR
+	currency := money.CurrencyEUR
 
 	const (
 		userID         = 1
@@ -371,7 +371,7 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 	c := context.TODO()
 	dtmocks.SetupMocks(c)
 	assert := assertHelper{t: t}
-	currency := money.CURRENCY_EUR
+	currency := money.CurrencyEUR
 
 	source := dtdal.NewTransferSourceBot(telegram.PlatformID, "test-bot", "444")
 

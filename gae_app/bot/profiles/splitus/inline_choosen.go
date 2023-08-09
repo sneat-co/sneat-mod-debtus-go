@@ -71,7 +71,7 @@ func createBillFromInlineChosenResult(whc botsfw.WebhookContext, chosenResult bo
 		amountStr := values.Get("amount")
 		amountIdx := reDecimal.FindStringIndex(amountStr)
 		amountNum := amountStr[:amountIdx[1]]
-		amountCcy := money.Currency(amountStr[amountIdx[1]:])
+		amountCcy := money.CurrencyCode(amountStr[amountIdx[1]:])
 
 		var amount decimal.Decimal64p2
 		if amount, err = decimal.ParseDecimal64p2(amountNum); err != nil {

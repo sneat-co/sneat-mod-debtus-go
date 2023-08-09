@@ -60,31 +60,31 @@ var CURRENCY_ICONS = []string{
 	emoji.SMOKING_ICON,
 }
 
-var currenciesByPriority = []money.Currency{
-	money.CURRENCY_EUR,
-	money.CURRENCY_USD,
-	money.CURRENCY_GBP,
-	money.CURRENCY_JPY,
-	money.CURRENCY_IRR,
-	money.CURRENCY_RUB,
+var currenciesByPriority = []money.CurrencyCode{
+	money.CurrencyEUR,
+	money.CurrencyUSD,
+	money.CurrencyGBP,
+	money.CurrencyJPY,
+	money.CurrencyIRR,
+	money.CurrencyRUB,
 
-	money.CURRENCY_UAH,
-	money.CURRENCY_BYN,
-	money.CURRENCY_TJS,
-	money.CURRENCY_UZS,
-	money.Currency(emoji.CD_ICON),
-	money.Currency(emoji.BOOK_ICON),
-	money.Currency(emoji.BEER_ICON),
-	money.Currency(emoji.TEACUP_ICON),
-	money.Currency(emoji.HOURGLASS_ICON),
-	money.Currency(emoji.TAXI_ICON),
+	money.CurrencyUAH,
+	money.CurrencyBYN,
+	money.CurrencyTJS,
+	money.CurrencyUZS,
+	money.CurrencyCode(emoji.CD_ICON),
+	money.CurrencyCode(emoji.BOOK_ICON),
+	money.CurrencyCode(emoji.BEER_ICON),
+	money.CurrencyCode(emoji.TEACUP_ICON),
+	money.CurrencyCode(emoji.HOURGLASS_ICON),
+	money.CurrencyCode(emoji.TAXI_ICON),
 
-	money.Currency(emoji.BICYCLE_ICON),
-	money.Currency(emoji.HAMMER_ICON),
-	money.Currency(emoji.FORK_AND_KNIFE_ICON),
-	money.Currency(emoji.DRESS_ICON),
-	money.Currency(emoji.HIGH_HEELED_SHOES_ICON),
-	money.Currency(emoji.TSHIRT_ICON),
+	money.CurrencyCode(emoji.BICYCLE_ICON),
+	money.CurrencyCode(emoji.HAMMER_ICON),
+	money.CurrencyCode(emoji.FORK_AND_KNIFE_ICON),
+	money.CurrencyCode(emoji.DRESS_ICON),
+	money.CurrencyCode(emoji.HIGH_HEELED_SHOES_ICON),
+	money.CurrencyCode(emoji.TSHIRT_ICON),
 }
 
 func AskTransferCurrencyButtons(whc botsfw.WebhookContext) [][]string {
@@ -99,9 +99,9 @@ func AskTransferCurrencyButtons(whc botsfw.WebhookContext) [][]string {
 
 	var runesInRow int
 
-	var alreadyAddedCurrencies []money.Currency
+	var alreadyAddedCurrencies []money.CurrencyCode
 
-	addCurrencyAndNewLineIfNeeded := func(currency money.Currency) {
+	addCurrencyAndNewLineIfNeeded := func(currency money.CurrencyCode) {
 		result[row] = append(result[row], currency.SignAndCode())
 		runesInRow += utf8.RuneCountInString(currency.SignAndCode()) // TODO: Proper runes count
 		col += 1
@@ -118,12 +118,12 @@ func AskTransferCurrencyButtons(whc botsfw.WebhookContext) [][]string {
 	appUser := user.(*models.AppUserData)
 
 	for _, currency := range appUser.GetCurrencies() {
-		curr := money.Currency(currency)
+		curr := money.CurrencyCode(currency)
 		addCurrencyAndNewLineIfNeeded(curr)
 		alreadyAddedCurrencies = append(alreadyAddedCurrencies, curr)
 	}
 
-	alreadyAdded := func(currency money.Currency) bool {
+	alreadyAdded := func(currency money.CurrencyCode) bool {
 		for _, curr := range alreadyAddedCurrencies {
 			if curr == currency {
 				return true
@@ -195,7 +195,7 @@ func AskTransferAmountCommand(code, messageTextFormat string, nextCommand botsfw
 				//	if err != nil {
 				//		return m, err
 				//	}
-				//	amount :=  money.AmountTotal{Currency: money.Currency(params.Get("currency")), Value: amountValue}
+				//	amount :=  money.AmountTotal{Currency: money.CurrencyCode(params.Get("currency")), Value: amountValue}
 				//	messageText = fmt.Sprintf(messageText, amount)
 				//}
 				return m, fmt.Errorf("Command %v is incorrectly matched, whc.AwaitingReplyToPath(): %v", code, awaitingReplyToPath)
@@ -366,7 +366,7 @@ func listCounterpartiesAsButtons(whc botsfw.WebhookContext, user models.AppUser,
 		if err != nil {
 			return m, err
 		}
-		amount := money.Amount{Currency: money.Currency(currency), Value: value}
+		amount := money.Amount{Currency: money.CurrencyCode(currency), Value: value}
 		m = whc.NewMessage(fmt.Sprintf(whc.Translate(messageText), amount))
 	} else {
 		m = whc.NewMessage(whc.Translate(messageText))
@@ -501,7 +501,7 @@ func TransferWizardCompletedCommand(code string) botsfw.Command {
 			}
 			value = value.Abs()
 			currencyCode := params.Get("currency")
-			currency := money.Currency(currencyCode)
+			currency := money.CurrencyCode(currencyCode)
 
 			var dueOn time.Time
 			due := params.Get("due")

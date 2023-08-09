@@ -23,7 +23,7 @@ func NewUserDalMock() *UserDalMock {
 	}
 }
 
-func (mock *UserDalMock) SetLastCurrency(c context.Context, userID int64, currency money.Currency) error {
+func (mock *UserDalMock) SetLastCurrency(c context.Context, userID int64, currency money.CurrencyCode) error {
 	panic("Not implemented yet")
 }
 

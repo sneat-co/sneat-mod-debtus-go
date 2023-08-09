@@ -71,7 +71,7 @@ func (transferDalGae TransferDalGae) GetTransfersByID(c context.Context, tx dal.
 	return
 }
 
-func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context, tx dal.ReadSession, periodEnds time.Time, userID, contactID int64, currency money.Currency, direction models.TransferDirection) (transfers []models.Transfer, err error) {
+func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context, tx dal.ReadSession, periodEnds time.Time, userID, contactID int64, currency money.CurrencyCode, direction models.TransferDirection) (transfers []models.Transfer, err error) {
 	log.Debugf(c, "TransferDalGae.LoadOutstandingTransfers(periodEnds=%v, userID=%v, contactID=%v currency=%v, direction=%v)", periodEnds, userID, contactID, currency, direction)
 	const limit = 100
 

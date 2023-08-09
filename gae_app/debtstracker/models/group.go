@@ -45,9 +45,9 @@ func NewGroupKey(id string) *dal.Key {
 type GroupEntity struct {
 	CreatorUserID string
 	//IsUser2User         bool   `datastore:",noindex"`
-	Name                string         `datastore:",noindex"`
-	Note                string         `datastore:",noindex,omitempty"`
-	DefaultCurrency     money.Currency `datastore:",noindex,omitempty"`
+	Name                string             `datastore:",noindex"`
+	Note                string             `datastore:",noindex,omitempty"`
+	DefaultCurrency     money.CurrencyCode `datastore:",noindex,omitempty"`
 	members             []GroupMemberJson
 	MembersCount        int    `datastore:",noindex,omitempty"`
 	MembersJson         string `datastore:",noindex,omitempty"`
@@ -57,7 +57,7 @@ type GroupEntity struct {
 	billsHolder
 }
 
-func (entity *GroupEntity) ApplyBillBalanceDifference(currency money.Currency, diff BillBalanceDifference) (changed bool, err error) {
+func (entity *GroupEntity) ApplyBillBalanceDifference(currency money.CurrencyCode, diff BillBalanceDifference) (changed bool, err error) {
 	if currency == "" {
 		panic("currency parameter is required")
 	}

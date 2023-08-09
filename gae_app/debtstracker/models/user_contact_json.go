@@ -24,7 +24,7 @@ type TransferWithInterestJson struct {
 	TransferID int
 	Direction  TransferDirection
 	Starts     time.Time
-	Currency   money.Currency `json:",omitempty"` // TODO: will be obsolete once we group outstanding by currency
+	Currency   money.CurrencyCode `json:",omitempty"` // TODO: will be obsolete once we group outstanding by currency
 	Amount     decimal.Decimal64p2
 	Returns    TransferReturns `json:",omitempty"`
 }

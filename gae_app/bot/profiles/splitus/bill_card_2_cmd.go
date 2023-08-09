@@ -101,7 +101,7 @@ func writeBillMembersList(
 	bill models.Bill,
 	selectedMemberID string,
 ) {
-	billCurrency := money.Currency(bill.Data.Currency)
+	billCurrency := money.CurrencyCode(bill.Data.Currency)
 	type MemberRowParams struct {
 		N          int
 		MemberName string

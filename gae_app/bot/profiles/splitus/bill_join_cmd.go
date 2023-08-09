@@ -125,22 +125,16 @@ func joinBillAction(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, bill
 
 	billChanged := false
 	if bill.Data.Currency == "" {
-		guessCurrency := func() money.Currency {
+		guessCurrency := func() money.CurrencyCode {
 			switch whc.Locale().Code5 {
 			case i18n.LocalCodeRuRu:
-				return money.CURRENCY_RUB
-			case i18n.LocaleCodeDeDE:
-				return money.CURRENCY_EUR
-			case i18n.LocaleCodeFrFR:
-				return money.CURRENCY_EUR
-			case i18n.LocaleCodeItIT:
-				return money.CURRENCY_EUR
-			case i18n.LocaleCodePtPT:
-				return money.CURRENCY_EUR
+				return money.CurrencyRUB
+			case i18n.LocaleCodeFrFR, i18n.LocaleCodeDeDE, i18n.LocaleCodeItIT, i18n.LocaleCodePtPT:
+				return money.CurrencyEUR
 			case i18n.LocaleCodeEnUK:
-				return money.CURRENCY_GBP
+				return money.CurrencyGBP
 			default:
-				return money.CURRENCY_USD
+				return money.CurrencyUSD
 			}
 		}
 
@@ -157,9 +151,9 @@ func joinBillAction(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, bill
 				}
 			}
 		} else if user.PrimaryCurrency != "" {
-			bill.Data.Currency = money.Currency(user.PrimaryCurrency)
+			bill.Data.Currency = money.CurrencyCode(user.PrimaryCurrency)
 		} else if len(user.LastCurrencies) > 0 {
-			bill.Data.Currency = money.Currency(user.LastCurrencies[0])
+			bill.Data.Currency = money.CurrencyCode(user.LastCurrencies[0])
 		}
 		if bill.Data.Currency == "" {
 			bill.Data.Currency = guessCurrency()

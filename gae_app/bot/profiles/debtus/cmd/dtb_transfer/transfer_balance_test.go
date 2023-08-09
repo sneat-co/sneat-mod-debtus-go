@@ -120,9 +120,9 @@ func TestBalanceMessageTwoCounterparties(t *testing.T) {
 
 func TestBalanceMessageBuilder_ByCurrency(t *testing.T) {
 	balance := money.Balance{
-		money.CURRENCY_USD: decimal.NewDecimal64p2(10, 0),
-		money.CURRENCY_RUB: decimal.NewDecimal64p2(50, 0),
-		money.CURRENCY_EUR: decimal.NewDecimal64p2(15, 0),
+		money.CurrencyUSD: decimal.NewDecimal64p2(10, 0),
+		money.CurrencyRUB: decimal.NewDecimal64p2(50, 0),
+		money.CurrencyEUR: decimal.NewDecimal64p2(15, 0),
 	}
 	assert(t, i18n.LocaleRuRu, 0, "<b>Всего</b>\nВам должны 50 RUB, 15 EUR и 10 USD", ruMock(t).ByCurrency(true, balance))
 }

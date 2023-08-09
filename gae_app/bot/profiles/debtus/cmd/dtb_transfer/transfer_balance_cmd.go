@@ -63,7 +63,7 @@ func balanceAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err erro
 		var thereAreFewDebtsForSingleCurrency = func() bool {
 			//TODO: Duplicate call to Balance() - consider move inside BalanceMessageBuilder
 			//log.Debugf(c, "thereAreFewDebtsForSingleCurrency()")
-			var currencies []money.Currency
+			var currencies []money.CurrencyCode
 			for _, counterparty := range contacts {
 				//log.Debugf(c, "counterparty: %v", counterparty)
 				for currency := range counterparty.Balance() {

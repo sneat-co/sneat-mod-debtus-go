@@ -49,7 +49,7 @@ type BillsHistoryEntity struct {
 	StatusOld              string              `datastore:",noindex"`
 	StatusNew              string              `datastore:",noindex"`
 	Action                 BillHistoryAction   `datastore:",noindex"`
-	Currency               money.Currency      `datastore:",noindex"`
+	Currency               money.CurrencyCode  `datastore:",noindex"`
 	TotalAmountDiff        decimal.Decimal64p2 `datastore:",noindex"`
 	TotalAmountBefore      decimal.Decimal64p2 `datastore:",noindex"`
 	TotalAmountAfter       decimal.Decimal64p2 `datastore:",noindex"`

@@ -888,7 +888,7 @@ func (transferFacade) updateUserAndCounterpartyWithTransferInfo(
 func updateUserWithTransferInfo(
 	c context.Context,
 	val decimal.Decimal64p2,
-	// curr money.Currency,
+	// curr money.CurrencyCode,
 	transfer models.Transfer,
 	user models.AppUser,
 	contact models.Contact,
@@ -899,7 +899,7 @@ func updateUserWithTransferInfo(
 	user.Data.LastTransferAt = transfer.Data.DtCreated
 	user.Data.SetLastCurrency(string(transfer.Data.Currency))
 
-	// var updateBalanceAndContactTransfersInfo = func(curr money.Currency, val decimal.Decimal64p2, user models.AppUser, contact models.Contact) (err error) {
+	// var updateBalanceAndContactTransfersInfo = func(curr money.CurrencyCode, val decimal.Decimal64p2, user models.AppUser, contact models.Contact) (err error) {
 
 	var balance money.Balance
 	if balance, err = user.Data.AddToBalance(transfer.Data.Currency, val); err != nil {

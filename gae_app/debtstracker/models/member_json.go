@@ -46,7 +46,7 @@ func (m *GroupMemberJson) String() string {
 	return string(buffer)
 }
 
-type GroupBalanceByCurrencyAndMember map[money.Currency]map[string]decimal.Decimal64p2
+type GroupBalanceByCurrencyAndMember map[money.CurrencyCode]map[string]decimal.Decimal64p2
 
 type BillMemberJson struct {
 	MemberJson

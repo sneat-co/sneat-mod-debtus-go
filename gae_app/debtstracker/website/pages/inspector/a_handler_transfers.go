@@ -30,7 +30,7 @@ func (h transfersPage) transfersPageHandler(w http.ResponseWriter, r *http.Reque
 
 	urlQuery := r.URL.Query()
 
-	currency := money.Currency(urlQuery.Get("currency"))
+	currency := money.CurrencyCode(urlQuery.Get("currency"))
 
 	contactID, err := strconv.ParseInt(urlQuery.Get("contact"), 10, 64)
 	if err != nil {
@@ -101,7 +101,7 @@ func (h transfersPage) transfersPageHandler(w http.ResponseWriter, r *http.Reque
 	renderTransfersPage(contact, currency, balancesWithoutInterest, balancesWithInterest, transfers, w)
 }
 
-func (h transfersPage) processTransfers(c context.Context, tx dal.ReadSession, contactID int64, currency money.Currency) (
+func (h transfersPage) processTransfers(c context.Context, tx dal.ReadSession, contactID int64, currency money.CurrencyCode) (
 	transfers []models.Transfer,
 	balanceWithoutInterest decimal.Decimal64p2,
 	err error,

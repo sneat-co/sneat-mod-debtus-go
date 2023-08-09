@@ -41,8 +41,8 @@ var StartReturnWizardCommand = botsfw.Command{
 	},
 }
 
-func askIfReturnedInFull(whc botsfw.WebhookContext, counterparty models.Contact, currency money.Currency, value decimal.Decimal64p2) (m botsfw.MessageFromBot, err error) {
-	amount := money.Amount{Currency: money.Currency(currency), Value: value}
+func askIfReturnedInFull(whc botsfw.WebhookContext, counterparty models.Contact, currency money.CurrencyCode, value decimal.Decimal64p2) (m botsfw.MessageFromBot, err error) {
+	amount := money.Amount{Currency: money.CurrencyCode(currency), Value: value}
 	var mt string
 	switch {
 	case value < 0:
@@ -131,7 +131,7 @@ func askToChooseDebt(whc botsfw.WebhookContext, buttons [][]string) (m botsfw.Me
 	return m
 }
 
-func _debtAmountButtonText(whc botsfw.WebhookContext, currency money.Currency, value decimal.Decimal64p2, counterparty models.Contact) string {
+func _debtAmountButtonText(whc botsfw.WebhookContext, currency money.CurrencyCode, value decimal.Decimal64p2, counterparty models.Contact) string {
 	amount := money.Amount{Currency: currency, Value: value.Abs()}
 	var mt string
 	switch {
@@ -197,7 +197,7 @@ func processReturnCommand(whc botsfw.WebhookContext, returnValue decimal.Decimal
 	if err != nil {
 		return m, err
 	}
-	currency := money.Currency(awaitingUrl.Query().Get("currency"))
+	currency := money.CurrencyCode(awaitingUrl.Query().Get("currency"))
 
 	if transferID != 0 && returnValue > 0 {
 		var transfer models.Transfer
