@@ -74,7 +74,7 @@ func handleTgHelperCurrencySelected(c context.Context, w http.ResponseWriter, r 
 				log.Errorf(c, "panic in handleTgHelperCurrencySelected() => dtdal.User.SetLastCurrency(): %v", r)
 			}
 		}()
-		if err := dtdal.User.SetLastCurrency(c, authInfo.UserID, money.Currency(selectedCurrency)); err != nil {
+		if err := dtdal.User.SetLastCurrency(c, authInfo.UserID, money.CurrencyCode(selectedCurrency)); err != nil {
 			log.Errorf(c, "Failed to save user last currency: %v", err)
 		}
 		userTask.Done()

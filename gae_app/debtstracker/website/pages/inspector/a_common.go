@@ -18,7 +18,7 @@ type balanceRow struct {
 type balancesByCurrency struct {
 	*sync.Mutex
 	err        error
-	byCurrency map[money.Currency]balanceRow
+	byCurrency map[money.CurrencyCode]balanceRow
 }
 
 type balances struct {

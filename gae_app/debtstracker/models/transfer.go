@@ -235,7 +235,7 @@ type TransferData struct {
 	TransferInterest
 
 	IsOutstanding bool
-	Currency      money.Currency // Should be indexed for loading outstanding transfers
+	Currency      money.CurrencyCode // Should be indexed for loading outstanding transfers
 	//
 	ReceiptsSentCount int   `datastore:",noindex,omitempty"`
 	ReceiptIDs        []int `datastore:",noindex"`

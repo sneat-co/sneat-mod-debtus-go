@@ -38,7 +38,7 @@ func TestTransferEntity_GetInterestValue(t *testing.T) {
 		DtCreated:        now,
 		IsOutstanding:    true,
 		AmountInCents:    1000,
-		TransferInterest: NewInterest(interest.FormulaSimple, decimal.FromInt(3), 3).WithMinimumPeriod(3),
+		TransferInterest: NewInterest(interest.FormulaSimple, decimal.NewDecimal64p2FromInt(3), 3).WithMinimumPeriod(3),
 	})
 
 	if !assertOutstandingValue(t, transfer.Data, now, 1030) {
@@ -128,14 +128,14 @@ func TestUserContactJson_BalanceWithInterest(t *testing.T) {
 
 func Test_updateBalanceWithInterest(t *testing.T) {
 	balance := money.Balance{
-		money.CURRENCY_EUR: decimal.NewDecimal64p2FromFloat64(52.00),
+		money.CurrencyEUR: decimal.NewDecimal64p2FromFloat64(52.00),
 	}
 	now := time.Now()
 	outstandingWithInterest := []TransferWithInterestJson{
 		{
-			TransferInterest: NewInterest(interest.FormulaSimple, decimal.FromInt(2), 1).WithMinimumPeriod(1),
+			TransferInterest: NewInterest(interest.FormulaSimple, decimal.NewDecimal64p2FromInt(2), 1).WithMinimumPeriod(1),
 			Starts:           now,
-			Currency:         money.CURRENCY_EUR,
+			Currency:         money.CurrencyEUR,
 			Amount:           decimal.NewDecimal64p2FromFloat64(100.00),
 			Returns: []TransferReturnJson{
 				{

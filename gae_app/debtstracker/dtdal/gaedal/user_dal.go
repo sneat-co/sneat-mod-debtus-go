@@ -25,7 +25,7 @@ func NewUserDalGae() UserDalGae {
 
 var _ dtdal.UserDal = (*UserDalGae)(nil)
 
-func (userDal UserDalGae) SetLastCurrency(c context.Context, userID int64, currency money.Currency) (err error) {
+func (userDal UserDalGae) SetLastCurrency(c context.Context, userID int64, currency money.CurrencyCode) (err error) {
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {
 		return err

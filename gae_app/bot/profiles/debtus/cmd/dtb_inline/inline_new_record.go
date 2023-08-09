@@ -3,17 +3,16 @@ package dtb_inline
 import (
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/strongo/decimal"
+	"github.com/strongo/log"
 	"html"
 	"net/url"
 	"regexp"
 	"strings"
-
-	"github.com/bots-go-framework/bots-fw-telegram"
-	"github.com/strongo/decimal"
-	"github.com/strongo/log"
 )
 
 var ReInlineQueryAmount = regexp.MustCompile(`^\s*(\d+(?:\.\d*)?)\s*((?:\b|\B).+?)?\s*$`)
@@ -25,7 +24,7 @@ func InlineNewRecord(whc botsfw.WebhookContext, amountMatches []string) (m botsf
 	inlineQuery := whc.Input().(botsfw.WebhookInlineQuery)
 	var (
 		amountValue    decimal.Decimal64p2
-		amountCurrency money.Currency
+		amountCurrency money.CurrencyCode
 	)
 	if amountValue, err = decimal.ParseDecimal64p2(strings.TrimRight(amountMatches[1], ".")); err != nil {
 		return
@@ -37,19 +36,19 @@ func InlineNewRecord(whc botsfw.WebhookContext, amountMatches []string) (m botsf
 			currencyCode = currencyCode[:20]
 		}
 		ccLow := strings.ToLower(currencyCode)
-		if ccLow == money.RUR_SIGN || ccLow == "р" || ccLow == "руб" || ccLow == "рубля" || ccLow == "рублей" || ccLow == "rub" || ccLow == "rubles" || ccLow == "ruble" || ccLow == "rubley" {
-			amountCurrency = money.CURRENCY_RUB
-		} else if ccLow == "eur" || ccLow == "euro" || ccLow == money.EUR_SIGN {
-			amountCurrency = money.CURRENCY_EUR
-		} else if ccLow == "гривна" || ccLow == "гривен" || ccLow == "г" || ccLow == money.UAH_SIGN {
-			amountCurrency = money.CURRENCY_UAH
-		} else if ccLow == "тенге" || ccLow == "теңге" || ccLow == "т" || ccLow == money.KZT_SIGN {
-			amountCurrency = money.CURRENCY_KZT
+		if ccLow == money.CurrencySymbolRUR || ccLow == "р" || ccLow == "руб" || ccLow == "рубля" || ccLow == "рублей" || ccLow == "rub" || ccLow == "rubles" || ccLow == "ruble" || ccLow == "rubley" {
+			amountCurrency = money.CurrencySymbolRUR
+		} else if ccLow == "eur" || ccLow == "euro" || ccLow == money.CurrencySymbolEUR {
+			amountCurrency = money.CurrencyEUR
+		} else if ccLow == "гривна" || ccLow == "гривен" || ccLow == "г" || ccLow == money.CurrencySymbolUAH {
+			amountCurrency = money.CurrencyUAH
+		} else if ccLow == "тенге" || ccLow == "теңге" || ccLow == "т" || ccLow == money.CurrencySymbolKZT {
+			amountCurrency = money.CurrencyKZT
 		} else {
-			amountCurrency = money.Currency(currencyCode)
+			amountCurrency = money.CurrencyCode(currencyCode)
 		}
 	} else {
-		amountCurrency = money.CURRENCY_USD
+		amountCurrency = money.CurrencyUSD
 	}
 
 	amountText := html.EscapeString(money.NewAmount(amountCurrency, amountValue).String())

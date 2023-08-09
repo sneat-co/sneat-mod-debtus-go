@@ -42,7 +42,7 @@ func newContactWithBalances(c context.Context, now time.Time, contact models.Con
 func newBalanceSummary(who string, balance money.Balance) (balances balancesByCurrency) {
 	balances = balancesByCurrency{
 		Mutex:      new(sync.Mutex),
-		byCurrency: make(map[money.Currency]balanceRow, len(balance)),
+		byCurrency: make(map[money.CurrencyCode]balanceRow, len(balance)),
 	}
 	for currency, value := range balance {
 		row := balances.byCurrency[currency]

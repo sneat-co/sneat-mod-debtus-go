@@ -1,14 +1,13 @@
 package models
 
 import (
-	"fmt"
-	"time"
-
 	"errors"
+	"fmt"
 	"github.com/crediterra/money"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/decimal"
 	"strconv"
+	"time"
 )
 
 type SplitMode string
@@ -36,7 +35,7 @@ type BillCommon struct {
 	Status             string
 	DtCreated          time.Time
 	AmountTotal        decimal.Decimal64p2
-	Currency           money.Currency
+	Currency           money.CurrencyCode
 	members            []BillMemberJson
 	UserIDs            []string
 	ContactIDs         []string  // Holds contact IDs, so we can update names in MembersJson on contact changed
@@ -109,7 +108,7 @@ func (entity *BillCommon) IsOkToSplit() bool {
 }
 
 func (entity *BillCommon) TotalAmount() money.Amount {
-	return money.NewAmount(money.Currency(entity.Currency), entity.AmountTotal)
+	return money.NewAmount(money.CurrencyCode(entity.Currency), entity.AmountTotal)
 }
 
 func (entity *BillCommon) GetBillMembers() (members []BillMemberJson) {

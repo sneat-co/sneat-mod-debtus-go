@@ -22,7 +22,7 @@ func GroupSettingsAction(whc botsfw.WebhookContext, group models.Group, isEdit b
 	m.Text = buf.String()
 	defaultCurrency := group.Data.DefaultCurrency
 	if defaultCurrency == "" {
-		defaultCurrency = money.Currency(whc.Translate(trans.NOT_SET))
+		defaultCurrency = money.CurrencyCode(whc.Translate(trans.NOT_SET))
 	}
 	m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{

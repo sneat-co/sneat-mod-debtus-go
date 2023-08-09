@@ -127,11 +127,11 @@ package maintainance
 //}
 //
 //func (*verifyTransfers) verifyTransferCurrency(c context.Context, tx dal.ReadwriteTransaction, transfer models.Transfer, buf *bytes.Buffer, counters *asyncCounters) (err error) {
-//	var currency money.Currency
-//	if transfer.Data.Currency == money.Currency("euro") {
-//		currency = money.Currency("EUR")
+//	var currency money.CurrencyCode
+//	if transfer.Data.Currency == money.CurrencyCode("euro") {
+//		currency = money.CurrencyCode("EUR")
 //	} else if len(transfer.Data.Currency) == 3 {
-//		if v2 := money.Currency(strings.ToUpper(string(transfer.Data.Currency))); v2 != transfer.Data.Currency && v2.IsMoney() {
+//		if v2 := money.CurrencyCode(strings.ToUpper(string(transfer.Data.Currency))); v2 != transfer.Data.Currency && v2.IsMoney() {
 //			currency = v2
 //		}
 //	}

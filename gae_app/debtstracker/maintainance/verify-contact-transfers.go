@@ -453,12 +453,12 @@ package maintainance
 //}
 //
 //func (m *verifyContactTransfers) fixTransfers(c context.Context, now time.Time, buf *bytes.Buffer, contact models.Contact, transfers []models.Transfer) (
-//	transfersByCurrency map[money.Currency][]models.Transfer,
+//	transfersByCurrency map[money.CurrencyCode][]models.Transfer,
 //	transfersToSave map[int]*models.TransferData,
 //) {
 //	fmt.Fprintln(buf, "fixTransfers()")
 //
-//	transfersByCurrency = make(map[money.Currency][]models.Transfer)
+//	transfersByCurrency = make(map[money.CurrencyCode][]models.Transfer)
 //
 //	transfersToSave = make(map[int]*models.TransferData)
 //

@@ -294,7 +294,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 			transfersBalanceByCounterpartyID[counterpartyID] = transfersCounterpartyBalance
 		}
 		value := transferData.GetAmount().Value
-		currency := money.Currency(transferData.Currency)
+		currency := money.CurrencyCode(transferData.Currency)
 		switch transferData.DirectionForUser(userID) {
 		case models.TransferDirectionUser2Counterparty:
 			transfersCounterpartyBalance[currency] += value
