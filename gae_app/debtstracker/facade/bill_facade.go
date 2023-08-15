@@ -343,11 +343,7 @@ func (billFacade) CreateBill(c context.Context, tx dal.ReadwriteTransaction, bil
 			}
 		}
 
-		billEntity.ContactIDs = make([]string, len(contactIDs))
-		for i, contactID := range contactIDs {
-			billEntity.ContactIDs[i] = contactID
-		}
-
+		billEntity.ContactIDs = contactIDs[:]
 	}
 
 	if bill, err = InsertBillEntity(c, tx, billEntity); err != nil {

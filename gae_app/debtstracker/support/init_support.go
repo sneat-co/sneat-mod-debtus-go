@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
-	"slices"
 	"time"
 
 	"context"
@@ -79,11 +78,11 @@ func ValidateUsersHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte(fmt.Sprintf("Users count: %v", usersCount)))
 }
 
-type int64sortable []int64
-
-func (a int64sortable) Len() int           { return len(a) }
-func (a int64sortable) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a int64sortable) Less(i, j int) bool { return a[i] < a[j] }
+//type int64sortable []int64
+//
+//func (a int64sortable) Len() int           { return len(a) }
+//func (a int64sortable) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+//func (a int64sortable) Less(i, j int) bool { return a[i] < a[j] }
 
 func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
@@ -118,22 +117,19 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userCounterpartyIDs := make([]string, len(user.Data.ContactIDs()))
-	for i, v := range user.Data.ContactIDs() {
-		userCounterpartyIDs[i] = v
-	}
+	userCounterpartyIDs := user.Data.ContactIDs()[:]
 
 	if user.Data.TotalContactsCount() != len(userCounterpartyIDs) {
 		log.Warningf(c, "user.TotalContactsCount() != len(user.ContactIDs()) => %v != %v", user.Data.TotalContactsCount(), len(userCounterpartyIDs))
 	}
 
-	slices.Sort(userCounterpartyIDs)
+	//slices.Sort(userCounterpartyIDs)
 
 	counterpartyIDs := make([]string, len(userCounterpartyRecords))
 	for i, v := range userCounterpartyRecords {
 		counterpartyIDs[i] = v.Key().ID.(string)
 	}
-	slices.Sort(counterpartyIDs)
+	//slices.Sort(counterpartyIDs)
 
 	query = dal.From(models.TransferKind).WhereField("BothUserIDs", dal.Equal, userID).OrderBy(dal.AscendingField("DtCreated")).SelectInto(func() dal.Record {
 		return dal.NewRecordWithoutKey(models.AppUserKind, reflect.Int64, new(models.AppUserData))
