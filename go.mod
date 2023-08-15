@@ -2,21 +2,19 @@ module github.com/sneat-co/debtstracker-go
 
 go 1.20
 
-replace github.com/crediterra/money => ../../crediterra/money
-
 require (
 	cloud.google.com/go/firestore v1.12.0
 	github.com/aws/aws-sdk-go v1.44.323
 	github.com/bots-go-framework/bots-api-telegram v0.4.1
 	github.com/bots-go-framework/bots-fw v0.21.0
 	github.com/bots-go-framework/bots-fw-store v0.1.0
-	github.com/bots-go-framework/bots-fw-telegram v0.6.16
+	github.com/bots-go-framework/bots-fw-telegram v0.6.17
 	github.com/bots-go-framework/bots-fw-telegram-models v0.0.13
 	github.com/bots-go-framework/bots-go-core v0.0.1
 	github.com/bots-go-framework/bots-host-gae v0.4.7
 	github.com/captaincodeman/datastore-mapper v0.0.0-20170320145307-cb380a4c4d13
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85
-	github.com/crediterra/money v0.1.0
+	github.com/crediterra/money v0.2.0
 	github.com/dal-go/dalgo v0.2.31
 	github.com/dal-go/dalgo2firestore v0.1.19
 	github.com/dal-go/mocks4dalgo v0.1.11
