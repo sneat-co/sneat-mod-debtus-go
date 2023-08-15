@@ -26,11 +26,12 @@ func ReceiptRedirect(w http.ResponseWriter, r *http.Request, _ httprouter.Params
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	receiptID, err := common.DecodeIntID(receiptCode)
-	if err != nil || receiptID == 0 {
+	receiptID := receiptCode
+	if receiptID == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	var err error
 	log.Debugf(c, "Receipt ID: %v", receiptID)
 	_, err = dtdal.Receipt.GetReceiptByID(c, nil, receiptID)
 	switch err {

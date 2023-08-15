@@ -30,7 +30,7 @@ func redirectToWebApp(w http.ResponseWriter, r *http.Request, authRequired bool,
 
 	lang := query.Get("lang")
 	if lang == "" {
-		if authInfo.UserID != 0 {
+		if authInfo.UserID != "" {
 			user, err := facade.User.GetUserByID(c, nil, authInfo.UserID)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -103,7 +103,7 @@ func redirectToWebApp(w http.ResponseWriter, r *http.Request, authRequired bool,
 		}
 	}
 
-	if authInfo.UserID > 0 {
+	if authInfo.UserID > "" {
 		redirectTo.WriteString("&secret=" + query.Get("secret"))
 	}
 	log.Debugf(c, "Will redirect to: %v", redirectTo.String())

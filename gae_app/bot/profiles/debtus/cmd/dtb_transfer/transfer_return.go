@@ -8,7 +8,6 @@ import (
 	"github.com/crediterra/money"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
@@ -156,7 +155,7 @@ var AskIfReturnedInFullCommand = botsfw.Command{
 			switch whc.Input().(botsfw.WebhookTextMessage).Text() {
 			case whc.Translate(trans.BUTTON_TEXT_DEBT_RETURNED_FULLY):
 				m, err = processReturnCommand(whc, 0)
-				//common.CreateTransfer(whc.Context(), whc.AppUserInt64ID(), )
+				//common.CreateTransfer(whc.Context(), whc.AppUserID(), )
 			case whc.Translate(trans.BUTTON_TEXT_DEBT_RETURNED_PARTIALLY):
 				m, err = AskHowMuchHaveBeenReturnedCommand.Action(whc)
 			default:
@@ -178,8 +177,8 @@ func processReturnCommand(whc botsfw.WebhookContext, returnValue decimal.Decimal
 	c := whc.Context()
 	chatEntity := whc.ChatData()
 	var (
-		counterpartyID int64
-		transferID     int
+		counterpartyID string
+		transferID     string
 	)
 	if counterpartyID, transferID, err = getReturnWizardParams(whc); err != nil {
 		return m, err
@@ -199,7 +198,7 @@ func processReturnCommand(whc botsfw.WebhookContext, returnValue decimal.Decimal
 	}
 	currency := money.CurrencyCode(awaitingUrl.Query().Get("currency"))
 
-	if transferID != 0 && returnValue > 0 {
+	if transferID != "" && returnValue > 0 {
 		var transfer models.Transfer
 		if transfer, err = facade.Transfers.GetTransferByID(whc.Context(), nil, transferID); err != nil {
 			return
@@ -274,7 +273,7 @@ var AskToChooseDebtToReturnCommand = botsfw.Command{
 			theCounterparty models.Contact
 			balance         money.Balance
 		)
-		if counterpartyID == 0 {
+		if counterpartyID == "" {
 			// Let's try to get counterpartyEntity from message text
 			mt := whc.Input().(botsfw.WebhookTextMessage).Text()
 			splittedBySeparator := strings.Split(mt, "|")
@@ -302,7 +301,7 @@ var AskToChooseDebtToReturnCommand = botsfw.Command{
 					}
 					theCounterparty = counterpartyItem
 					counterpartyFound = true
-					chatEntity.AddWizardParam(WIZARD_PARAM_COUNTERPARTY, strconv.FormatInt(counterpartyItem.ID, 10))
+					chatEntity.AddWizardParam(WIZARD_PARAM_COUNTERPARTY, counterpartyItem.ID)
 					break
 				}
 			}
@@ -335,7 +334,7 @@ var AskToChooseDebtToReturnCommand = botsfw.Command{
 	},
 }
 
-func CreateReturnAndShowReceipt(whc botsfw.WebhookContext, returnToTransferID int, counterpartyID int64, direction models.TransferDirection, returnAmount money.Amount) (m botsfw.MessageFromBot, err error) {
+func CreateReturnAndShowReceipt(whc botsfw.WebhookContext, returnToTransferID string, counterpartyID string, direction models.TransferDirection, returnAmount money.Amount) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	log.Debugf(c, "CreateReturnAndShowReceipt(returnToTransferID=%d, counterpartyID=%d)", returnToTransferID, counterpartyID)
 
@@ -345,7 +344,7 @@ func CreateReturnAndShowReceipt(whc botsfw.WebhookContext, returnToTransferID in
 	}
 
 	creatorInfo := models.TransferCounterpartyInfo{
-		UserID:    whc.AppUserInt64ID(),
+		UserID:    whc.AppUserID(),
 		ContactID: counterpartyID,
 	}
 
@@ -366,20 +365,18 @@ func getReturnDirectionFromDebtValue(currentDebt money.Amount) (models.TransferD
 	return models.TransferDirection(""), fmt.Errorf("Zero value for currency: [%v]", currentDebt.Currency)
 }
 
-func getReturnWizardParams(whc botsfw.WebhookContext) (counterpartyID int64, transferID int, err error) {
+func getReturnWizardParams(whc botsfw.WebhookContext) (counterpartyID string, transferID string, err error) {
 	awaitingReplyTo := whc.ChatData().GetAwaitingReplyTo()
 	params, err := url.ParseQuery(botsfwmodels.AwaitingReplyToQuery(awaitingReplyTo))
 	if err != nil {
 		return counterpartyID, transferID, fmt.Errorf("failed in AwaitingReplyToQuery(): %w", err)
 	}
-	if counterpartyID, err = strconv.ParseInt(params.Get(WIZARD_PARAM_COUNTERPARTY), 10, 64); err != nil {
-		return counterpartyID, transferID, fmt.Errorf("failed to get counterparty ID: %w", err)
-	}
-	transferID, _ = strconv.Atoi(params.Get(WIZARD_PARAM_TRANSFER))
+	counterpartyID = params.Get(WIZARD_PARAM_COUNTERPARTY)
+	transferID = params.Get(WIZARD_PARAM_TRANSFER)
 	return
 }
 
-func getCounterparty(whc botsfw.WebhookContext, counterpartyID int64) (counterparty models.Contact, err error) {
+func getCounterparty(whc botsfw.WebhookContext, counterpartyID string) (counterparty models.Contact, err error) {
 	//counterparty = new(models.Contact)
 	if counterparty, err = facade.GetContactByID(whc.Context(), nil, counterpartyID); err != nil {
 		return

@@ -11,7 +11,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/delaying"
 	"github.com/strongo/log"
-	"strconv"
 	"strings"
 )
 
@@ -24,7 +23,7 @@ func NewContactDalGae() ContactDalGae {
 
 var _ dtdal.ContactDal = (*ContactDalGae)(nil)
 
-func (contactDalGae ContactDalGae) DeleteContact(c context.Context, tx dal.ReadwriteTransaction, contactID int64) (err error) {
+func (contactDalGae ContactDalGae) DeleteContact(c context.Context, tx dal.ReadwriteTransaction, contactID string) (err error) {
 	log.Debugf(c, "ContactDalGae.DeleteContact(%d)", contactID)
 	if err = tx.Delete(c, models.NewContactKey(contactID)); err != nil {
 		return
@@ -37,17 +36,17 @@ func (contactDalGae ContactDalGae) DeleteContact(c context.Context, tx dal.Readw
 
 const DeleteContactTransfersFuncKey = "DeleteContactTransfers"
 
-func delayDeleteContactTransfers(c context.Context, contactID int64, cursor string) error {
+func delayDeleteContactTransfers(c context.Context, contactID string, cursor string) error {
 	if err := delayDeleteContactTransfersDelayFunc.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, DeleteContactTransfersFuncKey, 0), contactID, cursor); err != nil {
 		return err
 	}
 	return nil
 }
 
-func delayedDeleteContactTransfers(c context.Context, contactID int64, cursor string) (err error) {
+func delayedDeleteContactTransfers(c context.Context, contactID string, cursor string) (err error) {
 	log.Debugf(c, "delayedDeleteContactTransfers(contactID=%d, cursor=%v", contactID, cursor)
 	const limit = 100
-	var transferIDs []int
+	var transferIDs []string
 	transferIDs, cursor, err = dtdal.Transfer.LoadTransferIDsByContactID(c, contactID, limit, cursor)
 	if err != nil {
 		return
@@ -83,15 +82,15 @@ func (ContactDalGae) SaveContact(c context.Context, tx dal.ReadwriteTransaction,
 	return nil
 }
 
-func newUserActiveContactsQuery(userID int64) dal.QueryBuilder {
+func newUserActiveContactsQuery(userID string) dal.QueryBuilder {
 	return newUserContactsQuery(userID).WhereField("Status", dal.Equal, models.STATUS_ACTIVE)
 }
 
-func newUserContactsQuery(userID int64) dal.QueryBuilder {
+func newUserContactsQuery(userID string) dal.QueryBuilder {
 	return dal.From(models.ContactKind).WhereField("UserID", dal.Equal, userID)
 }
 
-func (ContactDalGae) GetContactsWithDebts(c context.Context, tx dal.ReadSession, userID int64) (counterparties []models.Contact, err error) {
+func (ContactDalGae) GetContactsWithDebts(c context.Context, tx dal.ReadSession, userID string) (counterparties []models.Contact, err error) {
 	query := newUserContactsQuery(userID).
 		WhereField("BalanceCount", dal.GreaterThen, 0).
 		SelectInto(models.NewContactRecord)
@@ -101,17 +100,14 @@ func (ContactDalGae) GetContactsWithDebts(c context.Context, tx dal.ReadSession,
 	records, err := tx.QueryAllRecords(c, query)
 	counterparties = make([]models.Contact, len(records))
 	for i, record := range records {
-		counterparties[i] = models.NewContact(record.Key().ID.(int64), record.Data().(*models.ContactData))
+		counterparties[i] = models.NewContact(record.Key().ID.(string), record.Data().(*models.ContactData))
 	}
 	return
 }
 
 func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, tx dal.ReadSession, limit, totalCount int) (counterparties []models.Contact, err error) {
 	c := whc.Context()
-	var appUserID int64
-	if appUserID, err = strconv.ParseInt(whc.AppUserID(), 10, 64); err != nil {
-		return
-	}
+	appUserID := whc.AppUserID()
 	query := newUserActiveContactsQuery(appUserID).
 		OrderBy(dal.DescendingField("LastTransferAt")).
 		Limit(limit).
@@ -136,12 +132,12 @@ func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, tx dal.ReadSes
 	}
 	counterparties = make([]models.Contact, len(records))
 	for i, record := range records {
-		counterparties[i] = models.NewContact(record.Key().ID.(int64), record.Data().(*models.ContactData))
+		counterparties[i] = models.NewContact(record.Key().ID.(string), record.Data().(*models.ContactData))
 	}
 	return
 }
 
-func (contactDalGae ContactDalGae) GetContactIDsByTitle(c context.Context, tx dal.ReadSession, userID int64, title string, caseSensitive bool) (contactIDs []int64, err error) {
+func (contactDalGae ContactDalGae) GetContactIDsByTitle(c context.Context, tx dal.ReadSession, userID string, title string, caseSensitive bool) (contactIDs []string, err error) {
 	var user models.AppUser
 	if user, err = facade.User.GetUserByID(c, tx, userID); err != nil {
 		return
@@ -181,6 +177,6 @@ func (contactDalGae ContactDalGae) InsertContact(c context.Context, tx dal.Readw
 	if err = tx.Insert(c, contact.Record); err != nil {
 		return
 	}
-	contact.ID = contact.Key.ID.(int64)
+	contact.ID = contact.Key.ID.(string)
 	return
 }

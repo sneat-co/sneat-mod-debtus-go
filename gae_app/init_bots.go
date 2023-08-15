@@ -2,13 +2,11 @@ package gaeapp
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
-	"github.com/bots-go-framework/dalgo4botsfw"
-	"github.com/dal-go/dalgo/dal"
+	"github.com/bots-go-framework/bots-fw/botswebhook"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/platforms/tgbots"
@@ -38,8 +36,8 @@ func (v botsHttpRouter) Handle(method, path string, handle http.HandlerFunc) {
 
 func InitBots(httpRouter *httprouter.Router, botHost botsfw.BotHost, appContext botsfw.BotAppContext) {
 
-	driver := botsfw.NewBotDriver( // Orchestrate requests to appropriate handlers
-		botsfw.AnalyticsSettings{GaTrackingID: common.GA_TRACKING_ID}, // TODO: Refactor to list of analytics providers
+	driver := botswebhook.NewBotDriver( // Orchestrate requests to appropriate handlers
+		botswebhook.AnalyticsSettings{GaTrackingID: common.GA_TRACKING_ID}, // TODO: Refactor to list of analytics providers
 		appContext, // Holds User entity kind name, translator, etc.
 		botHost,    // Defines how to create context.Context, HttpClient, DB, etc...
 		"Please report any issues to @DebtsTrackerGroup", // Is it wrong place? Router has similar.
@@ -55,16 +53,16 @@ func InitBots(httpRouter *httprouter.Router, botHost botsfw.BotHost, appContext 
 		telegram.BaseTgChatDtoMaker,
 	)
 
-	var getDb dalgo4botsfw.DbProvider = func(c context.Context, botID string) (dal.Database, error) {
-		return nil, errors.New("not implemented")
-		//fsClient, err := firestore.NewClient(c, "demo-local-sneat-app")
-		//if err != nil {
-		//	return nil, err
-		//}
-		//return dalgo2firestore.NewDatabase("sneat", fsClient), nil
-	}
+	//var getDb dalgo4botsfw.DbProvider = func(c context.Context, botID string) (dal.Database, error) {
+	//	return nil, errors.New("not implemented")
+	//	//fsClient, err := firestore.NewClient(c, "demo-local-sneat-app")
+	//	//if err != nil {
+	//	//	return nil, err
+	//	//}
+	//	//return dalgo2firestore.NewDatabase("sneat", fsClient), nil
+	//}
 
-	dataAccess := dalgo4botsfw.NewDataAccess(telegram.PlatformID, getDb, recordsMaker)
+	//dataAccess := dalgo4botsfw.NewDataAccess(telegram.PlatformID, getDb, recordsMaker)
 
 	driver.RegisterWebhookHandlers(botsHttpRouter{httpRouter}, "/bot",
 		//telegram.NewTelegramWebhookHandler(
@@ -72,7 +70,7 @@ func InitBots(httpRouter *httprouter.Router, botHost botsfw.BotHost, appContext 
 		//	newTranslator,          // Creates translator that gets a context.Context (for logging purpose)
 		//),
 		telegram.NewTelegramWebhookHandler(
-			dataAccess,
+			//dataAccess,
 			telegramBotsWithRouter, // Maps of bots by code, language, token, etc...
 			newTranslator,          // Creates translator that gets a context.Context (for logging purpose)
 			recordsMaker,

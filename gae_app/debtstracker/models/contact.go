@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func NewContactEntity(userID int64, details ContactDetails) *ContactData {
+func NewContactEntity(userID string, details ContactDetails) *ContactData {
 	return &ContactData{
 		Status:         STATUS_ACTIVE,
 		UserID:         userID,
@@ -24,12 +24,12 @@ func NewContactEntity(userID int64, details ContactDetails) *ContactData {
 const ContactKind = "Counterparty" // TODO: Change value to Contact & migrated DB records
 
 type Contact struct {
-	record.WithID[int64]
+	record.WithID[string]
 	Data *ContactData
 }
 
-func NewContactKey(contactID int64) *dal.Key {
-	if contactID == 0 {
+func NewContactKey(contactID string) *dal.Key {
+	if contactID == "" {
 		panic("NewContactKey(): contactID == 0")
 	}
 	return dal.NewKeyWithID(ContactKind, contactID)
@@ -43,10 +43,10 @@ func ContactRecords(contacts []Contact) (records []dal.Record) {
 	return
 }
 
-func NewContacts(ids ...int64) (contacts []Contact) {
+func NewContacts(ids ...string) (contacts []Contact) {
 	contacts = make([]Contact, len(ids))
 	for i, id := range ids {
-		if id == 0 {
+		if id == "" {
 			panic(fmt.Sprintf("ids[%d] == 0", i))
 		}
 		contacts[i] = NewContact(id, nil)
@@ -54,7 +54,7 @@ func NewContacts(ids ...int64) (contacts []Contact) {
 	return
 }
 
-func NewContact(id int64, data *ContactData) Contact {
+func NewContact(id string, data *ContactData) Contact {
 	key := NewContactKey(id)
 	if data == nil {
 		data = new(ContactData)
@@ -93,7 +93,7 @@ func NewContactRecord() dal.Record {
 
 func (c Contact) MustMatchCounterparty(counterparty Contact) {
 	if !c.Data.Balance().Equal(counterparty.Data.Balance().Reversed()) {
-		panic(fmt.Sprintf("contact[%d].Balance() != counterpartyContact[%d].Balance(): %v != %v", c.ID, counterparty.ID, c.Data.Balance(), counterparty.Data.Balance()))
+		panic(fmt.Sprintf("contact[%s].Balance() != counterpartyContact[%s].Balance(): %v != %v", c.ID, counterparty.ID, c.Data.Balance(), counterparty.Data.Balance()))
 	}
 	if c.Data.BalanceCount != counterparty.Data.BalanceCount {
 		panic(fmt.Sprintf("contact.BalanceCount != counterpartyContact.BalanceCount:  %v != %v", c.Data.BalanceCount, counterparty.Data.BalanceCount))
@@ -102,9 +102,9 @@ func (c Contact) MustMatchCounterparty(counterparty Contact) {
 
 type ContactData struct {
 	DtCreated                  time.Time `datastore:",omitempty"`
-	UserID                     int64     // owner can not be in parent key as we have problem with filtering transfers then
-	CounterpartyUserID         int64     // The counterparty user ID if registered
-	CounterpartyCounterpartyID int64
+	UserID                     string    // owner can not be in parent key as we have problem with filtering transfers then
+	CounterpartyUserID         string    // The counterparty user ID if registered
+	CounterpartyCounterpartyID string
 	LinkedBy                   string `datastore:",noindex"`
 	//
 	Status string
@@ -145,7 +145,7 @@ func (entity *ContactData) SetTransfersInfo(transfersInfo UserContactTransfersIn
 	}
 }
 
-func (entity *ContactData) Info(counterpartyID int64, note, comment string) TransferCounterpartyInfo {
+func (entity *ContactData) Info(counterpartyID string, note, comment string) TransferCounterpartyInfo {
 	return TransferCounterpartyInfo{
 		ContactID:   counterpartyID,
 		UserID:      entity.UserID,
@@ -248,8 +248,8 @@ func (entity *ContactData) BalanceWithInterest(c context.Context, periodEnds tim
 	return
 }
 
-func ContactsByID(contacts []Contact) (contactsByID map[int64]*ContactData) {
-	contactsByID = make(map[int64]*ContactData, len(contacts))
+func ContactsByID(contacts []Contact) (contactsByID map[string]*ContactData) {
+	contactsByID = make(map[string]*ContactData, len(contacts))
 	for _, contact := range contacts {
 		contactsByID[contact.ID] = contact.Data
 	}

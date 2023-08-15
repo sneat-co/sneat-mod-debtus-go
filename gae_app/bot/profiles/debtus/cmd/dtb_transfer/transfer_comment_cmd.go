@@ -151,7 +151,7 @@ func createTransferAskNoteOrCommentCommand(code string, nextCommand botsfw.Comma
 				return
 			}
 			counterpartyID := transferWizard.CounterpartyID(c)
-			if counterpartyID == 0 {
+			if counterpartyID == "" {
 				return m, errors.New("transferWizard.CounterpartyID() == 0")
 			}
 			counterparty, err := facade.GetContactByID(whc.Context(), nil, counterpartyID)

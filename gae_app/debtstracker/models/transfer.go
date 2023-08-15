@@ -44,11 +44,11 @@ const TransferKind = "Transfer"
 //var _ datastore.PropertyLoadSaver = (*TransferData)(nil)
 
 type Transfer struct {
-	record.WithID[int]
+	record.WithID[string]
 	Data *TransferData
 }
 
-func NewTransfers(transferIDs []int) []Transfer {
+func NewTransfers(transferIDs []string) []Transfer {
 	transfers := make([]Transfer, len(transferIDs))
 	for i, transferID := range transferIDs {
 		transfers[i] = NewTransfer(transferID, nil)
@@ -58,7 +58,7 @@ func NewTransfers(transferIDs []int) []Transfer {
 
 func TransferFromRecord(r dal.Record) (transfer Transfer) {
 	return Transfer{
-		WithID: record.NewWithID(r.Key().ID.(int), r.Key(), r.Data),
+		WithID: record.NewWithID(r.Key().ID.(string), r.Key(), r.Data),
 		Data:   r.Data().(*TransferData),
 	}
 }
@@ -79,8 +79,8 @@ func TransferRecords(transfers []Transfer) []dal.Record {
 	return records
 }
 
-func NewTransferKey(id int) *dal.Key {
-	if id == 0 {
+func NewTransferKey(id string) *dal.Key {
+	if id == "" {
 		panic("id == 0")
 	}
 	return dal.NewKeyWithID(TransferKind, id)
@@ -91,23 +91,23 @@ var NewTransferRecord = func() dal.Record {
 }
 
 func NewTransferWithIncompleteKey(data *TransferData) Transfer {
-	key := dal.NewIncompleteKey(TransferKind, reflect.Int, nil)
+	key := dal.NewIncompleteKey(TransferKind, reflect.String, nil)
 	if data == nil {
 		data = new(TransferData)
 	}
 	return Transfer{
-		WithID: record.NewWithID(0, key, data),
+		WithID: record.NewWithID("", key, data),
 		Data:   data,
 	}
 }
 
-func NewTransfer(id int, data *TransferData) Transfer {
+func NewTransfer(id string, data *TransferData) Transfer {
 	key := NewTransferKey(id)
 	if data == nil {
 		data = new(TransferData)
 	}
 	return Transfer{
-		WithID: record.WithID[int]{
+		WithID: record.WithID[string]{
 			ID:     id,
 			Record: dal.NewRecordWithData(key, data),
 		},
@@ -168,14 +168,14 @@ type TransferData struct {
 	IsReturn bool `datastore:",noindex,omitempty"`
 
 	// List of transfer to which this debt is a return. Should be populated only if IsReturn=True
-	ReturnToTransferIDs []int `datastore:",noindex"` // TODO: to make it obsolete - move to ReturnsJson
+	ReturnToTransferIDs []string `datastore:",noindex"` // TODO: to make it obsolete - move to ReturnsJson
 	//
 	returns      TransferReturns // Deserialized cache
 	ReturnsJson  string          `datastore:",noindex,omitempty"`
 	ReturnsCount int             `datastore:",noindex,omitempty"`
 	// ReturntransferIDs []int `datastore:",noindex"` // Obsolete - replaced with ReturnsJson List of transfers that return money to this debts
 	//
-	CreatorUserID           int64  `datastore:",noindex"`           // Do not delete, is NOT obsolete!
+	CreatorUserID           string `datastore:",noindex"`           // Do not delete, is NOT obsolete!
 	CreatorCounterpartyID   int    `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>ContactID
 	CreatorCounterpartyName string `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>ContactName
 	CreatorNote             string `datastore:",noindex,omitempty"` // TODO: Replace with <From|To>Note
@@ -221,8 +221,8 @@ type TransferData struct {
 	AcknowledgeTime   time.Time `datastore:",noindex,omitempty"`
 
 	// This 2 fields are used in conjunction with .Order("-DtCreated")
-	BothUserIDs         []int64 // This is needed to show transactions by user regardless who created
-	BothCounterpartyIDs []int64 // This is needed to show transactions by counterparty regardless who created
+	BothUserIDs         []string // This is needed to show transactions by user regardless who created
+	BothCounterpartyIDs []string // This is needed to show transactions by counterparty regardless who created
 	//
 	DtCreated time.Time
 	DtDueOn   time.Time `datastore:",omitempty"`
@@ -237,8 +237,8 @@ type TransferData struct {
 	IsOutstanding bool
 	Currency      money.CurrencyCode // Should be indexed for loading outstanding transfers
 	//
-	ReceiptsSentCount int   `datastore:",noindex,omitempty"`
-	ReceiptIDs        []int `datastore:",noindex"`
+	ReceiptsSentCount int      `datastore:",noindex,omitempty"`
+	ReceiptIDs        []string `datastore:",noindex"`
 }
 
 // AmountReturned returns amount returned to counterparty
@@ -254,15 +254,15 @@ func (t *TransferData) AmountReturned() decimal.Decimal64p2 {
 
 func (t Transfer) String() string {
 	if t.Data == nil {
-		return fmt.Sprintf("Transfer{ID: %d, Entity: nil}", t.ID)
+		return fmt.Sprintf("Transfer{ID: %s, Entity: nil}", t.ID)
 	} else {
-		return fmt.Sprintf("Transfer{ID: %d, Entity: %v}", t.ID, t.Data)
+		return fmt.Sprintf("Transfer{ID: %s, Entity: %v}", t.ID, t.Data)
 	}
 }
 
 func (t *TransferData) String() string {
 	return fmt.Sprintf(
-		"TransferData{DtCreated: %v, Direction: %v, GetAmount(): %v, AmoutInCentsReturned: %v, IsReturn: %v, ReturnToTransferIDs: %v, CreatorUserID: %d, Creator: %v, Contact: %v, BothUserIDs: %v, BothCounterpartyIDs: %v, From: %v, To: %v}",
+		"TransferData{DtCreated: %v, Direction: %v, GetAmount(): %v, AmoutInCentsReturned: %v, IsReturn: %v, ReturnToTransferIDs: %v, CreatorUserID: %s, Creator: %v, Contact: %v, BothUserIDs: %v, BothCounterpartyIDs: %v, From: %v, To: %v}",
 		t.DtCreated, t.Direction(), t.GetAmount(), t.AmountInCentsReturned, t.IsReturn, t.ReturnToTransferIDs, t.CreatorUserID, t.Creator(), t.Counterparty(), t.BothUserIDs, t.BothCounterpartyIDs, t.From(), t.To())
 }
 
@@ -271,7 +271,7 @@ func (t *TransferData) Direction() TransferDirection {
 	// 	return TransferDirection(t.DirectionObsoleteProp)
 	// }
 	switch t.CreatorUserID {
-	case 0:
+	case "":
 		panic("CreatorUserID == 0")
 	case t.From().UserID:
 		return TransferDirectionUser2Counterparty
@@ -281,7 +281,7 @@ func (t *TransferData) Direction() TransferDirection {
 	return TransferDirection3dParty
 }
 
-func (t *TransferData) DirectionForUser(userID int64) TransferDirection {
+func (t *TransferData) DirectionForUser(userID string) TransferDirection {
 	switch userID {
 	case t.From().UserID:
 		return TransferDirectionUser2Counterparty
@@ -299,7 +299,7 @@ func (t *TransferData) IsReverseDirection(t2 *TransferData) bool {
 }
 
 // DirectionForContact
-func (t *TransferData) DirectionForContact(contactID int64) TransferDirection {
+func (t *TransferData) DirectionForContact(contactID string) TransferDirection {
 	switch contactID {
 	case t.From().ContactID:
 		return TransferDirectionCounterparty2User
@@ -310,30 +310,30 @@ func (t *TransferData) DirectionForContact(contactID int64) TransferDirection {
 	}
 }
 
-func (t *TransferData) transferIsNotAssociatedWithUser(userID int64) string {
+func (t *TransferData) transferIsNotAssociatedWithUser(userID string) string {
 	return fmt.Sprintf(
-		"Transfer is not associated with userID=%d  (FromUserID=%d, ToUserID=%d)",
+		"Transfer is not associated with userID=%s  (FromUserID=%s, ToUserID=%s)",
 		userID, t.From().UserID, t.To().UserID,
 	)
 }
 
-func (t *TransferData) transferIsNotAssociatedWithContact(contactID int64) string {
+func (t *TransferData) transferIsNotAssociatedWithContact(contactID string) string {
 	return fmt.Sprintf(
-		"Transfer is not associated with contactID=%v  (FromContactID=%v, ToContactID=%v)",
+		"Transfer is not associated with contactID=%s  (FromContactID=%s, ToContactID=%s)",
 		contactID, t.From().ContactID, t.To().ContactID,
 	)
 }
 
 func (t *TransferData) transferIsNotRelatedToCreator() string {
 	return ErrTransferNotRelatedToCreator.Error() + fmt.Sprintf(
-		"\nDirection(): %v, CreatorUserID: %d, From: %v, To: %v",
+		"\nDirection(): %v, CreatorUserID: %s, From: %v, To: %v",
 		t.Direction(), t.CreatorUserID, t.FromJson, t.ToJson,
 	)
 }
 
-func (t *TransferData) ReturnDirectionForUser(userID int64) TransferDirection {
+func (t *TransferData) ReturnDirectionForUser(userID string) TransferDirection {
 	switch userID {
-	case 0:
+	case "":
 		panic("userID == 0")
 	case t.From().UserID:
 		return TransferDirectionCounterparty2User
@@ -347,7 +347,7 @@ func (t *TransferData) ReturnDirectionForUser(userID int64) TransferDirection {
 var ErrTransferNotRelatedToCreator = errors.New("Transfer is not related to creator")
 
 func (t *TransferData) Creator() *TransferCounterpartyInfo { // TODO: Same as t.Creator()
-	if t.CreatorUserID == 0 {
+	if t.CreatorUserID == "" {
 		panic("CreatorUserID == 0")
 	}
 	if counterparty := t.From(); counterparty.UserID == t.CreatorUserID {
@@ -376,7 +376,7 @@ func (t *TransferData) Counterparty() *TransferCounterpartyInfo {
 	}
 }
 
-func (t *TransferData) CounterpartyInfoByUserID(userID int64) *TransferCounterpartyInfo {
+func (t *TransferData) CounterpartyInfoByUserID(userID string) *TransferCounterpartyInfo {
 	switch userID {
 	case t.From().UserID:
 		return t.To()
@@ -387,7 +387,7 @@ func (t *TransferData) CounterpartyInfoByUserID(userID int64) *TransferCounterpa
 	}
 }
 
-func (t *TransferData) UserInfoByUserID(userID int64) *TransferCounterpartyInfo {
+func (t *TransferData) UserInfoByUserID(userID string) *TransferCounterpartyInfo {
 	switch userID {
 	case t.From().UserID:
 		return t.from
@@ -668,7 +668,7 @@ func (t *TransferData) UserInfoByUserID(userID int64) *TransferCounterpartyInfo 
 //}
 
 func (t *TransferData) Validate() (err error) {
-	if t.CreatorUserID == 0 {
+	if t.CreatorUserID == "" {
 		err = errors.New("*TransferData.CreatorUserID == 0")
 		return
 	}
@@ -766,8 +766,8 @@ func (t *TransferData) Validate() (err error) {
 		// 	}
 	}
 
-	if t.CreatorUserID <= 0 { // Should be always presented
-		err = fmt.Errorf("*TransferData.CreatorUserID:%d <= 0", t.CreatorUserID)
+	if t.CreatorUserID <= "" { // Should be always presented
+		err = fmt.Errorf("*TransferData.CreatorUserID:%s <= 0", t.CreatorUserID)
 		return
 	}
 
@@ -780,29 +780,29 @@ func (t *TransferData) Validate() (err error) {
 		to.UserName = ""
 	}
 
-	if from.ContactID == 0 && to.ContactID == 0 {
+	if from.ContactID == "" && to.ContactID == "" {
 		err = errors.New("from.ContactID == 0 && to.ContactID == 0")
 		return
 	} else { // Always store 2 values, even if 1 is zero, so we can query such records.
-		t.BothCounterpartyIDs = []int64{from.ContactID, to.ContactID}
+		t.BothCounterpartyIDs = []string{from.ContactID, to.ContactID}
 	}
 
-	if from.UserID == 0 && to.UserID == 0 {
+	if from.UserID == "" && to.UserID == "" {
 		if len(t.BillIDs) == 0 {
 			err = errors.New("t.BillIDs is empty && t.From().UserID == 0 && t.To().UserID == 0")
 			return
 		}
-		t.BothUserIDs = []int64{}
+		t.BothUserIDs = []string{}
 	} else { // Always store 2 values, even if 1 is zero, so we can query such records.
-		t.BothUserIDs = []int64{from.UserID, to.UserID}
+		t.BothUserIDs = []string{from.UserID, to.UserID}
 	}
 
 	if from.UserID != t.CreatorUserID && from.ContactName == "" && from.UserName == "" { // Should be always presented
-		err = errors.New("Either FromCounterpartyName or FromUserName should be presented")
+		err = errors.New("either FromCounterpartyName or FromUserName should be presented")
 		return
 	}
 	if to.UserID != t.CreatorUserID && to.ContactName == "" && to.UserName == "" { // Should be always presented
-		err = errors.New("Either ToCounterpartyName or ToUserName should be presented")
+		err = errors.New("either ToCounterpartyName or ToUserName should be presented")
 		return
 	}
 
@@ -877,8 +877,8 @@ func (t *TransferData) Validate() (err error) {
 //	return
 //}
 
-func NewTransferData(creatorUserID int64, isReturn bool, amount money.Amount, from *TransferCounterpartyInfo, to *TransferCounterpartyInfo) *TransferData {
-	if creatorUserID == 0 {
+func NewTransferData(creatorUserID string, isReturn bool, amount money.Amount, from *TransferCounterpartyInfo, to *TransferCounterpartyInfo) *TransferData {
+	if creatorUserID == "" {
 		panic("creatorUserID == 0")
 	}
 	if from == nil {

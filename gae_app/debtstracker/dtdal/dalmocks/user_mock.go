@@ -13,7 +13,7 @@ type UserDalMock struct {
 	Users      map[int64]*models.AppUserData
 }
 
-func (mock *UserDalMock) DelayUpdateUserWithContact(c context.Context, userID, contactID int64) error {
+func (mock *UserDalMock) DelayUpdateUserWithContact(c context.Context, userID, contactID string) error {
 	panic("not implemented yet")
 }
 

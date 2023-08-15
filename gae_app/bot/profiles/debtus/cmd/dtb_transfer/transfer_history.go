@@ -40,7 +40,7 @@ func showHistoryCard(whc botsfw.WebhookContext, limit int) (m botsfw.MessageFrom
 
 	var transfers []models.Transfer
 	var hasMore bool
-	if transfers, hasMore, err = dtdal.Transfer.LoadTransfersByUserID(c, whc.AppUserInt64ID(), 0, limit); err != nil {
+	if transfers, hasMore, err = dtdal.Transfer.LoadTransfersByUserID(c, whc.AppUserID(), 0, limit); err != nil {
 		return m, err
 	}
 
@@ -62,7 +62,7 @@ func showHistoryCard(whc botsfw.WebhookContext, limit int) (m botsfw.MessageFrom
 						tgbotapi.NewInlineKeyboardButtonURL(
 							whc.Translate(trans.INLINE_BUTTON_SHOW_FULL_HISTORY),
 							//fmt.Sprintf("transfer-history?offset=%v", len(transfers)),
-							fmt.Sprintf("https://debtstracker.io/%v/history?user=%v#%v", whc.Locale().SiteCode(), common.EncodeID(whc.AppUserInt64ID()), utmParams),
+							fmt.Sprintf("https://debtstracker.io/%v/history?user=%v#%v", whc.Locale().SiteCode(), whc.AppUserID(), utmParams),
 						),
 					},
 				},
@@ -82,7 +82,7 @@ const (
 func transferHistoryRows(whc botsfw.WebhookContext, transfers []models.Transfer) string {
 	var s bytes.Buffer
 	for _, transfer := range transfers {
-		isCreator := whc.AppUserInt64ID() == transfer.Data.CreatorUserID
+		isCreator := whc.AppUserID() == transfer.Data.CreatorUserID
 		var counterpartyName string
 		if isCreator {
 			counterpartyName = transfer.Data.Counterparty().ContactName
@@ -92,7 +92,7 @@ func transferHistoryRows(whc botsfw.WebhookContext, transfers []models.Transfer)
 		amount := fmt.Sprintf(`<a href="%v">%s</a>`,
 			common.GetTransferUrlForUser(
 				transfer.ID,
-				whc.AppUserInt64ID(),
+				whc.AppUserID(),
 				whc.Locale(),
 				common.NewUtmParams(whc, "history"),
 			),

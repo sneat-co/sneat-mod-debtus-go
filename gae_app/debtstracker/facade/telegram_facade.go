@@ -13,7 +13,7 @@ import (
 	"strconv"
 )
 
-func GetLocale(c context.Context, botID string, tgChatIntID, userID int64) (locale i18n.Locale, err error) {
+func GetLocale(c context.Context, botID string, tgChatIntID int64, userID string) (locale i18n.Locale, err error) {
 	chatID := botsfwmodels.NewChatID(botID, strconv.FormatInt(tgChatIntID, 10))
 	//var tgChatEntity botsfwtgmodels.ChatEntity
 	//tgChatBaseData := botsfwtgmodels.NewTelegramChatBaseData()
@@ -38,10 +38,10 @@ func GetLocale(c context.Context, botID string, tgChatIntID, userID int64) (loca
 	}
 	tgChatPreferredLanguage := tgChat.Data.BaseChatData().PreferredLanguage
 	if tgChatPreferredLanguage == "" {
-		if userID == 0 && tgChat.Data.BaseChatData().AppUserIntID != 0 {
-			userID = tgChat.Data.BaseChatData().AppUserIntID
+		if userID == "" && tgChat.Data.BaseChatData().AppUserID != "" {
+			userID = tgChat.Data.BaseChatData().AppUserID
 		}
-		if userID != 0 {
+		if userID != "" {
 			var db dal.Database
 			if db, err = GetDatabase(c); err != nil {
 				return

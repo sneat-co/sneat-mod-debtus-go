@@ -3,7 +3,6 @@ package shared_all
 import (
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
-	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
@@ -146,7 +145,7 @@ func setPreferredLanguageAction(whc botsfw.WebhookContext, code5, mode string, b
 				}
 				if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 					var user models.AppUser
-					if user, err = facade.User.GetUserByID(c, tx, whc.AppUserInt64ID()); err != nil {
+					if user, err = facade.User.GetUserByID(c, tx, whc.AppUserID()); err != nil {
 						return
 					}
 					if err = user.Data.SetPreferredLocale(locale.Code5); err != nil {
@@ -154,8 +153,8 @@ func setPreferredLanguageAction(whc botsfw.WebhookContext, code5, mode string, b
 					}
 					chatData.SetPreferredLanguage(locale.Code5)
 					chatData.SetAwaitingReplyTo("")
-					chatKey := botsfwmodels.NewChatKey(whc.GetBotCode(), whc.MustBotChatID())
-					if err = whc.Store().SaveBotChatData(c, chatKey, chatData); err != nil {
+					//chatKey := botsfwmodels.NewChatKey(whc.GetBotCode(), whc.MustBotChatID())
+					if err = whc.SaveBotChat(c); err != nil {
 						return
 					}
 					return facade.User.SaveUser(c, tx, user)

@@ -10,6 +10,6 @@ func TestNewReceiptIncompleteKey(t *testing.T) {
 }
 
 func TestNewReceiptKey(t *testing.T) {
-	const receiptID = 234
-	testIntKey(t, receiptID, models.NewReceiptKey(receiptID))
+	const receiptID = "234"
+	testStrKey(t, receiptID, models.NewReceiptKey(receiptID))
 }

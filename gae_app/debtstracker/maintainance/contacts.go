@@ -26,7 +26,7 @@ func (m *contactsAsyncJob) Query(r *http.Request) (query *mapper.Query, err erro
 }
 
 func (m *contactsAsyncJob) Contact(key *datastore.Key) (contact models.Contact) {
-	contact = models.NewContact(key.IntID(), nil)
+	contact = models.NewContact(key.StringID(), nil)
 	if m.entity != nil {
 		entity := *m.entity
 		contact.Data = &entity

@@ -1,11 +1,11 @@
 package inspector
 
 import (
+	"errors"
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"google.golang.org/appengine/v2"
 	"net/http"
-	"strconv"
 	//"sync"
 
 	"sync"
@@ -23,14 +23,15 @@ type contactPage struct {
 func (h contactPage) contactPageHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	c := appengine.NewContext(r)
 
-	contactID, err := strconv.ParseInt(r.URL.Query().Get("id"), 10, 64)
-	if err != nil {
+	contactID := r.URL.Query().Get("id")
+	if contactID == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = fmt.Fprint(w, err)
+		_, _ = fmt.Fprint(w, errors.New("contact ID is empty"))
 		return
 	}
 
 	var contact models.Contact
+	var err error
 
 	if contact, err = facade.GetContactByID(c, nil, contactID); err != nil {
 		_, _ = fmt.Fprint(w, err)
@@ -79,7 +80,7 @@ func (h contactPage) contactPageHandler(w http.ResponseWriter, r *http.Request, 
 
 }
 
-func (contactPage) verifyTransfers(c context.Context, contactID int64) (
+func (contactPage) verifyTransfers(c context.Context, contactID string) (
 	transfers []models.Transfer, err error,
 ) {
 
@@ -110,7 +111,7 @@ func (contactPage) verifyTransfers(c context.Context, contactID int64) (
 			panic(err)
 		}
 		transfers = append(transfers, models.NewTransfer(
-			record.Key().ID.(int),
+			record.Key().ID.(string),
 			record.Data().(*models.TransferData),
 		))
 	}

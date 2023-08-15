@@ -2,8 +2,6 @@ package gaedal
 
 import (
 	"context"
-	"github.com/bots-go-framework/bots-fw-store/botsfwdal"
-	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
@@ -73,9 +71,9 @@ func (h ApiBotHost) GetHTTPClient(c context.Context) *http.Client {
 	return dtdal.HttpClient(c)
 }
 
-func (h ApiBotHost) GetBotCoreStores(platform string, appContext botsfw.BotAppContext, r *http.Request) botsfwdal.DataAccess {
-	panic("Not implemented")
-}
+//func (h ApiBotHost) GetBotCoreStores(platform string, appContext botsfw.BotAppContext, r *http.Request) botsfwdal.DataAccess {
+//	panic("Not implemented")
+//}
 
 func (h ApiBotHost) DB(c context.Context) (dal.Database, error) {
 	return facade.GetDatabase(c)

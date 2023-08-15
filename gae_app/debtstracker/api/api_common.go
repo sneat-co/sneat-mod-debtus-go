@@ -1,11 +1,9 @@
 package api
 
 import (
+	"context"
 	"github.com/dal-go/dalgo/dal"
 	"net/http"
-	"strconv"
-
-	"context"
 	//"encoding/json"
 	"fmt"
 
@@ -29,23 +27,21 @@ func getEnvironment(r *http.Request) strongo.Environment {
 	}
 }
 
-func getID(c context.Context, w http.ResponseWriter, r *http.Request, idParamName string) int {
+func getStrID(c context.Context, w http.ResponseWriter, r *http.Request, idParamName string) string {
 	q := r.URL.Query()
 	if idParamName == "" {
 		panic("idParamName is not specified")
 	}
 	idParamVal := q.Get(idParamName)
-	if id, err := strconv.Atoi(idParamVal); err != nil {
+	if idParamVal == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("Failed to decode to int64: '" + idParamVal + "'"))
-		return 0
-	} else {
-		log.Infof(c, "Int ID: %v", id)
-		return id
+		_, _ = w.Write([]byte("Missing parameter: '" + idParamName + "'"))
+		return ""
 	}
+	return idParamVal
 }
 
-func hasError(c context.Context, w http.ResponseWriter, err error, entity string, id int, notFoundStatus int) bool {
+func hasError(c context.Context, w http.ResponseWriter, err error, entity string, id string, notFoundStatus int) bool {
 	switch {
 	case err == nil:
 		return false
@@ -54,7 +50,7 @@ func hasError(c context.Context, w http.ResponseWriter, err error, entity string
 			notFoundStatus = http.StatusNotFound
 		}
 		w.WriteHeader(notFoundStatus)
-		m := fmt.Sprintf("Entity %v not found by id: %d", entity, id)
+		m := fmt.Sprintf("Entity %s not found by id: %s", entity, id)
 		log.Infof(c, m)
 		_, _ = w.Write([]byte(m))
 	default:

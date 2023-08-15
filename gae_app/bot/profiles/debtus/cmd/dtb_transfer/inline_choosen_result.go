@@ -6,13 +6,12 @@ import (
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_inline"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-translations/trans"
 )
 
-func showReceiptAnnouncement(whc botsfw.WebhookContext, receiptID int, creatorName string) (m botsfw.MessageFromBot, err error) {
+func showReceiptAnnouncement(whc botsfw.WebhookContext, receiptID string, creatorName string) (m botsfw.MessageFromBot, err error) {
 	var inlineMessageID string
 	switch input := whc.Input().(type) {
 	case botsfw.WebhookChosenInlineResult:
@@ -45,14 +44,14 @@ func showReceiptAnnouncement(whc botsfw.WebhookContext, receiptID int, creatorNa
 		{
 			tgbotapi.NewInlineKeyboardButtonData(
 				whc.Translate(trans.COMMAND_TEXT_VIEW_RECEIPT_DETAILS),
-				fmt.Sprintf("%v?id=%v&locale=%v",
-					VIEW_RECEIPT_IN_TELEGRAM_COMMAND, common.EncodeIntID(receiptID), whc.Locale().Code5,
+				fmt.Sprintf("%s?id=%s&locale=%s",
+					VIEW_RECEIPT_IN_TELEGRAM_COMMAND, receiptID, whc.Locale().Code5,
 				),
 			),
 		},
 	}
 	kbRows = append(kbRows, dtb_inline.GetChooseLangInlineKeyboard(
-		fmt.Sprintf("%v?id=%v", CHANGE_RECEIPT_LANG_COMMAND, common.EncodeIntID(receiptID))+"&locale=%v",
+		fmt.Sprintf("%s?id=%s", CHANGE_RECEIPT_LANG_COMMAND, receiptID)+"&locale=%v", // Intentionally &locale separate
 		whc.Locale().Code5,
 	)...)
 	m.Keyboard = &tgbotapi.InlineKeyboardMarkup{
@@ -63,6 +62,6 @@ func showReceiptAnnouncement(whc botsfw.WebhookContext, receiptID int, creatorNa
 
 const VIEW_RECEIPT_IN_TELEGRAM_COMMAND = "tg-view-receipt"
 
-func GetUrlForReceiptInTelegram(botCode string, receiptID int, localeCode5 string) string {
+func GetUrlForReceiptInTelegram(botCode string, receiptID string, localeCode5 string) string {
 	return fmt.Sprintf("https://t.me/%v?start=receipt-%v-view_%v", botCode, receiptID, localeCode5)
 }

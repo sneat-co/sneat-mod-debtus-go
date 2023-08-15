@@ -3,7 +3,6 @@ package facade
 import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
-	"strconv"
 	"time"
 
 	"context"
@@ -26,12 +25,7 @@ func SaveFeedback(c context.Context, tx dal.ReadwriteTransaction, feedbackID int
 		panic("feedbackEntity.Rate is empty string")
 	}
 	feedback = models.Feedback{FeedbackData: feedbackEntity}
-	var userIntID int64
-	if userIntID, err = strconv.ParseInt(feedbackEntity.UserStrID, 10, 64); err != nil {
-		err = fmt.Errorf("failed to parse userStrID: %v", err)
-		return
-	}
-	if user, err = User.GetUserByID(c, tx, userIntID); err != nil {
+	if user, err = User.GetUserByID(c, tx, feedbackEntity.UserStrID); err != nil {
 		return
 	}
 	user.Data.LastFeedbackRate = feedbackEntity.Rate

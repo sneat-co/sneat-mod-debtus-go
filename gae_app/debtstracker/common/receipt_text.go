@@ -37,7 +37,7 @@ type receiptTextBuilder struct {
 	translator    i18n.SingleLocaleTranslator
 	transfer      models.Transfer
 	showReceiptTo ShowReceiptTo
-	viewerUserID  int64
+	viewerUserID  string
 	partyAction   ReceiptPartyAction
 	//
 	strongo.ExecutionContext
@@ -46,7 +46,7 @@ type receiptTextBuilder struct {
 }
 
 func newReceiptTextBuilder(translator i18n.SingleLocaleTranslator, transfer models.Transfer, showReceiptTo ShowReceiptTo) receiptTextBuilder {
-	if transfer.ID == 0 {
+	if transfer.ID == "" {
 		panic("transferID == 0")
 	}
 	r := receiptTextBuilder{
@@ -108,7 +108,7 @@ func (r receiptTextBuilder) receiptCommonFooter(buffer *bytes.Buffer) {
 	//	counterpartyBalance, _ := counterparty.Balance()
 	//	utmParams := NewUtmParams(whc, UTM_CAMPAIGN_RECEIPT)
 	//	if len(counterpartyBalance) == 0 {
-	//		counterpartyLink := GetCounterpartyLink(whc.AppUserInt64ID(), whc.Locale(), counterparty.Info(counterpartyID, "", ""), utmParams)
+	//		counterpartyLink := GetCounterpartyLink(whc.AppUserID(), whc.Locale(), counterparty.Info(counterpartyID, "", ""), utmParams)
 	//		switch transfer.Direction {
 	//		case TransferDirectionCounterparty2User:
 	//			buffer.WriteString(whc.Translate(trans.MESSAGE_TEXT_ON_RETURN_COUNTERPARTY_DOES_NOT_OWE_ANYTHING_TO_USER_ANYMORE, counterpartyLink))
@@ -130,10 +130,10 @@ func (r receiptTextBuilder) receiptCommonFooter(buffer *bytes.Buffer) {
 	//}
 }
 
-func TextReceiptForTransfer(c context.Context, translator i18n.SingleLocaleTranslator, transfer models.Transfer, showToUserID int64, showReceiptTo ShowReceiptTo, utmParams UtmParams) string {
+func TextReceiptForTransfer(c context.Context, translator i18n.SingleLocaleTranslator, transfer models.Transfer, showToUserID string, showReceiptTo ShowReceiptTo, utmParams UtmParams) string {
 	log.Debugf(c, "TextReceiptForTransfer(transferID=%v, showToUserID=%v, showReceiptTo=%v)", transfer.ID, showToUserID, showReceiptTo)
 
-	if transfer.ID == 0 {
+	if transfer.ID == "" {
 		panic("transferID == 0")
 	}
 	if transfer.Data == nil {
@@ -144,11 +144,11 @@ func TextReceiptForTransfer(c context.Context, translator i18n.SingleLocaleTrans
 
 	switch showReceiptTo {
 	case ShowReceiptToCreator:
-		if showToUserID != 0 && showToUserID != transfer.Data.CreatorUserID {
+		if showToUserID != "" && showToUserID != transfer.Data.CreatorUserID {
 			panic("showToUserID != 0 && showToUserID != transferEntity.CreatorUserID")
 		}
 	case ShowReceiptToCounterparty:
-		if showToUserID != 0 && transfer.Data.Counterparty().UserID != 0 && showToUserID != transfer.Data.Counterparty().UserID {
+		if showToUserID != "" && transfer.Data.Counterparty().UserID != "" && showToUserID != transfer.Data.Counterparty().UserID {
 			panic("showToUserID != 0 && showToUserID != transferEntity.Counterparty().UserID")
 		}
 	case ShowReceiptToAutodetect:
@@ -158,7 +158,7 @@ func TextReceiptForTransfer(c context.Context, translator i18n.SingleLocaleTrans
 		case transfer.Data.Counterparty().UserID:
 			showReceiptTo = ShowReceiptToCounterparty
 		default:
-			if transfer.Data.Counterparty().UserID == 0 {
+			if transfer.Data.Counterparty().UserID == "" {
 				showReceiptTo = ShowReceiptToCounterparty
 			} else {
 				panic(fmt.Sprintf("Parameter showToUserID=%v is not related to transferEntity with id=%v", showToUserID, transfer.ID))
@@ -259,7 +259,7 @@ func (r receiptTextBuilder) translateAndFormatMessage(messageTextToTranslate str
 	var counterpartyText string
 	{
 		// TODO: Disabled URL due to issue with Telegram parser
-		if userID == 0 || utmParams.Medium == UTM_MEDIUM_SMS || utmParams.Medium == telegram.PlatformID {
+		if userID == "" || utmParams.Medium == UTM_MEDIUM_SMS || utmParams.Medium == telegram.PlatformID {
 			counterpartyText = counterpartyInfo.Name()
 		} else {
 			counterpartyUrl := GetCounterpartyUrl(counterpartyInfo.ContactID, userID, r.translator.Locale(), utmParams)
@@ -298,7 +298,7 @@ func (r receiptTextBuilder) translateAndFormatMessage(messageTextToTranslate str
 //		}
 //	}
 //	if showBalanceMessage {
-//		counterpartyLink := GetCounterpartyLink(whc.AppUserInt64ID(), whc.Locale(), counterparty.Info(counterpartyID, "", ""), utmParams)
+//		counterpartyLink := GetCounterpartyLink(whc.AppUserID(), whc.Locale(), counterparty.Info(counterpartyID, "", ""), utmParams)
 //		buffer.WriteString(BalanceForCounterpartyWithHeader(counterpartyLink, counterpartyBalance, tm.executionContext.Logger(), tm.executionContext))
 //	}
 //	return buffer.String()

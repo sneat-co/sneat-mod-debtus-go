@@ -20,12 +20,12 @@ import (
 )
 
 func getApiUser(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) (user models.AppUser, err error) {
-	if user.ID = getUserID(c, w, r, authInfo); user.ID == 0 {
+	if user.ID = getUserID(c, w, r, authInfo); user.ID == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	if user, err = facade.User.GetUserByID(c, nil, user.ID); hasError(c, w, err, models.AppUserKind, int(user.ID), 0) {
+	if user, err = facade.User.GetUserByID(c, nil, user.ID); hasError(c, w, err, models.AppUserKind, user.ID, 0) {
 		return
 	} else if user.Data == nil {
 		_, _ = w.Write([]byte(fmt.Sprintf("User not found by ID=%v", user.ID)))
@@ -80,7 +80,7 @@ func handleSaveVisitorData(c context.Context, w http.ResponseWriter, r *http.Req
 
 func handleMe(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo, user models.AppUser) {
 	meDto := dto.UserMeDto{
-		UserID:   strconv.FormatInt(authInfo.UserID, 10),
+		UserID:   authInfo.UserID,
 		FullName: user.Data.FullName(),
 	}
 	if ua, err := user.Data.GetGoogleAccount(); err != nil {

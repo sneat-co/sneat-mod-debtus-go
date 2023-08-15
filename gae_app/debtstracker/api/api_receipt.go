@@ -1,17 +1,16 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/i18n"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
 	"context"
-	"errors"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/platforms/tgbots"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/analytics"
@@ -30,7 +29,7 @@ import (
 func NewReceiptTransferDto(c context.Context, transfer models.Transfer) dto.ApiReceiptTransferDto {
 	creator := transfer.Data.Creator()
 	transferDto := dto.ApiReceiptTransferDto{
-		ID:             strconv.Itoa(transfer.ID),
+		ID:             transfer.ID,
 		From:           dto.NewContactDto(*transfer.Data.From()),
 		To:             dto.NewContactDto(*transfer.Data.To()),
 		Amount:         transfer.Data.GetAmount(),
@@ -38,7 +37,7 @@ func NewReceiptTransferDto(c context.Context, transfer models.Transfer) dto.ApiR
 		DtCreated:      transfer.Data.DtCreated,
 		CreatorComment: creator.Comment,
 		Creator: dto.ApiUserDto{ // TODO: Rename field - it can be not a creator in case of bill created by 3d party (paid by not by bill creator)
-			ID:   strconv.FormatInt(creator.UserID, 10),
+			ID:   creator.UserID,
 			Name: creator.ContactName,
 		},
 	}
@@ -60,8 +59,8 @@ func NewReceiptTransferDto(c context.Context, transfer models.Transfer) dto.ApiR
 }
 
 func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request) {
-	receiptID := getID(c, w, r, "id")
-	if receiptID == 0 {
+	receiptID := getStrID(c, w, r, "id")
+	if receiptID == "" {
 		return
 	}
 
@@ -117,8 +116,8 @@ func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request)
 	log.Debugf(c, "transfer.Creator(): %v", creator)
 
 	receiptDto := dto.ApiReceiptDto{
-		ID:       strconv.Itoa(receiptID),
-		Code:     common.EncodeID(int64(receiptID)),
+		ID:       receiptID,
+		Code:     "ToDoCODE",
 		SentVia:  receipt.Data.SentVia,
 		SentTo:   sentTo,
 		Transfer: NewReceiptTransferDto(c, transfer),
@@ -150,10 +149,10 @@ func handleSendReceipt(c context.Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	receiptID, err := strconv.Atoi(r.FormValue("receipt"))
-	if err != nil {
+	receiptID := r.FormValue("receipt")
+	if receiptID == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("Invalid receipt parameter: " + err.Error()))
+		_, _ = w.Write([]byte("Missing receipt parameter"))
 		return
 	}
 
@@ -201,7 +200,7 @@ func handleSendReceipt(c context.Context, w http.ResponseWriter, r *http.Request
 	}
 
 	if transfer.Data.CreatorUserID != authInfo.UserID && transfer.Data.Counterparty().UserID != authInfo.UserID {
-		ErrorAsJson(c, w, http.StatusUnauthorized, errors.New("This transfer does not belong to the current user"))
+		ErrorAsJson(c, w, http.StatusUnauthorized, errors.New("this transfer does not belong to the current user"))
 		return
 	}
 
@@ -224,7 +223,7 @@ func handleSendReceipt(c context.Context, w http.ResponseWriter, r *http.Request
 	}
 }
 
-func updateReceiptAndTransferOnSent(c context.Context, receiptID int, channel, sentTo, lang string) (receipt models.Receipt, transfer models.Transfer, err error) {
+func updateReceiptAndTransferOnSent(c context.Context, receiptID string, channel, sentTo, lang string) (receipt models.Receipt, transfer models.Transfer, err error) {
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
@@ -275,9 +274,9 @@ func handleSetReceiptChannel(c context.Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	receiptID, err := strconv.Atoi(r.FormValue("receipt"))
-	if err != nil {
-		err = fmt.Errorf("invalid receipt parameter: %w", err)
+	receiptID := r.FormValue("receipt")
+	if receiptID == "" {
+		err := fmt.Errorf("missing receipt parameter")
 		log.Debugf(c, err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte(err.Error()))
@@ -286,7 +285,7 @@ func handleSetReceiptChannel(c context.Context, w http.ResponseWriter, r *http.R
 
 	channel, err := getReceiptChannel(r)
 	if err != nil {
-		if err == errUnknownChannel {
+		if errors.Is(err, errUnknownChannel) {
 			m := "Unknown channel: " + channel
 			log.Debugf(c, m)
 			w.WriteHeader(http.StatusBadRequest)
@@ -345,8 +344,8 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 	log.Debugf(c, "handleCreateReceipt() => r.Form: %v", r.Form)
-	transferID, err := strconv.Atoi(r.FormValue("transfer"))
-	if err != nil {
+	transferID := r.FormValue("transfer")
+	if transferID == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("Missing transfer parameter"))
 		return
@@ -436,7 +435,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 				tgBotID = "DebtsTrackerBot"
 			}
 		}
-		messageToSend = fmt.Sprintf("https://telegram.me/%v?start=send-receipt_%v", tgBotID, common.EncodeIntID(receipt.ID)) // TODO:
+		messageToSend = fmt.Sprintf("https://telegram.me/%s?start=send-receipt_%s", tgBotID, receipt.ID) // TODO:
 	} else {
 		locale := i18n.GetLocaleByCode5(user.Data.GetPreferredLocale())
 		translator := i18n.NewSingleMapTranslator(locale, common.TheAppContext.GetTranslator(c))
@@ -459,14 +458,14 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	jsonToResponse(c, w, struct {
-		ID   int
+		ID   string
 		Link string
 		Text string
 	}{
 		receipt.ID,
 		// TODO: It seems wrong to use request host!
 		//common.GetReceiptUrlForUser(receipt, receiptData.CreatorUserID, receiptData.CreatedOnPlatform, receiptData.CreatedOnID)
-		fmt.Sprintf("https://%v/receipt?id=%v&t=%v", r.Host, common.EncodeIntID(receipt.ID), time.Now().Format("20060102-150405")),
+		fmt.Sprintf("https://%s/receipt?id=%s&t=%s", r.Host, receipt.ID, time.Now().Format("20060102-150405")),
 		messageToSend,
 	})
 }

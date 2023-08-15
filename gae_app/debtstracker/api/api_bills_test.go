@@ -18,8 +18,8 @@ import (
 )
 
 const (
-	mockBillID    = 123
-	creatorUserID = 1
+	mockBillID    = "123"
+	creatorUserID = "1"
 )
 
 func TestBillApiCreateBill(t *testing.T) {
@@ -34,7 +34,7 @@ func TestBillApiCreateBill(t *testing.T) {
 		},
 	}); err != nil {
 		t.Fatal(err)
-	} else if contact.ID != 1 {
+	} else if contact.ID != "1" {
 		t.Fatalf("contact.ID: %v", contact.ID)
 	}
 	// if contact, err := dtdal.Contact.InsertContact(c, &models.ContactData{

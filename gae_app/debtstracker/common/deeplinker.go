@@ -12,8 +12,8 @@ import (
 type deeplink struct {
 }
 
-func (deeplink) AppHashPathToReceipt(receiptID int) string {
-	return fmt.Sprintf("receipt=%d", receiptID)
+func (deeplink) AppHashPathToReceipt(receiptID string) string {
+	return fmt.Sprintf("receipt=%s", receiptID)
 }
 
 var Deeplink = deeplink{}
@@ -50,8 +50,8 @@ func host(environment strongo.Environment) string {
 	panic(fmt.Sprintf("Unknown environment: %v", environment))
 }
 
-func (l Linker) UrlToContact(contactID int64) string {
-	return l.url("/contact", fmt.Sprintf("?id=%d", contactID), "")
+func (l Linker) UrlToContact(contactID string) string {
+	return l.url("/contact", fmt.Sprintf("?id=%s", contactID), "")
 }
 
 func formatIssuer(botPlatform, botID string) string {

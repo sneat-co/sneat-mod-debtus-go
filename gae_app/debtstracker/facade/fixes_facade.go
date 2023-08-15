@@ -23,7 +23,7 @@ func CheckTransferCreatorNameAndFixIfNeeded(c context.Context, tx dal.ReadwriteT
 			return nil
 		}
 
-		logMessage := fmt.Sprintf("Fixing transfer(%d).Creator().UserName, created: %v", transfer.ID, transfer.Data.DtCreated)
+		logMessage := fmt.Sprintf("Fixing transfer(%s).Creator().UserName, created: %v", transfer.ID, transfer.Data.DtCreated)
 		if transfer.Data.DtCreated.After(time.Date(2017, 8, 1, 0, 0, 0, 0, time.UTC)) {
 			log.Warningf(c, logMessage)
 		} else {

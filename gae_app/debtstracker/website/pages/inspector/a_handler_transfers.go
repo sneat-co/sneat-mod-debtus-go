@@ -1,13 +1,12 @@
 package inspector
 
 import (
+	"errors"
 	"fmt"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
 	"google.golang.org/appengine/v2"
 	"net/http"
-	"strconv"
-
 	"sync"
 
 	"time"
@@ -32,10 +31,10 @@ func (h transfersPage) transfersPageHandler(w http.ResponseWriter, r *http.Reque
 
 	currency := money.CurrencyCode(urlQuery.Get("currency"))
 
-	contactID, err := strconv.ParseInt(urlQuery.Get("contact"), 10, 64)
-	if err != nil {
+	contactID := urlQuery.Get("contact")
+	if contactID == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, err)
+		_, _ = fmt.Fprint(w, errors.New("contact ID is empty"))
 	}
 
 	var (
@@ -50,6 +49,7 @@ func (h transfersPage) transfersPageHandler(w http.ResponseWriter, r *http.Reque
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		var err error
 		if contact, err = facade.GetContactByID(c, nil, contactID); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = fmt.Fprint(w, err)
@@ -101,7 +101,7 @@ func (h transfersPage) transfersPageHandler(w http.ResponseWriter, r *http.Reque
 	renderTransfersPage(contact, currency, balancesWithoutInterest, balancesWithInterest, transfers, w)
 }
 
-func (h transfersPage) processTransfers(c context.Context, tx dal.ReadSession, contactID int64, currency money.CurrencyCode) (
+func (h transfersPage) processTransfers(c context.Context, tx dal.ReadSession, contactID string, currency money.CurrencyCode) (
 	transfers []models.Transfer,
 	balanceWithoutInterest decimal.Decimal64p2,
 	err error,
@@ -127,7 +127,7 @@ func (h transfersPage) processTransfers(c context.Context, tx dal.ReadSession, c
 			}
 			panic(err)
 		}
-		transfer := models.NewTransfer(record.Key().ID.(int), record.Data().(*models.TransferData))
+		transfer := models.NewTransfer(record.Key().ID.(string), record.Data().(*models.TransferData))
 		transfers = append(transfers, transfer)
 		switch contactID {
 		case transfer.Data.From().ContactID:

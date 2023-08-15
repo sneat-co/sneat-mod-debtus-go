@@ -64,7 +64,7 @@ var AskPhoneNumberForReceiptCommand = botsfw.Command{
 					m = whc.NewMessageByCode(trans.MESSAGE_TEXT_INVALID_PHONE_NUMBER)
 					return nil
 				}
-				user, err := facade.User.GetUserByID(c, tx, whc.AppUserInt64ID())
+				user, err := facade.User.GetUserByID(c, tx, whc.AppUserID())
 				if err != nil {
 					return err
 				}
@@ -74,7 +74,7 @@ var AskPhoneNumberForReceiptCommand = botsfw.Command{
 						log.Warningf(c, "Failed to parse contact's phone number: [%v]", phoneNumberStr)
 						return err
 					} else if user.Data.PhoneNumber == 0 {
-						user, err := facade.User.GetUserByID(c, tx, whc.AppUserInt64ID())
+						user, err := facade.User.GetUserByID(c, tx, whc.AppUserID())
 						if err != nil {
 							return err
 						}
@@ -115,22 +115,22 @@ var AskPhoneNumberForReceiptCommand = botsfw.Command{
 				return fmt.Errorf("failed to parse chat state as URL: %w", err)
 			}
 
-			if transferID, err := strconv.Atoi(awaitingUrl.Query().Get(WIZARD_PARAM_TRANSFER)); err != nil {
-				return fmt.Errorf("failed to parse transferID=%v: %w", awaitingUrl, err)
-			} else {
-				transfer, err := facade.Transfers.GetTransferByID(c, tx, transferID)
-				if err != nil {
-					return fmt.Errorf("failed to get transfer by ID: %w", err)
-				}
-				counterparty, err := facade.GetContactByID(c, tx, transfer.Data.Counterparty().ContactID)
-				if err != nil {
-					return err
-				}
-				phoneContact := models.PhoneContact{PhoneNumber: phoneNumber, PhoneNumberConfirmed: false}
-
-				m, err = sendReceiptBySms(whc, tx, phoneContact, transfer, counterparty)
+			transferID := awaitingUrl.Query().Get(WIZARD_PARAM_TRANSFER)
+			if transferID == "" {
+				return fmt.Errorf("empty transferID")
+			}
+			transfer, err := facade.Transfers.GetTransferByID(c, tx, transferID)
+			if err != nil {
+				return fmt.Errorf("failed to get transfer by ID: %w", err)
+			}
+			counterparty, err := facade.GetContactByID(c, tx, transfer.Data.Counterparty().ContactID)
+			if err != nil {
 				return err
 			}
+			phoneContact := models.PhoneContact{PhoneNumber: phoneNumber, PhoneNumberConfirmed: false}
+
+			m, err = sendReceiptBySms(whc, tx, phoneContact, transfer, counterparty)
+			return err
 		})
 
 	},
@@ -160,7 +160,7 @@ func sendReceiptBySms(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, ph
 		//inviteCode string
 	)
 
-	receiptData := models.NewReceiptEntity(whc.AppUserInt64ID(), transfer.ID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, "sms", strconv.FormatInt(phoneContact.PhoneNumber, 10), general.CreatedOn{
+	receiptData := models.NewReceiptEntity(whc.AppUserID(), transfer.ID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, "sms", strconv.FormatInt(phoneContact.PhoneNumber, 10), general.CreatedOn{
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
 	})
@@ -171,9 +171,9 @@ func sendReceiptBySms(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, ph
 
 	receiptUrl := common.GetReceiptUrl(receipt.ID, common.GetWebsiteHost(receiptData.CreatedOnID))
 
-	if counterparty.Data.CounterpartyUserID == 0 {
+	if counterparty.Data.CounterpartyUserID == "" {
 		//related := fmt.Sprintf("%v=%v", models.TransferKind, transferID)
-		//inviteKey, invite, err := invites.CreatePersonalInvite(whc, whc.AppUserInt64ID(), invites.InviteBySms, strconv.FormatInt(phoneContact.PhoneNumber, 10), whc.BotPlatform().ID(), whc.GetBotCode(), related)
+		//inviteKey, invite, err := invites.CreatePersonalInvite(whc, whc.AppUserID(), invites.InviteBySms, strconv.FormatInt(phoneContact.PhoneNumber, 10), whc.BotPlatform().ID(), whc.GetBotCode(), related)
 		//if err != nil {
 		//	log.Errorf(c, "Failed to create invite: %v", err)
 		//	return m, err
@@ -251,7 +251,7 @@ func sendReceiptBySms(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, ph
 		return m, fmt.Errorf("failed to parse whc.BotChatID() to int: %w", err)
 	}
 
-	if lastTwilioSmsese, err := dtdal.Twilio.GetLastTwilioSmsesForUser(c, tx, whc.AppUserInt64ID(), phoneContact.PhoneNumberAsString(), 1); err != nil {
+	if lastTwilioSmsese, err := dtdal.Twilio.GetLastTwilioSmsesForUser(c, tx, whc.AppUserID(), phoneContact.PhoneNumberAsString(), 1); err != nil {
 		err = fmt.Errorf("failed to check latest SMS records: %w", err)
 		return m, err
 	} else if len(lastTwilioSmsese) > 0 {
@@ -326,7 +326,7 @@ func sendReceiptBySms(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, ph
 		smsResponse,
 		transfer,
 		phoneContact,
-		whc.AppUserInt64ID(),
+		whc.AppUserID(),
 		tgChatID,
 		smsStatusMessageID,
 	); err != nil {

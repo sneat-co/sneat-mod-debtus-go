@@ -11,28 +11,21 @@ import (
 	"google.golang.org/appengine/v2"
 	"google.golang.org/appengine/v2/datastore"
 	"net/http"
-	"strconv"
 	"strings"
 	"sync"
 )
 
 func mergeContactsHandler(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
-	targetContactID, err := strconv.ParseInt(q.Get("target"), 10, 64)
-	if err != nil {
+	targetContactID := q.Get("target")
+	if targetContactID == "" {
 		w.WriteHeader(http.StatusInternalServerError)
-		_, _ = w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte("target contact ID is empty"))
 		return
 	}
-	sourceContacts := strings.Split(q.Get("source"), ",")
-	sourceContactIDs := make([]int64, len(sourceContacts))
-	for i, scID := range sourceContacts {
-		if sourceContactIDs[i], err = strconv.ParseInt(scID, 10, 64); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, _ = w.Write([]byte(err.Error()))
-		}
-	}
+	sourceContactIDs := strings.Split(q.Get("source"), ",")
 	var db dal.Database
+	var err error
 	db, err = facade.GetDatabase(r.Context())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -50,7 +43,7 @@ func mergeContactsHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte("done"))
 }
 
-func mergeContacts(c context.Context, tx dal.ReadwriteTransaction, targetContactID int64, sourceContactIDs ...int64) (err error) {
+func mergeContacts(c context.Context, tx dal.ReadwriteTransaction, targetContactID string, sourceContactIDs ...string) (err error) {
 	if len(sourceContactIDs) == 0 {
 		panic("len(sourceContactIDs) == 0")
 	}
@@ -101,7 +94,7 @@ func mergeContacts(c context.Context, tx dal.ReadwriteTransaction, targetContact
 	wg.Add(len(sourceContactIDs))
 
 	for _, sourceContactID := range sourceContactIDs {
-		go func(sourceContactID int64) {
+		go func(sourceContactID string) {
 			if err2 := mergeContactTransfers(c, tx, wg, targetContactID, sourceContactID); err2 != nil {
 				log.Errorf(c, "failed to merge transfers for contact %v: %v", sourceContactID, err2)
 				if err == nil {
@@ -144,7 +137,7 @@ func mergeContacts(c context.Context, tx dal.ReadwriteTransaction, targetContact
 							targetContact.Data.LastTransferAt = sourceContact.Data.LastTransferAt
 							targetContact.Data.LastTransferID = sourceContact.Data.LastTransferID
 						}
-						if sourceContact.Data.CounterpartyCounterpartyID != 0 {
+						if sourceContact.Data.CounterpartyCounterpartyID != "" {
 							var counterpartyContact models.Contact
 							if counterpartyContact, err = facade.GetContactByID(c, tx, sourceContact.Data.CounterpartyCounterpartyID); err != nil {
 								if !dal.IsNotFound(err) {
@@ -155,7 +148,7 @@ func mergeContacts(c context.Context, tx dal.ReadwriteTransaction, targetContact
 								if err = facade.SaveContact(c, counterpartyContact); err != nil {
 									return
 								}
-							} else if counterpartyContact.Data.CounterpartyCounterpartyID != 0 && counterpartyContact.Data.CounterpartyCounterpartyID != targetContactID {
+							} else if counterpartyContact.Data.CounterpartyCounterpartyID != "" && counterpartyContact.Data.CounterpartyCounterpartyID != targetContactID {
 								err = fmt.Errorf(
 									"data integrity issue : counterpartyContact(id=%v).CounterpartyCounterpartyID != sourceContactID: %v != %v",
 									counterpartyContact.ID, counterpartyContact.Data.CounterpartyCounterpartyID, sourceContactID)
@@ -192,14 +185,14 @@ func mergeContacts(c context.Context, tx dal.ReadwriteTransaction, targetContact
 	return
 }
 
-func mergeContactTransfers(c context.Context, tx dal.ReadwriteTransaction, wg *sync.WaitGroup, targetContactID int64, sourceContactID int64) (err error) {
+func mergeContactTransfers(c context.Context, tx dal.ReadwriteTransaction, wg *sync.WaitGroup, targetContactID string, sourceContactID string) (err error) {
 	defer func() {
 		wg.Done()
 	}()
 	transfersQ := dal.From(models.TransferKind).
 		Where(dal.Field("BothCounterpartyIDs").EqualTo(sourceContactID)).
 		SelectInto(func() dal.Record {
-			return models.NewTransfer(0, nil).Record
+			return models.NewTransfer("", nil).Record
 		})
 	transfers, err := tx.QueryReader(c, transfersQ)
 	if err != nil {
@@ -217,7 +210,7 @@ func mergeContactTransfers(c context.Context, tx dal.ReadwriteTransaction, wg *s
 			}
 			log.Errorf(c, "Failed to get next transfer: %v", err)
 		}
-		transfer.ID = record.Key().ID.(int)
+		transfer.ID = record.Key().ID.(string)
 		switch sourceContactID {
 		case transfer.Data.From().ContactID:
 			transfer.Data.From().ContactID = targetContactID

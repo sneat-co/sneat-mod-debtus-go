@@ -24,7 +24,7 @@ type assertHelper struct {
 func (assert assertHelper) OutputIsNilIfErr(output createTransferOutput, err error) (createTransferOutput, error) {
 	assert.t.Helper()
 	if err != nil {
-		if output.Transfer.ID != 0 {
+		if output.Transfer.ID != "" {
 			assert.t.Errorf("Returned transfer.ID != 0 with error: (ID=%v), error: %v", output.Transfer.ID, err)
 		}
 		if output.Transfer.Data != nil {
@@ -57,8 +57,8 @@ func TestCreateTransfer(t *testing.T) {
 	currency := money.CurrencyEUR
 
 	const (
-		userID         = 1
-		counterpartyID = 2
+		userID         = "1"
+		counterpartyID = "2"
 	)
 
 	/* Test CreateTransfer that should succeed  - new counterparty by name */
@@ -84,7 +84,7 @@ func TestCreateTransfer(t *testing.T) {
 			creatorUser,
 			"",
 			false,
-			0,
+			"",
 			from, to,
 			money.NewAmount(currency, 10),
 			time.Now().Add(time.Minute), models.NoInterest())
@@ -98,7 +98,7 @@ func TestCreateTransfer(t *testing.T) {
 		fromUser, toUser := output.From.User, output.To.User
 		fromCounterparty, toCounterparty := output.From.Contact, output.To.Contact
 
-		if output.Transfer.ID == 0 {
+		if output.Transfer.ID == "" {
 			t.Error("transfer.ID == 0")
 			return
 		}
@@ -138,16 +138,16 @@ func TestCreateTransfer(t *testing.T) {
 			t.Errorf("len(transfer2.BothUserIDs):%v != 2", len(transfer2.Data.BothUserIDs))
 			return
 		}
-		if fromUser.ID != 0 && fromUser.Data == nil {
+		if fromUser.ID != "" && fromUser.Data == nil {
 			t.Error("fromUser.ID != 0 && fromUser.AppUserData == nil")
 		}
-		if toUser.ID != 0 && toUser.Data == nil {
+		if toUser.ID != "" && toUser.Data == nil {
 			t.Error("toUser.ID != 0 && toUser.AppUserData == nil")
 		}
-		if toCounterparty.ID != 0 && toCounterparty.Data == nil {
+		if toCounterparty.ID != "" && toCounterparty.Data == nil {
 			t.Error("fromCounterparty.ContactData == nil")
 		}
-		if fromCounterparty.ID != 0 && fromCounterparty.Data == nil {
+		if fromCounterparty.ID != "" && fromCounterparty.Data == nil {
 			t.Error("fromCounterparty.ID != 0 && fromCounterparty.ContactData == nil")
 		}
 	}
@@ -155,17 +155,17 @@ func TestCreateTransfer(t *testing.T) {
 
 func Test_removeClosedTransfersFromOutstandingWithInterest(t *testing.T) {
 	transfersWithInterest := []models.TransferWithInterestJson{
-		{TransferID: 1},
-		{TransferID: 2},
-		{TransferID: 3},
-		{TransferID: 4},
-		{TransferID: 5},
+		{TransferID: "1"},
+		{TransferID: "2"},
+		{TransferID: "3"},
+		{TransferID: "4"},
+		{TransferID: "5"},
 	}
-	transfersWithInterest = removeClosedTransfersFromOutstandingWithInterest(transfersWithInterest, []int{2, 3})
+	transfersWithInterest = removeClosedTransfersFromOutstandingWithInterest(transfersWithInterest, []string{"2", "3"})
 	if len(transfersWithInterest) != 3 {
 		t.Fatalf("len(transfersWithInterest) != 3: %v", transfersWithInterest)
 	}
-	for i, transferID := range []int{1, 4, 5} {
+	for i, transferID := range []string{"1", "4", "5"} {
 		if transfersWithInterest[i].TransferID != transferID {
 			t.Fatalf("transfersWithInterest[%v].TransferID: %v != %v", i, transfersWithInterest[i].TransferID, transferID)
 		}
@@ -180,7 +180,7 @@ type createTransferTestCase struct {
 type createTransferStepInput struct {
 	direction          models.TransferDirection
 	isReturn           bool
-	returnToTransferID int
+	returnToTransferID string
 	amount             decimal.Decimal64p2
 	time               time.Time
 	models.TransferInterest
@@ -200,7 +200,7 @@ type createTransferStepExpects struct {
 
 type createTransferStep struct {
 	input             createTransferStepInput
-	createdTransferID int // Save transfer ID for checking transfer state in later steps
+	createdTransferID string // Save transfer ID for checking transfer state in later steps
 	expects           createTransferStepExpects
 }
 
@@ -376,8 +376,8 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 	source := dtdal.NewTransferSourceBot(telegram.PlatformID, "test-bot", "444")
 
 	const (
-		userID    = 1
-		contactID = 2
+		userID    = "1"
+		contactID = "2"
 	)
 
 	creatorUser := models.NewAppUser(userID, nil)

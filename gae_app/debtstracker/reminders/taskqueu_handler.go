@@ -12,7 +12,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/log"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -23,8 +22,8 @@ func SendReminderHandler(c context.Context, w http.ResponseWriter, r *http.Reque
 		log.Errorf(c, "Failed to parse form")
 		return
 	}
-	reminderID, err := strconv.Atoi(r.FormValue("id"))
-	if err != nil {
+	reminderID := r.FormValue("id")
+	if reminderID == "" {
 		log.Errorf(c, "Failed to convert reminder ID to int")
 		return
 	}
@@ -36,9 +35,9 @@ func SendReminderHandler(c context.Context, w http.ResponseWriter, r *http.Reque
 	}
 }
 
-func sendReminder(c context.Context, reminderID int) (err error) {
+func sendReminder(c context.Context, reminderID string) (err error) {
 	log.Debugf(c, "sendReminder(reminderID=%v)", reminderID)
-	if reminderID == 0 {
+	if reminderID == "" {
 		return errors.New("reminderID == 0")
 	}
 
@@ -83,7 +82,7 @@ func sendReminder(c context.Context, reminderID int) (err error) {
 	if !transfer.Data.IsOutstanding {
 		log.Infof(c, "Transfer(id=%v) is not outstanding, transfer.Amount=%v, transfer.AmountInCentsReturned=%v", reminder.Data.TransferID, transfer.Data.AmountInCents, transfer.Data.AmountReturned())
 
-		if err := gaedal.DiscardReminder(c, reminderID, reminder.Data.TransferID, 0); err != nil {
+		if err := gaedal.DiscardReminder(c, reminderID, reminder.Data.TransferID, ""); err != nil {
 			return fmt.Errorf("failed to discard a reminder for non outstanding transfer id=%v: %w", reminder.Data.TransferID, err)
 		}
 		return nil
@@ -98,7 +97,7 @@ func sendReminder(c context.Context, reminderID int) (err error) {
 
 var errReminderAlreadySentOrIsBeingSent = errors.New("Reminder already sent or is being sent")
 
-func sendReminderToUser(c context.Context, reminderID int, transfer models.Transfer) (err error) {
+func sendReminderToUser(c context.Context, reminderID string, transfer models.Transfer) (err error) {
 
 	var reminder models.Reminder
 

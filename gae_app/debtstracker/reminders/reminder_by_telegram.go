@@ -74,7 +74,7 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 			if err != nil {
 				return err
 			}
-			callbackData := fmt.Sprintf(dtb_common.DEBT_RETURN_CALLBACK_DATA, dtb_common.CALLBACK_DEBT_RETURNED_PATH, common.EncodeIntID(reminder.ID), "%v")
+			callbackData := fmt.Sprintf(dtb_common.DEBT_RETURN_CALLBACK_DATA, dtb_common.CALLBACK_DEBT_RETURNED_PATH, reminder.ID, "%v")
 			messageConfig.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 				[]tgbotapi.InlineKeyboardButton{
 					{Text: translator.Translate(trans.COMMAND_TEXT_REMINDER_RETURNED_IN_FULL), CallbackData: fmt.Sprintf(callbackData, dtb_common.RETURNED_FULLY)},

@@ -64,7 +64,7 @@ func (linker usersLinker) linkUsersWithinTransaction(
 
 		if invitedContact.Data == nil {
 			err = fmt.Errorf(
-				"getOrCreateInvitedContactByInviterUserAndInviterContact() returned invitedContact.Data == nil, invitedContact.ID: %d",
+				"getOrCreateInvitedContactByInviterUserAndInviterContact() returned invitedContact.Data == nil, invitedContact.ID: %s",
 				invitedContact.ID)
 			return
 		}
@@ -91,7 +91,7 @@ func (linker usersLinker) linkUsersWithinTransaction(
 			contactJSON = user.Data.ContactByID(invitedContact.ID)
 			if contactJSON == nil {
 				// err = fmt.Errorf("invitedUserContact == nil, ID=%v", invitedContact.ID)
-				userContactJSON, _ := user.AddOrUpdateContact(*contact)
+				userContactJSON, _ := models.AddOrUpdateContact(user, *contact)
 				contactJSON = &userContactJSON
 				linker.changes.FlagAsChanged(user.Record)
 			}
@@ -114,13 +114,13 @@ func (linker usersLinker) validateInput(
 	inviterUser, invitedUser *models.AppUser,
 	inviterContact *models.Contact,
 ) error {
-	if inviterUser.ID == 0 {
+	if inviterUser.ID == "" {
 		panic("inviterUser.ID == 0")
 	}
-	if invitedUser.ID == 0 {
+	if invitedUser.ID == "" {
 		panic("invitedUser.ID == 0")
 	}
-	if inviterContact.ID == 0 {
+	if inviterContact.ID == "" {
 		panic("inviterContact.ID == 0")
 	}
 	if inviterUser.ID == invitedUser.ID {
@@ -146,7 +146,7 @@ func (linker usersLinker) getOrCreateInvitedContactByInviterUserAndInviterContac
 	}
 
 	var invitedContact models.Contact
-	if changes.invitedContact != nil && changes.invitedContact.ID != 0 {
+	if changes.invitedContact != nil && changes.invitedContact.ID != "" {
 		invitedContact = *changes.invitedContact
 	} else {
 		changes.invitedContact = &invitedContact
@@ -165,7 +165,7 @@ func (linker usersLinker) getOrCreateInvitedContactByInviterUserAndInviterContac
 				// We re-get the entity of the found invitedContact using transactional context
 				// and store it to output var
 				if invitedContact, err = GetContactByID(tc, tx, invitedUserContact.ID); err != nil {
-					err = fmt.Errorf("failed to call GetContactByID(%d): %w", invitedUserContact.ID, err)
+					err = fmt.Errorf("failed to call GetContactByID(%s): %w", invitedUserContact.ID, err)
 					return
 				}
 				if invitedContact.Data.FirstName == "" {
@@ -179,7 +179,7 @@ func (linker usersLinker) getOrCreateInvitedContactByInviterUserAndInviterContac
 		}
 	}
 
-	if invitedContact.ID == 0 {
+	if invitedContact.ID == "" {
 		log.Debugf(tc, "getOrCreateInvitedContactByInviterUserAndInviterContact(): creating new contact for invited user")
 		invitedContactDetails := models.ContactDetails{
 			FirstName:  inviterUser.Data.FirstName,
@@ -221,12 +221,12 @@ func (linker usersLinker) getOrCreateInvitedContactByInviterUserAndInviterContac
 
 func (linker usersLinker) updateInvitedUser(c context.Context,
 	invitedUser models.AppUser,
-	inviterUserID int64, inviterContact models.Contact,
+	inviterUserID string, inviterContact models.Contact,
 ) (err error) {
 	log.Debugf(c, "usersLinker.updateInvitedUser()")
 	var invitedUserChanged bool
 
-	if invitedUser.Data.InvitedByUserID == 0 {
+	if invitedUser.Data.InvitedByUserID == "" {
 		invitedUser.Data.InvitedByUserID = inviterUserID
 		invitedUserChanged = true
 	}
@@ -255,10 +255,10 @@ func (linker usersLinker) updateInviterContact(
 	log.Debugf(tc, "usersLinker.updateInviterContact(), inviterContact.CounterpartyUserID: %d, inviterContact.CountOfTransfers: %d", inviterContact.Data.CounterpartyUserID, inviterContact.Data.CountOfTransfers)
 	// validate input
 	{
-		if inviterUser.ID == 0 {
+		if inviterUser.ID == "" {
 			panic("inviterUser.ID == 0")
 		}
-		if invitedUser.ID == 0 {
+		if invitedUser.ID == "" {
 			panic("invitedUser.ID == 0")
 		}
 		if inviterContact.Data.UserID != inviterUser.ID {
@@ -298,7 +298,7 @@ func (linker usersLinker) updateInviterContact(
 		}()
 	}
 	switch inviterContact.Data.CounterpartyUserID {
-	case 0:
+	case "":
 		log.Debugf(tc, "Updating inviterUser.Contact* fields...")
 		isJustConnected = true
 		inviterContactChanged = true
@@ -308,7 +308,7 @@ func (linker usersLinker) updateInviterContact(
 		inviterUserContacts := inviterUser.Data.Contacts()
 		for i, inviterUserContact := range inviterUserContacts {
 			if inviterUserContact.ID == inviterContact.ID {
-				if inviterUserContact.UserID == 0 {
+				if inviterUserContact.UserID == "" {
 					inviterUserContact.UserID = inviterContact.Data.CounterpartyUserID
 					inviterUserContacts[i] = inviterUserContact
 					inviterUser.Data.SetContacts(inviterUserContacts)
@@ -324,7 +324,7 @@ func (linker usersLinker) updateInviterContact(
 				goto inviterUserContactFound
 			}
 		}
-		if _, changed := inviterUser.AddOrUpdateContact(*inviterContact); changed {
+		if _, changed := models.AddOrUpdateContact(&inviterUser, *inviterContact); changed {
 			linker.changes.FlagAsChanged(inviterUser.Record)
 		}
 	inviterUserContactFound:

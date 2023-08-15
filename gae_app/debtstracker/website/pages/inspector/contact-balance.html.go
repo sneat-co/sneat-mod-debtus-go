@@ -10,7 +10,7 @@ import (
 	"github.com/shiyanhui/hero"
 )
 
-func renderContactBalance(contactID int64, title string, balances balancesByCurrency, showTransfers bool, buf *bytes.Buffer) {
+func renderContactBalance(contactID string, title string, balances balancesByCurrency, showTransfers bool, buf *bytes.Buffer) {
 	buf.WriteString(`
 <div class="col-sm">
     <h3>`)
@@ -43,7 +43,7 @@ func renderContactBalance(contactID int64, title string, balances balancesByCurr
 		}
 		buf.WriteString(`
             <td><a href="transfers?contact=`)
-		hero.FormatInt(int64(contactID), buf)
+		hero.EscapeHTML(contactID, buf)
 		buf.WriteString(`&currency=`)
 		hero.EscapeHTML(fmt.Sprintf("%v", currency), buf)
 		buf.WriteString(`">`)

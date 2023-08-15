@@ -26,13 +26,13 @@ func handleInviteOnStart(whc botsfw.WebhookContext, inviteCode string, invite mo
 		dtb_general.SetMainMenuKeyboard(whc, &m)
 	}
 	if invite.Data.Related == INVITE_IS_RELATED_TO_ONBOARDING {
-		if invite.Data.CreatedByUserID != whc.AppUserInt64ID() {
-			return m, errors.New("invite.Related == INVITE_IS_RELATED_TO_ONBOARDING && invite.CreatedByUserID != whc.AppUserInt64ID()")
+		if invite.Data.CreatedByUserID != whc.AppUserID() {
+			return m, errors.New("invite.Related == INVITE_IS_RELATED_TO_ONBOARDING && invite.CreatedByUserID != whc.AppUserID()")
 		}
 		claimAndReply()
 		return
 	} else {
-		if invite.Data.CreatedByUserID == whc.AppUserInt64ID() {
+		if invite.Data.CreatedByUserID == whc.AppUserID() {
 			m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_ATTEMPT_TO_USE_OWN_INVITE))
 			dtb_general.SetMainMenuKeyboard(whc, &m)
 			return m, nil
@@ -178,7 +178,7 @@ func NewMistypedCommand(messageToAdd string) botsfw.Command {
 //		chatEntity := whc.ChatData()
 //		chatEntity.PushStepToAwaitingReplyTo(CHECK_INVITE_COMMAND)
 //		inviteCode := strings.ToUpper(whc.Input().(botsfw.WebhookTextMessage).Text())
-//		userID := whc.AppUserInt64ID()
+//		userID := whc.AppUserID()
 //
 //		if err = dtdal.Invite.ClaimInvite(c, userID, inviteCode, whc.BotPlatform().ID(), whc.GetBotCode()); err != nil {
 //			if dal.IsNotFound(err) {
@@ -351,7 +351,7 @@ var OnboardingOnUserContactReceivedCommand = botsfw.Command{
 //func onboardingProcessPhoneContact(whc botsfw.WebhookContext, contact botsfw.WebhookContactMessage) (m botsfw.MessageFromBot, err error) {
 //	c := whc.Context()
 //	//whc.ChatData().SetAwaitingReplyTo(ON_USER_CONTACT_RECEIVED_COMMAND)
-//	invite, err := dtdal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserInt64ID(), models.InviteBySms, contact.PhoneNumber(), whc.BotPlatform().ID(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
+//	invite, err := dtdal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserID(), models.InviteBySms, contact.PhoneNumber(), whc.BotPlatform().ID(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
 //	if err != nil {
 //		return m, err
 //	}
@@ -420,7 +420,7 @@ const INVITE_IS_RELATED_TO_ONBOARDING = "onboarding=yes"
 //		})
 //	} else {
 //		//TODO: Try to send email and handle return codes & exceptions
-//		invite, err := dtdal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserInt64ID(), models.InviteByEmail, email, whc.BotPlatform().ID(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
+//		invite, err := dtdal.Invite.CreatePersonalInvite(whc.ExecutionContext(), whc.AppUserID(), models.InviteByEmail, email, whc.BotPlatform().ID(), whc.GetBotCode(), INVITE_IS_RELATED_TO_ONBOARDING)
 //		if err != nil {
 //			return m, err
 //		}

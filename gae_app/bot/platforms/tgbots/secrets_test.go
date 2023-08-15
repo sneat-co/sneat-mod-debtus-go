@@ -10,7 +10,7 @@ import (
 
 func TestGetBotSettingsByLang(t *testing.T) {
 	verify := func(profile, locale, code string) {
-		botSettings, err := GetBotSettingsByLang(strongo.EnvProduction, bot.ProfileDebtus, locale)
+		botSettings, err := GetBotSettingsByLang(strongo.EnvUnknown, bot.ProfileDebtus, locale)
 		if err != nil {
 			t.Fatal(err)
 		}

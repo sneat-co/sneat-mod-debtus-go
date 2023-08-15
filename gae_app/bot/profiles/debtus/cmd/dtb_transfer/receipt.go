@@ -14,7 +14,6 @@ import (
 
 	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/analytics"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
@@ -56,10 +55,9 @@ func InlineSendReceipt(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err 
 		log.Debugf(c, "Unclean receipt ID: %v, cleaned: %v", idParam, cleanID)
 		idParam = cleanID
 	}
-	transferID, err := common.DecodeIntID(idParam)
-	if err != nil {
-		log.Warningf(c, "Failed to decode receipt?id=[%v]", idParam)
-		return m, err
+	transferID := idParam
+	if transferID == "" {
+		return m, fmt.Errorf("missing transfer ID")
 	}
 	var transfer models.Transfer
 	transfer, err = facade.Transfers.GetTransferByID(c, nil, transferID)
@@ -85,7 +83,7 @@ func InlineSendReceipt(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err 
 				Title:       fmt.Sprintf(whc.Translate(trans.INLINE_RECEIPT_TITLE), transfer.Data.GetAmount()),
 				Description: whc.Translate(trans.INLINE_RECEIPT_DESCRIPTION),
 				InputMessageContent: tgbotapi.InputTextMessageContent{
-					Text:      getInlineReceiptMessageText(whc, whc.GetBotCode(), whc.Locale().Code5, fmt.Sprintf("%v %v", creator.GetFirstName(), creator.GetLastName()), 0),
+					Text:      getInlineReceiptMessageText(whc, whc.GetBotCode(), whc.Locale().Code5, fmt.Sprintf("%v %v", creator.GetFirstName(), creator.GetLastName()), ""),
 					ParseMode: "HTML",
 				},
 				ReplyMarkup: &tgbotapi.InlineKeyboardMarkup{
@@ -93,7 +91,7 @@ func InlineSendReceipt(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err 
 						{
 							{
 								Text:         whc.Translate(trans.COMMAND_TEXT_WAIT_A_SECOND),
-								CallbackData: CREATE_RECEIPT_IF_NO_INLINE_CHOSEN_NOTIFICATION + fmt.Sprintf("?id=%v", common.EncodeIntID(transferID)),
+								CallbackData: fmt.Sprintf("%s?id=%s", CREATE_RECEIPT_IF_NO_INLINE_CHOSEN_NOTIFICATION, transferID),
 							},
 						},
 					},
@@ -122,16 +120,16 @@ func InlineSendReceipt(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err 
 	return m, err
 }
 
-func getInlineReceiptMessageText(t i18n.SingleLocaleTranslator, botCode, localeCode5, creator string, receiptID int) string {
+func getInlineReceiptMessageText(t i18n.SingleLocaleTranslator, botCode, localeCode5, creator string, receiptID string) string {
 	data := map[string]interface{}{
 		"Creator":  creator,
 		"SiteLink": template.HTML(`<a href="https://debtstracker.io/#utm_source=telegram&utm_medium=bot&utm_campaign=receipt-inline">DebtsTracker.IO</a>`),
 	}
-	if receiptID != 0 {
+	if receiptID != "" {
 		data["ReceiptUrl"] = GetUrlForReceiptInTelegram(botCode, receiptID, localeCode5)
 	}
 	var buf bytes.Buffer
-	if receiptID == 0 {
+	if receiptID == "" {
 		buf.WriteString(t.Translate(trans.INLINE_RECEIPT_GENERATING_MESSAGE, data))
 	} else {
 		buf.WriteString(t.Translate(trans.INLINE_RECEIPT_MESSAGE, data))
@@ -139,7 +137,7 @@ func getInlineReceiptMessageText(t i18n.SingleLocaleTranslator, botCode, localeC
 
 	//buf.WriteString("\n\n" + t.Translate(trans.INLINE_RECEIPT_FOOTER, data))
 
-	if receiptID != 0 {
+	if receiptID != "" {
 		buf.WriteString("\n\n" + t.Translate(trans.INLINE_RECEIPT_CHOOSE_LANGUAGE, data))
 	}
 
@@ -150,11 +148,7 @@ func OnInlineChosenCreateReceipt(whc botsfw.WebhookContext, inlineMessageID stri
 	c := whc.Context()
 
 	log.Debugf(c, "OnInlineChosenCreateReceipt(queryUrl: %v)", queryUrl)
-	transferEncodedID := queryUrl.Query().Get("id")
-	transferID, err := common.DecodeIntID(transferEncodedID)
-	if err != nil {
-		return m, err
-	}
+	transferID := queryUrl.Query().Get("id")
 	creator := whc.GetSender()
 	creatorName := fmt.Sprintf("%v %v", creator.GetFirstName(), creator.GetLastName())
 
@@ -162,7 +156,7 @@ func OnInlineChosenCreateReceipt(whc botsfw.WebhookContext, inlineMessageID stri
 	if err != nil {
 		return m, err
 	}
-	receiptData := models.NewReceiptEntity(whc.AppUserInt64ID(), transferID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, telegram.PlatformID, "", general.CreatedOn{
+	receiptData := models.NewReceiptEntity(whc.AppUserID(), transferID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, telegram.PlatformID, "", general.CreatedOn{
 		CreatedOnID:       whc.GetBotCode(), // TODO: Replace with method call.
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 	})

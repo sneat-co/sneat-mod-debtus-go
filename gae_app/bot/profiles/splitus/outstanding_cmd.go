@@ -20,7 +20,7 @@ func outstandingBalanceAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBo
 	c := whc.Context()
 	log.Debugf(c, "outstandingBalanceAction()")
 	var user models.AppUser
-	if user, err = facade.User.GetUserByID(c, nil, whc.AppUserInt64ID()); err != nil {
+	if user, err = facade.User.GetUserByID(c, nil, whc.AppUserID()); err != nil {
 		return
 	}
 

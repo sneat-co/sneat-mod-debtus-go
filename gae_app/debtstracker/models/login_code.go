@@ -23,7 +23,7 @@ type LoginCode struct {
 type LoginCodeData struct {
 	Created time.Time
 	Claimed time.Time
-	UserID  int64
+	UserID  string
 }
 
 const CodeLength = 5

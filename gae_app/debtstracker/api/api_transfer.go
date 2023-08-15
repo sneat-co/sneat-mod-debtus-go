@@ -6,7 +6,6 @@ import (
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
 	"net/http"
-	"strconv"
 	"time"
 
 	"context"
@@ -19,7 +18,7 @@ import (
 )
 
 func handleGetTransfer(c context.Context, w http.ResponseWriter, r *http.Request) {
-	if transferID := getID(c, w, r, "id"); transferID == 0 {
+	if transferID := getStrID(c, w, r, "id"); transferID == "" {
 		return
 	} else {
 		transfer, err := facade.Transfers.GetTransferByID(c, nil, transferID)
@@ -102,14 +101,13 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 
 	amountWithCurrency := money.NewAmount(money.CurrencyCode(currency), amountValue)
 
-	contactID, err := strconv.ParseInt(r.PostFormValue("contactID"), 10, 64)
-	if err != nil {
-		BadRequestError(c, w, err)
+	contactID := getStrID(c, w, r, "contactID")
+	if contactID == "" {
 		return
 	}
 
 	var (
-		returnTotransferID int
+		returnToTransferID string
 		dueOn              time.Time
 	)
 
@@ -191,7 +189,7 @@ func handleCreateTransfer(c context.Context, w http.ResponseWriter, r *http.Requ
 		transferSourceSetToAPI{appPlatform: platform, createdOnID: r.Host},
 		appUser,
 		"",
-		isReturn, returnTotransferID,
+		isReturn, returnToTransferID,
 		from, to,
 		amountWithCurrency, dueOn, models.NoInterest())
 	output, err := facade.Transfers.CreateTransfer(c, newTransfer)

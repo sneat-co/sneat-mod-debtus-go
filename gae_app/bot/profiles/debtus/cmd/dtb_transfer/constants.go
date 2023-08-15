@@ -2,8 +2,6 @@ package dtb_transfer
 
 import (
 	"fmt"
-
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 )
 
 const (
@@ -21,10 +19,10 @@ type SendReceipt struct {
 	By string
 }
 
-func SendReceiptCallbackData(transferID int, by string) string {
-	return fmt.Sprintf("%v?by=%v&transfer=%v", SEND_RECEIPT_CALLBACK_PATH, by, common.EncodeID(int64(transferID)))
+func SendReceiptCallbackData(transferID string, by string) string {
+	return fmt.Sprintf("%s?by=%s&transfer=%s", SEND_RECEIPT_CALLBACK_PATH, by, transferID)
 }
 
-func SendReceiptUrl(transferID int, by string) string {
-	return fmt.Sprintf("https://debtstracker.io/app/send-receipt?by=%v&transfer=%v", by, common.EncodeIntID(transferID))
+func SendReceiptUrl(transferID string, by string) string {
+	return fmt.Sprintf("https://debtus.app/pwa/send-receipt?by=%s&transfer=%s", by, transferID)
 }

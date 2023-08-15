@@ -7,12 +7,10 @@ import (
 	"github.com/crediterra/money"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
-	"strconv"
 	"time"
 
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/dtb_common"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
@@ -28,18 +26,19 @@ func ProcessReturnAnswer(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 	c := whc.Context()
 	log.Debugf(c, "ProcessReturnAnswer()")
 	q := callbackUrl.Query()
-	reminderID, err := common.DecodeIntID(q.Get("reminder"))
-	var transferID int
+	reminderID := q.Get("reminder")
+	if reminderID == "" {
+		return m, fmt.Errorf("missing reminder ID")
+	}
+	var transferID string
 	if err != nil {
 		if q.Get("reminder") == "" { // TODO: Remove this obsolete branch
-			if transferID, err = common.DecodeIntID(q.Get("id")); err != nil {
-				return m, fmt.Errorf("failed to decode transfer ID: %w", err)
+			if transferID = q.Get("id"); transferID == "" {
+				return m, fmt.Errorf("missing reminder ID and transfer ID")
 			}
-		} else {
-			return m, fmt.Errorf("failed to decode reminder ID: %w", err)
 		}
 	} else {
-		if reminder, err := dtdal.Reminder.SetReminderStatus(c, reminderID, 0, models.ReminderStatusUsed, time.Now()); err != nil {
+		if reminder, err := dtdal.Reminder.SetReminderStatus(c, reminderID, "", models.ReminderStatusUsed, time.Now()); err != nil {
 			return m, err
 		} else {
 			transferID = reminder.Data.TransferID
@@ -72,15 +71,15 @@ var EnableReminderAgainCallbackCommand = botsfw.NewCallbackCommand(commandCodeEn
 	log.Debugf(c, "EnableReminderAgainCallbackCommand()")
 	q := callbackUrl.Query()
 	var (
-		reminderID int
+		reminderID string
 		transfer   models.Transfer
 	)
-	if reminderID, err = common.DecodeIntID(q.Get("reminder")); err != nil {
-		err = fmt.Errorf("can't decode parameter 'reminder': %w", err)
+	if reminderID = q.Get("reminder"); reminderID == "" {
+		err = fmt.Errorf("parameter 'reminder' is empty")
 		return
 	}
-	if transfer.ID, err = common.DecodeIntID(q.Get("transfer")); err != nil {
-		err = fmt.Errorf("can't decode parameter 'transfer': %w", err)
+	if transfer.ID = q.Get("transfer"); transfer.ID == "" {
+		err = fmt.Errorf("parameter 'transfer' is empty")
 		return
 	}
 
@@ -103,10 +102,10 @@ func ProcessFullReturn(whc botsfw.WebhookContext, transfer models.Transfer) (m b
 	amount := money.NewAmount(transfer.Data.GetAmount().Currency, amountValue)
 
 	var (
-		counterpartyID int64
+		counterpartyID string
 		direction      models.TransferDirection
 	)
-	userID := whc.AppUserInt64ID()
+	userID := whc.AppUserID()
 	if transfer.Data.CreatorUserID == userID {
 		counterpartyID = transfer.Data.Counterparty().ContactID
 		switch transfer.Data.Direction() {
@@ -147,20 +146,20 @@ func ProcessFullReturn(whc botsfw.WebhookContext, transfer models.Transfer) (m b
 }
 
 func ProcessPartialReturn(whc botsfw.WebhookContext, transfer models.Transfer) (botsfw.MessageFromBot, error) {
-	var counterpartyID int64
-	switch whc.AppUserInt64ID() {
+	var counterpartyID string
+	switch whc.AppUserID() {
 	case transfer.Data.CreatorUserID:
 		counterpartyID = transfer.Data.Counterparty().ContactID
 	case transfer.Data.Counterparty().UserID:
 		counterpartyID = transfer.Data.Creator().ContactID
 	default:
-		panic(fmt.Sprintf("whc.whc.AppUserInt64ID()=%v not in (transfer.Counterparty().ContactID=%v, transfer.Creator().ContactID=%v)",
-			whc.AppUserInt64ID(), transfer.Data.Counterparty().ContactID, transfer.Data.Creator().ContactID))
+		panic(fmt.Sprintf("whc.whc.AppUserID()=%v not in (transfer.Counterparty().ContactID=%v, transfer.Creator().ContactID=%v)",
+			whc.AppUserID(), transfer.Data.Counterparty().ContactID, transfer.Data.Creator().ContactID))
 	}
 	chatEntity := whc.ChatData()
 	chatEntity.SetAwaitingReplyTo("")
-	chatEntity.AddWizardParam(WIZARD_PARAM_COUNTERPARTY, strconv.FormatInt(counterpartyID, 10))
-	chatEntity.AddWizardParam(WIZARD_PARAM_TRANSFER, strconv.Itoa(transfer.ID))
+	chatEntity.AddWizardParam(WIZARD_PARAM_COUNTERPARTY, counterpartyID)
+	chatEntity.AddWizardParam(WIZARD_PARAM_TRANSFER, transfer.ID)
 	chatEntity.AddWizardParam("currency", string(transfer.Data.Currency))
 
 	reportReminderIsActed(whc, "reminder-acted-returned-partially")
@@ -168,16 +167,16 @@ func ProcessPartialReturn(whc botsfw.WebhookContext, transfer models.Transfer) (
 	return AskHowMuchHaveBeenReturnedCommand.Action(whc)
 }
 
-func askWhenToRemindAgain(whc botsfw.WebhookContext, reminderID int, transfer models.Transfer) (m botsfw.MessageFromBot, err error) {
+func askWhenToRemindAgain(whc botsfw.WebhookContext, reminderID string, transfer models.Transfer) (m botsfw.MessageFromBot, err error) {
 	if m, err = dtb_general.EditReminderMessage(whc, transfer, whc.Translate(trans.MESSAGE_TEXT_ASK_WHEN_TO_REMIND_AGAIN)); err != nil {
 		return
 	}
-	callbackData := fmt.Sprintf("%v?id=%v&in=%v", dtb_common.CALLBACK_REMIND_AGAIN, common.EncodeIntID(reminderID), "%v")
+	callbackData := fmt.Sprintf("%s?id=%s&in=%s", dtb_common.CALLBACK_REMIND_AGAIN, reminderID, "%v")
 	keyboard := tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{
 			{
 				Text:         emoji.CALENDAR_ICON + " " + whc.Translate(trans.COMMAND_TEXT_SET_DATE),
-				CallbackData: fmt.Sprintf("%v?id=%v", SET_NEXT_REMINDER_DATE_COMMAND, common.EncodeIntID(reminderID)),
+				CallbackData: fmt.Sprintf("%s?id=%s", SET_NEXT_REMINDER_DATE_COMMAND, reminderID),
 			},
 		},
 		[]tgbotapi.InlineKeyboardButton{
@@ -211,7 +210,7 @@ func askWhenToRemindAgain(whc botsfw.WebhookContext, reminderID int, transfer mo
 	return
 }
 
-func ProcessNoReturn(whc botsfw.WebhookContext, reminderID int, transfer models.Transfer) (m botsfw.MessageFromBot, err error) {
+func ProcessNoReturn(whc botsfw.WebhookContext, reminderID string, transfer models.Transfer) (m botsfw.MessageFromBot, err error) {
 	return askWhenToRemindAgain(whc, reminderID, transfer)
 }
 
@@ -224,14 +223,14 @@ var SetNextReminderDateCallbackCommand = botsfw.Command{
 	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
 
-		reminderID, err := common.DecodeIntID(callbackUrl.Query().Get("id"))
-		if err != nil {
-			return m, fmt.Errorf("failed to decode transfer id: %w", err)
+		reminderID := callbackUrl.Query().Get("id")
+		if reminderID == "" {
+			return m, fmt.Errorf("missing reminder ID")
 		}
 
 		chatEntity := whc.ChatData()
 		chatEntity.SetAwaitingReplyTo(SET_NEXT_REMINDER_DATE_COMMAND)
-		chatEntity.AddWizardParam(WIZARD_PARAM_REMINDER, strconv.Itoa(reminderID))
+		chatEntity.AddWizardParam(WIZARD_PARAM_REMINDER, reminderID)
 
 		reminder, err := dtdal.Reminder.GetReminderByID(c, nil, reminderID)
 		if err != nil {
@@ -259,8 +258,7 @@ var SetNextReminderDateCallbackCommand = botsfw.Command{
 		if !date.IsZero() {
 			chatEntity := whc.ChatData()
 
-			encodedReminderID := chatEntity.GetWizardParam(WIZARD_PARAM_REMINDER)
-			reminderID, err := strconv.Atoi(encodedReminderID)
+			reminderID := chatEntity.GetWizardParam(WIZARD_PARAM_REMINDER)
 			if err != nil {
 				return m, fmt.Errorf("failed to decode reminder id: %w", err)
 			}

@@ -21,11 +21,11 @@ import (
 	"github.com/strongo/log"
 )
 
-func (ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, transferID int, userID int64) (err error) {
-	if transferID == 0 {
+func (ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, transferID string, userID string) (err error) {
+	if transferID == "" {
 		panic("transferID == 0")
 	}
-	if userID == 0 {
+	if userID == "" {
 		panic("userID == 0")
 	}
 	//if !dtdal.DB.IsInTransaction(c) {
@@ -38,13 +38,13 @@ func (ReminderDalGae) DelayCreateReminderForTransferUser(c context.Context, tran
 	return
 }
 
-func delayedCreateReminderForTransferUser(c context.Context, transferID int, userID int64) (err error) {
+func delayedCreateReminderForTransferUser(c context.Context, transferID string, userID string) (err error) {
 	log.Debugf(c, "delayedCreateReminderForTransferUser(transferID=%d, userID=%d)", transferID, userID)
-	if transferID == 0 {
+	if transferID == "" {
 		log.Errorf(c, "transferID == 0")
 		return nil
 	}
-	if userID == 0 {
+	if userID == "" {
 		log.Errorf(c, "userID == 0")
 		return nil
 	}
@@ -68,7 +68,7 @@ func delayedCreateReminderForTransferUser(c context.Context, transferID int, use
 			panic("transferUserInfo.UserID != userID")
 		}
 
-		if transferUserInfo.ReminderID != 0 {
+		if transferUserInfo.ReminderID != "" {
 			log.Warningf(c, "Transfer user already has reminder # %v", transferUserInfo.ReminderID)
 			return
 		}
@@ -88,11 +88,11 @@ func delayedCreateReminderForTransferUser(c context.Context, transferID int, use
 				next = time.Now().Add(7 * 24 * time.Hour)
 			}
 		}
-		reminder := models.NewReminder(0, models.NewReminderViaTelegram(transferUserInfo.TgBotID, transferUserInfo.TgChatID, userID, transferID, isAutomatic, next))
+		reminder := models.NewReminder("", models.NewReminderViaTelegram(transferUserInfo.TgBotID, transferUserInfo.TgChatID, userID, transferID, isAutomatic, next))
 		if err = tx.Insert(c, reminder.Record); err != nil {
 			return fmt.Errorf("failed to save reminder to db: %w", err)
 		}
-		reminderID := reminder.Key.ID.(int)
+		reminderID := reminder.Key.ID.(string)
 		log.Infof(c, "Created reminder id=%v", reminderID)
 		if err = QueueSendReminder(c, reminderID, time.Until(next)); err != nil {
 			return fmt.Errorf("failed to queue reminder for sending: %w", err)
@@ -107,7 +107,7 @@ func delayedCreateReminderForTransferUser(c context.Context, transferID int, use
 	})
 }
 
-func (ReminderDalGae) DelayDiscardReminders(c context.Context, transferIDs []int, returnTransferID int) error {
+func (ReminderDalGae) DelayDiscardReminders(c context.Context, transferIDs []string, returnTransferID string) error {
 	if len(transferIDs) > 0 {
 		return delayDiscardReminders.EnqueueWork(c, delaying.With(common.QUEUE_REMINDERS, "discard-reminders", 0), transferIDs, returnTransferID)
 	} else {
@@ -164,7 +164,7 @@ func discardRemindersForTransfer(c context.Context, transferID, returnTransferID
 	return nil
 }
 
-func DiscardReminder(c context.Context, reminderID, transferID, returnTransferID int) (err error) {
+func DiscardReminder(c context.Context, reminderID, transferID, returnTransferID string) (err error) {
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {
 		return err
@@ -174,7 +174,7 @@ func DiscardReminder(c context.Context, reminderID, transferID, returnTransferID
 	})
 }
 
-func delayedDiscardReminder(c context.Context, reminderID, transferID, returnTransferID int) (err error) {
+func delayedDiscardReminder(c context.Context, reminderID, transferID, returnTransferID string) (err error) {
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {
 		return err
@@ -188,7 +188,7 @@ func delayedDiscardReminder(c context.Context, reminderID, transferID, returnTra
 	})
 }
 
-func discardReminder(c context.Context, tx dal.ReadwriteTransaction, reminderID, transferID, returnTransferID int) (err error) {
+func discardReminder(c context.Context, tx dal.ReadwriteTransaction, reminderID, transferID, returnTransferID string) (err error) {
 	log.Debugf(c, "discardReminder(reminderID=%v, transferID=%v, returnTransferID=%v)", reminderID, transferID, returnTransferID)
 
 	var (
@@ -196,7 +196,7 @@ func discardReminder(c context.Context, tx dal.ReadwriteTransaction, reminderID,
 		reminder = models.NewReminder(reminderID, new(models.ReminderEntity))
 	)
 
-	if returnTransferID > 0 {
+	if returnTransferID > "" {
 		//returnTransferKey := models.NewTransferKey(returnTransferID)
 		returnTransfer := models.NewTransfer(returnTransferID, nil)
 		//keys := []*datastore.Key{reminderKey, transferKey, returnTransferKey}
@@ -285,7 +285,7 @@ func GetTranslatorForReminder(c context.Context, reminder *models.ReminderEntity
 
 var ErrDuplicateAttemptToDiscardReminder = errors.New("Duplicate attempt to close reminder by same return transfer")
 
-func (ReminderDalGae) SetReminderStatus(c context.Context, reminderID, returnTransferID int, status string, when time.Time) (reminder models.Reminder, err error) {
+func (ReminderDalGae) SetReminderStatus(c context.Context, reminderID, returnTransferID string, status string, when time.Time) (reminder models.Reminder, err error) {
 	var (
 		changed        bool
 		previousStatus string
@@ -314,7 +314,7 @@ func (ReminderDalGae) SetReminderStatus(c context.Context, reminderID, returnTra
 			}
 			previousStatus = reminder.Data.Status
 			changed = previousStatus != status
-			if returnTransferID != 0 && status == string(models.ReminderStatusDiscarded) {
+			if returnTransferID != "" && status == string(models.ReminderStatusDiscarded) {
 				for _, id := range reminder.Data.ClosedByTransferIDs { // TODO: WTF are we doing here?
 					if id == returnTransferID {
 						log.Infof(c, "new status: '%v', Reminder{Status: '%v', ClosedByTransferIDs: %v}", status, reminder.Data.Status, reminder.Data.ClosedByTransferIDs)

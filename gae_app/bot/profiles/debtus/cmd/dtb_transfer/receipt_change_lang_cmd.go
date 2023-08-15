@@ -5,7 +5,6 @@ import (
 	"net/url"
 
 	"errors"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 )
 
 const CHANGE_RECEIPT_LANG_COMMAND = "change-lang-receipt"
@@ -21,7 +20,7 @@ var ChangeReceiptAnnouncementLangCommand = botsfw.NewCallbackCommand(
 		if err = whc.SetLocale(code5); err != nil {
 			return m, err
 		}
-		receiptID, err := common.DecodeIntID(query.Get("id"))
+		receiptID := query.Get("id")
 		if err != nil {
 			return m, err
 		}

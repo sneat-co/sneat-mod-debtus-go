@@ -19,7 +19,7 @@ func NewLoginCodeDalGae() LoginCodeDalGae {
 	return LoginCodeDalGae{}
 }
 
-func (LoginCodeDalGae) NewLoginCode(c context.Context, userID int64) (code int, err error) {
+func (LoginCodeDalGae) NewLoginCode(c context.Context, userID string) (code int, err error) {
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {
@@ -60,7 +60,7 @@ func (LoginCodeDalGae) NewLoginCode(c context.Context, userID int64) (code int, 
 	return 0, fmt.Errorf("failed to create new login code: %w", err)
 }
 
-func (LoginCodeDalGae) ClaimLoginCode(c context.Context, code int) (userID int64, err error) {
+func (LoginCodeDalGae) ClaimLoginCode(c context.Context, code int) (userID string, err error) {
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {
 		return

@@ -7,7 +7,6 @@ import (
 	"github.com/strongo/log"
 	"google.golang.org/appengine/v2"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -64,7 +63,7 @@ func IssueToken(userID string, issuer string, isAdmin bool) string {
 }
 
 type AuthInfo struct {
-	UserID  int64
+	UserID  string
 	IsAdmin bool
 	Issuer  string
 }
@@ -117,9 +116,8 @@ func Authenticate(w http.ResponseWriter, r *http.Request, required bool) (authIn
 			err = errors.New("token is missing 'issuer' claim")
 			return
 		}
-		if authInfo.UserID, err = strconv.ParseInt(claims.Subject, 10, 64); err == nil {
-			authInfo.IsAdmin = claims.Admin
-		}
+		authInfo.UserID = claims.Subject
+		authInfo.IsAdmin = claims.Admin
 	}
 	return
 }

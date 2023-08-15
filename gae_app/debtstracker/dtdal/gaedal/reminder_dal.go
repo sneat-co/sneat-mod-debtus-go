@@ -18,8 +18,8 @@ func NewReminderIncompleteKey(c context.Context) *dal.Key {
 	return dal.NewIncompleteKey(models.ReminderKind, reflect.Int, nil)
 }
 
-func NewReminderKey(reminderID int) *dal.Key {
-	if reminderID == 0 {
+func NewReminderKey(reminderID string) *dal.Key {
+	if reminderID == "" {
 		panic("reminderID == 0")
 	}
 	return dal.NewKeyWithID(models.ReminderKind, reminderID)
@@ -34,7 +34,7 @@ func NewReminderDalGae() ReminderDalGae {
 
 var _ dtdal.ReminderDal = (*ReminderDalGae)(nil)
 
-func (reminderDalGae ReminderDalGae) GetReminderByID(c context.Context, tx dal.ReadSession, id int) (reminder models.Reminder, err error) {
+func (reminderDalGae ReminderDalGae) GetReminderByID(c context.Context, tx dal.ReadSession, id string) (reminder models.Reminder, err error) {
 	reminder = models.NewReminder(id, nil)
 	return reminder, tx.Get(c, reminder.Record)
 }
@@ -76,7 +76,7 @@ func (reminderDalGae ReminderDalGae) GetActiveReminderIDsByTransferID(c context.
 	return reminderIDs, nil
 }
 
-func (reminderDalGae ReminderDalGae) SetReminderIsSent(c context.Context, reminderID int, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) (err error) {
+func (reminderDalGae ReminderDalGae) SetReminderIsSent(c context.Context, reminderID string, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) (err error) {
 	//gaehost.GaeLogger.Debugf(c, "setReminderIsSent(reminderID=%v, sentAt=%v, messageIntID=%v, messageStrID=%v)", reminderID, sentAt, messageIntID, messageStrID)
 	if err := _validateSetReminderIsSentMessageIDs(messageIntID, messageStrID, sentAt); err != nil {
 		return err
@@ -124,7 +124,7 @@ func (reminderDalGae ReminderDalGae) SetReminderIsSentInTransaction(c context.Co
 	}
 }
 
-func (reminderDalGae ReminderDalGae) RescheduleReminder(c context.Context, reminderID int, remindInDuration time.Duration) (oldReminder, newReminder models.Reminder, err error) {
+func (reminderDalGae ReminderDalGae) RescheduleReminder(c context.Context, reminderID string, remindInDuration time.Duration) (oldReminder, newReminder models.Reminder, err error) {
 	return models.Reminder{}, models.Reminder{}, errors.New("not implemented - needs to be refactored")
 	//var (
 	//	newReminderKey    *datastore.Key

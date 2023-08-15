@@ -6,7 +6,6 @@ import (
 	strongo "github.com/strongo/app"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"context"
@@ -35,16 +34,16 @@ func AuthOnly(handler AuthHandler) strongo.HttpHandlerWithContext {
 
 func AuthOnlyWithUser(handler AuthHandlerWithUser) strongo.HttpHandlerWithContext {
 	return AuthOnly(func(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
-		var userID int64
+		var userID string
 
-		if userID = getUserID(c, w, r, authInfo); userID == 0 {
-			log.Warningf(c, "userID is 0")
+		if userID = getUserID(c, w, r, authInfo); userID == "" {
+			log.Warningf(c, "userID is empty")
 			return
 		}
 
 		user, err := facade.User.GetUserByID(c, nil, userID)
 
-		if hasError(c, w, err, models.AppUserKind, int(userID), http.StatusInternalServerError) {
+		if hasError(c, w, err, models.AppUserKind, userID, http.StatusInternalServerError) {
 			return
 		}
 		handler(c, w, r, authInfo, user)
@@ -54,7 +53,7 @@ func AuthOnlyWithUser(handler AuthHandlerWithUser) strongo.HttpHandlerWithContex
 func OptionalAuth(handler AuthHandler) strongo.HttpHandlerWithContext {
 	return func(c context.Context, w http.ResponseWriter, r *http.Request) {
 		authInfo, _, _ := auth.Authenticate(w, r, false)
-		if authInfo.UserID == 0 {
+		if authInfo.UserID == "" {
 			log.Debugf(c, "OptionalAuth(), anonymous")
 		} else {
 			log.Debugf(c, "OptionalAuth(), userID=%d", authInfo.UserID)
@@ -83,8 +82,8 @@ func IsAdmin(email string) bool {
 	return email == "alexander.trakhimenok@gmail.com"
 }
 
-func ReturnToken(_ context.Context, w http.ResponseWriter, userID int64, isNewUser, isAdmin bool) {
-	token := auth.IssueToken(strconv.FormatInt(userID, 10), "api", isAdmin)
+func ReturnToken(_ context.Context, w http.ResponseWriter, userID string, isNewUser, isAdmin bool) {
+	token := auth.IssueToken(userID, "api", isAdmin)
 	header := w.Header()
 	header.Add("Access-Control-Allow-Origin", "*")
 	header.Add("Content-Type", "application/json")

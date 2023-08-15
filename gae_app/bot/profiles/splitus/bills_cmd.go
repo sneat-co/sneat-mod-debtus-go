@@ -32,7 +32,7 @@ func billsAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error)
 	c := whc.Context()
 	if !whc.IsInGroup() {
 		var user models.AppUser
-		if user, err = facade.User.GetUserByID(c, nil, whc.AppUserInt64ID()); err != nil {
+		if user, err = facade.User.GetUserByID(c, nil, whc.AppUserID()); err != nil {
 			return
 		}
 		if user.Data.OutstandingBillsCount == 0 {

@@ -46,7 +46,7 @@ type LoginPinData struct {
 	Created    time.Time
 	Pinned     time.Time `datastore:",noindex"`
 	SignedIn   time.Time `datastore:",noindex"`
-	UserID     int64     `datastore:",noindex"`
+	UserID     string    `datastore:",noindex"`
 	Code       int32     `datastore:",noindex"`
 }
 

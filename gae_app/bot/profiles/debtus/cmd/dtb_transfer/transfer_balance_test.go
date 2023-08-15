@@ -39,7 +39,7 @@ func TestBalanceMessageSingleCounterparty(t *testing.T) {
 	balanceJson := json.RawMessage(`{"USD": 10}`)
 	counterparties := []models.UserContactJson{
 		{
-			ID:     1,
+			ID:     "1",
 			Name:   "John Doe",
 			Status: "active",
 			//UserID: 1,
@@ -71,12 +71,12 @@ func TestBalanceMessageSingleCounterparty(t *testing.T) {
 
 func TestBalanceMessageTwoCounterparties(t *testing.T) {
 	john := models.UserContactJson{
-		ID:   1,
+		ID:   "1",
 		Name: "Johnny The Doe",
 	}
 
 	jack := models.UserContactJson{
-		ID:   2,
+		ID:   "2",
 		Name: "Jacky Dark Brown",
 	}
 

@@ -13,14 +13,14 @@ import (
 func TestAppUserEntity_Contacts(t *testing.T) {
 	var userEntity AppUserData
 
-	userEntity.ContactsJsonActive = `[{"ID":1,"Name":"Alex (Alex)"}]`
+	userEntity.ContactsJsonActive = `[{"ID":"1","Name":"Alex (Alex)"}]`
 
 	contacts := userEntity.Contacts()
 
 	contact := contacts[0]
-	is := is.New(t)
-	is.Equal(contact.Name, "Alex")
-	is.Equal(contact.Status, "active")
+	itIs := is.New(t)
+	itIs.Equal(contact.Name, "Alex")
+	itIs.Equal(contact.Status, "active")
 }
 
 func TestAppUserEntity_SetLastCurrency(t *testing.T) {
@@ -89,7 +89,7 @@ func TestAppUserEntity_BalanceWithInterest(t *testing.T) {
 			BalanceCount: 1,
 			BalanceJson:  `{"EUR":58}`,
 		},
-		ContactsJsonActive: `[{"ID":6296903092273152,"Name":"Test1","Balance":{"EUR":58},"Transfers":{"Count":1,"Last":{"ID":6156165603917824,"At":"2017-11-04T23:05:30.847526702Z"},"OutstandingWithInterest":[{"TransferID":6156165603917824,"Starts":"2017-11-04T23:05:30.847526702Z","Currency":"EUR","Amount":14,"InterestType":"simple","InterestPeriod":3,"InterestPercent":3,"InterestMinimumPeriod":3}]}}]`,
+		ContactsJsonActive: `[{"ID":"6296903092273152","Name":"Test1","Balance":{"EUR":58},"Transfers":{"Count":1,"Last":{"ID":"6156165603917824","At":"2017-11-04T23:05:30.847526702Z"},"OutstandingWithInterest":[{"TransferID":"6156165603917824","Starts":"2017-11-04T23:05:30.847526702Z","Currency":"EUR","Amount":14,"InterestType":"simple","InterestPeriod":3,"InterestPercent":3,"InterestMinimumPeriod":3}]}}]`,
 	}
 	balanceWithInterest, err := user.BalanceWithInterest(context.Background(), time.Now())
 	if err != nil {

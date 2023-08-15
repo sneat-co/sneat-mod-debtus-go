@@ -20,7 +20,7 @@ func renderTransfersPage(contact models.Contact, currency money.CurrencyCode, ba
     <meta charset="UTF-8">
     <title>`)
 	_buffer.WriteString(`Contact # `)
-	hero.FormatInt(int64(contact.ID), _buffer)
+	hero.EscapeHTML(contact.ID, _buffer)
 	_buffer.WriteString(`: `)
 	hero.EscapeHTML(fmt.Sprintf("%v", currency), _buffer)
 
@@ -39,7 +39,7 @@ func renderTransfersPage(contact models.Contact, currency money.CurrencyCode, ba
 
 <div class="row">
     <h1>Contact # `)
-	hero.FormatInt(int64(contact.ID), _buffer)
+	hero.EscapeHTML(contact.ID, _buffer)
 	_buffer.WriteString(`: `)
 	hero.EscapeHTML(fmt.Sprintf("%v", currency), _buffer)
 	_buffer.WriteString(`</h1>
@@ -117,9 +117,9 @@ func renderTransfersPage(contact models.Contact, currency money.CurrencyCode, ba
 		hero.FormatInt(int64(i+1), _buffer)
 		_buffer.WriteString(`</td>
             <td class="d"><a href="transfer?id=`)
-		hero.FormatInt(int64(transfer.ID), _buffer)
+		hero.EscapeHTML(transfer.ID, _buffer)
 		_buffer.WriteString(`">`)
-		hero.FormatInt(int64(transfer.ID), _buffer)
+		hero.EscapeHTML(transfer.ID, _buffer)
 		_buffer.WriteString(`</a></td>
             <td>`)
 		hero.EscapeHTML(fmt.Sprintf("%v", transfer.Data.DtCreated), _buffer)

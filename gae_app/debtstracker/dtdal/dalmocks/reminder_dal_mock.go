@@ -24,7 +24,7 @@ func (mock *ReminderDalMock) DelayCreateReminderForTransferCounterparty(c contex
 	panic(NOT_IMPLEMENTED_YET)
 }
 
-func (mock *ReminderDalMock) DelayCreateReminderForTransferUser(c context.Context, transferID, userID int64) error {
+func (mock *ReminderDalMock) DelayCreateReminderForTransferUser(c context.Context, transferID, userID string) error {
 	return nil
 }
 
@@ -36,19 +36,19 @@ func (mock *ReminderDalMock) SaveReminder(c context.Context, reminder models.Rem
 	panic(NOT_IMPLEMENTED_YET)
 }
 
-func (mock *ReminderDalMock) RescheduleReminder(c context.Context, reminderID int, remindInDuration time.Duration) (oldReminder, newReminder models.Reminder, err error) {
+func (mock *ReminderDalMock) RescheduleReminder(c context.Context, reminderID string, remindInDuration time.Duration) (oldReminder, newReminder models.Reminder, err error) {
 	panic(NOT_IMPLEMENTED_YET)
 }
 
-func (mock *ReminderDalMock) SetReminderStatus(c context.Context, reminderID, returntransferID int, status string, when time.Time) (reminder models.Reminder, err error) {
+func (mock *ReminderDalMock) SetReminderStatus(c context.Context, reminderID, returnTransferID string, status string, when time.Time) (reminder models.Reminder, err error) {
 	panic(NOT_IMPLEMENTED_YET)
 }
 
-func (mock *ReminderDalMock) DelaySetReminderIsSent(c context.Context, reminderID int64, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error {
+func (mock *ReminderDalMock) DelaySetReminderIsSent(c context.Context, reminderID string, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error {
 	panic(NOT_IMPLEMENTED_YET)
 }
 
-func (mock *ReminderDalMock) SetReminderIsSent(c context.Context, reminderID int64, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error {
+func (mock *ReminderDalMock) SetReminderIsSent(c context.Context, reminderID string, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error {
 	panic(NOT_IMPLEMENTED_YET)
 }
 

@@ -3,7 +3,6 @@ package dtb_transfer
 import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"strconv"
 	"strings"
 
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
@@ -28,11 +27,7 @@ var AskEmailForReceiptCommand = botsfw.Command{
 		}
 
 		chatEntity := whc.ChatData()
-		var transferID int
-		transferID, err = strconv.Atoi(chatEntity.GetWizardParam(WIZARD_PARAM_TRANSFER))
-		if err != nil {
-			return m, err
-		}
+		transferID := chatEntity.GetWizardParam(WIZARD_PARAM_TRANSFER)
 		transfer, err := facade.Transfers.GetTransferByID(c, nil, transferID)
 		if err != nil {
 			return m, err
@@ -44,7 +39,7 @@ var AskEmailForReceiptCommand = botsfw.Command{
 
 func sendReceiptByEmail(whc botsfw.WebhookContext, toEmail, toName string, transfer models.Transfer) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
-	receiptEntity := models.NewReceiptEntity(whc.AppUserInt64ID(), transfer.ID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, string(models.InviteByEmail), toEmail, general.CreatedOn{
+	receiptEntity := models.NewReceiptEntity(whc.AppUserID(), transfer.ID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, string(models.InviteByEmail), toEmail, general.CreatedOn{
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
 	})

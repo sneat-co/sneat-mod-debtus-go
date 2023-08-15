@@ -57,10 +57,7 @@ func (billFacade) AssignBillToGroup(c context.Context, tx dal.ReadwriteTransacti
 				if !paidIsSet { // current user is not members of the bill
 					//group.AddOrGetMember(userID, "", )
 					var user models.AppUser
-					if user.ID, err = strconv.ParseInt(userID, 10, 64); err != nil {
-						return
-					}
-					if user, err = User.GetUserByID(c, tx, user.ID); err != nil {
+					if user, err = User.GetUserByID(c, tx, userID); err != nil {
 						return
 					}
 					_, _, _, groupMember, _ := group.Data.AddOrGetMember(userID, "", user.Data.FullName())
@@ -137,7 +134,7 @@ func (billFacade) CreateBill(c context.Context, tx dal.ReadwriteTransaction, bil
 	if len(members) == 0 {
 		billEntity.SplitMode = models.SplitModeEqually
 	} else {
-		contactIDs := make([]int64, 0, len(members)-1)
+		contactIDs := make([]string, 0, len(members)-1)
 
 		var (
 			totalPercentageByMembers decimal.Decimal64p2
@@ -210,21 +207,18 @@ func (billFacade) CreateBill(c context.Context, tx dal.ReadwriteTransaction, bil
 							if counterparty.ContactID == "" {
 								panic("counterparty.ContactID == 0")
 							}
-							var counterpartyContactID int64
-							counterpartyContactID, err = strconv.ParseInt(counterparty.ContactID, 10, 64)
 							if err != nil {
 								return
 							}
 							var duplicateContactID bool
 							for _, cID := range contactIDs {
-								if cID == counterpartyContactID {
+								if cID == counterparty.ContactID {
 									duplicateContactID = true
 									break
 								}
 							}
 							if !duplicateContactID {
-
-								contactIDs = append(contactIDs, counterpartyContactID)
+								contactIDs = append(contactIDs, counterparty.ContactID)
 							}
 						}
 					}
@@ -342,8 +336,8 @@ func (billFacade) CreateBill(c context.Context, tx dal.ReadwriteTransaction, bil
 		for _, member := range members {
 			for _, counterparty := range counterparties {
 				// TODO: assign not just for creator?
-				if member.UserID == "" && member.ContactByUser[billEntity.CreatorUserID].ContactID == strconv.FormatInt(counterparty.ID, 10) {
-					member.UserID = strconv.FormatInt(counterparty.Data.CounterpartyUserID, 10)
+				if member.UserID == "" && member.ContactByUser[billEntity.CreatorUserID].ContactID == counterparty.ID {
+					member.UserID = counterparty.Data.CounterpartyUserID
 					break
 				}
 			}
@@ -351,7 +345,7 @@ func (billFacade) CreateBill(c context.Context, tx dal.ReadwriteTransaction, bil
 
 		billEntity.ContactIDs = make([]string, len(contactIDs))
 		for i, contactID := range contactIDs {
-			billEntity.ContactIDs[i] = strconv.FormatInt(contactID, 10)
+			billEntity.ContactIDs[i] = contactID
 		}
 
 	}
@@ -621,7 +615,7 @@ var (
 	ErrOnlyDeletedBillsCanBeRestored = errors.New("only deleted bills can be restored")
 )
 
-func (billFacade) DeleteBill(c context.Context, billID string, userID int64) (bill models.Bill, err error) {
+func (billFacade) DeleteBill(c context.Context, billID string, userID string) (bill models.Bill, err error) {
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
 		return
@@ -635,7 +629,7 @@ func (billFacade) DeleteBill(c context.Context, billID string, userID int64) (bi
 			return
 		}
 		if bill.Data.Status == models.BillStatusDraft || bill.Data.Status == models.BillStatusOutstanding {
-			billHistory := models.NewBillHistoryBillDeleted(strconv.FormatInt(userID, 10), bill)
+			billHistory := models.NewBillHistoryBillDeleted(userID, bill)
 			if err = tx.Insert(c, billHistory.Record); err != nil {
 				return
 			}
@@ -682,7 +676,7 @@ func (billFacade) DeleteBill(c context.Context, billID string, userID int64) (bi
 	return
 }
 
-func (billFacade) RestoreBill(c context.Context, billID string, userID int64) (bill models.Bill, err error) {
+func (billFacade) RestoreBill(c context.Context, billID string, userID string) (bill models.Bill, err error) {
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
 		return
@@ -701,7 +695,7 @@ func (billFacade) RestoreBill(c context.Context, billID string, userID int64) (b
 		} else {
 			bill.Data.Status = models.BillStatusDraft
 		}
-		billHistory := models.NewBillHistoryBillRestored(strconv.FormatInt(userID, 10), bill)
+		billHistory := models.NewBillHistoryBillRestored(userID, bill)
 		if err = tx.Insert(c, billHistory.Record); err != nil {
 			return
 		}

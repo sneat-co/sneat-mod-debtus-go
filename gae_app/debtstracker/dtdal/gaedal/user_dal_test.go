@@ -6,6 +6,6 @@ import (
 )
 
 func TestNewAppUserKey(t *testing.T) {
-	const appUserID = 1234
-	testIntKey(t, appUserID, models.NewAppUserKey(appUserID))
+	const appUserID = "1234"
+	testStrKey(t, appUserID, models.NewAppUserKey(appUserID))
 }

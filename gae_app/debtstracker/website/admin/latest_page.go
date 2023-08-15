@@ -52,7 +52,7 @@ func LatestPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		_, _ = b.WriteString("</td><td>")
 		_, _ = b.WriteString(user.BalanceJson)
 		_, _ = b.WriteString("</td><td>")
-		if user.InvitedByUserID != 0 {
+		if user.InvitedByUserID != "" {
 			if invitedByUser, err := facade.User.GetUserByID(c, nil, user.InvitedByUserID); err != nil {
 				_, _ = b.WriteString(err.Error())
 			} else {

@@ -26,35 +26,23 @@ var ReceiptStatuses = [4]string{
 	ReceiptStatusAcknowledged,
 }
 
-type Receipt struct {
-	record.WithID[int]
-	Data *ReceiptData
-}
+type Receipt = record.DataWithID[string, *ReceiptData]
 
-func NewReceiptKey(id int) *dal.Key {
-	if id == 0 {
+func NewReceiptKey(id string) *dal.Key {
+	if id == "" {
 		return NewReceiptIncompleteKey()
 	}
 	return dal.NewKeyWithID(ReceiptKind, id)
 }
 
-func (*Receipt) Kind() string {
-	return ReceiptKind
-}
-
 func NewReceiptWithoutID(data *ReceiptData) Receipt {
 	key := NewReceiptIncompleteKey()
-	return Receipt{
-		WithID: record.NewWithID[int](0, key, data),
-		Data:   data,
-	}
+	return record.NewDataWithID("", key, data)
 }
 
-func NewReceipt(id int, data *ReceiptData) Receipt {
+func NewReceipt(id string, data *ReceiptData) Receipt {
 	key := NewReceiptKey(id)
-	return Receipt{
-		WithID: record.NewWithID[int](id, key, data),
-		Data:   data}
+	return record.NewDataWithID(id, key, data)
 }
 
 const (
@@ -66,12 +54,12 @@ type ReceiptFor string
 
 type ReceiptData struct {
 	Status               string
-	TransferID           int
-	CreatorUserID        int64      // IMPORTANT: Can be different from transfer.CreatorUserID (usually same). Think of 3d party bills
+	TransferID           string
+	CreatorUserID        string     // IMPORTANT: Can be different from transfer.CreatorUserID (usually same). Think of 3d party bills
 	For                  ReceiptFor `datastore:",noindex"` // TODO: always fill. If receipt.CreatorUserID != transfer.CreatorUserID then receipt.For must be set to either "from" or "to"
-	ViewedByUserIDs      []int64
-	CounterpartyUserID   int64 // TODO: Is it always equal to AcknowledgedByUserID?
-	AcknowledgedByUserID int64 // TODO: Is it always equal to CounterpartyUserID?
+	ViewedByUserIDs      []string
+	CounterpartyUserID   string // TODO: Is it always equal to AcknowledgedByUserID?
+	AcknowledgedByUserID string // TODO: Is it always equal to CounterpartyUserID?
 	general.CreatedOn
 	TgInlineMsgID  string `datastore:",noindex"`
 	DtCreated      time.Time
@@ -89,11 +77,11 @@ func NewReceiptIncompleteKey() *dal.Key {
 	return dal.NewIncompleteKey(ReceiptKind, reflect.Int, nil)
 }
 
-func NewReceiptEntity(creatorUserID int64, transferID int, counterpartyUserID int64, lang, sentVia, sentTo string, createdOn general.CreatedOn) *ReceiptData {
+func NewReceiptEntity(creatorUserID, transferID, counterpartyUserID, lang, sentVia, sentTo string, createdOn general.CreatedOn) *ReceiptData {
 	if creatorUserID == counterpartyUserID {
 		panic("creatorUserID == counterpartyUserID")
 	}
-	if transferID == 0 {
+	if transferID == "" {
 		panic("transferID == 0")
 	}
 	if createdOn.CreatedOnID == "" {
@@ -120,13 +108,13 @@ func NewReceiptEntity(creatorUserID int64, transferID int, counterpartyUserID in
 //}
 
 func (r *ReceiptData) Validate() (err error) {
-	if r.TransferID == 0 {
+	if r.TransferID == "" {
 		return errors.New("receipt.TransferID == 0")
 	}
 	if err = validateString("Unknown receipt.Status", r.Status, ReceiptStatuses[:]); err != nil {
 		return err
 	}
-	if r.CreatorUserID == 0 {
+	if r.CreatorUserID == "" {
 		err = errors.New("ReceiptData.CreatorUserID == 0")
 		return
 	}

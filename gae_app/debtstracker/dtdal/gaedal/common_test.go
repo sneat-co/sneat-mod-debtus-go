@@ -5,6 +5,24 @@ import (
 	"testing"
 )
 
+func testStrKey(t *testing.T, expectedID string, key *dal.Key) {
+	if key == nil {
+		t.Error("key is nil")
+		return
+	}
+	switch id := key.ID.(type) {
+	case string:
+		if id != expectedID {
+			t.Error("IntegerID() != expectedID", expectedID)
+		}
+	case int, int64:
+		t.Error("IntID() is not empty")
+	}
+	if key.Parent() != nil {
+		t.Error("Parent() != nil")
+	}
+}
+
 func testIntKey(t *testing.T, expectedID int64, key *dal.Key) {
 	if key == nil {
 		t.Error("key is nil")

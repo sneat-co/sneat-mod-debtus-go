@@ -1,18 +1,16 @@
 package api
 
 import (
-	"github.com/dal-go/dalgo/dal"
-	"net/http"
-	"strconv"
-
 	"context"
 	"errors"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/auth"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/app/user"
 	"github.com/strongo/log"
+	"net/http"
 )
 
 func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
@@ -37,7 +35,7 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 				if err != dal.ErrRecordNotFound {
 					return err
 				}
-			} else if fbUserAppID := userFb.FbUserData().GetAppUserID(); fbUserAppID == strconv.FormatInt(appUser.ID, 10) {
+			} else if fbUserAppID := userFb.FbUserData().GetAppUserID(); fbUserAppID == appUser.ID {
 				if err = dtdal.UserFacebook.DeleteFbUser(c, userAccount.App, userAccount.ID); err != nil {
 					return err
 				}
@@ -64,7 +62,7 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 					if err != dal.ErrRecordNotFound {
 						return err
 					}
-				} else if userGoogle.Data().GetAppUserID() == strconv.FormatInt(appUser.ID, 10) {
+				} else if userGoogle.Data().GetAppUserID() == appUser.ID {
 					userGoogle.Data().SetAppUserID("")
 					if err = dtdal.UserGoogle.DeleteUserGoogle(c, userGoogle.ID); err != nil {
 						return err

@@ -16,18 +16,18 @@ func handleAdminLatestTransfers(c context.Context, w http.ResponseWriter, r *htt
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write(([]byte)(err.Error()))
 	}
-	transfersToResponse(c, w, 0, transfers, true)
+	transfersToResponse(c, w, "", transfers, true)
 }
 
 func handleUserTransfers(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo, user models.AppUser) {
 	transfers, hasMore, err := dtdal.Transfer.LoadTransfersByUserID(c, user.ID, 0, 100)
-	if hasError(c, w, err, "", 0, http.StatusInternalServerError) {
+	if hasError(c, w, err, "", "", http.StatusInternalServerError) {
 		return
 	}
 	transfersToResponse(c, w, user.ID, transfers, hasMore)
 }
 
-func transfersToResponse(c context.Context, w http.ResponseWriter, userID int64, transfers []models.Transfer, hasMore bool) {
+func transfersToResponse(c context.Context, w http.ResponseWriter, userID string, transfers []models.Transfer, hasMore bool) {
 	jsonToResponse(c, w, dto.TransfersResultDto{
 		Transfers:        dto.TransfersToDto(userID, transfers),
 		HasMoreTransfers: hasMore,

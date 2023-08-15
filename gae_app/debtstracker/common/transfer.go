@@ -37,29 +37,29 @@ func getUrlForUser(userID int64, locale i18n.Locale, page, createdOnPlatform, cr
 	return url + fmt.Sprintf("&lang=%v&secret=%v", locale.SiteCode(), token)
 }
 
-func GetTransferUrlForUser(transferID int, userID int64, locale i18n.Locale, utmParams UtmParams) string {
+func GetTransferUrlForUser(transferID string, userID string, locale i18n.Locale, utmParams UtmParams) string {
 	var buffer bytes.Buffer
 	WriteTransferUrlForUser(&buffer, transferID, userID, locale, utmParams)
 	return buffer.String()
 }
 
-func WriteTransferUrlForUser(writer io.Writer, transferID int, userID int64, locale i18n.Locale, utmParams UtmParams) {
+func WriteTransferUrlForUser(writer io.Writer, transferID string, userID string, locale i18n.Locale, utmParams UtmParams) {
 	host := GetWebsiteHost(utmParams.Source)
 	_, _ = writer.Write([]byte(fmt.Sprintf(
 		"https://%v/transfer?id=%v&lang=%v",
-		host, strconv.Itoa(transferID), locale.SiteCode(),
+		host, transferID, locale.SiteCode(),
 	)))
 	if !utmParams.IsEmpty() {
 		_, _ = writer.Write([]byte(fmt.Sprintf("&%v", utmParams.ShortString())))
 	}
-	if userID != 0 {
-		token := auth.IssueToken(strconv.FormatInt(userID, 10), formatIssuer(utmParams.Medium, utmParams.Source), false)
+	if userID != "" {
+		token := auth.IssueToken(userID, formatIssuer(utmParams.Medium, utmParams.Source), false)
 		_, _ = writer.Write([]byte(fmt.Sprintf("&secret=%v", token)))
 	}
 }
 
-func GetChooseCurrencyUrlForUser(userID int64, locale i18n.Locale, createdOnPlatform, createdOnID, contextData string) string {
-	token := auth.IssueToken(strconv.FormatInt(userID, 10), createdOnPlatform+":"+createdOnID, false)
+func GetChooseCurrencyUrlForUser(userID string, locale i18n.Locale, createdOnPlatform, createdOnID, contextData string) string {
+	token := auth.IssueToken(userID, createdOnPlatform+":"+createdOnID, false)
 	host := GetWebsiteHost(createdOnID)
 	return fmt.Sprintf(
 		"https://%v/app/#/choose-currency?lang=%v&%v&secret=%v",

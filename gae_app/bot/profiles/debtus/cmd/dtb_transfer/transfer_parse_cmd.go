@@ -84,7 +84,7 @@ var ParseTransferCommand = botsfw.Command{
 		const isReturn = false
 
 		creatorInfo := models.TransferCounterpartyInfo{
-			UserID:      whc.AppUserInt64ID(),
+			UserID:      whc.AppUserID(),
 			ContactName: counterpartyName,
 		}
 		c := whc.Context()
@@ -95,14 +95,14 @@ var ParseTransferCommand = botsfw.Command{
 		if botUserEntity, err = whc.AppUserData(); err != nil {
 			return m, err
 		}
-		creatorUser := models.NewAppUser(whc.AppUserInt64ID(), botUserEntity.(*models.AppUserData))
+		creatorUser := models.NewAppUser(whc.AppUserID(), botUserEntity.(*models.AppUserData))
 
 		newTransfer := facade.NewTransferInput(whc.Environment(),
 			GetTransferSource(whc),
 			creatorUser,
 			"",
 			isReturn,
-			0,
+			"",
 			from, to,
 			money.Amount{Currency: currency, Value: value},
 			time.Time{},

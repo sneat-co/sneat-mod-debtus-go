@@ -18,34 +18,28 @@ import (
 
 const AppUserKind = "User"
 
-func NewAppUserKey(appUserId int64) *dal.Key {
-	if appUserId == 0 {
+func NewAppUserKey(appUserId string) *dal.Key {
+	if appUserId == "" {
 		return dal.NewIncompleteKey(AppUserKind, reflect.Int64, nil)
 	}
 	return dal.NewKeyWithID(AppUserKind, appUserId)
 }
 
-type AppUser struct {
-	record.WithID[int64]
-	Data *AppUserData
-}
+type AppUser = record.DataWithID[string, *AppUserData]
 
 func NewAppUserRecord() dal.Record {
 	return dal.NewRecordWithIncompleteKey(AppUserKind, reflect.Int64, new(AppUserData))
 }
 
-func NewAppUser(id int64, data *AppUserData) AppUser {
+func NewAppUser(id string, data *AppUserData) AppUser {
 	key := NewAppUserKey(id)
 	if data == nil {
 		data = new(AppUserData)
 	}
-	return AppUser{
-		WithID: record.NewWithID[int64](id, key, data),
-		Data:   data,
-	}
+	return record.NewDataWithID[string, *AppUserData](id, key, data)
 }
 
-func NewAppUsers(userIDs []int64) []AppUser {
+func NewAppUsers(userIDs []string) []AppUser {
 	users := make([]AppUser, len(userIDs))
 	for i, id := range userIDs {
 		users[i] = NewAppUser(id, nil)
@@ -118,7 +112,7 @@ type AppUserData struct {
 
 	HasDueTransfers bool `datastore:",noindex"` // TODO: Check if we really need this prop and if yes document why
 
-	InvitedByUserID int64  `datastore:",omitempty"` // TODO: Prevent circular references! see users 6032980589936640 & 5998019824582656
+	InvitedByUserID string `datastore:",omitempty"` // TODO: Prevent circular references! see users 6032980589936640 & 5998019824582656
 	ReferredBy      string `datastore:",omitempty"`
 
 	user.AccountsOfUser
@@ -258,16 +252,16 @@ func (entity *AppUserData) FixObsolete() error {
 	return fixContactsJson()
 }
 
-func (entity *AppUserData) ContactIDs() (ids []int64) {
+func (entity *AppUserData) ContactIDs() (ids []string) {
 	contacts := entity.Contacts()
-	ids = make([]int64, len(contacts))
+	ids = make([]string, len(contacts))
 	for i, c := range contacts {
 		ids[i] = c.ID
 	}
 	return ids
 }
 
-func (entity *AppUserData) RemoveContact(contactID int64) (changed bool) {
+func (entity *AppUserData) RemoveContact(contactID string) (changed bool) {
 	contacts := entity.Contacts()
 	for i, contact := range contacts {
 		if contact.ID == contactID {
@@ -279,12 +273,9 @@ func (entity *AppUserData) RemoveContact(contactID int64) (changed bool) {
 	return false
 }
 
-func (u AppUser) AddOrUpdateContact(c Contact) (contactJson UserContactJson, changed bool) {
+func AddOrUpdateContact(u *AppUser, c Contact) (contactJson UserContactJson, changed bool) {
 	if c.Data == nil {
 		panic("c.ContactData == nil")
-	}
-	if u.ID != c.Data.UserID {
-		panic(fmt.Sprintf("appUser.ID:%d != contact.UserID:%d", u.ID, c.Data.UserID))
 	}
 	contactJson = NewUserContactJson(c.ID, c.Data.Status, c.Data.FullName(), c.Data.Balanced)
 	contactJson.Transfers = c.Data.GetTransfersInfo()
@@ -365,8 +356,8 @@ func (entity *AppUserData) Contacts() (contacts []UserContactJson) {
 	return append(entity.ActiveContacts(), entity.ArchivedContacts()...)
 }
 
-func (entity *AppUserData) ContactByID(id int64) (contact *UserContactJson) {
-	if id == 0 {
+func (entity *AppUserData) ContactByID(id string) (contact *UserContactJson) {
+	if id == "" {
 		panic("*AppUserData.ContactByID() => id == 0")
 	}
 	for _, c := range entity.ActiveContacts() {
@@ -382,9 +373,9 @@ func (entity *AppUserData) ContactByID(id int64) (contact *UserContactJson) {
 	return
 }
 
-func (entity *AppUserData) ContactsByID() (contactsByID map[int64]UserContactJson) {
+func (entity *AppUserData) ContactsByID() (contactsByID map[string]UserContactJson) {
 	contacts := entity.Contacts()
-	contactsByID = make(map[int64]UserContactJson, len(contacts))
+	contactsByID = make(map[string]UserContactJson, len(contacts))
 	for _, contact := range contacts {
 		contactsByID[contact.ID] = contact
 	}
@@ -782,7 +773,7 @@ func (entity *AppUserData) BeforeSave() (err error) {
 
 	entity.TransfersWithInterestCount = 0
 	for i, contact := range contacts {
-		if contact.ID == 0 {
+		if contact.ID == "" {
 			panic(fmt.Sprintf("contact[%d].ID == 0, contact: %v, contacts: %v", i, contact, contacts))
 		}
 		if contact.Name == "" {
@@ -793,14 +784,14 @@ func (entity *AppUserData) BeforeSave() (err error) {
 		}
 		{
 			if duplicateOf, isDuplicate := contactsByName[contact.Name]; isDuplicate {
-				err = fmt.Errorf("%w: id1=%d, id2=%d => %v", ErrDuplicateContactName, contacts[duplicateOf].ID, contact.ID, contact.Name)
+				err = fmt.Errorf("%w: id1=%s, id2=%s => %s", ErrDuplicateContactName, contacts[duplicateOf].ID, contact.ID, contact.Name)
 				return
 			}
 			contactsByName[contact.Name] = i
 		}
 		if contact.TgUserID != 0 {
 			if duplicateOf, isDuplicate := contactsByTgUserID[contact.TgUserID]; isDuplicate {
-				err = fmt.Errorf("%s: %d for contacts %d & %d", ErrDuplicateTgUserID, contact.TgUserID, contacts[duplicateOf].ID, contact.ID)
+				err = fmt.Errorf("%s: %d for contacts %s & %s", ErrDuplicateTgUserID, contact.TgUserID, contacts[duplicateOf].ID, contact.ID)
 				return
 			}
 			contactsByTgUserID[contact.TgUserID] = i

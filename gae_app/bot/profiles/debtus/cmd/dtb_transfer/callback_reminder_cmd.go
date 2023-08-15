@@ -7,7 +7,6 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/dtb_common"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/debtstracker-translations/trans"
@@ -30,11 +29,9 @@ import (
 var RemindAgainCallbackCommand = botsfw.NewCallbackCommand(dtb_common.CALLBACK_REMIND_AGAIN,
 	func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		q := callbackUrl.Query()
-		var reminderID int
-		if reminderID, err = common.DecodeIntID(q.Get("id")); err != nil {
-			return m, err
-		} else if reminderID == 0 {
-			return m, errors.New("reminderID == 0")
+		var reminderID string
+		if reminderID = q.Get("id"); reminderID == "" {
+			return m, errors.New("reminderID == ''")
 		}
 
 		remindIn := q.Get("in")
@@ -59,13 +56,13 @@ var RemindAgainCallbackCommand = botsfw.NewCallbackCommand(dtb_common.CALLBACK_R
 	},
 )
 
-func rescheduleReminder(whc botsfw.WebhookContext, reminderID int, remindInDuration time.Duration) (m botsfw.MessageFromBot, err error) {
+func rescheduleReminder(whc botsfw.WebhookContext, reminderID string, remindInDuration time.Duration) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
 	var oldReminder, newReminder models.Reminder
 
 	if oldReminder, newReminder, err = dtdal.Reminder.RescheduleReminder(c, reminderID, remindInDuration); err != nil {
-		if err == dtdal.ErrReminderAlreadyRescheduled {
+		if errors.Is(err, dtdal.ErrReminderAlreadyRescheduled) {
 			m = whc.NewMessageByCode(trans.MESSAGE_TEXT_REMINDER_ALREADY_RESCHEDULED)
 			return m, nil
 		}
@@ -101,10 +98,8 @@ func rescheduleReminder(whc botsfw.WebhookContext, reminderID int, remindInDurat
 		m.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
 			[]tgbotapi.InlineKeyboardButton{
 				{
-					Text: whc.Translate(trans.COMMAND_TEXT_REMINDER_ENABLE),
-					CallbackData: fmt.Sprintf("%v?reminder=%v&transfer=%v", commandCodeEnableReminderAgain,
-						common.EncodeIntID(reminderID), common.EncodeIntID(transfer.ID),
-					),
+					Text:         whc.Translate(trans.COMMAND_TEXT_REMINDER_ENABLE),
+					CallbackData: fmt.Sprintf("%s?reminder=%s&transfer=%s", commandCodeEnableReminderAgain, reminderID, transfer.ID),
 				},
 			},
 		)
@@ -117,7 +112,7 @@ func rescheduleReminder(whc botsfw.WebhookContext, reminderID int, remindInDurat
 	//		log.Errorf(c, "Failed to parse BotChatID to int: %v\nwhc.BotChatID(): %v", err, chatID)
 	//		return
 	//	}
-	//	if err = delayAskForFeedback(c, whc.GetBotCode(), intChatID, whc.AppUserInt64ID()); err != nil {
+	//	if err = delayAskForFeedback(c, whc.GetBotCode(), intChatID, whc.AppUserID()); err != nil {
 	//		log.Errorf(c, "Failed to create task for asking feedback: %v", err)
 	//	}
 	//}()
@@ -171,7 +166,7 @@ func rescheduleReminder(whc botsfw.WebhookContext, reminderID int, remindInDurat
 //func disableReminders(whc botsfw.WebhookContext, transferID int) (m botsfw.MessageFromBot, err error) {
 //	c := whc.Context()
 //	transferKey, transfer, err := facade.Transfers.GetTransferByID(c, transferID)
-//	userID := whc.AppUserInt64ID()
+//	userID := whc.AppUserID()
 //	if !transfer.IsRemindersDisabled(userID) {
 //		err = dtdal.DB.RunInTransaction(c, func(tc context.Context) error {
 //			transferKey, transfer, err = gaedal.GetTransferByID(tc, transferID)

@@ -41,7 +41,7 @@ func balanceAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err erro
 
 	var user models.AppUser
 
-	if user, err = facade.User.GetUserByID(c, nil, whc.AppUserInt64ID()); err != nil {
+	if user, err = facade.User.GetUserByID(c, nil, whc.AppUserID()); err != nil {
 		return
 	}
 
@@ -54,7 +54,7 @@ func balanceAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err erro
 		balanceMessageBuilder := NewBalanceMessageBuilder(whc)
 		contacts := user.Data.Contacts()
 		if len(contacts) == 0 {
-			return m, fmt.Errorf("Integrity issue: User{ID=%v} has non zero balance and no contacts.", whc.AppUserInt64ID())
+			return m, fmt.Errorf("Integrity issue: User{ID=%v} has non zero balance and no contacts.", whc.AppUserID())
 		}
 		buffer.WriteString(fmt.Sprintf("<b>%v</b>", whc.Translate(trans.MESSAGE_TEXT_BALANCE_HEADER)) + common.HORIZONTAL_LINE)
 		linker := common.NewLinkerFromWhc(whc)

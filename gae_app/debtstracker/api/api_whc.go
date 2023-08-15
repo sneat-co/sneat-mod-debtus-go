@@ -13,10 +13,10 @@ import (
 )
 
 type ApiWebhookContext struct {
-	appUser      *models.AppUserData
-	appUserIntID int64
-	botChatID    int64
-	chatEntity   botsfwmodels.ChatData
+	appUser    *models.AppUserData
+	appUserID  string
+	botChatID  int64
+	chatEntity botsfwmodels.BotChatData
 	*botsfw.WebhookContextBase
 }
 
@@ -26,34 +26,37 @@ func (ApiWebhookContext) IsInGroup() bool {
 	panic("not supported")
 }
 
-func NewApiWebhookContext(r *http.Request, appUser *models.AppUserData, userID, botChatID int64, chatData botsfwmodels.ChatData) ApiWebhookContext {
+func NewApiWebhookContext(r *http.Request, appUser *models.AppUserData, userID string, botChatID int64, chatData botsfwmodels.BotChatData) ApiWebhookContext {
 	var botSettings botsfw.BotSettings
+	botContext := botsfw.NewBotContext(dtdal.BotHost, botSettings)
+	args := botsfw.NewCreateWebhookContextArgs(
+		r,
+		common.TheAppContext,
+		*botContext,
+		nil,
+		nil,
+	)
+	whcb, err := botsfw.NewWebhookContextBase(
+		args,
+		telegram.Platform, // webhookInput
+		nil,               // records fields setter
+		func() bool { return false },
+		nil, // GaMeasurement
+	)
+	if err != nil {
+		log.Errorf(r.Context(), "failed to create WebhookContextBase: %v", err)
+	}
 	whc := ApiWebhookContext{
-		appUser:      appUser,
-		appUserIntID: userID,
-		botChatID:    botChatID,
-		chatEntity:   chatData,
-		WebhookContextBase: botsfw.NewWebhookContextBase(
-			r,
-			common.TheAppContext,
-			telegram.Platform,
-			*botsfw.NewBotContext(dtdal.BotHost, botSettings),
-			nil, // webhookInput
-			nil,
-			nil, // records fields setter
-			nil, // GaMeasurement
-			func() bool { return false },
-			nil,
-		),
+		appUser:            appUser,
+		appUserID:          userID,
+		botChatID:          botChatID,
+		chatEntity:         chatData,
+		WebhookContextBase: whcb,
 	}
 	if err := whc.SetLocale(chatData.GetPreferredLanguage()); err != nil {
 		log.Errorf(r.Context(), "failed to set locale: %v", err)
 	}
 	return whc
-}
-
-func (whc ApiWebhookContext) AppUserIntID() int64 {
-	return whc.AppUserInt64ID()
 }
 
 func (whc ApiWebhookContext) AppUserData() (botsfwmodels.AppUserData, error) {
@@ -65,7 +68,7 @@ func (whc ApiWebhookContext) BotChatIntID() int64 {
 	return whc.botChatID
 }
 
-func (whc ApiWebhookContext) ChatEntity() botsfwmodels.ChatData {
+func (whc ApiWebhookContext) ChatEntity() botsfwmodels.BotChatData {
 	return whc.chatEntity
 }
 
@@ -77,7 +80,7 @@ func (whc ApiWebhookContext) Init(w http.ResponseWriter, r *http.Request) error 
 	return nil
 }
 
-func (whc ApiWebhookContext) IsNewerThen(chatEntity botsfwmodels.ChatData) bool {
+func (whc ApiWebhookContext) IsNewerThen(chatEntity botsfwmodels.BotChatData) bool {
 	return true
 }
 
@@ -93,6 +96,6 @@ func (whc ApiWebhookContext) Responder() botsfw.WebhookResponder {
 	panic("Not implemented")
 }
 
-func (whc ApiWebhookContext) UpdateLastProcessed(chatEntity botsfwmodels.ChatData) error {
+func (whc ApiWebhookContext) UpdateLastProcessed(chatEntity botsfwmodels.BotChatData) error {
 	panic("Not implemented")
 }

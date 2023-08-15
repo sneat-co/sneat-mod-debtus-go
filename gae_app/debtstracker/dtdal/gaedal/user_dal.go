@@ -2,7 +2,6 @@ package gaedal
 
 import (
 	"context"
-	"fmt"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
@@ -11,7 +10,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/delaying"
 	"github.com/strongo/log"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -25,7 +23,7 @@ func NewUserDalGae() UserDalGae {
 
 var _ dtdal.UserDal = (*UserDalGae)(nil)
 
-func (userDal UserDalGae) SetLastCurrency(c context.Context, userID int64, currency money.CurrencyCode) (err error) {
+func (userDal UserDalGae) SetLastCurrency(c context.Context, userID string, currency money.CurrencyCode) (err error) {
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {
 		return err
@@ -41,12 +39,7 @@ func (userDal UserDalGae) SetLastCurrency(c context.Context, userID int64, curre
 }
 
 func (userDal UserDalGae) GetUserByStrID(c context.Context, userID string) (user models.AppUser, err error) {
-	var intUserID int64
-	if intUserID, err = strconv.ParseInt(userID, 10, 64); err != nil {
-		err = fmt.Errorf("%w: UserDalGae.GetUserByStrID()", err)
-		return
-	}
-	return facade.User.GetUserByID(c, nil, intUserID)
+	return facade.User.GetUserByID(c, nil, userID)
 }
 
 func (userDal UserDalGae) GetUserByVkUserID(c context.Context, vkUserID int64) (models.AppUser, error) {
@@ -62,7 +55,7 @@ func (userDal UserDalGae) GetUserByEmail(c context.Context, email string) (model
 		dal.WhereField("EmailConfirmed", dal.Equal, true),
 	).Limit(2).SelectInto(models.NewAppUserRecord)
 	user, err := userDal.getUserByQuery(c, query, "EmailAddress, is confirmed")
-	if user.ID == 0 && dal.IsNotFound(err) {
+	if user.ID == "" && dal.IsNotFound(err) {
 		query = dal.From(models.AppUserKind).
 			Where(
 				dal.WhereField("EmailAddress", dal.Equal, email),
@@ -91,7 +84,7 @@ func (userDal UserDalGae) getUserByQuery(c context.Context, query dal.Query, sea
 	case 1:
 		log.Debugf(c, "getUserByQuery(%v) => %v: %v", searchCriteria, userRecords[0].Key().ID, userEntities[0])
 		ur := userRecords[0]
-		return models.NewAppUser(ur.Key().ID.(int64), ur.Data().(*models.AppUserData)), nil
+		return models.NewAppUser(ur.Key().ID.(string), ur.Data().(*models.AppUserData)), nil
 	case 0:
 		err = dal.ErrRecordNotFound
 		log.Debugf(c, "getUserByQuery(%v) => %v", searchCriteria, err)
@@ -116,7 +109,7 @@ func (userDal UserDalGae) CreateAnonymousUser(c context.Context) (user models.Ap
 }
 
 func (userDal UserDalGae) CreateUser(c context.Context, userData *models.AppUserData) (user models.AppUser, err error) {
-	user = models.NewAppUser(0, userData)
+	user = models.NewAppUser("", userData)
 
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {
@@ -126,28 +119,28 @@ func (userDal UserDalGae) CreateUser(c context.Context, userData *models.AppUser
 		if err = tx.Insert(c, user.Record); err != nil {
 			return err
 		}
-		user.ID = user.Record.Key().ID.(int64)
+		user.ID = user.Record.Key().ID.(string)
 		user.Data = user.Record.Data().(*models.AppUserData)
 		return nil
 	})
 	return
 }
 
-func (UserDalGae) DelayUpdateUserWithBill(c context.Context, userID, billID string) (err error) {
+func (UserDalGae) DelayUpdateUserWithBill(c context.Context, userID string, billID string) (err error) {
 	if err = delayUpdateUserWithBill.EnqueueWork(c, delaying.With(common.QUEUE_BILLS, "UpdateUserWithBill", 0), userID, billID); err != nil {
 		return
 	}
 	return
 }
 
-func (UserDalGae) DelayUpdateUserWithContact(c context.Context, userID, billID int64) (err error) {
-	if err = delayedUpdateUserWithContact.EnqueueWork(c, delaying.With(common.QUEUE_USERS, "updateUserWithContact", time.Second/10), userID, billID); err != nil {
+func (UserDalGae) DelayUpdateUserWithContact(c context.Context, userID string, contactID string) (err error) {
+	if err = delayedUpdateUserWithContact.EnqueueWork(c, delaying.With(common.QUEUE_USERS, "updateUserWithContact", time.Second/10), userID, contactID); err != nil {
 		return
 	}
 	return
 }
 
-func updateUserWithContact(c context.Context, userID, contactID int64) (err error) {
+func updateUserWithContact(c context.Context, userID, contactID string) (err error) {
 	log.Debugf(c, "updateUserWithContact(userID=%v, contactID=%v)", userID, contactID)
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {
@@ -173,7 +166,7 @@ func updateUserWithContact(c context.Context, userID, contactID int64) (err erro
 			err = nil
 		}
 
-		if _, changed := user.AddOrUpdateContact(contact); changed {
+		if _, changed := models.AddOrUpdateContact(&user, contact); changed {
 			if err = facade.User.SaveUser(c, tx, user); err != nil {
 				return
 			}

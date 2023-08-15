@@ -26,7 +26,7 @@ func NewTransferDalGae() TransferDalGae {
 
 var _ dtdal.TransferDal = (*TransferDalGae)(nil)
 
-func _loadDueOnTransfers(c context.Context, tx dal.ReadSession, userID int64, limit int, filter func(q dal.QueryBuilder) dal.QueryBuilder) (transfers []models.Transfer, err error) {
+func _loadDueOnTransfers(c context.Context, tx dal.ReadSession, userID string, limit int, filter func(q dal.QueryBuilder) dal.QueryBuilder) (transfers []models.Transfer, err error) {
 	q := dal.From(models.TransferKind).
 		WhereField("BothUserIDs", "=", userID).
 		WhereField("IsOutstanding", "=", true).OrderBy(dal.AscendingField("DtDueOn"))
@@ -40,25 +40,25 @@ func _loadDueOnTransfers(c context.Context, tx dal.ReadSession, userID int64, li
 
 	transfers = make([]models.Transfer, len(transferRecords))
 	for i, transferRecord := range transferRecords {
-		transfer := models.NewTransfer(transferRecord.Key().ID.(int), transferRecord.Data().(*models.TransferData))
+		transfer := models.NewTransfer(transferRecord.Key().ID.(string), transferRecord.Data().(*models.TransferData))
 		transfers[i] = transfer
 	}
 	return
 }
 
-func (transferDalGae TransferDalGae) LoadOverdueTransfers(c context.Context, tx dal.ReadSession, userID int64, limit int) ([]models.Transfer, error) {
+func (transferDalGae TransferDalGae) LoadOverdueTransfers(c context.Context, tx dal.ReadSession, userID string, limit int) ([]models.Transfer, error) {
 	return _loadDueOnTransfers(c, tx, userID, limit, func(q dal.QueryBuilder) dal.QueryBuilder {
 		return q.WhereField("DtDueOn", dal.GreaterThen, time.Time{}).WhereField("DtDueOn", dal.LessThen, time.Now())
 	})
 }
 
-func (transferDalGae TransferDalGae) LoadDueTransfers(c context.Context, tx dal.ReadSession, userID int64, limit int) ([]models.Transfer, error) {
+func (transferDalGae TransferDalGae) LoadDueTransfers(c context.Context, tx dal.ReadSession, userID string, limit int) ([]models.Transfer, error) {
 	return _loadDueOnTransfers(c, tx, userID, limit, func(q dal.QueryBuilder) dal.QueryBuilder {
 		return q.WhereField("DtDueOn", dal.GreaterThen, time.Now())
 	})
 }
 
-func (transferDalGae TransferDalGae) GetTransfersByID(c context.Context, tx dal.ReadSession, transferIDs []int) (transfers []models.Transfer, err error) {
+func (transferDalGae TransferDalGae) GetTransfersByID(c context.Context, tx dal.ReadSession, transferIDs []string) (transfers []models.Transfer, err error) {
 	transfers = make([]models.Transfer, len(transferIDs))
 	records := make([]dal.Record, len(transferIDs))
 	for i, transferID := range transferIDs {
@@ -71,7 +71,7 @@ func (transferDalGae TransferDalGae) GetTransfersByID(c context.Context, tx dal.
 	return
 }
 
-func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context, tx dal.ReadSession, periodEnds time.Time, userID, contactID int64, currency money.CurrencyCode, direction models.TransferDirection) (transfers []models.Transfer, err error) {
+func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context, tx dal.ReadSession, periodEnds time.Time, userID, contactID string, currency money.CurrencyCode, direction models.TransferDirection) (transfers []models.Transfer, err error) {
 	log.Debugf(c, "TransferDalGae.LoadOutstandingTransfers(periodEnds=%v, userID=%v, contactID=%v currency=%v, direction=%v)", periodEnds, userID, contactID, currency, direction)
 	const limit = 100
 
@@ -89,9 +89,9 @@ func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context,
 	transferRecords, err = tx.QueryAllRecords(c, q)
 	transfers = models.TransfersFromRecords(transferRecords)
 	var errorMessages, warnings, debugs bytes.Buffer
-	var transfersIDsToFixIsOutstanding []int
+	var transfersIDsToFixIsOutstanding []string
 	for _, transfer := range transfers {
-		if contactID != 0 {
+		if contactID != "" {
 			if cpContactID := transfer.Data.CounterpartyInfoByUserID(userID).ContactID; cpContactID != contactID {
 				debugs.WriteString(fmt.Sprintf("Skipped outstanding Transfer(id=%v) as counterpartyContactID != contactID: %v != %v\n", transfer.ID, cpContactID, contactID))
 				continue
@@ -131,7 +131,7 @@ func (transferDalGae TransferDalGae) LoadOutstandingTransfers(c context.Context,
 	return
 }
 
-func fixTransfersIsOutstanding(c context.Context, transferIDs []int) (err error) {
+func fixTransfersIsOutstanding(c context.Context, transferIDs []string) (err error) {
 	log.Debugf(c, "fixTransfersIsOutstanding(%v)", transferIDs)
 	for _, transferID := range transferIDs {
 		if _, transferErr := fixTransferIsOutstanding(c, transferID); transferErr != nil {
@@ -142,7 +142,7 @@ func fixTransfersIsOutstanding(c context.Context, transferIDs []int) (err error)
 	return
 }
 
-func fixTransferIsOutstanding(c context.Context, transferID int) (transfer models.Transfer, err error) {
+func fixTransferIsOutstanding(c context.Context, transferID string) (transfer models.Transfer, err error) {
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
@@ -165,12 +165,12 @@ func fixTransferIsOutstanding(c context.Context, transferID int) (transfer model
 	return
 }
 
-func (transferDalGae TransferDalGae) LoadTransfersByUserID(c context.Context, userID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error) {
+func (transferDalGae TransferDalGae) LoadTransfersByUserID(c context.Context, userID string, offset, limit int) (transfers []models.Transfer, hasMore bool, err error) {
 	if limit == 0 {
 		err = errors.New("limit == 0")
 		return
 	}
-	if userID == 0 {
+	if userID == "" {
 		err = errors.New("userID == 0")
 		return
 	}
@@ -186,7 +186,7 @@ func (transferDalGae TransferDalGae) LoadTransfersByUserID(c context.Context, us
 	return
 }
 
-func (transferDalGae TransferDalGae) LoadTransferIDsByContactID(c context.Context, contactID int64, limit int, startCursor string) (transferIDs []int, endCursor string, err error) {
+func (transferDalGae TransferDalGae) LoadTransferIDsByContactID(c context.Context, contactID string, limit int, startCursor string) (transferIDs []string, endCursor string, err error) {
 	if limit == 0 {
 		err = errors.New("LoadTransferIDsByContactID(): limit == 0")
 		return
@@ -194,7 +194,7 @@ func (transferDalGae TransferDalGae) LoadTransferIDsByContactID(c context.Contex
 		err = errors.New("LoadTransferIDsByContactID(): limit > 1000")
 		return
 	}
-	if contactID == 0 {
+	if contactID == "" {
 		err = errors.New("LoadTransferIDsByContactID(): contactID == 0")
 		return
 	}
@@ -213,7 +213,7 @@ func (transferDalGae TransferDalGae) LoadTransferIDsByContactID(c context.Contex
 	//	}
 	//}
 
-	transferIDs = make([]int, 0, limit)
+	transferIDs = make([]string, 0, limit)
 	var db dal.Database
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
@@ -232,17 +232,17 @@ func (transferDalGae TransferDalGae) LoadTransferIDsByContactID(c context.Contex
 		} else if err != nil {
 			return
 		}
-		transferIDs = append(transferIDs, record.Key().ID.(int))
+		transferIDs = append(transferIDs, record.Key().ID.(string))
 	}
 	return
 }
 
-func (transferDalGae TransferDalGae) LoadTransfersByContactID(c context.Context, contactID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error) {
+func (transferDalGae TransferDalGae) LoadTransfersByContactID(c context.Context, contactID string, offset, limit int) (transfers []models.Transfer, hasMore bool, err error) {
 	if limit == 0 {
 		err = errors.New("LoadTransfersByContactID(): limit == 0")
 		return
 	}
-	if contactID == 0 {
+	if contactID == "" {
 		err = errors.New("LoadTransfersByContactID(): contactID == 0")
 		return
 	}
@@ -284,7 +284,7 @@ func (transferDalGae TransferDalGae) loadTransfers(c context.Context, q dal.Quer
 	}
 	transfers = make([]models.Transfer, len(records))
 	for i, record := range records {
-		transfers[i] = models.NewTransfer(record.Key().ID.(int), record.Data().(*models.TransferData))
+		transfers[i] = models.NewTransfer(record.Key().ID.(string), record.Data().(*models.TransferData))
 	}
 	return transfers, nil
 }

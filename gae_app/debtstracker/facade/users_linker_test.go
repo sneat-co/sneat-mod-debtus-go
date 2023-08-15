@@ -22,26 +22,26 @@ func TestUsersLinker_LinkUsersWithinTransaction(t *testing.T) {
 		inviterContact, invitedContact models.Contact
 	)
 
-	if inviterUser, err = User.GetUserByID(c, nil, 1); err != nil {
+	if inviterUser, err = User.GetUserByID(c, nil, "1"); err != nil {
 		t.Error("Failed to get inviter user", err)
 		return
 	}
 
-	if invitedUser, err = User.GetUserByID(c, nil, 3); err != nil {
+	if invitedUser, err = User.GetUserByID(c, nil, "3"); err != nil {
 		t.Error("Failed to get invited user", err)
 		return
 	}
 
-	if inviterContact, err = GetContactByID(c, nil, 6); err != nil {
+	if inviterContact, err = GetContactByID(c, nil, "6"); err != nil {
 		t.Error("Failed to get inviter user", err)
 		return
 	}
 
-	if inviterContact.Data.CounterpartyUserID != 0 {
+	if inviterContact.Data.CounterpartyUserID != "" {
 		t.Error("inviterContact.CounterpartyUserID != 0")
 	}
 
-	if inviterContact.Data.CounterpartyCounterpartyID != 0 {
+	if inviterContact.Data.CounterpartyCounterpartyID != "" {
 		t.Error("inviterContact.CounterpartyCounterpartyID != 0")
 	}
 
@@ -77,13 +77,13 @@ func TestUsersLinker_LinkUsersWithinTransaction(t *testing.T) {
 	invitedUser = *usersLinker.changes.invitedUser
 	inviterUser = *usersLinker.changes.inviterUser
 
-	if invitedContact.ID == 0 {
+	if invitedContact.ID == "" {
 		t.Error("invitedContact.ID == 0")
 		return
 	}
 
 	if invitedContact.ID == inviterContact.ID {
-		t.Errorf("invitedContact.ID == inviterContact.ID: %d", invitedContact.ID)
+		t.Errorf("invitedContact.ID == inviterContact.ID: %s", invitedContact.ID)
 	}
 
 	if invitedContact.Data == nil {
@@ -91,53 +91,53 @@ func TestUsersLinker_LinkUsersWithinTransaction(t *testing.T) {
 		return
 	}
 
-	if invitedContact.Data.UserID == 0 {
+	if invitedContact.Data.UserID == "" {
 		t.Error("invitedContact.UserID == 0")
 		return
 	}
 
 	if invitedContact.Data.UserID != invitedUser.ID {
-		t.Errorf("invitedContact.UserID == invitedUser.ID : %d != %d", invitedContact.Data.UserID, invitedUser.ID)
+		t.Errorf("invitedContact.UserID == invitedUser.ID : %s != %s", invitedContact.Data.UserID, invitedUser.ID)
 		return
 	}
 
-	if invitedContact.Data.CounterpartyUserID == 0 {
+	if invitedContact.Data.CounterpartyUserID == "" {
 		t.Error("invitedContact.CounterpartyUserID == 0")
 		return
 	}
 
-	if invitedContact.Data.CounterpartyCounterpartyID == 0 {
+	if invitedContact.Data.CounterpartyCounterpartyID == "" {
 		t.Error("invitedContact.CounterpartyCounterpartyID == 0")
 		return
 	}
 
 	if invitedContact.Data.CounterpartyUserID != inviterUser.ID {
-		t.Errorf("invitedContact.CounterpartyUserID != inviterUser.ID : %d != %d", invitedContact.Data.CounterpartyUserID, inviterUser.ID)
+		t.Errorf("invitedContact.CounterpartyUserID != inviterUser.ID : %s != %s", invitedContact.Data.CounterpartyUserID, inviterUser.ID)
 		return
 	}
 
 	if invitedContact.Data.CounterpartyCounterpartyID != inviterContact.ID {
-		t.Errorf("invitedContact.CounterpartyCounterpartyID != inviterContact.ID : %d != %d", invitedContact.Data.CounterpartyCounterpartyID, inviterContact.ID)
+		t.Errorf("invitedContact.CounterpartyCounterpartyID != inviterContact.ID : %s != %s", invitedContact.Data.CounterpartyCounterpartyID, inviterContact.ID)
 		return
 	}
 
-	if inviterContact.Data.CounterpartyUserID == 0 {
+	if inviterContact.Data.CounterpartyUserID == "" {
 		t.Error("inviterContact.CounterpartyUserID == 0")
 		return
 	}
 
-	if inviterContact.Data.CounterpartyCounterpartyID == 0 {
+	if inviterContact.Data.CounterpartyCounterpartyID == "" {
 		t.Error("inviterContact.CounterpartyCounterpartyID == 0")
 		return
 	}
 
 	if inviterContact.Data.CounterpartyUserID != invitedUser.ID {
-		t.Errorf("inviterContact.CounterpartyUserID != invitedUser.ID : %d != %d", inviterContact.Data.CounterpartyUserID, invitedUser.ID)
+		t.Errorf("inviterContact.CounterpartyUserID != invitedUser.ID : %s != %s", inviterContact.Data.CounterpartyUserID, invitedUser.ID)
 		return
 	}
 
 	if inviterContact.Data.CounterpartyCounterpartyID != invitedContact.ID {
-		t.Errorf("inviterContact.CounterpartyCounterpartyID != invitedContact.ID : %d != %d", inviterContact.Data.CounterpartyCounterpartyID, invitedContact.ID)
+		t.Errorf("inviterContact.CounterpartyCounterpartyID != invitedContact.ID : %s != %s", inviterContact.Data.CounterpartyCounterpartyID, invitedContact.ID)
 		return
 	}
 

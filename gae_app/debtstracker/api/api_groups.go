@@ -31,7 +31,7 @@ func handlerCreateGroup(c context.Context, w http.ResponseWriter, r *http.Reques
 	note := strings.TrimSpace(r.PostForm.Get("note"))
 
 	groupEntity := models.GroupEntity{
-		CreatorUserID: strconv.FormatInt(authInfo.UserID, 10),
+		CreatorUserID: authInfo.UserID,
 		Name:          name,
 	}
 	if len(note) > 0 {
@@ -110,7 +110,7 @@ func groupsToJson(groups []models.Group, user models.AppUser) (result [][]byte, 
 					ID:   member.ID,
 					Name: member.Name,
 				}
-				if member.UserID == strconv.FormatInt(user.ID, 10) {
+				if member.UserID == user.ID {
 					memberDto.Name = ""
 					memberDto.UserID = member.UserID
 				} else if member.Name == "" {
@@ -118,10 +118,7 @@ func groupsToJson(groups []models.Group, user models.AppUser) (result [][]byte, 
 					return
 				}
 				for _, contactID := range member.ContactIDs {
-					var intContactID int64
-					if intContactID, err = strconv.ParseInt(contactID, 10, 64); err != nil {
-						return
-					} else if _, ok := contactsByID[intContactID]; ok {
+					if _, ok := contactsByID[contactID]; ok {
 						memberDto.ContactID = contactID
 						break
 					}
@@ -176,7 +173,7 @@ func handleJoinGroups(c context.Context, w http.ResponseWriter, r *http.Request,
 				if userName == models.NoName {
 					userName = ""
 				}
-				if _, changed, _, _, members := group.Data.AddOrGetMember(strconv.FormatInt(authInfo.UserID, 10), "", userName); changed {
+				if _, changed, _, _, members := group.Data.AddOrGetMember(authInfo.UserID, "", userName); changed {
 					group.Data.SetGroupMembers(members)
 					if errs[i] = dtdal.Group.SaveGroup(c, tx, group); errs[i] != nil {
 						waitGroup.Done()
@@ -256,8 +253,8 @@ func handlerUpdateGroup(c context.Context, w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		if group.Data.CreatorUserID != strconv.FormatInt(authInfo.UserID, 10) {
-			err = fmt.Errorf("User is not authrized to edit this group")
+		if group.Data.CreatorUserID != authInfo.UserID {
+			err = fmt.Errorf("user is not authrized to edit this group")
 			return
 		}
 
@@ -316,13 +313,10 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 	}
 
 	var (
-		addContactIDs   []int64
+		addContactIDs   []string
 		removeMemberIDs []string
 	)
-	if addContactIDs, err = StringToInt64s(r.FormValue("addContactIDs"), ","); err != nil {
-		BadRequestError(c, w, err)
-		return
-	}
+	//addContactIDs := strings.Split(r.FormValue("addContactIDs"), ",")
 	removeMemberIDs = strings.Split(r.FormValue("removeMemberIDs"), ",")
 
 	var db dal.Database
@@ -339,7 +333,7 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 
 		for _, contact := range contacts2add {
 			if contact.Data.UserID != authInfo.UserID {
-				return validation.NewBadRequestError(fmt.Errorf("Contact %d does not belong to the user %d", contact.ID, authInfo.UserID))
+				return validation.NewBadRequestError(fmt.Errorf("contact %s does not belong to the user %s", contact.ID, authInfo.UserID))
 			}
 		}
 
@@ -348,16 +342,14 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 		}
 		members := group.Data.GetGroupMembers()
 		changed := false
-		changedContactIDs := make([]int64, 0, len(addContactIDs)+len(removeMemberIDs))
+		changedContactIDs := make([]string, 0, len(addContactIDs)+len(removeMemberIDs))
 
-		var groupUserIDs []int64
+		var groupUserIDs []string
 
 		addGroupUserID := func(member models.GroupMemberJson) {
-			userID := strconv.FormatInt(user.ID, 10)
+			userID := user.ID
 			if member.UserID != "" && member.UserID != userID {
-				var intMemberUserID int64
-				intMemberUserID, err = strconv.ParseInt(member.UserID, 10, 64)
-				groupUserIDs = append(groupUserIDs, intMemberUserID)
+				groupUserIDs = append(groupUserIDs, member.UserID)
 			}
 		}
 
@@ -367,12 +359,12 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 			)
 			for _, member := range members {
 				for _, mContactID := range member.ContactIDs {
-					if mContactID == strconv.FormatInt(contact2add.ID, 10) {
+					if mContactID == contact2add.ID {
 						goto found
 					}
 				}
 			}
-			_, isChanged, _, _, members = group.Data.AddOrGetMember(strconv.FormatInt(contact2add.Data.CounterpartyUserID, 10), strconv.FormatInt(contact2add.ID, 10), contact2add.Data.FullName())
+			_, isChanged, _, _, members = group.Data.AddOrGetMember(contact2add.Data.CounterpartyUserID, contact2add.ID, contact2add.Data.FullName())
 			if isChanged {
 				changed = true
 				changedContactIDs = append(changedContactIDs, contact2add.ID)
@@ -387,14 +379,12 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 					changed = true
 					addGroupUserID(member)
 					for _, contactID := range member.ContactIDs {
-						var intContactID int64
 						for _, changedContactID := range changedContactIDs {
-							if strconv.FormatInt(changedContactID, 10) == contactID {
+							if changedContactID == contactID {
 								goto alreadyChanged
 							}
 						}
-						intContactID, err = strconv.ParseInt(contactID, 10, 64)
-						changedContactIDs = append(changedContactIDs, intContactID)
+						changedContactIDs = append(changedContactIDs, contactID)
 					alreadyChanged:
 					}
 				}
