@@ -4,20 +4,20 @@ go 1.20
 
 require (
 	cloud.google.com/go/firestore v1.12.0
-	github.com/aws/aws-sdk-go v1.44.319
+	github.com/aws/aws-sdk-go v1.44.323
 	github.com/bots-go-framework/bots-api-telegram v0.4.1
-	github.com/bots-go-framework/bots-fw v0.17.2
-	github.com/bots-go-framework/bots-fw-store v0.0.7
-	github.com/bots-go-framework/bots-fw-telegram v0.6.14
-	github.com/bots-go-framework/bots-fw-telegram-models v0.0.12
+	github.com/bots-go-framework/bots-fw v0.21.0
+	github.com/bots-go-framework/bots-fw-store v0.1.0
+	github.com/bots-go-framework/bots-fw-telegram v0.6.16
+	github.com/bots-go-framework/bots-fw-telegram-models v0.0.13
 	github.com/bots-go-framework/bots-go-core v0.0.1
-	github.com/bots-go-framework/bots-host-gae v0.4.5
-	github.com/bots-go-framework/dalgo4botsfw v0.0.14
+	github.com/bots-go-framework/bots-host-gae v0.4.7
+	github.com/bots-go-framework/dalgo4botsfw v0.0.15
 	github.com/captaincodeman/datastore-mapper v0.0.0-20170320145307-cb380a4c4d13
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85
 	github.com/crediterra/money v0.1.0
 	github.com/dal-go/dalgo v0.2.31
-	github.com/dal-go/dalgo2firestore v0.1.18
+	github.com/dal-go/dalgo2firestore v0.1.19
 	github.com/dal-go/mocks4dalgo v0.1.11
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/gorilla/sessions v1.2.1
@@ -25,9 +25,9 @@ require (
 	github.com/matryer/is v1.4.1
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
 	github.com/sanity-io/litter v1.5.5
-	github.com/sendgrid/sendgrid-go v3.12.0+incompatible
+	github.com/sendgrid/sendgrid-go v3.13.0+incompatible
 	github.com/shiyanhui/hero v0.0.2
-	github.com/sneat-co/debtstracker-translations v0.0.8
+	github.com/sneat-co/debtstracker-translations v0.0.9
 	github.com/strongo/app v0.5.7
 	github.com/strongo/app-host-gae v0.1.15
 	github.com/strongo/decimal v0.0.1
