@@ -3,9 +3,9 @@ package dtb_general
 import (
 	"fmt"
 	"github.com/bots-go-framework/bots-fw/botsfw"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 )
 
 func EditReminderMessage(whc botsfw.WebhookContext, transfer models.Transfer, message string) (m botsfw.MessageFromBot, err error) {

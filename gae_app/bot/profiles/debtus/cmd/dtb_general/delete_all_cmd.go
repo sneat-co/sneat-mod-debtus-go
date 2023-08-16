@@ -3,8 +3,8 @@ package dtb_general
 import (
 	"fmt"
 	"github.com/bots-go-framework/bots-fw/botsfw"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-translations/emoji"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
 	"github.com/strongo/app"
 )
 

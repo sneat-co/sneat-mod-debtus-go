@@ -4,18 +4,18 @@ import (
 	"net/http"
 
 	"context"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/auth"
-	//"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal/gaedal"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/auth"
+	//"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal/gaedal"
 	//"google.golang.org/appengine/v2/datastore"
 	//"errors"
-	//"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/auth"
+	//"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/auth"
 	//"strconv"
-	//"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
+	//"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
 	//"github.com/strongo/nds"
 	//"github.com/strongo/vk"
 	//"strings"
 	//"fmt"
-	//"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
+	//"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 )
 
 //const VK_USER_ALEXT = 7631716

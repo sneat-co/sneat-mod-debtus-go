@@ -2,9 +2,9 @@ package dtb_transfer
 
 //
 //import (
-//	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal/gaedal"
-//	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-//	"github.com/sneat-co/debtstracker-go/gae_app/invites"
+//	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal/gaedal"
+//	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
+//	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/invites"
 //	"errors"
 //	"github.com/strongo/nds"
 //	"github.com/bots-go-framework/bots-fw/botsfw"

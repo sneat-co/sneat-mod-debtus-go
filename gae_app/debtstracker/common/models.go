@@ -3,7 +3,7 @@ package common
 import (
 	"bytes"
 	"fmt"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/auth"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/auth"
 	"github.com/strongo/i18n"
 	"io"
 )

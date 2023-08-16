@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/facade"
 	"net/url"
 )
 

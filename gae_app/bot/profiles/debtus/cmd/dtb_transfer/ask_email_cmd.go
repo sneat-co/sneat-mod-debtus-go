@@ -5,11 +5,11 @@ import (
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"strings"
 
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
-	"github.com/sneat-co/debtstracker-go/gae_app/general"
-	"github.com/sneat-co/debtstracker-go/gae_app/invites"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/facade"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/general"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/invites"
 	"github.com/strongo/log"
 )
 

@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 )
 
 func SendFeedbackToAdmins(c context.Context, botToken string, feedback models.Feedback) (err error) {

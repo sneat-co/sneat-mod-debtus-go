@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/bots-go-framework/bots-fw-telegram"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 )
 
 type TransferSourceBot struct {

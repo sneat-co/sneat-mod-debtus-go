@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"context"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/api/dto"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/auth"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/api/dto"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/auth"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 )
 
 func handleAdminLatestTransfers(c context.Context, w http.ResponseWriter, r *http.Request, _ auth.AuthInfo) {

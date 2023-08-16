@@ -6,7 +6,7 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"net/url"
 
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 	"github.com/strongo/log"
 )
 

@@ -2,14 +2,14 @@ package api
 
 import (
 	"context"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/auth"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/auth"
 	"net/http"
 	//"strings"
 	//"encoding/json"
 	//"io/ioutil"
 	//"time"
-	//"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
-	//"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
+	//"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
+	//"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 	//"errors"
 	//"github.com/pquerna/ffjson/ffjson"
 	//"github.com/dal-go/dalgo"

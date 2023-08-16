@@ -2,13 +2,13 @@ package debtus
 
 import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
-	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_admin"
-	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_general"
-	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_invite"
-	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_retention"
-	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_settings"
-	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
-	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/shared_all"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot/profiles/debtus/cmd/dtb_admin"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot/profiles/debtus/cmd/dtb_general"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot/profiles/debtus/cmd/dtb_invite"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot/profiles/debtus/cmd/dtb_retention"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot/profiles/debtus/cmd/dtb_settings"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot/profiles/shared_all"
 )
 
 var botParams = shared_all.BotParams{

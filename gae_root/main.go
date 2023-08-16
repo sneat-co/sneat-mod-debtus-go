@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/bots-go-framework/bots-host-gae"
-	gaeapp "github.com/sneat-co/debtstracker-go/gae_app"
+	gaeapp "github.com/sneat-co/sneat-mod-debtus-go/gae_app"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/v2"
 )

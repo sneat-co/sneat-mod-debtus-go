@@ -3,8 +3,8 @@ package api
 import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/julienschmidt/httprouter"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/reminders"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/reminders"
 	strongo "github.com/strongo/app"
 )
 

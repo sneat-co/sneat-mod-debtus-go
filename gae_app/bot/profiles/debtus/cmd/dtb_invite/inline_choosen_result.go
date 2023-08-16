@@ -4,7 +4,7 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"net/url"
 
-	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
 	"github.com/strongo/log"
 )
 

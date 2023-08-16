@@ -6,8 +6,8 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot/profiles/debtus/cmd/dtb_general"
 )
 
 var helpUsPageTmpl *template.Template

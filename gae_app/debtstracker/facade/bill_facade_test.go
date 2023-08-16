@@ -1,17 +1,17 @@
 package facade
 
 import (
-	// "github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
-	// "github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal/dalmocks"
+	// "github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
+	// "github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal/dalmocks"
 	"fmt"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 
 	// "errors"
 	"strings"
 	"testing"
 
 	"context"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtmocks"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtmocks"
 	"github.com/strongo/decimal"
 )
 

@@ -8,9 +8,9 @@ import (
 	"github.com/strongo/i18n"
 	"html/template"
 
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/emails"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/emails"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 	"github.com/strongo/app"
 )
 

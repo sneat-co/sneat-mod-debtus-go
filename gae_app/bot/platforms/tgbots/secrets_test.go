@@ -1,7 +1,7 @@
 package tgbots
 
 import (
-	"github.com/sneat-co/debtstracker-go/gae_app/bot"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot"
 	strongo "github.com/strongo/app"
 	"github.com/strongo/i18n"
 	"testing"

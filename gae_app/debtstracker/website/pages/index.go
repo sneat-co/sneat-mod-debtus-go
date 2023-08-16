@@ -12,7 +12,7 @@ import (
 	"github.com/strongo/log"
 )
 
-const TEMPLATES_PATH = "templates/" //"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/pages/templates/"
+const TEMPLATES_PATH = "templates/" //"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/pages/templates/"
 const BASE_TEMPLATE = TEMPLATES_PATH + "_base.html"
 
 var countryToLocale = map[string]string{

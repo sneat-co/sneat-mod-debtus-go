@@ -8,7 +8,7 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
 	"github.com/strongo/app"
 	"github.com/strongo/i18n"
 )

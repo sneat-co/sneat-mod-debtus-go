@@ -8,17 +8,17 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/website/admin"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/website/pages"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/website/redirects"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/website/admin"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/website/pages"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/website/redirects"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
-	//"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/auth"
-	//"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/api"
+	//"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/auth"
+	//"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/api"
 	"github.com/julienschmidt/httprouter"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/website/pages/inspector"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/website/pages/inspector"
 )
 
 type router interface {

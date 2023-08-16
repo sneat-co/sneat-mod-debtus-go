@@ -11,10 +11,10 @@ import (
 
 	"context"
 	"github.com/bots-go-framework/bots-fw-telegram"
-	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/shared_group"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot/profiles/shared_group"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/facade"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 	"github.com/strongo/log"
 )
 

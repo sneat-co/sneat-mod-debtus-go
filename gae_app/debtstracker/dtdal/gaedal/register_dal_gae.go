@@ -3,8 +3,8 @@ package gaedal
 import (
 	"context"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/facade"
 	apphostgae "github.com/strongo/app-host-gae"
 	"google.golang.org/appengine/v2"
 	"net/http"

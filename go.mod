@@ -1,4 +1,4 @@
-module github.com/sneat-co/debtstracker-go
+module github.com/sneat-co/sneat-mod-debtus-go
 
 go 1.20
 

@@ -8,8 +8,8 @@ import (
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-translations/emoji"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/facade"
 )
 
 const REFERRERS_COMMAND = "referrers"

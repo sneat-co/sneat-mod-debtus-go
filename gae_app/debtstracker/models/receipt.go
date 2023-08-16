@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
-	"github.com/sneat-co/debtstracker-go/gae_app/general"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/general"
 	"reflect"
 	"time"
 )

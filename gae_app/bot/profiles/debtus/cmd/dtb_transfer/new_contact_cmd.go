@@ -9,10 +9,10 @@ import (
 	"strings"
 
 	"errors"
-	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/cmd/dtb_general"
-	dtb_common "github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/debtus/dtb_common"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot/profiles/debtus/cmd/dtb_general"
+	dtb_common "github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot/profiles/debtus/dtb_common"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/facade"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 	"github.com/strongo/log"
 )
 

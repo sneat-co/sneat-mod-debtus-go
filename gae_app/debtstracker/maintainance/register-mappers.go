@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/captaincodeman/datastore-mapper"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
 )
 
 func RegisterMappers() {

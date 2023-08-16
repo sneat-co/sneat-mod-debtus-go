@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"crypto/md5"
 	"fmt"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
 	"github.com/strongo/i18n"
 	"google.golang.org/appengine/v2"
 	"html/template"
@@ -13,9 +13,9 @@ import (
 	"strings"
 
 	"context"
-	"github.com/sneat-co/debtstracker-go/gae_app/bot"
-	"github.com/sneat-co/debtstracker-go/gae_app/bot/platforms/tgbots"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot/platforms/tgbots"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
 )

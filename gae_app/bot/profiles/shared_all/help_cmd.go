@@ -10,8 +10,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/sneat-co/debtstracker-go/gae_app/bot"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
 )
 
 const HELP_COMMAND = "help"

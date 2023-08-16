@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/website/pages"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/website/pages"
 	"github.com/strongo/log"
 	"google.golang.org/appengine/v2/datastore"
 )
