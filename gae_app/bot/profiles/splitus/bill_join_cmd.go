@@ -20,7 +20,6 @@ import (
 	"github.com/strongo/i18n"
 	"github.com/strongo/log"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -53,7 +52,7 @@ var joinBillCommand = botsfw.Command{
 		return
 	},
 	CallbackAction: func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
-		_ = whc.AppUserInt64ID() // Make sure we have user before transaction starts, TODO: it smells, should be refactored?
+		_ = whc.AppUserID() // Make sure we have user before transaction starts, TODO: it smells, should be refactored?
 		//
 		return shared_all.TransactionalCallbackAction(billCallbackAction(func(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 			c := whc.Context()
@@ -72,7 +71,7 @@ func joinBillAction(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, bill
 	c := whc.Context()
 	log.Debugf(c, "joinBillAction(bill.ID=%v)", bill.ID)
 
-	userID := strconv.FormatInt(whc.AppUserInt64ID(), 10)
+	userID := whc.AppUserID()
 	var appUser botsfwmodels.AppUserData
 	if appUser, err = whc.AppUserData(); err != nil {
 		return

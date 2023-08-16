@@ -15,13 +15,13 @@ import (
 )
 
 type LastTransfer struct {
-	ID int       `datastore:"LastTransferID,noindex"`
+	ID string    `datastore:"LastTransferID,noindex"`
 	At time.Time `datastore:"LastTransferAt,noindex"`
 }
 
 type TransferWithInterestJson struct {
 	TransferInterest
-	TransferID int
+	TransferID string
 	Direction  TransferDirection
 	Starts     time.Time
 	Currency   money.CurrencyCode `json:",omitempty"` // TODO: will be obsolete once we group outstanding by currency
@@ -79,10 +79,10 @@ func (o *UserContactTransfersInfo) Equal(o2 *UserContactTransfersInfo) bool {
 }
 
 type UserContactJson struct {
-	ID          int64
+	ID          string
 	Name        string
 	Status      string                    `json:",omitempty"`
-	UserID      int64                     `json:",omitempty"` // TODO: new prop, update in map reduce and change code!
+	UserID      string                    `json:",omitempty"` // TODO: new prop, update in map reduce and change code!
 	TgUserID    int64                     `json:",omitempty"`
 	BalanceJson *json.RawMessage          `json:"Balance,omitempty"`
 	Transfers   *UserContactTransfersInfo `json:",omitempty"`
@@ -134,7 +134,7 @@ func (o UserContactJson) BalanceWithInterest(c context.Context, periodEnds time.
 	return
 }
 
-func NewUserContactJson(counterpartyID int64, status, name string, balanced money.Balanced) UserContactJson {
+func NewUserContactJson(counterpartyID string, status, name string, balanced money.Balanced) UserContactJson {
 	result := UserContactJson{
 		ID:     counterpartyID,
 		Status: status,
@@ -145,7 +145,7 @@ func NewUserContactJson(counterpartyID int64, status, name string, balanced mone
 		result.BalanceJson = &balance
 	}
 	if balanced.CountOfTransfers != 0 {
-		if balanced.LastTransferID == 0 {
+		if balanced.LastTransferID == "" {
 			panic(fmt.Sprintf("balanced.CountOfTransfers:%v != 0 && balanced.LastTransferID == 0", balanced.CountOfTransfers))
 		}
 		if balanced.LastTransferAt.IsZero() {
@@ -154,7 +154,7 @@ func NewUserContactJson(counterpartyID int64, status, name string, balanced mone
 		result.Transfers = &UserContactTransfersInfo{
 			Count: balanced.CountOfTransfers,
 			Last: LastTransfer{
-				ID: int(balanced.LastTransferID),
+				ID: balanced.LastTransferID,
 				At: balanced.LastTransferAt,
 			},
 		}

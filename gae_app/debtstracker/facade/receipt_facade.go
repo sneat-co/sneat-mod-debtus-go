@@ -59,9 +59,7 @@ func workaroundReinsertContact(c context.Context, receipt models.Receipt, invite
 	return
 }
 
-func AcknowledgeReceipt(
-	c context.Context, receiptID int, currentUserID int64, operation string,
-) (
+func AcknowledgeReceipt(c context.Context, receiptID, currentUserID string, operation string) (
 	receipt models.Receipt, transfer models.Transfer, isCounterpartiesJustConnected bool, err error,
 ) {
 	log.Debugf(c, "AcknowledgeReceipt(receiptID=%d, currentUserID=%d, operation=%v)", receiptID, currentUserID, operation)
@@ -107,7 +105,7 @@ func AcknowledgeReceipt(
 			},
 		}
 
-		if invitedContact.ID != 0 { // This means we are attempting to retry failed transaction
+		if invitedContact.ID != "" { // This means we are attempting to retry failed transaction
 			if err = workaroundReinsertContact(tc, receipt, invitedContact, changes); err != nil {
 				return
 			}
@@ -125,7 +123,7 @@ func AcknowledgeReceipt(
 
 		if receipt.Data.Status == models.ReceiptStatusAcknowledged {
 			if receipt.Data.AcknowledgedByUserID != currentUserID {
-				err = fmt.Errorf("receipt.AcknowledgedByUserID != currentUserID (%d != %d)", receipt.Data.AcknowledgedByUserID, currentUserID)
+				err = fmt.Errorf("receipt.AcknowledgedByUserID != currentUserID (%s != %s)", receipt.Data.AcknowledgedByUserID, currentUserID)
 				return
 			}
 			log.Debugf(c, "Receipt is already acknowledged")
@@ -141,7 +139,7 @@ func AcknowledgeReceipt(
 			changes.FlagAsChanged(changes.transfer.Record)
 		}
 
-		if transfer.Data.Counterparty().UserID == 0 {
+		if transfer.Data.Counterparty().UserID == "" {
 			if isCounterpartiesJustConnected, err = NewReceiptUsersLinker(changes).linkUsersByReceiptWithinTransaction(c, tc, tx); err != nil {
 				return
 			}
@@ -204,7 +202,7 @@ func AcknowledgeReceipt(
 	return
 }
 
-func MarkReceiptAsViewed(c context.Context, receiptID int, userID int64) (receipt models.Receipt, err error) {
+func MarkReceiptAsViewed(c context.Context, receiptID, userID string) (receipt models.Receipt, err error) {
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
 		return
@@ -230,7 +228,7 @@ func MarkReceiptAsViewed(c context.Context, receiptID int, userID int64) (receip
 	return
 }
 
-func markReceiptAsViewed(receipt *models.ReceiptData, userID int64) (changed bool) {
+func markReceiptAsViewed(receipt *models.ReceiptData, userID string) (changed bool) {
 	alreadyViewedByUser := false
 	for _, uid := range receipt.ViewedByUserIDs {
 		if uid == userID {
@@ -245,7 +243,7 @@ func markReceiptAsViewed(receipt *models.ReceiptData, userID int64) (changed boo
 	return
 }
 
-func getReceiptTransferAndUsers(c context.Context, tx dal.ReadSession, receiptID int, userID int64) (
+func getReceiptTransferAndUsers(c context.Context, tx dal.ReadSession, receiptID, userID string) (
 	receipt models.Receipt,
 	transfer models.Transfer,
 	creatorUser models.AppUser,
@@ -271,11 +269,11 @@ func getReceiptTransferAndUsers(c context.Context, tx dal.ReadSession, receiptID
 		return
 	}
 
-	if counterpartyUser.ID = transfer.Data.Counterparty().UserID; counterpartyUser.ID == 0 && userID != creatorUser.ID {
+	if counterpartyUser.ID = transfer.Data.Counterparty().UserID; counterpartyUser.ID == "" && userID != creatorUser.ID {
 		counterpartyUser.ID = userID
 	}
 
-	if counterpartyUser.ID != 0 {
+	if counterpartyUser.ID != "" {
 		if counterpartyUser, err = User.GetUserByID(c, tx, counterpartyUser.ID); err != nil {
 			return
 		}

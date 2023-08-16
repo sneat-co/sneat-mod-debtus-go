@@ -17,7 +17,7 @@ type authFacade struct {
 
 var AuthFacade = authFacade{}
 
-func (authFacade) AssignPinCode(c context.Context, loginID int, userID int64) (loginPin models.LoginPin, err error) {
+func (authFacade) AssignPinCode(c context.Context, loginID int, userID string) (loginPin models.LoginPin, err error) {
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
 		return
@@ -26,7 +26,7 @@ func (authFacade) AssignPinCode(c context.Context, loginID int, userID int64) (l
 		if loginPin, err = dtdal.LoginPin.GetLoginPinByID(c, tx, loginID); err != nil {
 			return fmt.Errorf("failed to get LoginPin entity by ID=%v: %w", loginID, err)
 		}
-		if loginPin.Data.UserID != 0 && loginPin.Data.UserID != userID {
+		if loginPin.Data.UserID != "" && loginPin.Data.UserID != userID {
 			return errors.New("LoginPin.UserID != userID")
 		}
 		if !loginPin.Data.SignedIn.IsZero() {
@@ -44,7 +44,7 @@ func (authFacade) AssignPinCode(c context.Context, loginID int, userID int64) (l
 	return
 }
 
-func (authFacade) SignInWithPin(c context.Context, loginID int, loginPinCode int32) (userID int64, err error) {
+func (authFacade) SignInWithPin(c context.Context, loginID int, loginPinCode int32) (userID string, err error) {
 	_ = loginPinCode
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
@@ -61,7 +61,7 @@ func (authFacade) SignInWithPin(c context.Context, loginID int, loginPinCode int
 		if loginPin.Data.Created.Add(time.Hour).Before(time.Now()) {
 			return ErrLoginExpired
 		}
-		if userID = loginPin.Data.UserID; userID == 0 {
+		if userID = loginPin.Data.UserID; userID == "" {
 			return errors.New("LoginPin.UserID == 0")
 		}
 

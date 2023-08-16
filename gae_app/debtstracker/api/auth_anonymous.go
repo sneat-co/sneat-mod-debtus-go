@@ -1,21 +1,19 @@
 package api
 
 import (
-	"github.com/dal-go/dalgo/dal"
-	"net/http"
-	"strconv"
-
 	"context"
 	"errors"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
+	"net/http"
 )
 
 func handleSignUpAnonymously(c context.Context, w http.ResponseWriter, r *http.Request) {
 	if user, err := dtdal.User.CreateAnonymousUser(c); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 	} else {
-		if err = SaveUserAgent(c, strconv.FormatInt(user.ID, 10), r.UserAgent()); err != nil {
+		if err = SaveUserAgent(c, user.ID, r.UserAgent()); err != nil {
 			ErrorAsJson(c, w, http.StatusInternalServerError, err)
 			return
 		}
@@ -24,9 +22,9 @@ func handleSignUpAnonymously(c context.Context, w http.ResponseWriter, r *http.R
 }
 
 func handleSignInAnonymous(c context.Context, w http.ResponseWriter, r *http.Request) {
-	userID, err := strconv.ParseInt(r.PostFormValue("user"), 10, 64)
-	if err != nil {
-		ErrorAsJson(c, w, http.StatusBadRequest, err)
+	userID := r.PostFormValue("user")
+	if userID == "" {
+		ErrorAsJson(c, w, http.StatusBadRequest, errors.New("required parameter user is empty"))
 		return
 	}
 
@@ -42,7 +40,7 @@ func handleSignInAnonymous(c context.Context, w http.ResponseWriter, r *http.Req
 	}
 
 	if userEntity.Data.IsAnonymous {
-		if err = SaveUserAgent(c, strconv.FormatInt(userID, 10), r.UserAgent()); err != nil {
+		if err = SaveUserAgent(c, userID, r.UserAgent()); err != nil {
 			ErrorAsJson(c, w, http.StatusInternalServerError, err)
 			return
 		}

@@ -5,6 +5,8 @@ import (
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/shared_all"
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/shared_group"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
@@ -28,16 +30,16 @@ func startInGroupAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err
 
 	appUser := appUserD.(*models.AppUserData)
 
-	var botUserData botsfwmodels.BotUserData
+	var botUser record.DataWithID[string, botsfwmodels.BotUserData]
 
-	if botUserData, err = whc.Store().GetBotUserByID(c, whc.GetBotCode(), whc.Input().GetSender().GetID().(string)); err != nil {
+	if botUser, err = whc.BotUser(); err != nil && !dal.IsNotFound(err) {
 		return
 	}
 
 	if group, _, err = facade.Group.AddUsersToTheGroupAndOutstandingBills(c, group.ID, []facade.NewUser{
 		{
 			Name:        appUser.FullName(),
-			BotUserData: botUserData,
+			BotUserData: botUser.Data,
 			ChatMember:  whc.Input().GetSender(),
 		},
 	}); err != nil {

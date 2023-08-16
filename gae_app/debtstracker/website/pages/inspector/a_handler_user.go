@@ -6,7 +6,6 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"google.golang.org/appengine/v2"
 	"net/http"
-	"strconv"
 	"sync"
 	"time"
 
@@ -66,12 +65,12 @@ func (bs balancesByCurrency) SetBalance(setter func(bs balancesByCurrency)) {
 	bs.Unlock()
 }
 
-func validateTransfers(c context.Context, userID int64, userBalances balances) (
-	byContactWithoutInterest map[int64]transfersInfo, err error,
+func validateTransfers(c context.Context, userID string, userBalances balances) (
+	byContactWithoutInterest map[string]transfersInfo, err error,
 ) {
 	query := datastore.NewQuery(models.TransferKind).Filter("BothUserIDs=", userID)
 
-	byContactWithoutInterest = make(map[int64]transfersInfo)
+	byContactWithoutInterest = make(map[string]transfersInfo)
 
 	iterator := query.Run(c)
 
@@ -126,7 +125,7 @@ func validateContacts(c context.Context,
 ) {
 	userContactsJson := user.Data.Contacts()
 	contactInfos := make([]contactWithBalances, len(userContactsJson))
-	contactInfosByID := make(map[int64]contactWithBalances, len(contactInfos))
+	contactInfosByID := make(map[string]contactWithBalances, len(contactInfos))
 
 	contactsTotalWithoutInterest := make(money.Balance, len(userBalances.withoutInterest.byCurrency))
 	contactsTotalWithInterest := make(money.Balance, len(userBalances.withInterest.byCurrency))
@@ -204,11 +203,11 @@ func validateContacts(c context.Context,
 			}
 			panic(err)
 		}
-		if contactInfo, ok := contactInfosByID[key.IntID()]; ok {
+		if contactInfo, ok := contactInfosByID[key.StringID()]; ok {
 			matchedContacts = append(matchedContacts, contactInfo)
 		} else {
 			var contact models.Contact
-			if contact, err = facade.GetContactByID(c, nil, key.IntID()); err != nil {
+			if contact, err = facade.GetContactByID(c, nil, key.StringID()); err != nil {
 				return
 			}
 			if contactInfo, err = updateBalance(contact); err != nil {
@@ -249,9 +248,9 @@ func validateContacts(c context.Context,
 func userPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	c := appengine.NewContext(r)
 
-	userID, err := strconv.ParseInt(r.URL.Query().Get("id"), 10, 64)
-	if err != nil {
-		_, _ = w.Write([]byte(err.Error()))
+	userID := r.URL.Query().Get("id")
+	if userID == "" {
+		_, _ = w.Write([]byte("missing required parameter 'id'"))
 		return
 	}
 
@@ -259,7 +258,9 @@ func userPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		user                                                          models.AppUser
 		contactsMissingInJson, contactsMissedByQuery, matchedContacts []contactWithBalances
 		contactInfosNotFoundInDb                                      []models.UserContactJson
+		err                                                           error
 	)
+
 	if user, err = facade.User.GetUserByID(c, nil, userID); err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return
@@ -281,7 +282,7 @@ func userPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		contactsMissingInJson, contactsMissedByQuery, matchedContacts, contactInfosNotFoundInDb, err = validateContacts(c, now, user, userBalances)
 	}()
 
-	var byContactWithoutInterest map[int64]transfersInfo
+	var byContactWithoutInterest map[string]transfersInfo
 	wg.Add(1)
 	go func() {
 		defer wg.Done()

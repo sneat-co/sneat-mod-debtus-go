@@ -89,7 +89,7 @@ var FeedbackCommand = botsfw.Command{
 			mt := whc.Input().(botsfw.WebhookTextMessage).Text()
 			words := strings.SplitN(mt, " ", 2)
 			feedbackEntity := models.FeedbackData{
-				UserID: whc.AppUserInt64ID(),
+				UserID: whc.AppUserID(),
 			}
 			//mainMenuButton := []tgbotapi.InlineKeyboardButton{
 			//	{

@@ -74,7 +74,7 @@ func SendReceiptByEmail(c context.Context, translator i18n.SingleLocaleTranslato
 	templateParams := struct {
 		ToName     string
 		FromName   string
-		ReceiptID  int
+		ReceiptID  string
 		ReceiptURL template.HTML
 	}{
 		toName,

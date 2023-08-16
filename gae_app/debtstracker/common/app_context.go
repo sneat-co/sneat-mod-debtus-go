@@ -44,7 +44,7 @@ func (appCtx DebtsTrackerAppContext) NewBotAppUserEntity() botsfwmodels.AppUserD
 	}
 }
 
-func (appCtx DebtsTrackerAppContext) GetBotChatEntityFactory(platform string) func() botsfwmodels.ChatData {
+func (appCtx DebtsTrackerAppContext) GetBotChatEntityFactory(platform string) func() botsfwmodels.BotChatData {
 	switch platform {
 	case "telegram":
 		panic("not implemented")

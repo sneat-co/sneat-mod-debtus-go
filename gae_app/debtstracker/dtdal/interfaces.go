@@ -35,7 +35,7 @@ const (
 //)
 
 type TransferReturnUpdate struct {
-	TransferID     int
+	TransferID     string
 	ReturnedAmount decimal.Decimal64p2
 }
 
@@ -45,39 +45,39 @@ type RewardDal interface {
 }
 
 type TransferDal interface {
-	GetTransfersByID(c context.Context, tx dal.ReadSession, transferIDs []int) ([]models.Transfer, error)
-	LoadTransfersByUserID(c context.Context, userID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error)
-	LoadTransfersByContactID(c context.Context, contactID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error)
-	LoadTransferIDsByContactID(c context.Context, contactID int64, limit int, startCursor string) (transferIDs []int, endCursor string, err error)
-	LoadOverdueTransfers(c context.Context, tx dal.ReadSession, userID int64, limit int) (transfers []models.Transfer, err error)
-	LoadOutstandingTransfers(c context.Context, tx dal.ReadSession, periodEnds time.Time, userID, contactID int64, currency money.CurrencyCode, direction models.TransferDirection) (transfers []models.Transfer, err error)
-	LoadDueTransfers(c context.Context, tx dal.ReadSession, userID int64, limit int) (transfers []models.Transfer, err error)
+	GetTransfersByID(c context.Context, tx dal.ReadSession, transferIDs []string) ([]models.Transfer, error)
+	LoadTransfersByUserID(c context.Context, userID string, offset, limit int) (transfers []models.Transfer, hasMore bool, err error)
+	LoadTransfersByContactID(c context.Context, contactID string, offset, limit int) (transfers []models.Transfer, hasMore bool, err error)
+	LoadTransferIDsByContactID(c context.Context, contactID string, limit int, startCursor string) (transferIDs []string, endCursor string, err error)
+	LoadOverdueTransfers(c context.Context, tx dal.ReadSession, userID string, limit int) (transfers []models.Transfer, err error)
+	LoadOutstandingTransfers(c context.Context, tx dal.ReadSession, periodEnds time.Time, userID, contactID string, currency money.CurrencyCode, direction models.TransferDirection) (transfers []models.Transfer, err error)
+	LoadDueTransfers(c context.Context, tx dal.ReadSession, userID string, limit int) (transfers []models.Transfer, err error)
 	LoadLatestTransfers(c context.Context, offset, limit int) ([]models.Transfer, error)
-	DelayUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCode string, transferID int, creatorTgChatID, creatorTgReceiptMessageID int64) error
-	DelayUpdateTransfersWithCounterparty(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) error
-	DelayUpdateTransfersOnReturn(c context.Context, returnTransferID int, transferReturnUpdates []TransferReturnUpdate) (err error)
+	DelayUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCode string, transferID string, creatorTgChatID, creatorTgReceiptMessageID int64) error
+	DelayUpdateTransfersWithCounterparty(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID string) error
+	DelayUpdateTransfersOnReturn(c context.Context, returnTransferID string, transferReturnUpdates []TransferReturnUpdate) (err error)
 }
 
 type ReceiptDal interface {
 	UpdateReceipt(c context.Context, tx dal.ReadwriteTransaction, receipt models.Receipt) error
-	GetReceiptByID(c context.Context, tx dal.ReadSession, id int) (models.Receipt, error)
-	MarkReceiptAsSent(c context.Context, receiptID, transferID int, sentTime time.Time) error
+	GetReceiptByID(c context.Context, tx dal.ReadSession, id string) (models.Receipt, error)
+	MarkReceiptAsSent(c context.Context, receiptID, transferID string, sentTime time.Time) error
 	CreateReceipt(c context.Context, data *models.ReceiptData) (receipt models.Receipt, err error)
-	DelayedMarkReceiptAsSent(c context.Context, receiptID, transferID int, sentTime time.Time) error
-	DelayCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongo.Environment, transferID int, userID int64) error
+	DelayedMarkReceiptAsSent(c context.Context, receiptID, transferID string, sentTime time.Time) error
+	DelayCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongo.Environment, transferID string, userID string) error
 }
 
 var ErrReminderAlreadyRescheduled = errors.New("reminder already rescheduled")
 
 type ReminderDal interface {
-	DelayDiscardReminders(c context.Context, transferIDs []int, returnTransferID int) error
-	DelayCreateReminderForTransferUser(c context.Context, transferID int, userID int64) error
+	DelayDiscardReminders(c context.Context, transferIDs []string, returnTransferID string) error
+	DelayCreateReminderForTransferUser(c context.Context, transferID string, userID string) error
 	SaveReminder(c context.Context, tx dal.ReadwriteTransaction, reminder models.Reminder) (err error)
-	GetReminderByID(c context.Context, tx dal.ReadSession, id int) (models.Reminder, error)
-	RescheduleReminder(c context.Context, reminderID int, remindInDuration time.Duration) (oldReminder, newReminder models.Reminder, err error)
-	SetReminderStatus(c context.Context, reminderID int, returnTransferID int, status string, when time.Time) (reminder models.Reminder, err error)
-	DelaySetReminderIsSent(c context.Context, reminderID int, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error
-	SetReminderIsSent(c context.Context, reminderID int, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error
+	GetReminderByID(c context.Context, tx dal.ReadSession, id string) (models.Reminder, error)
+	RescheduleReminder(c context.Context, reminderID string, remindInDuration time.Duration) (oldReminder, newReminder models.Reminder, err error)
+	SetReminderStatus(c context.Context, reminderID string, returnTransferID string, status string, when time.Time) (reminder models.Reminder, err error)
+	DelaySetReminderIsSent(c context.Context, reminderID string, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error
+	SetReminderIsSent(c context.Context, reminderID string, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error
 	SetReminderIsSentInTransaction(c context.Context, tx dal.ReadwriteTransaction, reminder models.Reminder, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) (err error)
 	GetActiveReminderIDsByTransferID(c context.Context, tx dal.ReadSession, transferID int) ([]int, error)
 	GetSentReminderIDsByTransferID(c context.Context, tx dal.ReadSession, transferID int) ([]int, error)
@@ -112,11 +112,11 @@ type UserDal interface {
 	GetUserByVkUserID(c context.Context, vkUserID int64) (models.AppUser, error)
 	CreateAnonymousUser(c context.Context) (models.AppUser, error)
 	CreateUser(c context.Context, userEntity *models.AppUserData) (models.AppUser, error)
-	DelaySetUserPreferredLocale(c context.Context, delay time.Duration, userID int64, localeCode5 string) error
-	DelayUpdateUserHasDueTransfers(c context.Context, userID int64) error
-	SetLastCurrency(c context.Context, userID int64, currency money.CurrencyCode) error
-	DelayUpdateUserWithBill(c context.Context, userID, billID string) error
-	DelayUpdateUserWithContact(c context.Context, userID, contactID int64) error
+	DelaySetUserPreferredLocale(c context.Context, delay time.Duration, userID string, localeCode5 string) error
+	DelayUpdateUserHasDueTransfers(c context.Context, userID string) error
+	SetLastCurrency(c context.Context, userID string, currency money.CurrencyCode) error
+	DelayUpdateUserWithBill(c context.Context, userID string, billID string) error
+	DelayUpdateUserWithContact(c context.Context, userID, contactID string) error
 }
 
 type PasswordResetDal interface {
@@ -141,8 +141,8 @@ type ContactDal interface {
 	//CreateContact(c context.Context, userID int64, contactDetails models.ContactDetails) (contact models.Contact, user models.AppUser, err error)
 	//CreateContactWithinTransaction(c context.Context, user models.AppUser, contactUserID, counterpartyCounterpartyID int64, contactDetails models.ContactDetails, balanced money.Balanced) (contact models.Contact, err error)
 	//UpdateContact(c context.Context, contactID int64, values map[string]string) (contactEntity *models.ContactData, err error)
-	GetContactIDsByTitle(c context.Context, tx dal.ReadSession, userID int64, title string, caseSensitive bool) (contactIDs []int64, err error)
-	GetContactsWithDebts(c context.Context, tx dal.ReadSession, userID int64) (contacts []models.Contact, err error)
+	GetContactIDsByTitle(c context.Context, tx dal.ReadSession, userID string, title string, caseSensitive bool) (contactIDs []string, err error)
+	GetContactsWithDebts(c context.Context, tx dal.ReadSession, userID string) (contacts []models.Contact, err error)
 }
 
 type BillsHolderGetter func(c context.Context) (billsHolder dal.Record, err error)
@@ -211,22 +211,22 @@ type UserFacebookDal interface {
 type LoginPinDal interface {
 	GetLoginPinByID(c context.Context, tx dal.ReadSession, loginID int) (loginPin models.LoginPin, err error)
 	SaveLoginPin(c context.Context, tx dal.ReadwriteTransaction, loginPin models.LoginPin) (err error)
-	CreateLoginPin(c context.Context, tx dal.ReadwriteTransaction, channel, gaClientID string, createdUserID int64) (loginPin models.LoginPin, err error)
+	CreateLoginPin(c context.Context, tx dal.ReadwriteTransaction, channel, gaClientID string, createdUserID string) (loginPin models.LoginPin, err error)
 }
 
 type LoginCodeDal interface {
-	NewLoginCode(c context.Context, userID int64) (code int, err error)
-	ClaimLoginCode(c context.Context, code int) (userID int64, err error)
+	NewLoginCode(c context.Context, userID string) (code int, err error)
+	ClaimLoginCode(c context.Context, code int) (userID string, err error)
 }
 
 type TwilioDal interface {
-	GetLastTwilioSmsesForUser(c context.Context, tx dal.ReadSession, userID int64, to string, limit int) (result []models.TwilioSms, err error)
+	GetLastTwilioSmsesForUser(c context.Context, tx dal.ReadSession, userID string, to string, limit int) (result []models.TwilioSms, err error)
 	SaveTwilioSms(
 		c context.Context,
 		smsResponse *gotwilio.SmsResponse,
 		transfer models.Transfer,
 		phoneContact models.PhoneContact,
-		userID int64,
+		userID string,
 		tgChatID int64,
 		smsStatusMessageID int,
 	) (twiliosSms models.TwilioSms, err error)

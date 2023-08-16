@@ -6,7 +6,6 @@ import (
 	"github.com/crediterra/money"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/i18n"
-	"strconv"
 	"time"
 
 	"context"
@@ -73,7 +72,7 @@ func (m BalanceMessageBuilder) ByContact(c context.Context, linker common.Linker
 		//log.Debugf(c, "counterpartyBalanceWithInterest: %v\ncounterpartyBalance: %v", counterpartyBalanceWithInterest, counterpartyBalance)
 		if counterpartyBalanceWithInterest.IsZero() {
 			counterpartiesWithZeroBalanceCount += 1
-			counterpartiesWithZeroBalance.WriteString(strconv.FormatInt(userContactJson.ID, 10))
+			counterpartiesWithZeroBalance.WriteString(userContactJson.ID)
 			counterpartiesWithZeroBalance.WriteString(", ")
 			continue
 		}

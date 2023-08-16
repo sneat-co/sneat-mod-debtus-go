@@ -17,12 +17,12 @@ import (
 	"github.com/strongo/log"
 )
 
-func (TransferDalGae) DelayUpdateTransfersWithCounterparty(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) (err error) {
-	log.Debugf(c, "DelayUpdateTransfersWithCounterparty(creatorCounterpartyID=%d, counterpartyCounterpartyID=%d)", creatorCounterpartyID, counterpartyCounterpartyID)
-	if creatorCounterpartyID == 0 {
+func (TransferDalGae) DelayUpdateTransfersWithCounterparty(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID string) (err error) {
+	log.Debugf(c, "DelayUpdateTransfersWithCounterparty(creatorCounterpartyID=%s, counterpartyCounterpartyID=%s)", creatorCounterpartyID, counterpartyCounterpartyID)
+	if creatorCounterpartyID == "" {
 		return errors.New("creatorCounterpartyID == 0")
 	}
-	if counterpartyCounterpartyID == 0 {
+	if counterpartyCounterpartyID == "" {
 		return errors.New("counterpartyCounterpartyID == 0")
 	}
 	if err := delayUpdateTransfersWithCounterparty.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, DELAY_UPDATE_TRANSFERS_WITH_COUNTERPARTY, 0), creatorCounterpartyID, counterpartyCounterpartyID); err != nil {
@@ -93,13 +93,13 @@ func delayedUpdateTransfersWithCounterparty(c context.Context, creatorCounterpar
 	return nil
 }
 
-func delayedUpdateTransferWithCounterparty(c context.Context, transferID int, counterpartyCounterpartyID int64) (err error) {
+func delayedUpdateTransferWithCounterparty(c context.Context, transferID string, counterpartyCounterpartyID string) (err error) {
 	log.Debugf(c, "delayUpdateTransferWithCounterparty(transferID=%d, counterpartyCounterpartyID=%d)", transferID, counterpartyCounterpartyID)
-	if transferID == 0 {
+	if transferID == "" {
 		log.Errorf(c, "transferID == 0")
 		return nil
 	}
-	if counterpartyCounterpartyID == 0 {
+	if counterpartyCounterpartyID == "" {
 		log.Errorf(c, "counterpartyCounterpartyID == 0")
 		return nil
 	}
@@ -147,11 +147,11 @@ func delayedUpdateTransferWithCounterparty(c context.Context, transferID int, co
 		{
 			transferCreator := transfer.Data.Creator()
 			log.Debugf(c, "transferCreator before: %v", transferCreator)
-			if transferCreator.ContactID == 0 {
+			if transferCreator.ContactID == "" {
 				transferCreator.ContactID = counterpartyCounterparty.ID
 				changed = true
 			} else if transferCreator.ContactID != counterpartyCounterparty.ID {
-				err = fmt.Errorf("transferCounterparty.ContactID != counterpartyCounterparty.ID: %d != %d", transferCreator.ContactID, counterpartyCounterparty.ID)
+				err = fmt.Errorf("transferCounterparty.ContactID != counterpartyCounterparty.ID: %s != %s", transferCreator.ContactID, counterpartyCounterparty.ID)
 				return err
 			} else {
 				log.Debugf(c, "transferCounterparty.ContactID == counterpartyCounterparty.ID: %d", transferCreator.ContactID)
@@ -168,11 +168,11 @@ func delayedUpdateTransferWithCounterparty(c context.Context, transferID int, co
 		{
 			transferCounterparty := transfer.Data.Counterparty()
 			log.Debugf(c, "transferCounterparty before: %v", transferCounterparty)
-			if transferCounterparty.UserID == 0 {
+			if transferCounterparty.UserID == "" {
 				transferCounterparty.UserID = counterpartyCounterparty.Data.UserID
 				changed = true
 			} else if transferCounterparty.UserID != counterpartyCounterparty.Data.UserID {
-				err = fmt.Errorf("transferCounterparty.UserID != counterpartyCounterparty.UserID: %d != %d", transferCounterparty.UserID, counterpartyCounterparty.Data.UserID)
+				err = fmt.Errorf("transferCounterparty.UserID != counterpartyCounterparty.UserID: %s != %s", transferCounterparty.UserID, counterpartyCounterparty.Data.UserID)
 				return err
 			} else {
 				log.Debugf(c, "transferCounterparty.UserID == counterpartyCounterparty.UserID: %d", transferCounterparty.UserID)
@@ -206,13 +206,13 @@ func delayedUpdateTransferWithCounterparty(c context.Context, transferID int, co
 			log.Infof(c, "Transfer saved to datastore")
 			return nil
 		} else {
-			log.Infof(c, "No chanes for the transfer")
+			log.Infof(c, "No changes for the transfer")
 		}
 		return nil
 	}, nil); err != nil {
-		panic(fmt.Sprintf("Failed to update transfer (%d): %v", transferID, err.Error()))
+		panic(fmt.Sprintf("failed to update transfer (%s): %v", transferID, err.Error()))
 	} else {
-		log.Infof(c, "Transaction succesfully completed")
+		log.Infof(c, "Transaction successfully completed")
 	}
 	return nil
 }
@@ -221,11 +221,11 @@ const (
 	UPDATE_TRANSFERS_WITH_CREATOR_NAME = "update-transfers-with-creator-name"
 )
 
-func DelayUpdateTransfersWithCreatorName(c context.Context, userID int64) error {
+func DelayUpdateTransfersWithCreatorName(c context.Context, userID string) error {
 	return delayUpdateTransfersWithCreatorName.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, UPDATE_TRANSFERS_WITH_CREATOR_NAME, 0), userID)
 }
 
-func delayedUpdateTransfersWithCreatorName(c context.Context, userID int64) (err error) {
+func delayedUpdateTransfersWithCreatorName(c context.Context, userID string) (err error) {
 	log.Debugf(c, "delayedUpdateTransfersWithCreatorName(userID=%d)", userID)
 
 	var db dal.Database
@@ -257,7 +257,7 @@ func delayedUpdateTransfersWithCreatorName(c context.Context, userID int64) (err
 		if err != nil {
 			return err
 		}
-		trasfer := models.TransferFromRecord(transferRecord)
+		transfer := models.TransferFromRecord(transferRecord)
 		if err != nil {
 			if err == dal.ErrNoMoreRecords {
 				return nil
@@ -266,7 +266,7 @@ func delayedUpdateTransfersWithCreatorName(c context.Context, userID int64) (err
 			return err
 		}
 		wg.Add(1)
-		go func(transferID int) {
+		go func(transferID string) {
 			defer wg.Done()
 			err := db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
 				transfer, err := facade.Transfers.GetTransferByID(c, tx, transferID)
@@ -298,6 +298,6 @@ func delayedUpdateTransfersWithCreatorName(c context.Context, userID int64) (err
 			if err != nil {
 				log.Errorf(c, err.Error())
 			}
-		}(trasfer.ID)
+		}(transfer.ID)
 	}
 }

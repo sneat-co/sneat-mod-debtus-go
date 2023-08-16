@@ -19,7 +19,7 @@ func RenderContactPage(contact models.Contact, w io.Writer) {
     <meta charset="UTF-8">
     <title>`)
 	_buffer.WriteString(`Contact # `)
-	hero.FormatInt(int64(contact.ID), _buffer)
+	hero.EscapeHTML(contact.ID, _buffer)
 
 	_buffer.WriteString(`</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
@@ -36,7 +36,7 @@ func RenderContactPage(contact models.Contact, w io.Writer) {
 
         <div class="row">
             <h1>Contact # `)
-	hero.FormatInt(int64(contact.ID), _buffer)
+	hero.EscapeHTML(contact.ID, _buffer)
 	_buffer.WriteString(`</h1>
         </div>
 

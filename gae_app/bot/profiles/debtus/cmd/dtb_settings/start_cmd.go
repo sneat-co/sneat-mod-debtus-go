@@ -11,7 +11,6 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/log"
 	"regexp"
-	"strconv"
 	"time"
 )
 
@@ -49,7 +48,7 @@ func startByLinkCode(whc botsfw.WebhookContext, matches []string) (m botsfw.Mess
 			return
 		}
 		chatEntity.SetPreferredLanguage(localeCode5)
-		if err = dtdal.User.DelaySetUserPreferredLocale(c, time.Second, whc.AppUserInt64ID(), localeCode5); err != nil {
+		if err = dtdal.User.DelaySetUserPreferredLocale(c, time.Second, whc.AppUserID(), localeCode5); err != nil {
 			return
 		}
 
@@ -83,22 +82,12 @@ func startInvite(whc botsfw.WebhookContext, inviteCode, operation, localeCode5 s
 	return m, err
 }
 
-func startReceipt(whc botsfw.WebhookContext, receiptCode, operation, localeCode5 string) (m botsfw.MessageFromBot, err error) {
+func startReceipt(whc botsfw.WebhookContext, receiptID, operation, localeCode5 string) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
-	var receiptID int
-	if receiptID, err = strconv.Atoi(receiptCode); err != nil {
-		if receiptID, err = common.DecodeIntID(receiptCode); err != nil { // TODO: remove obsolete in a while. 2017/11/19
-			return
-		}
+	if receiptID == "" {
+		return m, fmt.Errorf("receiptID is empty")
 	} else if _, err = dtdal.Receipt.GetReceiptByID(c, nil, receiptID); err != nil {
-		if dal.IsNotFound(err) {
-			if receiptID, err = common.DecodeIntID(receiptCode); err != nil {
-				err = fmt.Errorf("failed to decode receipt ID: %w", err)
-				return
-			}
-		} else {
-			return
-		}
+		return
 	}
 	switch operation {
 	case "view":

@@ -30,16 +30,16 @@ func TestWriteReceiptText(t *testing.T) {
 
 	translator := i18n.NewSingleMapTranslator(i18n.LocaleEnUS, i18n.NewMapTranslator(c, trans.TRANS))
 
-	transfer := models.NewTransfer(123, models.NewTransferData(
-		12,
+	transfer := models.NewTransfer("123", models.NewTransferData(
+		"12",
 		false,
 		money.Amount{Currency: "EUR", Value: 98765},
 		&models.TransferCounterpartyInfo{
-			ContactID:   23,
+			ContactID:   "23",
 			ContactName: "John Whites",
 		},
 		&models.TransferCounterpartyInfo{
-			UserID:   12,
+			UserID:   "12",
 			UserName: "Anna Blacks",
 		},
 	))

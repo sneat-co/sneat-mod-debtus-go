@@ -5,7 +5,6 @@ import (
 	apphostgae "github.com/strongo/app-host-gae"
 	"github.com/strongo/delaying"
 	"net/url"
-	"strconv"
 	"time"
 
 	"context"
@@ -27,8 +26,8 @@ func _validateSetReminderIsSentMessageIDs(messageIntID int64, messageStrID strin
 	return nil
 }
 
-func (ReminderDalGae) DelaySetReminderIsSent(c context.Context, reminderID int, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error {
-	if reminderID == 0 {
+func (ReminderDalGae) DelaySetReminderIsSent(c context.Context, reminderID string, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error {
+	if reminderID == "" {
 		return errors.New("reminderID == 0")
 	}
 	if sentAt.IsZero() {
@@ -43,19 +42,19 @@ func (ReminderDalGae) DelaySetReminderIsSent(c context.Context, reminderID int, 
 	return nil
 }
 
-func setReminderIsSent(c context.Context, reminderID int, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error {
+func setReminderIsSent(c context.Context, reminderID string, sentAt time.Time, messageIntID int64, messageStrID, locale, errDetails string) error {
 	return dtdal.Reminder.SetReminderIsSent(c, reminderID, sentAt, messageIntID, messageStrID, locale, errDetails)
 }
 
-func CreateSendReminderTask(c context.Context, reminderID int) *taskqueue.Task {
-	if reminderID == 0 {
+func CreateSendReminderTask(c context.Context, reminderID string) *taskqueue.Task {
+	if reminderID == "" {
 		panic("reminderID == 0")
 	}
-	t := taskqueue.NewPOSTTask("/task-queue/send-reminder", url.Values{"id": []string{strconv.Itoa(reminderID)}})
+	t := taskqueue.NewPOSTTask("/task-queue/send-reminder", url.Values{"id": []string{reminderID}})
 	return t
 }
 
-func QueueSendReminder(c context.Context, reminderID int, dueIn time.Duration) error {
+func QueueSendReminder(c context.Context, reminderID string, dueIn time.Duration) error {
 	if dueIn < 3*time.Hour {
 		task := CreateSendReminderTask(c, reminderID)
 		if dueIn > time.Duration(0) {

@@ -18,16 +18,10 @@ import (
 	"github.com/strongo/log"
 )
 
-func getUserID(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) (userID int64) {
+func getUserID(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) (userID string) {
 	userID = authInfo.UserID
 
 	if stringID := r.URL.Query().Get("user"); stringID != "" {
-		var err error
-		userID, err = strconv.ParseInt(stringID, 10, 64)
-		if err != nil {
-			BadRequestError(c, w, err)
-			return
-		}
 		if !authInfo.IsAdmin && userID != authInfo.UserID {
 			w.WriteHeader(http.StatusForbidden)
 			return
@@ -82,22 +76,22 @@ func handleCreateCounterparty(c context.Context, w http.ResponseWriter, r *http.
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	}
-	_, _ = w.Write([]byte(strconv.FormatInt(counterparty.ID, 10)))
+	_, _ = w.Write([]byte(counterparty.ID))
 }
 
-func getContactID(w http.ResponseWriter, query url.Values) (int64, error) {
-	counterpartyID, err := strconv.ParseInt(query.Get("id"), 10, 64)
-	if err != nil {
+func getContactID(w http.ResponseWriter, query url.Values) string {
+	counterpartyID := query.Get("id")
+	if counterpartyID == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte("Required parameter 'id' is missing."))
 	}
-	return counterpartyID, err
+	return counterpartyID
 }
 
 func handleGetContact(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
 	query := r.URL.Query()
-	counterpartyID, err := getContactID(w, query)
-	if err != nil {
+	counterpartyID := getContactID(w, query)
+	if counterpartyID == "" {
 		return
 	}
 	counterparty, err := facade.GetContactByID(c, nil, counterpartyID)
@@ -127,9 +121,9 @@ func contactToResponse(c context.Context, w http.ResponseWriter, authInfo auth.A
 		ContactListDto: dto.ContactListDto{
 			Status: contact.Data.Status,
 			ContactDto: dto.ContactDto{
-				ID:     strconv.FormatInt(contact.ID, 10),
+				ID:     contact.ID,
 				Name:   contact.Data.FullName(),
-				UserID: strconv.FormatInt(contact.Data.UserID, 10),
+				UserID: contact.Data.UserID,
 			},
 		},
 		TransfersResultDto: dto.TransfersResultDto{
@@ -162,7 +156,7 @@ func contactToResponse(c context.Context, w http.ResponseWriter, authInfo auth.A
 			}
 			for _, member := range group.Data.GetGroupMembers() {
 				for _, memberContactID := range member.ContactIDs {
-					if memberContactID == strconv.FormatInt(contact.ID, 10) {
+					if memberContactID == contact.ID {
 						counterpartyJson.Groups = append(counterpartyJson.Groups, dto.ContactGroupDto{
 							ID:           group.ID,
 							Name:         group.Data.Name,
@@ -189,9 +183,8 @@ func handleDeleteContact(c context.Context, w http.ResponseWriter, r *http.Reque
 	//	BadRequestError(c, hashedWriter, err)
 	//	return
 	//}
-	contactID, err := getContactID(w, r.URL.Query())
-	if err != nil {
-		BadRequestError(c, w, err)
+	contactID := getContactID(w, r.URL.Query())
+	if contactID == "" {
 		return
 	}
 	log.Debugf(c, "contactID: %v", contactID)
@@ -208,9 +201,8 @@ func handleArchiveCounterparty(c context.Context, w http.ResponseWriter, r *http
 	//	BadRequestError(c, hashedWriter, err)
 	//	return
 	//}
-	contactID, err := getContactID(w, r.URL.Query())
-	if err != nil {
-		BadRequestError(c, w, err)
+	contactID := getContactID(w, r.URL.Query())
+	if contactID == "" {
 		return
 	}
 	if contact, err := facade.ChangeContactStatus(c, contactID, models.STATUS_ARCHIVED); err != nil {
@@ -228,9 +220,8 @@ func handleActivateCounterparty(c context.Context, w http.ResponseWriter, r *htt
 	//	return
 	//}
 
-	contactID, err := getContactID(w, r.URL.Query())
-	if err != nil {
-		BadRequestError(c, w, err)
+	contactID := getContactID(w, r.URL.Query())
+	if contactID == "" {
 		return
 	}
 	if contact, err := facade.ChangeContactStatus(c, contactID, models.STATUS_ACTIVE); err != nil {
@@ -242,12 +233,8 @@ func handleActivateCounterparty(c context.Context, w http.ResponseWriter, r *htt
 }
 
 func handleUpdateCounterparty(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
-	counterpartyID, err := getContactID(w, r.URL.Query())
-	if err != nil {
-		return
-	}
-	if err := r.ParseForm(); err != nil {
-		BadRequestError(c, w, err)
+	counterpartyID := getContactID(w, r.URL.Query())
+	if counterpartyID == "" {
 		return
 	}
 	values := make(map[string]string, len(r.PostForm))

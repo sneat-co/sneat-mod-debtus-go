@@ -7,10 +7,10 @@ import (
 func TestOnSaveSerializeJson(t *testing.T) {
 	transferEntity := TransferData{
 		from: &TransferCounterpartyInfo{
-			UserID: 11,
+			UserID: "11",
 		},
 		to: &TransferCounterpartyInfo{
-			ContactID: 22,
+			ContactID: "22",
 		},
 	}
 
@@ -28,56 +28,56 @@ func TestOnSaveSerializeJson(t *testing.T) {
 
 func TestTransferFromToUpdate(t *testing.T) {
 	transferEntity := TransferData{
-		CreatorUserID: 11,
+		CreatorUserID: "11",
 		from: &TransferCounterpartyInfo{
-			UserID: 11,
+			UserID: "11",
 		},
 		to: &TransferCounterpartyInfo{
-			ContactID: 22,
+			ContactID: "22",
 		},
 	}
 
 	from := transferEntity.From()
-	if v := from.UserID; v != 11 {
-		t.Errorf("from.UserID != 11: %d", v)
+	if v := from.UserID; v != "11" {
+		t.Errorf("from.UserID != 11: %s", v)
 		return
 	}
 
 	to := transferEntity.To()
-	if v := to.ContactID; v != 22 {
-		t.Errorf("to.ContactID != 22: %d", v)
+	if v := to.ContactID; v != "22" {
+		t.Errorf("to.ContactID != 22: %s", v)
 		return
 	}
 
-	from.ContactID = 33
-	if v := transferEntity.From().ContactID; v != 33 {
-		t.Errorf("transferEntity.From().ContactID != 33: %d", v)
+	from.ContactID = "33"
+	if v := transferEntity.From().ContactID; v != "33" {
+		t.Errorf("transferEntity.From().ContactID != 33: %s", v)
 		return
 	}
 
-	to.UserID = 44
-	if v := transferEntity.To().UserID; v != 44 {
-		t.Errorf("transferEntity.To().UserID != 44: %d", v)
+	to.UserID = "44"
+	if v := transferEntity.To().UserID; v != "44" {
+		t.Errorf("transferEntity.To().UserID != 44: %s", v)
 		return
 	}
 
-	transfer := NewTransfer(55, &transferEntity)
+	transfer := NewTransfer("55", &transferEntity)
 
 	from = transfer.Data.From()
 
-	from.ContactID = 77
-	if v := transfer.Data.From().ContactID; v != 77 {
-		t.Errorf("transferEntity.From().ContactID != 77: %d", v)
+	from.ContactID = "77"
+	if v := transfer.Data.From().ContactID; v != "77" {
+		t.Errorf("transferEntity.From().ContactID != 77: %s", v)
 		return
 	}
 
 	creator := transfer.Data.Creator()
-	creator.ContactID = 88
-	if v := transfer.Data.Creator().ContactID; v != 88 {
-		t.Errorf("transfer.Creator().ContactID != 88: %d", v)
+	creator.ContactID = "88"
+	if v := transfer.Data.Creator().ContactID; v != "88" {
+		t.Errorf("transfer.Creator().ContactID != 88: %s", v)
 	}
-	if v := transfer.Data.From().ContactID; v != 88 {
-		t.Errorf("transfer.From().ContactID != 88: %d", v)
+	if v := transfer.Data.From().ContactID; v != "88" {
+		t.Errorf("transfer.From().ContactID != 88: %s", v)
 	}
 }
 

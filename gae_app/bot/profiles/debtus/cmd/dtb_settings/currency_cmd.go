@@ -54,7 +54,7 @@ var SetPrimaryCurrency = botsfw.Command{
 			var user models.AppUser
 
 			//goland:noinspection GoDeprecation
-			if user, err = facade.User.GetUserByID(c, tx, whc.AppUserInt64ID()); err != nil {
+			if user, err = facade.User.GetUserByID(c, tx, whc.AppUserID()); err != nil {
 				return
 			}
 			user.Data.PrimaryCurrency = primaryCurrency

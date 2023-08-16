@@ -1,23 +1,21 @@
 package splitus
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
-	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/strongo/i18n"
-	"net/url"
-	"strconv"
-
-	"bytes"
-	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
+	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/decimal"
+	"github.com/strongo/i18n"
 	"github.com/strongo/log"
+	"net/url"
 )
 
 const groupCommandCode = "group"
@@ -66,7 +64,7 @@ var groupCommand = botsfw.NewCallbackCommand(groupCommandCode,
 		do := query.Get("do")
 		switch do {
 		case "leave":
-			if _, _, err = facade.Group.LeaveGroup(c, userGroupJson.ID, strconv.FormatInt(whc.AppUserInt64ID(), 10)); err != nil {
+			if _, _, err = facade.Group.LeaveGroup(c, userGroupJson.ID, whc.AppUserID()); err != nil {
 				if err == facade.ErrAttemptToLeaveUnsettledGroup {
 					err = nil
 					m.BotMessage = telegram.CallbackAnswer(tgbotapi.AnswerCallbackQueryConfig{Text: "Please settle group debts before leaving it."})
@@ -84,9 +82,9 @@ var groupCommand = botsfw.NewCallbackCommand(groupCommandCode,
 
 		buf := new(bytes.Buffer)
 
-		fmt.Fprintf(buf, "<b>Group #%d</b>: %v", i+1, userGroupJson.Name)
+		_, _ = fmt.Fprintf(buf, "<b>Group #%d</b>: %v", i+1, userGroupJson.Name)
 		var groupMemberJson models.GroupMemberJson
-		if groupMemberJson, err = group.Data.GetGroupMemberByUserID(strconv.FormatInt(whc.AppUserInt64ID(), 10)); err != nil {
+		if groupMemberJson, err = group.Data.GetGroupMemberByUserID(whc.AppUserID()); err != nil {
 			return
 		}
 		writeBalanceSide := func(title string, sign decimal.Decimal64p2, b money.Balance) {

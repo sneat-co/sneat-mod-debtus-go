@@ -15,7 +15,7 @@ const deleteBillCommandCode = "delete_bill"
 var deleteBillCommand = billCallbackCommand(deleteBillCommandCode,
 	func(whc botsfw.WebhookContext, _ dal.ReadwriteTransaction, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
-		if _, err = facade.Bill.DeleteBill(c, bill.ID, whc.AppUserInt64ID()); err != nil {
+		if _, err = facade.Bill.DeleteBill(c, bill.ID, whc.AppUserID()); err != nil {
 			if err == facade.ErrSettledBillsCanNotBeDeleted {
 				m.Text = whc.Translate(err.Error())
 				err = nil
@@ -41,7 +41,7 @@ const restoreBillCommandCode = "restore_bill"
 var restoreBillCommand = billCallbackCommand(restoreBillCommandCode,
 	func(whc botsfw.WebhookContext, _ dal.ReadwriteTransaction, callbackUrl *url.URL, bill models.Bill) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
-		if _, err = facade.Bill.RestoreBill(c, bill.ID, whc.AppUserInt64ID()); err != nil {
+		if _, err = facade.Bill.RestoreBill(c, bill.ID, whc.AppUserID()); err != nil {
 			if err == facade.ErrSettledBillsCanNotBeDeleted {
 				m.Text = whc.Translate(err.Error())
 				err = nil

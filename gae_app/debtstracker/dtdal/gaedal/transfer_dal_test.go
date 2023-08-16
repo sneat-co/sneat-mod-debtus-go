@@ -6,6 +6,6 @@ import (
 )
 
 func TestNewTransferKey(t *testing.T) {
-	const transferID = 12345
-	testIntKey(t, transferID, models.NewTransferKey(transferID))
+	const transferID = "12345"
+	testStrKey(t, transferID, models.NewTransferKey(transferID))
 }

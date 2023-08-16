@@ -4,7 +4,6 @@ package dto
 
 import (
 	"encoding/json"
-	"strconv"
 	"time"
 
 	"github.com/crediterra/money"
@@ -63,8 +62,8 @@ type ContactDto struct {
 
 func NewContactDto(counterpartyInfo models.TransferCounterpartyInfo) ContactDto {
 	dto := ContactDto{
-		ID:      strconv.FormatInt(counterpartyInfo.ContactID, 10),
-		UserID:  strconv.FormatInt(counterpartyInfo.UserID, 10),
+		ID:      counterpartyInfo.ContactID,
+		UserID:  counterpartyInfo.UserID,
 		Name:    counterpartyInfo.Name(),
 		Comment: counterpartyInfo.Comment,
 	}
@@ -126,7 +125,7 @@ type TransferDto struct {
 	Created       time.Time
 	Amount        money.Amount
 	IsReturn      bool
-	CreatorUserID int64
+	CreatorUserID string
 	From          *ContactDto
 	To            *ContactDto
 	Due           time.Time `json:",omitempty"`
@@ -140,7 +139,7 @@ func (t TransferDto) String() string {
 	}
 }
 
-func TransfersToDto(userID int64, transfers []models.Transfer) []*TransferDto {
+func TransfersToDto(userID string, transfers []models.Transfer) []*TransferDto {
 	transfersDto := make([]*TransferDto, len(transfers))
 	for i, transfer := range transfers {
 		transfersDto[i] = TransferToDto(userID, transfer)
@@ -155,9 +154,9 @@ type CreateTransferResponse struct {
 	UserBalance         *json.RawMessage `json:",omitempty"`
 }
 
-func TransferToDto(userID int64, transfer models.Transfer) *TransferDto {
+func TransferToDto(userID string, transfer models.Transfer) *TransferDto {
 	transferDto := TransferDto{
-		Id:            strconv.Itoa(transfer.ID),
+		Id:            transfer.ID,
 		Amount:        transfer.Data.GetAmount(),
 		Created:       transfer.Data.DtCreated,
 		CreatorUserID: transfer.Data.CreatorUserID,
@@ -168,7 +167,7 @@ func TransferToDto(userID int64, transfer models.Transfer) *TransferDto {
 	from := NewContactDto(*transfer.Data.From())
 	to := NewContactDto(*transfer.Data.To())
 
-	switch strconv.FormatInt(userID, 10) {
+	switch userID {
 	case "0":
 		transferDto.From = &from
 		transferDto.To = &to
@@ -208,19 +207,19 @@ type ContactGroupDto struct {
 }
 
 type CounterpartyDto struct {
-	Id      int64
-	UserID  int64 `json:",omitempty"`
+	Id      string
+	UserID  string `json:",omitempty"`
 	Name    string
 	Balance *json.RawMessage `json:",omitempty"`
 }
 type Record struct {
-	Id                     int64
+	Id                     string
 	Name                   string
 	Counterparties         []CounterpartyDto
 	Transfers              int
 	CountOfReceiptsCreated int
 	InvitedByUser          *struct {
-		Id   int64
+		Id   string
 		Name string
 	} `json:",omitempty"`
 	// InvitedByUserID int64 `json:",omitempty"`

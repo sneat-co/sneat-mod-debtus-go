@@ -27,7 +27,7 @@ var DueReturnsCallbackCommand = botsfw.NewCallbackCommand(DUE_RETURNS_COMMAND, d
 func dueReturnsCallbackAction(whc botsfw.WebhookContext, _ *url.URL) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
-	userID := whc.AppUserInt64ID()
+	userID := whc.AppUserID()
 	var (
 		overdueTransfers, dueTransfers []models.Transfer
 	)

@@ -10,7 +10,7 @@ func TestContactEntity_SetTransfersInfo(t *testing.T) {
 	if err := contact.SetTransfersInfo(UserContactTransfersInfo{
 		Count: 1,
 		Last: LastTransfer{
-			ID: 2,
+			ID: "2",
 			At: time.Now(),
 		},
 	}); err != nil {

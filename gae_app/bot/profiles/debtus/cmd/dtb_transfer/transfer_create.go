@@ -62,7 +62,7 @@ func CreateStartTransferWizardCommand(code, messageText string, commands []strin
 					m.Text += "\n\n" + strings.Replace(whc.Translate(trans.MESSAGE_TEXT_CHOOSE_CURRENCY), "<a>", fmt.Sprintf(
 						`<a href="%v">`,
 						common.GetChooseCurrencyUrlForUser(
-							whc.AppUserInt64ID(), whc.Locale(), whc.BotPlatform().ID(), whc.GetBotCode(),
+							whc.AppUserID(), whc.Locale(), whc.BotPlatform().ID(), whc.GetBotCode(),
 							"tg-chat="+botsfwmodels.NewChatID(whc.GetBotCode(), whc.MustBotChatID()),
 						),
 					), 1)

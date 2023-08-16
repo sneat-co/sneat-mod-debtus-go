@@ -55,8 +55,14 @@ func handleAdminFindUser(c context.Context, w http.ResponseWriter, r *http.Reque
 }
 
 func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *http.Request, _ auth.AuthInfo) {
-	keepID := int64(getID(c, w, r, "keepID"))
-	deleteID := int64(getID(c, w, r, "deleteID"))
+	keepID := getStrID(c, w, r, "keepID")
+	if keepID == "" {
+		return
+	}
+	deleteID := getStrID(c, w, r, "deleteID")
+	if deleteID == "" {
+		return
+	}
 
 	log.Infof(c, "keepID: %d, deleteID: %d", keepID, deleteID)
 
@@ -67,7 +73,7 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 	}
 
 	if err := db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
-		contacts, err := facade.GetContactsByIDs(c, tx, []int64{keepID, deleteID})
+		contacts, err := facade.GetContactsByIDs(c, tx, []string{keepID, deleteID})
 		if err != nil {
 			return err
 		}
@@ -79,14 +85,14 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 		if contactToKeep.Data.UserID != contactToDelete.Data.UserID {
 			return errors.New("contactToKeep.UserID != contactToDelete.UserID")
 		}
-		if contactToDelete.Data.CounterpartyUserID != 0 && contactToKeep.Data.CounterpartyUserID == 0 {
+		if contactToDelete.Data.CounterpartyUserID != "" && contactToKeep.Data.CounterpartyUserID == "" {
 			return errors.New("contactToDelete.CounterpartyUserID != 0 && contactToKeep.CounterpartyUserID == 0")
 		}
 		user, err := facade.User.GetUserByID(c, tx, contactToKeep.Data.UserID)
 		if err != nil {
 			return err
 		}
-		if user.ID != 0 {
+		if user.ID != "" {
 			return errors.New("Not implemented yet: Need to update counterparty & user balances + last transfer info")
 		}
 		if userChanged := user.Data.RemoveContact(deleteID); userChanged {
@@ -134,7 +140,7 @@ func delayedChangeTransfersCounterparty(c context.Context, oldID, newID int64, c
 	return delayChangeTransferCounterparty.EnqueueWorkMulti(c, delaying.With(common.QUEUE_SUPPORT, "changeTransferCounterparty", 0), args...)
 }
 
-func delayedChangeTransferCounterparty(c context.Context, transferID int, oldID, newID int64, cursor string) (err error) {
+func delayedChangeTransferCounterparty(c context.Context, transferID string, oldID, newID string, cursor string) (err error) {
 	log.Debugf(c, "delayedChangeTransferCounterparty(oldID=%d, newID=%d, cursor=%v)", oldID, newID, cursor)
 	if _, err = facade.GetContactByID(c, nil, newID); err != nil {
 		return err

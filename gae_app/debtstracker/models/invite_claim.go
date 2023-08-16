@@ -30,7 +30,7 @@ func NewInviteClaim(id int64, data *InviteClaimData) InviteClaim {
 
 type InviteClaimData struct {
 	InviteCode string // We don't use it as parent key as can be a bottleneck for public invites
-	UserID     int64
+	UserID     string
 	DtClaimed  time.Time
 	ClaimedOn  string // For example: "Telegram"
 	ClaimedVia string // For the Telegram it would be bot name
@@ -47,7 +47,7 @@ func NewInviteClaimKey(claimID int64) *dal.Key {
 	return dal.NewKeyWithID(InviteClaimKind, claimID)
 }
 
-func NewInviteClaimData(inviteCode string, userID int64, claimedOn, claimedVia string) *InviteClaimData {
+func NewInviteClaimData(inviteCode string, userID string, claimedOn, claimedVia string) *InviteClaimData {
 	return &InviteClaimData{
 		InviteCode: inviteCode,
 		UserID:     userID,

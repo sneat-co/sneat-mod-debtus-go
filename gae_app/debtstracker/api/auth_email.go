@@ -99,7 +99,7 @@ func handleSignInWithEmail(c context.Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	ReturnToken(c, w, userEmail.Data.AppUserIntID, false, userEmail.ID == "alexander.trakhimenok@gmail.com")
+	ReturnToken(c, w, userEmail.Data.AppUserID, false, userEmail.ID == "alexander.trakhimenok@gmail.com")
 }
 
 func handleRequestPasswordReset(c context.Context, w http.ResponseWriter, r *http.Request) {
@@ -168,7 +168,7 @@ func handleChangePasswordAndSignIn(c context.Context, w http.ResponseWriter, r *
 	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
 
 		now := time.Now()
-		appUser := models.NewAppUser(passwordReset.Data.AppUserIntID, nil)
+		appUser := models.NewAppUser(passwordReset.Data.AppUserID, nil)
 		userEmail := models.NewUserEmail(passwordReset.Data.Email, nil)
 
 		records := []dal.Record{appUser.Record, userEmail.Record, passwordReset.Record}
@@ -203,7 +203,7 @@ func handleChangePasswordAndSignIn(c context.Context, w http.ResponseWriter, r *
 		return
 	}
 
-	ReturnToken(c, w, passwordReset.Data.AppUserIntID, false, isAdmin)
+	ReturnToken(c, w, passwordReset.Data.AppUserID, false, isAdmin)
 }
 
 var errInvalidEmailConformationPin = errors.New("email confirmation pin is not valid")
@@ -238,7 +238,7 @@ func handleConfirmEmailAndSignIn(c context.Context, w http.ResponseWriter, r *ht
 		}
 
 		var appUser models.AppUser
-		if appUser, err = facade.User.GetUserByID(c, tx, userEmail.Data.AppUserIntID); err != nil {
+		if appUser, err = facade.User.GetUserByID(c, tx, userEmail.Data.AppUserID); err != nil {
 			return err
 		}
 
@@ -269,5 +269,5 @@ func handleConfirmEmailAndSignIn(c context.Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	ReturnToken(c, w, userEmail.Data.AppUserIntID, false, IsAdmin(userEmail.ID))
+	ReturnToken(c, w, userEmail.Data.AppUserID, false, IsAdmin(userEmail.ID))
 }

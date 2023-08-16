@@ -21,7 +21,7 @@ func createHelpRootCommand(params BotParams) botsfw.Command {
 		Code:     HELP_COMMAND,
 		Commands: []string{"/help", emoji.HELP_ICON},
 		Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
-			switch whc.GetBotSettings().Profile {
+			switch whc.GetBotSettings().Profile.ID() {
 			case bot.ProfileDebtus:
 				return params.HelpCommandAction(whc)
 			}

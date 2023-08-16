@@ -11,7 +11,6 @@ import (
 	"github.com/strongo/app/user"
 	"github.com/strongo/log"
 	gae_user "google.golang.org/appengine/v2/user"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -23,7 +22,7 @@ var User = userFacade{}
 
 var ErrEmailAlreadyRegistered = errors.New("Email already registered")
 
-func (userFacade) GetUserByID(c context.Context, tx dal.ReadSession, userID int64) (user models.AppUser, err error) {
+func (userFacade) GetUserByID(c context.Context, tx dal.ReadSession, userID string) (user models.AppUser, err error) {
 	if tx == nil {
 		if tx, err = GetDatabase(c); err != nil {
 			return
@@ -32,7 +31,7 @@ func (userFacade) GetUserByID(c context.Context, tx dal.ReadSession, userID int6
 
 	key := dal.NewKeyWithID(models.AppUserKind, userID)
 	user.Data = new(models.AppUserData)
-	user.WithID = record.WithID[int64]{
+	user.WithID = record.WithID[string]{
 		ID:     userID,
 		Key:    key,
 		Record: dal.NewRecordWithData(key, user.Data),
@@ -41,7 +40,7 @@ func (userFacade) GetUserByID(c context.Context, tx dal.ReadSession, userID int6
 	return
 }
 
-func (userFacade) GetUsersByIDs(c context.Context, userIDs []int64) (users []*models.AppUser, err error) {
+func (userFacade) GetUsersByIDs(c context.Context, userIDs []string) (users []*models.AppUser, err error) {
 	//log.Debugf(c, "UserDalGae.GetUsersByIDs(%d)", userIDs)
 	if len(userIDs) == 0 {
 		return
@@ -160,7 +159,7 @@ func (uf userFacade) GetOrCreateEmailUser(
 }
 
 func (uf userFacade) GetOrCreateUserGoogleOnSignIn(
-	c context.Context, googleUser *gae_user.User, appUserID int64, clientInfo models.ClientInfo,
+	c context.Context, googleUser *gae_user.User, appUserID string, clientInfo models.ClientInfo,
 ) (
 	userGoogle models.UserAccount, appUser models.AppUser, err error,
 ) {
@@ -181,7 +180,7 @@ func (uf userFacade) GetOrCreateUserGoogleOnSignIn(
 		data.ClientID = googleUser.ClientID
 		data.FederatedProvider = googleUser.FederatedProvider
 		data.FederatedIdentity = googleUser.FederatedIdentity
-		data.OwnedByUserWithID.AppUserID = strconv.FormatInt(appUserID, 10)
+		data.OwnedByUserWithID.AppUserID = appUserID
 		return &userGoogle, nil
 	}
 
@@ -201,7 +200,7 @@ func (uf userFacade) GetOrCreateUserGoogleOnSignIn(
 func getOrCreateUserAccountRecordOnSignIn(
 	c context.Context,
 	provider string,
-	userID int64,
+	userID string,
 	getUserAccountRecordFromDB func(c context.Context) (user.AccountRecord, error),
 	newUserAccountRecord func(c context.Context) (user.AccountRecord, error),
 	clientInfo models.ClientInfo,
@@ -209,7 +208,6 @@ func getOrCreateUserAccountRecordOnSignIn(
 	appUser models.AppUser, err error,
 ) {
 	log.Debugf(c, "getOrCreateUserAccountRecordOnSignIn(provider=%v, userID=%d)", provider, userID)
-	userStrID := strconv.FormatInt(userID, 10)
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
 		return
@@ -227,7 +225,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 
 		now := time.Now()
 
-		isNewUser := userID == 0
+		isNewUser := userID == ""
 
 		accountData := userAccount.Data()
 
@@ -251,14 +249,10 @@ func getOrCreateUserAccountRecordOnSignIn(
 
 		if err == nil { // User account record found
 			uaRecordUserID := accountData.GetAppUserID()
-			if !isNewUser && uaRecordUserID != strconv.FormatInt(userID, 10) {
-				panic(fmt.Sprintf("Relinking of appUser accounts us not implemented yet => userAccount.GetAppUserIntID():%s != userID:%d", uaRecordUserID, userID))
+			if !isNewUser && uaRecordUserID != userID {
+				panic(fmt.Sprintf("Relinking of appUser accounts us not implemented yet => userAccount.GetAppUserIntID():%s != userID:%s", uaRecordUserID, userID))
 			}
-			var uaRecordUserIntID int64
-			if uaRecordUserIntID, err = strconv.ParseInt(uaRecordUserID, 10, 64); err != nil {
-				return fmt.Errorf("failed to parse uaRecordUserID:%s to int64: %w", uaRecordUserID, err)
-			}
-			if appUser, err = User.GetUserByID(c, tx, uaRecordUserIntID); err != nil {
+			if appUser, err = User.GetUserByID(c, tx, uaRecordUserID); err != nil {
 				if dal.IsNotFound(err) {
 					err = fmt.Errorf("record UserAccount is referencing non existing appUser: %w", err)
 				}
@@ -326,8 +320,8 @@ func getOrCreateUserAccountRecordOnSignIn(
 				return
 			}
 
-			userAccount.(user.BelongsToUserWithIntID).SetAppUserIntID(appUser.ID)
-			userEmail.Data.AppUserIntID = appUser.ID
+			userAccount.(user.BelongsToUserWithIntID).SetAppUserID(appUser.ID)
+			userEmail.Data.AppUserID = appUser.ID
 
 			if err = tx.SetMulti(c, []dal.Record{userAccountRecord, userEmail.Record}); err != nil {
 				return
@@ -335,12 +329,12 @@ func getOrCreateUserAccountRecordOnSignIn(
 			return
 		} else { // UserEmail record found
 			userAccount.(user.BelongsToUserWithIntID).SetAppUserIntID(userEmail.Data.AppUserIntID) // No need to create a new appUser, link to existing
-			if !isNewUser && userEmail.Data.AppUserID != userStrID {
-				panic(fmt.Sprintf("Relinking of appUser accounts us not implemented yet => userEmail.AppUserID:%s != userID:%d", userEmail.Data.AppUserID, userID))
+			if !isNewUser && userEmail.Data.AppUserID != userID {
+				panic(fmt.Sprintf("Relinking of appUser accounts us not implemented yet => userEmail.AppUserID:%s != userID:%s", userEmail.Data.AppUserID, userID))
 			}
 
 			if isNewUser {
-				if appUser, err = User.GetUserByID(c, tx, userEmail.Data.AppUserIntID); err != nil {
+				if appUser, err = User.GetUserByID(c, tx, userEmail.Data.AppUserID); err != nil {
 					if dal.IsNotFound(err) {
 						err = fmt.Errorf("record UserEmail is referencing non existing User: %w", err)
 					}

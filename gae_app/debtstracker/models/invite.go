@@ -57,7 +57,7 @@ type InviteData struct {
 	LastClaimIDs   []int64 `datastore:",noindex"`
 	LastClaimed    time.Time
 	//DtClaimed       time.Time
-	CreatedByUserID int64
+	CreatedByUserID string
 	general.CreatedOn
 
 	Related string

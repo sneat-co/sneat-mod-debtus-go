@@ -10,7 +10,7 @@ import (
 	"github.com/strongo/gotwilio"
 )
 
-const SmsKind = "Sms"
+//const SmsKind = "Sms"
 
 type Sms struct {
 	DtCreated  time.Time
@@ -85,7 +85,7 @@ func NewTwilioSms(smsID string, data *TwilioSmsData) TwilioSms {
 //}
 
 type TwilioSmsData struct {
-	UserID      int64
+	UserID      string
 	DtCreated   time.Time
 	DtUpdated   time.Time
 	DtDelivered time.Time
@@ -107,7 +107,7 @@ type TwilioSmsData struct {
 	CreatorTgSmsStatusMessageID int `datastore:",noindex"`
 }
 
-func NewTwilioSmsFromSmsResponse(userID int64, response *gotwilio.SmsResponse) TwilioSmsData {
+func NewTwilioSmsFromSmsResponse(userID string, response *gotwilio.SmsResponse) TwilioSmsData {
 	entity := TwilioSmsData{
 		UserID:     userID,
 		DtCreated:  time.Now(),

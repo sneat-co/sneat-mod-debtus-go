@@ -1,18 +1,15 @@
 package facade
 
 import (
-	"fmt"
+	"context"
+	"errors"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/strongo/delaying"
-	"strconv"
-
-	"context"
-	"errors"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
+	"github.com/strongo/delaying"
 	"github.com/strongo/log"
 	"github.com/strongo/slices"
 )
@@ -33,11 +30,7 @@ func (groupFacade groupFacade) CreateGroup(c context.Context,
 		return
 	}
 	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
-		var intUserID int64
-		if intUserID, err = strconv.ParseInt(groupEntity.CreatorUserID, 10, 64); err != nil {
-			return err
-		}
-		user, err := User.GetUserByID(c, tx, intUserID)
+		user, err := User.GetUserByID(c, tx, groupEntity.CreatorUserID)
 		if err != nil {
 			return err
 		}
@@ -249,12 +242,12 @@ func (userFacade) UpdateUserWithGroups(c context.Context, tx dal.ReadwriteTransa
 	return
 }
 
-func (userFacade) DelayUpdateContactWithGroups(c context.Context, contactID int64, addGroupIDs, removeGroupIDs []string) error {
+func (userFacade) DelayUpdateContactWithGroups(c context.Context, contactID string, addGroupIDs, removeGroupIDs []string) error {
 	return delayUpdateContactWithGroups.EnqueueWork(c, delaying.With(common.QUEUE_USERS, "update-contact-groups", 0), contactID, addGroupIDs, removeGroupIDs)
 }
 
-func delayedUpdateContactWithGroup(c context.Context, contactID int64, addGroupIDs, removeGroupIDs []string) (err error) {
-	log.Debugf(c, "delayedUpdateContactWithGroup(contactID=%d, addGroupIDs=%v, removeGroupIDs=%v)", contactID, addGroupIDs, removeGroupIDs)
+func delayedUpdateContactWithGroup(c context.Context, contactID string, addGroupIDs, removeGroupIDs []string) (err error) {
+	log.Debugf(c, "delayedUpdateContactWithGroup(contactID=%s, addGroupIDs=%v, removeGroupIDs=%v)", contactID, addGroupIDs, removeGroupIDs)
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
 		return
@@ -271,7 +264,7 @@ func delayedUpdateContactWithGroup(c context.Context, contactID int64, addGroupI
 	return
 }
 
-func (userFacade) UpdateContactWithGroups(c context.Context, contactID int64, addGroupIDs, removeGroupIDs []string) error {
+func (userFacade) UpdateContactWithGroups(c context.Context, contactID string, addGroupIDs, removeGroupIDs []string) error {
 	log.Debugf(c, "UpdateContactWithGroups(contactID=%d, addGroupIDs=%v, removeGroupIDs=%v)", contactID, addGroupIDs, removeGroupIDs)
 	if contact, err := GetContactByID(c, nil, contactID); err != nil {
 		return err
@@ -296,9 +289,7 @@ func (groupFacade) LeaveGroup(c context.Context, groupID string, userID string) 
 	}
 	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 		group.ID = groupID
-		if user.ID, err = strconv.ParseInt(userID, 10, 64); err != nil {
-			return fmt.Errorf("failed to parse userID to int64: %w", err)
-		}
+		user.ID = userID
 		if err = tx.GetMulti(c, []dal.Record{group.Record, user.Record}); err != nil {
 			return
 		}

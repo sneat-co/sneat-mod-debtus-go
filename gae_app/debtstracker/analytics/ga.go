@@ -11,7 +11,6 @@ import (
 	"github.com/strongo/gamp"
 	"github.com/strongo/log"
 	"net/http"
-	"strconv"
 )
 
 const (
@@ -45,7 +44,7 @@ func SendSingleMessage(c context.Context, m gamp.Message) (err error) {
 	return nil
 }
 
-func getGaCommon(r *http.Request, userID int64, userLanguage, platform string) gamp.Common {
+func getGaCommon(r *http.Request, userID string, userLanguage, platform string) gamp.Common {
 	var userAgent string
 	if r != nil {
 		userAgent = r.UserAgent()
@@ -55,7 +54,7 @@ func getGaCommon(r *http.Request, userID int64, userLanguage, platform string) g
 
 	return gamp.Common{
 		TrackingID:    common.GA_TRACKING_ID,
-		UserID:        strconv.FormatInt(userID, 10),
+		UserID:        userID,
 		UserLanguage:  userLanguage,
 		UserAgent:     userAgent,
 		DataSource:    "backend",
@@ -63,7 +62,7 @@ func getGaCommon(r *http.Request, userID int64, userLanguage, platform string) g
 	}
 }
 
-func ReminderSent(c context.Context, userID int64, userLanguage, platform string) {
+func ReminderSent(c context.Context, userID string, userLanguage, platform string) {
 	gaCommon := getGaCommon(nil, userID, userLanguage, platform)
 	if err := SendSingleMessage(c, gamp.NewEvent(EventCategoryReminders, EventActionReminderSent, gaCommon)); err != nil {
 		log.Errorf(c, fmt.Errorf("failed to send even to GA: %w", err).Error())
@@ -75,7 +74,7 @@ func ReceiptSentFromBot(whc botsfw.WebhookContext, channel string) error {
 	return ga.Queue(ga.GaEventWithLabel("receipts", "receipt-sent", channel))
 }
 
-func ReceiptSentFromApi(c context.Context, r *http.Request, userID int64, userLanguage, platform, channel string) {
+func ReceiptSentFromApi(c context.Context, r *http.Request, userID string, userLanguage, platform, channel string) {
 	gaCommon := getGaCommon(r, userID, userLanguage, platform)
 	_ = SendSingleMessage(c, gamp.NewEventWithLabel(
 		"receipts",

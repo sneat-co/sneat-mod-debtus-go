@@ -77,7 +77,7 @@ var newBillCommand = botsfw.Command{
 			Paid: paidAmount,
 		}
 
-		//appUserID := whc.AppUserInt64ID()
+		//appUserID := whc.AppUserID()
 
 		if err = billEntity.SetBillMembers([]models.BillMemberJson{billMember}); err != nil {
 			return

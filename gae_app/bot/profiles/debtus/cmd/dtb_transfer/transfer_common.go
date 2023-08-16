@@ -270,8 +270,8 @@ func CreateAskTransferCounterpartyCommand(
 					if mt == "." {
 						return cancelTransferWizardCommandAction(whc)
 					}
-					var contactIDs []int64
-					if contactIDs, err = dtdal.Contact.GetContactIDsByTitle(c, nil, whc.AppUserInt64ID(), mt, true); err != nil {
+					var contactIDs []string
+					if contactIDs, err = dtdal.Contact.GetContactIDsByTitle(c, nil, whc.AppUserID(), mt, true); err != nil {
 						return m, err
 					}
 					if mt == whc.Translate(trans.COMMAND_TEXT_SHOW_ALL_CONTACTS) {
@@ -282,7 +282,7 @@ func CreateAskTransferCounterpartyCommand(
 						switch len(contactIDs) {
 						case 1:
 							contactID := contactIDs[0]
-							chatEntity.AddWizardParam(WIZARD_PARAM_COUNTERPARTY, strconv.FormatInt(contactID, 10))
+							chatEntity.AddWizardParam(WIZARD_PARAM_COUNTERPARTY, contactID)
 							var contact models.Contact
 							if contact, err = facade.GetContactByID(c, nil, contactID); err != nil {
 								return
@@ -305,7 +305,7 @@ func CreateAskTransferCounterpartyCommand(
 			default:
 				log.Debugf(c, "default:")
 				var user models.AppUser
-				if user, err = facade.User.GetUserByID(c, nil, whc.AppUserInt64ID()); err != nil {
+				if user, err = facade.User.GetUserByID(c, nil, whc.AppUserID()); err != nil {
 					return
 				}
 				if isReturn && user.Data.BalanceCount <= 3 && user.Data.TotalContactsCount() <= 3 {
@@ -373,7 +373,7 @@ func listCounterpartiesAsButtons(whc botsfw.WebhookContext, user models.AppUser,
 	}
 	m.Format = botsfw.MessageFormatHTML
 	if user.Data == nil {
-		if user, err = facade.User.GetUserByID(c, nil, whc.AppUserInt64ID()); err != nil {
+		if user, err = facade.User.GetUserByID(c, nil, whc.AppUserID()); err != nil {
 			return
 		}
 	}
@@ -449,21 +449,16 @@ func NewTransferWizard(whc botsfw.WebhookContext) (TransferWizard, error) {
 	return TransferWizard{params: params}, err
 }
 
-func (w TransferWizard) CounterpartyID(c context.Context) int64 {
+func (w TransferWizard) CounterpartyID(c context.Context) string {
 	s := w.params.Get(WIZARD_PARAM_COUNTERPARTY)
 	if s == "" {
 		s = w.params.Get(WIZARD_PARAM_CONTACT)
 	}
 	if s == "" {
 		log.Debugf(c, "Wizard params: %v", w.params)
-		return 0
-	} else {
-		counterpartyId, err := strconv.ParseInt(s, 10, 64)
-		if err != nil {
-			panic(err.Error())
-		}
-		return counterpartyId
+		return ""
 	}
+	return s
 }
 
 func TransferWizardCompletedCommand(code string) botsfw.Command {
@@ -528,7 +523,7 @@ func TransferWizardCompletedCommand(code string) botsfw.Command {
 			amount := money.Amount{Currency: currency, Value: value}
 
 			creatorInfo := models.TransferCounterpartyInfo{
-				UserID:      whc.AppUserInt64ID(),
+				UserID:      whc.AppUserID(),
 				ContactID:   counterpartyId,
 				ContactName: "",
 			}
@@ -548,7 +543,7 @@ func TransferWizardCompletedCommand(code string) botsfw.Command {
 				}
 			}
 
-			m, err = CreateTransferFromBot(whc, false, 0, direction, creatorInfo, amount, dueOn, transferInterest)
+			m, err = CreateTransferFromBot(whc, false, "", direction, creatorInfo, amount, dueOn, transferInterest)
 			if err != nil {
 				return m, err
 			}
@@ -565,7 +560,7 @@ const TRANSFER_WIZARD_DUE_DATE_FORMAT = "2006-01-02"
 func CreateTransferFromBot(
 	whc botsfw.WebhookContext,
 	isReturn bool,
-	returnToTransferID int,
+	returnToTransferID string,
 	direction models.TransferDirection,
 	creatorInfo models.TransferCounterpartyInfo,
 	amount money.Amount,
@@ -577,7 +572,7 @@ func CreateTransferFromBot(
 ) {
 	c := whc.Context()
 
-	if returnToTransferID != 0 && !isReturn {
+	if returnToTransferID != "" && !isReturn {
 		panic("returnToTransferID != 0 && !isReturn")
 	}
 
@@ -597,7 +592,7 @@ func CreateTransferFromBot(
 	from, to := facade.TransferCounterparties(direction, creatorInfo)
 
 	var appUser models.AppUser
-	if appUser, err = facade.User.GetUserByID(c, nil, whc.AppUserInt64ID()); err != nil {
+	if appUser, err = facade.User.GetUserByID(c, nil, whc.AppUserID()); err != nil {
 		return
 	}
 	newTransfer := facade.NewTransferInput(whc.Environment(),
@@ -690,7 +685,7 @@ func CreateTransferFromBot(
 
 	{
 		utm := common.NewUtmParams(whc, common.UTM_CAMPAIGN_RECEIPT)
-		receiptMessageText := common.TextReceiptForTransfer(c, whc, output.Transfer, whc.AppUserInt64ID(), common.ShowReceiptToAutodetect, utm)
+		receiptMessageText := common.TextReceiptForTransfer(c, whc, output.Transfer, whc.AppUserID(), common.ShowReceiptToAutodetect, utm)
 
 		switch whc.BotPlatform().ID() {
 		case telegram.PlatformID:
@@ -727,10 +722,10 @@ func CreateTransferFromBot(
 	return dtb_general.MainMenuAction(whc, "", false)
 }
 
-func sendReceiptByTelegramButton(transferEncodedID string, translator i18n.SingleLocaleTranslator) tgbotapi.InlineKeyboardButton {
+func sendReceiptByTelegramButton(transferID string, translator i18n.SingleLocaleTranslator) tgbotapi.InlineKeyboardButton {
 	return tgbotapi.NewInlineKeyboardButtonSwitchInlineQuery(
 		translator.Translate(trans.COMMAND_TEXT_SEND_RECEIPT_BY_TELEGRAM),
-		fmt.Sprintf("receipt?id=%v", transferEncodedID),
+		fmt.Sprintf("receipt?id=%s", transferID),
 	)
 }
 
@@ -746,9 +741,9 @@ func createSendReceiptOptionsMessage(whc botsfw.WebhookContext, transfer models.
 		utmCampaign = common.UTM_CAMPAIGN_DEBT_CREATED
 	}
 	utmParams := common.NewUtmParams(whc, utmCampaign)
-	transferUrlForUser := common.GetTransferUrlForUser(transfer.ID, whc.AppUserInt64ID(), whc.Locale(), utmParams)
+	transferUrlForUser := common.GetTransferUrlForUser(transfer.ID, whc.AppUserID(), whc.Locale(), utmParams)
 	mt = strings.Replace(mt, "<a receipt>", fmt.Sprintf(`<a href="%v">`, transferUrlForUser), 1)
-	mt = strings.Replace(mt, "<a counterparty>", fmt.Sprintf(`<a href="%v">`, common.GetCounterpartyUrl(transfer.Data.Counterparty().ContactID, whc.AppUserInt64ID(), whc.Locale(), utmParams)), 1)
+	mt = strings.Replace(mt, "<a counterparty>", fmt.Sprintf(`<a href="%v">`, common.GetCounterpartyUrl(transfer.Data.Counterparty().ContactID, whc.AppUserID(), whc.Locale(), utmParams)), 1)
 
 	if whc.InputType() == botsfw.WebhookInputCallbackQuery {
 		if m, err = whc.NewEditMessage(mt, botsfw.MessageFormatHTML); err != nil {
@@ -759,20 +754,10 @@ func createSendReceiptOptionsMessage(whc botsfw.WebhookContext, transfer models.
 		m.Format = botsfw.MessageFormatHTML
 	}
 
-	transferEncodedID := common.EncodeID(int64(transfer.ID))
-	transferDecodedID, err := common.DecodeID(transferEncodedID)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to decode transferEncodedID:%v that was encoded from %v", transferEncodedID, transfer.ID))
-	}
-	if transferDecodedID != int64(transfer.ID) {
-		panic("transferDecodedID != transferRawID")
-	}
-	log.Debugf(c, "transferID: %v, transferEncodedID: %v", transfer.ID, transferEncodedID)
-
 	m.DisableWebPagePreview = true
 	var telegramKeyboard tgbotapi.InlineKeyboardMarkup
 	var isCounterpartyUserHasTelegram bool
-	if transfer.Data.Creator().ContactID != 0 {
+	if transfer.Data.Creator().ContactID != "" {
 		if user, err := facade.User.GetUserByID(c, nil, transfer.Data.Counterparty().UserID); err != nil {
 			err = fmt.Errorf("failed to get counterparty user by ID=%v: %w", transfer.Data.Counterparty().UserID, err)
 			return m, err
@@ -788,14 +773,14 @@ func createSendReceiptOptionsMessage(whc botsfw.WebhookContext, transfer models.
 		m.Text = emoji.HOURGLASS_ICON + " " + fmt.Sprintf(whc.Translate(trans.MESSAGE_TEXT_RECEIPT_IS_SENDING_BY_TELEGRAM), transfer.Data.Counterparty().ContactName)
 	} else {
 		telegramKeyboard.InlineKeyboard = [][]tgbotapi.InlineKeyboardButton{
-			{sendReceiptByTelegramButton(transferEncodedID, whc)},
+			{sendReceiptByTelegramButton(transfer.ID, whc)},
 		}
 		utmParams := common.UtmParams{
 			Source:   telegram.PlatformID,
 			Medium:   common.UTM_MEDIUM_BOT,
 			Campaign: common.UTM_CAMPAIGN_TRANSFER_SEND_RECEIPT,
 		}
-		transferUrl := common.GetTransferUrlForUser(transfer.ID, whc.AppUserInt64ID(), whc.Locale(), utmParams)
+		transferUrl := common.GetTransferUrlForUser(transfer.ID, whc.AppUserID(), whc.Locale(), utmParams)
 
 		transferUrl += "&send=menu"
 

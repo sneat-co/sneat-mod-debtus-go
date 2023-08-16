@@ -1,9 +1,7 @@
 package splitus
 
 import (
-	"context"
 	"github.com/bots-go-framework/bots-fw/botsfw"
-	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
@@ -20,21 +18,16 @@ var billChangeSplitModeCommand = botsfw.Command{
 		if bill.ID, err = GetBillID(callbackUrl); err != nil {
 			return
 		}
-		if err = whc.Store().RunInTransaction(c, whc.GetBotCode(), func(c context.Context) (err error) {
-			tx := dal.GetTransaction(c).(dal.ReadwriteTransaction)
-			if bill, err = facade.GetBillByID(c, tx, bill.ID); err != nil {
+		tx := whc.Tx()
+		if bill, err = facade.GetBillByID(c, tx, bill.ID); err != nil {
+			return
+		}
+		splitMode := models.SplitMode(callbackUrl.Query().Get("mode"))
+		if bill.Data.SplitMode != splitMode {
+			bill.Data.SplitMode = splitMode
+			if err = dtdal.Bill.SaveBill(c, tx, bill); err != nil {
 				return
 			}
-			splitMode := models.SplitMode(callbackUrl.Query().Get("mode"))
-			if bill.Data.SplitMode != splitMode {
-				bill.Data.SplitMode = splitMode
-				if err = dtdal.Bill.SaveBill(c, tx, bill); err != nil {
-					return
-				}
-			}
-			return
-		}); err != nil {
-			return
 		}
 		return ShowBillCard(whc, true, bill, "")
 	},

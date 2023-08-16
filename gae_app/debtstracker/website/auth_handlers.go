@@ -5,7 +5,6 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"google.golang.org/appengine/v2"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -21,8 +20,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	c := appengine.NewContext(r)
 
 	q := r.URL.Query()
-	userID, err := strconv.ParseInt(q.Get("user"), 10, 64)
-	if err != nil {
+	userID := q.Get("user")
+	if userID == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		log.Infof(c, "Invalid user parameter")
 		return
@@ -41,7 +40,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	expiresAt := time.Unix(expirySeconds, 0)
 
-	expectedSecret := common.SignInt64WithExpiry(c, userID, expiresAt)
+	expectedSecret := common.SignStrWithExpiry(c, userID, expiresAt)
 	if secret != expectedSecret {
 		w.WriteHeader(http.StatusUnauthorized)
 		log.Infof(c, "Invalid secret")

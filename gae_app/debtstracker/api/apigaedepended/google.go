@@ -51,7 +51,7 @@ func handleSigninWithGoogle(c context.Context, w http.ResponseWriter, r *http.Re
 }
 
 func handleSignedWithGoogle(c context.Context, w http.ResponseWriter, r *http.Request) {
-	var userID int64
+	var userID string
 	if authInfo, _, err := auth.Authenticate(w, r, false); err != nil {
 		if err != auth.ErrNoToken {
 			w.WriteHeader(http.StatusInternalServerError)

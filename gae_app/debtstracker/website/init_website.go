@@ -91,7 +91,7 @@ func CreateInvitePage(w http.ResponseWriter, r *http.Request, authInfo auth.Auth
 		}
 		//translator := i18n.NewSingleMapTranslator(i18n.GetLocaleByCode5(i18n.LocaleCodeEnUS), i18n.NewMapTranslator(c, trans.TRANS))
 		ec := strongo.NewExecutionContext(c)
-		if _, err = dtdal.Invite.CreateMassInvite(ec, strconv.FormatInt(userID, 10), inviteCode, int32(maxClaimsCount), "web"); err != nil {
+		if _, err = dtdal.Invite.CreateMassInvite(ec, userID, inviteCode, int32(maxClaimsCount), "web"); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write([]byte(err.Error()))
 			return

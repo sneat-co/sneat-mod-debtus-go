@@ -18,7 +18,7 @@ func NewTwilioDalGae() TwilioDalGae {
 	return TwilioDalGae{}
 }
 
-func (TwilioDalGae) GetLastTwilioSmsesForUser(c context.Context, tx dal.ReadSession, userID int64, to string, limit int) (result []models.TwilioSms, err error) {
+func (TwilioDalGae) GetLastTwilioSmsesForUser(c context.Context, tx dal.ReadSession, userID string, to string, limit int) (result []models.TwilioSms, err error) {
 	q := dal.From(models.TwilioSmsKind).
 		WhereField("UserID", dal.Equal, userID).
 		OrderBy(dal.DescendingField("DtCreated"))
@@ -40,7 +40,7 @@ func (TwilioDalGae) SaveTwilioSms(
 	smsResponse *gotwilio.SmsResponse,
 	transfer models.Transfer,
 	phoneContact models.PhoneContact,
-	userID int64,
+	userID string,
 	tgChatID int64,
 	smsStatusMessageID int,
 ) (twilioSms models.TwilioSms, err error) {

@@ -35,30 +35,27 @@ const ReminderKind = "Reminder"
 
 //var _ datastore.PropertyLoadSaver = (*ReminderEntity)(nil)
 
-type Reminder struct {
-	record.WithID[int]
-	Data *ReminderEntity
-}
+type Reminder = record.DataWithID[string, *ReminderEntity]
 
 //var _ db.EntityHolder = (*Reminder)(nil)
 
-func NewReminder(id int, entity *ReminderEntity) Reminder {
-	return Reminder{WithID: record.WithID[int]{ID: id}, Data: entity}
+func NewReminder(id string, entity *ReminderEntity) Reminder {
+	return record.NewDataWithID(id, nil, entity)
 }
 
 type ReminderEntity struct {
 	ParentReminderID    int  `datastore:",omitempty"`
 	IsAutomatic         bool `datastore:",noindex,omitempty"`
 	IsRescheduled       bool `datastore:",noindex,omitempty"`
-	TransferID          int
+	TransferID          string
 	DtNext              time.Time
 	DtScheduled         time.Time `datastore:",noindex,omitempty"` // DtNext moves here once sent, can be used for stats & troubleshooting
 	Locale              string    `datastore:",noindex"`
-	ClosedByTransferIDs []int     `datastore:",noindex"` // TODO: Why do we need list of IDs here?
+	ClosedByTransferIDs []string  `datastore:",noindex"` // TODO: Why do we need list of IDs here?
 	SentVia             string    `datastore:",omitempty"`
 	Status              string
-	UserID              int64
-	CounterpartyID      int64 // If this field != 0 then r is to a counterparty
+	UserID              string
+	CounterpartyID      string // If this field != 0 then r is to a counterparty
 	DtCreated           time.Time
 	DtUpdated           time.Time `datastore:",noindex,omitempty"`
 	DtSent              time.Time `datastore:",omitempty"`
@@ -107,7 +104,7 @@ func (r *ReminderEntity) Validate() (err error) {
 	if err = validateString("Unknown reminder.Status", r.Status, ReminderStatuses); err != nil {
 		return err
 	}
-	if r.TransferID == 0 {
+	if r.TransferID == "" {
 		return errors.New("reminder.TransferID == 0")
 	}
 	if r.SentVia == "" {
@@ -128,7 +125,7 @@ func (r *ReminderEntity) Validate() (err error) {
 	return nil
 }
 
-func NewReminderViaTelegram(botID string, chatID, userID int64, transferID int, isAutomatic bool, next time.Time) (reminder *ReminderEntity) {
+func NewReminderViaTelegram(botID string, chatID int64, userID, transferID string, isAutomatic bool, next time.Time) (reminder *ReminderEntity) {
 	return &ReminderEntity{
 		Status:      ReminderStatusCreated,
 		SentVia:     telegram.PlatformID,

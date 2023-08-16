@@ -27,11 +27,11 @@ import (
 	"time"
 )
 
-func (UserDalGae) DelaySetUserPreferredLocale(c context.Context, delay time.Duration, userID int64, localeCode5 string) error {
+func (UserDalGae) DelaySetUserPreferredLocale(c context.Context, delay time.Duration, userID string, localeCode5 string) error {
 	return delaySetUserPreferredLocale.EnqueueWork(c, delaying.With(common.QUEUE_USERS, "set-user-preferred-locale", delay), userID, localeCode5)
 }
 
-func delayedSetUserPreferredLocale(c context.Context, userID int64, localeCode5 string) (err error) {
+func delayedSetUserPreferredLocale(c context.Context, userID string, localeCode5 string) (err error) {
 	log.Debugf(c, "delayedSetUserPreferredLocale(userID=%v, localeCode5=%v)", userID, localeCode5)
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
@@ -54,7 +54,7 @@ func delayedSetUserPreferredLocale(c context.Context, userID int64, localeCode5 
 	}, nil)
 }
 
-func (TransferDalGae) DelayUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCode string, transferID int, creatorTgChatID, creatorTgReceiptMessageID int64) error {
+func (TransferDalGae) DelayUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCode string, transferID string, creatorTgChatID, creatorTgReceiptMessageID int64) error {
 	// log.Debugf(c, "delayUpdateTransferWithCreatorReceiptTgMessageID(botCode=%v, transferID=%v, creatorTgChatID=%v, creatorTgReceiptMessageID=%v)", botCode, transferID, creatorTgChatID, creatorTgReceiptMessageID)
 
 	if err := delayUpdateTransferWithCreatorReceiptTgMessageID.EnqueueWork(
@@ -65,7 +65,7 @@ func (TransferDalGae) DelayUpdateTransferWithCreatorReceiptTgMessageID(c context
 	return nil
 }
 
-func delayedUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCode string, transferID int, creatorTgChatID, creatorTgReceiptMessageID int64) (err error) {
+func delayedUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCode string, transferID string, creatorTgChatID, creatorTgReceiptMessageID int64) (err error) {
 	log.Infof(c, "delayedUpdateTransferWithCreatorReceiptTgMessageID(botCode=%v, transferID=%v, creatorTgChatID=%v, creatorReceiptTgMessageID=%v)", botCode, transferID, creatorTgChatID, creatorTgReceiptMessageID)
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
@@ -94,12 +94,12 @@ func delayedUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCo
 	}, nil)
 }
 
-func (ReceiptDalGae) DelayCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongo.Environment, transferID int, userID int64) error {
+func (ReceiptDalGae) DelayCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongo.Environment, transferID string, userID string) error {
 	log.Debugf(c, "delaySendReceiptToCounterpartyByTelegram(env=%v, transferID=%v, userID=%v)", env, transferID, userID)
 	return delayCreateAndSendReceiptToCounterpartyByTelegram.EnqueueWork(c, delaying.With(common.QUEUE_RECEIPTS, "create-and-send-receipt-for-counterparty-by-telegram", 0), env, transferID, userID)
 }
 
-func GetTelegramChatByUserID(c context.Context, userID int64) (entityID string, chat botsfwtgmodels.TgChatData, err error) {
+func GetTelegramChatByUserID(c context.Context, userID string) (entityID string, chat botsfwtgmodels.TgChatData, err error) {
 	tgChatQuery := dal.From(botsfwtgmodels.TgChatCollection).
 		WhereField("AppUserIntID", dal.Equal, userID).
 		OrderBy(dal.DescendingField("DtUpdated")).
@@ -123,19 +123,19 @@ func GetTelegramChatByUserID(c context.Context, userID int64) (entityID string, 
 		chat = &tgChatBase
 		return
 	case 0:
-		err = fmt.Errorf("%w: telegram chat not found by userID=%d:%T", dal.ErrRecordNotFound, userID, userID)
+		err = fmt.Errorf("%w: telegram chat not found by userID=%s:%T", dal.ErrRecordNotFound, userID, userID)
 		return
 	default:
-		err = fmt.Errorf("%w: too many telegram chats found by userID=%d:%T: %d", dal.ErrRecordNotFound, userID, userID, len(tgChatRecords))
+		err = fmt.Errorf("%w: too many telegram chats found by userID=%s:%T: %d", dal.ErrRecordNotFound, userID, userID, len(tgChatRecords))
 		return
 	}
 }
 
-func DelayOnReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transferID int, tgChatID int64, tgMsgID int, tgBotID, locale string) error {
-	if receiptID == 0 {
+func DelayOnReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transferID string, tgChatID int64, tgMsgID int, tgBotID, locale string) error {
+	if receiptID == "" {
 		return errors.New("receiptID == 0")
 	}
-	if transferID == 0 {
+	if transferID == "" {
 		return errors.New("transferID == 0")
 	}
 	if err := delayedOnReceiptSentSuccess.EnqueueWork(c, delaying.With(common.QUEUE_RECEIPTS, "on-receipt-sent-success", 0), sentAt, receiptID, transferID, tgChatID, tgMsgID, tgBotID, locale); err != nil {
@@ -145,8 +145,8 @@ func DelayOnReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, t
 	return nil
 }
 
-func DelayOnReceiptSendFail(c context.Context, receiptID int, tgChatID int64, tgMsgID int, failedAt time.Time, locale, details string) error {
-	if receiptID == 0 {
+func DelayOnReceiptSendFail(c context.Context, receiptID string, tgChatID int64, tgMsgID int, failedAt time.Time, locale, details string) error {
+	if receiptID == "" {
 		return errors.New("receiptID == 0")
 	}
 	if failedAt.IsZero() {
@@ -159,14 +159,14 @@ func DelayOnReceiptSendFail(c context.Context, receiptID int, tgChatID int64, tg
 	return nil
 }
 
-func onReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transferID int, tgChatID int64, tgMsgID int, tgBotID, locale string) (err error) {
+func onReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transferID string, tgChatID int64, tgMsgID int, tgBotID, locale string) (err error) {
 	log.Debugf(c, "onReceiptSentSuccess(sentAt=%v, receiptID=%v, transferID=%v, tgChatID=%v, tgMsgID=%v tgBotID=%v, locale=%v)", sentAt, receiptID, transferID, tgChatID, tgMsgID, tgBotID, locale)
-	if receiptID == 0 {
+	if receiptID == "" {
 		log.Errorf(c, "receiptID == 0")
 		return
 
 	}
-	if transferID == 0 {
+	if transferID == "" {
 		log.Errorf(c, "transferID == 0")
 		return
 	}
@@ -246,9 +246,9 @@ func onReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transf
 	return
 }
 
-func onReceiptSendFail(c context.Context, receiptID int, tgChatID int64, tgMsgID int, failedAt time.Time, locale, details string) (err error) {
+func onReceiptSendFail(c context.Context, receiptID string, tgChatID int64, tgMsgID int, failedAt time.Time, locale, details string) (err error) {
 	log.Debugf(c, "onReceiptSendFail(receiptID=%v, failedAt=%v)", receiptID, failedAt)
-	if receiptID == 0 {
+	if receiptID == "" {
 		return errors.New("receiptID == 0")
 	}
 	var receipt models.Receipt
@@ -344,7 +344,7 @@ func delaySendReceiptToCounterpartyByTelegram(c context.Context, receiptID int, 
 	return delayedSendReceiptToCounterpartyByTelegram.EnqueueWork(c, delaying.With(common.QUEUE_RECEIPTS, "send-receipt-to-counterparty-by-telegram", time.Second/10), receiptID, tgChatID, localeCode)
 }
 
-func updateReceiptStatus(c context.Context, tx dal.ReadwriteTransaction, receiptID int, expectedCurrentStatus, newStatus string) (receipt models.Receipt, err error) {
+func updateReceiptStatus(c context.Context, tx dal.ReadwriteTransaction, receiptID string, expectedCurrentStatus, newStatus string) (receipt models.Receipt, err error) {
 
 	if err = func() (err error) {
 		if receipt, err = dtdal.Receipt.GetReceiptByID(c, tx, receiptID); err != nil {
@@ -364,7 +364,7 @@ func updateReceiptStatus(c context.Context, tx dal.ReadwriteTransaction, receipt
 	return
 }
 
-func sendReceiptToCounterpartyByTelegram(c context.Context, receiptID int, tgChatID int64, localeCode string) (err error) {
+func sendReceiptToCounterpartyByTelegram(c context.Context, receiptID string, tgChatID int64, localeCode string) (err error) {
 	log.Debugf(c, "delayedSendReceiptToCounterpartyByTelegram(receiptID=%v, tgChatID=%v, localeCode=%v)", receiptID, tgChatID, localeCode)
 
 	var db dal.Database
@@ -502,7 +502,7 @@ func sendReceiptToTelegramChat(c context.Context, receipt models.Receipt, transf
 	log.Debugf(c, "Message: %v", messageText)
 
 	btnViewReceiptText := emoji.CLIPBOARD_ICON + " " + translator.Translate(trans.BUTTON_TEXT_SEE_RECEIPT_DETAILS)
-	btnViewReceiptData := fmt.Sprintf("view-receipt?id=%v", common.EncodeID(int64(receipt.ID))) // TODO: Pass simple digits!
+	btnViewReceiptData := fmt.Sprintf("view-receipt?id=%s", receipt.ID) // TODO: Pass simple digits!
 	tgMessage := tgbotapi.MessageConfig{
 		BaseChat: tgbotapi.BaseChat{
 			ChatID: tgChat.Data.TelegramUserID,
@@ -540,13 +540,13 @@ func sendReceiptToTelegramChat(c context.Context, receipt models.Receipt, transf
 	return
 }
 
-func delayedCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongo.Environment, transferID int, toUserID int64) error {
+func delayedCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongo.Environment, transferID string, toUserID string) error {
 	log.Debugf(c, "delayCreateAndSendReceiptToCounterpartyByTelegram(transferID=%v, toUserID=%v)", transferID, toUserID)
-	if transferID == 0 {
+	if transferID == "" {
 		log.Errorf(c, "transferID == 0")
 		return nil
 	}
-	if toUserID == 0 {
+	if toUserID == "" {
 		log.Errorf(c, "toUserID == 0")
 		return nil
 	}
@@ -593,7 +593,7 @@ func delayedCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env 
 		locale := translator.Locale()
 
 		var receiptID int
-		receipt := models.NewReceipt(0, models.NewReceiptEntity(transfer.Data.CreatorUserID, transferID, transfer.Data.Counterparty().UserID, locale.Code5, telegram.PlatformID, strconv.FormatInt(tgChat.BaseTgChatData().TelegramUserID, 10), general.CreatedOn{
+		receipt := models.NewReceipt("", models.NewReceiptEntity(transfer.Data.CreatorUserID, transferID, transfer.Data.Counterparty().UserID, locale.Code5, telegram.PlatformID, strconv.FormatInt(tgChat.BaseTgChatData().TelegramUserID, 10), general.CreatedOn{
 			CreatedOnID:       transfer.Data.Creator().TgBotID, // TODO: Replace with method call.
 			CreatedOnPlatform: transfer.Data.CreatedOnPlatform,
 		}))
@@ -617,16 +617,16 @@ func delayedCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env 
 	return nil
 }
 
-func (UserDalGae) DelayUpdateUserHasDueTransfers(c context.Context, userID int64) error {
-	if userID == 0 {
+func (UserDalGae) DelayUpdateUserHasDueTransfers(c context.Context, userID string) error {
+	if userID == "" {
 		panic("userID == 0")
 	}
 	return delayUpdateUserHasDueTransfers.EnqueueWork(c, delaying.With(common.QUEUE_USERS, "update-user-has-due-transfers", 0), userID)
 }
 
-func delayedUpdateUserHasDueTransfers(c context.Context, userID int64) (err error) {
+func delayedUpdateUserHasDueTransfers(c context.Context, userID string) (err error) {
 	log.Debugf(c, "delayUpdateUserHasDueTransfers(userID=%v)", userID)
-	if userID == 0 {
+	if userID == "" {
 		log.Errorf(c, "userID == 0")
 		return nil
 	}

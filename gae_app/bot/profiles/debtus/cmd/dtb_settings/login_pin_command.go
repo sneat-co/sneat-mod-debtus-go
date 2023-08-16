@@ -52,7 +52,7 @@ var LoginPinCommand = botsfw.Command{
 		}
 		c := whc.Context()
 		//goland:noinspection GoDeprecation
-		if pinCode, err := facade.AuthFacade.AssignPinCode(c, loginID, whc.AppUserInt64ID()); err != nil {
+		if pinCode, err := facade.AuthFacade.AssignPinCode(c, loginID, whc.AppUserID()); err != nil {
 			return m, err
 		} else {
 			return whc.NewMessage(fmt.Sprintf("Login PIN code: %v", pinCode)), nil

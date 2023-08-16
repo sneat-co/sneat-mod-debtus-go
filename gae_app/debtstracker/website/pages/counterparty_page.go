@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/strongo/log"
 	"golang.org/x/net/html"
@@ -15,11 +14,10 @@ import (
 func CounterpartyPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	c := appengine.NewContext(r)
 	log.Infof(c, "CounterpartyPage: %v", r.Method)
-	encodedCounterpartyID := r.URL.Query().Get("id")
-	counterpartyID, err := common.DecodeID(encodedCounterpartyID)
-	if err != nil {
+	counterpartyID := r.URL.Query().Get("id")
+	if counterpartyID == "" {
 		w.WriteHeader(404)
-		_, _ = w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte("missing required parameter: id"))
 		return
 	}
 
@@ -47,5 +45,5 @@ func CounterpartyPage(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 	<small style="color:grey">2016 &copy; Powered by <a href="https://golang.org/" target="_blank">Go lang</a> & <a href="https://cloud.google.com/appengine/" target="_blank">AppEngine</a></small>
 	</footer>
 	%v
-	</body></html>`, html.EscapeString(counterparty.Data.FullName()), encodedCounterpartyID, html.EscapeString(counterparty.Data.FullName()), html.EscapeString(counterparty.Data.FullName()), GA_CODE)))
+	</body></html>`, html.EscapeString(counterparty.Data.FullName()), counterpartyID, html.EscapeString(counterparty.Data.FullName()), html.EscapeString(counterparty.Data.FullName()), GA_CODE)))
 }

@@ -2,7 +2,6 @@ package shared_group
 
 import (
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
-	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
@@ -138,8 +137,7 @@ func createGroupFromTelegram(c context.Context, whc botsfw.WebhookContext, tx da
 
 		_ = user.Data.AddGroup(group, whc.GetBotCode())
 		chatData.UserGroupID = group.ID // TODO: !!! has to be updated in transaction!!!
-		chatKey := botsfwmodels.NewChatKey(whc.GetBotCode(), whc.MustBotChatID())
-		if err = whc.Store().SaveBotChatData(c, chatKey, chatData); err != nil {
+		if err = whc.SaveBotChat(c); err != nil {
 			return
 		}
 		return

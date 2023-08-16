@@ -47,12 +47,8 @@ func (InviteDalGae) ClaimInvite(c context.Context, userID string, inviteCode, cl
 		log.Debugf(c, "Invite found")
 		// TODO: Check invite.For
 		//invite.ClaimedCount += 1
-		var userIntID int64
-		if userIntID, err = strconv.ParseInt(userID, 10, 64); err != nil {
-			return fmt.Errorf("failed to parse userID as int: %w", err)
-		}
-		inviteClaim := models.NewInviteClaimWithoutID(models.NewInviteClaimData(inviteCode, userIntID, claimedOn, claimedVia))
-		user := models.NewAppUser(userIntID, nil)
+		inviteClaim := models.NewInviteClaimWithoutID(models.NewInviteClaimData(inviteCode, userID, claimedOn, claimedVia))
+		user := models.NewAppUser(userID, nil)
 		if err = tx.Get(tc, user.Record); err != nil {
 			return err
 		}
@@ -97,10 +93,6 @@ func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, use
 	c := ec.Context()
 
 	dtCreated := time.Now()
-	var userIntID int64
-	if userIntID, err = strconv.ParseInt(userID, 10, 64); err != nil {
-		return invite, fmt.Errorf("failed to parse userID as int: %w", err)
-	}
 	invite = models.NewInvite(inviteCode, &models.InviteData{
 		Type:    string(inviteType),
 		Channel: string(inviteBy),
@@ -109,7 +101,7 @@ func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, use
 			CreatedOnID:       createdOnID,
 		},
 		DtCreated:       dtCreated,
-		CreatedByUserID: userIntID,
+		CreatedByUserID: userID,
 		Related:         related,
 		MaxClaimsCount:  maxClaimsCount,
 		DtActiveFrom:    dtCreated,
@@ -175,14 +167,9 @@ func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, invite mo
 		return fmt.Errorf("failed to create database: %w", err)
 	}
 
-	var claimedByUserIntID int64
-	if claimedByUserIntID, err = strconv.ParseInt(claimedByUserID, 10, 64); err != nil {
-		return fmt.Errorf("failed to parse claimedByUserID as int: %w", err)
-	}
-
 	err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) error {
 		//userKey := models.NewAppUserKey(claimedByUserID)
-		user := models.NewAppUser(claimedByUserIntID, nil)
+		user := models.NewAppUser(claimedByUserID, nil)
 		if err = tx.GetMulti(tc, []dal.Record{invite.Record, user.Record}); err != nil {
 			return err
 		}
@@ -191,7 +178,7 @@ func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, invite mo
 		if invite.Data.MaxClaimsCount > 0 && invite.Data.ClaimedCount > invite.Data.MaxClaimsCount {
 			return fmt.Errorf("invite.ClaimedCount > invite.MaxClaimsCount: %v > %v", invite.Data.ClaimedCount, invite.Data.MaxClaimsCount)
 		}
-		inviteClaimData := models.NewInviteClaimData(inviteCode, claimedByUserIntID, claimedOn, claimedVia)
+		inviteClaimData := models.NewInviteClaimData(inviteCode, claimedByUserID, claimedOn, claimedVia)
 		inviteClaim := models.NewInviteClaim(0, inviteClaimData)
 		if err = tx.Insert(c, inviteClaim.Record); err != nil {
 			return err
@@ -225,7 +212,7 @@ func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, invite mo
 					return fmt.Errorf("ailed to get invite creator user: %w", err)
 				}
 
-				counterparty := models.NewContact(0, models.NewContactEntity(claimedByUserIntID, models.ContactDetails{
+				counterparty := models.NewContact("", models.NewContactEntity(claimedByUserID, models.ContactDetails{
 					FirstName:    inviteCreator.Data.FirstName,
 					LastName:     inviteCreator.Data.LastName,
 					Username:     inviteCreator.Data.Username,

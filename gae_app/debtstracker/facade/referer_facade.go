@@ -28,7 +28,7 @@ const lastTgReferrers = "lastTgReferrers"
 
 //var errAlreadyReferred = errors.New("already referred")
 
-func setUserReferrer(c context.Context, userID int64, referredBy string) (err error) {
+func setUserReferrer(c context.Context, userID string, referredBy string) (err error) {
 	userChanged := false
 	var db dal.Database
 	if db, err = GetDatabase(c); err != nil {
@@ -56,13 +56,13 @@ func setUserReferrer(c context.Context, userID int64, referredBy string) (err er
 	return nil
 }
 
-func delaySetUserReferrer(c context.Context, userID int64, referredBy string) (err error) {
+func delaySetUserReferrer(c context.Context, userID string, referredBy string) (err error) {
 	return delayedSetUserReferrer.EnqueueWork(c, delaying.With(common.QUEUE_USERS, "set-user-referrer", time.Second/2), userID, referredBy)
 }
 
 var topReferralsCacheTime = time.Hour
 
-func (f refererFacade) AddTelegramReferrer(c context.Context, userID int64, tgUsername, botID string) {
+func (f refererFacade) AddTelegramReferrer(c context.Context, userID string, tgUsername, botID string) {
 	tgUsername = strings.ToLower(tgUsername)
 	now := time.Now()
 	go func() {

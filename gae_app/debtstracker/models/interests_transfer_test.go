@@ -34,7 +34,7 @@ func assertOutstandingValue(t *testing.T, transfer interface {
 
 func TestTransferEntity_GetInterestValue(t *testing.T) {
 	now := time.Now()
-	transfer := NewTransfer(111, &TransferData{
+	transfer := NewTransfer("111", &TransferData{
 		DtCreated:        now,
 		IsOutstanding:    true,
 		AmountInCents:    1000,
@@ -45,7 +45,7 @@ func TestTransferEntity_GetInterestValue(t *testing.T) {
 		return
 	}
 
-	if err := transfer.Data.AddReturn(TransferReturnJson{TransferID: 123, Time: now, Amount: 1030}); err != nil {
+	if err := transfer.Data.AddReturn(TransferReturnJson{TransferID: "123", Time: now, Amount: 1030}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -54,13 +54,13 @@ func TestTransferEntity_GetInterestValue(t *testing.T) {
 	}
 
 	if transfer.Data.IsOutstanding {
-		t.Error("Transfer should be NOT outstaning")
+		t.Error("Transfer should be NOT outstanding")
 	}
 }
 
 func TestTransferEntityGetOutstandingValue(t *testing.T) {
 	now := time.Now()
-	transfer := NewTransfer(111, &TransferData{
+	transfer := NewTransfer("111", &TransferData{
 		IsOutstanding:    true,
 		DtCreated:        now.Add(-3*day + time.Hour),
 		AmountInCents:    decimal.NewDecimal64p2(100, 0),
@@ -71,7 +71,7 @@ func TestTransferEntityGetOutstandingValue(t *testing.T) {
 		return
 	}
 
-	if err := transfer.Data.AddReturn(TransferReturnJson{TransferID: 123, Time: transfer.Data.DtCreated.Add(23 * time.Hour), Amount: 3100}); err != nil {
+	if err := transfer.Data.AddReturn(TransferReturnJson{TransferID: "123", Time: transfer.Data.DtCreated.Add(23 * time.Hour), Amount: 3100}); err != nil {
 		t.Fatal(err)
 	}
 	if !transfer.Data.IsOutstanding {
@@ -81,7 +81,7 @@ func TestTransferEntityGetOutstandingValue(t *testing.T) {
 	if !assertOutstandingValue(t, transfer.Data, now, 7140) {
 		return
 	}
-	if err := transfer.Data.AddReturn(TransferReturnJson{TransferID: 124, Time: now, Amount: 7140}); err != nil {
+	if err := transfer.Data.AddReturn(TransferReturnJson{TransferID: "124", Time: now, Amount: 7140}); err != nil {
 		t.Fatal(err)
 	}
 	if transfer.Data.IsOutstanding {
@@ -98,7 +98,7 @@ func TestUserContactJson_BalanceWithInterest(t *testing.T) {
 		Transfers: &UserContactTransfersInfo{
 			OutstandingWithInterest: []TransferWithInterestJson{
 				{
-					TransferID:       1,
+					TransferID:       "1",
 					Currency:         "EUR",
 					Amount:           decimal.NewDecimal64p2(100, 0),
 					Starts:           now.Add(-3 * day),

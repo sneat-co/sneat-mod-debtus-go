@@ -29,23 +29,23 @@ func (mock *TransferDalMock) GetTransfersByID(c context.Context, transferIDs []i
 	panic("not implemented yet")
 }
 
-func (mock *TransferDalMock) LoadTransfersByUserID(c context.Context, userID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error) {
+func (mock *TransferDalMock) LoadTransfersByUserID(c context.Context, userID string, offset, limit int) (transfers []models.Transfer, hasMore bool, err error) {
 	panic(NOT_IMPLEMENTED_YET)
 }
 
-func (mock *TransferDalMock) LoadTransferIDsByContactID(c context.Context, contactID int64, limit int, startCursor string) (transferIDs []int, endCursor string, err error) {
+func (mock *TransferDalMock) LoadTransferIDsByContactID(c context.Context, contactID string, limit int, startCursor string) (transferIDs []int, endCursor string, err error) {
 	panic(NOT_IMPLEMENTED_YET)
 }
 
-func (mock *TransferDalMock) LoadTransfersByContactID(c context.Context, contactID int64, offset, limit int) (transfers []models.Transfer, hasMore bool, err error) {
+func (mock *TransferDalMock) LoadTransfersByContactID(c context.Context, contactID string, offset, limit int) (transfers []models.Transfer, hasMore bool, err error) {
 	panic(NOT_IMPLEMENTED_YET)
 }
 
-func (mock *TransferDalMock) LoadOverdueTransfers(c context.Context, userID int64, limit int) (transfers []models.Transfer, err error) {
+func (mock *TransferDalMock) LoadOverdueTransfers(c context.Context, userID string, limit int) (transfers []models.Transfer, err error) {
 	panic(NOT_IMPLEMENTED_YET)
 }
 
-func (mock *TransferDalMock) LoadOutstandingTransfers(c context.Context, periodEnds time.Time, userID, contactID int64, currency money.CurrencyCode, direction models.TransferDirection) (transfers []models.Transfer, err error) {
+func (mock *TransferDalMock) LoadOutstandingTransfers(c context.Context, periodEnds time.Time, userID, contactID string, currency money.CurrencyCode, direction models.TransferDirection) (transfers []models.Transfer, err error) {
 	panic("not implemented yet")
 	//for _, entity := range mock.mockDB.EntitiesByKind[models.TransferKind] {
 	//	t := entity.(*models.Transfer)
@@ -56,7 +56,7 @@ func (mock *TransferDalMock) LoadOutstandingTransfers(c context.Context, periodE
 	//return
 }
 
-func (mock *TransferDalMock) LoadDueTransfers(c context.Context, userID int64, limit int) (transfers []models.Transfer, err error) {
+func (mock *TransferDalMock) LoadDueTransfers(c context.Context, userID string, limit int) (transfers []models.Transfer, err error) {
 	panic(NOT_IMPLEMENTED_YET)
 }
 
@@ -68,6 +68,6 @@ func (mock *TransferDalMock) DelayUpdateTransferWithCreatorReceiptTgMessageID(c 
 	panic(NOT_IMPLEMENTED_YET)
 }
 
-func (mock *TransferDalMock) DelayUpdateTransfersWithCounterparty(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID int64) error {
+func (mock *TransferDalMock) DelayUpdateTransfersWithCounterparty(c context.Context, creatorCounterpartyID, counterpartyCounterpartyID string) error {
 	panic(NOT_IMPLEMENTED_YET)
 }

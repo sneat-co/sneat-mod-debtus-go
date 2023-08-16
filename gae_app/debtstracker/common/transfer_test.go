@@ -14,7 +14,7 @@ func TestGetTransferUrlForUser(t *testing.T) {
 		utm         UtmParams
 	)
 	{
-		transferUrl = GetTransferUrlForUser(123, 0, i18n.LocaleRuRu, utm)
+		transferUrl = GetTransferUrlForUser("123", "", i18n.LocaleRuRu, utm)
 
 		re = regexp.MustCompile(`^https://(\w+\.\w+)/transfer\?id=\d+&lang=ru`)
 		if !re.MatchString(transferUrl) {
@@ -31,7 +31,7 @@ func TestGetTransferUrlForUser(t *testing.T) {
 	}
 
 	{
-		transferUrl = GetTransferUrlForUser(123, 0, i18n.LocaleRuRu, utm)
+		transferUrl = GetTransferUrlForUser("123", "", i18n.LocaleRuRu, utm)
 
 		re = regexp.MustCompile(`^https://(\w+\.\w+)/transfer\?id=\d+&lang=ru&utm=S1;M1;C1`)
 		if !re.MatchString(transferUrl) {
@@ -42,7 +42,7 @@ func TestGetTransferUrlForUser(t *testing.T) {
 	}
 
 	{
-		transferUrl = GetTransferUrlForUser(123, 234, i18n.LocaleRuRu, utm)
+		transferUrl = GetTransferUrlForUser("123", "234", i18n.LocaleRuRu, utm)
 
 		re = regexp.MustCompile(`^https://(\w+\.\w+)/transfer\?id=\d+&lang=ru&utm=S1;M1;C1&secret=[\-\.\w]+$`)
 		if !re.MatchString(transferUrl) {

@@ -171,7 +171,7 @@ const (
 //		}
 //	}
 //	if params.showBalanceAndHistory {
-//		userID := whc.AppUserInt64ID()
+//		userID := whc.AppUserID()
 //		locale := whc.Locale()
 //		balanceUrl := common.GetBalanceUrlForUser(userID, locale, whc.BotPlatform().ID(), whc.GetBotCode())
 //		historyUrl := common.GetHistoryUrlForUser(userID, locale, whc.BotPlatform().ID(), whc.GetBotCode())

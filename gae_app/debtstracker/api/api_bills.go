@@ -1,20 +1,18 @@
 package api
 
 import (
-	"fmt"
-	"github.com/dal-go/dalgo/dal"
-	"net/http"
-	"strconv"
-
 	"context"
 	"errors"
+	"fmt"
 	"github.com/crediterra/money"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/api/dto"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/auth"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 	"github.com/strongo/decimal"
+	"net/http"
 )
 
 func handleGetBill(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
@@ -63,7 +61,7 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 	billEntity := models.NewBillEntity(models.BillCommon{
 		Status:        models.BillStatusDraft,
 		SplitMode:     splitMode,
-		CreatorUserID: strconv.FormatInt(authInfo.UserID, 10),
+		CreatorUserID: authInfo.UserID,
 		Name:          r.PostFormValue("name"),
 		Currency:      money.CurrencyCode(r.PostFormValue("currency")),
 		AmountTotal:   amount,
@@ -73,8 +71,8 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 		totalByMembers decimal.Decimal64p2
 	)
 
-	contactIDs := make([]int64, 0, len(members))
-	memberUserIDs := make([]int64, 0, len(members))
+	contactIDs := make([]string, 0, len(members))
+	memberUserIDs := make([]string, 0, len(members))
 
 	for i, member := range members {
 		if member.ContactID == "" && member.UserID == "" {
@@ -82,20 +80,10 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 			return
 		}
 		if member.ContactID != "" {
-			contactID, err := strconv.ParseInt(member.ContactID, 10, 64)
-			if err != nil {
-				BadRequestError(c, w, fmt.Errorf("%w: ContactID is not an integer", err))
-				return
-			}
-			contactIDs = append(contactIDs, contactID)
+			contactIDs = append(contactIDs, member.ContactID)
 		}
 		if member.UserID != "" {
-			memberUserID, err := strconv.ParseInt(member.UserID, 10, 64)
-			if err != nil {
-				BadRequestError(c, w, fmt.Errorf("%w: memberUserID is not an integer", err))
-				return
-			}
-			memberUserIDs = append(memberUserIDs, memberUserID)
+			memberUserIDs = append(memberUserIDs, member.UserID)
 		}
 	}
 
@@ -133,10 +121,10 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 		}
 		if member.ContactID != "" {
 			for _, contact := range contacts {
-				if strconv.FormatInt(contact.ID, 10) == member.ContactID {
+				if contact.ID == member.ContactID {
 					contactName := contact.Data.FullName()
 					billMembers[i].ContactByUser = models.MemberContactsJsonByUser{
-						strconv.FormatInt(contact.Data.UserID, 10): models.MemberContactJson{
+						contact.Data.UserID: models.MemberContactJson{
 							ContactID:   member.ContactID,
 							ContactName: contactName,
 						},
@@ -153,7 +141,7 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 		}
 		if member.UserID != "" {
 			for _, u := range memberUsers {
-				if strconv.FormatInt(u.ID, 10) == member.UserID {
+				if u.ID == member.UserID {
 					billMembers[i].Name = u.Data.FullName()
 					break
 				}
@@ -191,8 +179,8 @@ func handleCreateBill(c context.Context, w http.ResponseWriter, r *http.Request,
 	billToResponse(c, w, authInfo.UserID, bill)
 }
 
-func billToResponse(c context.Context, w http.ResponseWriter, userID int64, bill models.Bill) {
-	if userID == 0 {
+func billToResponse(c context.Context, w http.ResponseWriter, userID string, bill models.Bill) {
+	if userID == "" {
 		InternalError(c, w, errors.New("Required parameter userID == 0."))
 		return
 	}
@@ -214,11 +202,10 @@ func billToResponse(c context.Context, w http.ResponseWriter, userID int64, bill
 	}
 	billMembers := bill.Data.GetBillMembers()
 	members := make([]dto.BillMemberDto, len(billMembers))
-	sUserID := strconv.FormatInt(userID, 10)
 	for i, billMember := range billMembers {
 		members[i] = dto.BillMemberDto{
 			UserID:     billMember.UserID,
-			ContactID:  billMember.ContactByUser[sUserID].ContactID,
+			ContactID:  billMember.ContactByUser[userID].ContactID,
 			Amount:     billMember.Owes,
 			Adjustment: billMember.Adjustment,
 			Share:      billMember.Shares,

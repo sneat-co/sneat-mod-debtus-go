@@ -13,16 +13,16 @@ import (
 	"github.com/strongo/log"
 )
 
-func (TransferDalGae) DelayUpdateTransfersOnReturn(c context.Context, returnTransferID int, transferReturnsUpdate []dtdal.TransferReturnUpdate) (err error) {
+func (TransferDalGae) DelayUpdateTransfersOnReturn(c context.Context, returnTransferID string, transferReturnsUpdate []dtdal.TransferReturnUpdate) (err error) {
 	log.Debugf(c, "DelayUpdateTransfersOnReturn(returnTransferID=%v, transferReturnsUpdate=%v)", returnTransferID, transferReturnsUpdate)
-	if returnTransferID == 0 {
+	if returnTransferID == "" {
 		panic("returnTransferID == 0")
 	}
 	if len(transferReturnsUpdate) == 0 {
 		panic("len(transferReturnsUpdate) == 0")
 	}
 	for i, transferReturnUpdate := range transferReturnsUpdate {
-		if transferReturnUpdate.TransferID == 0 {
+		if transferReturnUpdate.TransferID == "" {
 			panic(fmt.Sprintf("transferReturnsUpdates[%d].TransferID == 0", i))
 		}
 		if transferReturnUpdate.ReturnedAmount <= 0 {
@@ -32,10 +32,10 @@ func (TransferDalGae) DelayUpdateTransfersOnReturn(c context.Context, returnTran
 	return delayUpdateTransfersOnReturn.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, "update-transfers-on-return", 0), returnTransferID, transferReturnsUpdate)
 }
 
-func updateTransfersOnReturn(c context.Context, returnTransferID int, transferReturnsUpdate []dtdal.TransferReturnUpdate) (err error) {
+func updateTransfersOnReturn(c context.Context, returnTransferID string, transferReturnsUpdate []dtdal.TransferReturnUpdate) (err error) {
 	log.Debugf(c, "updateTransfersOnReturn(returnTransferID=%v, transferReturnsUpdate=%+v)", returnTransferID, transferReturnsUpdate)
 	for i, transferReturnUpdate := range transferReturnsUpdate {
-		if transferReturnUpdate.TransferID == 0 {
+		if transferReturnUpdate.TransferID == "" {
 			panic(fmt.Sprintf("transferReturnsUpdates[%d].TransferID == 0", i))
 		}
 		if transferReturnUpdate.ReturnedAmount <= 0 {
@@ -48,11 +48,11 @@ func updateTransfersOnReturn(c context.Context, returnTransferID int, transferRe
 	return
 }
 
-func DelayUpdateTransferOnReturn(c context.Context, returnTransferID, transferID int, returnedAmount decimal.Decimal64p2) error {
+func DelayUpdateTransferOnReturn(c context.Context, returnTransferID, transferID string, returnedAmount decimal.Decimal64p2) error {
 	return delayUpdateTransferOnReturn.EnqueueWork(c, delaying.With(common.QUEUE_TRANSFERS, "update-transfer-on-return", 0), returnTransferID, transferID, returnedAmount)
 }
 
-func updateTransferOnReturn(c context.Context, returnTransferID, transferID int, returnedAmount decimal.Decimal64p2) (err error) {
+func updateTransferOnReturn(c context.Context, returnTransferID, transferID string, returnedAmount decimal.Decimal64p2) (err error) {
 	log.Debugf(c, "updateTransferOnReturn(returnTransferID=%v, transferID=%v, returnedAmount=%v)", returnTransferID, transferID, returnedAmount)
 
 	var transfer, returnTransfer models.Transfer
@@ -91,12 +91,12 @@ func updateTransferOnReturn(c context.Context, returnTransferID, transferID int,
 }
 
 func removeFromOutstandingWithInterest(c context.Context, tx dal.ReadwriteTransaction, transfer models.Transfer) (err error) {
-	removeFromOutstanding := func(userID, contactID int64) (err error) {
-		if userID == 0 && contactID == 0 {
+	removeFromOutstanding := func(userID, contactID string) (err error) {
+		if userID == "" && contactID == "" {
 			return
-		} else if userID == 0 {
+		} else if userID == "" {
 			panic("removeFromOutstandingWithInterest(): userID == 0")
-		} else if contactID == 0 {
+		} else if contactID == "" {
 			panic("removeFromOutstandingWithInterest(): contactID == 0")
 		}
 		removeFromUser := func() (err error) {

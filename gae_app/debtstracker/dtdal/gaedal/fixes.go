@@ -78,7 +78,7 @@ func (f *TransferFixer) FixAllIfNeeded(c context.Context) (err error) {
 		}
 
 		err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) error {
-			transfer, err := facade.Transfers.GetTransferByID(tc, tx, f.transferKey.ID.(int))
+			transfer, err := facade.Transfers.GetTransferByID(tc, tx, f.transferKey.ID.(string))
 			if err != nil {
 				return err
 			}

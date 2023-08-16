@@ -25,15 +25,12 @@ var ViewReceiptInTelegramCallbackCommand = botsfw.NewCallbackCommand(
 		log.Debugf(c, "ViewReceiptInTelegramCallbackCommand.CallbackAction()")
 		query := callbackUrl.Query()
 
-		var receiptID int
-		if receiptID, err = common.DecodeIntID(query.Get("id")); err != nil {
-			return m, err
-		}
+		receiptID := query.Get("id")
 		receipt, err := dtdal.Receipt.GetReceiptByID(c, nil, receiptID)
 		if err != nil {
 			return m, err
 		}
-		currentUserID := whc.AppUserInt64ID()
+		currentUserID := whc.AppUserID()
 		if receipt.Data.CreatorUserID != currentUserID {
 			if err = linkUsersByReceiptNowOrDelay(c, receipt, currentUserID); err != nil {
 				log.Errorf(c, err.Error())
@@ -49,7 +46,7 @@ var ViewReceiptInTelegramCallbackCommand = botsfw.NewCallbackCommand(
 			GetUrlForReceiptInTelegram(whc.GetBotCode(), receiptID, localeCode5),
 			//common.GetReceiptUrlForUser(
 			//	receiptID,
-			//	whc.AppUserInt64ID(),
+			//	whc.AppUserID(),
 			//	whc.BotPlatform().ID(),
 			//	whc.GetBotCode(),
 			//) + "&lang=" + localeCode5,
@@ -62,11 +59,11 @@ var ViewReceiptInTelegramCallbackCommand = botsfw.NewCallbackCommand(
 
 const delayLinkUserByReceiptKeyName = "delayLinkUserByReceipt"
 
-func DelayLinkUsersByReceipt(c context.Context, receiptID int, invitedUserID int64) (err error) {
+func DelayLinkUsersByReceipt(c context.Context, receiptID, invitedUserID string) (err error) {
 	return delayLinkUserByReceipt.EnqueueWork(c, delaying.With(common.QUEUE_RECEIPTS, delayLinkUserByReceiptKeyName, 0), receiptID, invitedUserID)
 }
 
-func delayedLinkUsersByReceipt(c context.Context, receiptID int, invitedUserID int64) error {
+func delayedLinkUsersByReceipt(c context.Context, receiptID, invitedUserID string) error {
 	log.Debugf(c, "delayedLinkUsersByReceipt(receiptID=%v, invitedUserID=%v)", receiptID, invitedUserID)
 	receipt, err := dtdal.Receipt.GetReceiptByID(c, nil, receiptID)
 	if err != nil {
@@ -79,7 +76,7 @@ func delayedLinkUsersByReceipt(c context.Context, receiptID int, invitedUserID i
 	return linkUsersByReceipt(c, receipt, invitedUserID)
 }
 
-func linkUsersByReceiptNowOrDelay(c context.Context, receipt models.Receipt, invitedUserID int64) (err error) {
+func linkUsersByReceiptNowOrDelay(c context.Context, receipt models.Receipt, invitedUserID string) (err error) {
 	if err = linkUsersByReceipt(c, receipt, invitedUserID); err != nil {
 		err = fmt.Errorf("failed to link users by receipt: %w", err)
 		if strings.Contains(err.Error(), "concurrent transaction") {
@@ -92,8 +89,8 @@ func linkUsersByReceiptNowOrDelay(c context.Context, receipt models.Receipt, inv
 	return
 }
 
-func linkUsersByReceipt(c context.Context, receipt models.Receipt, invitedUserID int64) (err error) {
-	if receipt.Data.CounterpartyUserID == 0 {
+func linkUsersByReceipt(c context.Context, receipt models.Receipt, invitedUserID string) (err error) {
+	if receipt.Data.CounterpartyUserID == "" {
 		linker := facade.NewReceiptUsersLinker(nil) // TODO: Link users
 		if _, err = linker.LinkReceiptUsers(c, receipt.ID, invitedUserID); err != nil {
 			return err

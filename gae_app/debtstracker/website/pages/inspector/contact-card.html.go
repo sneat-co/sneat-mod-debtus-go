@@ -17,7 +17,7 @@ func heroContactCard(now time.Time, contact contactWithBalances, buffer *bytes.B
     <div class=card-body>
         <h4 class=card-title>
             <!--a href="contact?id=`)
-	hero.FormatInt(int64(contact.ID), buffer)
+	hero.EscapeHTML(contact.ID, buffer)
 	buffer.WriteString(`">`)
 	hero.EscapeHTML(contact.Data.FullName(), buffer)
 	buffer.WriteString(`</a-->
@@ -50,14 +50,14 @@ func heroContactCard(now time.Time, contact contactWithBalances, buffer *bytes.B
                 <td>yes</td>
                 `)
 	}
-	if contact.Data.CounterpartyCounterpartyID == 0 {
+	if contact.Data.CounterpartyCounterpartyID == "" {
 		buffer.WriteString(`
                 <td class=center>no</td>
                 `)
 	} else {
 		buffer.WriteString(`
                 <td class=center><a href=contact?id=`)
-		hero.FormatInt(int64(contact.Data.CounterpartyCounterpartyID), buffer)
+		hero.EscapeHTML(contact.Data.CounterpartyCounterpartyID, buffer)
 		buffer.WriteString(`yes</a></td>
                 `)
 	}
@@ -110,7 +110,7 @@ func heroContactCard(now time.Time, contact contactWithBalances, buffer *bytes.B
 			hero.FormatInt(int64(i+1), buffer)
 			buffer.WriteString(`</td>
                 <td>`)
-			hero.FormatInt(int64(transfer.TransferID), buffer)
+			hero.EscapeHTML(transfer.TransferID, buffer)
 			buffer.WriteString(`</td>
                 <td>`)
 			hero.EscapeHTML(string(transfer.Direction), buffer)
@@ -134,7 +134,7 @@ func heroContactCard(now time.Time, contact contactWithBalances, buffer *bytes.B
             <tr>
                 <td>🔙</td>
                 <td>`)
-				hero.FormatInt(int64(returned.TransferID), buffer)
+				hero.EscapeHTML(returned.TransferID, buffer)
 				buffer.WriteString(`</td>
                 <td colspan="2">`)
 				hero.EscapeHTML(fmt.Sprintf("%v", returned.Time), buffer)

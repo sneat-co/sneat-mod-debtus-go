@@ -3,6 +3,7 @@ package gaedal
 import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/dtdal"
 	"strings"
 	"time"
 
@@ -11,6 +12,8 @@ import (
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/debtstracker-go/gae_app/debtstracker/models"
 )
+
+var _ dtdal.LoginPinDal = (*LoginPinDalGae)(nil)
 
 type LoginPinDalGae struct {
 }
@@ -28,7 +31,7 @@ func (LoginPinDalGae) SaveLoginPin(c context.Context, tx dal.ReadwriteTransactio
 	return tx.Set(c, loginPin.Record)
 }
 
-func (loginPinDalGae LoginPinDalGae) CreateLoginPin(c context.Context, tx dal.ReadwriteTransaction, channel, gaClientID string, createdUserID int64) (loginPin models.LoginPin, err error) {
+func (loginPinDalGae LoginPinDalGae) CreateLoginPin(c context.Context, tx dal.ReadwriteTransaction, channel, gaClientID string, createdUserID string) (loginPin models.LoginPin, err error) {
 	switch strings.ToLower(channel) {
 	case "":
 		return loginPin, errors.New("parameter 'channel' is not set")
@@ -37,9 +40,9 @@ func (loginPinDalGae LoginPinDalGae) CreateLoginPin(c context.Context, tx dal.Re
 	default:
 		return loginPin, fmt.Errorf("Unknown channel: %v", channel)
 	}
-	if createdUserID != 0 {
+	if createdUserID != "" {
 		if _, err := facade.User.GetUserByID(c, nil, createdUserID); err != nil {
-			return loginPin, fmt.Errorf("unknown createdUserID=%d: %w", createdUserID, err)
+			return loginPin, fmt.Errorf("unknown createdUserID=%s: %w", createdUserID, err)
 		}
 	}
 

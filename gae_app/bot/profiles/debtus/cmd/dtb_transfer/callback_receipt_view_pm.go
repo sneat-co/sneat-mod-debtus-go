@@ -25,7 +25,7 @@ const VIEW_RECEIPT_CALLBACK_COMMAND = "view-receipt"
 
 var ViewReceiptCallbackCommand = botsfw.NewCallbackCommand(VIEW_RECEIPT_CALLBACK_COMMAND, viewReceiptCallbackAction)
 
-func ShowReceipt(whc botsfw.WebhookContext, receiptID int) (m botsfw.MessageFromBot, err error) {
+func ShowReceipt(whc botsfw.WebhookContext, receiptID string) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 
 	var receipt models.Receipt
@@ -33,12 +33,12 @@ func ShowReceipt(whc botsfw.WebhookContext, receiptID int) (m botsfw.MessageFrom
 		return m, err
 	}
 
-	if receipt.Data.CreatorUserID == whc.AppUserInt64ID() {
+	if receipt.Data.CreatorUserID == whc.AppUserID() {
 		m.Text = whc.Translate(trans.MESSAGE_TEXT_RECEIPT_ATTEMPT_TO_VIEW_OWN)
 		return
 	}
 
-	receipt, err = facade.MarkReceiptAsViewed(c, receiptID, whc.AppUserInt64ID())
+	receipt, err = facade.MarkReceiptAsViewed(c, receiptID, whc.AppUserID())
 	if err != nil {
 		return
 	}
@@ -56,7 +56,7 @@ func ShowReceipt(whc botsfw.WebhookContext, receiptID int) (m botsfw.MessageFrom
 	)
 	counterpartyCounterparty := transfer.Data.Creator()
 
-	if counterpartyCounterparty.ContactID != 0 {
+	if counterpartyCounterparty.ContactID != "" {
 		counterparty, err = facade.GetContactByID(c, nil, counterpartyCounterparty.ContactID)
 	} else {
 		if user, err := facade.User.GetUserByID(c, nil, transfer.Data.CreatorUserID); err != nil {
@@ -72,13 +72,13 @@ func ShowReceipt(whc botsfw.WebhookContext, receiptID int) (m botsfw.MessageFrom
 		return m, err
 	}
 	utm := common.NewUtmParams(whc, common.UTM_CAMPAIGN_REMINDER)
-	mt = common.TextReceiptForTransfer(c, whc, transfer, whc.AppUserInt64ID(), common.ShowReceiptToAutodetect, utm)
+	mt = common.TextReceiptForTransfer(c, whc, transfer, whc.AppUserID(), common.ShowReceiptToAutodetect, utm)
 
 	log.Debugf(c, "Receipt text: %v", mt)
 
 	var inlineKeyboard *tgbotapi.InlineKeyboardMarkup
 
-	if receipt.Data.CreatorUserID == whc.AppUserInt64ID() {
+	if receipt.Data.CreatorUserID == whc.AppUserID() {
 		mt += "\n" + whc.Translate(trans.MESSAGE_TEXT_SELF_ACKNOWLEDGEMENT, html.EscapeString(transfer.Data.Counterparty().ContactName))
 	} else {
 		isAcknowledgedAlready := !transfer.Data.AcknowledgeTime.IsZero()
@@ -95,7 +95,7 @@ func ShowReceipt(whc botsfw.WebhookContext, receiptID int) (m botsfw.MessageFrom
 		} else {
 			mt += "\n" + whc.Translate(trans.MESSAGE_TEXT_PLEASE_ACKNOWLEDGE_TRANSFER)
 		}
-		receiptCode := common.EncodeID(int64(receiptID))
+		receiptCode := receiptID
 
 		if !isAcknowledgedAlready {
 			inlineKeyboard = &tgbotapi.InlineKeyboardMarkup{
@@ -181,11 +181,11 @@ func viewReceiptCallbackAction(whc botsfw.WebhookContext, callbackUrl *url.URL) 
 			}
 		}
 	}
-	receiptID, err := common.DecodeID(callbackQuery.Get("id"))
-	if err != nil {
-		return m, err
+	receiptID := callbackQuery.Get("id")
+	if receiptID == "" {
+		return m, fmt.Errorf("receiptID is empty")
 	}
-	return ShowReceipt(whc, int(receiptID))
+	return ShowReceipt(whc, receiptID)
 }
 
 //func (viewReceiptCallback) onInvite(whc botsfw.WebhookContext, inviteCode string) (exit bool, transferID int, transfer *models.Transfer, m botsfw.MessageFromBot, err error) {
@@ -198,7 +198,7 @@ func viewReceiptCallbackAction(whc botsfw.WebhookContext, callbackUrl *url.URL) 
 //			err = fmt.Errorf("Invite not found by code: %v", inviteCode)
 //			return
 //		}
-//		if invite.CreatedByUserID == whc.AppUserInt64ID() {
+//		if invite.CreatedByUserID == whc.AppUserID() {
 //			if transferID, err = invite.RelatedIntID(); err != nil {
 //				return
 //			}

@@ -9,7 +9,6 @@ import (
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"html"
 	"net/url"
-	"strconv"
 	"strings"
 
 	"errors"
@@ -36,12 +35,12 @@ func CallbackSendReceipt(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 	}
 	return m, db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 		var (
-			transferID int
+			transferID string
 			transfer   models.Transfer
 		)
-		transferID, err = common.DecodeIntID(q.Get(WIZARD_PARAM_TRANSFER))
-		if err != nil {
-			return fmt.Errorf("failed to decode transferID to int: %w", err)
+		transferID = q.Get(WIZARD_PARAM_TRANSFER)
+		if transferID == "" {
+			return fmt.Errorf("missing transfer ID")
 		}
 		transfer, err = facade.Transfers.GetTransferByID(c, tx, transferID)
 		if err != nil {
@@ -77,7 +76,7 @@ func CallbackSendReceipt(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 				[]tgbotapi.InlineKeyboardButton{
 					{
 						Text:         whc.Translate(trans.COMMAND_TEXT_I_HAVE_CHANGED_MY_MIND),
-						CallbackData: fmt.Sprintf("%v?by=%v&%v=%v", SEND_RECEIPT_CALLBACK_PATH, SEND_RECEIPT_BY_CHOOSE_CHANNEL, WIZARD_PARAM_TRANSFER, common.EncodeIntID(transferID)),
+						CallbackData: fmt.Sprintf("%v?by=%v&%v=%v", SEND_RECEIPT_CALLBACK_PATH, SEND_RECEIPT_BY_CHOOSE_CHANNEL, WIZARD_PARAM_TRANSFER, transferID),
 					},
 				},
 			)
@@ -103,7 +102,7 @@ func CallbackSendReceipt(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 				}
 
 				chatEntity.SetAwaitingReplyTo(ASK_PHONE_NUMBER_FOR_RECEIPT_COMMAND)
-				chatEntity.AddWizardParam(WIZARD_PARAM_TRANSFER, strconv.Itoa(transferID))
+				chatEntity.AddWizardParam(WIZARD_PARAM_TRANSFER, transferID)
 				mt := strings.Join([]string{
 					whc.Translate(trans.MESSAGE_TEXT_ASK_PHONE_NUMBER_OF_COUNTERPARTY, html.EscapeString(transfer.Data.Counterparty().ContactName)),
 					whc.Translate(trans.MESSAGE_TEXT_USE_CONTACT_TO_SEND_PHONE_NUMBER, emoji.PAPERCLIP_ICON),
@@ -132,7 +131,7 @@ func CallbackSendReceipt(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 			}
 		case string(models.InviteByEmail):
 			chatEntity.SetAwaitingReplyTo(ASK_EMAIL_FOR_RECEIPT_COMMAND)
-			chatEntity.AddWizardParam(WIZARD_PARAM_TRANSFER, strconv.Itoa(transferID))
+			chatEntity.AddWizardParam(WIZARD_PARAM_TRANSFER, transferID)
 			m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_INVITE_ASK_EMAIL_FOR_RECEIPT, transfer.Data.Counterparty().ContactName))
 		default:
 			err = errors.New("Unknown channel to send receipt: " + sendBy)
@@ -143,7 +142,7 @@ func CallbackSendReceipt(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 }
 
 func showLinkForReceiptInTelegram(whc botsfw.WebhookContext, transfer models.Transfer) (m botsfw.MessageFromBot, err error) {
-	receiptData := models.NewReceiptEntity(whc.AppUserInt64ID(), transfer.ID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, "link", "telegram", general.CreatedOn{
+	receiptData := models.NewReceiptEntity(whc.AppUserID(), transfer.ID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, "link", "telegram", general.CreatedOn{
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
 	})

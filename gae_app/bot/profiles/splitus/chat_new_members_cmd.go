@@ -5,8 +5,9 @@ import (
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"strconv"
 	"time"
 
 	"github.com/sneat-co/debtstracker-go/gae_app/bot/profiles/shared_group"
@@ -43,30 +44,26 @@ var newChatMembersCommand = botsfw.Command{
 
 		var newUsers []facade.NewUser
 
-		botID := whc.GetBotCode()
-
 		{ // Get or create related user records
 			for _, chatMember := range newMembers {
 				tgChatMember := chatMember.(tgbotapi.ChatMember)
-				var botUserData botsfwmodels.BotUserData
-				store := whc.Store()
-				botUserID := strconv.Itoa(tgChatMember.ID)
-				if botUserData, err = store.GetBotUserByID(c, botID, botUserID); err != nil {
+				var botUser record.DataWithID[string, botsfwmodels.BotUserData]
+				if botUser, err = whc.BotUser(); err != nil && !dal.IsNotFound(err) {
 					return
 				}
-				if botUserData == nil {
-					botUserData = &botsfwmodels.BotUserBaseData{
+				if !botUser.Record.Exists() {
+					botUser.Data = &botsfwmodels.BotUserBaseData{
 						BotBaseData: botsfwmodels.BotBaseData{
 							DtCreated: time.Now(),
 						},
 					}
-					if err = store.SaveBotUser(c, botID, botUserID, botUserData); err != nil {
+					if err = whc.Tx().Set(c, botUser.Record); err != nil {
 						return
 					}
 				}
 				newUsers = append(newUsers, facade.NewUser{
 					Name:        tgChatMember.GetFullName(),
-					BotUserData: botUserData,
+					BotUserData: botUser.Data,
 					ChatMember:  chatMember,
 				})
 			}
