@@ -41,7 +41,7 @@ func sendReminder(c context.Context, reminderID string) (err error) {
 		return errors.New("reminderID == 0")
 	}
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return fmt.Errorf("failed to get database: %w", err)
 	}
@@ -101,7 +101,7 @@ func sendReminderToUser(c context.Context, reminderID string, transfer models.Tr
 
 	var reminder models.Reminder
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return fmt.Errorf("failed to get database: %w", err)
 	}

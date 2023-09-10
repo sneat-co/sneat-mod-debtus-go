@@ -118,7 +118,7 @@ func handleRequestPasswordReset(c context.Context, w http.ResponseWriter, r *htt
 		OwnedByUserWithID: user.NewOwnedByUserWithID(userEmail.Data.AppUserID, now),
 	}
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
@@ -160,7 +160,7 @@ func handleChangePasswordAndSignIn(c context.Context, w http.ResponseWriter, r *
 
 	isAdmin := IsAdmin(passwordReset.Data.Email)
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
@@ -173,7 +173,7 @@ func handleChangePasswordAndSignIn(c context.Context, w http.ResponseWriter, r *
 
 		records := []dal.Record{appUser.Record, userEmail.Record, passwordReset.Record}
 
-		var db dal.Database
+		var db dal.DB
 		if db, err = facade.GetDatabase(c); err != nil {
 			return err
 		}
@@ -226,7 +226,7 @@ func handleConfirmEmailAndSignIn(c context.Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}

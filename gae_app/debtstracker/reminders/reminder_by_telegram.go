@@ -65,7 +65,7 @@ func sendReminderByTelegram(c context.Context, transfer models.Transfer, reminde
 
 		messageConfig := tgbotapi.NewMessage(tgChatID, messageText)
 
-		var db dal.Database
+		var db dal.DB
 		if db, err = facade.GetDatabase(c); err != nil {
 			return
 		}

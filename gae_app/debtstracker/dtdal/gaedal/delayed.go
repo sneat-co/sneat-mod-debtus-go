@@ -33,7 +33,7 @@ func (UserDalGae) DelaySetUserPreferredLocale(c context.Context, delay time.Dura
 
 func delayedSetUserPreferredLocale(c context.Context, userID string, localeCode5 string) (err error) {
 	log.Debugf(c, "delayedSetUserPreferredLocale(userID=%v, localeCode5=%v)", userID, localeCode5)
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return fmt.Errorf("failed to get database: %w", err)
 	}
@@ -67,7 +67,7 @@ func (TransferDalGae) DelayUpdateTransferWithCreatorReceiptTgMessageID(c context
 
 func delayedUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCode string, transferID string, creatorTgChatID, creatorTgReceiptMessageID int64) (err error) {
 	log.Infof(c, "delayedUpdateTransferWithCreatorReceiptTgMessageID(botCode=%v, transferID=%v, creatorTgChatID=%v, creatorReceiptTgMessageID=%v)", botCode, transferID, creatorTgChatID, creatorTgReceiptMessageID)
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return fmt.Errorf("failed to get database: %w", err)
 	}
@@ -106,7 +106,7 @@ func GetTelegramChatByUserID(c context.Context, userID string) (entityID string,
 		Limit(1).
 		SelectInto(models.NewDebtusTelegramChatRecord)
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
@@ -180,7 +180,7 @@ func onReceiptSentSuccess(c context.Context, sentAt time.Time, receiptID, transf
 	}
 	var mt string
 	var receipt models.ReceiptData
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
@@ -252,7 +252,7 @@ func onReceiptSendFail(c context.Context, receiptID string, tgChatID int64, tgMs
 		return errors.New("receiptID == 0")
 	}
 	var receipt models.Receipt
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
@@ -367,7 +367,7 @@ func updateReceiptStatus(c context.Context, tx dal.ReadwriteTransaction, receipt
 func sendReceiptToCounterpartyByTelegram(c context.Context, receiptID string, tgChatID int64, localeCode string) (err error) {
 	log.Debugf(c, "delayedSendReceiptToCounterpartyByTelegram(receiptID=%v, tgChatID=%v, localeCode=%v)", receiptID, tgChatID, localeCode)
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
@@ -525,7 +525,7 @@ func sendReceiptToTelegramChat(c context.Context, receipt models.Receipt, transf
 		log.Infof(c, "Receipt %v sent to user by Telegram bot @%v", receipt.ID, tgChat.Data.BotID)
 	}
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return err
 	}
@@ -565,7 +565,7 @@ func delayedCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env 
 		return nil
 	}
 	localeCode := tgChat.BaseTgChatData().PreferredLanguage
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return err
 	}
@@ -650,7 +650,7 @@ func delayedUpdateUserHasDueTransfers(c context.Context, userID string) (err err
 		Limit(1).
 		SelectKeysOnly(reflect.Int)
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return err
 	}
@@ -661,7 +661,7 @@ func delayedUpdateUserHasDueTransfers(c context.Context, userID string) (err err
 	}
 
 	var transferIDs []int
-	transferIDs, err = dal.SelectAllIDs[int](reader, q.Limit())
+	transferIDs, err = dal.SelectAllIDs[int](reader, dal.WithLimit(q.Limit()))
 
 	if len(transferIDs) > 0 {
 		// panic("Not implemented - refactoring in progress")

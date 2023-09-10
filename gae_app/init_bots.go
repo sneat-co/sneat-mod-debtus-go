@@ -53,7 +53,7 @@ func InitBots(httpRouter *httprouter.Router, botHost botsfw.BotHost, appContext 
 		telegram.BaseTgChatDtoMaker,
 	)
 
-	//var getDb dalgo4botsfw.DbProvider = func(c context.Context, botID string) (dal.Database, error) {
+	//var getDb dalgo4botsfw.DbProvider = func(c context.Context, botID string) (dal.DB, error) {
 	//	return nil, errors.New("not implemented")
 	//	//fsClient, err := firestore.NewClient(c, "demo-local-sneat-app")
 	//	//if err != nil {

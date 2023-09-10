@@ -21,7 +21,7 @@ func TwilioWebhook(w http.ResponseWriter, r *http.Request) {
 	smsSid := r.PostFormValue("SmsSid")
 	messageStatus := r.PostFormValue("MessageStatus")
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Errorf(c, "Failed to get database: %v", err)

@@ -17,7 +17,7 @@ func NewUserGaClientDalGae() UserGaClientDalGae {
 }
 
 func (UserGaClientDalGae) SaveGaClient(c context.Context, gaClientId, userAgent, ipAddress string) (gaClient models.GaClient, err error) {
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}

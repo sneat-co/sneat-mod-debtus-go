@@ -58,7 +58,7 @@ package maintainance
 //	}
 //
 //	doFix := func(contactInfo *models.TransferCounterpartyInfo, counterpartyInfo *models.TransferCounterpartyInfo) (err error) {
-//		var db dal.Database
+//		var db dal.DB
 //		if db, err = facade.GetDatabase(c); err != nil {
 //			return
 //		}

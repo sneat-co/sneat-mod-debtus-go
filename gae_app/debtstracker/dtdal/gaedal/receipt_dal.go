@@ -33,7 +33,7 @@ func (receiptDalGae ReceiptDalGae) GetReceiptByID(c context.Context, tx dal.Read
 }
 
 func (receiptDalGae ReceiptDalGae) CreateReceipt(c context.Context, data *models.ReceiptData) (receipt models.Receipt, err error) { // TODO: Move to facade
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}

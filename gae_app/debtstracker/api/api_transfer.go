@@ -26,7 +26,7 @@ func handleGetTransfer(c context.Context, w http.ResponseWriter, r *http.Request
 			return
 		}
 
-		var db dal.Database
+		var db dal.DB
 		if db, err = facade.GetDatabase(c); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write([]byte(err.Error()))

@@ -14,7 +14,7 @@ import (
 	"github.com/strongo/log"
 )
 
-func NewReminderIncompleteKey(c context.Context) *dal.Key {
+func NewReminderIncompleteKey(_ context.Context) *dal.Key {
 	return dal.NewIncompleteKey(models.ReminderKind, reflect.Int, nil)
 }
 
@@ -82,7 +82,7 @@ func (reminderDalGae ReminderDalGae) SetReminderIsSent(c context.Context, remind
 		return err
 	}
 	reminder := models.NewReminder(reminderID, nil)
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
@@ -124,13 +124,13 @@ func (reminderDalGae ReminderDalGae) SetReminderIsSentInTransaction(c context.Co
 	}
 }
 
-func (reminderDalGae ReminderDalGae) RescheduleReminder(c context.Context, reminderID string, remindInDuration time.Duration) (oldReminder, newReminder models.Reminder, err error) {
+func (reminderDalGae ReminderDalGae) RescheduleReminder(_ context.Context, reminderID string, remindInDuration time.Duration) (oldReminder, newReminder models.Reminder, err error) {
 	return models.Reminder{}, models.Reminder{}, errors.New("not implemented - needs to be refactored")
 	//var (
 	//	newReminderKey    *datastore.Key
 	//	newReminderEntity *models.ReminderEntity
 	//)
-	//var db dal.Database
+	//var db dal.DB
 	//if db, err = facade.GetDatabase(c); err != nil {
 	//	return
 	//}

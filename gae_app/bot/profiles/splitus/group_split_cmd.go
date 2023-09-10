@@ -37,7 +37,7 @@ var groupSplitCommand = shared_group.GroupCallbackCommand(groupSplitCommandCode,
 			money.Amount{},
 			nil,
 			func(memberID string, addValue int) (member models.BillMemberJson, err error) {
-				var db dal.Database
+				var db dal.DB
 				if db, err = facade.GetDatabase(c); err != nil {
 					return
 				}

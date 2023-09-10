@@ -242,7 +242,7 @@ func handlerUpdateGroup(c context.Context, w http.ResponseWriter, r *http.Reques
 	groupName := strings.TrimSpace(r.FormValue("name"))
 	groupNote := strings.TrimSpace(r.FormValue("note"))
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
@@ -319,7 +319,7 @@ func handlerSetContactsToGroup(c context.Context, w http.ResponseWriter, r *http
 	//addContactIDs := strings.Split(r.FormValue("addContactIDs"), ",")
 	removeMemberIDs = strings.Split(r.FormValue("removeMemberIDs"), ",")
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return

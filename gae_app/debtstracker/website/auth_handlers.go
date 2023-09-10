@@ -75,7 +75,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 					log.Infof(c, "gaeUser.Email is empty")
 				} else {
 					log.Infof(c, "gaeUser.Email: %v", gaeUser.Email)
-					var db dal.Database
+					var db dal.DB
 					if db, err = facade.GetDatabase(c); err != nil {
 						w.WriteHeader(http.StatusInternalServerError)
 						log.Errorf(c, err.Error())

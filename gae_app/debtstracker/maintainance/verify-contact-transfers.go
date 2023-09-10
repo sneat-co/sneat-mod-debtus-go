@@ -60,7 +60,7 @@ package maintainance
 //			return models.NewTransferWithIncompleteKey(nil).Record
 //		})
 //
-//	var db dal.Database
+//	var db dal.DB
 //	if db, err = facade.GetDatabase(c); err != nil {
 //		return err
 //	}
@@ -314,7 +314,7 @@ package maintainance
 //}
 //
 //func (m *verifyContactTransfers) fixContactAndUser(c context.Context, buf *bytes.Buffer, counters *asyncCounters, contactID int64, transfersBalance money.Balance, transfersCount int, lastTransfer models.Transfer) (contact models.Contact, user models.AppUser, err error) {
-//	var db dal.Database
+//	var db dal.DB
 //	if db, err = facade.GetDatabase(c); err != nil {
 //		return
 //	}

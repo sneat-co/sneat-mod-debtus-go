@@ -21,7 +21,7 @@ func NewLoginCodeDalGae() LoginCodeDalGae {
 
 func (LoginCodeDalGae) NewLoginCode(c context.Context, userID string) (code int, err error) {
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
@@ -61,7 +61,7 @@ func (LoginCodeDalGae) NewLoginCode(c context.Context, userID string) (code int,
 }
 
 func (LoginCodeDalGae) ClaimLoginCode(c context.Context, code int) (userID string, err error) {
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}

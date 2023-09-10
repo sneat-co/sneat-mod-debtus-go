@@ -34,7 +34,7 @@ func dueReturnsCallbackAction(whc botsfw.WebhookContext, _ *url.URL) (m botsfw.M
 
 	er := make(chan error, 2)
 	go func(er chan<- error) {
-		var db dal.Database
+		var db dal.DB
 		if db, err = facade.GetDatabase(c); err != nil {
 			er <- err
 			return
@@ -47,7 +47,7 @@ func dueReturnsCallbackAction(whc botsfw.WebhookContext, _ *url.URL) (m botsfw.M
 		}
 	}(er)
 	go func(er chan<- error) {
-		var db dal.Database
+		var db dal.DB
 		if db, err = facade.GetDatabase(c); err != nil {
 			er <- err
 			return

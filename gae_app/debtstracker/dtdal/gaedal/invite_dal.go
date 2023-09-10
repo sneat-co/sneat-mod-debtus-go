@@ -34,7 +34,7 @@ func (InviteDalGae) GetInvite(c context.Context, tx dal.ReadSession, inviteCode 
 
 // ClaimInvite claims invite by user - TODO compare with ClaimInvite2 and get rid of one of them
 func (InviteDalGae) ClaimInvite(c context.Context, userID string, inviteCode, claimedOn, claimedVia string) (err error) {
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
@@ -127,7 +127,7 @@ func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, use
 		}
 		invite.Data.ToPhoneNumber = phoneNumber
 	}
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
@@ -162,7 +162,7 @@ func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, use
 
 // ClaimInvite2 claims invite by user - TODO compare with ClaimInvite and get rid of one of them
 func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, invite models.Invite, claimedByUserID string, claimedOn, claimedVia string) (err error) {
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return fmt.Errorf("failed to create database: %w", err)
 	}

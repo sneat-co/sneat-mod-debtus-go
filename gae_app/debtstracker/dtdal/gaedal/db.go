@@ -6,6 +6,6 @@ import (
 	"github.com/dal-go/dalgo/dal"
 )
 
-func GetDatabase(c context.Context) (db dal.Database, err error) {
+func GetDatabase(_ context.Context) (db dal.DB, err error) {
 	return nil, errors.New("TODO: implement me: GetDatabase()")
 }

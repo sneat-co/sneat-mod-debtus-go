@@ -75,6 +75,6 @@ func (h ApiBotHost) GetHTTPClient(c context.Context) *http.Client {
 //	panic("Not implemented")
 //}
 
-func (h ApiBotHost) DB(c context.Context) (dal.Database, error) {
+func (h ApiBotHost) DB(c context.Context) (dal.DB, error) {
 	return facade.GetDatabase(c)
 }

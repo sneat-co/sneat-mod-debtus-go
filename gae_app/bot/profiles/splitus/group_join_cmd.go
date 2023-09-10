@@ -35,7 +35,7 @@ var joinGroupCommand = shared_group.GroupCallbackCommand(joinGroupCommanCode,
 			callbackAnswer.ShowAlert = true
 			m.BotMessage = telegram.CallbackAnswer(callbackAnswer)
 		} else {
-			var db dal.Database
+			var db dal.DB
 			if db, err = facade.GetDatabase(c); err != nil {
 				return
 			}

@@ -70,7 +70,7 @@ package maintainance
 //		}
 //	}
 //	if userChanged {
-//		var db dal.Database
+//		var db dal.DB
 //		if db, err = facade.GetDatabase(c); err != nil {
 //			return user, err
 //		}
@@ -93,7 +93,7 @@ package maintainance
 //
 //func (m *verifyUsers) createContact(c context.Context, buf *bytes.Buffer, counters *asyncCounters, user models.AppUser, userContact models.UserContactJson) (err error) {
 //	var contact models.Contact
-//	var db dal.Database
+//	var db dal.DB
 //	if db, err = facade.GetDatabase(c); err != nil {
 //		return
 //	}
@@ -137,7 +137,7 @@ package maintainance
 //		if fixedContactsBalances, err = fixUserContactsBalances(m.entity); err != nil {
 //			return err
 //		} else if fixedContactsBalances || FixBalanceCurrencies(balance) {
-//			var db dal.Database
+//			var db dal.DB
 //			if db, err = facade.GetDatabase(c); err != nil {
 //				return err
 //			}

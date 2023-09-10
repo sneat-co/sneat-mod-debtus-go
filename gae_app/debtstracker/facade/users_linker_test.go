@@ -45,7 +45,7 @@ func TestUsersLinker_LinkUsersWithinTransaction(t *testing.T) {
 		t.Error("inviterContact.CounterpartyCounterpartyID != 0")
 	}
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}

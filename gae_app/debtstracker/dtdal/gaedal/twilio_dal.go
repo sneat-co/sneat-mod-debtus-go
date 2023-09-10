@@ -45,7 +45,7 @@ func (TwilioDalGae) SaveTwilioSms(
 	smsStatusMessageID int,
 ) (twilioSms models.TwilioSms, err error) {
 	var twilioSmsEntity models.TwilioSmsData
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}

@@ -143,7 +143,7 @@ func fixTransfersIsOutstanding(c context.Context, transferIDs []string) (err err
 }
 
 func fixTransferIsOutstanding(c context.Context, transferID string) (transfer models.Transfer, err error) {
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
@@ -214,7 +214,7 @@ func (transferDalGae TransferDalGae) LoadTransferIDsByContactID(c context.Contex
 	//}
 
 	transferIDs = make([]string, 0, limit)
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
@@ -270,7 +270,7 @@ func (transferDalGae TransferDalGae) LoadLatestTransfers(c context.Context, offs
 }
 
 func (transferDalGae TransferDalGae) loadTransfers(c context.Context, q dal.Query) (transfers []models.Transfer, err error) {
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}

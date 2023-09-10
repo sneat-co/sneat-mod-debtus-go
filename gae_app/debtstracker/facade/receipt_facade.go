@@ -76,7 +76,7 @@ func AcknowledgeReceipt(c context.Context, receiptID, currentUserID string, oper
 
 	var invitedContact models.Contact
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
@@ -203,7 +203,7 @@ func AcknowledgeReceipt(c context.Context, receiptID, currentUserID string, oper
 }
 
 func MarkReceiptAsViewed(c context.Context, receiptID, userID string) (receipt models.Receipt, err error) {
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}

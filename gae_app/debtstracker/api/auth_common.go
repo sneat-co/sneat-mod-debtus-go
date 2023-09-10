@@ -17,7 +17,7 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 	provider := r.URL.Query().Get("provider")
 
 	var err error
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return

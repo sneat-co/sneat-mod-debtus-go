@@ -36,7 +36,7 @@ var joinBillCommand = botsfw.Command{
 			err = errors.New("Missing bill ID")
 			return
 		}
-		var db dal.Database
+		var db dal.DB
 		if db, err = facade.GetDatabase(whc.Context()); err != nil {
 			return
 		}

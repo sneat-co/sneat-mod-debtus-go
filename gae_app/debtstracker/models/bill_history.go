@@ -164,7 +164,10 @@ const (
 )
 
 func NewBillHistoryBillCreated(bill Bill, groupEntity *GroupEntity) (bh BillsHistory) {
-	key := dal.NewKey(BillsHistoryKind, dal.WithRandomStringID(BillsHistoryIdLen))
+	key, err := dal.NewKeyWithOptions(BillsHistoryKind, dal.WithRandomStringID(dal.RandomLength(BillsHistoryIdLen)))
+	if err != nil {
+		panic(err)
+	}
 	data := &BillsHistoryEntity{
 		Currency:         bill.Data.Currency,
 		UserID:           bill.Data.CreatorUserID,

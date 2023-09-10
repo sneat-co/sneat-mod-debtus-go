@@ -37,7 +37,11 @@ func NewGroup(id string, data *GroupEntity) Group {
 
 func NewGroupKey(id string) *dal.Key {
 	if id == "" {
-		return dal.NewKey(GroupKind, dal.WithRandomStringID(GroupIdLen))
+		key, err := dal.NewKeyWithOptions(GroupKind, dal.WithRandomStringID(dal.RandomLength(GroupIdLen)))
+		if err != nil {
+			panic(err.Error())
+		}
+		return key
 	}
 	return dal.NewKeyWithID(GroupKind, id)
 }

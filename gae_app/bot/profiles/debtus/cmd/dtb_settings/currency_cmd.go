@@ -46,7 +46,7 @@ var SetPrimaryCurrency = botsfw.Command{
 		log.Debugf(c, "SetPrimaryCurrency.Action()")
 		whc.ChatData().SetAwaitingReplyTo("")
 		primaryCurrency := whc.Input().(botsfw.WebhookTextMessage).Text()
-		var db dal.Database
+		var db dal.DB
 		if db, err = facade.GetDatabase(c); err != nil {
 			return
 		}

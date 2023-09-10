@@ -57,7 +57,7 @@ func updateTransferOnReturn(c context.Context, returnTransferID, transferID stri
 
 	var transfer, returnTransfer models.Transfer
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}

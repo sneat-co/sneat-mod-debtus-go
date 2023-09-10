@@ -64,7 +64,7 @@ package maintainance
 //
 //func (m *verifyContacts) linkContacts(c context.Context, counters *asyncCounters, contact models.Contact) (err error) {
 //	var counterpartyContact models.Contact
-//	var db dal.Database
+//	var db dal.DB
 //	if db, err = facade.GetDatabase(c); err != nil {
 //		return
 //	}

@@ -32,7 +32,7 @@ func (TgChatDalGae) GetTgChatByID(c context.Context, tgBotID string, tgChatID in
 	}
 	//tgChat.SetID(tgBotID, tgChatID)
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
@@ -57,7 +57,7 @@ func (TgChatDalGae) /* TODO: rename properly! */ DoSomething(c context.Context,
 		Data:   debtusTgChatData,
 	}
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}

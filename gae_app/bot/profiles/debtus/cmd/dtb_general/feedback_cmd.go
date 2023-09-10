@@ -202,7 +202,7 @@ var FeedbackCommand = botsfw.Command{
 			return
 		}
 		var feedback models.Feedback
-		var db dal.Database
+		var db dal.DB
 		db, err = facade.GetDatabase(whc.Context())
 		if err != nil {
 			return
@@ -338,7 +338,7 @@ var FeedbackTextCommand = botsfw.Command{
 
 			var feedback models.Feedback
 			c := whc.Context()
-			var db dal.Database
+			var db dal.DB
 			if db, err = facade.GetDatabase(c); err != nil {
 				return
 			}

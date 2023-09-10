@@ -61,7 +61,7 @@ func (s AuditGaeStore) LogAuditRecord(c context.Context, action, message string,
 	audit.Data = NewAuditData(action, message, related...)
 	audit.Record = dal.NewRecordWithIncompleteKey("Audit", reflect.Int, audit.Data)
 	audit.Key = audit.Record.Key()
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}

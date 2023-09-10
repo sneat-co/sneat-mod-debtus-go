@@ -25,7 +25,7 @@ func (groupFacade groupFacade) CreateGroup(c context.Context,
 	beforeGroupInsert func(tc context.Context, groupEntity *models.GroupEntity) (group models.Group, err error),
 	afterGroupInsert func(c context.Context, group models.Group, user models.AppUser) (err error),
 ) (group models.Group, groupMember models.GroupMember, err error) {
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
@@ -117,7 +117,7 @@ func (groupFacade) AddUsersToTheGroupAndOutstandingBills(c context.Context, grou
 		panic("len(newUsers) == 0")
 	}
 	var group models.Group
-	var db dal.Database
+	var db dal.DB
 	var err error
 	if db, err = GetDatabase(c); err != nil {
 		return group, nil, err
@@ -169,7 +169,7 @@ func updateGroupUsers(c context.Context, groupID string) (err error) {
 	}
 
 	log.Debugf(c, "updateGroupUsers(groupID=%v)", groupID)
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return err
 	}
@@ -193,7 +193,7 @@ func updateGroupUsers(c context.Context, groupID string) (err error) {
 
 func delayedUpdateUserWithGroups(c context.Context, userID string, groupIDs2add, groupIDs2remove []string) (err error) {
 	log.Debugf(c, "delayedUpdateUserWithGroups(userID=%d, groupIDs2add=%v, groupIDs2remove=%v)", userID, groupIDs2add, groupIDs2remove)
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
@@ -248,7 +248,7 @@ func (userFacade) DelayUpdateContactWithGroups(c context.Context, contactID stri
 
 func delayedUpdateContactWithGroup(c context.Context, contactID string, addGroupIDs, removeGroupIDs []string) (err error) {
 	log.Debugf(c, "delayedUpdateContactWithGroup(contactID=%s, addGroupIDs=%v, removeGroupIDs=%v)", contactID, addGroupIDs, removeGroupIDs)
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
@@ -283,7 +283,7 @@ func (userFacade) UpdateContactWithGroups(c context.Context, contactID string, a
 var ErrAttemptToLeaveUnsettledGroup = errors.New("an attept to leave unsettled group")
 
 func (groupFacade) LeaveGroup(c context.Context, groupID string, userID string) (group models.Group, user models.AppUser, err error) {
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}

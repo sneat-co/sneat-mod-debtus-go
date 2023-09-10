@@ -619,7 +619,7 @@ func CreateTransferFromBot(
 			//err = nil
 			buf := new(bytes.Buffer)
 			buf.WriteString(whc.Translate(trans.MT_ATTEMPT_TO_CREATE_DEBT_WITH_INTEREST_AFFECTING_OUTSTANDING) + "\n")
-			var db dal.Database
+			var db dal.DB
 			if db, err = facade.GetDatabase(c); err != nil {
 				return
 			}

@@ -12,7 +12,7 @@ var FixBalanceCommand = botsfw.Command{
 	Code:     "fixbalance",
 	Commands: []string{"/fixbalance"},
 	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
-		var db dal.Database
+		var db dal.DB
 		if db, err = facade.GetDatabase(whc.Context()); err != nil {
 			return
 		}

@@ -124,7 +124,7 @@ func onStartCallbackCommand(params BotParams) botsfw.Command {
 
 			whc.ChatData().SetPreferredLanguage(lang)
 
-			var db dal.Database
+			var db dal.DB
 			if db, err = facade.GetDatabase(c); err != nil {
 				return
 			}

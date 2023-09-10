@@ -24,7 +24,7 @@ func NewUserDalGae() UserDalGae {
 var _ dtdal.UserDal = (*UserDalGae)(nil)
 
 func (userDal UserDalGae) SetLastCurrency(c context.Context, userID string, currency money.CurrencyCode) (err error) {
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (userDal UserDalGae) GetUserByEmail(c context.Context, email string) (model
 
 func (userDal UserDalGae) getUserByQuery(c context.Context, query dal.Query, searchCriteria string) (appUser models.AppUser, err error) {
 	userEntities := make([]*models.AppUserData, 0, 2)
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
@@ -92,10 +92,10 @@ func (userDal UserDalGae) getUserByQuery(c context.Context, query dal.Query, sea
 	default: // > 1
 		errDup := dal.ErrDuplicateUser{ // TODO: ErrDuplicateUser should be moved out from dalgo
 			SearchCriteria:   searchCriteria,
-			DuplicateUserIDs: make([]int64, len(userRecords)),
+			DuplicateUserIDs: make([]string, len(userRecords)),
 		}
 		for i, userRecord := range userRecords {
-			errDup.DuplicateUserIDs[i] = userRecord.Key().ID.(int64)
+			errDup.DuplicateUserIDs[i] = userRecord.Key().ID.(string)
 		}
 		err = errDup
 		return
@@ -111,7 +111,7 @@ func (userDal UserDalGae) CreateAnonymousUser(c context.Context) (user models.Ap
 func (userDal UserDalGae) CreateUser(c context.Context, userData *models.AppUserData) (user models.AppUser, err error) {
 	user = models.NewAppUser("", userData)
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
@@ -142,7 +142,7 @@ func (UserDalGae) DelayUpdateUserWithContact(c context.Context, userID string, c
 
 func updateUserWithContact(c context.Context, userID, contactID string) (err error) {
 	log.Debugf(c, "updateUserWithContact(userID=%v, contactID=%v)", userID, contactID)
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}

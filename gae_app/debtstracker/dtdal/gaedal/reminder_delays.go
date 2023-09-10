@@ -49,7 +49,7 @@ func delayedCreateReminderForTransferUser(c context.Context, transferID string, 
 		return nil
 	}
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
@@ -165,7 +165,7 @@ func discardRemindersForTransfer(c context.Context, transferID, returnTransferID
 }
 
 func DiscardReminder(c context.Context, reminderID, transferID, returnTransferID string) (err error) {
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return err
 	}
@@ -175,7 +175,7 @@ func DiscardReminder(c context.Context, reminderID, transferID, returnTransferID
 }
 
 func delayedDiscardReminder(c context.Context, reminderID, transferID, returnTransferID string) (err error) {
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return err
 	}
@@ -290,7 +290,7 @@ func (ReminderDalGae) SetReminderStatus(c context.Context, reminderID, returnTra
 		changed        bool
 		previousStatus string
 	)
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}

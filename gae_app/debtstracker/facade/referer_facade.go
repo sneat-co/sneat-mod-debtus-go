@@ -30,7 +30,7 @@ const lastTgReferrers = "lastTgReferrers"
 
 func setUserReferrer(c context.Context, userID string, referredBy string) (err error) {
 	userChanged := false
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
@@ -71,7 +71,7 @@ func (f refererFacade) AddTelegramReferrer(c context.Context, userID string, tgU
 				log.Errorf(c, "panic in refererFacade.AddTelegramReferrer(): %v", r)
 			}
 		}()
-		var db dal.Database
+		var db dal.DB
 		var err error
 		if db, err = GetDatabase(c); err != nil {
 			return

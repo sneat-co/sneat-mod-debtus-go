@@ -38,7 +38,7 @@ func CronSendReminders(c context.Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 	var reminderIDs []string
-	if reminderIDs, err = dal.SelectAllIDs[string](reader, query.Limit()); err != nil {
+	if reminderIDs, err = dal.SelectAllIDs[string](reader, dal.WithLimit(query.Limit())); err != nil {
 		log.Errorf(c, "Failed to load due transfers: %v", err)
 		return
 	}

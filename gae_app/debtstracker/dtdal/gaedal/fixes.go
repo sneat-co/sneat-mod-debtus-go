@@ -72,7 +72,7 @@ func (f *TransferFixer) needFixes(_ context.Context) bool {
 
 func (f *TransferFixer) FixAllIfNeeded(c context.Context) (err error) {
 	if f.needFixes(c) {
-		var db dal.Database
+		var db dal.DB
 		if db, err = facade.GetDatabase(c); err != nil {
 			return
 		}
@@ -104,7 +104,7 @@ func FixTransfers(c context.Context) (loadedCount int, fixedCount int, failedCou
 		return models.NewTransferWithIncompleteKey(nil).Record
 	})
 	//query.Limit = 50
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}

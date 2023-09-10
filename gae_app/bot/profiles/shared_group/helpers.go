@@ -46,7 +46,7 @@ func GetGroup(whc botsfw.WebhookContext, callbackUrl *url.URL) (group models.Gro
 	if tgChatEntity, err = getTgChatEntity(whc); err != nil {
 		return
 	}
-	var db dal.Database
+	var db dal.DB
 	c := whc.Context()
 	if db, err = facade.GetDatabase(c); err != nil {
 		return

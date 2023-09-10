@@ -83,7 +83,7 @@ var newBillCommand = botsfw.Command{
 			return
 		}
 
-		var db dal.Database
+		var db dal.DB
 		if db, err = facade.GetDatabase(c); err != nil {
 			return
 		}

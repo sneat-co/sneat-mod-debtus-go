@@ -42,7 +42,7 @@ var AskPhoneNumberForReceiptCommand = botsfw.Command{
 	Code: ASK_PHONE_NUMBER_FOR_RECEIPT_COMMAND,
 	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		c := whc.Context()
-		var db dal.Database
+		var db dal.DB
 		if db, err = facade.GetDatabase(c); err != nil {
 			return m, err
 		}

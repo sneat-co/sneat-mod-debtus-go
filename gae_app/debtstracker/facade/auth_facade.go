@@ -18,7 +18,7 @@ type authFacade struct {
 var AuthFacade = authFacade{}
 
 func (authFacade) AssignPinCode(c context.Context, loginID int, userID string) (loginPin models.LoginPin, err error) {
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
@@ -46,7 +46,7 @@ func (authFacade) AssignPinCode(c context.Context, loginID int, userID string) (
 
 func (authFacade) SignInWithPin(c context.Context, loginID int, loginPinCode int32) (userID string, err error) {
 	_ = loginPinCode
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}

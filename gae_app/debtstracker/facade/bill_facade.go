@@ -612,7 +612,7 @@ var (
 )
 
 func (billFacade) DeleteBill(c context.Context, billID string, userID string) (bill models.Bill, err error) {
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
@@ -673,7 +673,7 @@ func (billFacade) DeleteBill(c context.Context, billID string, userID string) (b
 }
 
 func (billFacade) RestoreBill(c context.Context, billID string, userID string) (bill models.Bill, err error) {
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}

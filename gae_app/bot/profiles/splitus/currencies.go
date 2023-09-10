@@ -116,7 +116,7 @@ func groupSettingsSetCurrencyCommand(params shared_all.BotParams) botsfw.Command
 			currency := money.CurrencyCode(callbackUrl.Query().Get(CURRENCY_PARAM_NAME))
 			if group.Data.DefaultCurrency != currency {
 				c := whc.Context()
-				var db dal.Database
+				var db dal.DB
 				if db, err = facade.GetDatabase(c); err != nil {
 					return
 				}

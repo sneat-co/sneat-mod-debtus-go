@@ -28,7 +28,7 @@ func delayedSendEmail(c context.Context, id int64) (err error) {
 
 	var email models.Email
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return err
 	}

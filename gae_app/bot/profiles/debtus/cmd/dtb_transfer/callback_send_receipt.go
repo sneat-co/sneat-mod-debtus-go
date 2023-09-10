@@ -29,7 +29,7 @@ func CallbackSendReceipt(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 	q := callbackUrl.Query()
 	sendBy := q.Get("by")
 	log.Debugf(c, "CallbackSendReceipt(callbackUrl=%v)", callbackUrl)
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return m, err
 	}

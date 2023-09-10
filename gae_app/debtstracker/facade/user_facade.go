@@ -48,7 +48,7 @@ func (userFacade) GetUsersByIDs(c context.Context, userIDs []string) (users []*m
 
 	appUsers := models.NewAppUsers(userIDs)
 	records := models.AppUserRecords(appUsers)
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
@@ -70,7 +70,7 @@ func (uf userFacade) CreateUserByEmail(
 	userEmail models.UserEmail,
 	err error,
 ) {
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
@@ -123,7 +123,7 @@ func (uf userFacade) GetOrCreateEmailUser(
 
 	var appUser models.AppUser
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
@@ -208,7 +208,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 	appUser models.AppUser, err error,
 ) {
 	log.Debugf(c, "getOrCreateUserAccountRecordOnSignIn(provider=%v, userID=%d)", provider, userID)
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}

@@ -127,7 +127,7 @@ func delayedChangeTransfersCounterparty(c context.Context, oldID, newID int64, c
 	if reader, err = facade.DB().QueryReader(c, q); err != nil {
 		return err
 	}
-	transferIDs, err := dal.SelectAllIDs[int](reader, q.Limit())
+	transferIDs, err := dal.SelectAllIDs[int](reader, dal.WithLimit(q.Limit()))
 	if err != nil {
 		return err
 	}
@@ -145,7 +145,7 @@ func delayedChangeTransferCounterparty(c context.Context, transferID string, old
 	if _, err = facade.GetContactByID(c, nil, newID); err != nil {
 		return err
 	}
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return err
 	}

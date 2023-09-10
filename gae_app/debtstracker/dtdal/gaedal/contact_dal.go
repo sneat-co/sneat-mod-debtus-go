@@ -55,7 +55,7 @@ func delayedDeleteContactTransfers(c context.Context, contactID string, cursor s
 	for i, transferID := range transferIDs {
 		keys[i] = models.NewTransferKey(transferID)
 	}
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}

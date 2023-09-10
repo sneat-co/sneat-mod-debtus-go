@@ -26,7 +26,7 @@ package maintainance
 //		// log.Debugf(c, "transfer.ID=%v has no obsolete props", transfer.ID)
 //		return
 //	}
-//	var db dal.Database
+//	var db dal.DB
 //	if db, err = facade.GetDatabase(c); err != nil {
 //		return err
 //	}

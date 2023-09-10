@@ -84,7 +84,7 @@ func (contactPage) verifyTransfers(c context.Context, contactID string) (
 	transfers []models.Transfer, err error,
 ) {
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}

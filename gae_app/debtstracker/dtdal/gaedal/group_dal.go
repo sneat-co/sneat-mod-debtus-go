@@ -58,7 +58,7 @@ func (GroupDalGae) DelayUpdateGroupWithBill(c context.Context, groupID, billID s
 
 func delayedUpdateGroupWithBill(c context.Context, groupID, billID string) (err error) {
 	log.Debugf(c, "delayedUpdateGroupWithBill(groupID=%d, billID=%d)", groupID, billID)
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}

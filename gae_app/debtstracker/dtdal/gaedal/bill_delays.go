@@ -54,7 +54,7 @@ func delayedUpdateUserWithBill(c context.Context, billID, userID string) (err er
 			return
 		}
 	}()
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}

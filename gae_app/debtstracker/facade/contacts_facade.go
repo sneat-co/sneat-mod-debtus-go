@@ -169,7 +169,7 @@ type createContactDbChanges struct {
 }
 
 func CreateContact(c context.Context, tx dal.ReadwriteTransaction, userID string, contactDetails models.ContactDetails) (contact models.Contact, user models.AppUser, err error) {
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
@@ -231,7 +231,7 @@ func CreateContact(c context.Context, tx dal.ReadwriteTransaction, userID string
 }
 
 func UpdateContact(c context.Context, contactID string, values map[string]string) (contactEntity *models.ContactData, err error) {
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
@@ -297,7 +297,7 @@ var ErrContactIsNotDeletable = errors.New("contact is not deletable")
 
 func DeleteContact(c context.Context, contactID string) (user models.AppUser, err error) {
 	log.Warningf(c, "ContactDalGae.DeleteContact(%d)", contactID)
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}

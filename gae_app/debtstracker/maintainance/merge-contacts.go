@@ -24,7 +24,7 @@ func mergeContactsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sourceContactIDs := strings.Split(q.Get("source"), ",")
-	var db dal.Database
+	var db dal.DB
 	var err error
 	db, err = facade.GetDatabase(r.Context())
 	if err != nil {
@@ -109,7 +109,7 @@ func mergeContacts(c context.Context, tx dal.ReadwriteTransaction, targetContact
 		return
 	}
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}

@@ -20,7 +20,7 @@ func GetLocale(c context.Context, botID string, tgChatIntID int64, userID string
 	//chatID, new(models.DebtusTelegramChatData)
 	key := dal.NewKeyWithID(botsfwtgmodels.TgChatCollection, chatID)
 	var tgChat = record.NewDataWithID[string, *models.DebtusTelegramChatData](chatID, key, new(models.DebtusTelegramChatData))
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
@@ -42,7 +42,7 @@ func GetLocale(c context.Context, botID string, tgChatIntID int64, userID string
 			userID = tgChat.Data.BaseChatData().AppUserID
 		}
 		if userID != "" {
-			var db dal.Database
+			var db dal.DB
 			if db, err = GetDatabase(c); err != nil {
 				return
 			}

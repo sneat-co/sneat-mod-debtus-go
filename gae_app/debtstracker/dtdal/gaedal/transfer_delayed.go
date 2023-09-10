@@ -47,7 +47,7 @@ func delayedUpdateTransfersWithCounterparty(c context.Context, creatorCounterpar
 		return nil
 	}
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return fmt.Errorf("failed to create database: %w", err)
 	}
@@ -60,7 +60,7 @@ func delayedUpdateTransfersWithCounterparty(c context.Context, creatorCounterpar
 	if reader, err = db.QueryReader(c, query); err != nil {
 		return err
 	}
-	if transferIDs, err := dal.SelectAllIDs[int](reader, query.Limit()); err != nil {
+	if transferIDs, err := dal.SelectAllIDs[int](reader, dal.WithLimit(query.Limit())); err != nil {
 		return fmt.Errorf("failed to load transfers: %w", err)
 	} else if len(transferIDs) > 0 {
 		log.Infof(c, "Loaded %d transfer IDs", len(transferIDs))
@@ -81,7 +81,7 @@ func delayedUpdateTransfersWithCounterparty(c context.Context, creatorCounterpar
 			return err
 		}
 		var transferIDs []int
-		if transferIDs, err = dal.SelectAllIDs[int](reader, query.Limit()); err != nil {
+		if transferIDs, err = dal.SelectAllIDs[int](reader, dal.WithLimit(query.Limit())); err != nil {
 			return fmt.Errorf("failed to load transfers by 2 counterparty IDs: %w", err)
 		}
 		if len(transferIDs) > 0 {
@@ -104,7 +104,7 @@ func delayedUpdateTransferWithCounterparty(c context.Context, transferID string,
 		return nil
 	}
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return err
 	}
@@ -228,7 +228,7 @@ func DelayUpdateTransfersWithCreatorName(c context.Context, userID string) error
 func delayedUpdateTransfersWithCreatorName(c context.Context, userID string) (err error) {
 	log.Debugf(c, "delayedUpdateTransfersWithCreatorName(userID=%d)", userID)
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return err
 	}

@@ -8,7 +8,7 @@ import (
 )
 
 // GetDatabase returns debts tracker database
-func GetDatabase(ctx context.Context) (db dal.Database, err error) {
+func GetDatabase(ctx context.Context) (db dal.DB, err error) {
 	client, err := firestore.NewClient(ctx, "projectID")
 	if err != nil {
 		panic(err)
@@ -16,7 +16,7 @@ func GetDatabase(ctx context.Context) (db dal.Database, err error) {
 	return dalgo2firestore.NewDatabase("sneat", client), nil
 }
 
-func DB() dal.Database {
+func DB() dal.DB {
 	panic("TODO: Implement DB()")
 }
 

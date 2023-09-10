@@ -93,7 +93,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := models.NewAppUser(userID, nil)
-	var db dal.Database
+	var db dal.DB
 	var err error
 	if db, err = facade.GetDatabase(c); err != nil {
 		log.Errorf(c, "Failed to get database: %v", err)
@@ -109,7 +109,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	query := dal.From(models.ContactKind).WhereField("UserID", dal.Equal, userID).SelectInto(func() dal.Record {
-		return dal.NewRecordWithoutKey(models.AppUserKind, reflect.Int64, new(models.AppUserData))
+		return dal.NewRecordWithIncompleteKey(models.AppUserKind, reflect.Int64, new(models.AppUserData))
 	})
 	userCounterpartyRecords, err := db.QueryAllRecords(c, query)
 	if err != nil {
@@ -132,7 +132,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 	//slices.Sort(counterpartyIDs)
 
 	query = dal.From(models.TransferKind).WhereField("BothUserIDs", dal.Equal, userID).OrderBy(dal.AscendingField("DtCreated")).SelectInto(func() dal.Record {
-		return dal.NewRecordWithoutKey(models.AppUserKind, reflect.Int64, new(models.AppUserData))
+		return dal.NewRecordWithIncompleteKey(models.AppUserKind, reflect.Int64, new(models.AppUserData))
 	})
 
 	transferRecords, err := db.QueryAllRecords(c, query)
@@ -164,7 +164,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	fixUserCounterparties := func() {
 		var txUser models.AppUser
-		var db dal.Database
+		var db dal.DB
 		if db, err = facade.GetDatabase(c); err != nil {
 			log.Errorf(c, "Failed to get database: %v", err)
 			return
@@ -237,7 +237,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 	if len(transferRecords) > 0 && user.Data.LastTransferID == "" {
 		if doFixes {
 			var txUser models.AppUser
-			var db dal.Database
+			var db dal.DB
 			if db, err = facade.GetDatabase(c); err != nil {
 				log.Errorf(c, "Failed to get database: %v", err)
 				return
@@ -351,7 +351,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 		if !doFixes {
 			log.Debugf(c, "Pass fix=all to fix user balance")
 		} else {
-			var db dal.Database
+			var db dal.DB
 			if db, err = facade.GetDatabase(c); err != nil {
 				log.Errorf(c, "Failed to get database: %v", err)
 				return
@@ -399,7 +399,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 			counterpartyIDsWithMatchingBalance = append(counterpartyIDsWithMatchingBalance, counterpartyID)
 			if counterparty.BalanceCount != len(counterpartyBalance) {
 				if doFixes {
-					var db dal.Database
+					var db dal.DB
 					if db, err = facade.GetDatabase(c); err != nil {
 						log.Errorf(c, "Failed to get database: %v", err)
 						return
@@ -431,7 +431,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 			log.Warningf(c, "Contact ID=%v has balance not matching transfers' balance:\n\tContact: %v\n\tTransfers: %v", counterpartyID, counterpartyBalance, transfersCounterpartyBalance)
 			if doFixes {
 				//var txCounterparty models.Contact
-				var db dal.Database
+				var db dal.DB
 				if db, err = facade.GetDatabase(c); err != nil {
 					log.Errorf(c, "Failed to get database: %v", err)
 					return

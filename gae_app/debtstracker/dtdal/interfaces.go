@@ -293,7 +293,7 @@ type TgUserDal interface {
 //}
 
 var (
-	DB             dal.Database
+	DB             dal.DB
 	Contact        ContactDal
 	User           UserDal
 	UserFacebook   UserFacebookDal

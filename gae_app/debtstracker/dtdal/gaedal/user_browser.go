@@ -21,7 +21,7 @@ func NewUserBrowserDalGae() UserBrowserDalGae {
 func (UserBrowserDalGae) insertUserBrowser(c context.Context, data *models.UserBrowserData) (userBrowser models.UserBrowser, err error) {
 
 	userBrowser = models.NewUserBrowserWithIncompleteKey(data)
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
@@ -41,7 +41,7 @@ func (userBrowserDalGae UserBrowserDalGae) SaveUserBrowser(c context.Context, us
 		WhereField("UserAgent", dal.Equal, userAgent)
 	query := q.Limit(limit).SelectInto(models.NewUserBrowserRecord)
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}

@@ -234,7 +234,7 @@ func (transferFacade transferFacade) CreateTransfer(c context.Context, input cre
 
 	var returnToTransferIDs []string
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
@@ -361,7 +361,7 @@ func (transferFacade transferFacade) checkOutstandingTransfersForReturns(c conte
 
 	reversedDirection := input.Direction().Reverse()
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}

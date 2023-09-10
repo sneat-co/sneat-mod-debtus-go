@@ -121,7 +121,7 @@ func setUserName(c context.Context, w http.ResponseWriter, r *http.Request, auth
 		return
 	}
 
-	var db dal.Database
+	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
 	}
