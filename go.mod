@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	cloud.google.com/go/firestore v1.12.0
-	github.com/aws/aws-sdk-go v1.44.323
+	github.com/aws/aws-sdk-go v1.45.6
 	github.com/bots-go-framework/bots-api-telegram v0.4.1
 	github.com/bots-go-framework/bots-fw v0.21.2
 	github.com/bots-go-framework/bots-fw-store v0.1.0
@@ -26,9 +26,9 @@ require (
 	github.com/sanity-io/litter v1.5.5
 	github.com/sendgrid/sendgrid-go v3.13.0+incompatible
 	github.com/shiyanhui/hero v0.0.2
-	github.com/sneat-co/debtstracker-translations v0.0.9
+	github.com/sneat-co/debtstracker-translations v0.0.11
 	github.com/strongo/app v0.5.7
-	github.com/strongo/app-host-gae v0.1.15
+	github.com/strongo/app-host-gae v0.1.16
 	github.com/strongo/decimal v0.0.1
 	github.com/strongo/delaying v0.0.1
 	github.com/strongo/facebook v1.8.1
