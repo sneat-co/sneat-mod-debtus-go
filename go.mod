@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	cloud.google.com/go/firestore v1.14.0
-	github.com/aws/aws-sdk-go v1.46.1
+	github.com/aws/aws-sdk-go v1.46.6
 	github.com/bots-go-framework/bots-api-telegram v0.4.1
 	github.com/bots-go-framework/bots-fw v0.21.5
 	github.com/bots-go-framework/bots-fw-store v0.1.0
