@@ -4,19 +4,19 @@ go 1.20
 
 require (
 	cloud.google.com/go/firestore v1.14.0
-	github.com/aws/aws-sdk-go v1.46.6
+	github.com/aws/aws-sdk-go v1.47.3
 	github.com/bots-go-framework/bots-api-telegram v0.4.1
 	github.com/bots-go-framework/bots-fw v0.21.5
 	github.com/bots-go-framework/bots-fw-store v0.1.0
 	github.com/bots-go-framework/bots-fw-telegram v0.6.21
 	github.com/bots-go-framework/bots-fw-telegram-models v0.0.13
 	github.com/bots-go-framework/bots-go-core v0.0.1
-	github.com/bots-go-framework/bots-host-gae v0.4.17
+	github.com/bots-go-framework/bots-host-gae v0.4.18
 	github.com/captaincodeman/datastore-mapper v0.0.0-20170320145307-cb380a4c4d13
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85
 	github.com/crediterra/money v0.2.1
 	github.com/dal-go/dalgo v0.12.0
-	github.com/dal-go/dalgo2firestore v0.1.34
+	github.com/dal-go/dalgo2firestore v0.1.35
 	github.com/dal-go/mocks4dalgo v0.1.17
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/gorilla/sessions v1.2.1
@@ -52,21 +52,21 @@ require (
 
 require (
 	cloud.google.com/go v0.110.8 // indirect
-	cloud.google.com/go/compute v1.23.0 // indirect
+	cloud.google.com/go/compute v1.23.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/datastore v1.15.0 // indirect
-	cloud.google.com/go/iam v1.1.2 // indirect
-	cloud.google.com/go/longrunning v0.5.1 // indirect
+	cloud.google.com/go/iam v1.1.3 // indirect
+	cloud.google.com/go/longrunning v0.5.2 // indirect
 	cloud.google.com/go/storage v1.30.1 // indirect
 	github.com/captaincodeman/datastore-locker v0.0.0-20170308203336-4eddc467484e // indirect
-	github.com/dal-go/dalgo2datastore v0.0.30 // indirect
+	github.com/dal-go/dalgo2datastore v0.0.31 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
-	github.com/google/uuid v1.3.1 // indirect
-	github.com/googleapis/enterprise-certificate-proxy v0.3.1 // indirect
+	github.com/google/uuid v1.4.0 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
@@ -80,11 +80,11 @@ require (
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
-	google.golang.org/api v0.148.0 // indirect
+	google.golang.org/api v0.149.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/genproto v0.0.0-20231002182017-d307bd883b97 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20231002182017-d307bd883b97 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20231012201019-e917dd12ba7a // indirect
+	google.golang.org/genproto v0.0.0-20231016165738-49dd2c1f3d0b // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20231016165738-49dd2c1f3d0b // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20231016165738-49dd2c1f3d0b // indirect
 	google.golang.org/grpc v1.59.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 )
