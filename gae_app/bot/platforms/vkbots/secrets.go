@@ -3,7 +3,7 @@ package vkbots
 //var BotsBy = botsfw.NewBotSettingsBy(nil)
 
 //vk.NewVkBot(
-//	strongo.EnvLocal,
+//	strongoapp.EnvLocal,
 //	"iframe",
 //	"5744136", // Local iframe
 //	"RtoBEsz8gTpWkXrYYe8e",
@@ -11,7 +11,7 @@ package vkbots
 //	trans.SupportedLocalesByCode5[i18n.LocalCodeRuRu],
 //),
 //vk.NewVkBot(
-//	strongo.EnvLocal,
+//	strongoapp.EnvLocal,
 //	"site",
 //	"5709327",
 //	"t8pWXsRQcL1HSENAGtA6",
@@ -19,7 +19,7 @@ package vkbots
 //	trans.SupportedLocalesByCode5[i18n.LocalCodeRuRu],
 //),
 //vk.NewVkBot(
-//	strongo.EnvDevTest,
+//	strongoapp.EnvDevTest,
 //	"iframe",
 //	"5764961",
 //	"nzAkJmOZqHe5BXHorJ35",
@@ -27,7 +27,7 @@ package vkbots
 //	trans.SupportedLocalesByCode5[i18n.LocalCodeRuRu],
 //),
 //vk.NewVkBot(
-//	strongo.EnvProduction,
+//	strongoapp.EnvProduction,
 //	"iframe",
 //	"5764562",
 //	"MMtMQJvwfRhvSc0SoLbC",

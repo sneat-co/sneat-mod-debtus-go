@@ -3,7 +3,7 @@ package models
 import (
 	"context"
 	"github.com/crediterra/money"
-	user2 "github.com/strongo/app/user"
+	"github.com/strongo/strongoapp/appuser"
 	"testing"
 	"time"
 
@@ -61,7 +61,7 @@ func TestLastLogin_SetLastLogin(t *testing.T) {
 	}
 
 	userGoogle := UserAccount{
-		data: &user2.AccountDataBase{},
+		data: &appuser.AccountDataBase{},
 	}
 	userGoogle.Data().SetLastLogin(now)
 	if userGoogle.data.DtLastLogin != now {
@@ -73,7 +73,7 @@ func TestLastLogin_SetLastLogin(t *testing.T) {
 	}
 
 	userGoogle = UserAccount{
-		data: &user2.AccountDataBase{},
+		data: &appuser.AccountDataBase{},
 	}
 	var lastLoginSetter LastLoginSetter = userGoogle.data
 	lastLoginSetter.SetLastLogin(now)

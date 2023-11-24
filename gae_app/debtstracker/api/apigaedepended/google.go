@@ -8,8 +8,8 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
-	strongouser "github.com/strongo/app/user"
 	"github.com/strongo/log"
+	"github.com/strongo/strongoapp/appuser"
 	"google.golang.org/appengine/v2/user"
 	"net/http"
 	"net/url"
@@ -85,7 +85,7 @@ func handleSignedWithGoogle(c context.Context, w http.ResponseWriter, r *http.Re
 		_, _ = w.Write([]byte("userGoogle.UserGoogleData == nil"))
 	}
 
-	accountData := userGoogle.Data().(*strongouser.AccountDataBase)
+	accountData := userGoogle.Data().(*appuser.AccountDataBase)
 	appUserID := userGoogle.Data().GetAppUserID()
 	log.Debugf(c, "userGoogle.AppUserIntID: %s", appUserID)
 	token := auth.IssueToken(appUserID, "web", accountData.EmailLowerCase == "alexander.trakhimenok@gmail.com")

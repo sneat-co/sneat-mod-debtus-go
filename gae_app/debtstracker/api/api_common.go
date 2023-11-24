@@ -3,25 +3,25 @@ package api
 import (
 	"context"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/strongo/strongoapp"
 	"net/http"
 	//"encoding/json"
 	"fmt"
 
 	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/app"
 	"github.com/strongo/log"
 )
 
-func getEnvironment(r *http.Request) strongo.Environment {
+func getEnvironment(r *http.Request) strongoapp.Environment {
 	switch r.Host {
 	case "debtstracker.io":
-		return strongo.EnvProduction
+		return strongoapp.EnvProduction
 	case "debtstracker-dev1.appspot.com":
-		return strongo.EnvDevTest
+		return strongoapp.EnvDevTest
 	case "debtstracker.local":
-		return strongo.EnvLocal
+		return strongoapp.EnvLocal
 	case "localhost":
-		return strongo.EnvLocal
+		return strongoapp.EnvLocal
 	default:
 		panic("Unknonwn host: " + r.Host)
 	}

@@ -2,7 +2,7 @@ package models
 
 import (
 	"github.com/dal-go/dalgo/record"
-	"github.com/strongo/app/user"
+	"github.com/strongo/strongoapp/appuser"
 )
 
 const (
@@ -10,7 +10,7 @@ const (
 )
 
 type UserVkEntity struct {
-	user.OwnedByUserWithID
+	appuser.OwnedByUserWithID
 	FirstName  string
 	LastName   string
 	ScreenName string

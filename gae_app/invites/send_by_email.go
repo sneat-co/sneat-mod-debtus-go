@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/i18n"
+	"github.com/strongo/strongoapp"
 	"html/template"
 
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/emails"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
-	"github.com/strongo/app"
 )
 
 type InviteTemplateParams struct {
@@ -24,7 +24,7 @@ type InviteTemplateParams struct {
 	Utm        string
 }
 
-func SendInviteByEmail(ec strongo.ExecutionContext, translator i18n.SingleLocaleTranslator, fromName, toEmail, toName, inviteCode, telegramBotID, utmSource string) (emailID string, err error) {
+func SendInviteByEmail(ec strongoapp.ExecutionContext, translator i18n.SingleLocaleTranslator, fromName, toEmail, toName, inviteCode, telegramBotID, utmSource string) (emailID string, err error) {
 	//cred := credentials.NewStaticCredentials(, , "")
 	//credStaticProvider := credentials.StaticProvider{}
 	//credStaticProvider.AccessKeyID = "AKIAIT2ZJZOT2CKJ2JFQ"

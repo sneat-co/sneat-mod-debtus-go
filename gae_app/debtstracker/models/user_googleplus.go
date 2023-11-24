@@ -2,13 +2,13 @@ package models
 
 import (
 	"github.com/dal-go/dalgo/record"
-	"github.com/strongo/app/user"
+	"github.com/strongo/strongoapp/appuser"
 )
 
 const UserGooglePlusKind = "UserGooglePlus"
 
 type UserGooglePlusEntity struct {
-	user.OwnedByUserWithID
+	appuser.OwnedByUserWithID
 	Email          string `datastore:",noindex"`
 	DisplayName    string `datastore:",noindex"`
 	RefreshToken   string `datastore:",noindex"`

@@ -3,7 +3,7 @@ package models
 import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
-	"github.com/strongo/app/user"
+	"github.com/strongo/strongoapp/appuser"
 	"reflect"
 )
 
@@ -19,7 +19,7 @@ type PasswordReset struct {
 type PasswordResetData struct {
 	Email  string
 	Status string
-	user.OwnedByUserWithID
+	appuser.OwnedByUserWithID
 }
 
 func NewPasswordReset(id int, data *PasswordResetData) PasswordReset {

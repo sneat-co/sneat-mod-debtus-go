@@ -6,8 +6,8 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
-	"github.com/strongo/app"
 	"github.com/strongo/i18n"
+	"github.com/strongo/strongoapp/appuser"
 	"reflect"
 	"time"
 )
@@ -58,7 +58,7 @@ func (appCtx DebtsTrackerAppContext) GetBotChatEntityFactory(platform string) fu
 	}
 }
 
-func (appCtx DebtsTrackerAppContext) NewAppUserEntity() strongo.AppUser {
+func (appCtx DebtsTrackerAppContext) NewAppUserData() appuser.BaseUserData {
 	return appCtx.NewBotAppUserEntity()
 }
 

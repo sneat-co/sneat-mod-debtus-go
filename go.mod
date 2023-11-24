@@ -1,13 +1,15 @@
 module github.com/sneat-co/sneat-mod-debtus-go
 
-go 1.20
+go 1.21
+
+toolchain go1.21.3
 
 require (
 	cloud.google.com/go/firestore v1.14.0
 	github.com/aws/aws-sdk-go v1.48.3
 	github.com/bots-go-framework/bots-api-telegram v0.4.2
-	github.com/bots-go-framework/bots-fw v0.23.0
-	github.com/bots-go-framework/bots-fw-store v0.1.2
+	github.com/bots-go-framework/bots-fw v0.23.1
+	github.com/bots-go-framework/bots-fw-store v0.2.1
 	github.com/bots-go-framework/bots-fw-telegram v0.7.0
 	github.com/bots-go-framework/bots-fw-telegram-models v0.0.15
 	github.com/bots-go-framework/bots-go-core v0.0.2
@@ -27,7 +29,6 @@ require (
 	github.com/sendgrid/sendgrid-go v3.13.0+incompatible
 	github.com/shiyanhui/hero v0.0.2
 	github.com/sneat-co/debtstracker-translations v0.0.16
-	github.com/strongo/app v0.9.1
 	github.com/strongo/app-host-gae v0.1.18
 	github.com/strongo/decimal v0.0.1
 	github.com/strongo/delaying v0.0.1
@@ -39,6 +40,7 @@ require (
 	github.com/strongo/random v0.0.1
 	github.com/strongo/slice v0.1.4
 	github.com/strongo/slices v0.0.0-20180713073818-553769fcb80b
+	github.com/strongo/strongoapp v0.9.1
 	github.com/strongo/validation v0.0.6
 	github.com/yaa110/go-persian-calendar v1.1.5
 	golang.org/x/crypto v0.15.0
@@ -54,16 +56,13 @@ require (
 	cloud.google.com/go v0.110.8 // indirect
 	cloud.google.com/go/compute v1.23.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
-	cloud.google.com/go/datastore v1.15.0 // indirect
 	cloud.google.com/go/iam v1.1.3 // indirect
 	cloud.google.com/go/longrunning v0.5.2 // indirect
 	cloud.google.com/go/storage v1.30.1 // indirect
 	github.com/captaincodeman/datastore-locker v0.0.0-20170308203336-4eddc467484e // indirect
-	github.com/dal-go/dalgo2datastore v0.0.31 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/google/uuid v1.4.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
@@ -75,16 +74,16 @@ require (
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/oauth2 v0.13.0 // indirect
-	golang.org/x/sync v0.4.0 // indirect
-	golang.org/x/sys v0.13.0 // indirect
-	golang.org/x/text v0.13.0 // indirect
+	golang.org/x/sync v0.5.0 // indirect
+	golang.org/x/sys v0.14.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
-	google.golang.org/api v0.149.0 // indirect
+	google.golang.org/api v0.151.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20231016165738-49dd2c1f3d0b // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231016165738-49dd2c1f3d0b // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20231016165738-49dd2c1f3d0b // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20231030173426-d783a09b4405 // indirect
 	google.golang.org/grpc v1.59.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 )

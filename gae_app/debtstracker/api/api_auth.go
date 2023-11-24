@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
-	strongo "github.com/strongo/app"
+	"github.com/strongo/strongoapp"
 	"io"
 	"net/http"
 	"strings"
@@ -21,7 +21,7 @@ type AuthHandler func(c context.Context, w http.ResponseWriter, r *http.Request,
 
 type AuthHandlerWithUser func(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo, user models.AppUser)
 
-func AuthOnly(handler AuthHandler) strongo.HttpHandlerWithContext {
+func AuthOnly(handler AuthHandler) strongoapp.HttpHandlerWithContext {
 	return func(c context.Context, w http.ResponseWriter, r *http.Request) {
 		log.Debugf(c, "AuthOnly(%v)", handler)
 		if authInfo, _, err := auth.Authenticate(w, r, true); err == nil {
@@ -32,7 +32,7 @@ func AuthOnly(handler AuthHandler) strongo.HttpHandlerWithContext {
 	}
 }
 
-func AuthOnlyWithUser(handler AuthHandlerWithUser) strongo.HttpHandlerWithContext {
+func AuthOnlyWithUser(handler AuthHandlerWithUser) strongoapp.HttpHandlerWithContext {
 	return AuthOnly(func(c context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
 		var userID string
 
@@ -50,7 +50,7 @@ func AuthOnlyWithUser(handler AuthHandlerWithUser) strongo.HttpHandlerWithContex
 	})
 }
 
-func OptionalAuth(handler AuthHandler) strongo.HttpHandlerWithContext {
+func OptionalAuth(handler AuthHandler) strongoapp.HttpHandlerWithContext {
 	return func(c context.Context, w http.ResponseWriter, r *http.Request) {
 		authInfo, _, _ := auth.Authenticate(w, r, false)
 		if authInfo.UserID == "" {
@@ -62,7 +62,7 @@ func OptionalAuth(handler AuthHandler) strongo.HttpHandlerWithContext {
 	}
 }
 
-func adminOnly(handler AuthHandler) strongo.HttpHandlerWithContext {
+func adminOnly(handler AuthHandler) strongoapp.HttpHandlerWithContext {
 	return func(c context.Context, w http.ResponseWriter, r *http.Request) {
 		log.Debugf(c, "adminOnly(%v)", handler)
 		if authInfo, _, err := auth.Authenticate(w, r, true); err == nil {

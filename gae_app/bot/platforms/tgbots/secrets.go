@@ -9,8 +9,8 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
-	"github.com/strongo/app"
 	"github.com/strongo/i18n"
+	"github.com/strongo/strongoapp"
 )
 
 var _bots botsfw.SettingsBy
@@ -20,7 +20,7 @@ const DefaultLocale = i18n.LocaleCodeEnUS
 const DebtusBotToken = "467112035:AAG9Hij0ofnI6GGXyuc6zol0F4XGQ4OK5Tk"
 
 func newTelegramBot(
-	mode strongo.Environment,
+	mode strongoapp.Environment,
 	botProfile botsfw.BotProfile,
 	code, gaToken string,
 	locale i18n.Locale,
@@ -28,7 +28,7 @@ func newTelegramBot(
 	return telegram.NewTelegramBot(mode, botProfile, code, "", "", "", gaToken, i18n.LocaleEnUS, nil, nil)
 }
 
-func Bots(environment strongo.Environment, router func(profile string) botsfw.WebhooksRouter) botsfw.SettingsBy { //TODO: Consider to do pre-deployment replace
+func Bots(environment strongoapp.Environment, router func(profile string) botsfw.WebhooksRouter) botsfw.SettingsBy { //TODO: Consider to do pre-deployment replace
 	newBotChatData := func() botsfwmodels.BotChatData {
 		return nil
 	}
@@ -57,48 +57,48 @@ func Bots(environment strongo.Environment, router func(profile string) botsfw.We
 	collectusBotProfile := botsfw.NewBotProfile("collectus", nil, newBotChatData, newBotUserData, newAppUserData, getAppUserByID, i18n.LocaleEnUS, nil)
 
 	if len(_bots.ByCode) == 0 {
-		//log.Debugf(c, "Bots() => hostname:%v, environment:%v:%v", hostname, environment, strongo.EnvironmentNames[environment])
+		//log.Debugf(c, "Bots() => hostname:%v, environment:%v:%v", hostname, environment, strongoapp.EnvironmentNames[environment])
 		switch environment {
-		case strongo.EnvProduction:
+		case strongoapp.EnvProduction:
 			_bots = botsfw.NewBotSettingsBy( // Production bots
-				newTelegramBot(strongo.EnvProduction, debtusBotProfile, "DebtsTrackerBot", common.GA_TRACKING_ID, i18n.LocaleEnUS),
-				newTelegramBot(strongo.EnvProduction, splitusBotProfile, "SplitusBot", common.GA_TRACKING_ID, i18n.LocaleEnUS),
-				newTelegramBot(strongo.EnvProduction, collectusBotProfile, "CollectusBot", common.GA_TRACKING_ID, i18n.LocaleEnUS),
-				newTelegramBot(strongo.EnvProduction, debtusBotProfile, "DebtsTrackerRuBot", common.GA_TRACKING_ID, i18n.LocaleRuRu),
-				newTelegramBot(strongo.EnvProduction, debtusBotProfile, "DebtsTrackerFaBot", common.GA_TRACKING_ID, i18n.LocalesByCode5[i18n.LocaleCodeFaIR]),
-				newTelegramBot(strongo.EnvProduction, debtusBotProfile, "DebtsTrackerItBot", common.GA_TRACKING_ID, i18n.LocaleItIt),
-				newTelegramBot(strongo.EnvProduction, debtusBotProfile, "DebtsTrackerFrBot", common.GA_TRACKING_ID, i18n.LocaleFrFr),
-				newTelegramBot(strongo.EnvProduction, debtusBotProfile, "DebtsTrackerDeBot", common.GA_TRACKING_ID, i18n.LocaleDeDe),
-				newTelegramBot(strongo.EnvProduction, debtusBotProfile, "DebtsTrackerPLbot", common.GA_TRACKING_ID, i18n.LocalePlPl),
-				newTelegramBot(strongo.EnvProduction, debtusBotProfile, "DebtsTrackerPtBot", common.GA_TRACKING_ID, i18n.LocalePtBr),
-				newTelegramBot(strongo.EnvProduction, debtusBotProfile, "DebtsTrackerEsBot", common.GA_TRACKING_ID, i18n.LocalePtBr),
+				newTelegramBot(strongoapp.EnvProduction, debtusBotProfile, "DebtsTrackerBot", common.GA_TRACKING_ID, i18n.LocaleEnUS),
+				newTelegramBot(strongoapp.EnvProduction, splitusBotProfile, "SplitusBot", common.GA_TRACKING_ID, i18n.LocaleEnUS),
+				newTelegramBot(strongoapp.EnvProduction, collectusBotProfile, "CollectusBot", common.GA_TRACKING_ID, i18n.LocaleEnUS),
+				newTelegramBot(strongoapp.EnvProduction, debtusBotProfile, "DebtsTrackerRuBot", common.GA_TRACKING_ID, i18n.LocaleRuRu),
+				newTelegramBot(strongoapp.EnvProduction, debtusBotProfile, "DebtsTrackerFaBot", common.GA_TRACKING_ID, i18n.LocalesByCode5[i18n.LocaleCodeFaIR]),
+				newTelegramBot(strongoapp.EnvProduction, debtusBotProfile, "DebtsTrackerItBot", common.GA_TRACKING_ID, i18n.LocaleItIt),
+				newTelegramBot(strongoapp.EnvProduction, debtusBotProfile, "DebtsTrackerFrBot", common.GA_TRACKING_ID, i18n.LocaleFrFr),
+				newTelegramBot(strongoapp.EnvProduction, debtusBotProfile, "DebtsTrackerDeBot", common.GA_TRACKING_ID, i18n.LocaleDeDe),
+				newTelegramBot(strongoapp.EnvProduction, debtusBotProfile, "DebtsTrackerPLbot", common.GA_TRACKING_ID, i18n.LocalePlPl),
+				newTelegramBot(strongoapp.EnvProduction, debtusBotProfile, "DebtsTrackerPtBot", common.GA_TRACKING_ID, i18n.LocalePtBr),
+				newTelegramBot(strongoapp.EnvProduction, debtusBotProfile, "DebtsTrackerEsBot", common.GA_TRACKING_ID, i18n.LocalePtBr),
 			)
-		case strongo.EnvDevTest:
+		case strongoapp.EnvDevTest:
 			_bots = botsfw.NewBotSettingsBy( // Development bots
-				newTelegramBot(strongo.EnvDevTest, debtusBotProfile, "DebtsTrackerDev1Bot", common.GA_TRACKING_ID, i18n.LocaleEnUS),
-				newTelegramBot(strongo.EnvDevTest, debtusBotProfile, "DebtsTrackerDev1RuBot", common.GA_TRACKING_ID, i18n.LocaleRuRu),
-				//telegram.NewTelegramBot(strongo.EnvDevTest, bot.ProfileDebtus, "DebtsTrackerDev2RuBot", "360514041:AAFXuT0STHBD9cOn1SFmKzTYDmalP0Rz-7M", "", "", common.GA_TRACKING_ID, i18n.LocalesByCode5[i18n.LocalCodeRuRu]),
+				newTelegramBot(strongoapp.EnvDevTest, debtusBotProfile, "DebtsTrackerDev1Bot", common.GA_TRACKING_ID, i18n.LocaleEnUS),
+				newTelegramBot(strongoapp.EnvDevTest, debtusBotProfile, "DebtsTrackerDev1RuBot", common.GA_TRACKING_ID, i18n.LocaleRuRu),
+				//telegram.NewTelegramBot(strongoapp.EnvDevTest, bot.ProfileDebtus, "DebtsTrackerDev2RuBot", "360514041:AAFXuT0STHBD9cOn1SFmKzTYDmalP0Rz-7M", "", "", common.GA_TRACKING_ID, i18n.LocalesByCode5[i18n.LocalCodeRuRu]),
 			)
-		case strongo.EnvStaging:
+		case strongoapp.EnvStaging:
 			_bots = botsfw.NewBotSettingsBy( // Staging bots
-				newTelegramBot(strongo.EnvStaging, debtusBotProfile, "DebtsTrackerSt1Bot", common.GA_TRACKING_ID, i18n.LocaleEnUS),
+				newTelegramBot(strongoapp.EnvStaging, debtusBotProfile, "DebtsTrackerSt1Bot", common.GA_TRACKING_ID, i18n.LocaleEnUS),
 			)
-		case strongo.EnvLocal:
+		case strongoapp.EnvLocal:
 			_bots = botsfw.NewBotSettingsBy( // Staging bots
-				newTelegramBot(strongo.EnvLocal, debtusBotProfile, "DebtsTrackerLocalBot", common.GA_TRACKING_ID, i18n.LocaleEnUS),
-				newTelegramBot(strongo.EnvLocal, splitusBotProfile, "SplitusLocalBot", common.GA_TRACKING_ID, i18n.LocaleEnUS),
-				newTelegramBot(strongo.EnvLocal, collectusBotProfile, "CollectusLocalBot", common.GA_TRACKING_ID, i18n.LocaleEnUS),
+				newTelegramBot(strongoapp.EnvLocal, debtusBotProfile, "DebtsTrackerLocalBot", common.GA_TRACKING_ID, i18n.LocaleEnUS),
+				newTelegramBot(strongoapp.EnvLocal, splitusBotProfile, "SplitusLocalBot", common.GA_TRACKING_ID, i18n.LocaleEnUS),
+				newTelegramBot(strongoapp.EnvLocal, collectusBotProfile, "CollectusLocalBot", common.GA_TRACKING_ID, i18n.LocaleEnUS),
 			)
-		case strongo.EnvUnknown:
+		case strongoapp.EnvUnknown:
 			// Pass for unit tests?
 		default:
-			panic(fmt.Sprintf("Unknown environment => %v:%v", environment, strongo.EnvironmentNames[environment]))
+			panic(fmt.Sprintf("Unknown environment => %v:%v", environment, strongoapp.EnvironmentNames[environment]))
 		}
 	}
 	return _bots
 }
 
-func GetBotSettingsByLang(environment strongo.Environment, profile, lang string) (botsfw.BotSettings, error) {
+func GetBotSettingsByLang(environment strongoapp.Environment, profile, lang string) (botsfw.BotSettings, error) {
 	botSettingsBy := Bots(environment, nil)
 	for _, bs := range botSettingsBy.ByCode {
 		if bs.Profile.ID() == profile && bs.Locale.Code5 == lang {

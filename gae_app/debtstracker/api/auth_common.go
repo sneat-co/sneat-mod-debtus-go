@@ -8,8 +8,8 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
-	"github.com/strongo/app/user"
 	"github.com/strongo/log"
+	"github.com/strongo/strongoapp/appuser"
 	"net/http"
 )
 
@@ -30,7 +30,7 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 
 		changed := false
 
-		deleteFbUser := func(userAccount user.Account) error {
+		deleteFbUser := func(userAccount appuser.Account) error {
 			if userFb, err := dtdal.UserFacebook.GetFbUserByFbID(c, userAccount.App, userAccount.ID); err != nil {
 				if err != dal.ErrRecordNotFound {
 					return err
@@ -52,7 +52,7 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 		if !appUser.Data.HasAccount(provider, "") {
 			return nil
 		}
-		var userAccount *user.Account
+		var userAccount *appuser.Account
 		switch provider {
 		case "google":
 			if userAccount, err = appUser.Data.GetGoogleAccount(); err != nil {

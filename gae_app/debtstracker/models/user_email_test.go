@@ -3,15 +3,15 @@ package models
 import (
 	"testing"
 
-	"github.com/strongo/app/user"
+	"github.com/strongo/strongoapp/appuser"
 )
 
 func TestUserEmail(t *testing.T) {
-	var _ user.AccountData = (*UserEmailData)(nil)
+	var _ appuser.AccountData = (*UserEmailData)(nil)
 }
 
 func TestUserEmailEntity(t *testing.T) {
-	var _ user.AccountData = (*UserEmailData)(nil)
+	var _ appuser.AccountData = (*UserEmailData)(nil)
 }
 
 func TestUserEmailEntity_AddProvider(t *testing.T) {

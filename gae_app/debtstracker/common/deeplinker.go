@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/strongo/strongoapp"
 
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/auth"
-	"github.com/strongo/app"
 )
 
 type deeplink struct {
@@ -25,7 +25,7 @@ type Linker struct {
 	host   string
 }
 
-func NewLinker(environment strongo.Environment, userID string, locale, issuer string) Linker {
+func NewLinker(environment strongoapp.Environment, userID string, locale, issuer string) Linker {
 	return Linker{
 		userID: userID,
 		locale: locale,
@@ -38,13 +38,13 @@ func NewLinkerFromWhc(whc botsfw.WebhookContext) Linker {
 	return NewLinker(whc.Environment(), whc.AppUserID(), whc.Locale().SiteCode(), formatIssuer(whc.BotPlatform().ID(), whc.GetBotCode()))
 }
 
-func host(environment strongo.Environment) string {
+func host(environment strongoapp.Environment) string {
 	switch environment {
-	case strongo.EnvProduction:
+	case strongoapp.EnvProduction:
 		return "debtstracker.io"
-	case strongo.EnvLocal:
+	case strongoapp.EnvLocal:
 		return "debtstracker.local"
-	case strongo.EnvDevTest:
+	case strongoapp.EnvDevTest:
 		return "debtstracker-dev1.appspot.com"
 	}
 	panic(fmt.Sprintf("Unknown environment: %v", environment))

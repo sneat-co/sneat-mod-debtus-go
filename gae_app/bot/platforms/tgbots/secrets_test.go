@@ -2,15 +2,15 @@ package tgbots
 
 import (
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot"
-	strongo "github.com/strongo/app"
 	"github.com/strongo/i18n"
+	"github.com/strongo/strongoapp"
 	"testing"
 )
 
 func TestGetBotSettingsByLang(t *testing.T) {
 	t.Skip("TODO: fix this test to run on CI")
 	verify := func(profile, locale, code string) {
-		botSettings, err := GetBotSettingsByLang(strongo.EnvLocal, bot.ProfileDebtus, locale)
+		botSettings, err := GetBotSettingsByLang(strongoapp.EnvLocal, bot.ProfileDebtus, locale)
 		if err != nil {
 			t.Fatal(err)
 		}

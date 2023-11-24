@@ -7,7 +7,7 @@ package dtb_fbm
 //	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot/profiles/debtus/cmd/dtb_transfer"
 //	"github.com/sneat-co/debtstracker-translations/emoji"
 //	"github.com/sneat-co/debtstracker-translations/trans"
-//	"github.com/strongo/app"
+//	"github.com/strongo/strongoapp"
 //	"github.com/strongo/bots-api-fbm"
 //	"github.com/bots-go-framework/bots-fw/botsfw"
 //)

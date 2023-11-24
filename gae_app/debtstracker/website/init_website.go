@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/i18n"
+	"github.com/strongo/strongoapp"
 	"google.golang.org/appengine/v2"
 	"net/http"
 	"strconv"
@@ -12,7 +13,6 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/website/admin"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/website/pages"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/website/redirects"
-	"github.com/strongo/app"
 	"github.com/strongo/log"
 	//"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/auth"
@@ -37,7 +37,7 @@ func InitWebsite(router router) {
 		router.GET(fmt.Sprintf("/%v/login", localeSiteCode), LoginHandler)
 		router.GET(fmt.Sprintf("/%v/counterparty", localeSiteCode), pages.CounterpartyPage)
 		router.GET(fmt.Sprintf("/%v/", localeSiteCode), pages.IndexPage)
-		//strongo.AddHTTPHandler(fmt.Sprintf("/%v/create-mass-invite", localeSiteCode), api.AuthOnly(CreateInvitePage))
+		//strongoapp.AddHTTPHandler(fmt.Sprintf("/%v/create-mass-invite", localeSiteCode), api.AuthOnly(CreateInvitePage))
 
 	}
 	router.GET("/en/songs/annie-iou-a-dance", pages.AnnieIOUaDancePage)
@@ -90,7 +90,7 @@ func CreateInvitePage(w http.ResponseWriter, r *http.Request, authInfo auth.Auth
 			return
 		}
 		//translator := i18n.NewSingleMapTranslator(i18n.GetLocaleByCode5(i18n.LocaleCodeEnUS), i18n.NewMapTranslator(c, trans.TRANS))
-		ec := strongo.NewExecutionContext(c)
+		ec := strongoapp.NewExecutionContext(c)
 		if _, err = dtdal.Invite.CreateMassInvite(ec, userID, inviteCode, int32(maxClaimsCount), "web"); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write([]byte(err.Error()))

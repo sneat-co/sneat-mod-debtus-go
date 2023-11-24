@@ -3,12 +3,12 @@ package models
 import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
-	"github.com/strongo/app/user"
+	"github.com/strongo/strongoapp/appuser"
 )
 
-var _ user.AccountData = (*UserFacebookData)(nil)
+var _ appuser.AccountData = (*UserFacebookData)(nil)
 
-var _ user.AccountRecord = (*UserFacebook)(nil)
+var _ appuser.AccountRecord = (*UserFacebook)(nil)
 
 type UserFacebook struct {
 	// TODO: db.NoIntID - replace with DALGO
@@ -22,15 +22,15 @@ type UserFacebook struct {
 //	return u.WithID.Key
 //}
 
-func (u *UserFacebook) Key() user.Account {
+func (u *UserFacebook) Key() appuser.Account {
 	return u.data.Account
 }
 
-func (u *UserFacebook) Data() user.AccountData {
+func (u *UserFacebook) Data() appuser.AccountData {
 	return u.data
 }
 
-func (u *UserFacebook) FbUserData() user.AccountData {
+func (u *UserFacebook) FbUserData() appuser.AccountData {
 	return u.data
 }
 
@@ -38,7 +38,7 @@ func (u *UserFacebook) Record() dal.Record {
 	return u.WithID.Record
 }
 
-func (u *UserFacebook) AccountData() user.AccountData {
+func (u *UserFacebook) AccountData() appuser.AccountData {
 	return u.data
 }
 
@@ -46,8 +46,8 @@ func (u *UserFacebook) AccountData() user.AccountData {
 
 //var _ db.EntityHolder = (*UserFacebook)(nil)
 
-func (u *UserFacebook) UserAccount() user.Account {
-	return user.Account{Provider: "fb", App: u.FbAppOrPageID, ID: u.FbUserOrPageScopeID}
+func (u *UserFacebook) UserAccount() appuser.Account {
+	return appuser.Account{Provider: "fb", App: u.FbAppOrPageID, ID: u.FbUserOrPageScopeID}
 }
 
 func UserFacebookID(fbAppOrPageID, fbUserOrPageScopeID string) string {
@@ -93,13 +93,13 @@ func (u *UserFacebook) SetStrID(id string) {
 
 // UserFacebookData - TODO: consider migrating to https://github.com/dal-go/dalgo4auth
 type UserFacebookData struct {
-	user.AccountDataBase
+	appuser.AccountDataBase
+	appuser.OwnedByUserWithID
 	Email            string `datastore:",noindex"`
 	EmailIsConfirmed bool   `datastore:",noindex"`
-	user.OwnedByUserWithID
 }
 
-var _ user.AccountData = (*UserFacebookData)(nil)
+var _ appuser.AccountData = (*UserFacebookData)(nil)
 
 func (entity UserFacebookData) GetEmail() string {
 	return entity.Email

@@ -9,8 +9,8 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/app/user"
 	"github.com/strongo/i18n"
+	"github.com/strongo/strongoapp/appuser"
 	"net/http"
 	"reflect"
 	"time"
@@ -93,6 +93,7 @@ func NewUser(clientInfo ClientInfo) AppUser {
 }
 
 type AppUserData struct {
+	appuser.BaseUserFields
 	UserRewardBalance
 
 	SavedCounter int `datastore:"A"` // Indexing to find most active users
@@ -108,14 +109,12 @@ type AppUserData struct {
 
 	SmsStats
 	DtCreated time.Time
-	user.LastLogin
+	appuser.LastLogin
 
 	HasDueTransfers bool `datastore:",noindex"` // TODO: Check if we really need this prop and if yes document why
 
 	InvitedByUserID string `datastore:",omitempty"` // TODO: Prevent circular references! see users 6032980589936640 & 5998019824582656
 	ReferredBy      string `datastore:",omitempty"`
-
-	user.AccountsOfUser
 
 	TelegramUserIDs    []int64 // TODO: Obsolete
 	ViberBotID         string  `datastore:",noindex,omitempty"` // TODO: Obsolete
@@ -513,7 +512,7 @@ func (entity *AppUserData) GetCurrencies() []string {
 }
 
 func (entity *AppUserData) SetBotUserID(platform, botID, botUserID string) {
-	entity.AddAccount(user.Account{
+	entity.AddAccount(appuser.Account{
 		Provider: platform,
 		App:      botID,
 		ID:       botUserID,
@@ -534,12 +533,6 @@ func (entity *AppUserData) SetPreferredLocale(code5 string) error {
 	}
 	entity.PreferredLanguage = code5
 	return nil
-}
-
-func (entity *AppUserData) SetNames(first, last, user string) {
-	entity.FirstName = first
-	entity.LastName = last
-	entity.Username = user
 }
 
 //func (entity *AppUserData) Load(ps []datastore.Property) (err error) {

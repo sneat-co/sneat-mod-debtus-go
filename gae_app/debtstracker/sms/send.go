@@ -5,10 +5,10 @@ import (
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
-	"github.com/strongo/app"
 	"github.com/strongo/gotwilio"
 	"github.com/strongo/i18n"
 	"github.com/strongo/log"
+	"github.com/strongo/strongoapp"
 	"strings"
 )
 
@@ -55,7 +55,7 @@ func SendSms(c context.Context, isLive bool, toPhoneNumber, smsText string) (isT
 	return
 }
 
-func TwilioExceptionToMessage(ec strongo.ExecutionContext, t i18n.SingleLocaleTranslator, ex *gotwilio.Exception) (messageText string, tryAnotherNumber bool) {
+func TwilioExceptionToMessage(_ strongoapp.ExecutionContext, t i18n.SingleLocaleTranslator, ex *gotwilio.Exception) (messageText string, tryAnotherNumber bool) {
 	switch ex.Code {
 	case 21211: // Is not a valid phone number. https://www.twilio.com/docs/errors/21211
 		tryAnotherNumber = true

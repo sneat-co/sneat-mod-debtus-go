@@ -6,6 +6,7 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/i18n"
+	"github.com/strongo/strongoapp"
 	"net/http"
 	"strings"
 	"time"
@@ -22,7 +23,6 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/general"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/invites"
-	"github.com/strongo/app"
 	"github.com/strongo/log"
 )
 
@@ -99,7 +99,7 @@ func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request)
 			lang = receipt.Data.Lang
 		}
 		env := dtdal.HttpAppHost.GetEnvironment(c, r)
-		if env == strongo.EnvUnknown {
+		if env == strongoapp.EnvUnknown {
 			w.WriteHeader(http.StatusBadRequest)
 			log.Warningf(c, "Unknown host")
 		}
@@ -439,7 +439,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 	} else {
 		locale := i18n.GetLocaleByCode5(user.Data.GetPreferredLocale())
 		translator := i18n.NewSingleMapTranslator(locale, common.TheAppContext.GetTranslator(c))
-		//ec := strongo.NewExecutionContext(c, translator)
+		//ec := strongoapp.NewExecutionContext(c, translator)
 
 		log.Debugf(c, "r.Host: %v", r.Host)
 
