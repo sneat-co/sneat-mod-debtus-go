@@ -4,21 +4,21 @@ go 1.20
 
 require (
 	cloud.google.com/go/firestore v1.14.0
-	github.com/aws/aws-sdk-go v1.47.3
-	github.com/bots-go-framework/bots-api-telegram v0.4.1
-	github.com/bots-go-framework/bots-fw v0.21.5
-	github.com/bots-go-framework/bots-fw-store v0.1.0
-	github.com/bots-go-framework/bots-fw-telegram v0.6.21
-	github.com/bots-go-framework/bots-fw-telegram-models v0.0.13
-	github.com/bots-go-framework/bots-go-core v0.0.1
-	github.com/bots-go-framework/bots-host-gae v0.4.18
+	github.com/aws/aws-sdk-go v1.48.3
+	github.com/bots-go-framework/bots-api-telegram v0.4.2
+	github.com/bots-go-framework/bots-fw v0.23.0
+	github.com/bots-go-framework/bots-fw-store v0.1.2
+	github.com/bots-go-framework/bots-fw-telegram v0.7.0
+	github.com/bots-go-framework/bots-fw-telegram-models v0.0.15
+	github.com/bots-go-framework/bots-go-core v0.0.2
+	github.com/bots-go-framework/bots-host-gae v0.5.2
 	github.com/captaincodeman/datastore-mapper v0.0.0-20170320145307-cb380a4c4d13
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85
 	github.com/crediterra/money v0.2.1
 	github.com/dal-go/dalgo v0.12.0
-	github.com/dal-go/dalgo2firestore v0.1.35
+	github.com/dal-go/dalgo2firestore v0.1.38
 	github.com/dal-go/mocks4dalgo v0.1.17
-	github.com/golang-jwt/jwt/v5 v5.0.0
+	github.com/golang-jwt/jwt/v5 v5.1.0
 	github.com/gorilla/sessions v1.2.2
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/matryer/is v1.4.1
@@ -26,9 +26,9 @@ require (
 	github.com/sanity-io/litter v1.5.5
 	github.com/sendgrid/sendgrid-go v3.13.0+incompatible
 	github.com/shiyanhui/hero v0.0.2
-	github.com/sneat-co/debtstracker-translations v0.0.14
-	github.com/strongo/app v0.5.7
-	github.com/strongo/app-host-gae v0.1.16
+	github.com/sneat-co/debtstracker-translations v0.0.16
+	github.com/strongo/app v0.9.1
+	github.com/strongo/app-host-gae v0.1.18
 	github.com/strongo/decimal v0.0.1
 	github.com/strongo/delaying v0.0.1
 	github.com/strongo/facebook v1.8.1
@@ -39,10 +39,10 @@ require (
 	github.com/strongo/random v0.0.1
 	github.com/strongo/slice v0.1.4
 	github.com/strongo/slices v0.0.0-20180713073818-553769fcb80b
-	github.com/strongo/validation v0.0.5
+	github.com/strongo/validation v0.0.6
 	github.com/yaa110/go-persian-calendar v1.1.5
-	golang.org/x/crypto v0.14.0
-	golang.org/x/net v0.17.0
+	golang.org/x/crypto v0.15.0
+	golang.org/x/net v0.18.0
 	google.golang.org/appengine/v2 v2.0.5
 )
 
