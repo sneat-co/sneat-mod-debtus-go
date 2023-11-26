@@ -13,7 +13,7 @@ import (
 )
 
 type ApiWebhookContext struct {
-	appUser    *models.AppUserData
+	appUser    *models.DebutsAppUserDataOBSOLETE
 	appUserID  string
 	botChatID  int64
 	chatEntity botsfwmodels.BotChatData
@@ -26,7 +26,7 @@ func (ApiWebhookContext) IsInGroup() bool {
 	panic("not supported")
 }
 
-func NewApiWebhookContext(r *http.Request, appUser *models.AppUserData, userID string, botChatID int64, chatData botsfwmodels.BotChatData) ApiWebhookContext {
+func NewApiWebhookContext(r *http.Request, appUser *models.DebutsAppUserDataOBSOLETE, userID string, botChatID int64, chatData botsfwmodels.BotChatData) ApiWebhookContext {
 	var botSettings botsfw.BotSettings
 	botContext := botsfw.NewBotContext(dtdal.BotHost, botSettings)
 	args := botsfw.NewCreateWebhookContextArgs(

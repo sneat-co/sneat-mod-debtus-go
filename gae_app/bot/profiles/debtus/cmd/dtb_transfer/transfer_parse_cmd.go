@@ -95,7 +95,7 @@ var ParseTransferCommand = botsfw.Command{
 		if botUserEntity, err = whc.AppUserData(); err != nil {
 			return m, err
 		}
-		creatorUser := models.NewAppUser(whc.AppUserID(), botUserEntity.(*models.AppUserData))
+		creatorUser := models.NewAppUser(whc.AppUserID(), botUserEntity.(*models.DebutsAppUserDataOBSOLETE))
 
 		newTransfer := facade.NewTransferInput(whc.Environment(),
 			GetTransferSource(whc),

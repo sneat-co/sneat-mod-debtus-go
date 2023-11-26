@@ -70,7 +70,7 @@ func (userDal UserDalGae) GetUserByEmail(c context.Context, email string) (model
 }
 
 func (userDal UserDalGae) getUserByQuery(c context.Context, query dal.Query, searchCriteria string) (appUser models.AppUser, err error) {
-	userEntities := make([]*models.AppUserData, 0, 2)
+	userEntities := make([]*models.DebutsAppUserDataOBSOLETE, 0, 2)
 	var db dal.DB
 	if db, err = facade.GetDatabase(c); err != nil {
 		return
@@ -84,7 +84,7 @@ func (userDal UserDalGae) getUserByQuery(c context.Context, query dal.Query, sea
 	case 1:
 		log.Debugf(c, "getUserByQuery(%v) => %v: %v", searchCriteria, userRecords[0].Key().ID, userEntities[0])
 		ur := userRecords[0]
-		return models.NewAppUser(ur.Key().ID.(string), ur.Data().(*models.AppUserData)), nil
+		return models.NewAppUser(ur.Key().ID.(string), ur.Data().(*models.DebutsAppUserDataOBSOLETE)), nil
 	case 0:
 		err = dal.ErrRecordNotFound
 		log.Debugf(c, "getUserByQuery(%v) => %v", searchCriteria, err)
@@ -103,12 +103,12 @@ func (userDal UserDalGae) getUserByQuery(c context.Context, query dal.Query, sea
 }
 
 func (userDal UserDalGae) CreateAnonymousUser(c context.Context) (user models.AppUser, err error) {
-	return userDal.CreateUser(c, &models.AppUserData{
+	return userDal.CreateUser(c, &models.DebutsAppUserDataOBSOLETE{
 		IsAnonymous: true,
 	})
 }
 
-func (userDal UserDalGae) CreateUser(c context.Context, userData *models.AppUserData) (user models.AppUser, err error) {
+func (userDal UserDalGae) CreateUser(c context.Context, userData *models.DebutsAppUserDataOBSOLETE) (user models.AppUser, err error) {
 	user = models.NewAppUser("", userData)
 
 	var db dal.DB
@@ -120,7 +120,7 @@ func (userDal UserDalGae) CreateUser(c context.Context, userData *models.AppUser
 			return err
 		}
 		user.ID = user.Record.Key().ID.(string)
-		user.Data = user.Record.Data().(*models.AppUserData)
+		user.Data = user.Record.Data().(*models.DebutsAppUserDataOBSOLETE)
 		return nil
 	})
 	return

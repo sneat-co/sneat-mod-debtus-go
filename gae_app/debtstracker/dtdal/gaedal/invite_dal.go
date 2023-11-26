@@ -244,7 +244,7 @@ func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, invite mo
 	return
 }
 
-func updateUserContactDetails(user *models.AppUserData, inviteData models.InviteData) (changed bool) {
+func updateUserContactDetails(user *models.DebutsAppUserDataOBSOLETE, inviteData models.InviteData) (changed bool) {
 	switch models.InviteBy(inviteData.Channel) {
 	case models.InviteByEmail:
 		changed = !user.EmailConfirmed

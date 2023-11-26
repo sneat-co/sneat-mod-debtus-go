@@ -21,7 +21,7 @@ type userFacade struct {
 
 var User = userFacade{}
 
-var ErrEmailAlreadyRegistered = errors.New("Email already registered")
+var ErrEmailAlreadyRegistered = errors.New("email already registered")
 
 func (userFacade) GetUserByID(c context.Context, tx dal.ReadSession, userID string) (user models.AppUser, err error) {
 	if tx == nil {
@@ -31,7 +31,7 @@ func (userFacade) GetUserByID(c context.Context, tx dal.ReadSession, userID stri
 	}
 
 	key := dal.NewKeyWithID(models.AppUserKind, userID)
-	user.Data = new(models.AppUserData)
+	user.Data = new(models.DebutsAppUserDataOBSOLETE)
 	user.WithID = record.WithID[string]{
 		ID:     userID,
 		Key:    key,

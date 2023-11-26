@@ -2,14 +2,21 @@ module github.com/sneat-co/sneat-mod-debtus-go
 
 go 1.21
 
-toolchain go1.21.3
+toolchain go1.21.4
+
+//replace github.com/dal-go/dalgo => ../dal-go/dalgo
+replace github.com/bots-go-framework/bots-fw-store => ../../bots-go-framework/bots-fw-store
+
+replace github.com/bots-go-framework/bots-fw => ../../bots-go-framework/bots-fw
+
+replace github.com/bots-go-framework/bots-fw-telegram => ../../bots-go-framework/bots-fw-telegram
 
 require (
 	cloud.google.com/go/firestore v1.14.0
 	github.com/aws/aws-sdk-go v1.48.3
 	github.com/bots-go-framework/bots-api-telegram v0.4.2
-	github.com/bots-go-framework/bots-fw v0.23.1
-	github.com/bots-go-framework/bots-fw-store v0.2.1
+	github.com/bots-go-framework/bots-fw v0.23.3
+	github.com/bots-go-framework/bots-fw-store v0.4.0
 	github.com/bots-go-framework/bots-fw-telegram v0.7.0
 	github.com/bots-go-framework/bots-fw-telegram-models v0.0.15
 	github.com/bots-go-framework/bots-go-core v0.0.2
@@ -47,10 +54,6 @@ require (
 	golang.org/x/net v0.18.0
 	google.golang.org/appengine/v2 v2.0.5
 )
-
-//replace github.com/dal-go/dalgo => ../dal-go/dalgo
-//replace github.com/bots-go-framework/bots-fw => ../bots-go-framework/bots-fw
-//replace github.com/bots-go-framework/bots-fw-telegram => ../bots-go-framework/bots-fw-telegram
 
 require (
 	cloud.google.com/go v0.110.8 // indirect

@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-func sendReminderByEmail(c context.Context, reminder models.Reminder, emailTo string, transfer models.Transfer, user models.AppUserData) (err error) {
+func sendReminderByEmail(c context.Context, reminder models.Reminder, emailTo string, transfer models.Transfer, user models.DebutsAppUserDataOBSOLETE) (err error) {
 	log.Debugf(c, "sendReminderByEmail(reminder.ID=%v, emailTo=%v)", reminder.ID, emailTo)
 	// TODO: Do we really need to pass "w http.ResponseWriter" here?
 	var text bytes.Buffer

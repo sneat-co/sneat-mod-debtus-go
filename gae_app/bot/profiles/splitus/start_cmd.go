@@ -28,7 +28,7 @@ func startInGroupAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err
 		return
 	}
 
-	appUser := appUserD.(*models.AppUserData)
+	appUser := appUserD.(*models.DebutsAppUserDataOBSOLETE)
 
 	var botUser record.DataWithID[string, botsfwmodels.BotUserData]
 

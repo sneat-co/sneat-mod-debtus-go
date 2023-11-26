@@ -62,7 +62,7 @@ func createContactWithinTransaction(
 		return
 	}
 	if appUser.Data == nil {
-		err = errors.New("appUser.AppUserData == nil")
+		err = errors.New("appUser.DebutsAppUserDataOBSOLETE == nil")
 		return
 	}
 	if appUser.ID == counterpartyUserID {

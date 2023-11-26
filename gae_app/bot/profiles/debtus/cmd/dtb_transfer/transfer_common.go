@@ -115,7 +115,7 @@ func AskTransferCurrencyButtons(whc botsfw.WebhookContext) [][]string {
 		}
 	}
 
-	appUser := user.(*models.AppUserData)
+	appUser := user.(*models.DebutsAppUserDataOBSOLETE)
 
 	for _, currency := range appUser.GetCurrencies() {
 		curr := money.CurrencyCode(currency)

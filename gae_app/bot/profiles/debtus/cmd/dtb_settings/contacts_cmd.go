@@ -32,11 +32,11 @@ var ContactsListCommand = botsfw.Command{
 }
 
 func contactsAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
-	var user *models.AppUserData
+	var user *models.DebutsAppUserDataOBSOLETE
 	if appUser, err := whc.AppUserData(); err != nil {
 		return m, err
 	} else {
-		user = appUser.(*models.AppUserData)
+		user = appUser.(*models.DebutsAppUserDataOBSOLETE)
 	}
 	var buffer bytes.Buffer
 	buffer.WriteString(fmt.Sprintf("<b>%v</b>\n", whc.Translate(trans.COMMAND_TEXT_CONTACTS)))

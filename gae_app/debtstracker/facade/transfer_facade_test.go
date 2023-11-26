@@ -112,7 +112,7 @@ func TestCreateTransfer(t *testing.T) {
 			return
 		}
 		if fromUser.Data == nil {
-			t.Error("fromUser.AppUserData == nil")
+			t.Error("fromUser.DebutsAppUserDataOBSOLETE == nil")
 			return
 		}
 		if transfer.Data.CreatorUserID != userID {
@@ -139,10 +139,10 @@ func TestCreateTransfer(t *testing.T) {
 			return
 		}
 		if fromUser.ID != "" && fromUser.Data == nil {
-			t.Error("fromUser.ID != 0 && fromUser.AppUserData == nil")
+			t.Error("fromUser.ID != 0 && fromUser.DebutsAppUserDataOBSOLETE == nil")
 		}
 		if toUser.ID != "" && toUser.Data == nil {
-			t.Error("toUser.ID != 0 && toUser.AppUserData == nil")
+			t.Error("toUser.ID != 0 && toUser.DebutsAppUserDataOBSOLETE == nil")
 		}
 		if toCounterparty.ID != "" && toCounterparty.Data == nil {
 			t.Error("fromCounterparty.ContactData == nil")

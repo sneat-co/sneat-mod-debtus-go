@@ -30,7 +30,7 @@ var groupCommand = botsfw.NewCallbackCommand(groupCommandCode,
 		if user, err = whc.AppUserData(); err != nil {
 			return
 		}
-		appUserEntity := user.(*models.AppUserData) // TODO: Create shortcut function
+		appUserEntity := user.(*models.DebutsAppUserDataOBSOLETE) // TODO: Create shortcut function
 
 		groups := appUserEntity.ActiveGroups()
 

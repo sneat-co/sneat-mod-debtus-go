@@ -137,7 +137,7 @@ func (input createTransferInput) Validate() {
 		panic("creatorUser.ID == 0")
 	}
 	if input.CreatorUser.Data == nil {
-		panic("creatorUser.AppUserData == nil")
+		panic("creatorUser.DebutsAppUserDataOBSOLETE == nil")
 	}
 	if input.Amount.Value <= 0 {
 		panic("amount.Value <= 0")
@@ -543,7 +543,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 	// In case if we just loaded above missing counterparty we need to check for missing user
 	{
 		loadUserIfNeeded := func(who string, userID string, appUser models.AppUser) (models.AppUser, error) {
-			log.Debugf(c, "%v.UserID: %d, %vUser.AppUserData: %v", who, userID, who, appUser.Data)
+			log.Debugf(c, "%v.UserID: %d, %vUser.DebutsAppUserDataOBSOLETE: %v", who, userID, who, appUser.Data)
 			if userID != "" {
 				if appUser.Data == nil {
 					if appUser, err = User.GetUserByID(c, tx, userID); err != nil {

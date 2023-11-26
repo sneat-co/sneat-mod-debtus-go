@@ -93,8 +93,8 @@ type CreateUserData struct {
 	Nickname   string
 }
 
-func CreateUserEntity(createUserData CreateUserData) (user *models.AppUserData) {
-	return &models.AppUserData{
+func CreateUserEntity(createUserData CreateUserData) (user *models.DebutsAppUserDataOBSOLETE) {
+	return &models.DebutsAppUserDataOBSOLETE{
 		//FbUserID: createUserData.FbUserID,
 		//VkUserID: createUserData.VkUserID,
 		//GoogleUniqueUserID: createUserData.GoogleUserID,
@@ -111,7 +111,7 @@ type UserDal interface {
 	GetUserByStrID(c context.Context, userID string) (models.AppUser, error)
 	GetUserByVkUserID(c context.Context, vkUserID int64) (models.AppUser, error)
 	CreateAnonymousUser(c context.Context) (models.AppUser, error)
-	CreateUser(c context.Context, userEntity *models.AppUserData) (models.AppUser, error)
+	CreateUser(c context.Context, userEntity *models.DebutsAppUserDataOBSOLETE) (models.AppUser, error)
 	DelaySetUserPreferredLocale(c context.Context, delay time.Duration, userID string, localeCode5 string) error
 	DelayUpdateUserHasDueTransfers(c context.Context, userID string) error
 	SetLastCurrency(c context.Context, userID string, currency money.CurrencyCode) error

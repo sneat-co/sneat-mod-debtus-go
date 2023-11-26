@@ -121,7 +121,7 @@ func setPreferredLanguageAction(whc botsfw.WebhookContext, code5, mode string, b
 		log.Errorf(c, ": %v", err)
 		return m, fmt.Errorf("%w: failed to load userEntity", err)
 	}
-	userEntity, ok := appUser.(*models.AppUserData)
+	userEntity, ok := appUser.(*models.DebutsAppUserDataOBSOLETE)
 	if !ok {
 		return m, fmt.Errorf("expected *models.AppUser, got: %T", appUser)
 	}

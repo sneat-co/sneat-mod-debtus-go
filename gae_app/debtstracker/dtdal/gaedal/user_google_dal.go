@@ -123,7 +123,7 @@ func (UserGoogleDalGae) SaveUserGoogle(c context.Context, userGoogle models.User
 //			query := datastore.NewQuery(models.AppUserKind).Filter("EmailAddress = ", emailLowCase).Limit(2)
 //			var (
 //				appUserKeys []*datastore.Key
-//				appUsers    []models.AppUserData
+//				appUsers    []models.DebutsAppUserDataOBSOLETE
 //			)
 //			if appUserKeys, err = query.GetAll(c, &appUsers); err != nil {
 //				err = errors.Wrap(err, "Failed to load users by email")
@@ -155,7 +155,7 @@ func (UserGoogleDalGae) SaveUserGoogle(c context.Context, userGoogle models.User
 //				if strings.Index(remoteAddr, ":") >= 0 {
 //					remoteAddr = strings.Split(remoteAddr, ":")[0]
 //				}
-//				appUser := models.AppUserData{
+//				appUser := models.DebutsAppUserDataOBSOLETE{
 //					GoogleUniqueUserID: user.ID,
 //					DtCreated:          now,
 //					LastUserAgent:      userAgent,

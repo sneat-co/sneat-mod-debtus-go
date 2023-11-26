@@ -10,7 +10,7 @@ import (
 
 type UserDalMock struct {
 	LastUserID int64
-	Users      map[int64]*models.AppUserData
+	Users      map[int64]*models.DebutsAppUserDataOBSOLETE
 }
 
 func (mock *UserDalMock) DelayUpdateUserWithContact(c context.Context, userID, contactID string) error {
@@ -19,7 +19,7 @@ func (mock *UserDalMock) DelayUpdateUserWithContact(c context.Context, userID, c
 
 func NewUserDalMock() *UserDalMock {
 	return &UserDalMock{
-		Users: make(map[int64]*models.AppUserData),
+		Users: make(map[int64]*models.DebutsAppUserDataOBSOLETE),
 	}
 }
 
@@ -39,7 +39,7 @@ func (mock *UserDalMock) GetUserByEmail(c context.Context, email string) (models
 	panic("Not implemented yet")
 }
 
-func (mock *UserDalMock) CreateUser(c context.Context, userEntity *models.AppUserData) (models.AppUser, error) {
+func (mock *UserDalMock) CreateUser(c context.Context, userEntity *models.DebutsAppUserDataOBSOLETE) (models.AppUser, error) {
 	panic("Not implemented yet")
 }
 

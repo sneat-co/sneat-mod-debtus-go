@@ -91,12 +91,12 @@ func startInlineHelp(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err er
 	return m, err
 }
 
-func GetUser(whc botsfw.WebhookContext) (userEntity *models.AppUserData, err error) { // TODO: Make library and use across app
+func GetUser(whc botsfw.WebhookContext) (userEntity *models.DebutsAppUserDataOBSOLETE, err error) { // TODO: Make library and use across app
 	var botAppUser botsfwmodels.AppUserData
 	if botAppUser, err = whc.AppUserData(); err != nil {
 		return
 	}
-	userEntity = botAppUser.(*models.AppUserData)
+	userEntity = botAppUser.(*models.DebutsAppUserDataOBSOLETE)
 	return
 }
 

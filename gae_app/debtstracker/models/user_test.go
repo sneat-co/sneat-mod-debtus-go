@@ -11,7 +11,7 @@ import (
 )
 
 func TestAppUserEntity_Contacts(t *testing.T) {
-	var userEntity AppUserData
+	var userEntity DebutsAppUserDataOBSOLETE
 
 	userEntity.ContactsJsonActive = `[{"ID":"1","Name":"Alex (Alex)"}]`
 
@@ -24,7 +24,7 @@ func TestAppUserEntity_Contacts(t *testing.T) {
 }
 
 func TestAppUserEntity_SetLastCurrency(t *testing.T) {
-	userEntity := AppUserData{}
+	userEntity := DebutsAppUserDataOBSOLETE{}
 	userEntity.SetLastCurrency("EUR")
 	if len(userEntity.LastCurrencies) != 1 {
 		t.Errorf("Expected 1 value in LastCurrencies, got: %d", len(userEntity.LastCurrencies))
@@ -83,7 +83,7 @@ func TestLastLogin_SetLastLogin(t *testing.T) {
 }
 
 func TestAppUserEntity_BalanceWithInterest(t *testing.T) {
-	user := AppUserData{
+	user := DebutsAppUserDataOBSOLETE{
 		TransfersWithInterestCount: 1,
 		Balanced: money.Balanced{
 			BalanceCount: 1,
