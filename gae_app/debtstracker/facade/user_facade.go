@@ -8,9 +8,10 @@ import (
 	"github.com/dal-go/dalgo/record"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
-	"github.com/strongo/app/user"
 	"github.com/strongo/log"
+	"github.com/strongo/strongoapp/appuser"
 	gae_user "google.golang.org/appengine/v2/user"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -166,17 +167,17 @@ func (uf userFacade) GetOrCreateUserGoogleOnSignIn(
 	if googleUser == nil {
 		panic("googleUser == nil")
 	}
-	getUserAccountRecordFromDB := func(c context.Context) (user.AccountRecord, error) {
+	getUserAccountRecordFromDB := func(c context.Context) (appuser.AccountRecord, error) {
 		userGoogle, err = dtdal.UserGoogle.GetUserGoogleByID(c, googleUser.ID)
 		return &userGoogle, err
 	}
-	newUserAccountRecord := func(c context.Context) (user.AccountRecord, error) {
+	newUserAccountRecord := func(c context.Context) (appuser.AccountRecord, error) {
 		if googleUser.Email == "" {
 			return nil, errors.New("Not implemented yet: Google did not provided appUser email")
 		}
 		userGoogle = models.NewUserAccount(googleUser.ID)
 		data := userGoogle.DataStruct()
-		data.EmailData = user.NewEmailData(googleUser.Email)
+		data.EmailData = appuser.NewEmailData(googleUser.Email)
 		data.ClientID = googleUser.ClientID
 		data.FederatedProvider = googleUser.FederatedProvider
 		data.FederatedIdentity = googleUser.FederatedIdentity
@@ -201,8 +202,8 @@ func getOrCreateUserAccountRecordOnSignIn(
 	c context.Context,
 	provider string,
 	userID string,
-	getUserAccountRecordFromDB func(c context.Context) (user.AccountRecord, error),
-	newUserAccountRecord func(c context.Context) (user.AccountRecord, error),
+	getUserAccountRecordFromDB func(c context.Context) (appuser.AccountRecord, error),
+	newUserAccountRecord func(c context.Context) (appuser.AccountRecord, error),
 	clientInfo models.ClientInfo,
 ) (
 	appUser models.AppUser, err error,
@@ -212,7 +213,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 	if db, err = GetDatabase(c); err != nil {
 		return
 	}
-	var userAccount user.AccountRecord
+	var userAccount appuser.AccountRecord
 	err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 		if userAccount, err = getUserAccountRecordFromDB(c); err != nil {
 			if !dal.IsNotFound(err) {
@@ -320,7 +321,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 				return
 			}
 
-			userAccount.(user.BelongsToUserWithIntID).SetAppUserID(appUser.ID)
+			userAccount.(appuser.BelongsToUser).SetAppUserID(appUser.ID)
 			userEmail.Data.AppUserID = appUser.ID
 
 			if err = tx.SetMulti(c, []dal.Record{userAccountRecord, userEmail.Record}); err != nil {
@@ -328,7 +329,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 			}
 			return
 		} else { // UserEmail record found
-			userAccount.(user.BelongsToUserWithIntID).SetAppUserIntID(userEmail.Data.AppUserIntID) // No need to create a new appUser, link to existing
+			userAccount.(appuser.BelongsToUser).SetAppUserID(strconv.FormatInt(userEmail.Data.AppUserIntID, 10)) // No need to create a new appUser, link to existing
 			if !isNewUser && userEmail.Data.AppUserID != userID {
 				panic(fmt.Sprintf("Relinking of appUser accounts us not implemented yet => userEmail.AppUserID:%s != userID:%s", userEmail.Data.AppUserID, userID))
 			}

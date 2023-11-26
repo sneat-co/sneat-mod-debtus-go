@@ -14,7 +14,7 @@ import (
 	//"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot/platforms/telegram"
 	//"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/facade"
 	//apphostgae "github.com/strongo/app-host-gae"
-	//"github.com/strongo/app"
+	//"github.com/strongo/strongoapp"
 	//apphostgae "github.com/strongo/app-host-gae"
 	//"context"
 	//"google.golang.org/appengine/v2/delay"
@@ -143,7 +143,7 @@ func rescheduleReminder(whc botsfw.WebhookContext, reminderID string, remindInDu
 //			if err != nil {
 //				return err
 //			}
-//			translator := i18n.NewSingleMapTranslator(locale, strongo.NewMapTranslator(c, trans.TRANS))
+//			translator := i18n.NewSingleMapTranslator(locale, strongoapp.NewMapTranslator(c, trans.TRANS))
 //			text := translator.Translate(trans.MESSAGE_TEXT_ASK_FOR_FEEDBAСK)
 //			messageConfig := tgbotapi.NewMessage(chatID, text)
 //			messageConfig.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(

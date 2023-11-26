@@ -10,10 +10,10 @@ package dtb_transfer
 //	"github.com/bots-go-framework/bots-fw/botsfw"
 //	"context"
 //	"time"
-//	"github.com/strongo/app"
+//	"github.com/strongo/strongoapp"
 //)
 //
-//func ClaimInviteOnTransfer(ec strongo.ExecutionContext, inviteCode string, invite *invites.Invite) (transferID int, transfer *models.Transfer, counterpartyID int64, counterparty *models.Contact, err error) {
+//func ClaimInviteOnTransfer(ec strongoapp.ExecutionContext, inviteCode string, invite *invites.Invite) (transferID int, transfer *models.Transfer, counterpartyID int64, counterparty *models.Contact, err error) {
 //	c := ec.Context()
 //
 //	//if transferID, err = invite.RelatedIntID(); err != nil {

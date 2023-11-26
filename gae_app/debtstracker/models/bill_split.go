@@ -2,7 +2,7 @@ package models
 
 import (
 	"github.com/dal-go/dalgo/record"
-	"github.com/strongo/app/user"
+	"github.com/strongo/strongoapp/appuser"
 )
 
 const SplitKind = "Split"
@@ -15,7 +15,7 @@ type Split struct {
 //var _ db.EntityHolder = (*Split)(nil)
 
 type SplitEntity struct {
-	user.OwnedByUserWithID
+	appuser.OwnedByUserWithID
 	BillIDs []string `datastore:",noindex"`
 }
 

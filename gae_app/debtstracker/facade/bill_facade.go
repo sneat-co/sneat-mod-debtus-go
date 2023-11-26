@@ -440,7 +440,7 @@ func (billFacade) CreateBill(c context.Context, tx dal.ReadwriteTransaction, bil
 //		log.Debugf(c, "to: %v", to)
 //		//_, _, _, _, _, _, err = CreateTransfer(
 //		//	c,
-//		//	strongo.EnvUnknown,
+//		//	strongoapp.EnvUnknown,
 //		//	transferSource,
 //		//	bill.CreatorUserID,
 //		//	billID,

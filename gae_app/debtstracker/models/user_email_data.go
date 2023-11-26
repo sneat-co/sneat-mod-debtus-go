@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
-	"github.com/strongo/app/user"
+	"github.com/strongo/strongoapp/appuser"
 )
 
 func NewUserEmailKey(email string) *dal.Key {
@@ -22,10 +22,10 @@ func NewUserEmail(email string, data *UserEmailData) UserEmail {
 	}
 }
 
-var _ user.AccountData = (*UserEmailData)(nil)
+var _ appuser.AccountData = (*UserEmailData)(nil)
 
-func (entity *UserEmailData) GetNames() user.Names {
-	return entity.Names
+func (entity *UserEmailData) GetNames() appuser.NameFields {
+	return entity.NameFields
 }
 
 func (entity *UserEmailData) ConfirmationPin() string {

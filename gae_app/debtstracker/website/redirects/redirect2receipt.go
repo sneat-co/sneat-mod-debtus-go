@@ -56,7 +56,7 @@ func ReceiptRedirect(w http.ResponseWriter, r *http.Request, _ httprouter.Params
 		if receiptOpenGraphPageTmpl == nil {
 			receiptOpenGraphPageTmpl = template.Must(template.ParseFiles(pages.TEMPLATES_PATH + "receipt-opengraph.html"))
 		}
-		locale := i18n.LocaleEnUS // strongo.GetLocaleByCode5(receipt.Lang) // TODO: Check for empty
+		locale := i18n.LocaleEnUS // strongoapp.GetLocaleByCode5(receipt.Lang) // TODO: Check for empty
 		pages.RenderCachedPage(w, r, receiptOpenGraphPageTmpl, locale, map[string]interface{}{
 			"host":      r.Host,
 			"ogUrl":     r.URL.String(),

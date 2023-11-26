@@ -2,7 +2,7 @@ package models
 
 import (
 	"github.com/dal-go/dalgo/record"
-	"github.com/strongo/app/user"
+	"github.com/strongo/strongoapp/appuser"
 	"golang.org/x/crypto/bcrypt"
 	"strconv"
 	"strings"
@@ -12,9 +12,9 @@ import (
 const UserEmailKind = "UserEmail"
 
 type UserEmailData struct {
-	user.AccountDataBase
-	user.Names
-	user.OwnedByUserWithID
+	appuser.AccountDataBase
+	appuser.NameFields
+	appuser.OwnedByUserWithID
 	IsConfirmed        bool
 	PasswordBcryptHash []byte   `datastore:",noindex"`
 	Providers          []string `datastore:",noindex"` // E.g. facebook, vk, user
@@ -27,8 +27,8 @@ type UserEmail struct {
 
 //var _ user.AccountRecord = (*UserEmail)(nil)
 
-func (userEmail UserEmail) UserAccount() user.Account {
-	return user.Account{Provider: "email", ID: userEmail.ID}
+func (userEmail UserEmail) UserAccount() appuser.Account {
+	return appuser.Account{Provider: "email", ID: userEmail.ID}
 }
 
 func (userEmail UserEmail) Kind() string {
@@ -49,7 +49,7 @@ func (userEmail UserEmail) GetEmail() string {
 
 func NewUserEmailData(userID int64, isConfirmed bool, provider string) *UserEmailData {
 	entity := &UserEmailData{
-		OwnedByUserWithID: user.NewOwnedByUserWithID(strconv.FormatInt(userID, 10), time.Now()),
+		OwnedByUserWithID: appuser.NewOwnedByUserWithID(strconv.FormatInt(userID, 10), time.Now()),
 		IsConfirmed:       isConfirmed,
 	}
 	entity.AddProvider(provider)

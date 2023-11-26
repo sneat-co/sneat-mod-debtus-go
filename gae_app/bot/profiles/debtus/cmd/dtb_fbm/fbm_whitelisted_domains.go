@@ -5,7 +5,7 @@ package dtb_fbm
 //	"net/http"
 //
 //	"context"
-//	"github.com/strongo/app"
+//	"github.com/strongo/strongoapp"
 //	"github.com/strongo/bots-api-fbm"
 //	"github.com/bots-go-framework/bots-fw/botsfw"
 //)
@@ -13,12 +13,12 @@ package dtb_fbm
 //func SetWhitelistedDomains(c context.Context, r *http.Request, bot botsfw.BotSettings, api fbmbotapi.GraphAPI) (err error) {
 //	var whitelistedDomainsMessage fbmbotapi.WhitelistedDomainsMessage
 //	switch bot.Env {
-//	case strongo.EnvProduction:
+//	case strongoapp.EnvProduction:
 //		whitelistedDomainsMessage = fbmbotapi.WhitelistedDomainsMessage{WhitelistedDomains: []string{
 //			"https://debtstracker.io",
 //			"https://splitbill.co",
 //		}}
-//	case strongo.EnvLocal:
+//	case strongoapp.EnvLocal:
 //		domains := []string{
 //			"https://debtstracker.local",
 //		}
@@ -27,12 +27,12 @@ package dtb_fbm
 //			domains = append(domains, fmt.Sprintf("https://%v", host))
 //		}
 //		whitelistedDomainsMessage = fbmbotapi.WhitelistedDomainsMessage{WhitelistedDomains: domains}
-//	case strongo.EnvDevTest:
+//	case strongoapp.EnvDevTest:
 //		whitelistedDomainsMessage = fbmbotapi.WhitelistedDomainsMessage{WhitelistedDomains: []string{
 //			"https://debtstracker-dev1.appspot.com",
 //		}}
 //	default:
-//		err = fmt.Errorf("Unknown bot environment: %d=%v", bot.Env, strongo.EnvironmentNames[bot.Env])
+//		err = fmt.Errorf("Unknown bot environment: %d=%v", bot.Env, strongoapp.EnvironmentNames[bot.Env])
 //		return
 //	}
 //

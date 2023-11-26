@@ -35,6 +35,7 @@ func NewApiWebhookContext(r *http.Request, appUser *models.AppUserData, userID s
 		*botContext,
 		nil,
 		nil,
+		nil,
 	)
 	whcb, err := botsfw.NewWebhookContextBase(
 		args,

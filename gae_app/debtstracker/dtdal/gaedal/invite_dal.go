@@ -8,8 +8,8 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/general"
-	"github.com/strongo/app"
 	"github.com/strongo/log"
+	"github.com/strongo/strongoapp"
 	"strconv"
 	"strings"
 	"time"
@@ -73,16 +73,16 @@ const (
 	PERSONAL_INVITE           = 1
 )
 
-func (InviteDalGae) CreatePersonalInvite(ec strongo.ExecutionContext, userID string, inviteBy models.InviteBy, inviteToAddress, createdOnPlatform, createdOnID, related string) (models.Invite, error) {
+func (InviteDalGae) CreatePersonalInvite(ec strongoapp.ExecutionContext, userID string, inviteBy models.InviteBy, inviteToAddress, createdOnPlatform, createdOnID, related string) (models.Invite, error) {
 	return createInvite(ec, models.InviteTypePersonal, userID, inviteBy, inviteToAddress, createdOnPlatform, createdOnID, INVITE_CODE_LENGTH, AUTO_GENERATE_INVITE_CODE, related, PERSONAL_INVITE)
 }
 
-func (InviteDalGae) CreateMassInvite(ec strongo.ExecutionContext, userID string, inviteCode string, maxClaimsCount int32, createdOnPlatform string) (invite models.Invite, err error) {
+func (InviteDalGae) CreateMassInvite(ec strongoapp.ExecutionContext, userID string, inviteCode string, maxClaimsCount int32, createdOnPlatform string) (invite models.Invite, err error) {
 	invite, err = createInvite(ec, models.InviteTypePublic, userID, "", "", createdOnPlatform, "", uint8(len(inviteCode)), inviteCode, "", maxClaimsCount)
 	return
 }
 
-func createInvite(ec strongo.ExecutionContext, inviteType models.InviteType, userID string, inviteBy models.InviteBy, inviteToAddress, createdOnPlatform, createdOnID string, inviteCodeLen uint8, inviteCode, related string, maxClaimsCount int32) (invite models.Invite, err error) {
+func createInvite(ec strongoapp.ExecutionContext, inviteType models.InviteType, userID string, inviteBy models.InviteBy, inviteToAddress, createdOnPlatform, createdOnID string, inviteCodeLen uint8, inviteCode, related string, maxClaimsCount int32) (invite models.Invite, err error) {
 	if inviteCode != AUTO_GENERATE_INVITE_CODE && !dtdal.InviteCodeRegex.Match([]byte(inviteCode)) {
 		err = fmt.Errorf("Invalid invite code: %v", inviteCode)
 		return

@@ -7,6 +7,7 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/i18n"
+	"github.com/strongo/strongoapp"
 	"net/url"
 	"strings"
 
@@ -15,7 +16,6 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot/profiles/debtus/cmd/dtb_general"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
-	"github.com/strongo/app"
 	"github.com/strongo/log"
 )
 
@@ -163,7 +163,7 @@ func setPreferredLanguageAction(whc botsfw.WebhookContext, code5, mode string, b
 				}
 				localeChanged = true
 				selectedLocale = locale
-				if whc.GetBotSettings().Env == strongo.EnvProduction {
+				if whc.GetBotSettings().Env == strongoapp.EnvProduction {
 					ga := whc.GA()
 					gaEvent := ga.GaEventWithLabel("settings", "locale-changed", strings.ToLower(locale.Code5))
 					if gaErr := ga.Queue(gaEvent); gaErr != nil {

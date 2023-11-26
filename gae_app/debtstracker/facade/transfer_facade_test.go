@@ -9,8 +9,8 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtmocks"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
-	"github.com/strongo/app"
 	"github.com/strongo/decimal"
+	"github.com/strongo/strongoapp"
 	"runtime/debug"
 	"strings"
 	"testing"
@@ -79,7 +79,7 @@ func TestCreateTransfer(t *testing.T) {
 		}
 
 		creatorUser := models.NewAppUser(userID, nil)
-		newTransfer := NewTransferInput(strongo.EnvLocal,
+		newTransfer := NewTransferInput(strongoapp.EnvLocal,
 			source,
 			creatorUser,
 			"",
@@ -411,7 +411,7 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 			from = tContact
 			to = tUser
 		}
-		newTransfer := NewTransferInput(strongo.EnvLocal,
+		newTransfer := NewTransferInput(strongoapp.EnvLocal,
 			source,
 			creatorUser,
 			"",

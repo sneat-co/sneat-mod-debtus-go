@@ -10,9 +10,9 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/auth"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
-	"github.com/strongo/app"
 	"github.com/strongo/decimal"
 	"github.com/strongo/gotwilio"
+	"github.com/strongo/strongoapp"
 	"math/rand"
 	"net/http"
 	"regexp"
@@ -64,7 +64,7 @@ type ReceiptDal interface {
 	MarkReceiptAsSent(c context.Context, receiptID, transferID string, sentTime time.Time) error
 	CreateReceipt(c context.Context, data *models.ReceiptData) (receipt models.Receipt, err error)
 	DelayedMarkReceiptAsSent(c context.Context, receiptID, transferID string, sentTime time.Time) error
-	DelayCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongo.Environment, transferID string, userID string) error
+	DelayCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongoapp.Environment, transferID string, userID string) error
 }
 
 var ErrReminderAlreadyRescheduled = errors.New("reminder already rescheduled")
@@ -250,8 +250,8 @@ type InviteDal interface {
 	GetInvite(c context.Context, tx dal.ReadSession, inviteCode string) (models.Invite, error)
 	ClaimInvite(c context.Context, userID string, inviteCode, claimedOn, claimedVia string) (err error)
 	ClaimInvite2(c context.Context, inviteCode string, invite models.Invite, claimedByUserID string, claimedOn, claimedVia string) (err error)
-	CreatePersonalInvite(ec strongo.ExecutionContext, userID string, inviteBy models.InviteBy, inviteToAddress, createdOnPlatform, createdOnID, related string) (models.Invite, error)
-	CreateMassInvite(ec strongo.ExecutionContext, userID string, inviteCode string, maxClaimsCount int32, createdOnPlatform string) (invite models.Invite, err error)
+	CreatePersonalInvite(ec strongoapp.ExecutionContext, userID string, inviteBy models.InviteBy, inviteToAddress, createdOnPlatform, createdOnID, related string) (models.Invite, error)
+	CreateMassInvite(ec strongoapp.ExecutionContext, userID string, inviteCode string, maxClaimsCount int32, createdOnPlatform string) (invite models.Invite, err error)
 }
 
 type AdminDal interface {
@@ -322,7 +322,7 @@ var (
 	TgUser        TgUserDal
 	HttpClient    func(c context.Context) *http.Client
 	BotHost       botsfw.BotHost
-	HttpAppHost   strongo.HttpAppHost
+	HttpAppHost   strongoapp.HttpAppHost
 
 	//Split        SplitDal
 	//BillSchedule BillScheduleDal

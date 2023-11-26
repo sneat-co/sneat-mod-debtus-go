@@ -7,6 +7,7 @@ import (
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
 	"github.com/strongo/i18n"
+	"github.com/strongo/strongoapp"
 	"google.golang.org/appengine/v2"
 	"html/template"
 	"net/http"
@@ -16,7 +17,6 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot/platforms/tgbots"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
-	"github.com/strongo/app"
 	"github.com/strongo/log"
 )
 
@@ -37,7 +37,7 @@ func pageContext(r *http.Request, locale i18n.Locale) (translator i18n.SingleLoc
 	}
 
 	env := dtdal.HttpAppHost.GetEnvironment(c, r)
-	if env == strongo.EnvUnknown {
+	if env == strongoapp.EnvUnknown {
 		panic("Unknown host: " + r.Host)
 	}
 	botSettings, err := tgbots.GetBotSettingsByLang(env, bot.ProfileDebtus, locale.Code5)

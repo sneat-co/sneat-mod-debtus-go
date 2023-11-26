@@ -17,10 +17,10 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/general"
-	"github.com/strongo/app"
 	"github.com/strongo/delaying"
 	"github.com/strongo/i18n"
 	"github.com/strongo/log"
+	"github.com/strongo/strongoapp"
 	"reflect"
 	"strconv"
 	"strings"
@@ -94,7 +94,7 @@ func delayedUpdateTransferWithCreatorReceiptTgMessageID(c context.Context, botCo
 	}, nil)
 }
 
-func (ReceiptDalGae) DelayCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongo.Environment, transferID string, userID string) error {
+func (ReceiptDalGae) DelayCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongoapp.Environment, transferID string, userID string) error {
 	log.Debugf(c, "delaySendReceiptToCounterpartyByTelegram(env=%v, transferID=%v, userID=%v)", env, transferID, userID)
 	return delayCreateAndSendReceiptToCounterpartyByTelegram.EnqueueWork(c, delaying.With(common.QUEUE_RECEIPTS, "create-and-send-receipt-for-counterparty-by-telegram", 0), env, transferID, userID)
 }
@@ -540,7 +540,7 @@ func sendReceiptToTelegramChat(c context.Context, receipt models.Receipt, transf
 	return
 }
 
-func delayedCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongo.Environment, transferID string, toUserID string) error {
+func delayedCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongoapp.Environment, transferID string, toUserID string) error {
 	log.Debugf(c, "delayCreateAndSendReceiptToCounterpartyByTelegram(transferID=%v, toUserID=%v)", transferID, toUserID)
 	if transferID == "" {
 		log.Errorf(c, "transferID == 0")

@@ -373,7 +373,7 @@ var OnboardingOnUserContactReceivedCommand = botsfw.Command{
 //	if err != nil {
 //		return m, err
 //	}
-//	isTestSender, smsResponse, twilioException, err := sms.SendSms(whc.Context(), whc.GetBotSettings().Env == strongo.EnvProduction, contact.PhoneNumber(), smsText)
+//	isTestSender, smsResponse, twilioException, err := sms.SendSms(whc.Context(), whc.GetBotSettings().Env == strongoapp.EnvProduction, contact.PhoneNumber(), smsText)
 //	if err != nil {
 //		return m, err
 //	}

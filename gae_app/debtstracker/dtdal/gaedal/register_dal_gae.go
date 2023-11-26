@@ -51,7 +51,7 @@ func RegisterDal() {
 	}
 	dtdal.HttpAppHost = apphostgae.NewHttpAppHostGAE()
 
-	//dtdal.HandleWithContext = func(handler strongo.HttpHandlerWithContext) func(w http.ResponseWriter, r *http.Request) {
+	//dtdal.HandleWithContext = func(handler strongoapp.HttpHandlerWithContext) func(w http.ResponseWriter, r *http.Request) {
 	//	return func(w http.ResponseWriter, r *http.Request) {
 	//		handler(appengine.NewContext(r), w, r)
 	//	}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/slice"
+	"github.com/strongo/strongoapp"
 	"time"
 
 	"context"
@@ -13,7 +14,6 @@ import (
 	"github.com/sanity-io/litter"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
-	"github.com/strongo/app"
 	"github.com/strongo/decimal"
 	"github.com/strongo/log"
 )
@@ -68,7 +68,7 @@ func (transferFacade) SaveTransfer(c context.Context, tx dal.ReadwriteTransactio
 }
 
 type createTransferInput struct {
-	Env                strongo.Environment // TODO: I believe we don't need this
+	Env                strongoapp.Environment // TODO: I believe we don't need this
 	Source             dtdal.TransferSource
 	CreatorUser        models.AppUser
 	BillID             string
@@ -196,7 +196,7 @@ func (input createTransferInput) String() string {
 }
 
 func NewTransferInput(
-	env strongo.Environment,
+	env strongoapp.Environment,
 	source dtdal.TransferSource,
 	creatorUser models.AppUser,
 	billID string,

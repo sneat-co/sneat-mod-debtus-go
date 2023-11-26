@@ -3,35 +3,35 @@ package models
 import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
-	"github.com/strongo/app/user"
+	"github.com/strongo/strongoapp/appuser"
 )
 
 const UserGoogleCollection = "UserAccount"
 const UserFacebookCollection = "UserFb"
 
-var _ user.AccountRecord = (*UserAccount)(nil)
+var _ appuser.AccountRecord = (*UserAccount)(nil)
 
 // UserAccount - TODO: consider migrating to https://github.com/dal-go/dalgo4auth
 type UserAccount struct { // TODO: Move out to library?
 	record.WithID[string]
-	data *user.AccountDataBase
+	data *appuser.AccountDataBase
 }
 
-func (ua UserAccount) Key() user.Account {
+func (ua UserAccount) Key() appuser.Account {
 	return ua.data.Account
 }
 
-func (ua UserAccount) Data() user.AccountData {
+func (ua UserAccount) Data() appuser.AccountData {
 	return ua.data
 }
 
-func (ua UserAccount) DataStruct() *user.AccountDataBase {
+func (ua UserAccount) DataStruct() *appuser.AccountDataBase {
 	return ua.data
 }
 
 func NewUserAccount(id string) UserAccount {
 	key := dal.NewKeyWithID(UserGoogleCollection, id)
-	data := new(user.AccountDataBase)
+	data := new(appuser.AccountDataBase)
 	return UserAccount{
 		WithID: record.WithID[string]{
 			ID:     id,

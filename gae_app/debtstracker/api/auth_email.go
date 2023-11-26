@@ -14,8 +14,8 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/emails"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
-	"github.com/strongo/app/user"
 	"github.com/strongo/log"
+	"github.com/strongo/strongoapp/appuser"
 )
 
 var (
@@ -115,7 +115,7 @@ func handleRequestPasswordReset(c context.Context, w http.ResponseWriter, r *htt
 	pwdResetEntity := models.PasswordResetData{
 		Email:             userEmail.ID,
 		Status:            "created",
-		OwnedByUserWithID: user.NewOwnedByUserWithID(userEmail.Data.AppUserID, now),
+		OwnedByUserWithID: appuser.NewOwnedByUserWithID(userEmail.Data.AppUserID, now),
 	}
 
 	var db dal.DB

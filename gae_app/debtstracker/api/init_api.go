@@ -5,22 +5,22 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/reminders"
-	strongo "github.com/strongo/app"
+	"github.com/strongo/strongoapp"
 )
 
 func InitApi(router *httprouter.Router) {
 	router.HandlerFunc("GET", "/api/ping", botsfw.PingHandler)
 
-	HandlerFunc := func(method, path string, handler strongo.HttpHandlerWithContext) {
+	HandlerFunc := func(method, path string, handler strongoapp.HttpHandlerWithContext) {
 		// TODO: Refactor optionsHandler so it's does not handle GET requests (see AuthOnly() for example)
 		router.HandlerFunc(method, path, dtdal.HttpAppHost.HandleWithContext(handler))
 		router.HandlerFunc("OPTIONS", path, dtdal.HttpAppHost.HandleWithContext(optionsHandler))
 	}
 
-	GET := func(path string, handler strongo.HttpHandlerWithContext) {
+	GET := func(path string, handler strongoapp.HttpHandlerWithContext) {
 		HandlerFunc("GET", path, handler)
 	}
-	POST := func(path string, handler strongo.HttpHandlerWithContext) {
+	POST := func(path string, handler strongoapp.HttpHandlerWithContext) {
 		HandlerFunc("POST", path, handler)
 	}
 

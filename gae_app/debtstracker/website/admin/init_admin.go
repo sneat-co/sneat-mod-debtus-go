@@ -11,7 +11,7 @@ type router interface {
 func InitAdmin(router router) {
 	router.GET("/admin/latest", LatestPage)
 	router.GET("/admin/clean", CleanupPage)
-	//strongo.AddHttpHandler("/admin/mass-invites", LatestPage)
+	//strongoapp.AddHttpHandler("/admin/mass-invites", LatestPage)
 	router.GET("/admin/fix/transfers", FixTransfersHandler)
 	//router.GET("/admin/fbm/set", dtb_fbm.SetupFbm)
 }
