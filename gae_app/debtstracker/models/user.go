@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
@@ -497,7 +498,7 @@ func (entity *DebutsAppUserDataOBSOLETE) SetActiveGroups(groups []UserGroupJson)
 	}
 }
 
-//var _ botsfwmodels.AppUserData = (*DebutsAppUserDataOBSOLETE)(nil)
+var _ botsfwmodels.AppUserData = (*DebutsAppUserDataOBSOLETE)(nil)
 
 func (entity *DebutsAppUserDataOBSOLETE) GetCurrencies() []string {
 	return entity.LastCurrencies
