@@ -1,23 +1,11 @@
 package dtb_settings
 
 import (
-	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"net/url"
 
-	//"github.com/bots-go-framework/bots-api-telegram"
-	//"github.com/sneat-co/debtstracker-translations/emoji"
-	//"github.com/bots-go-framework/bots-fw-telegram"
-	"bytes"
-	"fmt"
-	"html"
-	"strconv"
-	"time"
-
 	"github.com/sneat-co/debtstracker-translations/emoji"
-	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
-	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 )
 
 const CONTACTS_LIST_COMMAND = "contacts-list"
@@ -32,49 +20,50 @@ var ContactsListCommand = botsfw.Command{
 }
 
 func contactsAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
-	var user *models.DebutsAppUserDataOBSOLETE
-	if appUser, err := whc.AppUserData(); err != nil {
-		return m, err
-	} else {
-		user = appUser.(*models.DebutsAppUserDataOBSOLETE)
-	}
-	var buffer bytes.Buffer
-	buffer.WriteString(fmt.Sprintf("<b>%v</b>\n", whc.Translate(trans.COMMAND_TEXT_CONTACTS)))
-	linker := common.NewLinkerFromWhc(whc)
-	contacts := user.Contacts()
-	numFormat := "%0" + strconv.Itoa(len(strconv.Itoa(len(contacts)))) + "d. "
-	if len(contacts) == 0 {
-		buffer.WriteString(whc.Translate(trans.MESSAGE_TEXT_YOU_HAVE_NO_CONTACTS))
-	} else {
-		for i, contact := range contacts {
-			buffer.WriteString(fmt.Sprintf(numFormat, i+1))
-			buffer.WriteString(fmt.Sprintf(`<a href="%v">%v</a>`, linker.UrlToContact(contact.ID), html.EscapeString(contact.Name)))
-			if contact.Status != "" && contact.Status != models.STATUS_ACTIVE {
-				buffer.WriteString(" (")
-				buffer.WriteString(contact.Status)
-				buffer.WriteString(")")
-			}
-			buffer.WriteString("\n")
-		}
-	}
-	keyboard := tgbotapi.NewInlineKeyboardMarkup(
-		[]tgbotapi.InlineKeyboardButton{
-			{
-				Text:         whc.CommandText(trans.COMMAND_TEXT_REFRESH, emoji.REFRESH_ICON),
-				CallbackData: CONTACTS_LIST_COMMAND + "?do=refresh",
-			},
-		},
-	)
-	buffer.WriteString(fmt.Sprintf("\n\nRefreshed on: %v", time.Now()))
-	m = whc.NewMessage(buffer.String())
-	m.Keyboard = keyboard
-	m.IsEdit = whc.InputType() == botsfw.WebhookInputCallbackQuery
-	//if callbackUrl.Query().Get("do") == "refresh" {
-	//	if m, err = bot.SendRefreshOrNothingChanged(whc, m); err != nil {
-	//		return
+	panic("implement me")
+	//var user *models.DebutsAppUserDataOBSOLETE
+	//if appUser, err := whc.AppUserData(); err != nil {
+	//	return m, err
+	//} else {
+	//	user = appUser.(*models.DebutsAppUserDataOBSOLETE)
+	//}
+	//var buffer bytes.Buffer
+	//buffer.WriteString(fmt.Sprintf("<b>%v</b>\n", whc.Translate(trans.COMMAND_TEXT_CONTACTS)))
+	//linker := common.NewLinkerFromWhc(whc)
+	//contacts := user.Contacts()
+	//numFormat := "%0" + strconv.Itoa(len(strconv.Itoa(len(contacts)))) + "d. "
+	//if len(contacts) == 0 {
+	//	buffer.WriteString(whc.Translate(trans.MESSAGE_TEXT_YOU_HAVE_NO_CONTACTS))
+	//} else {
+	//	for i, contact := range contacts {
+	//		buffer.WriteString(fmt.Sprintf(numFormat, i+1))
+	//		buffer.WriteString(fmt.Sprintf(`<a href="%v">%v</a>`, linker.UrlToContact(contact.ID), html.EscapeString(contact.Name)))
+	//		if contact.Status != "" && contact.Status != models.STATUS_ACTIVE {
+	//			buffer.WriteString(" (")
+	//			buffer.WriteString(contact.Status)
+	//			buffer.WriteString(")")
+	//		}
+	//		buffer.WriteString("\n")
 	//	}
 	//}
-	return
+	//keyboard := tgbotapi.NewInlineKeyboardMarkup(
+	//	[]tgbotapi.InlineKeyboardButton{
+	//		{
+	//			Text:         whc.CommandText(trans.COMMAND_TEXT_REFRESH, emoji.REFRESH_ICON),
+	//			CallbackData: CONTACTS_LIST_COMMAND + "?do=refresh",
+	//		},
+	//	},
+	//)
+	//buffer.WriteString(fmt.Sprintf("\n\nRefreshed on: %v", time.Now()))
+	//m = whc.NewMessage(buffer.String())
+	//m.Keyboard = keyboard
+	//m.IsEdit = whc.InputType() == botsfw.WebhookInputCallbackQuery
+	////if callbackUrl.Query().Get("do") == "refresh" {
+	////	if m, err = bot.SendRefreshOrNothingChanged(whc, m); err != nil {
+	////		return
+	////	}
+	////}
+	//return
 }
 
 //const CONTACT_DETAILS_COMMAND = "contact-details"

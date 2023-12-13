@@ -85,7 +85,7 @@ func (linker usersLinker) linkUsersWithinTransaction(
 
 	// verify
 	{
-		invitedContact.MustMatchCounterparty(*inviterContact)
+		invitedContact.Data.MustMatchCounterparty(*inviterContact)
 
 		addContactJSON := func(user *models.AppUser, contact *models.Contact) (contactJSON *models.UserContactJson) {
 			contactJSON = user.Data.ContactByID(invitedContact.ID)
@@ -215,7 +215,7 @@ func (linker usersLinker) getOrCreateInvitedContactByInviterUserAndInviterContac
 		}
 		linker.changes.FlagAsChanged(invitedContact.Record)
 	}
-	invitedContact.MustMatchCounterparty(inviterContact)
+	invitedContact.Data.MustMatchCounterparty(inviterContact)
 	return
 }
 

@@ -52,7 +52,7 @@ func (TwilioDalGae) SaveTwilioSms(
 	if err = db.RunReadwriteTransaction(c, func(tc context.Context, tx dal.ReadwriteTransaction) error {
 		user := models.NewAppUser(userID, nil)
 		twilioSms = models.NewTwilioSms(smsResponse.Sid, nil)
-		counterparty := models.NewContact(transfer.Data.Counterparty().ContactID, nil)
+		counterparty := models.NewDebtusContact(transfer.Data.Counterparty().ContactID, nil)
 		if err := tx.GetMulti(tc, []dal.Record{user.Record, twilioSms.Record, transfer.Record, counterparty.Record}); err != nil {
 			if multiError, ok := err.(appengine.MultiError); ok {
 				if multiError[1] == dal.ErrNoMoreRecords {

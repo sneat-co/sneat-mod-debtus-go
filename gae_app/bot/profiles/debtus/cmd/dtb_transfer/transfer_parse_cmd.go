@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
-	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"github.com/sneat-co/debtstracker-translations/trans"
@@ -91,11 +90,11 @@ var ParseTransferCommand = botsfw.Command{
 
 		from, to := facade.TransferCounterparties(direction, creatorInfo)
 
-		var botUserEntity botsfwmodels.AppUserData
-		if botUserEntity, err = whc.AppUserData(); err != nil {
-			return m, err
-		}
-		creatorUser := models.NewAppUser(whc.AppUserID(), botUserEntity.(*models.DebutsAppUserDataOBSOLETE))
+		//var botUserEntity botsfwmodels.AppUserData
+		//if botUserEntity, err = whc.AppUserData(); err != nil {
+		//	return m, err
+		//}
+		creatorUser := models.NewAppUser(whc.AppUserID(), nil /*botUserEntity.(*models.DebutsAppUserDataOBSOLETE)*/)
 
 		newTransfer := facade.NewTransferInput(whc.Environment(),
 			GetTransferSource(whc),

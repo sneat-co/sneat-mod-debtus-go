@@ -255,6 +255,6 @@ func handleUpdateCounterparty(c context.Context, w http.ResponseWriter, r *http.
 		InternalError(c, w, err)
 		return
 	} else {
-		contactToResponse(c, w, authInfo, models.NewContact(counterpartyID, counterpartyEntity))
+		contactToResponse(c, w, authInfo, models.NewDebtusContact(counterpartyID, counterpartyEntity))
 	}
 }

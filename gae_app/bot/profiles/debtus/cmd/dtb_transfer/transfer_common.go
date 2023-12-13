@@ -89,7 +89,7 @@ var currenciesByPriority = []money.CurrencyCode{
 
 func AskTransferCurrencyButtons(whc botsfw.WebhookContext) [][]string {
 	user, _ := whc.AppUserData()
-	user.GetPreferredLocale()
+	//user.GetPreferredLocale()
 
 	var (
 		row, col int
@@ -115,7 +115,7 @@ func AskTransferCurrencyButtons(whc botsfw.WebhookContext) [][]string {
 		}
 	}
 
-	appUser := user.(*models.DebutsAppUserDataOBSOLETE)
+	appUser := user.(interface{ GetCurrencies() []string })
 
 	for _, currency := range appUser.GetCurrencies() {
 		curr := money.CurrencyCode(currency)

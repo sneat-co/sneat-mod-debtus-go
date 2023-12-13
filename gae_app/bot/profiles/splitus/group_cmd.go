@@ -1,20 +1,11 @@
 package splitus
 
 import (
-	"bytes"
-	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
-	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
-	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botsfw"
-	"github.com/crediterra/money"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
-	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
-	"github.com/strongo/decimal"
 	"github.com/strongo/i18n"
-	"github.com/strongo/log"
 	"net/url"
 )
 
@@ -22,103 +13,103 @@ const groupCommandCode = "group"
 
 var groupCommand = botsfw.NewCallbackCommand(groupCommandCode,
 	func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
-		// we can't use GroupCallbackCommand as we have parameter id=[first|last|<id>]
-		c := whc.Context()
-		log.Debugf(c, "groupCommand.CallbackAction()")
-
-		var user botsfwmodels.AppUserData
-		if user, err = whc.AppUserData(); err != nil {
-			return
-		}
-		appUserEntity := user.(*models.DebutsAppUserDataOBSOLETE) // TODO: Create shortcut function
-
-		groups := appUserEntity.ActiveGroups()
-
-		if len(groups) == 0 {
-			return groupsAction(whc, true, 0)
-		}
-
-		query := callbackUrl.Query()
-
-		id := query.Get("id")
-
-		var (
-			i             int
-			userGroupJson models.UserGroupJson
-		)
-		switch id {
-		case "first":
-			i = 0
-		case "last":
-			i = len(groups) - 1
-		default:
-			userGroupJson.ID = id
-			for j, g := range groups {
-				if g.ID == userGroupJson.ID {
-					i = j
-				}
-			}
-		}
-		userGroupJson = groups[i]
-
-		do := query.Get("do")
-		switch do {
-		case "leave":
-			if _, _, err = facade.Group.LeaveGroup(c, userGroupJson.ID, whc.AppUserID()); err != nil {
-				if err == facade.ErrAttemptToLeaveUnsettledGroup {
-					err = nil
-					m.BotMessage = telegram.CallbackAnswer(tgbotapi.AnswerCallbackQueryConfig{Text: "Please settle group debts before leaving it."})
-				}
-				return
-			}
-			return groupsAction(whc, true, 0)
-		}
-
-		var group models.Group
-
-		if group, err = dtdal.Group.GetGroupByID(c, nil, userGroupJson.ID); err != nil {
-			return
-		}
-
-		buf := new(bytes.Buffer)
-
-		_, _ = fmt.Fprintf(buf, "<b>Group #%d</b>: %v", i+1, userGroupJson.Name)
-		var groupMemberJson models.GroupMemberJson
-		if groupMemberJson, err = group.Data.GetGroupMemberByUserID(whc.AppUserID()); err != nil {
-			return
-		}
-		writeBalanceSide := func(title string, sign decimal.Decimal64p2, b money.Balance) {
-			if len(b) > 0 {
-				fmt.Fprintf(buf, "\n<b>%v</b>: ", title)
-				if len(b) == 1 {
-					for currency, value := range b {
-						fmt.Fprintf(buf, "%v %v", sign*value, currency)
-					}
-				} else {
-					for currency, value := range b {
-						fmt.Fprintf(buf, "\n%v %v", sign*value, currency)
-					}
-				}
-			}
-		}
-		writeBalanceSide("Owed to me", +1, groupMemberJson.Balance.OnlyPositive())
-		writeBalanceSide("I owe", -1, groupMemberJson.Balance.OnlyNegative())
-		fmt.Fprintf(buf, "\n<b>Members</b>: %v", group.Data.MembersCount)
-
-		m.Text = buf.String()
-
-		m.IsEdit = true
-		m.Format = botsfw.MessageFormatHTML
-		tgKeyboard := tgbotapi.NewInlineKeyboardMarkup(groupsNavButtons(whc, groups, userGroupJson.ID))
-		tgKeyboard.InlineKeyboard = append(tgKeyboard.InlineKeyboard, []tgbotapi.InlineKeyboardButton{
-			{
-				Text:         whc.Translate("Leave group"),
-				CallbackData: CallbackLink.ToGroup(groups[len(groups)-1].ID, true) + "&do=leave",
-			},
-		})
-		m.Keyboard = tgKeyboard
-
-		return
+		panic("implement me")
+		//// we can't use GroupCallbackCommand as we have parameter id=[first|last|<id>]
+		//c := whc.Context()
+		//log.Debugf(c, "groupCommand.CallbackAction()")
+		//
+		//var user botsfwmodels.AppUserData
+		//if user, err = whc.AppUserData(); err != nil {
+		//	return
+		//}
+		//appUserEntity := user.(*models.DebutsAppUserDataOBSOLETE) // TODO: Create shortcut function
+		//
+		//groups := appUserEntity.ActiveGroups()
+		//
+		//if len(groups) == 0 {
+		//	return groupsAction(whc, true, 0)
+		//}
+		//
+		//query := callbackUrl.Query()
+		//
+		//id := query.Get("id")
+		//
+		//var (
+		//	i             int
+		//	userGroupJson models.UserGroupJson
+		//)
+		//switch id {
+		//case "first":
+		//	i = 0
+		//case "last":
+		//	i = len(groups) - 1
+		//default:
+		//	userGroupJson.ID = id
+		//	for j, g := range groups {
+		//		if g.ID == userGroupJson.ID {
+		//			i = j
+		//		}
+		//	}
+		//}
+		//userGroupJson = groups[i]
+		//
+		//do := query.Get("do")
+		//switch do {
+		//case "leave":
+		//	if _, _, err = facade.Group.LeaveGroup(c, userGroupJson.ID, whc.AppUserID()); err != nil {
+		//		if err == facade.ErrAttemptToLeaveUnsettledGroup {
+		//			err = nil
+		//			m.BotMessage = telegram.CallbackAnswer(tgbotapi.AnswerCallbackQueryConfig{Text: "Please settle group debts before leaving it."})
+		//		}
+		//		return
+		//	}
+		//	return groupsAction(whc, true, 0)
+		//}
+		//
+		//var group models.Group
+		//
+		//if group, err = dtdal.Group.GetGroupByID(c, nil, userGroupJson.ID); err != nil {
+		//	return
+		//}
+		//
+		//buf := new(bytes.Buffer)
+		//
+		//_, _ = fmt.Fprintf(buf, "<b>Group #%d</b>: %v", i+1, userGroupJson.Name)
+		//var groupMemberJson models.GroupMemberJson
+		//if groupMemberJson, err = group.Data.GetGroupMemberByUserID(whc.AppUserID()); err != nil {
+		//	return
+		//}
+		//writeBalanceSide := func(title string, sign decimal.Decimal64p2, b money.Balance) {
+		//	if len(b) > 0 {
+		//		fmt.Fprintf(buf, "\n<b>%v</b>: ", title)
+		//		if len(b) == 1 {
+		//			for currency, value := range b {
+		//				fmt.Fprintf(buf, "%v %v", sign*value, currency)
+		//			}
+		//		} else {
+		//			for currency, value := range b {
+		//				fmt.Fprintf(buf, "\n%v %v", sign*value, currency)
+		//			}
+		//		}
+		//	}
+		//}
+		//writeBalanceSide("Owed to me", +1, groupMemberJson.Balance.OnlyPositive())
+		//writeBalanceSide("I owe", -1, groupMemberJson.Balance.OnlyNegative())
+		//fmt.Fprintf(buf, "\n<b>Members</b>: %v", group.Data.MembersCount)
+		//
+		//m.Text = buf.String()
+		//
+		//m.IsEdit = true
+		//m.Format = botsfw.MessageFormatHTML
+		//tgKeyboard := tgbotapi.NewInlineKeyboardMarkup(groupsNavButtons(whc, groups, userGroupJson.ID))
+		//tgKeyboard.InlineKeyboard = append(tgKeyboard.InlineKeyboard, []tgbotapi.InlineKeyboardButton{
+		//	{
+		//		Text:         whc.Translate("Leave group"),
+		//		CallbackData: CallbackLink.ToGroup(groups[len(groups)-1].ID, true) + "&do=leave",
+		//	},
+		//})
+		//m.Keyboard = tgKeyboard
+		//return
 	},
 )
 

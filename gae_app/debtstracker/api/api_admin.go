@@ -93,7 +93,7 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 			return err
 		}
 		if user.ID != "" {
-			return errors.New("Not implemented yet: Need to update counterparty & user balances + last transfer info")
+			return errors.New("not implemented yet: Need to update counterparty & user balances + last transfer info")
 		}
 		if userChanged := user.Data.RemoveContact(deleteID); userChanged {
 			if err = facade.User.SaveUser(c, tx, user); err != nil {
@@ -103,7 +103,7 @@ func handleAdminMergeUserContacts(c context.Context, w http.ResponseWriter, r *h
 		if err := delayChangeTransfersCounterparty.EnqueueWork(c, delaying.With(common.QUEUE_SUPPORT, "changeTransfersCounterparty", 0), deleteID, keepID, ""); err != nil {
 			return err
 		}
-		if err := tx.Delete(c, models.NewContactKey(deleteID)); err != nil {
+		if err := tx.Delete(c, models.NewDebtusContactKey(deleteID)); err != nil {
 			return err
 		} else {
 			log.Warningf(c, "Contact %d has been deleted from DB (non revocable)", deleteID)

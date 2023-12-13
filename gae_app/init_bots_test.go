@@ -2,8 +2,6 @@ package gaeapp
 
 import (
 	"testing"
-
-	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
 )
 
 func TestInitBot(t *testing.T) {
@@ -12,5 +10,5 @@ func TestInitBot(t *testing.T) {
 			t.Errorf("Should fail")
 		}
 	}()
-	InitBots(nil, nil, common.DebtsTrackerAppContext{})
+	InitBots(nil, nil, nil /*common.DebtusAppContext{}*/)
 }

@@ -108,7 +108,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	query := dal.From(models.ContactKind).WhereField("UserID", dal.Equal, userID).SelectInto(func() dal.Record {
+	query := dal.From(models.DebtusContactsCollection).WhereField("UserID", dal.Equal, userID).SelectInto(func() dal.Record {
 		return dal.NewRecordWithIncompleteKey(models.AppUserKind, reflect.Int64, new(models.DebutsAppUserDataOBSOLETE))
 	})
 	userCounterpartyRecords, err := db.QueryAllRecords(c, query)
@@ -180,7 +180,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			txUser.Data.ContactsJson = ""
 			for _, counterpartyRecord := range userCounterpartyRecords {
-				counterpartyEntity := counterpartyRecord.Data().(*models.ContactData)
+				counterpartyEntity := counterpartyRecord.Data().(*models.DebtusContactData)
 				counterpartyID := counterpartyRecord.Key().ID.(string)
 				if counterpartyTransfersInfo, ok := transfersInfoByCounterparty[counterpartyID]; ok {
 					counterpartyEntity.LastTransferAt = counterpartyTransfersInfo.LastAt
@@ -191,7 +191,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 					counterpartyEntity.LastTransferAt = time.Time{}
 					counterpartyEntity.LastTransferID = ""
 				}
-				models.AddOrUpdateContact(&txUser, models.NewContact(counterpartyID, counterpartyEntity))
+				models.AddOrUpdateContact(&txUser, models.NewDebtusContact(counterpartyID, counterpartyEntity))
 			}
 			if err = tx.Set(c, txUser.Record); err != nil {
 				return fmt.Errorf("failed to save fixed user: %w", err)
@@ -229,9 +229,9 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 	log.Infof(c, "OK - User ContactsJson is OK")
 
 	// We need counterparties by ID to check balance against transfers
-	counterpartiesByID := make(map[int64]*models.ContactData, len(counterpartyIDs))
+	counterpartiesByID := make(map[int64]*models.DebtusContactData, len(counterpartyIDs))
 	for _, counterpartyRecord := range userCounterpartyRecords {
-		counterpartiesByID[counterpartyRecord.Key().ID.(int64)] = counterpartyRecord.Data().(*models.ContactData)
+		counterpartiesByID[counterpartyRecord.Key().ID.(int64)] = counterpartyRecord.Data().(*models.DebtusContactData)
 	}
 
 	if len(transferRecords) > 0 && user.Data.LastTransferID == "" {
@@ -392,7 +392,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 	for _, counterpartyRecord := range userCounterpartyRecords {
 		counterpartyKey := counterpartyRecord.Key()
 		counterpartyID := counterpartyKey.ID.(string)
-		counterparty := counterpartyRecord.Data().(*models.ContactData)
+		counterparty := counterpartyRecord.Data().(*models.DebtusContactData)
 		counterpartyBalance := counterparty.Balance()
 
 		if transfersCounterpartyBalance := transfersBalanceByCounterpartyID[counterpartyID]; (len(transfersCounterpartyBalance) == 0 && len(counterpartyBalance) == 0) || reflect.DeepEqual(transfersCounterpartyBalance, counterpartyBalance) {
@@ -405,7 +405,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 						return
 					}
 					err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
-						txCounterparty := models.NewContact(counterpartyKey.ID.(string), nil)
+						txCounterparty := models.NewDebtusContact(counterpartyKey.ID.(string), nil)
 						if err = tx.Get(c, txCounterparty.Record); err != nil {
 							return err
 						}
@@ -437,7 +437,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 				err := db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
-					txCounterparty := models.NewContact(counterpartyKey.ID.(string), nil)
+					txCounterparty := models.NewDebtusContact(counterpartyKey.ID.(string), nil)
 					if err := tx.Get(c, txCounterparty.Record); err != nil {
 						return err
 					}

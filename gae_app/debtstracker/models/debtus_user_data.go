@@ -1,4 +1,4 @@
 package models
 
-type DebutsUserData struct {
+type DebtusUserData struct {
 }

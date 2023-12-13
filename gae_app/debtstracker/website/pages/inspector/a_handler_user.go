@@ -191,7 +191,7 @@ func validateContacts(c context.Context,
 	foundInUserJson:
 	}
 
-	query := datastore.NewQuery(models.ContactKind).Filter("UserID=", user.ID).KeysOnly()
+	query := datastore.NewQuery(models.DebtusContactsCollection).Filter("UserID=", user.ID).KeysOnly()
 
 	iterator := query.Run(c)
 

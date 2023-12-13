@@ -307,14 +307,15 @@ func onReceiptSendFail(c context.Context, receiptID string, tgChatID int64, tgMs
 
 func getTranslator(c context.Context, localeCode string) (translator i18n.SingleLocaleTranslator, err error) {
 	log.Debugf(c, "getTranslator(localeCode=%v)", localeCode)
-	var locale i18n.Locale
-	if locale, err = common.TheAppContext.SupportedLocales().GetLocaleByCode5(localeCode); errors.Is(err, trans.ErrUnsupportedLocale) {
-		if locale, err = common.TheAppContext.SupportedLocales().GetLocaleByCode5(i18n.LocaleCodeEnUS); err != nil {
-			return
-		}
-	}
-	translator = i18n.NewSingleMapTranslator(locale, common.TheAppContext.GetTranslator(c))
-	return
+	panic("not implemented")
+	//var locale i18n.Locale
+	//if locale, err = common.TheAppContext.SupportedLocales().GetLocaleByCode5(localeCode); errors.Is(err, trans.ErrUnsupportedLocale) {
+	//	if locale, err = common.TheAppContext.SupportedLocales().GetLocaleByCode5(i18n.LocaleCodeEnUS); err != nil {
+	//		return
+	//	}
+	//}
+	//translator = i18n.NewSingleMapTranslator(locale, common.TheAppContext.GetTranslator(c))
+	//return
 }
 
 func editTgMessageText(c context.Context, tgBotID string, tgChatID int64, tgMsgID int, text string) (err error) {

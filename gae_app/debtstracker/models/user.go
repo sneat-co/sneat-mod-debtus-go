@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
@@ -96,7 +95,7 @@ func NewUser(clientInfo ClientInfo) AppUser {
 // Should be replaced with sneat app user and DebtusTeamData
 type DebutsAppUserDataOBSOLETE struct { // TODO: Remove obsolete struct
 
-	DebutsUserData // TODO: to be used on it's OWN
+	DebtusUserData // TODO: to be used on it's OWN
 	DebtusTeamData // TODO: to be used on it's OWN
 
 	appuser.BaseUserFields
@@ -267,7 +266,7 @@ func (entity *DebutsAppUserDataOBSOLETE) RemoveContact(contactID string) (change
 
 func AddOrUpdateContact(u *AppUser, c Contact) (contactJson UserContactJson, changed bool) {
 	if c.Data == nil {
-		panic("c.ContactData == nil")
+		panic("c.DebtusContactData == nil")
 	}
 	contactJson = NewUserContactJson(c.ID, c.Data.Status, c.Data.FullName(), c.Data.Balanced)
 	contactJson.Transfers = c.Data.GetTransfersInfo()
@@ -498,7 +497,7 @@ func (entity *DebutsAppUserDataOBSOLETE) SetActiveGroups(groups []UserGroupJson)
 	}
 }
 
-var _ botsfwmodels.AppUserData = (*DebutsAppUserDataOBSOLETE)(nil)
+//var _ botsfwmodels.AppUserData = (*DebutsAppUserDataOBSOLETE)(nil)
 
 func (entity *DebutsAppUserDataOBSOLETE) GetCurrencies() []string {
 	return entity.LastCurrencies

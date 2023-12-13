@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/bots-go-framework/bots-fw-telegram"
-	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 )
@@ -31,7 +30,7 @@ func NewApiWebhookContext(r *http.Request, appUser *models.DebutsAppUserDataOBSO
 	botContext := botsfw.NewBotContext(dtdal.BotHost, botSettings)
 	args := botsfw.NewCreateWebhookContextArgs(
 		r,
-		common.TheAppContext,
+		nil, /*common.TheAppContext*/
 		*botContext,
 		nil,
 		nil,
@@ -74,7 +73,8 @@ func (whc ApiWebhookContext) ChatEntity() botsfwmodels.BotChatData {
 }
 
 func (whc ApiWebhookContext) GetAppUser() (botsfwmodels.AppUserData, error) {
-	return whc.appUser, nil
+	panic("implement me")
+	//return nil /*whc.appUser*/, nil
 }
 
 func (whc ApiWebhookContext) Init(w http.ResponseWriter, r *http.Request) error {

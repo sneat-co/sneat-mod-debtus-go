@@ -3,6 +3,7 @@ package shared_all
 import (
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
@@ -116,15 +117,15 @@ func setLocaleCallbackCommand(botParams BotParams) botsfw.Command {
 func setPreferredLanguageAction(whc botsfw.WebhookContext, code5, mode string, botParams BotParams) (m botsfw.MessageFromBot, err error) {
 	c := whc.Context()
 	log.Debugf(c, "setPreferredLanguageAction(code5=%v, mode=%v)", code5, mode)
-	appUser, err := whc.AppUserData()
-	if err != nil {
+
+	var appUserData botsfwmodels.AppUserData
+
+	if appUserData, err = whc.AppUserData(); err != nil {
 		log.Errorf(c, ": %v", err)
 		return m, fmt.Errorf("%w: failed to load userEntity", err)
 	}
-	userEntity, ok := appUser.(*models.DebutsAppUserDataOBSOLETE)
-	if !ok {
-		return m, fmt.Errorf("expected *models.AppUser, got: %T", appUser)
-	}
+
+	preferredLocale := appUserData.BotsFwAdapter().GetPreferredLocale()
 
 	var (
 		localeChanged  bool
@@ -132,8 +133,8 @@ func setPreferredLanguageAction(whc botsfw.WebhookContext, code5, mode string, b
 	)
 
 	chatData := whc.ChatData()
-	log.Debugf(c, "userEntity.PreferredLanguage: %v, chatData.GetPreferredLanguage(): %v, code5: %v", userEntity.PreferredLanguage, chatData.GetPreferredLanguage(), code5)
-	if userEntity.PreferredLanguage != code5 || chatData.GetPreferredLanguage() != code5 {
+	log.Debugf(c, "userEntity.PreferredLanguage: %v, chatData.GetPreferredLanguage(): %v, code5: %v", preferredLocale, chatData.GetPreferredLanguage(), code5)
+	if preferredLocale != code5 || chatData.GetPreferredLanguage() != code5 {
 		log.Debugf(c, "PreferredLanguage will be updated for userEntity & chat entities.")
 		for _, locale := range trans.SupportedLocalesByCode5 {
 			if locale.Code5 == code5 {

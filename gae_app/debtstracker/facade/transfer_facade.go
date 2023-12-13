@@ -520,7 +520,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		// 		return
 		// 	}
 		// 	output.To.Contact = toContact
-		// 	log.Debugf(c, "Got toContact id=%d: %v", toContact.ID, toContact.ContactData)
+		// 	log.Debugf(c, "Got toContact id=%d: %v", toContact.ID, toContact.DebtusContactData)
 		// 	to.ContactID = toContact.ID
 		// 	to.ContactName = toContact.GetFullName()
 		// 	from.UserID = toContact.UserID
@@ -532,7 +532,7 @@ func (transferFacade transferFacade) createTransferWithinTransaction(
 		// 		return
 		// 	}
 		// 	output.From.Contact = fromCounterparty
-		// 	log.Debugf(c, "Got fromCounterparty id=%d: %v", fromCounterparty.ID, fromCounterparty.ContactData)
+		// 	log.Debugf(c, "Got fromCounterparty id=%d: %v", fromCounterparty.ID, fromCounterparty.DebtusContactData)
 		// 	from.ContactID = fromCounterparty.ID
 		// 	from.ContactName = fromCounterparty.GetFullName()
 		// 	to.UserID = fromCounterparty.UserID

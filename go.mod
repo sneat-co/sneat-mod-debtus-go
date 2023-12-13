@@ -13,7 +13,7 @@ toolchain go1.21.4
 
 require (
 	cloud.google.com/go/firestore v1.14.0
-	github.com/aws/aws-sdk-go v1.48.16
+	github.com/aws/aws-sdk-go v1.49.1
 	github.com/bots-go-framework/bots-api-telegram v0.4.2
 	github.com/bots-go-framework/bots-fw v0.23.3
 	github.com/bots-go-framework/bots-fw-store v0.4.0
@@ -27,15 +27,15 @@ require (
 	github.com/dal-go/dalgo v0.12.0
 	github.com/dal-go/dalgo2firestore v0.1.40
 	github.com/dal-go/mocks4dalgo v0.1.17
-	github.com/golang-jwt/jwt/v5 v5.1.0
+	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/gorilla/sessions v1.2.2
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/matryer/is v1.4.1
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
 	github.com/sanity-io/litter v1.5.5
-	github.com/sendgrid/sendgrid-go v3.13.0+incompatible
+	github.com/sendgrid/sendgrid-go v3.14.0+incompatible
 	github.com/shiyanhui/hero v0.0.2
-	github.com/sneat-co/debtstracker-translations v0.0.16
+	github.com/sneat-co/debtstracker-translations v0.0.17
 	github.com/strongo/app-host-gae v0.1.18
 	github.com/strongo/decimal v0.0.1
 	github.com/strongo/delaying v0.0.1

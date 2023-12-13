@@ -108,7 +108,7 @@ func TestCreateTransfer(t *testing.T) {
 		}
 
 		if toCounterparty.Data == nil {
-			t.Error("toCounterparty.ContactData == nil")
+			t.Error("toCounterparty.DebtusContactData == nil")
 			return
 		}
 		if fromUser.Data == nil {
@@ -145,10 +145,10 @@ func TestCreateTransfer(t *testing.T) {
 			t.Error("toUser.ID != 0 && toUser.DebutsAppUserDataOBSOLETE == nil")
 		}
 		if toCounterparty.ID != "" && toCounterparty.Data == nil {
-			t.Error("fromCounterparty.ContactData == nil")
+			t.Error("fromCounterparty.DebtusContactData == nil")
 		}
 		if fromCounterparty.ID != "" && fromCounterparty.Data == nil {
-			t.Error("fromCounterparty.ID != 0 && fromCounterparty.ContactData == nil")
+			t.Error("fromCounterparty.ID != 0 && fromCounterparty.DebtusContactData == nil")
 		}
 	}
 }
