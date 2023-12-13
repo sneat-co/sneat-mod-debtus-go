@@ -65,6 +65,7 @@ var joinBillCommand = botsfw.Command{
 }
 
 func joinBillAction(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, bill models.Bill, memberStatus string, isEditMessage bool) (m botsfw.MessageFromBot, err error) {
+
 	if bill.ID == "" {
 		panic("bill.ID is empty string")
 	}
@@ -72,11 +73,16 @@ func joinBillAction(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, bill
 	log.Debugf(c, "joinBillAction(bill.ID=%v)", bill.ID)
 
 	userID := whc.AppUserID()
-	var appUser botsfwmodels.AppUserData
-	if appUser, err = whc.AppUserData(); err != nil {
+	var appUserData botsfwmodels.AppUserData
+	if appUserData, err = whc.AppUserData(); err != nil {
 		return
 	}
-	user := appUser.(*models.AppUserData)
+
+	type User interface {
+		GetPrimaryCurrency() string
+		GetLastCurrencies() []string
+		FullName() string
+	}
 
 	isAlreadyMember := func(members []models.BillMemberJson) (member models.BillMemberJson, isMember bool) {
 		for _, member = range bill.Data.GetBillMembers() {
@@ -88,6 +94,12 @@ func joinBillAction(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, bill
 	}
 
 	_, isMember := isAlreadyMember(bill.Data.GetBillMembers())
+
+	user, isUser := appUserData.(User)
+	if !isUser {
+		err = errors.New("failed to cast appUserData to User")
+		return
+	}
 
 	userName := user.FullName()
 
@@ -149,10 +161,10 @@ func joinBillAction(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, bill
 					bill.Data.Currency = guessCurrency()
 				}
 			}
-		} else if user.PrimaryCurrency != "" {
-			bill.Data.Currency = money.CurrencyCode(user.PrimaryCurrency)
-		} else if len(user.LastCurrencies) > 0 {
-			bill.Data.Currency = money.CurrencyCode(user.LastCurrencies[0])
+		} else if primaryCurrency := user.GetPrimaryCurrency(); primaryCurrency != "" {
+			bill.Data.Currency = money.CurrencyCode(primaryCurrency)
+		} else if lastCurrencies := user.GetLastCurrencies(); len(lastCurrencies) > 0 {
+			bill.Data.Currency = money.CurrencyCode(lastCurrencies[0])
 		}
 		if bill.Data.Currency == "" {
 			bill.Data.Currency = guessCurrency()

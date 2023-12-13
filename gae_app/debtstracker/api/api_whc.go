@@ -7,13 +7,12 @@ import (
 	"net/http"
 
 	"github.com/bots-go-framework/bots-fw-telegram"
-	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 )
 
 type ApiWebhookContext struct {
-	appUser    *models.AppUserData
+	appUser    *models.DebutsAppUserDataOBSOLETE
 	appUserID  string
 	botChatID  int64
 	chatEntity botsfwmodels.BotChatData
@@ -26,12 +25,12 @@ func (ApiWebhookContext) IsInGroup() bool {
 	panic("not supported")
 }
 
-func NewApiWebhookContext(r *http.Request, appUser *models.AppUserData, userID string, botChatID int64, chatData botsfwmodels.BotChatData) ApiWebhookContext {
+func NewApiWebhookContext(r *http.Request, appUser *models.DebutsAppUserDataOBSOLETE, userID string, botChatID int64, chatData botsfwmodels.BotChatData) ApiWebhookContext {
 	var botSettings botsfw.BotSettings
 	botContext := botsfw.NewBotContext(dtdal.BotHost, botSettings)
 	args := botsfw.NewCreateWebhookContextArgs(
 		r,
-		common.TheAppContext,
+		nil, /*common.TheAppContext*/
 		*botContext,
 		nil,
 		nil,
@@ -74,7 +73,8 @@ func (whc ApiWebhookContext) ChatEntity() botsfwmodels.BotChatData {
 }
 
 func (whc ApiWebhookContext) GetAppUser() (botsfwmodels.AppUserData, error) {
-	return whc.appUser, nil
+	panic("implement me")
+	//return nil /*whc.appUser*/, nil
 }
 
 func (whc ApiWebhookContext) Init(w http.ResponseWriter, r *http.Request) error {

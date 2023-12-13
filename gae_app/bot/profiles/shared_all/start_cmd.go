@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
-	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
@@ -91,13 +90,14 @@ func startInlineHelp(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err er
 	return m, err
 }
 
-func GetUser(whc botsfw.WebhookContext) (userEntity *models.AppUserData, err error) { // TODO: Make library and use across app
-	var botAppUser botsfwmodels.AppUserData
-	if botAppUser, err = whc.AppUserData(); err != nil {
-		return
-	}
-	userEntity = botAppUser.(*models.AppUserData)
-	return
+func GetUser(whc botsfw.WebhookContext) (userEntity *models.DebutsAppUserDataOBSOLETE, err error) { // TODO: Make library and use across app
+	panic("not implemented: obsolete")
+	//var botAppUser botsfwmodels.AppUserData
+	//if botAppUser, err = whc.AppUserData(); err != nil {
+	//	return
+	//}
+	//userEntity = botAppUser.(*models.DebutsAppUserDataOBSOLETE)
+	//return
 }
 
 var LangKeyboard = tgbotapi.NewInlineKeyboardMarkup(

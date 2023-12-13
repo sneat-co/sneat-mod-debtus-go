@@ -11,22 +11,22 @@ import (
 
 type contactsAsyncJob struct {
 	asyncMapper
-	entity *models.ContactData
+	entity *models.DebtusContactData
 }
 
 var _ mapper.JobEntity = (*contactsAsyncJob)(nil)
 
 func (m *contactsAsyncJob) Make() interface{} {
-	m.entity = new(models.ContactData)
+	m.entity = new(models.DebtusContactData)
 	return m.entity
 }
 
 func (m *contactsAsyncJob) Query(r *http.Request) (query *mapper.Query, err error) {
-	return applyIDAndUserFilters(r, "contactsAsyncJob", models.ContactKind, filterByIntID, "UserID")
+	return applyIDAndUserFilters(r, "contactsAsyncJob", models.DebtusContactsCollection, filterByIntID, "UserID")
 }
 
 func (m *contactsAsyncJob) Contact(key *datastore.Key) (contact models.Contact) {
-	contact = models.NewContact(key.StringID(), nil)
+	contact = models.NewDebtusContact(key.StringID(), nil)
 	if m.entity != nil {
 		entity := *m.entity
 		contact.Data = &entity

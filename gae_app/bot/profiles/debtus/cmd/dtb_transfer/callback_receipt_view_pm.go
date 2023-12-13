@@ -62,7 +62,7 @@ func ShowReceipt(whc botsfw.WebhookContext, receiptID string) (m botsfw.MessageF
 		if user, err := facade.User.GetUserByID(c, nil, transfer.Data.CreatorUserID); err != nil {
 			return m, err
 		} else {
-			counterparty.Data = &models.ContactData{}
+			counterparty.Data = &models.DebtusContactData{}
 			counterparty.Data.FirstName = user.Data.FirstName
 			counterparty.Data.LastName = user.Data.LastName
 		}
@@ -173,12 +173,13 @@ func viewReceiptCallbackAction(whc botsfw.WebhookContext, callbackUrl *url.URL) 
 		if err = whc.SetLocale(localeCode5); err != nil {
 			return m, err
 		}
-		if appUser, err := whc.AppUserData(); err != nil {
+		if _ /*appUser*/, err := whc.AppUserData(); err != nil {
 			return m, err
 		} else {
-			if _ = appUser.SetPreferredLocale(localeCode5); err != nil {
-				return m, err
-			}
+			panic("not implemented")
+			//if _ = appUser.SetPreferredLocale(localeCode5); err != nil {
+			//	return m, err
+			//}
 		}
 	}
 	receiptID := callbackQuery.Get("id")

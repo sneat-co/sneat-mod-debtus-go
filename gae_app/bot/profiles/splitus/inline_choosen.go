@@ -95,12 +95,12 @@ func createBillFromInlineChosenResult(whc botsfw.WebhookContext, chosenResult bo
 
 		//var (
 		//	user          botsfw.BotAppUser
-		//	appUserEntity *models.AppUserData
+		//	appUserEntity *models.DebutsAppUserDataOBSOLETE
 		//)
 		//if user, err = whc.GetAppUser(); err != nil {
 		//	return
 		//}
-		//appUserEntity = user.(*models.AppUserData)
+		//appUserEntity = user.(*models.DebutsAppUserDataOBSOLETE)
 		//_, _, _, _, members := bill.AddOrGetMember(userID, 0, appUserEntity.GetFullName())
 		//if err = bill.setBillMembers(members); err != nil {
 		//	return

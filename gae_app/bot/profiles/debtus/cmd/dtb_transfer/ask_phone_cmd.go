@@ -150,10 +150,13 @@ func sendReceiptBySms(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, ph
 
 	whc.ChatData() //TODO: Workaround to make whc.GetAppUser() working
 	appUser, err := whc.AppUserData()
-	user := appUser.(*models.AppUserData)
 	if err != nil {
-		return
+		return m, err
 	}
+	user := appUser.(interface{ FullName() string })
+	//if err != nil {
+	//	return
+	//}
 
 	var (
 		smsText string

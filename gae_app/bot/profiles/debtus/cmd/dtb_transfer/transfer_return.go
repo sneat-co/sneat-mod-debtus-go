@@ -280,14 +280,14 @@ var AskToChooseDebtToReturnCommand = botsfw.Command{
 			counterpartyTitle := strings.Join(splittedBySeparator[:len(splittedBySeparator)-1], "|")
 			counterpartyTitle = strings.TrimSpace(counterpartyTitle)
 			chatEntity := whc.ChatData()
-			var botAppUser botsfwmodels.AppUserData
-			botAppUser, err = whc.AppUserData()
-			if err != nil {
-				return m, err
-			}
-			user := botAppUser.(*models.AppUserData)
+			//var botAppUser botsfwmodels.AppUserData
+			//botAppUser, err = whc.AppUserData()
+			//if err != nil {
+			//	return m, err
+			//}
+			//user := botAppUser.(*models.DebutsAppUserDataOBSOLETE)
 			var counterparties []models.Contact
-			if counterparties, err = dtdal.Contact.GetLatestContacts(whc, nil, 0, user.TotalContactsCount()); err != nil {
+			if counterparties, err = dtdal.Contact.GetLatestContacts(whc, nil, 10, -1); err != nil {
 				return m, err
 			}
 			var counterpartyFound bool

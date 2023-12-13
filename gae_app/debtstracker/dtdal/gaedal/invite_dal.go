@@ -194,11 +194,11 @@ func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, invite mo
 		if invite.Data.MaxClaimsCount == 1 {
 			user.Data.InvitedByUserID = invite.Data.CreatedByUserID
 			userChanged = true
-			counterpartyQuery := dal.From(models.ContactKind).
+			counterpartyQuery := dal.From(models.DebtusContactsCollection).
 				WhereField("UserID", dal.Equal, claimedByUserID).
 				WhereField("CounterpartyUserID", dal.Equal, invite.Data.CreatedByUserID).
 				Limit(1).
-				SelectInto(models.NewContactRecord)
+				SelectInto(models.NewDebtusContactRecord)
 
 			counterpartyRecords, err := db.QueryAllRecords(c, counterpartyQuery)
 
@@ -212,7 +212,7 @@ func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, invite mo
 					return fmt.Errorf("ailed to get invite creator user: %w", err)
 				}
 
-				counterparty := models.NewContact("", models.NewContactEntity(claimedByUserID, models.ContactDetails{
+				counterparty := models.NewDebtusContact("", models.NewDebtusContactData(claimedByUserID, models.ContactDetails{
 					FirstName:    inviteCreator.Data.FirstName,
 					LastName:     inviteCreator.Data.LastName,
 					Username:     inviteCreator.Data.Username,
@@ -244,7 +244,7 @@ func (InviteDalGae) ClaimInvite2(c context.Context, inviteCode string, invite mo
 	return
 }
 
-func updateUserContactDetails(user *models.AppUserData, inviteData models.InviteData) (changed bool) {
+func updateUserContactDetails(user *models.DebutsAppUserDataOBSOLETE, inviteData models.InviteData) (changed bool) {
 	switch models.InviteBy(inviteData.Channel) {
 	case models.InviteByEmail:
 		changed = !user.EmailConfirmed

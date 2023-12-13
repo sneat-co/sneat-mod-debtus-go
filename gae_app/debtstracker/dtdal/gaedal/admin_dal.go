@@ -17,7 +17,7 @@ func (AdminDalGae) LatestUsers(c context.Context) (users []models.AppUser, err e
 	return nil, errors.New("not implemented")
 	//var (
 	//	userKeys     []*datastore.Key
-	//	userEntities []*models.AppUserData
+	//	userEntities []*models.DebutsAppUserDataOBSOLETE
 	//)
 	//query := datastore.NewQuery(models.AppUserKind).Order("-DtCreated").Limit(20)
 	//if userKeys, err = query.GetAll(c, &userEntities); err != nil {
@@ -63,7 +63,7 @@ func (AdminDalGae) DeleteAll(c context.Context, botCode, botChatID string) error
 	//	models.FeedbackKind,
 	//	models.AppUserKind,
 	//	models.TransferKind,
-	//	models.ContactKind,
+	//	models.DebtusContactsCollection,
 	//	models.ReminderKind,
 	//	models.ReceiptKind,
 	//	models.UserBrowserKind,

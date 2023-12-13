@@ -6,8 +6,6 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
-	"github.com/strongo/log"
 )
 
 const INVITES_SHOT_COMMAND = emoji.PRESENT_ICON
@@ -27,20 +25,19 @@ type mainMenuParams struct {
 }
 
 func getMainMenuParams(whc botsfw.WebhookContext, onReceiptAck bool) (params mainMenuParams) {
-	var (
-		user      *models.AppUserData
-		isAppUser bool
-	)
-
-	c := whc.Context()
-	if userEntity, err := whc.AppUserData(); err != nil {
-		log.Errorf(c, "Failed to get user: %v", err)
-	} else if user, isAppUser = userEntity.(*models.AppUserData); !isAppUser {
-		log.Errorf(c, "Failed to case user to *models.AppUserData: %T", userEntity)
-	} else if onReceiptAck || !user.Balance().IsZero() {
-		params.showReturn = true
-	}
-	params.showBalanceAndHistory = onReceiptAck || (user != nil && user.CountOfTransfers > 0)
+	//var (
+	//	user *models.DebutsAppUserDataOBSOLETE
+	//	isAppUser bool
+	//)
+	//c := whc.Context()
+	//if userEntity, err := whc.AppUserData(); err != nil {
+	//	log.Errorf(c, "Failed to get user: %v", err)
+	//} else if user, isAppUser = userEntity.(*models.DebutsAppUserDataOBSOLETE); !isAppUser {
+	//	log.Errorf(c, "Failed to case user to *models.DebutsAppUserDataOBSOLETE: %T", userEntity)
+	//} else if onReceiptAck || !user.Balance().IsZero() {
+	//	params.showReturn = true
+	//}
+	params.showBalanceAndHistory = onReceiptAck //|| (user != nil && user.CountOfTransfers > 0)
 	return
 }
 

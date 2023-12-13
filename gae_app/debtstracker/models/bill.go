@@ -73,10 +73,12 @@ func NewBillEntity(data BillCommon) *BillEntity {
 	}
 }
 
-type Bill struct {
-	record.WithID[string]
-	Data *BillEntity
-}
+type Bill = record.DataWithID[string, *BillEntity]
+
+//type Bill struct {
+//	record.WithID[string]
+//	Data *BillEntity
+//}
 
 func NewBill(id string, billCommon *BillCommon) Bill {
 	var data *BillEntity
@@ -92,10 +94,6 @@ func NewBill(id string, billCommon *BillCommon) Bill {
 }
 
 //var _ db.EntityHolder = (*Bill)(nil)
-
-func (Bill) Kind() string {
-	return BillKind
-}
 
 //func (bill *Bill) Entity() interface{} {
 //	return bill.Data

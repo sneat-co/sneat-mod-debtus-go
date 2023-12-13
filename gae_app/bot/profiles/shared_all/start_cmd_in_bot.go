@@ -33,7 +33,7 @@ func startInBotAction(whc botsfw.WebhookContext, startParams []string, botParams
 }
 
 func startInBotWelcomeAction(whc botsfw.WebhookContext, botParams BotParams) (m botsfw.MessageFromBot, err error) {
-	var user *models.AppUserData
+	var user *models.DebutsAppUserDataOBSOLETE
 	if user, err = GetUser(whc); err != nil {
 		return
 	}

@@ -16,7 +16,6 @@ import (
 	"context"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/bot/platforms/tgbots"
-	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
 	"github.com/strongo/log"
 )
 
@@ -29,7 +28,8 @@ func pageContext(r *http.Request, locale i18n.Locale) (translator i18n.SingleLoc
 		userVoiceID = "47c67b85-d064-4727-b149-bda58cfe6c2d"
 	}
 
-	appTranslator := common.TheAppContext.GetTranslator(c)
+	//appTranslator := common.TheAppContext.GetTranslator(c)
+	var appTranslator i18n.Translator
 	translator = i18n.NewSingleMapTranslator(locale, appTranslator)
 
 	if locale.Code5 != i18n.LocaleCodeEnUS {

@@ -8,7 +8,6 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/api"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/api/apigaedepended"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/apps/vkapp"
-	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal/gaedal"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/emails"
@@ -46,7 +45,7 @@ func Init(botHost botsfw.BotHost) {
 	InitCronHandlers(httpRouter)
 	InitTaskQueueHandlers(httpRouter)
 
-	InitBots(httpRouter, botHost, common.TheAppContext)
+	InitBots(httpRouter, botHost, nil)
 
 	//httpRouter.GET("/test-pointer", testModelPointer)
 	httpRouter.GET("/Users/astec/", NotFoundSilent)

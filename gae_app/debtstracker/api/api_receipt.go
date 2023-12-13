@@ -205,7 +205,7 @@ func handleSendReceipt(c context.Context, w http.ResponseWriter, r *http.Request
 	}
 
 	locale := i18n.GetLocaleByCode5(user.Data.GetPreferredLocale()) // TODO: Get language from request
-	translator := i18n.NewSingleMapTranslator(locale, common.TheAppContext.GetTranslator(c))
+	translator := i18n.NewSingleMapTranslator(locale, nil /*common.TheAppContext.GetTranslator(c)*/)
 
 	if _, err = invites.SendReceiptByEmail(c, translator, receipt, user.Data.FullName(), transfer.Data.Counterparty().ContactName, toAddress); err != nil {
 		log.Errorf(c, err.Error())
@@ -438,7 +438,7 @@ func handleCreateReceipt(c context.Context, w http.ResponseWriter, r *http.Reque
 		messageToSend = fmt.Sprintf("https://telegram.me/%s?start=send-receipt_%s", tgBotID, receipt.ID) // TODO:
 	} else {
 		locale := i18n.GetLocaleByCode5(user.Data.GetPreferredLocale())
-		translator := i18n.NewSingleMapTranslator(locale, common.TheAppContext.GetTranslator(c))
+		translator := i18n.NewSingleMapTranslator(locale, nil /*common.TheAppContext.GetTranslator(c)*/)
 		//ec := strongoapp.NewExecutionContext(c, translator)
 
 		log.Debugf(c, "r.Host: %v", r.Host)

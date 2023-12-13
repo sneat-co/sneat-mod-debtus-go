@@ -75,7 +75,7 @@ func (linker *ReceiptUsersLinker) LinkReceiptUsers(c context.Context, receiptID,
 
 		// Integrity checks
 		{
-			invitedContact.MustMatchCounterparty(*changes.inviterContact)
+			invitedContact.Data.MustMatchCounterparty(*changes.inviterContact)
 		}
 
 		if entitiesToSave := changes.Changes.Records(); len(entitiesToSave) > 0 {

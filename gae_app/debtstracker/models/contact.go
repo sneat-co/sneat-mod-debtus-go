@@ -7,35 +7,35 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"github.com/pquerna/ffjson/ffjson"
+	"github.com/strongo/strongoapp/appuser"
 	"reflect"
 	"strings"
 	"time"
 )
 
-func NewContactEntity(userID string, details ContactDetails) *ContactData {
-	return &ContactData{
-		Status:         STATUS_ACTIVE,
-		UserID:         userID,
-		DtCreated:      time.Now(), // TODO: Should we pass from outside as parameter?
+func NewDebtusContactData(userID string, details ContactDetails) *DebtusContactData {
+	return &DebtusContactData{
+		Status: STATUS_ACTIVE,
+		UserID: userID,
+		WithCreatedTimestamp: appuser.WithCreatedTimestamp{
+			DtCreated: time.Now(), // TODO: Should we pass from outside as parameter?
+		},
 		ContactDetails: details,
 	}
 }
 
-const ContactKind = "Counterparty" // TODO: Change value to Contact & migrated DB records
+const DebtusContactsCollection = "contacts"
 
-type Contact struct {
-	record.WithID[string]
-	Data *ContactData
-}
+type Contact = record.DataWithID[string, *DebtusContactData]
 
-func NewContactKey(contactID string) *dal.Key {
+func NewDebtusContactKey(contactID string) *dal.Key {
 	if contactID == "" {
-		panic("NewContactKey(): contactID == 0")
+		panic("NewDebtusContactKey(): contactID is required parameter")
 	}
-	return dal.NewKeyWithID(ContactKind, contactID)
+	return dal.NewKeyWithID(DebtusContactsCollection, contactID)
 }
 
-func ContactRecords(contacts []Contact) (records []dal.Record) {
+func DebtusContactRecords(contacts []Contact) (records []dal.Record) {
 	records = make([]dal.Record, len(contacts))
 	for i, contact := range contacts {
 		records[i] = contact.Record
@@ -43,21 +43,21 @@ func ContactRecords(contacts []Contact) (records []dal.Record) {
 	return
 }
 
-func NewContacts(ids ...string) (contacts []Contact) {
+func NewDebtusContacts(ids ...string) (contacts []Contact) {
 	contacts = make([]Contact, len(ids))
 	for i, id := range ids {
 		if id == "" {
 			panic(fmt.Sprintf("ids[%d] == 0", i))
 		}
-		contacts[i] = NewContact(id, nil)
+		contacts[i] = NewDebtusContact(id, nil)
 	}
 	return
 }
 
-func NewContact(id string, data *ContactData) Contact {
-	key := NewContactKey(id)
+func NewDebtusContact(id string, data *DebtusContactData) Contact {
+	key := NewDebtusContactKey(id)
 	if data == nil {
-		data = new(ContactData)
+		data = new(DebtusContactData)
 	}
 	return Contact{
 		WithID: record.NewWithID(id, key, data),
@@ -65,14 +65,14 @@ func NewContact(id string, data *ContactData) Contact {
 	}
 }
 
-func NewContactRecord() dal.Record {
-	return dal.NewRecordWithIncompleteKey(ContactKind, reflect.Int64, new(ContactData))
+func NewDebtusContactRecord() dal.Record {
+	return dal.NewRecordWithIncompleteKey(DebtusContactsCollection, reflect.Int64, new(DebtusContactData))
 }
 
 //var _ db.EntityHolder = (*Contact)(nil)
 
 //func (Contact) Kind() string {
-//	return ContactKind
+//	return DebtusContactsCollection
 //}
 
 //func (c *Contact) Entity() interface{} {
@@ -80,36 +80,38 @@ func NewContactRecord() dal.Record {
 //}
 
 //func (Contact) NewEntity() interface{} {
-//	return new(ContactData)
+//	return new(DebtusContactData)
 //}
 
 //func (c *Contact) SetEntity(entity interface{}) {
 //	if entity == nil {
 //		c.Data = nil
 //	} else {
-//		c.Data = entity.(*ContactData)
+//		c.Data = entity.(*DebtusContactData)
 //	}
 //}
 
-func (c Contact) MustMatchCounterparty(counterparty Contact) {
-	if !c.Data.Balance().Equal(counterparty.Data.Balance().Reversed()) {
-		panic(fmt.Sprintf("contact[%s].Balance() != counterpartyContact[%s].Balance(): %v != %v", c.ID, counterparty.ID, c.Data.Balance(), counterparty.Data.Balance()))
-	}
-	if c.Data.BalanceCount != counterparty.Data.BalanceCount {
-		panic(fmt.Sprintf("contact.BalanceCount != counterpartyContact.BalanceCount:  %v != %v", c.Data.BalanceCount, counterparty.Data.BalanceCount))
-	}
+func (entity *DebtusContactData) MustMatchCounterparty(counterparty Contact) {
+	panic("not implemented")
+	//if !c.Data.Balance().Equal(counterparty.Data.Balance().Reversed()) {
+	//	panic(fmt.Sprintf("contact[%s].Balance() != counterpartyContact[%s].Balance(): %v != %v", c.ID, counterparty.ID, c.Data.Balance(), counterparty.Data.Balance()))
+	//}
+	//if c.Data.BalanceCount != counterparty.Data.BalanceCount {
+	//	panic(fmt.Sprintf("contact.BalanceCount != counterpartyContact.BalanceCount:  %v != %v", c.Data.BalanceCount, counterparty.Data.BalanceCount))
+	//}
 }
 
-type ContactData struct {
-	DtCreated                  time.Time `datastore:",omitempty"`
-	UserID                     string    // owner can not be in parent key as we have problem with filtering transfers then
-	CounterpartyUserID         string    // The counterparty user ID if registered
+// DebtusContactData is stored in a collection at path "/teams/{teamID}/modules/debtus/contacts/{contactID}".
+type DebtusContactData struct {
+	appuser.WithCreatedTimestamp
+	money.Balanced
+	UserID                     string // owner can not be in parent key as we have problem with filtering transfers then
+	CounterpartyUserID         string // The counterparty user ID if registered
 	CounterpartyCounterpartyID string
 	LinkedBy                   string `datastore:",noindex"`
 	//
 	Status string
 	ContactDetails
-	money.Balanced
 	TransfersJson string `datastore:",noindex"`
 	SmsStats
 	//
@@ -121,11 +123,11 @@ type ContactData struct {
 	GroupIDs            []string `datastore:",noindex"`
 }
 
-func (entity *ContactData) String() string {
+func (entity *DebtusContactData) String() string {
 	return fmt.Sprintf("Contact{UserID: %v, CounterpartyUserID: %v, CounterpartyCounterpartyID: %v, Status: %v, ContactDetails: %v, Balance: '%v', LastTransferAt: %v}", entity.UserID, entity.CounterpartyUserID, entity.CounterpartyCounterpartyID, entity.Status, entity.ContactDetails, entity.BalanceJson, entity.LastTransferAt)
 }
 
-func (entity *ContactData) GetTransfersInfo() (transfersInfo *UserContactTransfersInfo) {
+func (entity *DebtusContactData) GetTransfersInfo() (transfersInfo *UserContactTransfersInfo) {
 	if entity.TransfersJson == "" {
 		return &UserContactTransfersInfo{}
 	}
@@ -136,7 +138,7 @@ func (entity *ContactData) GetTransfersInfo() (transfersInfo *UserContactTransfe
 	return
 }
 
-func (entity *ContactData) SetTransfersInfo(transfersInfo UserContactTransfersInfo) error {
+func (entity *DebtusContactData) SetTransfersInfo(transfersInfo UserContactTransfersInfo) error {
 	if data, err := ffjson.Marshal(transfersInfo); err != nil {
 		return err
 	} else {
@@ -145,7 +147,7 @@ func (entity *ContactData) SetTransfersInfo(transfersInfo UserContactTransfersIn
 	}
 }
 
-func (entity *ContactData) Info(counterpartyID string, note, comment string) TransferCounterpartyInfo {
+func (entity *DebtusContactData) Info(counterpartyID string, note, comment string) TransferCounterpartyInfo {
 	return TransferCounterpartyInfo{
 		ContactID:   counterpartyID,
 		UserID:      entity.UserID,
@@ -155,7 +157,7 @@ func (entity *ContactData) Info(counterpartyID string, note, comment string) Tra
 	}
 }
 
-//func (entity *ContactData) UpdateSearchName() {
+//func (entity *DebtusContactData) UpdateSearchName() {
 //	fullName := entity.GetFullName()
 //	entity.SearchName = []string{strings.ToLower(fullName)}
 //	if entity.Username != "" {
@@ -172,7 +174,7 @@ func (entity *ContactData) Info(counterpartyID string, note, comment string) Tra
 //	}
 //}
 
-//func (entity *ContactData) Load(ps []datastore.Property) error {
+//func (entity *DebtusContactData) Load(ps []datastore.Property) error {
 //	p2 := make([]datastore.Property, 0, len(ps))
 //	for _, p := range ps {
 //		switch p.Name {
@@ -215,14 +217,14 @@ func (entity *ContactData) Info(counterpartyID string, note, comment string) Tra
 //	"TelegramUserID":             gaedb.IsZeroInt,
 //}
 
-func (entity *ContactData) Validate() (err error) {
+func (entity *DebtusContactData) Validate() (err error) {
 	//entity.UpdateSearchName()
 	entity.EmailAddressOriginal = strings.TrimSpace(entity.EmailAddressOriginal)
 	entity.EmailAddress = strings.ToLower(entity.EmailAddressOriginal)
 	return nil
 }
 
-//func (entity *ContactData) Save() (properties []datastore.Property, err error) {
+//func (entity *DebtusContactData) Save() (properties []datastore.Property, err error) {
 //	if err = entity.BeforeSave(); err != nil {
 //		return
 //	}
@@ -235,12 +237,12 @@ func (entity *ContactData) Validate() (err error) {
 //	//	return
 //	//}
 //
-//	//checkHasProperties(ContactKind, properties)
+//	//checkHasProperties(DebtusContactsCollection, properties)
 //
 //	return
 //}
 
-func (entity *ContactData) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance money.Balance, err error) {
+func (entity *DebtusContactData) BalanceWithInterest(c context.Context, periodEnds time.Time) (balance money.Balance, err error) {
 	balance = entity.Balance()
 	if transferInfo := entity.GetTransfersInfo(); transferInfo != nil {
 		err = updateBalanceWithInterest(true, balance, transferInfo.OutstandingWithInterest, periodEnds)
@@ -248,8 +250,8 @@ func (entity *ContactData) BalanceWithInterest(c context.Context, periodEnds tim
 	return
 }
 
-func ContactsByID(contacts []Contact) (contactsByID map[string]*ContactData) {
-	contactsByID = make(map[string]*ContactData, len(contacts))
+func ContactsByID(contacts []Contact) (contactsByID map[string]*DebtusContactData) {
+	contactsByID = make(map[string]*DebtusContactData, len(contacts))
 	for _, contact := range contacts {
 		contactsByID[contact.ID] = contact.Data
 	}

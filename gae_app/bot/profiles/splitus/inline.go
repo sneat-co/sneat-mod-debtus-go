@@ -29,9 +29,9 @@ var inlineQueryCommand = botsfw.Command{
 		if tgInput, ok := whc.Input().(telegram.TgWebhookInput); ok {
 			update := tgInput.TgUpdate()
 
-			if user, err := whc.AppUserData(); err != nil {
+			if appUserData, err := whc.AppUserData(); err != nil {
 				return m, err
-			} else if preferredLocale := user.GetPreferredLocale(); preferredLocale != "" {
+			} else if preferredLocale := appUserData.BotsFwAdapter().GetPreferredLocale(); preferredLocale != "" {
 				log.Debugf(c, "User has preferring locale")
 				_ = whc.SetLocale(preferredLocale)
 			} else if tgLang := update.InlineQuery.From.LanguageCode; len(tgLang) >= 2 {

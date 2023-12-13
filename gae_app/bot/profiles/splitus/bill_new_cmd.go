@@ -66,10 +66,10 @@ var newBillCommand = botsfw.Command{
 		if appUser, err = whc.AppUserData(); err != nil {
 			return
 		}
-		user := appUser.(*models.AppUserData)
+		user := appUser.(interface{ FullName() string })
 		userName := user.FullName()
 		if userName == "" {
-			err = errors.New("User has no name")
+			err = errors.New("user has no name")
 			return
 		}
 
