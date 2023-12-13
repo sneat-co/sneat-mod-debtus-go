@@ -1,82 +1,48 @@
 package reminders
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ses"
+	"github.com/sneat-co/sneat-go-core/emails"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/emailing"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 	"github.com/strongo/i18n"
 	"github.com/strongo/log"
-	"net/http"
 	"time"
 )
 
 func sendReminderByEmail(c context.Context, reminder models.Reminder, emailTo string, transfer models.Transfer, user models.DebutsAppUserDataOBSOLETE) (err error) {
 	log.Debugf(c, "sendReminderByEmail(reminder.ID=%v, emailTo=%v)", reminder.ID, emailTo)
-	// TODO: Do we really need to pass "w http.ResponseWriter" here?
-	var text bytes.Buffer
-	var subj bytes.Buffer
 
-	subj.WriteString("Due payment notification")
-	text.WriteString(fmt.Sprintf("Hi %v, you have a due payment to %v: %v%v.", transfer.Data.Counterparty().ContactName, user.Username, transfer.Data.AmountInCents, transfer.Data.Currency))
-	var awsSession *session.Session
-	if awsSession, err = common.NewAwsSession(); err != nil {
+	emailMessage := emails.Email{
+		From: common.FROM_REMINDER,
+		To: []string{
+			emailTo, // Required
+		},
+		Subject: "Due payment notification",
+		Text:    fmt.Sprintf("Hi %v, you have a due payment to %v: %v%v.", transfer.Data.Counterparty().ContactName, user.Username, transfer.Data.AmountInCents, transfer.Data.Currency),
+	}
+
+	var emailClient emails.Client
+
+	if emailClient, err = emailing.GetEmailClient(c); err != nil {
 		return
 	}
-	svc := ses.New(awsSession)
-	params := &ses.SendEmailInput{
-		Destination: &ses.Destination{ // Required
-			ToAddresses: []*string{
-				aws.String(emailTo), // Required
-			},
-		},
-		Message: &ses.Message{ // Required
-			Body: &ses.Body{ // Required
-				//Html: &ses.Content{
-				//	Data:    aws.String(html.String()), // Required
-				//	Charset: aws.String("utf-8"),
-				//},
-				Text: &ses.Content{
-					Data:    aws.String(text.String()), // Required
-					Charset: aws.String("utf-8"),
-				},
-			},
-			Subject: &ses.Content{ // Required
-				Data:    aws.String(subj.String()), // Required
-				Charset: aws.String("utf-8"),
-			},
-		},
-		Source: aws.String(common.FROM_REMINDER), // Required
-		ReplyToAddresses: []*string{
-			aws.String(common.FROM_REMINDER), // Required
-			// More values...
-		},
-		//ReturnPath:    aws.String("Address"),
-		//ReturnPathArn: aws.String("AmazonResourceName"),
-		//SourceArn:     aws.String("AmazonResourceName"),
-	}
 
-	http.DefaultClient = dtdal.HttpClient(c)
-	//http.DefaultTransport = &urlfetch.Transport{Context: c, AllowInvalidServerCertificate: false}
-	resp, err := svc.SendEmail(params)
+	var sent emails.Sent
+	sent, err = emailClient.Send(emailMessage)
 
 	sentAt := time.Now()
 
-	var (
-		emailMessageID string
-		errDetails     string
-	)
-	if resp.MessageId != nil {
-		emailMessageID = *resp.MessageId
-	}
-
+	var errDetails string
 	if err != nil {
 		errDetails = err.Error()
+	}
+	var emailMessageID string
+	if sent != nil {
+		emailMessageID = sent.MessageID()
 	}
 
 	if err = dtdal.Reminder.SetReminderIsSent(c, reminder.ID, sentAt, 0, emailMessageID, i18n.LocaleCodeEnUS, errDetails); err != nil {
@@ -92,6 +58,6 @@ func sendReminderByEmail(c context.Context, reminder models.Reminder, emailTo st
 	}
 
 	// Pretty-print the response data.
-	log.Debugf(c, "AWS SES output (for Reminder=%v): %v", reminder.ID, resp)
+	log.Debugf(c, "AWS SES output (for Reminder=%v): %v", reminder.ID, sent)
 	return nil
 }

@@ -8,7 +8,7 @@ const (
 	QUEUE_BILLS     = "bills"
 	QUEUE_USERS     = "users"
 	QUEUE_SUPPORT   = "support"
-	QUEUE_EMAILS    = "emails"
+	QUEUE_EMAILS    = "emailing"
 	QUEUE_MAPREDUCE = "mapreduce"
 	QueueInvites    = "invites"
 )

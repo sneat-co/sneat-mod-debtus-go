@@ -10,7 +10,7 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/apps/vkapp"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal/gaedal"
-	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/emails"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/emailing"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/maintainance"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/reminders"
@@ -57,7 +57,7 @@ func initDelaying() {
 	delaying.Init(apphostgae.MustRegisterDelayedFunc)
 	gaedal.InitDelaying(delaying.MustRegisterFunc)
 	facade.InitDelaying(delaying.MustRegisterFunc)
-	emails.InitDelaying(delaying.MustRegisterFunc)
+	emailing.InitDelaying(delaying.MustRegisterFunc)
 	dtb_transfer.InitDelaying(delaying.MustRegisterFunc)
 	splitus.InitDelaying(delaying.MustRegisterFunc)
 	reminders.InitDelaying(delaying.MustRegisterFunc)

@@ -1,8 +1,9 @@
-package emails
+package emailing
 
 import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/sneat-go-core/emails"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/facade"
 	"github.com/strongo/delaying"
 	"time"
@@ -55,8 +56,15 @@ func delayedSendEmail(c context.Context, id int64) (err error) {
 		return err // Retry
 	}
 
-	var awsSesMessageID string
-	if awsSesMessageID, err = SendEmail(c, email.Data.From, email.Data.To, email.Data.Subject, email.Data.BodyText, email.Data.BodyHtml); err != nil {
+	var sentMessageID string
+	emailMessage := emails.Email{
+		From:    email.Data.From,
+		To:      []string{email.Data.To},
+		Subject: email.Data.Subject,
+		Text:    email.Data.BodyText,
+		HTML:    email.Data.BodyHtml,
+	}
+	if sentMessageID, err = SendEmail(c, emailMessage); err != nil {
 		log.Errorf(c, "Failed to send email: %v", err)
 
 		if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
@@ -75,7 +83,7 @@ func delayedSendEmail(c context.Context, id int64) (err error) {
 		return nil // Do not retry
 	}
 
-	log.Infof(c, "Sent email, message ID: %v", awsSesMessageID)
+	log.Infof(c, "Sent email, message ID: %v", sentMessageID)
 
 	if err = db.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
 		if email, err = dtdal.Email.GetEmailByID(c, tx, id); err != nil {
@@ -86,7 +94,7 @@ func delayedSendEmail(c context.Context, id int64) (err error) {
 		}
 		email.Data.Status = "sent"
 		email.Data.DtSent = time.Now()
-		email.Data.AwsSesMessageID = awsSesMessageID
+		email.Data.AwsSesMessageID = sentMessageID
 		return dtdal.Email.UpdateEmail(c, tx, email)
 	}); err != nil {
 		log.Errorf(c, err.Error())

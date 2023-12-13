@@ -11,7 +11,7 @@ import (
 	"context"
 	"errors"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
-	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/emails"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/emailing"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 	"github.com/strongo/log"
@@ -63,7 +63,7 @@ func handleSignUpWithEmail(c context.Context, w http.ResponseWriter, r *http.Req
 			return
 		}
 	} else {
-		if err = emails.CreateConfirmationEmailAndQueueForSending(c, user, userEmail); err != nil {
+		if err = emailing.CreateConfirmationEmailAndQueueForSending(c, user, userEmail); err != nil {
 			ErrorAsJson(c, w, http.StatusInternalServerError, err)
 			return
 		}

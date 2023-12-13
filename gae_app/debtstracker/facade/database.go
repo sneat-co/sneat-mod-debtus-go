@@ -1,19 +1,14 @@
 package facade
 
 import (
-	"cloud.google.com/go/firestore"
 	"context"
+	"errors"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/dal-go/dalgo2firestore"
 )
 
 // GetDatabase returns debts tracker database
 func GetDatabase(ctx context.Context) (db dal.DB, err error) {
-	client, err := firestore.NewClient(ctx, "projectID")
-	if err != nil {
-		panic(err)
-	}
-	return dalgo2firestore.NewDatabase("sneat", client), nil
+	return nil, errors.New("TODO: Implement GetDatabase()")
 }
 
 func DB() dal.DB {

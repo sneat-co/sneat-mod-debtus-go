@@ -5,12 +5,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/sneat-co/sneat-go-core/emails"
 	"github.com/strongo/i18n"
 	"github.com/strongo/strongoapp"
 	"html/template"
 
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/common"
-	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/emails"
+	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/emailing"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 )
 
@@ -51,22 +52,29 @@ func SendInviteByEmail(ec strongoapp.ExecutionContext, translator i18n.SingleLoc
 
 	c := ec.Context()
 
-	subject, err := emails.GetEmailText(c, translator, trans.EMAIL_INVITE_SUBJ, templateParams)
+	subject, err := emailing.GetEmailText(c, translator, trans.EMAIL_INVITE_SUBJ, templateParams)
 	if err != nil {
 		return "", err
 	}
 
-	bodyText, err := emails.GetEmailText(c, translator, trans.EMAIL_INVITE_TEXT, templateParams)
+	bodyText, err := emailing.GetEmailText(c, translator, trans.EMAIL_INVITE_TEXT, templateParams)
 	if err != nil {
 		return "", err
 	}
 
-	bodyHtml, err := emails.GetEmailHtml(c, translator, trans.EMAIL_INVITE_HTML, templateParams)
+	bodyHtml, err := emailing.GetEmailHtml(c, translator, trans.EMAIL_INVITE_HTML, templateParams)
 	if err != nil {
 		return "", err
 	}
 
-	emailID, err = emails.SendEmail(c, "invite@debtstracker.io", toEmail, subject, bodyText, bodyHtml)
+	emailMessage := emails.Email{
+		From:    "invite@sneat.app",
+		To:      []string{toEmail},
+		Subject: subject,
+		Text:    bodyText,
+		HTML:    bodyHtml,
+	}
+	emailID, err = emailing.SendEmail(c, emailMessage)
 	return
 }
 
@@ -100,5 +108,13 @@ func SendReceiptByEmail(c context.Context, translator i18n.SingleLocaleTranslato
 	if err = common.HtmlTemplates.RenderTemplate(c, &bodyHtml, translator, trans.EMAIL_RECEIPT_BODY_HTML, templateParams); err != nil {
 		return "", err
 	}
-	return emails.SendEmail(c, "receipt@debtstracker.io", toEmail, subject, bodyText, bodyHtml.String())
+
+	emailMessage := emails.Email{
+		From:    "receipt@debtus.app",
+		To:      []string{toEmail},
+		Subject: subject,
+		Text:    bodyText,
+		HTML:    bodyHtml.String(),
+	}
+	return emailing.SendEmail(c, emailMessage)
 }

@@ -1,5 +1,5 @@
 package common
 
 const (
-	FROM_REMINDER = "reminder@debtstracker.io"
+	FROM_REMINDER = "reminder@sneat.app"
 )

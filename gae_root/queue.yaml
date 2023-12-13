@@ -32,5 +32,5 @@ queue:
 - name: support
   rate: 20/s
 
-- name: emails
+- name: emailing
   rate: 2/s
