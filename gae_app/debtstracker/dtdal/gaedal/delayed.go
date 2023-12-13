@@ -307,7 +307,7 @@ func onReceiptSendFail(c context.Context, receiptID string, tgChatID int64, tgMs
 
 func getTranslator(c context.Context, localeCode string) (translator i18n.SingleLocaleTranslator, err error) {
 	log.Debugf(c, "getTranslator(localeCode=%v)", localeCode)
-	panic("not implemented")
+	return nil, errors.New("not implemented")
 	//var locale i18n.Locale
 	//if locale, err = common.TheAppContext.SupportedLocales().GetLocaleByCode5(localeCode); errors.Is(err, trans.ErrUnsupportedLocale) {
 	//	if locale, err = common.TheAppContext.SupportedLocales().GetLocaleByCode5(i18n.LocaleCodeEnUS); err != nil {

@@ -1,11 +1,7 @@
 package splitus
 
 import (
-	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botsfw"
-	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
-	"github.com/strongo/i18n"
 	"net/url"
 )
 
@@ -113,62 +109,62 @@ var groupCommand = botsfw.NewCallbackCommand(groupCommandCode,
 	},
 )
 
-func groupsNavButtons(translator i18n.SingleLocaleTranslator, groups []models.UserGroupJson, currentGroupID string) []tgbotapi.InlineKeyboardButton {
-	var currentGroupIndex = -1
-	if currentGroupID != "" {
-
-		for i, group := range groups {
-			if group.ID == currentGroupID {
-				currentGroupIndex = i
-				break
-			}
-		}
-	}
-	buttons := []tgbotapi.InlineKeyboardButton{}
-	if len(groups) > 0 || currentGroupIndex < 0 {
-		switch currentGroupIndex {
-		case -1:
-			buttons = append(buttons, tgbotapi.InlineKeyboardButton{
-				Text:         "⬅️",
-				CallbackData: CallbackLink.ToGroup(groups[len(groups)-1].ID, true),
-			})
-		case 0:
-			buttons = append(buttons, tgbotapi.InlineKeyboardButton{
-				Text:         "⬅️",
-				CallbackData: groupsCommandCode + "?edit=1",
-			})
-		default:
-			buttons = append(buttons, tgbotapi.InlineKeyboardButton{
-				Text:         "⬅️",
-				CallbackData: CallbackLink.ToGroup(groups[currentGroupIndex-1].ID, true),
-			})
-		}
-	}
-	if currentGroupID != "" {
-		buttons = append(buttons, tgbotapi.InlineKeyboardButton{
-			Text:         translator.Translate(trans.COMMAND_TEXT_GROUPS),
-			CallbackData: groupsCommandCode + "?edit=1",
-		})
-
-	}
-	if len(groups) > 0 || currentGroupIndex < 0 {
-		switch currentGroupIndex {
-		case -1:
-			buttons = append(buttons, tgbotapi.InlineKeyboardButton{
-				Text:         "➡️",
-				CallbackData: CallbackLink.ToGroup(groups[0].ID, true),
-			})
-		case len(groups) - 1:
-			buttons = append(buttons, tgbotapi.InlineKeyboardButton{
-				Text:         "➡️",
-				CallbackData: groupsCommandCode + "?edit=1",
-			})
-		default:
-			buttons = append(buttons, tgbotapi.InlineKeyboardButton{
-				Text:         "➡️",
-				CallbackData: CallbackLink.ToGroup(groups[currentGroupIndex+1].ID, true),
-			})
-		}
-	}
-	return buttons
-}
+//func groupsNavButtons(translator i18n.SingleLocaleTranslator, groups []models.UserGroupJson, currentGroupID string) []tgbotapi.InlineKeyboardButton {
+//	var currentGroupIndex = -1
+//	if currentGroupID != "" {
+//
+//		for i, group := range groups {
+//			if group.ID == currentGroupID {
+//				currentGroupIndex = i
+//				break
+//			}
+//		}
+//	}
+//	buttons := []tgbotapi.InlineKeyboardButton{}
+//	if len(groups) > 0 || currentGroupIndex < 0 {
+//		switch currentGroupIndex {
+//		case -1:
+//			buttons = append(buttons, tgbotapi.InlineKeyboardButton{
+//				Text:         "⬅️",
+//				CallbackData: CallbackLink.ToGroup(groups[len(groups)-1].ID, true),
+//			})
+//		case 0:
+//			buttons = append(buttons, tgbotapi.InlineKeyboardButton{
+//				Text:         "⬅️",
+//				CallbackData: groupsCommandCode + "?edit=1",
+//			})
+//		default:
+//			buttons = append(buttons, tgbotapi.InlineKeyboardButton{
+//				Text:         "⬅️",
+//				CallbackData: CallbackLink.ToGroup(groups[currentGroupIndex-1].ID, true),
+//			})
+//		}
+//	}
+//	if currentGroupID != "" {
+//		buttons = append(buttons, tgbotapi.InlineKeyboardButton{
+//			Text:         translator.Translate(trans.COMMAND_TEXT_GROUPS),
+//			CallbackData: groupsCommandCode + "?edit=1",
+//		})
+//
+//	}
+//	if len(groups) > 0 || currentGroupIndex < 0 {
+//		switch currentGroupIndex {
+//		case -1:
+//			buttons = append(buttons, tgbotapi.InlineKeyboardButton{
+//				Text:         "➡️",
+//				CallbackData: CallbackLink.ToGroup(groups[0].ID, true),
+//			})
+//		case len(groups) - 1:
+//			buttons = append(buttons, tgbotapi.InlineKeyboardButton{
+//				Text:         "➡️",
+//				CallbackData: groupsCommandCode + "?edit=1",
+//			})
+//		default:
+//			buttons = append(buttons, tgbotapi.InlineKeyboardButton{
+//				Text:         "➡️",
+//				CallbackData: CallbackLink.ToGroup(groups[currentGroupIndex+1].ID, true),
+//			})
+//		}
+//	}
+//	return buttons
+//}
