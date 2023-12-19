@@ -22,8 +22,8 @@ type UserFacebook struct {
 //	return u.WithID.Key
 //}
 
-func (u *UserFacebook) Key() appuser.Account {
-	return u.data.Account
+func (u *UserFacebook) Key() appuser.AccountKey {
+	return u.data.AccountKey
 }
 
 func (u *UserFacebook) Data() appuser.AccountData {
@@ -46,8 +46,8 @@ func (u *UserFacebook) AccountData() appuser.AccountData {
 
 //var _ db.EntityHolder = (*UserFacebook)(nil)
 
-func (u *UserFacebook) UserAccount() appuser.Account {
-	return appuser.Account{Provider: "fb", App: u.FbAppOrPageID, ID: u.FbUserOrPageScopeID}
+func (u *UserFacebook) UserAccount() appuser.AccountKey {
+	return appuser.AccountKey{Provider: "fb", App: u.FbAppOrPageID, ID: u.FbUserOrPageScopeID}
 }
 
 func UserFacebookID(fbAppOrPageID, fbUserOrPageScopeID string) string {

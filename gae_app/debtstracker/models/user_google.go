@@ -17,8 +17,8 @@ type UserAccount struct { // TODO: Move out to library?
 	data *appuser.AccountDataBase
 }
 
-func (ua UserAccount) Key() appuser.Account {
-	return ua.data.Account
+func (ua UserAccount) Key() appuser.AccountKey {
+	return ua.data.AccountKey
 }
 
 func (ua UserAccount) Data() appuser.AccountData {

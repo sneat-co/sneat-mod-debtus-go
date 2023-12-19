@@ -504,7 +504,7 @@ func (entity *DebutsAppUserDataOBSOLETE) GetCurrencies() []string {
 }
 
 func (entity *DebutsAppUserDataOBSOLETE) SetBotUserID(platform, botID, botUserID string) {
-	entity.AddAccount(appuser.Account{
+	entity.AddAccount(appuser.AccountKey{
 		Provider: platform,
 		App:      botID,
 		ID:       botUserID,

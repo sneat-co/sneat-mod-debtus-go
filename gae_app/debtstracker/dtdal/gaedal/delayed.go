@@ -21,6 +21,7 @@ import (
 	"github.com/strongo/i18n"
 	"github.com/strongo/log"
 	"github.com/strongo/strongoapp"
+	"github.com/strongo/strongoapp/appuser"
 	"reflect"
 	"strconv"
 	"strings"
@@ -405,7 +406,12 @@ func sendReceiptToCounterpartyByTelegram(c context.Context, receiptID string, tg
 
 		creatorTgChatID, creatorTgMsgID := transfer.Data.Creator().TgChatID, int(transfer.Data.CreatorTgReceiptByTgMsgID)
 
-		for _, telegramAccount := range counterpartyUser.Data.GetTelegramAccounts() {
+		var tgAccounts []appuser.AccountKey
+
+		if tgAccounts, err = counterpartyUser.Data.GetAccounts("telegram"); err != nil {
+			return err
+		}
+		for _, telegramAccount := range tgAccounts {
 			if telegramAccount.App == "" {
 				log.Warningf(c, "User %v has account with missing bot id => %v", counterpartyUser.ID, telegramAccount.String())
 				continue

@@ -27,8 +27,8 @@ type UserEmail struct {
 
 //var _ user.AccountRecord = (*UserEmail)(nil)
 
-func (userEmail UserEmail) UserAccount() appuser.Account {
-	return appuser.Account{Provider: "email", ID: userEmail.ID}
+func (userEmail UserEmail) UserAccount() appuser.AccountKey {
+	return appuser.AccountKey{Provider: "email", ID: userEmail.ID}
 }
 
 func (userEmail UserEmail) Kind() string {

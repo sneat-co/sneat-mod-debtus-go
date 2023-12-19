@@ -30,9 +30,9 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 
 		changed := false
 
-		deleteFbUser := func(userAccount appuser.Account) error {
+		deleteFbUser := func(userAccount appuser.AccountKey) error {
 			if userFb, err := dtdal.UserFacebook.GetFbUserByFbID(c, userAccount.App, userAccount.ID); err != nil {
-				if err != dal.ErrRecordNotFound {
+				if !dal.IsNotFound(err) {
 					return err
 				}
 			} else if fbUserAppID := userFb.FbUserData().GetAppUserID(); fbUserAppID == appUser.ID {
@@ -52,14 +52,14 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 		if !appUser.Data.HasAccount(provider, "") {
 			return nil
 		}
-		var userAccount *appuser.Account
+		var userAccount *appuser.AccountKey
 		switch provider {
 		case "google":
 			if userAccount, err = appUser.Data.GetGoogleAccount(); err != nil {
 				return err
 			} else if userAccount != nil {
 				if userGoogle, err := dtdal.UserGoogle.GetUserGoogleByID(c, userAccount.ID); err != nil {
-					if err != dal.ErrRecordNotFound {
+					if !dal.IsNotFound(err) {
 						return err
 					}
 				} else if userGoogle.Data().GetAppUserID() == appUser.ID {

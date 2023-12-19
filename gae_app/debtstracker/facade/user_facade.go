@@ -11,7 +11,6 @@ import (
 	"github.com/strongo/log"
 	"github.com/strongo/strongoapp/appuser"
 	gae_user "google.golang.org/appengine/v2/user"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -329,7 +328,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 			}
 			return
 		} else { // UserEmail record found
-			userAccount.(appuser.BelongsToUser).SetAppUserID(strconv.FormatInt(userEmail.Data.AppUserIntID, 10)) // No need to create a new appUser, link to existing
+			userAccount.(appuser.BelongsToUser).SetAppUserID(userEmail.Data.AppUserID) // No need to create a new appUser, link to existing
 			if !isNewUser && userEmail.Data.AppUserID != userID {
 				panic(fmt.Sprintf("Relinking of appUser accounts us not implemented yet => userEmail.AppUserID:%s != userID:%s", userEmail.Data.AppUserID, userID))
 			}
