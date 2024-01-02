@@ -25,7 +25,7 @@ type Linker struct {
 	host   string
 }
 
-func NewLinker(environment strongoapp.Environment, userID string, locale, issuer string) Linker {
+func NewLinker(environment string, userID string, locale, issuer string) Linker {
 	return Linker{
 		userID: userID,
 		locale: locale,
@@ -38,13 +38,13 @@ func NewLinkerFromWhc(whc botsfw.WebhookContext) Linker {
 	return NewLinker(whc.Environment(), whc.AppUserID(), whc.Locale().SiteCode(), formatIssuer(whc.BotPlatform().ID(), whc.GetBotCode()))
 }
 
-func host(environment strongoapp.Environment) string {
+func host(environment string) string {
 	switch environment {
-	case strongoapp.EnvProduction:
+	case "prod":
 		return "debtstracker.io"
-	case strongoapp.EnvLocal:
+	case strongoapp.LocalHostEnv:
 		return "debtstracker.local"
-	case strongoapp.EnvDevTest:
+	case "dev":
 		return "debtstracker-dev1.appspot.com"
 	}
 	panic(fmt.Sprintf("Unknown environment: %v", environment))

@@ -83,14 +83,14 @@ func handleMe(c context.Context, w http.ResponseWriter, r *http.Request, authInf
 		UserID:   authInfo.UserID,
 		FullName: user.Data.FullName(),
 	}
-	if ua, err := user.Data.GetGoogleAccount(); err != nil {
+	if ua, err := user.Data.GetAccount("google", ""); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	} else if ua != nil {
 		meDto.GoogleUserID = ua.ID
 	}
 
-	if fbAccounts, err := user.Data.GetFbAccounts(); err != nil {
+	if fbAccounts, err := user.Data.GetAccounts("facebook"); err != nil {
 		ErrorAsJson(c, w, http.StatusInternalServerError, err)
 		return
 	} else {

@@ -6,7 +6,6 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/strongo/strongoapp"
 	"net/url"
 	"time"
 
@@ -192,7 +191,7 @@ func askWhenToRemindAgain(whc botsfw.WebhookContext, reminderID string, transfer
 		},
 	)
 
-	if whc.GetBotSettings().Env == strongoapp.EnvDevTest {
+	if whc.GetBotSettings().Env == "dev" {
 		keyboard.InlineKeyboard = append(
 			[][]tgbotapi.InlineKeyboardButton{
 				{

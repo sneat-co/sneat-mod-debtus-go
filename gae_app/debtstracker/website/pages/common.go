@@ -37,7 +37,7 @@ func pageContext(r *http.Request, locale i18n.Locale) (translator i18n.SingleLoc
 	}
 
 	env := dtdal.HttpAppHost.GetEnvironment(c, r)
-	if env == strongoapp.EnvUnknown {
+	if env == strongoapp.UnknownEnv {
 		panic("Unknown host: " + r.Host)
 	}
 	botSettings, err := tgbots.GetBotSettingsByLang(env, bot.ProfileDebtus, locale.Code5)

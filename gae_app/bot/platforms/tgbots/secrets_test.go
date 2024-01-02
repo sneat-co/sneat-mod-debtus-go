@@ -10,7 +10,7 @@ import (
 func TestGetBotSettingsByLang(t *testing.T) {
 	t.Skip("TODO: fix this test to run on CI")
 	verify := func(profile, locale, code string) {
-		botSettings, err := GetBotSettingsByLang(strongoapp.EnvLocal, bot.ProfileDebtus, locale)
+		botSettings, err := GetBotSettingsByLang(strongoapp.LocalHostEnv, bot.ProfileDebtus, locale)
 		if err != nil {
 			t.Fatal(err)
 		}

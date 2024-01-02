@@ -55,7 +55,7 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 		var userAccount *appuser.AccountKey
 		switch provider {
 		case "google":
-			if userAccount, err = appUser.Data.GetGoogleAccount(); err != nil {
+			if userAccount, err = appUser.Data.GetAccount("google", ""); err != nil {
 				return err
 			} else if userAccount != nil {
 				if userGoogle, err := dtdal.UserGoogle.GetUserGoogleByID(c, userAccount.ID); err != nil {
@@ -74,7 +74,7 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 				changed = true
 			}
 		case "fb":
-			if userAccount, err = appUser.Data.GetFbAccount(""); err != nil {
+			if userAccount, err = appUser.Data.GetAccount("facebook", ""); err != nil {
 				return err
 			} else if userAccount != nil {
 				if err = deleteFbUser(*userAccount); err != nil {
@@ -84,7 +84,7 @@ func handleDisconnect(c context.Context, w http.ResponseWriter, r *http.Request,
 				changed = true
 			}
 		case "fbm":
-			if userAccount, err = appUser.Data.GetFbAccount(""); err != nil {
+			if userAccount, err = appUser.Data.GetAccount("facebook", ""); err != nil {
 				return err
 			} else if userAccount != nil {
 				if err = deleteFbUser(*userAccount); err != nil {

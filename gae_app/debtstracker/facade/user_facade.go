@@ -147,7 +147,7 @@ func (uf userFacade) GetOrCreateEmailUser(
 		if err = User.SaveUser(c, tx, appUser); err != nil {
 			return fmt.Errorf("failed to save new appUser to datastore: %w", err)
 		}
-		userEmail.Data.DtCreated = now
+		userEmail.Data.CreatedAt = now
 
 		if err = dtdal.UserEmail.SaveUserEmail(c, tx, userEmail); err != nil {
 			return err
@@ -301,7 +301,7 @@ func getOrCreateUserAccountRecordOnSignIn(
 
 		if dal.IsNotFound(err) { // UserEmail record NOT found
 			userEmail := models.NewUserEmail(email, models.NewUserEmailData(0, true, provider))
-			userEmail.Data.DtCreated = now
+			userEmail.Data.CreatedAt = now
 
 			// We need to create new User entity
 			if isNewUser {

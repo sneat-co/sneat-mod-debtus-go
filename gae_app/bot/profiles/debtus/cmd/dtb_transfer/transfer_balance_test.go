@@ -28,8 +28,8 @@ func enMock(t *testing.T) BalanceMessageBuilder { return getTestMocks(t, i18n.Lo
 func ruMock(t *testing.T) BalanceMessageBuilder { return getTestMocks(t, i18n.LocaleRuRu) }
 
 var (
-	ruLinker = common.NewLinker(strongoapp.EnvLocal, "123", i18n.LocaleRuRu.Code5, "unit-Test")
-	enLinker = common.NewLinker(strongoapp.EnvLocal, "123", i18n.LocaleEnUS.Code5, "unit-Test")
+	ruLinker = common.NewLinker(strongoapp.LocalHostEnv, "123", i18n.LocaleRuRu.Code5, "unit-Test")
+	enLinker = common.NewLinker(strongoapp.LocalHostEnv, "123", i18n.LocaleEnUS.Code5, "unit-Test")
 )
 
 //type testBalanceDataProvider struct {

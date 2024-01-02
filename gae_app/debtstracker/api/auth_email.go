@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"net/http"
 	"regexp"
@@ -187,9 +188,9 @@ func handleChangePasswordAndSignIn(c context.Context, w http.ResponseWriter, r *
 
 		passwordReset.Data.Status = "changed"
 		passwordReset.Data.Email = "" // Clean email as we don't need it anymore
-		passwordReset.Data.DtUpdated = now
+		passwordReset.Data.UpdatedAt = now
 		if changed := userEmail.Data.AddProvider("password-reset"); changed {
-			userEmail.Data.DtUpdated = now
+			userEmail.Data.UpdatedAt = now
 		}
 		userEmail.Data.SetLastLogin(now)
 		appUser.Data.SetLastLogin(now)
@@ -247,7 +248,9 @@ func handleConfirmEmailAndSignIn(c context.Context, w http.ResponseWriter, r *ht
 		}
 
 		userEmail.Data.IsConfirmed = true
-		userEmail.Data.SetUpdatedTime(now)
+		if err = userEmail.Data.SetUpdatedTime(now); err != nil {
+			return fmt.Errorf("failed to set update time stamp: %w", err)
+		}
 		userEmail.Data.PasswordBcryptHash = []byte{}
 		userEmail.Data.SetLastLogin(now)
 		appUser.Data.SetLastLogin(now)

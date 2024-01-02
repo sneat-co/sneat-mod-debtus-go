@@ -16,13 +16,13 @@ var DeleteAllCommand = botsfw.Command{
 	Commands: []string{"/deleteall"},
 	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		botSettings := whc.GetBotSettings()
-		if botSettings.Env != strongoapp.EnvLocal && botSettings.Env != strongoapp.EnvDevTest {
+		if botSettings.Env != strongoapp.LocalHostEnv && botSettings.Env != "dev" {
 			return whc.NewMessage(fmt.Sprintf("This command supported just in development, got botSettings.Env: %v", botSettings.Env)), nil
-		} else if botSettings.Env == strongoapp.EnvProduction {
+		} else if botSettings.Env == "prod" {
 			return whc.NewMessage("This command supported production environment"), nil
 		}
 
-		// We create success message ahead of actual operation as keyboard creation will fail once user deleted.
+		// We create a success message ahead of actual operation as keyboard creation will fail once user deleted.
 		m = whc.NewMessage("Deleted all records")
 		SetMainMenuKeyboard(whc, &m)
 

@@ -64,7 +64,7 @@ type ReceiptDal interface {
 	MarkReceiptAsSent(c context.Context, receiptID, transferID string, sentTime time.Time) error
 	CreateReceipt(c context.Context, data *models.ReceiptData) (receipt models.Receipt, err error)
 	DelayedMarkReceiptAsSent(c context.Context, receiptID, transferID string, sentTime time.Time) error
-	DelayCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env strongoapp.Environment, transferID string, userID string) error
+	DelayCreateAndSendReceiptToCounterpartyByTelegram(c context.Context, env string, transferID string, userID string) error
 }
 
 var ErrReminderAlreadyRescheduled = errors.New("reminder already rescheduled")

@@ -12,18 +12,18 @@ import (
 	"github.com/strongo/log"
 )
 
-func getEnvironment(r *http.Request) strongoapp.Environment {
+func getEnvironment(r *http.Request) string {
 	switch r.Host {
 	case "debtstracker.io":
-		return strongoapp.EnvProduction
+		return "prod"
 	case "debtstracker-dev1.appspot.com":
-		return strongoapp.EnvDevTest
+		return "dev"
 	case "debtstracker.local":
-		return strongoapp.EnvLocal
+		return strongoapp.LocalHostEnv
 	case "localhost":
-		return strongoapp.EnvLocal
+		return strongoapp.LocalHostEnv
 	default:
-		panic("Unknonwn host: " + r.Host)
+		panic("Unknown host: " + r.Host)
 	}
 }
 

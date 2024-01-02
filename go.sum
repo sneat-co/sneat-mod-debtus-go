@@ -143,6 +143,10 @@ github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcU
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/strongo/app-host-gae v0.1.18 h1:YFNL6IUdQ0qgMucaj8wtZAgQPPacDW3GmiqD80XiDgY=
 github.com/strongo/app-host-gae v0.1.18/go.mod h1:En3qSf4Iz89eLOeA4YBeaX1B1Gp2YO7rpAXdoiG9Cbw=
+github.com/strongo/app-host-gae v0.1.19 h1:wC0u60Gk9Y2wx/QlA3o8yUyR7l6xbZxhA18xHs8r9Jg=
+github.com/strongo/app-host-gae v0.1.19/go.mod h1:XUlUE2eJSNX2siPHKohbhECHPdTxADeIQ218UeNfET4=
+github.com/strongo/app-host-gae v0.1.20 h1:7r3AJN3gPTRx2wZy3OTsvf9edA0UedrYYlkwir5k3ZM=
+github.com/strongo/app-host-gae v0.1.20/go.mod h1:7/g6j1apHJpkmMebLyI18sEPb4q6Kg1H9F5kHjzvTYs=
 github.com/strongo/decimal v0.0.1 h1:DQwMkKatXuoh9WhQvOTr3c2cIbprdbR8Yl0MA1mme6Y=
 github.com/strongo/decimal v0.0.1/go.mod h1:uKFgetJbR2uT026stdbK54ELXTH9h0vZOPPOp7DAODk=
 github.com/strongo/delaying v0.0.1 h1:avN7p5oKcowaDeEbGJLB4QHgttK6y9OtGwFN0UkEDi8=
@@ -289,6 +293,8 @@ google.golang.org/protobuf v1.26.0/go.mod h1:9q0QmTI4eRPtz6boOQmLYwt+qCgq0jsYwAQ
 google.golang.org/protobuf v1.30.0/go.mod h1:HV8QOd/L58Z+nl8r43ehVNZIU/HEI6OcFqwMG9pJV4I=
 google.golang.org/protobuf v1.31.0 h1:g0LDEJHgrBl9N9r17Ru3sqWhkIx2NB67okBHPwC7hs8=
 google.golang.org/protobuf v1.31.0/go.mod h1:HV8QOd/L58Z+nl8r43ehVNZIU/HEI6OcFqwMG9pJV4I=
+google.golang.org/protobuf v1.32.0 h1:pPC6BG5ex8PDFnkbrGU3EixyhKcQ2aDuBS36lqK/C7I=
+google.golang.org/protobuf v1.32.0/go.mod h1:c6P6GXX6sHbq/GpV6MGZEdwhWPcYBgnhAHhKbcUYpos=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
