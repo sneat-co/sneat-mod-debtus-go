@@ -99,7 +99,7 @@ func handleGetReceipt(c context.Context, w http.ResponseWriter, r *http.Request)
 			lang = receipt.Data.Lang
 		}
 		env := dtdal.HttpAppHost.GetEnvironment(c, r)
-		if env == strongoapp.EnvUnknown {
+		if env == strongoapp.UnknownEnv {
 			w.WriteHeader(http.StatusBadRequest)
 			log.Warningf(c, "Unknown host")
 		}

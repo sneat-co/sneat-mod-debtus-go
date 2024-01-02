@@ -79,7 +79,7 @@ func TestCreateTransfer(t *testing.T) {
 		}
 
 		creatorUser := models.NewAppUser(userID, nil)
-		newTransfer := NewTransferInput(strongoapp.EnvLocal,
+		newTransfer := NewTransferInput(strongoapp.LocalHostEnv,
 			source,
 			creatorUser,
 			"",
@@ -411,7 +411,7 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 			from = tContact
 			to = tUser
 		}
-		newTransfer := NewTransferInput(strongoapp.EnvLocal,
+		newTransfer := NewTransferInput(strongoapp.LocalHostEnv,
 			source,
 			creatorUser,
 			"",

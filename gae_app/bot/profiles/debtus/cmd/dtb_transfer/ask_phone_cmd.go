@@ -10,8 +10,6 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/models"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/sms"
-	"github.com/strongo/strongoapp"
-
 	//"github.com/sneat-co/sneat-mod-debtus-go/gae_app/invites"
 	"encoding/json"
 	"fmt"
@@ -268,7 +266,7 @@ func sendReceiptBySms(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, ph
 	}
 	// TODO: Create SMS record before sending to ensure we don't spam user in case of bug after the API call.
 
-	isTestSender, smsResponse, twilioException, err := sms.SendSms(whc.Context(), whc.GetBotSettings().Env == strongoapp.EnvProduction, phoneContact.PhoneNumberAsString(), smsText)
+	isTestSender, smsResponse, twilioException, err := sms.SendSms(whc.Context(), whc.GetBotSettings().Env == "prod", phoneContact.PhoneNumberAsString(), smsText)
 	if err != nil {
 		return m, fmt.Errorf("failed to send SMS: %w", err)
 	}

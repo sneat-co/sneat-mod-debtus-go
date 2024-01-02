@@ -5,6 +5,7 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/strongoapp/appuser"
+	"github.com/strongo/strongoapp/person"
 )
 
 func NewUserEmailKey(email string) *dal.Key {
@@ -24,7 +25,7 @@ func NewUserEmail(email string, data *UserEmailData) UserEmail {
 
 var _ appuser.AccountData = (*UserEmailData)(nil)
 
-func (entity *UserEmailData) GetNames() appuser.NameFields {
+func (entity *UserEmailData) GetNames() person.NameFields {
 	return entity.NameFields
 }
 

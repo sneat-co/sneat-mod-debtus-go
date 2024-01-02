@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/strongoapp/appuser"
+	"github.com/strongo/strongoapp/person"
 	"golang.org/x/crypto/bcrypt"
 	"strconv"
 	"strings"
@@ -13,8 +14,8 @@ const UserEmailKind = "UserEmail"
 
 type UserEmailData struct {
 	appuser.AccountDataBase
-	appuser.NameFields
 	appuser.OwnedByUserWithID
+	person.NameFields
 	IsConfirmed        bool
 	PasswordBcryptHash []byte   `datastore:",noindex"`
 	Providers          []string `datastore:",noindex"` // E.g. facebook, vk, user

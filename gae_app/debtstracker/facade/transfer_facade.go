@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/slice"
-	"github.com/strongo/strongoapp"
 	"time"
 
 	"context"
@@ -68,7 +67,7 @@ func (transferFacade) SaveTransfer(c context.Context, tx dal.ReadwriteTransactio
 }
 
 type createTransferInput struct {
-	Env                strongoapp.Environment // TODO: I believe we don't need this
+	Env                string // TODO: I believe we don't need this
 	Source             dtdal.TransferSource
 	CreatorUser        models.AppUser
 	BillID             string
@@ -196,7 +195,7 @@ func (input createTransferInput) String() string {
 }
 
 func NewTransferInput(
-	env strongoapp.Environment,
+	env string,
 	source dtdal.TransferSource,
 	creatorUser models.AppUser,
 	billID string,

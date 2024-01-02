@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	telegram "github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw-telegram-models/botsfwtgmodels"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/sneat-mod-debtus-go/gae_app/debtstracker/dtdal"
@@ -119,7 +120,7 @@ func sendReminderToUser(c context.Context, reminderID string, transfer models.Tr
 		}
 		return
 	}, nil); err != nil {
-		if err == errReminderAlreadySentOrIsBeingSent {
+		if errors.Is(err, errReminderAlreadySentOrIsBeingSent) {
 			log.Infof(c, err.Error())
 		} else {
 			err = fmt.Errorf("failed to update reminder status to '%v': %w", models.ReminderStatusSending, err)
@@ -136,7 +137,7 @@ func sendReminderToUser(c context.Context, reminderID string, transfer models.Tr
 	}
 
 	var reminderIsSent, channelDisabledByUser bool
-	if user.Data.HasTelegramAccount() {
+	if user.Data.HasAccount(telegram.PlatformID, "") {
 		var (
 			tgChatID int64
 			tgBotID  string

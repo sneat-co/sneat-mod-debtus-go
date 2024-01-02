@@ -762,7 +762,7 @@ func createSendReceiptOptionsMessage(whc botsfw.WebhookContext, transfer models.
 			err = fmt.Errorf("failed to get counterparty user by ID=%v: %w", transfer.Data.Counterparty().UserID, err)
 			return m, err
 		} else {
-			isCounterpartyUserHasTelegram = user.Data.HasTelegramAccount()
+			isCounterpartyUserHasTelegram = user.Data.HasAccount(telegram.PlatformID, "")
 			log.Debugf(c, "isCounterpartyUserHasTelegram: %v, transfer.Creator().ContactID: %v, user.GetTelegramUserIDs(): %v", isCounterpartyUserHasTelegram, transfer.Data.Creator().ContactID, user.Data.GetTelegramUserIDs())
 		}
 	} else {

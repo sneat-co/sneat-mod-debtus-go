@@ -7,7 +7,7 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"github.com/pquerna/ffjson/ffjson"
-	"github.com/strongo/strongoapp/appuser"
+	"github.com/strongo/strongoapp/with"
 	"reflect"
 	"strings"
 	"time"
@@ -17,8 +17,13 @@ func NewDebtusContactData(userID string, details ContactDetails) *DebtusContactD
 	return &DebtusContactData{
 		Status: STATUS_ACTIVE,
 		UserID: userID,
-		WithCreatedTimestamp: appuser.WithCreatedTimestamp{
-			DtCreated: time.Now(), // TODO: Should we pass from outside as parameter?
+		CreatedFields: with.CreatedFields{
+			CreatedAtField: with.CreatedAtField{
+				CreatedAt: time.Now(),
+			},
+			CreatedByField: with.CreatedByField{
+				CreatedBy: userID,
+			},
 		},
 		ContactDetails: details,
 	}
@@ -103,7 +108,7 @@ func (entity *DebtusContactData) MustMatchCounterparty(counterparty Contact) {
 
 // DebtusContactData is stored in a collection at path "/teams/{teamID}/modules/debtus/contacts/{contactID}".
 type DebtusContactData struct {
-	appuser.WithCreatedTimestamp
+	with.CreatedFields
 	money.Balanced
 	UserID                     string // owner can not be in parent key as we have problem with filtering transfers then
 	CounterpartyUserID         string // The counterparty user ID if registered

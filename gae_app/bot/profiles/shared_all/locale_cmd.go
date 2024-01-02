@@ -8,7 +8,6 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/strongo/i18n"
-	"github.com/strongo/strongoapp"
 	"net/url"
 	"strings"
 
@@ -164,7 +163,7 @@ func setPreferredLanguageAction(whc botsfw.WebhookContext, code5, mode string, b
 				}
 				localeChanged = true
 				selectedLocale = locale
-				if whc.GetBotSettings().Env == strongoapp.EnvProduction {
+				if whc.GetBotSettings().Env == "prod" {
 					ga := whc.GA()
 					gaEvent := ga.GaEventWithLabel("settings", "locale-changed", strings.ToLower(locale.Code5))
 					if gaErr := ga.Queue(gaEvent); gaErr != nil {
