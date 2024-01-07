@@ -28,6 +28,8 @@ github.com/bots-go-framework/bots-fw-telegram-models v0.0.16 h1:f9v1EJjIyiIpaeJi
 github.com/bots-go-framework/bots-fw-telegram-models v0.0.16/go.mod h1:7LkpU06SvWDV4Y1y+8IGGowAn2Z8skZQiGJ6cRzAWYg=
 github.com/bots-go-framework/bots-fw-telegram-models v0.1.1 h1:bXKNtuV5v2wRwCVpOYtWKRtOGXCaNJTPMWeh6FEfPKU=
 github.com/bots-go-framework/bots-fw-telegram-models v0.1.1/go.mod h1:DS7d0UL2hhauFrKA1ZliVbTg7+KKVELF1hQBSCs0b10=
+github.com/bots-go-framework/bots-fw-telegram-models v0.1.2 h1:rGW/f2VnEBBVqJwrSXk4Y9hlHceZITX5fzRoRzDQa5w=
+github.com/bots-go-framework/bots-fw-telegram-models v0.1.2/go.mod h1:dmr7CLY/LAYydAtySJPW6zwrfRM6jpqjOgenV4GiqgI=
 github.com/bots-go-framework/bots-go-core v0.0.2 h1:3F/czNOLZCO5rco1Zr9rATLvJrze5PZpa2dMRv4ON+M=
 github.com/bots-go-framework/bots-go-core v0.0.2/go.mod h1:u4r0W8t+n/07ulLlPZT3rdCt+mb5WHXP72z4oeTJVN0=
 github.com/bots-go-framework/bots-host-gae v0.5.3 h1:GMDQTOeukuhonUsBH9chFmlqLPZmhxybwKSNgzpKY0I=
@@ -131,6 +133,8 @@ github.com/sneat-co/sneat-go-core v0.20.0 h1:OJ0R+BmAYj99sez178yuoFeRMeVqdBxCpDM
 github.com/sneat-co/sneat-go-core v0.20.0/go.mod h1:f/iHP/HNDnwQIwEPDuBNKCN9iI39Ls+1GqPgCxEC9HA=
 github.com/sneat-co/sneat-go-core v0.21.0 h1:nDZaJsUJ7wvUpZM6WvTeAgfZp3N0sNvgcTihaXdn3DQ=
 github.com/sneat-co/sneat-go-core v0.21.0/go.mod h1:ijsI9IiaYQtqZEyp46FX0Q5u8j/61182sYRjYdsI+rM=
+github.com/sneat-co/sneat-go-core v0.23.0 h1:4/n3PGC8V6oRtoswwXqNwJUsBEY2cl1OIzeF0HnRvYI=
+github.com/sneat-co/sneat-go-core v0.23.0/go.mod h1:ijsI9IiaYQtqZEyp46FX0Q5u8j/61182sYRjYdsI+rM=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
 github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=
@@ -147,6 +151,8 @@ github.com/strongo/app-host-gae v0.1.19 h1:wC0u60Gk9Y2wx/QlA3o8yUyR7l6xbZxhA18xH
 github.com/strongo/app-host-gae v0.1.19/go.mod h1:XUlUE2eJSNX2siPHKohbhECHPdTxADeIQ218UeNfET4=
 github.com/strongo/app-host-gae v0.1.20 h1:7r3AJN3gPTRx2wZy3OTsvf9edA0UedrYYlkwir5k3ZM=
 github.com/strongo/app-host-gae v0.1.20/go.mod h1:7/g6j1apHJpkmMebLyI18sEPb4q6Kg1H9F5kHjzvTYs=
+github.com/strongo/app-host-gae v0.1.22 h1:8pT/G/05OHdcI8VAOAT8UhnQSeiyOUpdVPt+ZV7Pi5A=
+github.com/strongo/app-host-gae v0.1.22/go.mod h1:vayGXyWETaXMka9DPb3ussJGtQ1584jAoWCH+dkVwmQ=
 github.com/strongo/decimal v0.0.1 h1:DQwMkKatXuoh9WhQvOTr3c2cIbprdbR8Yl0MA1mme6Y=
 github.com/strongo/decimal v0.0.1/go.mod h1:uKFgetJbR2uT026stdbK54ELXTH9h0vZOPPOp7DAODk=
 github.com/strongo/delaying v0.0.1 h1:avN7p5oKcowaDeEbGJLB4QHgttK6y9OtGwFN0UkEDi8=
@@ -173,6 +179,8 @@ github.com/strongo/strongoapp v0.10.0 h1:HWB3UgaagtIr1UJxZ0oKGSdVPVw8Qfhq+/u50Rk
 github.com/strongo/strongoapp v0.10.0/go.mod h1:UWRe4rYG7val1PRumvd+V1TbCHmckfHr3DQ+OzvYnqo=
 github.com/strongo/strongoapp v0.15.0 h1:QXaTjXmraScjUCs8+sSfMFCxTZv+6Mh8J06Ily2B3rk=
 github.com/strongo/strongoapp v0.15.0/go.mod h1:yMpsZiowjazIpPEKqieS9hbaaUyuyRPcFA948feBPPE=
+github.com/strongo/strongoapp v0.17.0 h1:UIQFkNdNLiM636SQrJS7VefxxidWjX88DGpLMfW8FZg=
+github.com/strongo/strongoapp v0.17.0/go.mod h1:yMpsZiowjazIpPEKqieS9hbaaUyuyRPcFA948feBPPE=
 github.com/strongo/validation v0.0.6 h1:RskXD45ILagVW3jmuKUiq7WshE4kmoQEiUbgfigqHzw=
 github.com/strongo/validation v0.0.6/go.mod h1:V4Nu8b8CPsLNwYLKmMHN2ghkoabOpiOW8NNcUczuCWE=
 github.com/technoweenie/multipartstreamer v1.0.1 h1:XRztA5MXiR1TIRHxH2uNxXxaIkKQDeX7m2XsSOlQEnM=
