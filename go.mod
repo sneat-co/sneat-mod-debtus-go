@@ -48,8 +48,8 @@ require (
 	github.com/strongo/strongoapp v0.17.0
 	github.com/strongo/validation v0.0.6
 	github.com/yaa110/go-persian-calendar v1.1.5
-	golang.org/x/crypto v0.18.0
-	golang.org/x/net v0.20.0
+	golang.org/x/crypto v0.19.0
+	golang.org/x/net v0.21.0
 	google.golang.org/appengine/v2 v2.0.5
 )
 
@@ -74,7 +74,7 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/oauth2 v0.14.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
-	golang.org/x/sys v0.16.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
