@@ -12,18 +12,18 @@ toolchain go1.21.4
 //replace github.com/bots-go-framework/bots-fw-telegram => ../../bots-go-framework/bots-fw-telegram
 
 require (
-	github.com/bots-go-framework/bots-api-telegram v0.4.2
-	github.com/bots-go-framework/bots-fw v0.25.0
+	github.com/bots-go-framework/bots-api-telegram v0.4.3
+	github.com/bots-go-framework/bots-fw v0.25.2
 	github.com/bots-go-framework/bots-fw-store v0.4.0
-	github.com/bots-go-framework/bots-fw-telegram v0.8.2
+	github.com/bots-go-framework/bots-fw-telegram v0.8.3
 	github.com/bots-go-framework/bots-fw-telegram-models v0.1.2
 	github.com/bots-go-framework/bots-go-core v0.0.2
-	github.com/bots-go-framework/bots-host-gae v0.5.5
+	github.com/bots-go-framework/bots-host-gae v0.5.6
 	github.com/captaincodeman/datastore-mapper v0.0.0-20170320145307-cb380a4c4d13
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85
 	github.com/crediterra/money v0.2.1
-	github.com/dal-go/dalgo v0.12.0
-	github.com/dal-go/mocks4dalgo v0.1.17
+	github.com/dal-go/dalgo v0.12.1
+	github.com/dal-go/mocks4dalgo v0.1.19
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/gorilla/sessions v1.2.2
 	github.com/julienschmidt/httprouter v1.3.0
@@ -32,9 +32,9 @@ require (
 	github.com/sanity-io/litter v1.5.5
 	github.com/sendgrid/sendgrid-go v3.14.0+incompatible
 	github.com/shiyanhui/hero v0.0.2
-	github.com/sneat-co/debtstracker-translations v0.0.19
-	github.com/sneat-co/sneat-go-core v0.23.0
-	github.com/strongo/app-host-gae v0.1.22
+	github.com/sneat-co/debtstracker-translations v0.0.20
+	github.com/sneat-co/sneat-go-core v0.23.2
+	github.com/strongo/app-host-gae v0.1.23
 	github.com/strongo/decimal v0.0.1
 	github.com/strongo/delaying v0.0.1
 	github.com/strongo/facebook v1.8.1
@@ -45,7 +45,7 @@ require (
 	github.com/strongo/random v0.0.1
 	github.com/strongo/slice v0.1.4
 	github.com/strongo/slices v0.0.0-20231201223919-29a6c669158a
-	github.com/strongo/strongoapp v0.17.0
+	github.com/strongo/strongoapp v0.17.1
 	github.com/strongo/validation v0.0.6
 	github.com/yaa110/go-persian-calendar v1.1.5
 	golang.org/x/crypto v0.20.0
