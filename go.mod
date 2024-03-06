@@ -15,8 +15,8 @@ require (
 	github.com/bots-go-framework/bots-api-telegram v0.4.3
 	github.com/bots-go-framework/bots-fw v0.25.2
 	github.com/bots-go-framework/bots-fw-store v0.4.0
-	github.com/bots-go-framework/bots-fw-telegram v0.8.3
-	github.com/bots-go-framework/bots-fw-telegram-models v0.1.2
+	github.com/bots-go-framework/bots-fw-telegram v0.8.4
+	github.com/bots-go-framework/bots-fw-telegram-models v0.1.3
 	github.com/bots-go-framework/bots-go-core v0.0.2
 	github.com/bots-go-framework/bots-host-gae v0.5.6
 	github.com/captaincodeman/datastore-mapper v0.0.0-20170320145307-cb380a4c4d13
@@ -24,7 +24,7 @@ require (
 	github.com/crediterra/money v0.2.1
 	github.com/dal-go/dalgo v0.12.1
 	github.com/dal-go/mocks4dalgo v0.1.19
-	github.com/golang-jwt/jwt/v5 v5.2.0
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/gorilla/sessions v1.2.2
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/matryer/is v1.4.1
@@ -32,9 +32,9 @@ require (
 	github.com/sanity-io/litter v1.5.5
 	github.com/sendgrid/sendgrid-go v3.14.0+incompatible
 	github.com/shiyanhui/hero v0.0.2
-	github.com/sneat-co/debtstracker-translations v0.0.20
-	github.com/sneat-co/sneat-go-core v0.23.2
-	github.com/strongo/app-host-gae v0.1.23
+	github.com/sneat-co/debtstracker-translations v0.0.21
+	github.com/sneat-co/sneat-go-core v0.23.3
+	github.com/strongo/app-host-gae v0.1.24
 	github.com/strongo/decimal v0.0.1
 	github.com/strongo/delaying v0.0.1
 	github.com/strongo/facebook v1.8.1
@@ -48,8 +48,8 @@ require (
 	github.com/strongo/strongoapp v0.17.1
 	github.com/strongo/validation v0.0.6
 	github.com/yaa110/go-persian-calendar v1.1.5
-	golang.org/x/crypto v0.20.0
-	golang.org/x/net v0.21.0
+	golang.org/x/crypto v0.21.0
+	golang.org/x/net v0.22.0
 	google.golang.org/appengine/v2 v2.0.5
 )
 
@@ -74,7 +74,7 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/oauth2 v0.14.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
-	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
