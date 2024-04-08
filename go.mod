@@ -50,7 +50,7 @@ require (
 	github.com/yaa110/go-persian-calendar v1.2.0
 	golang.org/x/crypto v0.22.0
 	golang.org/x/net v0.24.0
-	google.golang.org/appengine/v2 v2.0.5
+	google.golang.org/appengine/v2 v2.0.6
 )
 
 require (
