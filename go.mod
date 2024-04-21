@@ -2,7 +2,7 @@ module github.com/sneat-co/sneat-mod-debtus-go
 
 go 1.21
 
-toolchain go1.21.4
+toolchain go1.22.2
 
 //replace github.com/dal-go/dalgo => ../dal-go/dalgo
 //replace github.com/bots-go-framework/bots-fw-store => ../../bots-go-framework/bots-fw-store
@@ -15,7 +15,7 @@ require (
 	github.com/bots-go-framework/bots-api-telegram v0.4.3
 	github.com/bots-go-framework/bots-fw v0.25.2
 	github.com/bots-go-framework/bots-fw-store v0.4.0
-	github.com/bots-go-framework/bots-fw-telegram v0.8.5
+	github.com/bots-go-framework/bots-fw-telegram v0.8.6
 	github.com/bots-go-framework/bots-fw-telegram-models v0.1.5
 	github.com/bots-go-framework/bots-go-core v0.0.2
 	github.com/bots-go-framework/bots-host-gae v0.5.7
