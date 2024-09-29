@@ -2,6 +2,8 @@ module github.com/sneat-co/sneat-mod-debtus-go
 
 go 1.22.3
 
+replace github.com/sneat-co/sneat-core-modules => ../sneat-core-modules
+
 require (
 	github.com/bots-go-framework/bots-api-telegram v0.7.1
 	github.com/bots-go-framework/bots-fw v0.40.2
@@ -18,6 +20,7 @@ require (
 	github.com/sendgrid/sendgrid-go v3.16.0+incompatible
 	github.com/shiyanhui/hero v0.0.2
 	github.com/sneat-co/debtstracker-translations v0.2.2
+	github.com/sneat-co/sneat-core-modules v0.12.4
 	github.com/sneat-co/sneat-go-backend v0.50.9
 	github.com/sneat-co/sneat-go-core v0.37.0
 	github.com/strongo/decimal v0.1.1
@@ -34,7 +37,6 @@ require (
 )
 
 require (
-	github.com/AlekSi/pointer v1.2.0 // indirect
 	github.com/alexsergivan/transliterator v1.0.1 // indirect
 	github.com/bots-go-framework/bots-fw-telegram-webapp v0.3.1 // indirect
 	github.com/bots-go-framework/bots-go-core v0.0.3 // indirect
@@ -42,8 +44,6 @@ require (
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/gosimple/slug v1.14.0 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
-	github.com/olebedev/when v1.0.0 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sendgrid/rest v2.6.9+incompatible // indirect
 	github.com/strongo/facebook v1.8.1 // indirect
 	github.com/strongo/random v0.0.1 // indirect
