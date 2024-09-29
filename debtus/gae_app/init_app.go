@@ -5,8 +5,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/sneat-co/sneat-core-modules/anybot/facade4anybot"
 	"github.com/sneat-co/sneat-core-modules/emailing"
-	"github.com/sneat-co/sneat-go-backend/src/modules/splitus/botcmds4splitus"
-	"github.com/sneat-co/sneat-go-backend/src/modules/splitus/facade4splitus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/debtusbot/cmd/dtb_transfer"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/api4debtus/apigaedepended"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/api4debtus/unsorted"
@@ -19,6 +17,8 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/support"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/webhooks"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/website"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/botcmds4splitus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/facade4splitus"
 	"github.com/strongo/delaying"
 	"net/http"
 )

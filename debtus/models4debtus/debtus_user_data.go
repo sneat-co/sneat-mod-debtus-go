@@ -4,7 +4,7 @@ import (
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/record"
 	"github.com/sneat-co/sneat-core-modules/userus/dal4userus"
-	"github.com/sneat-co/sneat-go-backend/src/modules/splitus/models4splitus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 )
 
 type DebtusUserDbo struct { // TODO: Move back into debtus module

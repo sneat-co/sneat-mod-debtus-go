@@ -3,7 +3,7 @@ package models4debtus
 import (
 	"fmt"
 	"github.com/pquerna/ffjson/ffjson"
-	"github.com/sneat-co/sneat-go-backend/src/modules/splitus/models4splitus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 )
 
 // UserGroupJson is used by SpaceDbo entity to store active groups information in a JSON property user.GroupsJsonActive

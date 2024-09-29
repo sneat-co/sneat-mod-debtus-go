@@ -10,8 +10,8 @@ import (
 	"github.com/sneat-co/sneat-core-modules/auth/models4auth"
 	"github.com/sneat-co/sneat-core-modules/contactus/dto4contactus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
-	"github.com/sneat-co/sneat-go-backend/src/modules/splitus/models4splitus"
 	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	models4splitus2 "github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 	"github.com/strongo/decimal"
 	"github.com/strongo/gotwilio"
 	"github.com/strongo/strongoapp"
@@ -98,8 +98,8 @@ type ContactDal interface {
 type BillsHolderGetter func(ctx context.Context) (billsHolder dal.Record, err error)
 
 type SplitDal interface {
-	GetSplitByID(ctx context.Context, splitID int) (split models4splitus.Split, err error)
-	InsertSplit(ctx context.Context, splitEntity models4splitus.SplitEntity) (split models4splitus.Split, err error)
+	GetSplitByID(ctx context.Context, splitID int) (split models4splitus2.Split, err error)
+	InsertSplit(ctx context.Context, splitEntity models4splitus2.SplitEntity) (split models4splitus2.Split, err error)
 }
 
 type TgGroupDal interface {
@@ -108,9 +108,9 @@ type TgGroupDal interface {
 }
 
 type BillScheduleDal interface {
-	GetBillScheduleByID(ctx context.Context, id int64) (billSchedule models4splitus.BillSchedule, err error)
-	InsertBillSchedule(ctx context.Context, billScheduleEntity *models4splitus.BillScheduleEntity) (billSchedule models4splitus.BillSchedule, err error)
-	UpdateBillSchedule(ctx context.Context, billSchedule models4splitus.BillSchedule) (err error)
+	GetBillScheduleByID(ctx context.Context, id int64) (billSchedule models4splitus2.BillSchedule, err error)
+	InsertBillSchedule(ctx context.Context, billScheduleEntity *models4splitus2.BillScheduleEntity) (billSchedule models4splitus2.BillSchedule, err error)
+	UpdateBillSchedule(ctx context.Context, billSchedule models4splitus2.BillSchedule) (err error)
 }
 
 //type GroupMemberDal interface {

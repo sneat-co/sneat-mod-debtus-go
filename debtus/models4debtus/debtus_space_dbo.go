@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"github.com/crediterra/money"
-	"github.com/sneat-co/sneat-go-backend/src/modules/splitus/models4splitus"
 	"github.com/sneat-co/sneat-go-core/models/dbmodels"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 	"time"
 )
 

@@ -21,7 +21,6 @@ require (
 	github.com/shiyanhui/hero v0.0.2
 	github.com/sneat-co/debtstracker-translations v0.2.2
 	github.com/sneat-co/sneat-core-modules v0.15.0
-	github.com/sneat-co/sneat-go-backend v0.50.9
 	github.com/sneat-co/sneat-go-core v0.37.1
 	github.com/strongo/decimal v0.1.1
 	github.com/strongo/delaying v0.0.1
@@ -29,6 +28,7 @@ require (
 	github.com/strongo/gotwilio v0.0.0-20160123000810-f024bbefe80f
 	github.com/strongo/i18n v0.6.1
 	github.com/strongo/logus v0.2.0
+	github.com/strongo/random v0.0.1
 	github.com/strongo/slice v0.3.0
 	github.com/strongo/strongoapp v0.25.2
 	github.com/strongo/validation v0.0.7
@@ -46,7 +46,6 @@ require (
 	github.com/gosimple/unidecode v1.0.1 // indirect
 	github.com/sendgrid/rest v2.6.9+incompatible // indirect
 	github.com/strongo/facebook v1.8.1 // indirect
-	github.com/strongo/random v0.0.1 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	golang.org/x/crypto v0.27.0 // indirect
 )

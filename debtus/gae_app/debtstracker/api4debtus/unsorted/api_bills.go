@@ -12,13 +12,13 @@ import (
 	dal4contactus2 "github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
 	"github.com/sneat-co/sneat-core-modules/userus/dal4userus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
-	"github.com/sneat-co/sneat-go-backend/src/modules/splitus/briefs4splitus"
-	"github.com/sneat-co/sneat-go-backend/src/modules/splitus/facade4splitus"
-	"github.com/sneat-co/sneat-go-backend/src/modules/splitus/models4splitus"
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus/dto4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/briefs4splitus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/facade4splitus"
+	models4splitus2 "github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 	"github.com/strongo/decimal"
 	"net/http"
 )
@@ -38,8 +38,8 @@ func HandleGetBill(ctx context.Context, w http.ResponseWriter, r *http.Request, 
 }
 
 func HandleCreateBill(ctx context.Context, w http.ResponseWriter, r *http.Request, authInfo token4auth.AuthInfo) {
-	splitMode := models4splitus.SplitMode(r.PostFormValue("split"))
-	if !models4splitus.IsValidBillSplit(splitMode) {
+	splitMode := models4splitus2.SplitMode(r.PostFormValue("split"))
+	if !models4splitus2.IsValidBillSplit(splitMode) {
 		common4all2.BadRequestMessage(ctx, w, fmt.Sprintf("Split parameter has unkown value: %v", splitMode))
 		return
 	}
@@ -71,8 +71,8 @@ func HandleCreateBill(ctx context.Context, w http.ResponseWriter, r *http.Reques
 		common4all2.BadRequestMessage(ctx, w, "No members has been provided")
 		return
 	}
-	billEntity := models4splitus.NewBillEntity(models4splitus.BillCommon{
-		Status:        models4splitus.BillStatusDraft,
+	billEntity := models4splitus2.NewBillEntity(models4splitus2.BillCommon{
+		Status:        models4splitus2.BillStatusDraft,
 		SplitMode:     splitMode,
 		CreatorUserID: authInfo.UserID,
 		Name:          r.PostFormValue("name"),
@@ -174,14 +174,14 @@ func HandleCreateBill(ctx context.Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	billEntity.SplitMode = models4splitus.SplitModePercentage
+	billEntity.SplitMode = models4splitus2.SplitModePercentage
 
 	if err = billEntity.SetBillMembers(billMembers); err != nil {
 		common4all2.InternalError(ctx, w, err)
 		return
 	}
 
-	var bill models4splitus.BillEntry
+	var bill models4splitus2.BillEntry
 	err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
 		bill, err = facade4splitus.CreateBill(ctx, tx, spaceID, billEntity)
 		return
@@ -194,7 +194,7 @@ func HandleCreateBill(ctx context.Context, w http.ResponseWriter, r *http.Reques
 	billToResponse(ctx, w, authInfo.UserID, bill)
 }
 
-func billToResponse(ctx context.Context, w http.ResponseWriter, userID string, bill models4splitus.BillEntry) {
+func billToResponse(ctx context.Context, w http.ResponseWriter, userID string, bill models4splitus2.BillEntry) {
 	if userID == "" {
 		common4all2.InternalError(ctx, w, errors.New("Required parameter userID == 0."))
 		return
