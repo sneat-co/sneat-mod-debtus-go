@@ -8,7 +8,7 @@ require (
 	github.com/bots-go-framework/bots-api-telegram v0.7.1
 	github.com/bots-go-framework/bots-fw v0.40.2
 	github.com/bots-go-framework/bots-fw-store v0.8.2
-	github.com/bots-go-framework/bots-fw-telegram v0.13.5
+	github.com/bots-go-framework/bots-fw-telegram v0.13.6
 	github.com/bots-go-framework/bots-fw-telegram-models v0.3.7
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85
 	github.com/crediterra/money v0.3.0
