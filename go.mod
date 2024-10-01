@@ -20,7 +20,7 @@ require (
 	github.com/sendgrid/sendgrid-go v3.16.0+incompatible
 	github.com/shiyanhui/hero v0.0.2
 	github.com/sneat-co/debtstracker-translations v0.2.2
-	github.com/sneat-co/sneat-core-modules v0.15.0
+	github.com/sneat-co/sneat-core-modules v0.15.1
 	github.com/sneat-co/sneat-go-core v0.37.1
 	github.com/strongo/decimal v0.1.1
 	github.com/strongo/delaying v0.0.1
