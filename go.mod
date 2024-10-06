@@ -20,7 +20,7 @@ require (
 	github.com/sendgrid/sendgrid-go v3.16.0+incompatible
 	github.com/shiyanhui/hero v0.0.2
 	github.com/sneat-co/debtstracker-translations v0.2.2
-	github.com/sneat-co/sneat-core-modules v0.15.1
+	github.com/sneat-co/sneat-core-modules v0.15.2
 	github.com/sneat-co/sneat-go-core v0.37.1
 	github.com/strongo/decimal v0.1.1
 	github.com/strongo/delaying v0.0.1
@@ -33,7 +33,7 @@ require (
 	github.com/strongo/strongoapp v0.25.2
 	github.com/strongo/validation v0.0.7
 	github.com/yaa110/go-persian-calendar v1.2.1
-	golang.org/x/net v0.29.0
+	golang.org/x/net v0.30.0
 )
 
 require (
@@ -47,5 +47,5 @@ require (
 	github.com/sendgrid/rest v2.6.9+incompatible // indirect
 	github.com/strongo/facebook v1.8.1 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
-	golang.org/x/crypto v0.27.0 // indirect
+	golang.org/x/crypto v0.28.0 // indirect
 )
