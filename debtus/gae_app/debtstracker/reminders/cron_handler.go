@@ -1,6 +1,7 @@
 package reminders
 
 import (
+	"context"
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/sneat-go-core/facade"
@@ -10,8 +11,6 @@ import (
 	"net/http"
 	"reflect"
 	"time"
-
-	"context"
 )
 
 func CronSendReminders(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -31,13 +30,13 @@ func CronSendReminders(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	}
 	var reader dal.Reader
 	if reader, err = db.QueryReader(ctx, query); err != nil {
-		logus.Errorf(ctx, "Failed to load due api4transfers: %v", err)
+		logus.Errorf(ctx, "Failed to execute query to get due reminder IDs: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	var reminderIDs []string
 	if reminderIDs, err = dal.SelectAllIDs[string](reader, dal.WithLimit(query.Limit())); err != nil {
-		logus.Errorf(ctx, "Failed to load due api4transfers: %v", err)
+		logus.Errorf(ctx, "Failed to load due reminders: %v", err)
 		return
 	}
 
@@ -58,5 +57,5 @@ func CronSendReminders(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		//}
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }
