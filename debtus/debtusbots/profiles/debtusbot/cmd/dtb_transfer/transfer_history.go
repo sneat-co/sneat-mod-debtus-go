@@ -7,7 +7,7 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/sneat-co/sneat-core-modules/common4all"
-	common4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/common4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/common4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/debtusbot/cmd/dtb_general"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
@@ -49,14 +49,14 @@ func showHistoryCard(whc botsfw.WebhookContext, limit int) (m botsfw.MessageFrom
 	}
 
 	if len(transfers) == 0 {
-		m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_HISTORY_NO_RECORDS) + common4debtus2.HORIZONTAL_LINE + dtb_general.AdSlot(whc, UTM_CAMPAIGN_TRANSFER_HISTORY))
+		m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_HISTORY_NO_RECORDS) + common4debtus.HORIZONTAL_LINE + dtb_general.AdSlot(whc, UTM_CAMPAIGN_TRANSFER_HISTORY))
 	} else {
 		m = whc.NewMessage(whc.Translate(
 			trans.MESSAGE_TEXT_HISTORY_LIST,
 			whc.Translate(trans.MESSAGE_TEXT_HISTORY_HEADER),
 			len(transfers),
 			transferHistoryRows(whc, transfers),
-		) + common4debtus2.HORIZONTAL_LINE + dtb_general.AdSlot(whc, UTM_CAMPAIGN_TRANSFER_HISTORY))
+		) + common4debtus.HORIZONTAL_LINE + dtb_general.AdSlot(whc, UTM_CAMPAIGN_TRANSFER_HISTORY))
 		if hasMore {
 			//api4transfers = api4transfers[:limit]
 			utmParams := common4all.FillUtmParams(whc, common4all.UtmParams{Campaign: UTM_CAMPAIGN_TRANSFER_HISTORY})
@@ -94,7 +94,7 @@ func transferHistoryRows(whc botsfw.WebhookContext, transfers []models4debtus.Tr
 			counterpartyName = transfer.Data.Creator().ContactName
 		}
 		amount := fmt.Sprintf(`<a href="%v">%s</a>`,
-			common4debtus2.GetTransferUrlForUser(
+			common4debtus.GetTransferUrlForUser(
 				ctx,
 				transfer.ID,
 				whc.AppUserID(),
@@ -111,7 +111,7 @@ func transferHistoryRows(whc botsfw.WebhookContext, transfers []models4debtus.Tr
 
 		if transfer.Data.HasInterest() {
 			s.WriteString("\n")
-			common4debtus2.WriteTransferInterest(&s, transfer, whc)
+			common4debtus.WriteTransferInterest(&s, transfer, whc)
 		}
 		s.WriteString("\n\n")
 	}

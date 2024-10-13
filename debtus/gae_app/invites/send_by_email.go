@@ -5,11 +5,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	common4all2 "github.com/sneat-co/sneat-core-modules/common4all"
+	"github.com/sneat-co/sneat-core-modules/common4all"
 	"github.com/sneat-co/sneat-core-modules/emailing"
 	"github.com/sneat-co/sneat-go-core/emails"
-	common4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/common4debtus"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/common4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/i18n"
 	"github.com/strongo/strongoapp"
 	"html/template"
@@ -43,10 +43,10 @@ func SendInviteByEmail(ec strongoapp.ExecutionContext, translator i18n.SingleLoc
 		FromName:   fromName,
 		InviteCode: inviteCode,
 		TgBot:      telegramBotID,
-		Utm: common4all2.UtmParams{
+		Utm: common4all.UtmParams{
 			Source:   utmSource,
-			Medium:   string(models4debtus2.InviteByEmail),
-			Campaign: common4all2.UTM_CAMPAIGN_ONBOARDING_INVITE,
+			Medium:   string(models4debtus.InviteByEmail),
+			Campaign: common4all.UTM_CAMPAIGN_ONBOARDING_INVITE,
 		}.String(),
 	}
 
@@ -78,7 +78,7 @@ func SendInviteByEmail(ec strongoapp.ExecutionContext, translator i18n.SingleLoc
 	return
 }
 
-func SendReceiptByEmail(ctx context.Context, translator i18n.SingleLocaleTranslator, receipt models4debtus2.ReceiptEntry, fromName, toName, toEmail string) (emailID string, err error) {
+func SendReceiptByEmail(ctx context.Context, translator i18n.SingleLocaleTranslator, receipt models4debtus.ReceiptEntry, fromName, toName, toEmail string) (emailID string, err error) {
 	templateParams := struct {
 		ToName     string
 		FromName   string
@@ -91,21 +91,21 @@ func SendReceiptByEmail(ctx context.Context, translator i18n.SingleLocaleTransla
 		template.HTML(""),
 	}
 
-	subject, err := common4all2.TextTemplates.RenderTemplate(ctx, translator, trans.EMAIL_RECEIPT_SUBJ, templateParams)
+	subject, err := common4all.TextTemplates.RenderTemplate(ctx, translator, trans.EMAIL_RECEIPT_SUBJ, templateParams)
 	if err != nil {
 		return "", err
 	}
 
-	bodyText, err := common4all2.TextTemplates.RenderTemplate(ctx, translator, trans.EMAIL_RECEIPT_BODY_TEXT, templateParams)
+	bodyText, err := common4all.TextTemplates.RenderTemplate(ctx, translator, trans.EMAIL_RECEIPT_BODY_TEXT, templateParams)
 	if err != nil {
 		return "", err
 	}
 
-	receiptURL := common4debtus2.GetReceiptUrl(receipt.ID, common4debtus2.GetWebsiteHost(receipt.Data.CreatedOnID))
+	receiptURL := common4debtus.GetReceiptUrl(receipt.ID, common4debtus.GetWebsiteHost(receipt.Data.CreatedOnID))
 	//displayUrl := strings.Split(string(templateParams.ReceiptURL), "#")[0]
 	templateParams.ReceiptURL = template.HTML(fmt.Sprintf(`<a href="%v">%v</a>`, receiptURL, receiptURL))
 	var bodyHtml bytes.Buffer
-	if err = common4all2.HtmlTemplates.RenderTemplate(ctx, &bodyHtml, translator, trans.EMAIL_RECEIPT_BODY_HTML, templateParams); err != nil {
+	if err = common4all.HtmlTemplates.RenderTemplate(ctx, &bodyHtml, translator, trans.EMAIL_RECEIPT_BODY_HTML, templateParams); err != nil {
 		return "", err
 	}
 

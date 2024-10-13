@@ -9,10 +9,10 @@ import (
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/common4debtus"
-	facade4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/general"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/logus"
 	"html"
 	"net/url"
@@ -34,19 +34,19 @@ func CallbackSendReceipt(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 	return m, facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
 		var (
 			transferID string
-			transfer   models4debtus2.TransferEntry
+			transfer   models4debtus.TransferEntry
 		)
 		transferID = q.Get(WizardParamTransfer)
 		if transferID == "" {
 			return fmt.Errorf("missing transfer ContactID")
 		}
-		transfer, err = facade4debtus2.Transfers.GetTransferByID(ctx, tx, transferID)
+		transfer, err = facade4debtus.Transfers.GetTransferByID(ctx, tx, transferID)
 		if err != nil {
 			return fmt.Errorf("failed to get transfer by ContactID: %w", err)
 		}
 		//chatEntity := whc.ChatData() //TODO: Need this to get appUser, has to be refactored
 		//appUser, err := whc.GetAppUser()
-		counterparty, err := facade4debtus2.GetDebtusSpaceContactByID(ctx, tx, spaceID, transfer.Data.Counterparty().ContactID)
+		counterparty, err := facade4debtus.GetDebtusSpaceContactByID(ctx, tx, spaceID, transfer.Data.Counterparty().ContactID)
 		if err != nil {
 			return err
 		}
@@ -79,12 +79,12 @@ func CallbackSendReceipt(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 				},
 			)
 			return err
-		case string(models4debtus2.InviteByTelegram):
-			panic(fmt.Sprintf("Unsupported option: %v", models4debtus2.InviteByTelegram))
-		case string(models4debtus2.InviteByLinkToTelegram):
+		case string(models4debtus.InviteByTelegram):
+			panic(fmt.Sprintf("Unsupported option: %v", models4debtus.InviteByTelegram))
+		case string(models4debtus.InviteByLinkToTelegram):
 			m, err = showLinkForReceiptInTelegram(whc, transfer)
 			return err
-		case string(models4debtus2.InviteBySms):
+		case string(models4debtus.InviteBySms):
 
 			if counterparty.Data.PhoneNumber > 0 {
 				m, err = sendReceiptBySms(whc, tx, spaceID, counterparty.Data.PhoneContact, transfer, counterparty)
@@ -127,7 +127,7 @@ func CallbackSendReceipt(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 					Keyboard: keyboard,
 				}
 			}
-		case string(models4debtus2.InviteByEmail):
+		case string(models4debtus.InviteByEmail):
 			chatEntity.SetAwaitingReplyTo(ASK_EMAIL_FOR_RECEIPT_COMMAND)
 			chatEntity.AddWizardParam(WizardParamTransfer, transferID)
 			m = whc.NewMessage(whc.Translate(trans.MESSAGE_TEXT_INVITE_ASK_EMAIL_FOR_RECEIPT, transfer.Data.Counterparty().ContactName))
@@ -139,12 +139,12 @@ func CallbackSendReceipt(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 	})
 }
 
-func showLinkForReceiptInTelegram(whc botsfw.WebhookContext, transfer models4debtus2.TransferEntry) (m botsfw.MessageFromBot, err error) {
-	receiptData := models4debtus2.NewReceiptEntity(whc.AppUserID(), transfer.ID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, "link", "telegram", general.CreatedOn{
+func showLinkForReceiptInTelegram(whc botsfw.WebhookContext, transfer models4debtus.TransferEntry) (m botsfw.MessageFromBot, err error) {
+	receiptData := models4debtus.NewReceiptEntity(whc.AppUserID(), transfer.ID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, "link", "telegram", general.CreatedOn{
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
 	})
-	var receipt models4debtus2.ReceiptEntry
+	var receipt models4debtus.ReceiptEntry
 	if receipt, err = dtdal.Receipt.CreateReceipt(whc.Context(), receiptData); err != nil {
 		return m, err
 	}
@@ -155,7 +155,7 @@ func showLinkForReceiptInTelegram(whc botsfw.WebhookContext, transfer models4deb
 	return
 }
 
-func IsTransferNotificationsBlockedForChannel(counterparty *models4debtus2.DebtusSpaceContactDbo, channel string) bool {
+func IsTransferNotificationsBlockedForChannel(counterparty *models4debtus.DebtusSpaceContactDbo, channel string) bool {
 	for _, blockedBy := range counterparty.NoTransferUpdatesBy {
 		if blockedBy == channel {
 			return true

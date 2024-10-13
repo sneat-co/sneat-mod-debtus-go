@@ -8,7 +8,7 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/sneat-co/sneat-core-modules/common4all"
-	dal4contactus2 "github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
+	"github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
 	"github.com/sneat-co/sneat-core-modules/userus/dal4userus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/common4debtus"
@@ -65,8 +65,8 @@ func balanceAction(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err erro
 			return
 		}
 
-		contactusSpace := dal4contactus2.NewContactusSpaceEntry(spaceID)
-		if err = dal4contactus2.GetContactusSpace(ctx, nil, contactusSpace); err != nil {
+		contactusSpace := dal4contactus.NewContactusSpaceEntry(spaceID)
+		if err = dal4contactus.GetContactusSpace(ctx, nil, contactusSpace); err != nil {
 			return
 		}
 

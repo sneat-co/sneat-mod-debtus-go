@@ -8,7 +8,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"net/http"
 	"sync"
 )
@@ -28,7 +28,7 @@ func (h contactPage) contactPageHandler(w http.ResponseWriter, r *http.Request, 
 
 	spaceID := r.URL.Query().Get("space")
 
-	var contact models4debtus2.DebtusSpaceContactEntry
+	var contact models4debtus.DebtusSpaceContactEntry
 	var err error
 
 	if contact, err = facade4debtus.GetDebtusSpaceContactByID(c, nil, spaceID, contactID); err != nil {
@@ -79,7 +79,7 @@ func (h contactPage) contactPageHandler(w http.ResponseWriter, r *http.Request, 
 }
 
 func (contactPage) verifyTransfers(ctx context.Context, contactID string) (
-	transfers []models4debtus2.TransferEntry, err error,
+	transfers []models4debtus.TransferEntry, err error,
 ) {
 
 	var db dal.DB
@@ -89,9 +89,9 @@ func (contactPage) verifyTransfers(ctx context.Context, contactID string) (
 	//select := dal.Select{
 	//	From: &dal.CollectionRef{Name: models.TransfersCollection},
 	//}
-	query := dal.From(models4debtus2.TransfersCollection).
+	query := dal.From(models4debtus.TransfersCollection).
 		Where(dal.Field("BothCounterpartyIDs").EqualTo(contactID)).
-		SelectInto(models4debtus2.NewTransferRecord)
+		SelectInto(models4debtus.NewTransferRecord)
 
 	var reader dal.Reader
 	if reader, err = db.QueryReader(ctx, query); err != nil {
@@ -109,9 +109,9 @@ func (contactPage) verifyTransfers(ctx context.Context, contactID string) (
 			}
 			panic(err)
 		}
-		transfers = append(transfers, models4debtus2.NewTransfer(
+		transfers = append(transfers, models4debtus.NewTransfer(
 			record.Key().ID.(string),
-			record.Data().(*models4debtus2.TransferData),
+			record.Data().(*models4debtus.TransferData),
 		))
 	}
 

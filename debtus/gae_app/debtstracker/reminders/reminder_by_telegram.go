@@ -17,14 +17,14 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/analytics"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/delaying"
 	"github.com/strongo/i18n"
 	"github.com/strongo/logus"
 	"time"
 )
 
-func sendReminderByTelegram(ctx context.Context, transfer models4debtus2.TransferEntry, reminder models4debtus2.Reminder, tgChatID int64, tgBot string) (sent, channelDisabledByUser bool, err error) {
+func sendReminderByTelegram(ctx context.Context, transfer models4debtus.TransferEntry, reminder models4debtus.Reminder, tgChatID int64, tgBot string) (sent, channelDisabledByUser bool, err error) {
 	logus.Debugf(ctx, "sendReminderByTelegram(transfer.ContactID=%v, reminder.ContactID=%v, tgChatID=%v, tgBot=%v)", transfer.ID, reminder.ID, tgChatID, tgBot)
 
 	if tgChatID == 0 {

@@ -6,7 +6,7 @@ import (
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/shared_space"
 	"github.com/sneat-co/sneat-mod-debtus-go/splitus/facade4splitus"
-	models4splitus2 "github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 	"github.com/strongo/logus"
 	"net/url"
 
@@ -25,7 +25,7 @@ func GetBillID(callbackUrl *url.URL) (billID string, err error) {
 	return
 }
 
-func getBill(ctx context.Context, tx dal.ReadSession, callbackUrl *url.URL) (bill models4splitus2.BillEntry, err error) {
+func getBill(ctx context.Context, tx dal.ReadSession, callbackUrl *url.URL) (bill models4splitus.BillEntry, err error) {
 	if bill.ID, err = GetBillID(callbackUrl); err != nil {
 		return
 	}
@@ -35,7 +35,7 @@ func getBill(ctx context.Context, tx dal.ReadSession, callbackUrl *url.URL) (bil
 	return
 }
 
-type billCallbackActionHandler func(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, callbackUrl *url.URL, bill models4splitus2.BillEntry) (m botsfw.MessageFromBot, err error)
+type billCallbackActionHandler func(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, callbackUrl *url.URL, bill models4splitus.BillEntry) (m botsfw.MessageFromBot, err error)
 
 func billCallbackCommand(code string, f billCallbackActionHandler) (command botsfw.Command) {
 	command = botsfw.NewCallbackCommand(code, billCallbackAction(f))
@@ -49,7 +49,7 @@ func billCallbackAction(f billCallbackActionHandler) func(whc botsfw.WebhookCont
 	return func(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw.MessageFromBot, err error) {
 		ctx := whc.Context()
 		if err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
-			var bill models4splitus2.BillEntry
+			var bill models4splitus.BillEntry
 			if bill, err = getBill(ctx, tx, callbackUrl); err != nil {
 				return
 			}
@@ -58,7 +58,7 @@ func billCallbackAction(f billCallbackActionHandler) func(whc botsfw.WebhookCont
 				if isInGroup, err = whc.IsInGroup(); err != nil {
 					return
 				} else if isInGroup {
-					var splitusSpace models4splitus2.SplitusSpaceEntry
+					var splitusSpace models4splitus.SplitusSpaceEntry
 					if splitusSpace.ID, err = shared_space.GetUserGroupID(whc); err != nil {
 						return
 					}

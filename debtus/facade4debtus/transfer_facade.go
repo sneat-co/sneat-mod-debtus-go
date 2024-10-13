@@ -8,12 +8,12 @@ import (
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sanity-io/litter"
-	dal4contactus2 "github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
+	"github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
 	"github.com/sneat-co/sneat-core-modules/userus/dal4userus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/decimal"
 	"github.com/strongo/logus"
 	"github.com/strongo/slice"
@@ -35,19 +35,19 @@ var (
 	ErrAttemptToCreateDebtWithInterestAffectingOutstandingTransfers = errors.New("an attempt to create a debt with interest that will affect outstanding api4transfers")
 )
 
-func TransferCounterparties(direction models4debtus2.TransferDirection, creatorInfo models4debtus2.TransferCounterpartyInfo) (from, to *models4debtus2.TransferCounterpartyInfo) {
-	creator := models4debtus2.TransferCounterpartyInfo{
+func TransferCounterparties(direction models4debtus.TransferDirection, creatorInfo models4debtus.TransferCounterpartyInfo) (from, to *models4debtus.TransferCounterpartyInfo) {
+	creator := models4debtus.TransferCounterpartyInfo{
 		UserID:  creatorInfo.UserID,
 		Comment: creatorInfo.Comment,
 	}
-	counterparty := models4debtus2.TransferCounterpartyInfo{
+	counterparty := models4debtus.TransferCounterpartyInfo{
 		ContactID:   creatorInfo.ContactID,
 		ContactName: creatorInfo.ContactName,
 	}
 	switch direction {
-	case models4debtus2.TransferDirectionUser2Counterparty:
+	case models4debtus.TransferDirectionUser2Counterparty:
 		return &creator, &counterparty
-	case models4debtus2.TransferDirectionCounterparty2User:
+	case models4debtus.TransferDirectionCounterparty2User:
 		return &counterparty, &creator
 	default:
 		panic("Unknown direction: " + string(direction))
@@ -59,7 +59,7 @@ var Transfers = TransfersFacade{}
 type TransfersFacade struct {
 }
 
-func (TransfersFacade) SaveTransfer(ctx context.Context, tx dal.ReadwriteTransaction, transfer models4debtus2.TransferEntry) error {
+func (TransfersFacade) SaveTransfer(ctx context.Context, tx dal.ReadwriteTransaction, transfer models4debtus.TransferEntry) error {
 	return tx.Set(ctx, transfer.Record)
 }
 
@@ -104,7 +104,7 @@ func (transferFacade TransfersFacade) CreateTransfer(ctx context.Context, input 
 	//	}
 	//}
 
-	creatorContactusSpace := dal4contactus2.NewContactusSpaceEntry(input.Request.SpaceID)
+	creatorContactusSpace := dal4contactus.NewContactusSpaceEntry(input.Request.SpaceID)
 	if err = db.Get(ctx, creatorContactusSpace.Record); err != nil {
 		if !dal.IsNotFound(err) {
 			err = fmt.Errorf("failed to get creatorContactusSpace: %w", err)
@@ -112,7 +112,7 @@ func (transferFacade TransfersFacade) CreateTransfer(ctx context.Context, input 
 		}
 	}
 
-	creatorDebtusSpace := models4debtus2.NewDebtusSpaceEntry(input.Request.SpaceID)
+	creatorDebtusSpace := models4debtus.NewDebtusSpaceEntry(input.Request.SpaceID)
 	if err = db.Get(ctx, creatorDebtusSpace.Record); err != nil && !dal.IsNotFound(err) {
 		err = fmt.Errorf("faield to get debtusbot space entry: %w", err)
 		return
@@ -124,18 +124,18 @@ func (transferFacade TransfersFacade) CreateTransfer(ctx context.Context, input 
 		if creatorContactID == "" {
 			panic(fmt.Errorf("3d party api4transfers are not implemented yet: %w", err))
 		}
-		var creatorContact dal4contactus2.ContactEntry
-		var creatorDebtusContact models4debtus2.DebtusSpaceContactEntry
+		var creatorContact dal4contactus.ContactEntry
+		var creatorDebtusContact models4debtus.DebtusSpaceContactEntry
 
 		verifyUserDebtusContact := func() (contactBriefFound bool) {
-			var debtusContactBrief *models4debtus2.DebtusContactBrief
+			var debtusContactBrief *models4debtus.DebtusContactBrief
 			if debtusContactBrief, contactBriefFound = creatorDebtusSpace.Data.Contacts[creatorContactID]; contactBriefFound {
 				contactBalance := debtusContactBrief.Balance
 				if v, ok := contactBalance[input.Request.Amount.Currency]; !ok || v == 0 {
 					logus.Debugf(ctx, "No need to check for outstanding api4transfers as contacts balance is 0")
 				} else {
 					if input.Request.Interest.HasInterest() {
-						if d := input.Direction(); d == models4debtus2.TransferDirectionUser2Counterparty && v < 0 || d == models4debtus2.TransferDirectionCounterparty2User && v > 0 {
+						if d := input.Direction(); d == models4debtus.TransferDirectionUser2Counterparty && v < 0 || d == models4debtus.TransferDirectionCounterparty2User && v > 0 {
 							err = ErrAttemptToCreateDebtWithInterestAffectingOutstandingTransfers
 							return
 						}
@@ -157,7 +157,7 @@ func (transferFacade TransfersFacade) CreateTransfer(ctx context.Context, input 
 		}
 
 		// If Contact not found in user's JSON try to recover from DB record
-		if creatorContact, err = dal4contactus2.GetContactByID(ctx, nil, input.Request.SpaceID, creatorContactID); err != nil {
+		if creatorContact, err = dal4contactus.GetContactByID(ctx, nil, input.Request.SpaceID, creatorContactID); err != nil {
 			return
 		}
 
@@ -171,7 +171,7 @@ func (transferFacade TransfersFacade) CreateTransfer(ctx context.Context, input 
 			return
 		}
 
-		_, _ = models4debtus2.AddOrUpdateDebtusContact(creatorDebtusSpace, creatorDebtusContact)
+		_, _ = models4debtus.AddOrUpdateDebtusContact(creatorDebtusSpace, creatorDebtusContact)
 
 		if contactJsonFound := verifyUserDebtusContact(); contactJsonFound {
 			if err != nil {
@@ -189,7 +189,7 @@ func (transferFacade TransfersFacade) CreateTransfer(ctx context.Context, input 
 	}
 
 	if input.Request.ReturnToTransferID != "" {
-		var transferToReturn models4debtus2.TransferEntry
+		var transferToReturn models4debtus.TransferEntry
 		if transferToReturn, err = Transfers.GetTransferByID(ctx, db, input.Request.ReturnToTransferID); err != nil {
 			err = fmt.Errorf("failed to get returnToTransferID=%s: %w", input.Request.ReturnToTransferID, err)
 			return
@@ -239,7 +239,7 @@ func (transferFacade TransfersFacade) CreateTransfer(ctx context.Context, input 
 func (transferFacade TransfersFacade) checkOutstandingTransfersForReturns(ctx context.Context, now time.Time, input CreateTransferInput) (returnToTransferIDs []string, err error) {
 	logus.Debugf(ctx, "TransfersFacade.checkOutstandingTransfersForReturns()")
 	var (
-		outstandingTransfers []models4debtus2.TransferEntry
+		outstandingTransfers []models4debtus.TransferEntry
 	)
 
 	creatorUserID := input.CreatorUser.ID
@@ -370,12 +370,12 @@ func (transferFacade TransfersFacade) createTransferWithinTransaction(
 	// Check if counterparties are linked and if yes load the missing DebtusSpaceContactEntry
 	{
 
-		link := func(sideName, countersideName string, side, counterparty *models4debtus2.TransferCounterpartyInfo, sideContact dal4contactus2.ContactEntry, sideDebtusContact models4debtus2.DebtusSpaceContactEntry,
-		) (counterpartyContact dal4contactus2.ContactEntry, counterpartyDebtusContact models4debtus2.DebtusSpaceContactEntry, err error) {
+		link := func(sideName, countersideName string, side, counterparty *models4debtus.TransferCounterpartyInfo, sideContact dal4contactus.ContactEntry, sideDebtusContact models4debtus.DebtusSpaceContactEntry,
+		) (counterpartyContact dal4contactus.ContactEntry, counterpartyDebtusContact models4debtus.DebtusSpaceContactEntry, err error) {
 			logus.Debugf(ctx, "link(%v=%v, %v=%v, %vContact=%v)", sideName, side, countersideName, counterparty, sideName, sideContact)
 			if side.ContactID != "" && sideDebtusContact.Data.CounterpartyContactID != "" && counterparty.ContactID == "" {
 				var spaceID string
-				if counterpartyContact, err = dal4contactus2.GetContactByID(ctx, tx, spaceID, sideDebtusContact.Data.CounterpartyContactID); err != nil {
+				if counterpartyContact, err = dal4contactus.GetContactByID(ctx, tx, spaceID, sideDebtusContact.Data.CounterpartyContactID); err != nil {
 					err = fmt.Errorf("failed to get counterparty by 'fromCounterparty.CounterpartyContactID': %w", err)
 					return
 				}
@@ -391,7 +391,7 @@ func (transferFacade TransfersFacade) createTransferWithinTransaction(
 			return
 		}
 
-		var linkedContact dal4contactus2.ContactEntry // TODO: This smells. TODO: explain why smells or remove comment
+		var linkedContact dal4contactus.ContactEntry // TODO: This smells. TODO: explain why smells or remove comment
 		if linkedContact, _, err = link("from", "to", from, to, fromContact, output.From.DebtusContact); err != nil {
 			return
 		} else if linkedContact.Data != nil {
@@ -460,14 +460,14 @@ func (transferFacade TransfersFacade) createTransferWithinTransaction(
 		}
 	}
 
-	transferData := models4debtus2.NewTransferData(input.CreatorUser.ID, input.Request.IsReturn, input.Request.Amount, input.From, input.To)
+	transferData := models4debtus.NewTransferData(input.CreatorUser.ID, input.Request.IsReturn, input.Request.Amount, input.From, input.To)
 	transferData.DtCreated = dtCreated
 	output.Transfer.Data = transferData
 	input.Source.PopulateTransfer(transferData)
 	transferData.TransferInterest = *input.Request.Interest
 
 	type TransferReturnInfo struct {
-		Transfer       models4debtus2.TransferEntry
+		Transfer       models4debtus.TransferEntry
 		ReturnedAmount decimal.Decimal64p2
 	}
 
@@ -481,9 +481,9 @@ func (transferFacade TransfersFacade) createTransferWithinTransaction(
 	if len(returnToTransferIDs) > 0 {
 		transferData.ReturnToTransferIDs = returnToTransferIDs
 
-		returnToTransfers := models4debtus2.NewTransfers(returnToTransferIDs)
+		returnToTransfers := models4debtus.NewTransfers(returnToTransferIDs)
 
-		if err = tx.GetMulti(ctx, models4debtus2.TransferRecords(returnToTransfers)); err != nil { // TODO: This can exceed limit on TX entity groups
+		if err = tx.GetMulti(ctx, models4debtus.TransferRecords(returnToTransfers)); err != nil { // TODO: This can exceed limit on TX entity groups
 			err = fmt.Errorf("failed to load returnToTransfers by keys (%v): %w", returnToTransferIDs, err)
 			return
 		}
@@ -519,7 +519,7 @@ func (transferFacade TransfersFacade) createTransferWithinTransaction(
 			amountToAssign -= amountReturnedToTransfer
 			returnedValue += amountReturnedToTransfer
 
-			if err = transferData.AddReturn(models4debtus2.TransferReturnJson{
+			if err = transferData.AddReturn(models4debtus.TransferReturnJson{
 				TransferID: returnToTransfer.ID,
 				Amount:     amountReturnedToTransfer,
 				Time:       returnToTransfer.Data.DtCreated,
@@ -587,7 +587,7 @@ func (transferFacade TransfersFacade) createTransferWithinTransaction(
 
 	// Set from & to names if needed
 	{
-		fixUserName := func(counterparty *models4debtus2.TransferCounterpartyInfo, user dbo4userus.UserEntry) {
+		fixUserName := func(counterparty *models4debtus.TransferCounterpartyInfo, user dbo4userus.UserEntry) {
 			if counterparty.UserID != "" && counterparty.UserName == "" {
 				counterparty.UserName = user.Data.GetFullName()
 			}
@@ -595,7 +595,7 @@ func (transferFacade TransfersFacade) createTransferWithinTransaction(
 		fixUserName(input.From, output.From.User)
 		fixUserName(input.To, output.To.User)
 
-		fixContactName := func(counterparty *models4debtus2.TransferCounterpartyInfo, contact dal4contactus2.ContactEntry) {
+		fixContactName := func(counterparty *models4debtus.TransferCounterpartyInfo, contact dal4contactus.ContactEntry) {
 			if counterparty.ContactID != "" && counterparty.ContactName == "" {
 				counterparty.ContactName = contact.Data.Names.GetFullName()
 			}
@@ -674,7 +674,7 @@ func (transferFacade TransfersFacade) createTransferWithinTransaction(
 	}
 
 	{ // Integrity checks
-		checkContacts := func(c1, c2 string, contact models4debtus2.DebtusSpaceContactEntry, space models4debtus2.DebtusSpaceEntry) {
+		checkContacts := func(c1, c2 string, contact models4debtus.DebtusSpaceContactEntry, space models4debtus.DebtusSpaceEntry) {
 			contactBalance := contact.Data.Balance
 			contactBrief := space.Data.Contacts[contact.ID]
 			if contactBrief == nil {
@@ -731,13 +731,13 @@ func (transferFacade TransfersFacade) createTransferWithinTransaction(
 	return
 }
 
-func (TransfersFacade) GetTransferByID(ctx context.Context, tx dal.ReadSession, id string) (transfer models4debtus2.TransferEntry, err error) {
+func (TransfersFacade) GetTransferByID(ctx context.Context, tx dal.ReadSession, id string) (transfer models4debtus.TransferEntry, err error) {
 	if tx == nil {
 		if tx, err = facade.GetSneatDB(ctx); err != nil {
 			return
 		}
 	}
-	transfer = models4debtus2.NewTransfer(id, nil)
+	transfer = models4debtus.NewTransfer(id, nil)
 	err = tx.Get(ctx, transfer.Record)
 	return
 }
@@ -745,9 +745,9 @@ func (TransfersFacade) GetTransferByID(ctx context.Context, tx dal.ReadSession, 
 func (TransfersFacade) updateDebtusSpaceAndCounterpartyWithTransferInfo(
 	ctx context.Context,
 	amount money.Amount,
-	transfer models4debtus2.TransferEntry,
-	debtusSpace models4debtus2.DebtusSpaceEntry,
-	contact models4debtus2.DebtusSpaceContactEntry,
+	transfer models4debtus.TransferEntry,
+	debtusSpace models4debtus.DebtusSpaceEntry,
+	contact models4debtus.DebtusSpaceContactEntry,
 	closedTransferIDs []string,
 ) (err error) {
 	logus.Debugf(ctx, "updateDebtusSpaceAndCounterpartyWithTransferInfo(debtusSpace=%v, Contact=%v)", debtusSpace, contact)
@@ -775,9 +775,9 @@ func updateDebtusSpaceWithTransferInfo(
 	_ context.Context,
 	val decimal.Decimal64p2,
 	// curr money.CurrencyCode,
-	transfer models4debtus2.TransferEntry,
-	debtusSpace models4debtus2.DebtusSpaceEntry,
-	contact models4debtus2.DebtusSpaceContactEntry,
+	transfer models4debtus.TransferEntry,
+	debtusSpace models4debtus.DebtusSpaceEntry,
+	contact models4debtus.DebtusSpaceContactEntry,
 	// Contact models.DebtusSpaceContactEntry,
 	closedTransferIDs []string,
 ) (err error) {
@@ -792,15 +792,15 @@ func updateDebtusSpaceWithTransferInfo(
 
 	debtusSpace.Data.AddToBalance(transfer.Data.Currency, val)
 	debtusSpace.Data.CountOfTransfers += 1
-	_, _ = models4debtus2.AddOrUpdateDebtusContact(debtusSpace, contact)
+	_, _ = models4debtus.AddOrUpdateDebtusContact(debtusSpace, contact)
 	return
 }
 
 func updateContactWithTransferInfo(
 	ctx context.Context,
 	val decimal.Decimal64p2,
-	transfer models4debtus2.TransferEntry,
-	contact models4debtus2.DebtusSpaceContactEntry,
+	transfer models4debtus.TransferEntry,
+	contact models4debtus.DebtusSpaceContactEntry,
 	closedTransferIDs []string,
 ) (err error) {
 	contact.Data.LastTransferID = transfer.ID
@@ -814,7 +814,7 @@ func updateContactWithTransferInfo(
 		contactTransfersInfo.Last.ID = transfer.ID
 		contactTransfersInfo.Last.At = transfer.Data.DtCreated
 		if transfer.Data.HasInterest() {
-			contactTransfersInfo.OutstandingWithInterest = append(contactTransfersInfo.OutstandingWithInterest, models4debtus2.TransferWithInterestJson{
+			contactTransfersInfo.OutstandingWithInterest = append(contactTransfersInfo.OutstandingWithInterest, models4debtus.TransferWithInterestJson{
 				TransferID:       transfer.ID,
 				Amount:           transfer.Data.AmountInCents,
 				Currency:         transfer.Data.Currency,
@@ -843,7 +843,7 @@ func updateContactWithTransferInfo(
 				for i, outstanding := range contactTransfersInfo.OutstandingWithInterest {
 					if outstanding.TransferID == returnToTransferID {
 						if len(transfer.Data.ReturnToTransferIDs) == 1 {
-							outstanding.Returns = append(outstanding.Returns, models4debtus2.TransferReturnJson{
+							outstanding.Returns = append(outstanding.Returns, models4debtus.TransferReturnJson{
 								TransferID: transfer.ID,
 								Amount:     transfer.Data.AmountInCents,
 								Time:       transfer.Data.DtCreated,
@@ -870,9 +870,9 @@ func updateContactWithTransferInfo(
 }
 
 func removeClosedTransfersFromOutstandingWithInterest(
-	transfersWithInterest []models4debtus2.TransferWithInterestJson,
+	transfersWithInterest []models4debtus.TransferWithInterestJson,
 	closedTransferIDs []string,
-) []models4debtus2.TransferWithInterestJson {
+) []models4debtus.TransferWithInterestJson {
 	var i int
 	for _, outstanding := range transfersWithInterest {
 		if !slices.Contains(closedTransferIDs, outstanding.TransferID) {
@@ -883,13 +883,13 @@ func removeClosedTransfersFromOutstandingWithInterest(
 	return transfersWithInterest[:i]
 }
 
-func InsertTransfer(ctx context.Context, tx dal.ReadwriteTransaction, transferEntity *models4debtus2.TransferData) (transfer models4debtus2.TransferEntry, err error) {
-	transfer = models4debtus2.NewTransfer("", transferEntity)
+func InsertTransfer(ctx context.Context, tx dal.ReadwriteTransaction, transferEntity *models4debtus.TransferData) (transfer models4debtus.TransferEntry, err error) {
+	transfer = models4debtus.NewTransfer("", transferEntity)
 	err = tx.Insert(ctx, transfer.Record)
 	return
 }
 
-func (TransfersFacade) UpdateTransferOnReturn(ctx context.Context, tx dal.ReadwriteTransaction, returnTransfer, transfer models4debtus2.TransferEntry, returnedAmount decimal.Decimal64p2) (err error) {
+func (TransfersFacade) UpdateTransferOnReturn(ctx context.Context, tx dal.ReadwriteTransaction, returnTransfer, transfer models4debtus.TransferEntry, returnedAmount decimal.Decimal64p2) (err error) {
 	logus.Debugf(ctx, "UpdateTransferOnReturn(\n\treturnTransfer=%v,\n\ttransfer=%v,\n\treturnedAmount=%v)", litter.Sdump(returnTransfer), litter.Sdump(transfer), returnedAmount)
 
 	if returnTransfer.Data.Currency != transfer.Data.Currency {
@@ -925,7 +925,7 @@ func (TransfersFacade) UpdateTransferOnReturn(ctx context.Context, tx dal.Readwr
 		returnedAmount = outstandingValue
 	}
 
-	if err = transfer.Data.AddReturn(models4debtus2.TransferReturnJson{
+	if err = transfer.Data.AddReturn(models4debtus.TransferReturnJson{
 		TransferID: returnTransfer.ID,
 		Time:       returnTransfer.Data.DtCreated, // TODO: Replace with DtActual?
 		Amount:     returnedAmount,

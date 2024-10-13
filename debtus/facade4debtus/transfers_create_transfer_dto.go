@@ -8,22 +8,22 @@ import (
 	"github.com/sneat-co/sneat-core-modules/spaceus/dto4spaceus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/validation"
 	"time"
 )
 
 type CreateTransferRequest struct {
 	dto4spaceus.SpaceRequest
-	Direction          models4debtus2.TransferDirection `json:"direction"`
-	Amount             money.Amount                     `json:"amount"`
-	FromContactID      string                           `json:"fromContactID"`
-	ToContactID        string                           `json:"toContactID"`
-	BillID             string                           `json:"billID"`
-	IsReturn           bool                             `json:"isReturn,omitempty"`
-	ReturnToTransferID string                           `json:"returnToTransferID,omitempty"`
-	DueOn              *time.Time                       `json:"dueOn,omitempty"`
-	Interest           *models4debtus2.TransferInterest `json:"interest,omitempty"`
+	Direction          models4debtus.TransferDirection `json:"direction"`
+	Amount             money.Amount                    `json:"amount"`
+	FromContactID      string                          `json:"fromContactID"`
+	ToContactID        string                          `json:"toContactID"`
+	BillID             string                          `json:"billID"`
+	IsReturn           bool                            `json:"isReturn,omitempty"`
+	ReturnToTransferID string                          `json:"returnToTransferID,omitempty"`
+	DueOn              *time.Time                      `json:"dueOn,omitempty"`
+	Interest           *models4debtus.TransferInterest `json:"interest,omitempty"`
 }
 
 var (
@@ -36,15 +36,15 @@ func (v *CreateTransferRequest) Validate() error {
 		return err
 	}
 	switch v.Direction {
-	case models4debtus2.TransferDirectionCounterparty2User:
+	case models4debtus.TransferDirectionCounterparty2User:
 		if v.FromContactID == "" {
 			return validation.NewErrRequestIsMissingRequiredField("fromContactID")
 		}
-	case models4debtus2.TransferDirectionUser2Counterparty:
+	case models4debtus.TransferDirectionUser2Counterparty:
 		if v.ToContactID == "" {
 			return validation.NewErrRequestIsMissingRequiredField("toContactID")
 		}
-	case models4debtus2.TransferDirection3dParty:
+	case models4debtus.TransferDirection3dParty:
 		if v.FromContactID == "" {
 			return validation.NewErrRequestIsMissingRequiredField("fromContactID")
 		}
@@ -52,7 +52,7 @@ func (v *CreateTransferRequest) Validate() error {
 			return validation.NewErrRequestIsMissingRequiredField("toContactID")
 		}
 	}
-	if !models4debtus2.IsKnownTransferDirection(v.Direction) {
+	if !models4debtus.IsKnownTransferDirection(v.Direction) {
 		return fmt.Errorf("%w: %v", ErrTransferDirectionIsInvalid, v.Direction)
 	}
 	if v.Amount.Value < 0 {
@@ -69,37 +69,37 @@ type CreateTransferInput struct {
 	Source      dtdal.TransferSource
 	CreatorUser dbo4userus.UserEntry
 	Request     CreateTransferRequest
-	From, To    *models4debtus2.TransferCounterpartyInfo
+	From, To    *models4debtus.TransferCounterpartyInfo
 }
 
 type ParticipantEntries struct { // Consider making it non exported
 	User          dbo4userus.UserEntry
 	SpaceID       string
 	Contact       dal4contactus.ContactEntry
-	DebtusSpace   models4debtus2.DebtusSpaceEntry
-	DebtusContact models4debtus2.DebtusSpaceContactEntry
+	DebtusSpace   models4debtus.DebtusSpaceEntry
+	DebtusContact models4debtus.DebtusSpaceContactEntry
 }
 
 type CreateTransferOutput struct {
-	Transfer          models4debtus2.TransferEntry
-	ReturnedTransfers []models4debtus2.TransferEntry
+	Transfer          models4debtus.TransferEntry
+	ReturnedTransfers []models4debtus.TransferEntry
 	From, To          *ParticipantEntries
 }
 
-func (input CreateTransferInput) Direction() (direction models4debtus2.TransferDirection) {
+func (input CreateTransferInput) Direction() (direction models4debtus.TransferDirection) {
 	if input.CreatorUser.ID == "" {
 		panic("CreateTransferInput.CreatorUserID == 0")
 	}
 	switch input.CreatorUser.ID {
 	case input.From.UserID:
-		return models4debtus2.TransferDirectionUser2Counterparty
+		return models4debtus.TransferDirectionUser2Counterparty
 	case input.To.UserID:
-		return models4debtus2.TransferDirectionCounterparty2User
+		return models4debtus.TransferDirectionCounterparty2User
 	default:
 		if input.Request.BillID == "" {
 			panic("Not able to detect direction")
 		}
-		return models4debtus2.TransferDirection3dParty
+		return models4debtus.TransferDirection3dParty
 	}
 }
 
@@ -197,7 +197,7 @@ func NewTransferInput(
 	source dtdal.TransferSource,
 	creatorUser dbo4userus.UserEntry,
 	request CreateTransferRequest,
-	from, to *models4debtus2.TransferCounterpartyInfo,
+	from, to *models4debtus.TransferCounterpartyInfo,
 ) (input CreateTransferInput) {
 	// All checks are in the input.Validate()
 	input = CreateTransferInput{

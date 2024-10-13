@@ -6,9 +6,9 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/const4debtus"
-	facade4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/decimal"
 	"github.com/strongo/delaying"
 	"github.com/strongo/logus"
@@ -56,10 +56,10 @@ func DelayUpdateTransferOnReturn(ctx context.Context, returnTransferID, transfer
 func updateTransferOnReturn(ctx context.Context, returnTransferID, transferID string, returnedAmount decimal.Decimal64p2) (err error) {
 	logus.Debugf(ctx, "updateTransferOnReturn(returnTransferID=%v, transferID=%v, returnedAmount=%v)", returnTransferID, transferID, returnedAmount)
 
-	var transfer, returnTransfer models4debtus2.TransferEntry
+	var transfer, returnTransfer models4debtus.TransferEntry
 
 	return facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
-		if returnTransfer, err = facade4debtus2.Transfers.GetTransferByID(ctx, tx, returnTransferID); err != nil {
+		if returnTransfer, err = facade4debtus.Transfers.GetTransferByID(ctx, tx, returnTransferID); err != nil {
 			if dal.IsNotFound(err) {
 				logus.Errorf(ctx, fmt.Errorf("return transfer not found: %w", err).Error())
 				err = nil
@@ -67,14 +67,14 @@ func updateTransferOnReturn(ctx context.Context, returnTransferID, transferID st
 			return
 		}
 
-		if transfer, err = facade4debtus2.Transfers.GetTransferByID(ctx, tx, transferID); err != nil {
+		if transfer, err = facade4debtus.Transfers.GetTransferByID(ctx, tx, transferID); err != nil {
 			if dal.IsNotFound(err) {
 				logus.Errorf(ctx, err.Error())
 				err = nil
 			}
 			return
 		}
-		if err = facade4debtus2.Transfers.UpdateTransferOnReturn(ctx, tx, returnTransfer, transfer, returnedAmount); err != nil {
+		if err = facade4debtus.Transfers.UpdateTransferOnReturn(ctx, tx, returnTransfer, transfer, returnedAmount); err != nil {
 			return
 		}
 		if transfer.Data.HasInterest() && !transfer.Data.IsOutstanding {
@@ -86,7 +86,7 @@ func updateTransferOnReturn(ctx context.Context, returnTransferID, transferID st
 	}, dal.TxWithCrossGroup())
 }
 
-func removeFromOutstandingWithInterest(ctx context.Context, tx dal.ReadwriteTransaction, transfer models4debtus2.TransferEntry) (err error) {
+func removeFromOutstandingWithInterest(ctx context.Context, tx dal.ReadwriteTransaction, transfer models4debtus.TransferEntry) (err error) {
 	removeFromOutstanding := func(spaceID, contactID string) (err error) {
 		if spaceID == "" && contactID == "" {
 			return
@@ -96,9 +96,9 @@ func removeFromOutstandingWithInterest(ctx context.Context, tx dal.ReadwriteTran
 			panic("removeFromOutstandingWithInterest(): contactID == 0")
 		}
 		removeFromUser := func() (err error) {
-			debtusSpace := models4debtus2.NewDebtusSpaceEntry(spaceID)
+			debtusSpace := models4debtus.NewDebtusSpaceEntry(spaceID)
 
-			if err = models4debtus2.GetDebtusSpace(ctx, tx, debtusSpace); err != nil {
+			if err = models4debtus.GetDebtusSpace(ctx, tx, debtusSpace); err != nil {
 				return
 			}
 			for _, debtusContactBrief := range debtusSpace.Data.Contacts {
@@ -118,9 +118,9 @@ func removeFromOutstandingWithInterest(ctx context.Context, tx dal.ReadwriteTran
 		}
 		removeFromContact := func() (err error) {
 			var (
-				contact models4debtus2.DebtusSpaceContactEntry
+				contact models4debtus.DebtusSpaceContactEntry
 			)
-			if contact, err = facade4debtus2.GetDebtusSpaceContactByID(ctx, tx, spaceID, contactID); err != nil {
+			if contact, err = facade4debtus.GetDebtusSpaceContactByID(ctx, tx, spaceID, contactID); err != nil {
 				return
 			}
 			transfersInfo := *contact.Data.GetTransfersInfo()
@@ -132,7 +132,7 @@ func removeFromOutstandingWithInterest(ctx context.Context, tx dal.ReadwriteTran
 					if err = contact.Data.SetTransfersInfo(transfersInfo); err != nil {
 						return
 					}
-					return facade4debtus2.SaveContact(ctx, contact)
+					return facade4debtus.SaveContact(ctx, contact)
 				}
 			}
 			return

@@ -11,7 +11,7 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/analytics"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/general"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/i18n"
 	"github.com/strongo/logus"
 	"html/template"
@@ -60,7 +60,7 @@ func InlineSendReceipt(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err 
 	if transferID == "" {
 		return m, fmt.Errorf("missing transfer ContactID")
 	}
-	var transfer models4debtus2.TransferEntry
+	var transfer models4debtus.TransferEntry
 	transfer, err = facade4debtus.Transfers.GetTransferByID(ctx, nil, transferID)
 	if err != nil {
 		logus.Infof(ctx, "Faield to get transfer by ContactID: %v", transferID)
@@ -157,7 +157,7 @@ func OnInlineChosenCreateReceipt(whc botsfw.WebhookContext, inlineMessageID stri
 	if err != nil {
 		return m, err
 	}
-	receiptData := models4debtus2.NewReceiptEntity(whc.AppUserID(), transferID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, telegram.PlatformID, "", general.CreatedOn{
+	receiptData := models4debtus.NewReceiptEntity(whc.AppUserID(), transferID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, telegram.PlatformID, "", general.CreatedOn{
 		CreatedOnID:       whc.GetBotCode(), // TODO: Replace with method call.
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 	})

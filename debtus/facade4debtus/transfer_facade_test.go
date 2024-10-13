@@ -10,7 +10,7 @@ import (
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtmocks"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/decimal"
 	"github.com/strongo/strongoapp"
 	"runtime/debug"
@@ -70,19 +70,19 @@ func TestCreateTransfer(t *testing.T) {
 		// 	LastName:  "DebtusSpaceContactEntry",
 		// })
 
-		from := &models4debtus2.TransferCounterpartyInfo{
+		from := &models4debtus.TransferCounterpartyInfo{
 			UserID:  userID,
 			Note:    "Note 1",
 			Comment: "Comment 1",
 		}
 
-		to := &models4debtus2.TransferCounterpartyInfo{
+		to := &models4debtus.TransferCounterpartyInfo{
 			ContactID: counterpartyID,
 		}
 
 		creatorUser := dbo4userus.NewUserEntry(userID)
 
-		noInterest := models4debtus2.NoInterest()
+		noInterest := models4debtus.NoInterest()
 
 		dueOn := time.Now().Add(time.Minute)
 
@@ -166,7 +166,7 @@ func TestCreateTransfer(t *testing.T) {
 }
 
 func Test_removeClosedTransfersFromOutstandingWithInterest(t *testing.T) {
-	transfersWithInterest := []models4debtus2.TransferWithInterestJson{
+	transfersWithInterest := []models4debtus.TransferWithInterestJson{
 		{TransferID: "1"},
 		{TransferID: "2"},
 		{TransferID: "3"},
@@ -190,12 +190,12 @@ type createTransferTestCase struct {
 }
 
 type createTransferStepInput struct {
-	direction          models4debtus2.TransferDirection
+	direction          models4debtus.TransferDirection
 	isReturn           bool
 	returnToTransferID string
 	amount             decimal.Decimal64p2
 	time               time.Time
-	models4debtus2.TransferInterest
+	models4debtus.TransferInterest
 }
 
 type createTransferStepExpects struct {
@@ -206,7 +206,7 @@ type createTransferStepExpects struct {
 	isOutstanding  bool
 
 	// we should have both `returns` and `api4transfers` properties to assert partial returns
-	returns   models4debtus2.TransferReturns
+	returns   models4debtus.TransferReturns
 	transfers []transferExpectedState
 }
 
@@ -231,7 +231,7 @@ func TestCreateTransfers(t *testing.T) {
 		balance decimal.Decimal64p2,
 		amountReturned decimal.Decimal64p2,
 		isOutstanding bool,
-		returns models4debtus2.TransferReturns,
+		returns models4debtus.TransferReturns,
 		transfers []transferExpectedState,
 	) createTransferStepExpects {
 		return createTransferStepExpects{
@@ -255,7 +255,7 @@ func TestCreateTransfers(t *testing.T) {
 			steps: []createTransferStep{
 				{
 					input: createTransferStepInput{
-						direction: models4debtus2.TransferDirectionUser2Counterparty,
+						direction: models4debtus.TransferDirectionUser2Counterparty,
 						amount:    10,
 						time:      dayHour(1, 1),
 					},
@@ -263,10 +263,10 @@ func TestCreateTransfers(t *testing.T) {
 				},
 				{
 					input: createTransferStepInput{
-						direction:        models4debtus2.TransferDirectionCounterparty2User,
+						direction:        models4debtus.TransferDirectionCounterparty2User,
 						amount:           10,
 						time:             dayHour(1, 1),
-						TransferInterest: models4debtus2.NewInterest(interest.FormulaSimple, 2.00, interest.RatePeriodDaily),
+						TransferInterest: models4debtus.NewInterest(interest.FormulaSimple, 2.00, interest.RatePeriodDaily),
 					},
 					expects: expectsError(func(err error) bool {
 						if err == nil {
@@ -284,7 +284,7 @@ func TestCreateTransfers(t *testing.T) {
 			steps: []createTransferStep{
 				{
 					input: createTransferStepInput{
-						direction: models4debtus2.TransferDirectionUser2Counterparty,
+						direction: models4debtus.TransferDirectionUser2Counterparty,
 						amount:    11,
 						time:      dayHour(1, 1),
 					},
@@ -292,12 +292,12 @@ func TestCreateTransfers(t *testing.T) {
 				},
 				{
 					input: createTransferStepInput{
-						direction: models4debtus2.TransferDirectionCounterparty2User,
+						direction: models4debtus.TransferDirectionCounterparty2User,
 						amount:    11,
 						time:      dayHour(1, 2),
 					},
 					expects: expects(0, 11, false,
-						models4debtus2.TransferReturns{
+						models4debtus.TransferReturns{
 							{Amount: 11},
 						},
 						[]transferExpectedState{
@@ -312,7 +312,7 @@ func TestCreateTransfers(t *testing.T) {
 			steps: []createTransferStep{
 				{
 					input: createTransferStepInput{
-						direction: models4debtus2.TransferDirectionUser2Counterparty,
+						direction: models4debtus.TransferDirectionUser2Counterparty,
 						amount:    10,
 						time:      dayHour(1, 1),
 					},
@@ -320,7 +320,7 @@ func TestCreateTransfers(t *testing.T) {
 				},
 				{
 					input: createTransferStepInput{
-						direction: models4debtus2.TransferDirectionUser2Counterparty,
+						direction: models4debtus.TransferDirectionUser2Counterparty,
 						amount:    15,
 						time:      dayHour(1, 2),
 					},
@@ -332,12 +332,12 @@ func TestCreateTransfers(t *testing.T) {
 				{
 					input: createTransferStepInput{
 						isReturn:  false,
-						direction: models4debtus2.TransferDirectionCounterparty2User,
+						direction: models4debtus.TransferDirectionCounterparty2User,
 						amount:    7,
 						time:      dayHour(1, 3),
 					},
 					expects: expects(18, 7, false,
-						models4debtus2.TransferReturns{
+						models4debtus.TransferReturns{
 							{Amount: 7},
 						},
 						[]transferExpectedState{
@@ -347,12 +347,12 @@ func TestCreateTransfers(t *testing.T) {
 				{
 					input: createTransferStepInput{
 						isReturn:  false,
-						direction: models4debtus2.TransferDirectionCounterparty2User,
+						direction: models4debtus.TransferDirectionCounterparty2User,
 						amount:    30,
 						time:      dayHour(1, 4),
 					},
 					expects: expects(-12, 18, true,
-						models4debtus2.TransferReturns{
+						models4debtus.TransferReturns{
 							{Amount: 3},
 							{Amount: 15},
 						},
@@ -395,13 +395,13 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 
 	creatorUser := dbo4userus.NewUserEntry(userID)
 
-	debtusSpace := models4debtus2.NewDebtusSpaceEntry(spaceID)
+	debtusSpace := models4debtus.NewDebtusSpaceEntry(spaceID)
 
-	tUser := &models4debtus2.TransferCounterpartyInfo{
+	tUser := &models4debtus.TransferCounterpartyInfo{
 		UserID: userID,
 	}
 
-	tContact := &models4debtus2.TransferCounterpartyInfo{
+	tContact := &models4debtus.TransferCounterpartyInfo{
 		ContactID: contactID,
 	}
 
@@ -417,12 +417,12 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 	}()
 
 	for i, step = range testCase.steps {
-		var from, to *models4debtus2.TransferCounterpartyInfo
+		var from, to *models4debtus.TransferCounterpartyInfo
 		switch step.input.direction {
-		case models4debtus2.TransferDirectionUser2Counterparty:
+		case models4debtus.TransferDirectionUser2Counterparty:
 			from = tUser
 			to = tContact
-		case models4debtus2.TransferDirectionCounterparty2User:
+		case models4debtus.TransferDirectionCounterparty2User:
 			from = tContact
 			to = tUser
 		}
@@ -459,13 +459,13 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 		testCase.steps[i].createdTransferID = output.Transfer.ID
 
 		var (
-			contact models4debtus2.DebtusSpaceContactEntry
+			contact models4debtus.DebtusSpaceContactEntry
 		)
 		switch step.input.direction {
-		case models4debtus2.TransferDirectionUser2Counterparty:
+		case models4debtus.TransferDirectionUser2Counterparty:
 			creatorUser = output.From.User
 			contact = output.To.DebtusContact
-		case models4debtus2.TransferDirectionCounterparty2User:
+		case models4debtus.TransferDirectionCounterparty2User:
 			creatorUser = output.To.User
 			contact = output.From.DebtusContact
 		}
@@ -502,7 +502,7 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 			}
 		}
 
-		var dbContact models4debtus2.DebtusSpaceContactEntry
+		var dbContact models4debtus.DebtusSpaceContactEntry
 		if dbContact, err = GetDebtusSpaceContactByID(c, nil, spaceID, contact.ID); err != nil {
 			t.Errorf("step #%v: %v", i+1, err)
 			break
@@ -545,7 +545,7 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 				}
 			}
 			for j, expectedTransfer := range step.expects.transfers {
-				var previousTransfer models4debtus2.TransferEntry
+				var previousTransfer models4debtus.TransferEntry
 				if previousTransfer, err = Transfers.GetTransferByID(c, nil, testCase.steps[j].createdTransferID); err != nil {
 					t.Fatalf("step #%v: %v",
 						i+1, err)

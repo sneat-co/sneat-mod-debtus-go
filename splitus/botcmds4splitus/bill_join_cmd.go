@@ -17,7 +17,7 @@ import (
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/shared_space"
 	"github.com/sneat-co/sneat-mod-debtus-go/splitus/briefs4splitus"
-	facade4splitus2 "github.com/sneat-co/sneat-mod-debtus-go/splitus/facade4splitus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/facade4splitus"
 	"github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 	"github.com/strongo/decimal"
 	"github.com/strongo/i18n"
@@ -40,7 +40,7 @@ var joinBillCommand = botsfw.Command{
 			return
 		}
 		if err = facade.RunReadwriteTransaction(whc.Context(), func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
-			if bill, err = facade4splitus2.GetBillByID(whc.Context(), tx, bill.ID); err != nil {
+			if bill, err = facade4splitus.GetBillByID(whc.Context(), tx, bill.ID); err != nil {
 				return
 			}
 			m, err = joinBillAction(whc, tx, bill, "", false)
@@ -187,11 +187,11 @@ func joinBillAction(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, bill
 	}
 
 	billChanged2 := false
-	if bill, _, billChanged2, isJoined, err = facade4splitus2.AddBillMember(ctx, tx, userID, bill, "", userID, userName, paid); err != nil {
+	if bill, _, billChanged2, isJoined, err = facade4splitus.AddBillMember(ctx, tx, userID, bill, "", userID, userName, paid); err != nil {
 		return
 	}
 	if billChanged = billChanged2 || billChanged; billChanged {
-		if err = facade4splitus2.SaveBill(ctx, tx, bill); err != nil {
+		if err = facade4splitus.SaveBill(ctx, tx, bill); err != nil {
 			return
 		}
 		if isJoined {

@@ -1,18 +1,17 @@
 package gaedal
 
 import (
+	"context"
 	"errors"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/const4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/dal4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/delaying"
 	"github.com/strongo/logus"
 	"time"
-
-	"context"
 )
 
 type ReceiptDalGae struct {
@@ -24,19 +23,19 @@ func NewReceiptDalGae() ReceiptDalGae {
 
 var _ dtdal.ReceiptDal = (*ReceiptDalGae)(nil)
 
-func (ReceiptDalGae) UpdateReceipt(ctx context.Context, tx dal.ReadwriteTransaction, receipt models4debtus2.ReceiptEntry) error {
+func (ReceiptDalGae) UpdateReceipt(ctx context.Context, tx dal.ReadwriteTransaction, receipt models4debtus.ReceiptEntry) error {
 	return tx.Set(ctx, receipt.Record)
 }
 
-func (receiptDalGae ReceiptDalGae) GetReceiptByID(ctx context.Context, tx dal.ReadSession, id string) (receipt models4debtus2.ReceiptEntry, err error) {
-	receipt = models4debtus2.NewReceipt(id, nil)
+func (receiptDalGae ReceiptDalGae) GetReceiptByID(ctx context.Context, tx dal.ReadSession, id string) (receipt models4debtus.ReceiptEntry, err error) {
+	receipt = models4debtus.NewReceipt(id, nil)
 	return receipt, tx.Get(ctx, receipt.Record)
 }
 
-func (receiptDalGae ReceiptDalGae) CreateReceipt(ctx context.Context, data *models4debtus2.ReceiptDbo) (receipt models4debtus2.ReceiptEntry, err error) { // TODO: Move to facade4debtus
+func (receiptDalGae ReceiptDalGae) CreateReceipt(ctx context.Context, data *models4debtus.ReceiptDbo) (receipt models4debtus.ReceiptEntry, err error) { // TODO: Move to facade4debtus
 	err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
-		receipt = models4debtus2.NewReceiptWithoutID(data)
-		debtusUser := models4debtus2.NewDebtusUserEntry(data.CreatorUserID)
+		receipt = models4debtus.NewReceiptWithoutID(data)
+		debtusUser := models4debtus.NewDebtusUserEntry(data.CreatorUserID)
 		if err = dal4debtus.GetDebtusUser(ctx, tx, debtusUser); err != nil {
 			return err
 		}

@@ -8,7 +8,7 @@ import (
 	"github.com/sneat-co/sneat-core-modules/contactus/dto4contactus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
 	"github.com/sneat-co/sneat-go-core/facade"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/gotwilio"
 	"github.com/strongo/logus"
 )
@@ -20,36 +20,36 @@ func NewTwilioDalGae() TwilioDalGae {
 	return TwilioDalGae{}
 }
 
-func (TwilioDalGae) GetLastTwilioSmsesForUser(ctx context.Context, tx dal.ReadSession, userID string, to string, limit int) (result []models4debtus2.TwilioSms, err error) {
-	q := dal.From(models4debtus2.TwilioSmsKind).
+func (TwilioDalGae) GetLastTwilioSmsesForUser(ctx context.Context, tx dal.ReadSession, userID string, to string, limit int) (result []models4debtus.TwilioSms, err error) {
+	q := dal.From(models4debtus.TwilioSmsKind).
 		WhereField("UserID", dal.Equal, userID).
 		OrderBy(dal.DescendingField("DtCreated"))
 
 	if to != "" {
 		q = q.WhereField("To", dal.Equal, to)
 	}
-	query := q.Limit(limit).SelectInto(models4debtus2.NewTwilioSmsRecord)
+	query := q.Limit(limit).SelectInto(models4debtus.NewTwilioSmsRecord)
 	var records []dal.Record
 	if records, err = tx.QueryAllRecords(ctx, query); err != nil {
 		return
 	}
-	result = models4debtus2.NewTwilioSmsFromRecords(records)
+	result = models4debtus.NewTwilioSmsFromRecords(records)
 	return
 }
 
 func (TwilioDalGae) SaveTwilioSms(
 	ctx context.Context,
 	smsResponse *gotwilio.SmsResponse,
-	transfer models4debtus2.TransferEntry,
+	transfer models4debtus.TransferEntry,
 	phoneContact dto4contactus.PhoneContact,
 	userID string,
 	tgChatID int64,
 	smsStatusMessageID int,
-) (twilioSms models4debtus2.TwilioSms, err error) {
+) (twilioSms models4debtus.TwilioSms, err error) {
 	//var twilioSmsEntity models4debtus.TwilioSmsData
 	if err = facade.RunReadwriteTransaction(ctx, func(tctx context.Context, tx dal.ReadwriteTransaction) error {
 		user := dbo4userus.NewUserEntry(userID)
-		twilioSms = models4debtus2.NewTwilioSms(smsResponse.Sid, nil)
+		twilioSms = models4debtus.NewTwilioSms(smsResponse.Sid, nil)
 		counterparty := transfer.Data.Counterparty()
 		//counterpartyDebtusContact := models4debtus.NewDebtusSpaceContactEntry(counterparty.SpaceRef, counterparty.ContactID, nil)
 		counterpartyContact := dal4contactus.NewContactEntry(counterparty.SpaceID, counterparty.ContactID)

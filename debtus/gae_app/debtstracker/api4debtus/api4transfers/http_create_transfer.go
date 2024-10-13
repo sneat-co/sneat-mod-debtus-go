@@ -8,31 +8,31 @@ import (
 	"github.com/sneat-co/sneat-go-core/apicore"
 	"github.com/sneat-co/sneat-go-core/apicore/verify"
 	"github.com/sneat-co/sneat-go-core/facade"
-	facade4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus/dto4debtus"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"net/http"
 )
 
 func HandleCreateTransfer(ctx context.Context, w http.ResponseWriter, r *http.Request, authInfo token4auth.AuthInfo) {
-	var request facade4debtus2.CreateTransferRequest
+	var request facade4debtus.CreateTransferRequest
 	apicore.HandleAuthenticatedRequestWithBody(w, r, &request, verify.DefaultJsonWithAuthRequired, http.StatusCreated,
 		func(ctx context.Context, userCtx facade.UserContext) (interface{}, error) {
-			var from, to *models4debtus2.TransferCounterpartyInfo
+			var from, to *models4debtus.TransferCounterpartyInfo
 
 			appUser, err := dal4userus.GetUserByID(ctx, nil, authInfo.UserID)
 			if err != nil {
 				return nil, err
 			}
 
-			newTransfer := facade4debtus2.NewTransferInput(common4all.GetEnvironment(r),
+			newTransfer := facade4debtus.NewTransferInput(common4all.GetEnvironment(r),
 				transferSourceSetToAPI{appPlatform: "api4debtus", createdOnID: r.Host},
 				appUser,
 				request,
 				from, to,
 			)
 
-			output, err := facade4debtus2.Transfers.CreateTransfer(ctx, newTransfer)
+			output, err := facade4debtus.Transfers.CreateTransfer(ctx, newTransfer)
 			if err != nil {
 				return nil, err
 			}
@@ -41,7 +41,7 @@ func HandleCreateTransfer(ctx context.Context, w http.ResponseWriter, r *http.Re
 				Transfer: dto4debtus.TransferToDto(authInfo.UserID, output.Transfer),
 			}
 
-			var counterparty models4debtus2.DebtusSpaceContactEntry
+			var counterparty models4debtus.DebtusSpaceContactEntry
 			switch output.Transfer.Data.CreatorUserID {
 			case output.Transfer.Data.From().UserID:
 				counterparty = output.To.DebtusContact

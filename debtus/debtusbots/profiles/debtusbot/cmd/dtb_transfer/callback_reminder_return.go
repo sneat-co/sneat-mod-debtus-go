@@ -10,7 +10,7 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/debtusbot/dtb_common"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/logus"
 	"net/url"
 	"time"
@@ -37,7 +37,7 @@ func ProcessReturnAnswer(whc botsfw.WebhookContext, callbackUrl *url.URL) (m bot
 			}
 		}
 	} else {
-		if reminder, err := dtdal.Reminder.SetReminderStatus(ctx, reminderID, "", models4debtus2.ReminderStatusUsed, time.Now()); err != nil {
+		if reminder, err := dtdal.Reminder.SetReminderStatus(ctx, reminderID, "", models4debtus.ReminderStatusUsed, time.Now()); err != nil {
 			return m, err
 		} else {
 			transferID = reminder.Data.TransferID
@@ -71,7 +71,7 @@ var EnableReminderAgainCallbackCommand = botsfw.NewCallbackCommand(commandCodeEn
 	q := callbackUrl.Query()
 	var (
 		reminderID string
-		transfer   models4debtus2.TransferEntry
+		transfer   models4debtus.TransferEntry
 	)
 	if reminderID = q.Get("reminder"); reminderID == "" {
 		err = fmt.Errorf("parameter 'reminder' is empty")
@@ -89,7 +89,7 @@ var EnableReminderAgainCallbackCommand = botsfw.NewCallbackCommand(commandCodeEn
 	return askWhenToRemindAgain(whc, reminderID, transfer)
 })
 
-func ProcessFullReturn(whc botsfw.WebhookContext, transfer models4debtus2.TransferEntry) (m botsfw.MessageFromBot, err error) {
+func ProcessFullReturn(whc botsfw.WebhookContext, transfer models4debtus.TransferEntry) (m botsfw.MessageFromBot, err error) {
 	amountValue := transfer.Data.GetOutstandingValue(time.Now())
 	if amountValue == 0 {
 		return dtb_general.EditReminderMessage(whc, transfer, whc.Translate(trans.MESSAGE_TEXT_TRANSFER_ALREADY_FULLY_RETURNED))
@@ -102,23 +102,23 @@ func ProcessFullReturn(whc botsfw.WebhookContext, transfer models4debtus2.Transf
 
 	var (
 		counterpartyID string
-		direction      models4debtus2.TransferDirection
+		direction      models4debtus.TransferDirection
 	)
 	userID := whc.AppUserID()
 	if transfer.Data.CreatorUserID == userID {
 		counterpartyID = transfer.Data.Counterparty().ContactID
 		switch transfer.Data.Direction() {
-		case models4debtus2.TransferDirectionCounterparty2User:
-			direction = models4debtus2.TransferDirectionUser2Counterparty
-		case models4debtus2.TransferDirectionUser2Counterparty:
-			direction = models4debtus2.TransferDirectionCounterparty2User
+		case models4debtus.TransferDirectionCounterparty2User:
+			direction = models4debtus.TransferDirectionUser2Counterparty
+		case models4debtus.TransferDirectionUser2Counterparty:
+			direction = models4debtus.TransferDirectionCounterparty2User
 		default:
 			return m, fmt.Errorf("transfer %v has unknown direction '%v'", transfer.ID, transfer.Data.Direction())
 		}
 	} else if transfer.Data.Counterparty().UserID == userID {
 		switch transfer.Data.Direction() {
-		case models4debtus2.TransferDirectionCounterparty2User:
-		case models4debtus2.TransferDirectionUser2Counterparty:
+		case models4debtus.TransferDirectionCounterparty2User:
+		case models4debtus.TransferDirectionUser2Counterparty:
 		default:
 			return m, fmt.Errorf("transfer %v has unknown direction '%v'.", transfer.ID, transfer.Data.Direction())
 		}
@@ -144,7 +144,7 @@ func ProcessFullReturn(whc botsfw.WebhookContext, transfer models4debtus2.Transf
 	return m, err
 }
 
-func ProcessPartialReturn(whc botsfw.WebhookContext, transfer models4debtus2.TransferEntry) (botsfw.MessageFromBot, error) {
+func ProcessPartialReturn(whc botsfw.WebhookContext, transfer models4debtus.TransferEntry) (botsfw.MessageFromBot, error) {
 	var counterpartyID string
 	switch whc.AppUserID() {
 	case transfer.Data.CreatorUserID:
@@ -166,7 +166,7 @@ func ProcessPartialReturn(whc botsfw.WebhookContext, transfer models4debtus2.Tra
 	return AskHowMuchHaveBeenReturnedCommand.Action(whc)
 }
 
-func askWhenToRemindAgain(whc botsfw.WebhookContext, reminderID string, transfer models4debtus2.TransferEntry) (m botsfw.MessageFromBot, err error) {
+func askWhenToRemindAgain(whc botsfw.WebhookContext, reminderID string, transfer models4debtus.TransferEntry) (m botsfw.MessageFromBot, err error) {
 	if m, err = dtb_general.EditReminderMessage(whc, transfer, whc.Translate(trans.MESSAGE_TEXT_ASK_WHEN_TO_REMIND_AGAIN)); err != nil {
 		return
 	}
@@ -209,7 +209,7 @@ func askWhenToRemindAgain(whc botsfw.WebhookContext, reminderID string, transfer
 	return
 }
 
-func ProcessNoReturn(whc botsfw.WebhookContext, reminderID string, transfer models4debtus2.TransferEntry) (m botsfw.MessageFromBot, err error) {
+func ProcessNoReturn(whc botsfw.WebhookContext, reminderID string, transfer models4debtus.TransferEntry) (m botsfw.MessageFromBot, err error) {
 	return askWhenToRemindAgain(whc, reminderID, transfer)
 }
 

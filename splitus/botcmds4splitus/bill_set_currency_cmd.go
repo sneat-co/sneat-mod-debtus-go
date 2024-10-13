@@ -8,7 +8,7 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/splitus/briefs4splitus"
 	"github.com/sneat-co/sneat-mod-debtus-go/splitus/dal4splitus"
 	"github.com/sneat-co/sneat-mod-debtus-go/splitus/facade4splitus"
-	models4splitus2 "github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 	"github.com/strongo/logus"
 	"net/url"
 )
@@ -16,7 +16,7 @@ import (
 const setBillCurrencyCommandCode = "set-bill-currency"
 
 var setBillCurrencyCommand = billCallbackCommand(setBillCurrencyCommandCode,
-	func(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, callbackUrl *url.URL, bill models4splitus2.BillEntry) (m botsfw.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, callbackUrl *url.URL, bill models4splitus.BillEntry) (m botsfw.MessageFromBot, err error) {
 		ctx := whc.Context()
 		logus.Debugf(ctx, "setBillCurrencyCommand.CallbackAction()")
 		query := callbackUrl.Query()
@@ -29,7 +29,7 @@ var setBillCurrencyCommand = billCallbackCommand(setBillCurrencyCommandCode,
 			}
 
 			if bill.Data.SpaceID != "" {
-				splitusSpace := models4splitus2.NewSplitusSpaceEntry(bill.Data.SpaceID)
+				splitusSpace := models4splitus.NewSplitusSpaceEntry(bill.Data.SpaceID)
 				if err = dal4splitus.GetSplitusSpace(ctx, tx, splitusSpace); err != nil {
 					return
 				}

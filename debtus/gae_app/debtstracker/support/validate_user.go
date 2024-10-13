@@ -7,9 +7,9 @@ import (
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/sneat-core-modules/contactus/const4contactus"
-	dbo4userus2 "github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
+	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
 	"github.com/sneat-co/sneat-go-core/facade"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/logus"
 	"net/http"
 	"reflect"
@@ -25,7 +25,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 		logus.Errorf(ctx, "UserEntry ContactID is empty")
 		return
 	}
-	user := dbo4userus2.NewUserEntry(userID)
+	user := dbo4userus.NewUserEntry(userID)
 	var db dal.DB
 	var err error
 	if db, err = facade.GetSneatDB(ctx); err != nil {
@@ -42,7 +42,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	query := dal.From(const4contactus.ContactsCollection).WhereField("UserID", dal.Equal, userID).SelectInto(func() dal.Record {
-		return dal.NewRecordWithIncompleteKey(dbo4userus2.UsersCollection, reflect.Int64, new(dbo4userus2.UserDbo))
+		return dal.NewRecordWithIncompleteKey(dbo4userus.UsersCollection, reflect.Int64, new(dbo4userus.UserDbo))
 	})
 	userCounterpartyRecords, err := db.QueryAllRecords(ctx, query)
 	if err != nil {
@@ -58,8 +58,8 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	//slices.Sort(counterpartyIDs)
 
-	query = dal.From(models4debtus2.TransfersCollection).WhereField("BothUserIDs", dal.Equal, userID).OrderBy(dal.AscendingField("DtCreated")).SelectInto(func() dal.Record {
-		return dal.NewRecordWithIncompleteKey(models4debtus2.AppUserKind, reflect.Int64, new(models4debtus2.DebutsAppUserDataOBSOLETE))
+	query = dal.From(models4debtus.TransfersCollection).WhereField("BothUserIDs", dal.Equal, userID).OrderBy(dal.AscendingField("DtCreated")).SelectInto(func() dal.Record {
+		return dal.NewRecordWithIncompleteKey(models4debtus.AppUserKind, reflect.Int64, new(models4debtus.DebutsAppUserDataOBSOLETE))
 	})
 
 	transferRecords, err := db.QueryAllRecords(ctx, query)
@@ -78,7 +78,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 	transfersInfoByCounterparty := make(map[string]transfersInfo, len(counterpartyIDs))
 
 	for _, transferRecord := range transferRecords {
-		transferEntity := transferRecord.Data().(*models4debtus2.TransferData)
+		transferEntity := transferRecord.Data().(*models4debtus.TransferData)
 		counterpartyInfo := transferEntity.CounterpartyInfoByUserID(userID)
 		counterpartyTransfersInfo := transfersInfoByCounterparty[counterpartyInfo.ContactID]
 		counterpartyTransfersInfo.Count += 1
@@ -151,12 +151,12 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 	//logus.Infof(ctx, "OK - UserEntry ContactsJson is OK")
 
 	// We need counterparties by ContactID to check balance against api4transfers
-	counterpartiesByID := make(map[int64]*models4debtus2.DebtusSpaceContactDbo, len(counterpartyIDs))
+	counterpartiesByID := make(map[int64]*models4debtus.DebtusSpaceContactDbo, len(counterpartyIDs))
 	for _, counterpartyRecord := range userCounterpartyRecords {
-		counterpartiesByID[counterpartyRecord.Key().ID.(int64)] = counterpartyRecord.Data().(*models4debtus2.DebtusSpaceContactDbo)
+		counterpartiesByID[counterpartyRecord.Key().ID.(int64)] = counterpartyRecord.Data().(*models4debtus.DebtusSpaceContactDbo)
 	}
 
-	debtusUser := models4debtus2.NewDebtusUserEntry(userID)
+	debtusUser := models4debtus.NewDebtusUserEntry(userID)
 
 	if err = db.Get(ctx, debtusUser.Record); err != nil {
 		return
@@ -164,7 +164,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	if len(transferRecords) > 0 && debtusUser.Data.LastTransferID == "" {
 		if doFixes {
-			var txUser dbo4userus2.UserEntry
+			var txUser dbo4userus.UserEntry
 			err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
 				if err = tx.Get(ctx, debtusUser.Record); err != nil {
 					return err
@@ -172,7 +172,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 				if debtusUser.Data.LastTransferID == "" {
 					i := len(transferRecords) - 1
 					debtusUser.Data.LastTransferID = transferRecords[i].Key().ID.(string)
-					debtusUser.Data.LastTransferAt = transferRecords[i].Data().(*models4debtus2.TransferData).DtCreated
+					debtusUser.Data.LastTransferAt = transferRecords[i].Data().(*models4debtus.TransferData).DtCreated
 					err = tx.Set(ctx, txUser.Record)
 					return err
 				}
@@ -193,7 +193,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 	transfersBalanceByCounterpartyID := make(map[string]money.Balance, len(counterpartyIDs))
 
 	for i, transferRecord := range transferRecords {
-		transferData := transferRecord.Data().(*models4debtus2.TransferData)
+		transferData := transferRecord.Data().(*models4debtus.TransferData)
 		var counterpartyID string
 		switch userID {
 		case transferData.CreatorUserID:
@@ -212,9 +212,9 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 		value := transferData.GetAmount().Value
 		currency := money.CurrencyCode(transferData.Currency)
 		switch transferData.DirectionForUser(userID) {
-		case models4debtus2.TransferDirectionUser2Counterparty:
+		case models4debtus.TransferDirectionUser2Counterparty:
 			transfersCounterpartyBalance[currency] += value
-		case models4debtus2.TransferDirectionCounterparty2User:
+		case models4debtus.TransferDirectionCounterparty2User:
 			transfersCounterpartyBalance[currency] -= value
 		default:
 			logus.Errorf(ctx, "TransferEntry %v has unknown direction: %v", transferRecords[i].Key().ID, transferData.DirectionForUser(userID))
@@ -272,9 +272,9 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 			logus.Debugf(ctx, "Pass fix=all to fix user balance")
 		} else {
 			err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) error {
-				txUser := dbo4userus2.NewUserEntry(userID)
+				txUser := dbo4userus.NewUserEntry(userID)
 				spaceID := txUser.Data.GetFamilySpaceID()
-				debtusSpace := models4debtus2.NewDebtusSpaceEntry(spaceID)
+				debtusSpace := models4debtus.NewDebtusSpaceEntry(spaceID)
 				if err := tx.Get(ctx, txUser.Record); err != nil {
 					return err
 				}
@@ -304,7 +304,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 	for _, counterpartyRecord := range userCounterpartyRecords {
 		counterpartyKey := counterpartyRecord.Key()
 		counterpartyID := counterpartyKey.ID.(string)
-		counterparty := counterpartyRecord.Data().(*models4debtus2.DebtusSpaceContactDbo)
+		counterparty := counterpartyRecord.Data().(*models4debtus.DebtusSpaceContactDbo)
 
 		if transfersCounterpartyBalance := transfersBalanceByCounterpartyID[counterpartyID]; (len(transfersCounterpartyBalance) == 0 && len(counterparty.Balance) == 0) || reflect.DeepEqual(transfersCounterpartyBalance, counterparty.Balance) {
 			counterpartyIDsWithMatchingBalance = append(counterpartyIDsWithMatchingBalance, counterpartyID)
@@ -319,7 +319,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 				err := db.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) error {
-					txCounterparty := models4debtus2.NewDebtusSpaceContactEntry(spaceID, counterpartyKey.ID.(string), nil)
+					txCounterparty := models4debtus.NewDebtusSpaceContactEntry(spaceID, counterpartyKey.ID.(string), nil)
 					if err := tx.Get(ctx, txCounterparty.Record); err != nil {
 						return err
 					}

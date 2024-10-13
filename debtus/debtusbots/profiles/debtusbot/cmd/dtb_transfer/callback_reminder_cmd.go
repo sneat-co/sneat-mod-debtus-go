@@ -10,7 +10,7 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/debtusbot/dtb_common"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/logus"
 
 	"net/url"
@@ -52,7 +52,7 @@ var RemindAgainCallbackCommand = botsfw.NewCallbackCommand(dtb_common.CALLBACK_R
 func rescheduleReminder(whc botsfw.WebhookContext, reminderID string, remindInDuration time.Duration) (m botsfw.MessageFromBot, err error) {
 	ctx := whc.Context()
 
-	var oldReminder, newReminder models4debtus2.Reminder
+	var oldReminder, newReminder models4debtus.Reminder
 
 	if oldReminder, newReminder, err = dtdal.Reminder.RescheduleReminder(ctx, reminderID, remindInDuration); err != nil {
 		if errors.Is(err, dtdal.ErrReminderAlreadyRescheduled) {
@@ -67,7 +67,7 @@ func rescheduleReminder(whc botsfw.WebhookContext, reminderID string, remindInDu
 	if m.Text != "" {
 		return m, err
 	}
-	var transfer models4debtus2.TransferEntry
+	var transfer models4debtus.TransferEntry
 	if transfer, err = facade4debtus.Transfers.GetTransferByID(ctx, nil, oldReminder.Data.TransferID); err != nil {
 		return m, fmt.Errorf("failed to get transferEntity by id: %w", err)
 	}

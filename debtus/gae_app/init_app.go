@@ -11,9 +11,9 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/apimapping"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/apps/vkapp"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
-	gaedal2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal/gaedal"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal/gaedal"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/maintainance"
-	reminders2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/reminders"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/reminders"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/support"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/webhooks"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/website"
@@ -31,7 +31,7 @@ func Init(botHost botsfw.BotHost) {
 
 	initDelaying()
 
-	gaedal2.RegisterDal()
+	gaedal.RegisterDal()
 	apigaedepended.InitApiGaeDepended()
 
 	httpRouter := httprouter.New()
@@ -56,13 +56,13 @@ func Init(botHost botsfw.BotHost) {
 
 func initDelaying() {
 	delaying.Init(delaying.VoidWithLog)
-	gaedal2.InitDelaying(delaying.MustRegisterFunc)
+	gaedal.InitDelaying(delaying.MustRegisterFunc)
 	facade4anybot.InitDelaying(delaying.MustRegisterFunc)
 	facade4splitus.InitDelaying(delaying.MustRegisterFunc)
 	emailing.InitDelaying(delaying.MustRegisterFunc)
 	dtb_transfer.InitDelaying(delaying.MustRegisterFunc)
 	botcmds4splitus.InitDelaying(delaying.MustRegisterFunc)
-	reminders2.InitDelaying(delaying.MustRegisterFunc)
+	reminders.InitDelaying(delaying.MustRegisterFunc)
 	unsorted.InitDelaying(delaying.MustRegisterFunc)
 }
 
@@ -71,12 +71,11 @@ func NotFoundSilent(w http.ResponseWriter, r *http.Request, _ httprouter.Params)
 }
 
 func InitCronHandlers(router *httprouter.Router) {
-	router.HandlerFunc(http.MethodGet, "/cron/send-reminders", dtdal.HttpAppHost.HandleWithContext(reminders2.CronSendReminders))
+	router.HandlerFunc(http.MethodGet, "/cron/send-reminders", dtdal.HttpAppHost.HandleWithContext(reminders.CronSendReminders))
 }
 
 func InitTaskQueueHandlers(router *httprouter.Router) {
-	router.HandlerFunc(http.MethodPost, "/taskqueu/send-reminder", dtdal.HttpAppHost.HandleWithContext(reminders2.SendReminderHandler)) // TODO: Remove obsolete!
-	router.HandlerFunc(http.MethodPost, "/task-queue/send-reminder", dtdal.HttpAppHost.HandleWithContext(reminders2.SendReminderHandler))
+	router.HandlerFunc(http.MethodPost, "/task-queue/send-reminder", dtdal.HttpAppHost.HandleWithContext(reminders.SendReminderHandler))
 }
 
 type TestTransferCounterparty struct {

@@ -1,6 +1,7 @@
 package unsorted
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
@@ -9,7 +10,7 @@ import (
 	"github.com/sneat-co/sneat-core-modules/common4all"
 	"github.com/sneat-co/sneat-core-modules/userus/dal4userus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
-	facade4userus2 "github.com/sneat-co/sneat-core-modules/userus/facade4userus"
+	"github.com/sneat-co/sneat-core-modules/userus/facade4userus"
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal/gaedal"
 	"github.com/strongo/logus"
@@ -17,8 +18,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-
-	"context"
 )
 
 //func getApiUser(ctx context.Context, w http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) (user models4debtus.AppUser, err error) {
@@ -42,7 +41,7 @@ func HandleUserInfo(ctx context.Context, w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write(([]byte)(err.Error()))
 	} else {
-		if _, err = facade4userus2.SaveUserBrowser(ctx, strconv.FormatInt(userID, 10), r.UserAgent()); err != nil {
+		if _, err = facade4userus.SaveUserBrowser(ctx, strconv.FormatInt(userID, 10), r.UserAgent()); err != nil {
 			logus.Errorf(ctx, err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write(([]byte)(err.Error()))
@@ -65,7 +64,7 @@ func HandleSaveVisitorData(ctx context.Context, w http.ResponseWriter, r *http.R
 	userAgent := r.UserAgent()
 	ipAddress := strings.SplitN(r.RemoteAddr, ":", 1)[0]
 
-	if _, err := facade4userus2.SaveGaClient(ctx, gaClientId, userAgent, ipAddress); err != nil {
+	if _, err := facade4userus.SaveGaClient(ctx, gaClientId, userAgent, ipAddress); err != nil {
 		common4all.ErrorAsJson(ctx, w, http.StatusInternalServerError, err)
 		return
 	}

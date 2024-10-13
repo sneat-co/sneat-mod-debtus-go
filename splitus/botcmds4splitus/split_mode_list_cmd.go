@@ -6,13 +6,13 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	models4splitus2 "github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 	"github.com/strongo/logus"
 	"net/url"
 )
 
 var billSplitModesListCommand = billCallbackCommand("split-modes",
-	func(whc botsfw.WebhookContext, _ dal.ReadwriteTransaction, callbackUrl *url.URL, bill models4splitus2.BillEntry) (m botsfw.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, _ dal.ReadwriteTransaction, callbackUrl *url.URL, bill models4splitus.BillEntry) (m botsfw.MessageFromBot, err error) {
 		ctx := whc.Context()
 		logus.Debugf(ctx, "billSplitModesListCommand.CallbackAction()")
 		var mt string
@@ -27,25 +27,25 @@ var billSplitModesListCommand = billCallbackCommand("split-modes",
 			[]tgbotapi.InlineKeyboardButton{
 				{
 					Text:         whc.Translate(trans.SPLIT_MODE_EQUALLY),
-					CallbackData: callbackData + string(models4splitus2.SplitModeEqually),
+					CallbackData: callbackData + string(models4splitus.SplitModeEqually),
 				},
 			},
 			[]tgbotapi.InlineKeyboardButton{
 				{
 					Text:         whc.Translate(trans.SPLIT_MODE_PERCENTAGE),
-					CallbackData: callbackData + string(models4splitus2.SplitModePercentage),
+					CallbackData: callbackData + string(models4splitus.SplitModePercentage),
 				},
 			},
 			[]tgbotapi.InlineKeyboardButton{
 				{
 					Text:         whc.Translate(trans.SPLIT_MODE_SHARES),
-					CallbackData: callbackData + string(models4splitus2.SplitModeShare),
+					CallbackData: callbackData + string(models4splitus.SplitModeShare),
 				},
 			},
 			[]tgbotapi.InlineKeyboardButton{
 				{
 					Text:         whc.Translate(trans.SPLIT_MODE_EXACT_AMOUNT),
-					CallbackData: callbackData + string(models4splitus2.SplitModeExactAmount),
+					CallbackData: callbackData + string(models4splitus.SplitModeExactAmount),
 				},
 			},
 			[]tgbotapi.InlineKeyboardButton{

@@ -1,6 +1,7 @@
 package gaedal
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
@@ -10,8 +11,6 @@ import (
 	"github.com/strongo/logus"
 	"reflect"
 	"time"
-
-	"context"
 )
 
 func NewReminderIncompleteKey(_ context.Context) *dal.Key {

@@ -14,8 +14,8 @@ import (
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/const4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/shared_space"
-	facade4splitus2 "github.com/sneat-co/sneat-mod-debtus-go/splitus/facade4splitus"
-	models4splitus2 "github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/facade4splitus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 	"github.com/strongo/decimal"
 	"github.com/strongo/logus"
 	"net/url"
@@ -80,9 +80,9 @@ func createBillFromInlineChosenResult(whc botsfw.WebhookContext, chosenResult bo
 		if amount, err = decimal.ParseDecimal64p2(amountNum); err != nil {
 			return
 		}
-		bill := models4splitus2.BillEntry{
-			Data: &models4splitus2.BillDbo{
-				BillCommon: models4splitus2.BillCommon{
+		bill := models4splitus.BillEntry{
+			Data: &models4splitus.BillDbo{
+				BillCommon: models4splitus.BillCommon{
 
 					TgInlineMessageIDs: []string{chosenResult.GetInlineMessageID()},
 					Name:               billName,
@@ -90,7 +90,7 @@ func createBillFromInlineChosenResult(whc botsfw.WebhookContext, chosenResult bo
 					Status:             const4debtus.StatusDraft,
 					CreatorUserID:      userID,
 					UserIDs:            []string{userID},
-					SplitMode:          models4splitus2.SplitModeEqually,
+					SplitMode:          models4splitus.SplitModeEqually,
 					Currency:           amountCcy,
 				},
 			},
@@ -129,7 +129,7 @@ func createBillFromInlineChosenResult(whc botsfw.WebhookContext, chosenResult bo
 		spaceID := user.Data.GetFamilySpaceID()
 
 		err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
-			if bill, err = facade4splitus2.CreateBill(ctx, tx, spaceID, bill.Data); err != nil {
+			if bill, err = facade4splitus.CreateBill(ctx, tx, spaceID, bill.Data); err != nil {
 				return
 			}
 			return
@@ -234,20 +234,20 @@ var EditedBillCardHookCommand = botsfw.Command{ // TODO: seems to be not used an
 		changed := false
 
 		err = facade.RunReadwriteTransaction(ctx, func(tctx context.Context, tx dal.ReadwriteTransaction) (err error) {
-			var bill models4splitus2.BillEntry
-			if bill, err = facade4splitus2.GetBillByID(ctx, tx, billID); err != nil {
+			var bill models4splitus.BillEntry
+			if bill, err = facade4splitus.GetBillByID(ctx, tx, billID); err != nil {
 				return err
 			}
 
 			if groupID != "" && bill.Data.GetUserGroupID() != groupID { // TODO: Should we check for empty bill.GetUserGroupID() or better fail?
-				if bill, _, err = facade4splitus2.AssignBillToGroup(ctx, tx, bill, groupID, whc.AppUserID()); err != nil {
+				if bill, _, err = facade4splitus.AssignBillToGroup(ctx, tx, bill, groupID, whc.AppUserID()); err != nil {
 					return err
 				}
 				changed = true
 			}
 
 			if changed {
-				return facade4splitus2.SaveBill(ctx, tx, bill)
+				return facade4splitus.SaveBill(ctx, tx, bill)
 			}
 
 			return err

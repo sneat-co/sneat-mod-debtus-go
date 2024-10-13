@@ -2,7 +2,7 @@ package facade4debtus
 
 import (
 	"github.com/dal-go/dalgo/dal"
-	dal4contactus2 "github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
+	"github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
 	"github.com/sneat-co/sneat-core-modules/userus/dal4userus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
 	"github.com/sneat-co/sneat-go-core/facade"
@@ -22,12 +22,12 @@ func TestUsersLinker_LinkUsersWithinTransaction(t *testing.T) {
 
 	const spaceID = "s3"
 
-	contactusSpace := dal4contactus2.NewContactusSpaceEntry(spaceID)
+	contactusSpace := dal4contactus.NewContactusSpaceEntry(spaceID)
 
 	var (
 		err                                        error
 		inviterUser, invitedUser                   dbo4userus.UserEntry
-		inviterContact, invitedContact             dal4contactus2.ContactEntry
+		inviterContact, invitedContact             dal4contactus.ContactEntry
 		inviterDebtusContact, invitedDebtusContact models4debtus.DebtusSpaceContactEntry
 	)
 

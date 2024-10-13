@@ -9,7 +9,7 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/const4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/splitus/briefs4splitus"
 	"github.com/sneat-co/sneat-mod-debtus-go/splitus/const4splitus"
-	models4splitus2 "github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 	"github.com/strongo/decimal"
 	"github.com/strongo/delaying"
 	"github.com/strongo/logus"
@@ -42,7 +42,7 @@ const updateUserWithBillKeyName = "delayedUpdateUserWithBill"
 func delayedUpdateUserWithBill(ctx context.Context, billID, userID string) (err error) {
 	logus.Debugf(ctx, "delayedUpdateUserWithBill(billID=%v, userID=%v)", billID, userID)
 	var (
-		bill                 models4splitus2.BillEntry
+		bill                 models4splitus.BillEntry
 		wg                   sync.WaitGroup
 		billErr              error
 		userModuleDboChanged bool
@@ -56,8 +56,8 @@ func delayedUpdateUserWithBill(ctx context.Context, billID, userID string) (err 
 		}
 	}()
 
-	if err = dal4userus.RunUserModuleWorker(ctx, userID, const4debtus.ModuleID, new(models4splitus2.SplitusUserDbo),
-		func(ctx context.Context, tx dal.ReadwriteTransaction, params *dal4userus.UserModuleWorkerParams[models4splitus2.SplitusUserDbo]) (err error) {
+	if err = dal4userus.RunUserModuleWorker(ctx, userID, const4debtus.ModuleID, new(models4splitus.SplitusUserDbo),
+		func(ctx context.Context, tx dal.ReadwriteTransaction, params *dal4userus.UserModuleWorkerParams[models4splitus.SplitusUserDbo]) (err error) {
 			if err = tx.Get(ctx, params.UserModule.Record); err != nil {
 				return err
 			}
@@ -68,7 +68,7 @@ func delayedUpdateUserWithBill(ctx context.Context, billID, userID string) (err 
 				return errors.New("bill.BillDbo == nil")
 			}
 			var userBillBalance decimal.Decimal64p2
-			if bill.Data.Status != models4splitus2.BillStatusDeleted {
+			if bill.Data.Status != models4splitus.BillStatusDeleted {
 				for _, billMember := range bill.Data.GetBillMembers() {
 					if billMember.UserID == userID {
 						userBillBalance = billMember.Balance()
@@ -82,7 +82,7 @@ func delayedUpdateUserWithBill(ctx context.Context, billID, userID string) (err 
 
 			logus.Debugf(ctx, "userIsBillMember: %v", userIsBillMember)
 
-			shouldBeInOutstanding := userIsBillMember && (bill.Data.Status == models4splitus2.BillStatusOutstanding || bill.Data.Status == models4splitus2.BillStatusDraft)
+			shouldBeInOutstanding := userIsBillMember && (bill.Data.Status == models4splitus.BillStatusOutstanding || bill.Data.Status == models4splitus.BillStatusDraft)
 			userOutstandingBills := params.UserModule.Data.GetOutstandingBills()
 			if billBrief, ok := userOutstandingBills[billID]; ok && !shouldBeInOutstanding {
 				delete(userOutstandingBills, billID)

@@ -9,17 +9,17 @@ import (
 	"github.com/sneat-co/sneat-core-modules/userus/const4userus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
 	"github.com/sneat-co/sneat-go-core/facade"
-	models4splitus2 "github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 	"github.com/strongo/delaying"
 	"github.com/strongo/logus"
 )
 
 func CreateGroup(ctx context.Context,
-	groupEntity *models4splitus2.GroupDbo,
+	groupEntity *models4splitus.GroupDbo,
 	tgBotCode string,
-	beforeGroupInsert func(tctx context.Context, groupEntity *models4splitus2.GroupDbo) (group models4splitus2.GroupEntry, err error),
-	afterGroupInsert func(ctx context.Context, group models4splitus2.GroupEntry, user dbo4userus.UserEntry) (err error),
-) (group models4splitus2.GroupEntry, groupMember models4splitus2.GroupMember, err error) {
+	beforeGroupInsert func(tctx context.Context, groupEntity *models4splitus.GroupDbo) (group models4splitus.GroupEntry, err error),
+	afterGroupInsert func(ctx context.Context, group models4splitus.GroupEntry, user dbo4userus.UserEntry) (err error),
+) (group models4splitus.GroupEntry, groupMember models4splitus.GroupMember, err error) {
 	if err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) error {
 		return errors.New("CreateGroup is not implemented")
 		//user, err := dal4userus.GetUserByID(ctx, tx, groupEntity.CreatorUserID)
@@ -100,9 +100,9 @@ type NewUser struct {
 	ChatMember botinput.WebhookActor
 }
 
-func AddUsersToTheGroupAndOutstandingBills(ctx context.Context, spaceID string, newUsers []NewUser) (splitusSpace models4splitus2.SplitusSpaceEntry, newUsers2 []NewUser, err error) {
+func AddUsersToTheGroupAndOutstandingBills(ctx context.Context, spaceID string, newUsers []NewUser) (splitusSpace models4splitus.SplitusSpaceEntry, newUsers2 []NewUser, err error) {
 	logus.Debugf(ctx, "groupFacade.AddUsersToTheGroupAndOutstandingBills(spaceID=%v, newUsers=%v)", spaceID, newUsers)
-	splitusSpace = models4splitus2.NewSplitusSpaceEntry(spaceID)
+	splitusSpace = models4splitus.NewSplitusSpaceEntry(spaceID)
 	if len(newUsers) == 0 {
 		panic("len(newUsers) == 0")
 	}
@@ -154,7 +154,7 @@ func delayedUpdateGroupUsers(ctx context.Context, spaceID string) (err error) {
 
 	logus.Debugf(ctx, "delayedUpdateGroupUsers(spaceID=%v)", spaceID)
 	if err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
-		splitusSpace := models4splitus2.NewSplitusSpaceEntry(spaceID)
+		splitusSpace := models4splitus.NewSplitusSpaceEntry(spaceID)
 		if err = tx.Get(ctx, splitusSpace.Record); err != nil {
 			return err
 		}
@@ -176,9 +176,9 @@ func delayedUpdateUserWithGroups(ctx context.Context, userID string, groupIDs2ad
 	logus.Debugf(ctx, "delayedUpdateUserWithGroups(userID=%s, groupIDs2add=%+v, groupIDs2remove=%+v)", userID, groupIDs2add, groupIDs2remove)
 	if err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
 		var splitusSpaceRecords []dal.Record
-		groups2add := make([]models4splitus2.SplitusSpaceEntry, len(groupIDs2add))
+		groups2add := make([]models4splitus.SplitusSpaceEntry, len(groupIDs2add))
 		for i, spaceID := range groupIDs2add {
-			groups2add[i] = models4splitus2.NewSplitusSpaceEntry(spaceID)
+			groups2add[i] = models4splitus.NewSplitusSpaceEntry(spaceID)
 		}
 		if err = tx.GetMulti(ctx, splitusSpaceRecords); err != nil {
 			return err
@@ -200,7 +200,7 @@ func delayedUpdateUserWithGroups(ctx context.Context, userID string, groupIDs2ad
 	return err
 }
 
-func UpdateUserWithGroups(ctx context.Context, _ dal.ReadwriteTransaction, user dbo4userus.UserEntry, groups2add []models4splitus2.GroupEntry, groups2remove []string) (err error) {
+func UpdateUserWithGroups(ctx context.Context, _ dal.ReadwriteTransaction, user dbo4userus.UserEntry, groups2add []models4splitus.GroupEntry, groups2remove []string) (err error) {
 	logus.Debugf(ctx, "updateUserWithGroup(user.ContactID=%s, len(groups2add)=%d, groups2remove=%+v)", user.ID, len(groups2add), groups2remove)
 	return errors.New("not implemented")
 	//groups := user.Data.ActiveGroups()

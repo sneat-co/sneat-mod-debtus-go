@@ -8,7 +8,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/sneat-co/sneat-core-modules/userus/dal4userus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/logus"
 	"net/http"
 	"sync"
@@ -16,7 +16,7 @@ import (
 )
 
 type contactWithBalances struct {
-	models4debtus2.DebtusSpaceContactEntry
+	models4debtus.DebtusSpaceContactEntry
 	transfersCount int
 	balances       balances
 }
@@ -26,7 +26,7 @@ type transfersInfo struct {
 	balance money.Balance
 }
 
-func newContactWithBalances(ctx context.Context, now time.Time, contact models4debtus2.DebtusSpaceContactEntry) contactWithBalances {
+func newContactWithBalances(ctx context.Context, now time.Time, contact models4debtus.DebtusSpaceContactEntry) contactWithBalances {
 	balanceWithInterest, err := contact.Data.BalanceWithInterest(ctx, now)
 	result := contactWithBalances{
 		DebtusSpaceContactEntry: contact,
@@ -115,11 +115,11 @@ func validateTransfers(ctx context.Context, userID string, userBalances balances
 
 func validateContacts(ctx context.Context,
 	now time.Time,
-	debtusSpace models4debtus2.DebtusSpaceEntry,
+	debtusSpace models4debtus.DebtusSpaceEntry,
 	userBalances balances,
 ) (
 	contactsMissingInJson, contactsMissedByQuery, matchedContacts map[string]contactWithBalances,
-	contactInfosNotFoundInDb map[string]*models4debtus2.DebtusContactBrief,
+	contactInfosNotFoundInDb map[string]*models4debtus.DebtusContactBrief,
 	err error,
 ) {
 	contactInfos := make(map[string]contactWithBalances, len(debtusSpace.Data.Contacts))
@@ -127,7 +127,7 @@ func validateContacts(ctx context.Context,
 	contactsTotalWithoutInterest := make(money.Balance, len(userBalances.withoutInterest.byCurrency))
 	contactsTotalWithInterest := make(money.Balance, len(userBalances.withInterest.byCurrency))
 
-	updateBalance := func(contact models4debtus2.DebtusSpaceContactEntry) (ci contactWithBalances, err error) {
+	updateBalance := func(contact models4debtus.DebtusSpaceContactEntry) (ci contactWithBalances, err error) {
 		contactBalanceWithoutInterest := contact.Data.Balance
 		contactBalanceWithInterest, err := contact.Data.BalanceWithInterest(ctx, now)
 		if err == nil {
@@ -164,10 +164,10 @@ func validateContacts(ctx context.Context,
 	}
 
 	for contactID, contactBrief := range debtusSpace.Data.Contacts {
-		var contact models4debtus2.DebtusSpaceContactEntry
+		var contact models4debtus.DebtusSpaceContactEntry
 		if contact, err = facade4debtus.GetDebtusSpaceContactByID(ctx, nil, debtusSpace.ID, contactID); err != nil {
 			if dal.IsNotFound(err) {
-				contactInfosNotFoundInDb = make(map[string]*models4debtus2.DebtusContactBrief)
+				contactInfosNotFoundInDb = make(map[string]*models4debtus.DebtusContactBrief)
 				contactInfosNotFoundInDb[contactID] = contactBrief
 			} else {
 				panic(err)
@@ -264,11 +264,11 @@ func userPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 
 	var contactsMissingInJson, contactsMissedByQuery, matchedContacts map[string]contactWithBalances
-	var contactInfosNotFoundInDb map[string]*models4debtus2.DebtusContactBrief
+	var contactInfosNotFoundInDb map[string]*models4debtus.DebtusContactBrief
 
 	spaceID := user.Data.GetFamilySpaceID()
-	debtusSpace := models4debtus2.NewDebtusSpaceEntry(spaceID)
-	if err = models4debtus2.GetDebtusSpace(c, nil, debtusSpace); err != nil {
+	debtusSpace := models4debtus.NewDebtusSpaceEntry(spaceID)
+	if err = models4debtus.GetDebtusSpace(c, nil, debtusSpace); err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return
 	}

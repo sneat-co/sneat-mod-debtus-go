@@ -1,36 +1,34 @@
 package dtb_transfer
 
 import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/sneat-co/sneat-core-modules/contactus/dto4contactus"
 	"github.com/sneat-co/sneat-core-modules/userus/dal4userus"
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-go-core/models/dbmodels"
-	common4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/common4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/common4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/debtusbot/cmd/dtb_general"
-	facade4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/analytics"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/sms"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/general"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/logus"
-
-	//"github.com/sneat-co/sneat-go-backend/debtusbot/gae_app/invites"
-	"encoding/json"
-	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
-
-	"context"
-	"errors"
-	"github.com/bots-go-framework/bots-fw-telegram"
-	"github.com/sneat-co/debtstracker-translations/emoji"
+	//"github.com/sneat-co/sneat-go-backend/debtusbot/gae_app/invites"
 )
 
 const ASK_PHONE_NUMBER_FOR_RECEIPT_COMMAND = "ask-phone-number-for-receipt"
@@ -88,7 +86,7 @@ var AskPhoneNumberForReceiptCommand = botsfw.Command{
 				mt = whc.Input().(botinput.WebhookTextMessage).Text()
 			}
 
-			if twilioTestNumber, ok := common4debtus2.TwilioTestNumbers[mt]; ok {
+			if twilioTestNumber, ok := common4debtus.TwilioTestNumbers[mt]; ok {
 				logus.Debugf(ctx, "Using predefined test number [%v]: %v", mt, twilioTestNumber)
 				phoneNumberStr = twilioTestNumber
 			} else {
@@ -111,12 +109,12 @@ var AskPhoneNumberForReceiptCommand = botsfw.Command{
 			if transferID == "" {
 				return fmt.Errorf("empty transferID")
 			}
-			transfer, err := facade4debtus2.Transfers.GetTransferByID(ctx, tx, transferID)
+			transfer, err := facade4debtus.Transfers.GetTransferByID(ctx, tx, transferID)
 			if err != nil {
 				return fmt.Errorf("failed to get transfer by ContactID: %w", err)
 			}
 			spaceID := params.User.Data.GetFamilySpaceID()
-			counterparty, err := facade4debtus2.GetDebtusSpaceContactByID(ctx, tx, spaceID, transfer.Data.Counterparty().ContactID)
+			counterparty, err := facade4debtus.GetDebtusSpaceContactByID(ctx, tx, spaceID, transfer.Data.Counterparty().ContactID)
 			if err != nil {
 				return err
 			}
@@ -132,11 +130,11 @@ var AskPhoneNumberForReceiptCommand = botsfw.Command{
 const SMS_STATUS_MESSAGE_ID_PARAM_NAME = "SmsStatusMessageId"
 const SMS_STATUS_MESSAGE_UPDATES_COUNT_PARAM_NAME = "SmsStatusUpdatesCount"
 
-func sendReceiptBySms(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, spaceID string, phoneContact dto4contactus.PhoneContact, transfer models4debtus2.TransferEntry, counterparty models4debtus2.DebtusSpaceContactEntry) (m botsfw.MessageFromBot, err error) {
+func sendReceiptBySms(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, spaceID string, phoneContact dto4contactus.PhoneContact, transfer models4debtus.TransferEntry, counterparty models4debtus.DebtusSpaceContactEntry) (m botsfw.MessageFromBot, err error) {
 	ctx := whc.Context()
 
 	if transfer.Data == nil {
-		if transfer, err = facade4debtus2.Transfers.GetTransferByID(ctx, tx, transfer.ID); err != nil {
+		if transfer, err = facade4debtus.Transfers.GetTransferByID(ctx, tx, transfer.ID); err != nil {
 			return m, err
 		}
 	}
@@ -156,16 +154,16 @@ func sendReceiptBySms(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, sp
 		//inviteCode string
 	)
 
-	receiptData := models4debtus2.NewReceiptEntity(whc.AppUserID(), transfer.ID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, "sms", strconv.FormatInt(phoneContact.PhoneNumber, 10), general.CreatedOn{
+	receiptData := models4debtus.NewReceiptEntity(whc.AppUserID(), transfer.ID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, "sms", strconv.FormatInt(phoneContact.PhoneNumber, 10), general.CreatedOn{
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
 	})
-	var receipt models4debtus2.ReceiptEntry
+	var receipt models4debtus.ReceiptEntry
 	if receipt, err = dtdal.Receipt.CreateReceipt(ctx, receiptData); err != nil {
 		return m, err
 	}
 
-	receiptUrl := common4debtus2.GetReceiptUrl(receipt.ID, common4debtus2.GetWebsiteHost(receiptData.CreatedOnID))
+	receiptUrl := common4debtus.GetReceiptUrl(receipt.ID, common4debtus.GetWebsiteHost(receiptData.CreatedOnID))
 
 	if counterparty.Data.CounterpartyUserID == "" {
 		//related := fmt.Sprintf("%v=%v", models.TransfersCollection, transferID)
@@ -183,9 +181,9 @@ func sendReceiptBySms(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, sp
 	// You've given $10 to Jack
 
 	switch transfer.Data.Direction() {
-	case models4debtus2.TransferDirectionUser2Counterparty:
+	case models4debtus.TransferDirectionUser2Counterparty:
 		smsText = fmt.Sprintf(whc.Translate(trans.SMS_RECEIPT_YOU_GOT), transfer.Data.GetAmount(), user.FullName())
-	case models4debtus2.TransferDirectionCounterparty2User:
+	case models4debtus.TransferDirectionCounterparty2User:
 		smsText = fmt.Sprintf(whc.Translate(trans.SMS_RECEIPT_YOU_GAVE), transfer.Data.GetAmount(), user.FullName())
 	default:
 		return m, errors.New("Unknown direction: " + string(transfer.Data.Direction()))
@@ -291,14 +289,14 @@ func sendReceiptBySms(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, sp
 			return
 		}
 		if counterparty.Data.PhoneNumber == phoneContact.PhoneNumber {
-			var counterparty models4debtus2.DebtusSpaceContactEntry
-			counterparty, err = facade4debtus2.GetDebtusSpaceContactByID(ctx, tx, spaceID, transfer.Data.Counterparty().ContactID)
+			var counterparty models4debtus.DebtusSpaceContactEntry
+			counterparty, err = facade4debtus.GetDebtusSpaceContactByID(ctx, tx, spaceID, transfer.Data.Counterparty().ContactID)
 			if err != nil {
 				return
 			}
 			if counterparty.Data.PhoneNumber != phoneContact.PhoneNumber {
 				counterparty.Data.PhoneNumber = phoneContact.PhoneNumber
-				err = facade4debtus2.SaveContact(ctx, counterparty)
+				err = facade4debtus.SaveContact(ctx, counterparty)
 			}
 		}
 		if m, err = whc.NewEditMessage(fmt.Sprintf("<b>Exception</b>\n%v\n\n<b>SMS text</b>\n%v", twilioException, smsText), botsfw.MessageFormatHTML); err != nil {

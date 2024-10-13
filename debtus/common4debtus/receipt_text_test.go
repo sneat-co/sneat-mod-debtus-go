@@ -5,7 +5,7 @@ import (
 	"github.com/crediterra/money"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/sneat-co/sneat-core-modules/common4all"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/i18n"
 	"regexp"
 	"testing"
@@ -31,15 +31,15 @@ func TestWriteReceiptText(t *testing.T) {
 
 	translator := i18n.NewSingleMapTranslator(i18n.LocaleEnUS, i18n.NewMapTranslator(c, i18n.LocaleCodeEnUK, trans.TRANS))
 
-	transfer := models4debtus2.NewTransfer("123", models4debtus2.NewTransferData(
+	transfer := models4debtus.NewTransfer("123", models4debtus.NewTransferData(
 		"12",
 		false,
 		money.Amount{Currency: "EUR", Value: 98765},
-		&models4debtus2.TransferCounterpartyInfo{
+		&models4debtus.TransferCounterpartyInfo{
 			ContactID:   "23",
 			ContactName: "John Whites",
 		},
-		&models4debtus2.TransferCounterpartyInfo{
+		&models4debtus.TransferCounterpartyInfo{
 			UserID:   "12",
 			UserName: "Anna Blacks",
 		},

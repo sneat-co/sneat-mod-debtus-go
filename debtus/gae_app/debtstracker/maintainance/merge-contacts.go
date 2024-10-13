@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
-	dal4contactus2 "github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
+	"github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
 	"github.com/sneat-co/sneat-go-core/facade"
-	facade4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/logus"
 	"net/http"
 	"strings"
@@ -53,20 +53,20 @@ func mergeContacts(ctx context.Context, userCtx facade.UserContext, tx dal.Readw
 		panic("len(sourceContactIDs) == 0")
 	}
 
-	contactusSpace := dal4contactus2.NewContactusSpaceEntry(spaceID)
-	debtusSpace := models4debtus2.NewDebtusSpaceEntry(spaceID)
+	contactusSpace := dal4contactus.NewContactusSpaceEntry(spaceID)
+	debtusSpace := models4debtus.NewDebtusSpaceEntry(spaceID)
 
-	targetContact := dal4contactus2.NewContactEntry(spaceID, targetContactID)
+	targetContact := dal4contactus.NewContactEntry(spaceID, targetContactID)
 
-	var targetDebtusContact models4debtus2.DebtusSpaceContactEntry
+	var targetDebtusContact models4debtus.DebtusSpaceContactEntry
 
-	if targetDebtusContact, err = facade4debtus2.GetDebtusSpaceContactByID(ctx, tx, spaceID, targetContactID); err != nil {
+	if targetDebtusContact, err = facade4debtus.GetDebtusSpaceContactByID(ctx, tx, spaceID, targetContactID); err != nil {
 		if dal.IsNotFound(err) && len(sourceContactIDs) == 1 {
-			if targetDebtusContact, err = facade4debtus2.GetDebtusSpaceContactByID(ctx, tx, spaceID, sourceContactIDs[0]); err != nil {
+			if targetDebtusContact, err = facade4debtus.GetDebtusSpaceContactByID(ctx, tx, spaceID, sourceContactIDs[0]); err != nil {
 				return
 			}
 			targetDebtusContact.ID = targetContactID
-			if err = facade4debtus2.SaveContact(ctx, targetDebtusContact); err != nil {
+			if err = facade4debtus.SaveContact(ctx, targetDebtusContact); err != nil {
 				return
 			}
 		} else {
@@ -74,7 +74,7 @@ func mergeContacts(ctx context.Context, userCtx facade.UserContext, tx dal.Readw
 		}
 	}
 
-	if err = dal4contactus2.GetContactusSpace(ctx, tx, contactusSpace); err != nil {
+	if err = dal4contactus.GetContactusSpace(ctx, tx, contactusSpace); err != nil {
 		return
 	}
 
@@ -83,8 +83,8 @@ func mergeContacts(ctx context.Context, userCtx facade.UserContext, tx dal.Readw
 			err = fmt.Errorf("sourceContactID == targetContactID: %v", sourceContactID)
 			return
 		}
-		sourceContact := dal4contactus2.NewContactEntry(spaceID, sourceContactID)
-		if err = dal4contactus2.GetContact(ctx, tx, sourceContact); err != nil {
+		sourceContact := dal4contactus.NewContactEntry(spaceID, sourceContactID)
+		if err = dal4contactus.GetContact(ctx, tx, sourceContact); err != nil {
 			if dal.IsNotFound(err) {
 				continue
 			}
@@ -117,10 +117,10 @@ func mergeContacts(ctx context.Context, userCtx facade.UserContext, tx dal.Readw
 	}
 
 	if err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
-		if err = dal4contactus2.GetContactusSpace(ctx, tx, contactusSpace); err != nil {
+		if err = dal4contactus.GetContactusSpace(ctx, tx, contactusSpace); err != nil {
 			return
 		}
-		debtusContacts := make(map[string]*models4debtus2.DebtusContactBrief)
+		debtusContacts := make(map[string]*models4debtus.DebtusContactBrief)
 		targetContactBalance := targetDebtusContact.Data.Balance
 		for contactID, debtusContact := range debtusSpace.Data.Contacts {
 			for _, sourceContactID := range sourceContactIDs {
@@ -128,8 +128,8 @@ func mergeContacts(ctx context.Context, userCtx facade.UserContext, tx dal.Readw
 					for currency, value := range debtusContact.Balance {
 						targetContactBalance.Add(money.NewAmount(currency, value))
 					}
-					sourceDebtusContact := models4debtus2.NewDebtusSpaceContactEntry(spaceID, sourceContactID, nil)
-					if err = facade4debtus2.GetDebtusSpaceContact(ctx, tx, sourceDebtusContact); err != nil {
+					sourceDebtusContact := models4debtus.NewDebtusSpaceContactEntry(spaceID, sourceContactID, nil)
+					if err = facade4debtus.GetDebtusSpaceContact(ctx, tx, sourceDebtusContact); err != nil {
 						if !dal.IsNotFound(err) {
 							return
 						}
@@ -140,14 +140,14 @@ func mergeContacts(ctx context.Context, userCtx facade.UserContext, tx dal.Readw
 							targetDebtusContact.Data.LastTransferID = sourceDebtusContact.Data.LastTransferID
 						}
 						if sourceDebtusContact.Data.CounterpartyContactID != "" {
-							counterpartyContact := models4debtus2.NewDebtusSpaceContactEntry(spaceID, sourceDebtusContact.Data.CounterpartyContactID, nil)
-							if err = facade4debtus2.GetDebtusSpaceContact(ctx, tx, counterpartyContact); err != nil {
+							counterpartyContact := models4debtus.NewDebtusSpaceContactEntry(spaceID, sourceDebtusContact.Data.CounterpartyContactID, nil)
+							if err = facade4debtus.GetDebtusSpaceContact(ctx, tx, counterpartyContact); err != nil {
 								if !dal.IsNotFound(err) {
 									return
 								}
 							} else if counterpartyContact.Data.CounterpartyContactID == sourceContactID {
 								counterpartyContact.Data.CounterpartyContactID = targetContactID
-								if err = facade4debtus2.SaveContact(ctx, counterpartyContact); err != nil {
+								if err = facade4debtus.SaveContact(ctx, counterpartyContact); err != nil {
 									return
 								}
 							} else if counterpartyContact.Data.CounterpartyContactID != "" && counterpartyContact.Data.CounterpartyContactID != targetContactID {
@@ -158,7 +158,7 @@ func mergeContacts(ctx context.Context, userCtx facade.UserContext, tx dal.Readw
 							}
 						}
 					}
-					if err = facade4debtus2.DeleteContactTx(ctx, userCtx, tx, spaceID, sourceContactID); err != nil {
+					if err = facade4debtus.DeleteContactTx(ctx, userCtx, tx, spaceID, sourceContactID); err != nil {
 						return
 					}
 				} else {
@@ -186,10 +186,10 @@ func mergeContactTransfers(ctx context.Context, tx dal.ReadwriteTransaction, wg 
 	defer func() {
 		wg.Done()
 	}()
-	transfersQ := dal.From(models4debtus2.TransfersCollection).
+	transfersQ := dal.From(models4debtus.TransfersCollection).
 		Where(dal.Field("BothCounterpartyIDs").EqualTo(sourceContactID)).
 		SelectInto(func() dal.Record {
-			return models4debtus2.NewTransfer("", nil).Record
+			return models4debtus.NewTransfer("", nil).Record
 		})
 	transfers, err := tx.QueryReader(ctx, transfersQ)
 	if err != nil {
@@ -197,7 +197,7 @@ func mergeContactTransfers(ctx context.Context, tx dal.ReadwriteTransaction, wg 
 	}
 	var (
 		record   dal.Record
-		transfer models4debtus2.TransferEntry
+		transfer models4debtus.TransferEntry
 	)
 	for {
 		if record, err = transfers.Next(); err != nil {
@@ -220,7 +220,7 @@ func mergeContactTransfers(ctx context.Context, tx dal.ReadwriteTransaction, wg 
 		case transfer.Data.BothCounterpartyIDs[1]:
 			transfer.Data.BothCounterpartyIDs[1] = targetContactID
 		}
-		if err = facade4debtus2.Transfers.SaveTransfer(ctx, tx, transfer); err != nil {
+		if err = facade4debtus.Transfers.SaveTransfer(ctx, tx, transfer); err != nil {
 			logus.Errorf(ctx, "Failed to save transfer #%v: %v", transfer.ID, err)
 		}
 	}

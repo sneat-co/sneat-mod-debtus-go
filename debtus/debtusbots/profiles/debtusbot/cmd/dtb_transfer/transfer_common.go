@@ -2,30 +2,36 @@ package dtb_transfer
 
 import (
 	"bytes"
+	"context"
+	"errors"
 	"fmt"
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/sneat-co/sneat-core-modules/common4all"
-	briefs4contactus2 "github.com/sneat-co/sneat-core-modules/contactus/briefs4contactus"
+	"github.com/sneat-co/sneat-core-modules/contactus/briefs4contactus"
 	"github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
 	"github.com/sneat-co/sneat-core-modules/contactus/dbo4contactus"
 	"github.com/sneat-co/sneat-core-modules/spaceus/dto4spaceus"
 	"github.com/sneat-co/sneat-core-modules/userus/dal4userus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
 	"github.com/sneat-co/sneat-go-core/facade"
-	common4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/common4debtus"
-	dtb_general2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/debtusbot/cmd/dtb_general"
-	facade4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/common4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/debtusbot/cmd/dtb_general"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/analytics"
-	dtdal2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/strongo/decimal"
 	"github.com/strongo/i18n"
 	"github.com/strongo/logus"
+	"golang.org/x/net/html"
 	"math"
 	"net/url"
 	"regexp"
@@ -33,13 +39,6 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
-
-	"context"
-	"errors"
-	"github.com/bots-go-framework/bots-fw-telegram"
-	"github.com/sneat-co/debtstracker-translations/emoji"
-	"github.com/strongo/decimal"
-	"golang.org/x/net/html"
 )
 
 var transferRegex = regexp.MustCompile(`(?i)((?P<verb>\w+) )?(?P<amount>\d+)\s*(?P<currency>\w{3})?\s*(?P<direction>from|to)\s+(?P<contact>.+)[\s\.]*`)
@@ -240,7 +239,7 @@ func AskTransferAmountCommand(code, messageTextFormat string, nextCommand botsfw
 	}
 }
 
-type _onContactSelectedAction func(whc botsfw.WebhookContext, counterparty models4debtus2.DebtusSpaceContactEntry) (m botsfw.MessageFromBot, err error)
+type _onContactSelectedAction func(whc botsfw.WebhookContext, counterparty models4debtus.DebtusSpaceContactEntry) (m botsfw.MessageFromBot, err error)
 
 func CreateAskTransferCounterpartyCommand(
 	isReturn bool,
@@ -266,7 +265,7 @@ func CreateAskTransferCounterpartyCommand(
 			}
 			spaceID := user.Data.GetFamilySpaceID()
 
-			debtusSpace := models4debtus2.NewDebtusSpaceEntry(spaceID)
+			debtusSpace := models4debtus.NewDebtusSpaceEntry(spaceID)
 			contactusSpace := dal4contactus.NewContactusSpaceEntry(spaceID)
 
 			var db dal.DB
@@ -300,7 +299,7 @@ func CreateAskTransferCounterpartyCommand(
 					}
 
 					var contactIDs []string
-					if contactIDs, err = dtdal2.Contact.GetContactIDsByTitle(ctx, nil, spaceID, whc.AppUserID(), mt, true); err != nil {
+					if contactIDs, err = dtdal.Contact.GetContactIDsByTitle(ctx, nil, spaceID, whc.AppUserID(), mt, true); err != nil {
 						return m, err
 					}
 					if mt == whc.Translate(trans.COMMAND_TEXT_SHOW_ALL_CONTACTS) {
@@ -312,8 +311,8 @@ func CreateAskTransferCounterpartyCommand(
 						case 1:
 							contactID := contactIDs[0]
 							chatEntity.AddWizardParam(WizardParamCounterparty, contactID)
-							var contact models4debtus2.DebtusSpaceContactEntry
-							if contact, err = facade4debtus2.GetDebtusSpaceContactByID(ctx, nil, spaceID, contactID); err != nil {
+							var contact models4debtus.DebtusSpaceContactEntry
+							if contact, err = facade4debtus.GetDebtusSpaceContactByID(ctx, nil, spaceID, contactID); err != nil {
 								return
 							}
 							m, err = onContactSelectedAction(whc, contact)
@@ -335,7 +334,7 @@ func CreateAskTransferCounterpartyCommand(
 				logus.Debugf(ctx, "default:")
 				if isReturn && len(debtusSpace.Data.Balance) <= 3 && len(debtusSpace.Data.Contacts) <= 3 {
 					// If there is little debts in total show selection of debts immediately
-					counterparties, err := dtdal2.Contact.GetLatestContacts(whc, nil, spaceID, 0, len(debtusSpace.Data.Contacts))
+					counterparties, err := dtdal.Contact.GetLatestContacts(whc, nil, spaceID, 0, len(debtusSpace.Data.Contacts))
 					if err != nil {
 						return m, err
 					}
@@ -378,7 +377,7 @@ const counterpartyButtonsLimit = 4
 func listCounterpartiesAsButtons(
 	whc botsfw.WebhookContext,
 	contactusSpaceDbo dbo4contactus.ContactusSpaceDbo,
-	debtusSpaceDbo models4debtus2.DebtusSpaceDbo,
+	debtusSpaceDbo models4debtus.DebtusSpaceDbo,
 	messageText string,
 	newCounterpartyCommand botsfw.Command,
 ) (
@@ -408,12 +407,12 @@ func listCounterpartiesAsButtons(
 	var showAllContactsText = whc.Translate(trans.COMMAND_TEXT_SHOW_ALL_CONTACTS)
 
 	buttons := [][]string{}
-	var counterparties2buttons = func(contactBriefs map[string]*briefs4contactus2.ContactBrief, isShowingAll bool) {
+	var counterparties2buttons = func(contactBriefs map[string]*briefs4contactus.ContactBrief, isShowingAll bool) {
 		for _, contact := range contactBriefs {
 			buttons = append(buttons, []string{contact.Title})
 		}
 		var controlButtons []string
-		if totalContactsCount := contactusSpaceDbo.TotalContactsCountByStatus[briefs4contactus2.ContactStatusActive]; !isShowingAll && (totalContactsCount == 0 || len(contactBriefs) < totalContactsCount) {
+		if totalContactsCount := contactusSpaceDbo.TotalContactsCountByStatus[briefs4contactus.ContactStatusActive]; !isShowingAll && (totalContactsCount == 0 || len(contactBriefs) < totalContactsCount) {
 			controlButtons = append(controlButtons, showAllContactsText)
 		}
 		if newCounterpartyCommand.Code != "" {
@@ -428,9 +427,9 @@ func listCounterpartiesAsButtons(
 	} else {
 		switch len(debtusSpaceDbo.Balance) {
 		case 0: // Space has no active debts
-			if contactusSpaceDbo.TotalContactsCountByStatus[briefs4contactus2.ContactStatusActive] > 0 {
+			if contactusSpaceDbo.TotalContactsCountByStatus[briefs4contactus.ContactStatusActive] > 0 {
 				counterparties := debtusSpaceDbo.LatestCounterparties(counterpartyButtonsLimit)
-				contacts := make(map[string]*briefs4contactus2.ContactBrief, len(counterparties))
+				contacts := make(map[string]*briefs4contactus.ContactBrief, len(counterparties))
 				for _, counterparty := range counterparties {
 					contacts[counterparty.ContactID] = contactusSpaceDbo.Contacts[counterparty.ContactID]
 				}
@@ -440,7 +439,7 @@ func listCounterpartiesAsButtons(
 			}
 		default: // UserEntry have active debts (balance is not 0).
 
-			contactsToShow := make(map[string]*briefs4contactus2.ContactBrief)
+			contactsToShow := make(map[string]*briefs4contactus.ContactBrief)
 			if len(contactsToShow) <= counterpartyButtonsLimit {
 				latestCounterparties := debtusSpaceDbo.LatestCounterparties(counterpartyButtonsLimit)
 				for _, latestCounterparty := range latestCounterparties {
@@ -501,7 +500,7 @@ func TransferWizardCompletedCommand(code string) botsfw.Command {
 			ctx := whc.Context()
 
 			if chatEntity := whc.ChatData(); strings.Contains(chatEntity.GetAwaitingReplyTo(), "counterparty=0") {
-				return dtb_general2.MainMenuAction(whc, trans.MESSGE_TEXT_DEBT_ERROR_FIXED_START_OVER, false)
+				return dtb_general.MainMenuAction(whc, trans.MESSGE_TEXT_DEBT_ERROR_FIXED_START_OVER, false)
 			}
 
 			logus.Infof(ctx, "TransferWizardCompletedCommand(code=%v).Action()", code)
@@ -510,12 +509,12 @@ func TransferWizardCompletedCommand(code string) botsfw.Command {
 				return m, err
 			}
 
-			var direction models4debtus2.TransferDirection
+			var direction models4debtus.TransferDirection
 			switch {
 			case strings.HasPrefix(code, "transfer-from-"):
-				direction = models4debtus2.TransferDirectionUser2Counterparty
+				direction = models4debtus.TransferDirectionUser2Counterparty
 			case strings.HasPrefix(code, "transfer-to-"):
-				direction = models4debtus2.TransferDirectionCounterparty2User
+				direction = models4debtus.TransferDirectionCounterparty2User
 			default:
 				return m, fmt.Errorf("Can not decide direction due to unknown code: %v", code)
 			}
@@ -555,7 +554,7 @@ func TransferWizardCompletedCommand(code string) botsfw.Command {
 
 			amount := money.Amount{Currency: currency, Value: value}
 
-			creatorInfo := models4debtus2.TransferCounterpartyInfo{
+			creatorInfo := models4debtus.TransferCounterpartyInfo{
 				UserID:      whc.AppUserID(),
 				ContactID:   counterpartyId,
 				ContactName: "",
@@ -568,7 +567,7 @@ func TransferWizardCompletedCommand(code string) botsfw.Command {
 				creatorInfo.Comment = comment
 			}
 
-			var transferInterest models4debtus2.TransferInterest
+			var transferInterest models4debtus.TransferInterest
 
 			if interest := params.Get(TRANSFER_WIZARD_PARAM_INTEREST); interest != "" {
 				if transferInterest, err = getInterestData(interest); err != nil {
@@ -594,11 +593,11 @@ func CreateTransferFromBot(
 	whc botsfw.WebhookContext,
 	isReturn bool,
 	returnToTransferID string,
-	direction models4debtus2.TransferDirection,
-	creatorInfo models4debtus2.TransferCounterpartyInfo,
+	direction models4debtus.TransferDirection,
+	creatorInfo models4debtus.TransferCounterpartyInfo,
 	amount money.Amount,
 	dueOn time.Time,
-	transferInterest models4debtus2.TransferInterest,
+	transferInterest models4debtus.TransferInterest,
 ) (
 	m botsfw.MessageFromBot,
 	err error,
@@ -612,7 +611,7 @@ func CreateTransferFromBot(
 	pleaseWaitMessageConfig := whc.NewMessage(emoji.HOURGLASS_ICON + " " + whc.Translate(trans.MESSAGE_TEXT_TRANSFER_IS_CREATING))
 	pleaseWaitMessageConfig.Keyboard = tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{
-			tgbotapi.NewInlineKeyboardButtonData(whc.Translate(trans.COMMAND_TEXT_PLEASE_WAIT), dtb_general2.PLEASE_WAIT_COMMAND),
+			tgbotapi.NewInlineKeyboardButtonData(whc.Translate(trans.COMMAND_TEXT_PLEASE_WAIT), dtb_general.PLEASE_WAIT_COMMAND),
 		},
 	)
 
@@ -622,13 +621,13 @@ func CreateTransferFromBot(
 		return m, err
 	}
 
-	from, to := facade4debtus2.TransferCounterparties(direction, creatorInfo)
+	from, to := facade4debtus.TransferCounterparties(direction, creatorInfo)
 
 	var user dbo4userus.UserEntry
 	if user, err = dal4userus.GetUserByID(ctx, nil, whc.AppUserID()); err != nil {
 		return
 	}
-	request := facade4debtus2.CreateTransferRequest{
+	request := facade4debtus.CreateTransferRequest{
 		SpaceRequest: dto4spaceus.SpaceRequest{},
 		Amount:       amount,
 		DueOn:        &dueOn,
@@ -636,22 +635,22 @@ func CreateTransferFromBot(
 	}
 	env := whc.Environment()
 	source := GetTransferSource(whc)
-	newTransfer := facade4debtus2.NewTransferInput(env,
+	newTransfer := facade4debtus.NewTransferInput(env,
 		source,
 		user,
 		request,
 		from, to,
 	)
 
-	output, err := facade4debtus2.Transfers.CreateTransfer(whc.Context(), newTransfer)
+	output, err := facade4debtus.Transfers.CreateTransfer(whc.Context(), newTransfer)
 
 	if err != nil {
 		switch err {
-		case facade4debtus2.ErrNoOutstandingTransfers:
+		case facade4debtus.ErrNoOutstandingTransfers:
 			m.Text = whc.Translate(trans.MT_NO_OUTSTANDING_TRANSFERS)
 			logus.Warningf(ctx, "Attempt to create return but no outstanding debts: %v", err)
 			return
-		case facade4debtus2.ErrAttemptToCreateDebtWithInterestAffectingOutstandingTransfers:
+		case facade4debtus.ErrAttemptToCreateDebtWithInterestAffectingOutstandingTransfers:
 			//err = nil
 			buf := new(bytes.Buffer)
 			buf.WriteString(whc.Translate(trans.MT_ATTEMPT_TO_CREATE_DEBT_WITH_INTEREST_AFFECTING_OUTSTANDING) + "\n")
@@ -660,7 +659,7 @@ func CreateTransferFromBot(
 				return
 			}
 			now := time.Now()
-			if outstandingTransfer, err := dtdal2.Transfer.LoadOutstandingTransfers(ctx, db, now, user.ID, creatorInfo.ContactID, amount.Currency, newTransfer.Direction().Reverse()); err != nil {
+			if outstandingTransfer, err := dtdal.Transfer.LoadOutstandingTransfers(ctx, db, now, user.ID, creatorInfo.ContactID, amount.Currency, newTransfer.Direction().Reverse()); err != nil {
 				buf.WriteString(fmt.Errorf("failed to load outstanding api4transfers: %w", err).Error() + "\n")
 			} else if len(outstandingTransfer) == 0 {
 				return m, errors.New("got facade4debtus.ErrAttemptToCreateDebtWithInterestAffectingOutstandingTransfers but no outstanding api4transfers found")
@@ -673,7 +672,7 @@ func CreateTransferFromBot(
 			return m, err
 		}
 		logus.Errorf(ctx, "Failed to create transfer: %v", err)
-		if errors.Is(err, facade4debtus2.ErrNotImplemented) {
+		if errors.Is(err, facade4debtus.ErrNotImplemented) {
 			m.Text = whc.Translate(trans.MESSAGE_TEXT_NOT_IMPLEMENTED_YET) + "\n\n" + err.Error()
 			err = nil
 		}
@@ -721,7 +720,7 @@ func CreateTransferFromBot(
 
 	{
 		utm := common4all.NewUtmParams(whc, common4all.UTM_CAMPAIGN_RECEIPT)
-		receiptMessageText := common4debtus2.TextReceiptForTransfer(ctx, whc, output.Transfer, whc.AppUserID(), common4debtus2.ShowReceiptToAutodetect, utm)
+		receiptMessageText := common4debtus.TextReceiptForTransfer(ctx, whc, output.Transfer, whc.AppUserID(), common4debtus.ShowReceiptToAutodetect, utm)
 
 		switch whc.BotPlatform().ID() {
 		case telegram.PlatformID:
@@ -741,7 +740,7 @@ func CreateTransferFromBot(
 					return m, err
 				} else {
 					tgMessage := response.TelegramMessage.(tgbotapi.Message)
-					if err = dtdal2.Transfer.DelayUpdateTransferWithCreatorReceiptTgMessageID(whc.Context(), whc.GetBotCode(), output.Transfer.ID, tgMessage.Chat.ID, int64(tgMessage.MessageID)); err != nil {
+					if err = dtdal.Transfer.DelayUpdateTransferWithCreatorReceiptTgMessageID(whc.Context(), whc.GetBotCode(), output.Transfer.ID, tgMessage.Chat.ID, int64(tgMessage.MessageID)); err != nil {
 						return m, err
 					}
 					whc.ChatData().SetAwaitingReplyTo("")
@@ -755,7 +754,7 @@ func CreateTransferFromBot(
 		}
 	}
 
-	return dtb_general2.MainMenuAction(whc, "", false)
+	return dtb_general.MainMenuAction(whc, "", false)
 }
 
 func sendReceiptByTelegramButton(transferID string, translator i18n.SingleLocaleTranslator) tgbotapi.InlineKeyboardButton {
@@ -765,7 +764,7 @@ func sendReceiptByTelegramButton(transferID string, translator i18n.SingleLocale
 	)
 }
 
-func createSendReceiptOptionsMessage(whc botsfw.WebhookContext, transfer models4debtus2.TransferEntry) (m botsfw.MessageFromBot, err error) {
+func createSendReceiptOptionsMessage(whc botsfw.WebhookContext, transfer models4debtus.TransferEntry) (m botsfw.MessageFromBot, err error) {
 	ctx := whc.Context()
 
 	logus.Debugf(ctx, "createSendReceiptOptionsMessage(transferID=%v)", transfer.ID)
@@ -777,9 +776,9 @@ func createSendReceiptOptionsMessage(whc botsfw.WebhookContext, transfer models4
 		utmCampaign = common4all.UTM_CAMPAIGN_DEBT_CREATED
 	}
 	utmParams := common4all.NewUtmParams(whc, utmCampaign)
-	transferUrlForUser := common4debtus2.GetTransferUrlForUser(ctx, transfer.ID, whc.AppUserID(), whc.Locale(), utmParams)
+	transferUrlForUser := common4debtus.GetTransferUrlForUser(ctx, transfer.ID, whc.AppUserID(), whc.Locale(), utmParams)
 	mt = strings.Replace(mt, "<a receipt>", fmt.Sprintf(`<a href="%v">`, transferUrlForUser), 1)
-	if s, err := common4debtus2.GetCounterpartyUrl(ctx, transfer.Data.Counterparty().ContactID, whc.AppUserID(), whc.Locale(), utmParams); err != nil {
+	if s, err := common4debtus.GetCounterpartyUrl(ctx, transfer.Data.Counterparty().ContactID, whc.AppUserID(), whc.Locale(), utmParams); err != nil {
 		return m, err
 	} else {
 		mt = strings.Replace(mt, "<a counterparty>", fmt.Sprintf(`<a href="%v">`, s), 1)
@@ -820,7 +819,7 @@ func createSendReceiptOptionsMessage(whc botsfw.WebhookContext, transfer models4
 			Medium:   common4all.UTM_MEDIUM_BOT,
 			Campaign: common4all.UTM_CAMPAIGN_TRANSFER_SEND_RECEIPT,
 		}
-		transferUrl := common4debtus2.GetTransferUrlForUser(ctx, transfer.ID, whc.AppUserID(), whc.Locale(), utmParams)
+		transferUrl := common4debtus.GetTransferUrlForUser(ctx, transfer.ID, whc.AppUserID(), whc.Locale(), utmParams)
 
 		transferUrl += "&send=menu"
 
@@ -841,7 +840,7 @@ func createSendReceiptOptionsMessage(whc botsfw.WebhookContext, transfer models4
 			[]tgbotapi.InlineKeyboardButton{
 				tgbotapi.NewInlineKeyboardButtonData(
 					whc.Translate(trans.COMMAND_TEXT_GET_LINK_FOR_RECEIPT_IN_TELEGRAM),
-					SendReceiptCallbackData(transfer.ID, string(models4debtus2.InviteByLinkToTelegram)),
+					SendReceiptCallbackData(transfer.ID, string(models4debtus.InviteByLinkToTelegram)),
 				),
 			},
 		)
@@ -864,8 +863,8 @@ func createSendReceiptOptionsMessage(whc botsfw.WebhookContext, transfer models4
 //	title: COMMAND_TEXT_TOMORROW,
 //}
 
-func GetTransferSource(whc botsfw.WebhookContext) dtdal2.TransferSource {
-	return dtdal2.NewTransferSourceBot(whc.BotPlatform().ID(), whc.GetBotCode(), whc.MustBotChatID())
+func GetTransferSource(whc botsfw.WebhookContext) dtdal.TransferSource {
+	return dtdal.NewTransferSourceBot(whc.BotPlatform().ID(), whc.GetBotCode(), whc.MustBotChatID())
 }
 
 //const CALLBACK_COUNTERPARTY_WITHOUT_TG = "counterparty-no-tg"

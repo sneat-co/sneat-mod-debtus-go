@@ -9,7 +9,7 @@ import (
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/logus"
 	"github.com/strongo/slice"
 	"time"
@@ -49,7 +49,7 @@ func (linker *ReceiptUsersLinker) LinkReceiptUsers(ctx context.Context, receiptI
 		time.Sleep(time.Second / 2)
 	}
 	var invitedContact dal4contactus.ContactEntry
-	var invitedDebtusContact models4debtus2.DebtusSpaceContactEntry
+	var invitedDebtusContact models4debtus.DebtusSpaceContactEntry
 	attempt := 0
 	err = db.RunReadwriteTransaction(ctx, func(tctx context.Context, tx dal.ReadwriteTransaction) (err error) {
 		if attempt += 1; attempt > 1 {
@@ -254,7 +254,7 @@ func (linker *ReceiptUsersLinker) updateTransfer() (err error) {
 		if transfer.ID == "" || transfer.Data == nil {
 			panic(fmt.Sprintf("Invalid parameter: transfer: %v", transfer))
 		}
-		validateSide := func(side string, user dbo4userus.UserEntry, contact dal4contactus.ContactEntry, debtusContact models4debtus2.DebtusSpaceContactEntry) {
+		validateSide := func(side string, user dbo4userus.UserEntry, contact dal4contactus.ContactEntry, debtusContact models4debtus.DebtusSpaceContactEntry) {
 			if user.ID == "" || user.Data == nil {
 				panic(fmt.Sprintf("ReceiptUsersLinker.updateTransfer() => %vUser: %v", side, user))
 			}
@@ -285,7 +285,7 @@ func (linker *ReceiptUsersLinker) updateTransfer() (err error) {
 
 	updateTransferCounterpartyInfo := func(
 		side string,
-		counterparty *models4debtus2.TransferCounterpartyInfo,
+		counterparty *models4debtus.TransferCounterpartyInfo,
 		user dbo4userus.UserEntry,
 		contact dal4contactus.ContactEntry,
 	) {
@@ -318,7 +318,7 @@ func (linker *ReceiptUsersLinker) updateTransfer() (err error) {
 	//	transfer.CounterpartyTgReceiptInlineMessageID = inlineMessageID
 	//}
 	//transferAmount := transfer.Data.GetAmount()
-	if transfer.Data.Direction() == models4debtus2.TransferDirectionUser2Counterparty {
+	if transfer.Data.Direction() == models4debtus.TransferDirectionUser2Counterparty {
 		transfer.Data.AmountInCents *= -1
 	}
 

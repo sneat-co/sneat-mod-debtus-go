@@ -7,7 +7,7 @@ import (
 	"github.com/sneat-co/sneat-core-modules/userus/dal4userus"
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/const4debtus"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/logus"
 	"reflect"
 	"time"
@@ -16,8 +16,8 @@ import (
 func delayedUpdateSpaceHasDueTransfers(ctx context.Context, userID, spaceID string) (err error) {
 	logus.Infof(ctx, "delayedUpdateSpaceHasDueTransfers(userID=%v)", userID)
 	userCtx := facade.NewUserContext(userID)
-	err = dal4spaceus.RunModuleSpaceWorkerWithUserCtx(ctx, userCtx, spaceID, const4debtus.ModuleID, new(models4debtus2.DebtusSpaceDbo),
-		func(ctx context.Context, tx dal.ReadwriteTransaction, params *dal4spaceus.ModuleSpaceWorkerParams[*models4debtus2.DebtusSpaceDbo]) error {
+	err = dal4spaceus.RunModuleSpaceWorkerWithUserCtx(ctx, userCtx, spaceID, const4debtus.ModuleID, new(models4debtus.DebtusSpaceDbo),
+		func(ctx context.Context, tx dal.ReadwriteTransaction, params *dal4spaceus.ModuleSpaceWorkerParams[*models4debtus.DebtusSpaceDbo]) error {
 			if !params.SpaceModuleEntry.Data.HasDueTransfers {
 				params.SpaceModuleUpdates = append(params.SpaceModuleUpdates, params.SpaceModuleEntry.Data.SetHasDueTransfers(true))
 				params.SpaceModuleEntry.Record.MarkAsChanged()
@@ -28,7 +28,7 @@ func delayedUpdateSpaceHasDueTransfers(ctx context.Context, userID, spaceID stri
 }
 
 func checkHasDueTransfers(ctx context.Context, db dal.ReadSession, userID, spaceID string) (hasDueTransfer bool, err error) {
-	q := dal.From(models4debtus2.TransfersCollection).
+	q := dal.From(models4debtus.TransfersCollection).
 		WhereField("BothUserIDs", dal.Equal, userID).
 		WhereField("IsOutstanding", dal.Equal, true).
 		WhereField("DtDueOn", dal.GreaterThen, time.Time{}).
@@ -60,7 +60,7 @@ func delayedUpdateUserHasDueTransfers(ctx context.Context, userID, spaceID strin
 		return err
 	}
 
-	debtusUser := models4debtus2.NewDebtusUserEntry(userID)
+	debtusUser := models4debtus.NewDebtusUserEntry(userID)
 	if err = db.Get(ctx, debtusUser.Record); err != nil && !dal.IsNotFound(err) {
 		return err
 	}
@@ -80,8 +80,8 @@ func delayedUpdateUserHasDueTransfers(ctx context.Context, userID, spaceID strin
 		return nil
 	}
 
-	err = dal4userus.RunUserModuleWorker[models4debtus2.DebtusUserDbo](ctx, userID, const4debtus.ModuleID, new(models4debtus2.DebtusUserDbo),
-		func(ctx context.Context, tx dal.ReadwriteTransaction, params *dal4userus.UserModuleWorkerParams[models4debtus2.DebtusUserDbo]) error {
+	err = dal4userus.RunUserModuleWorker[models4debtus.DebtusUserDbo](ctx, userID, const4debtus.ModuleID, new(models4debtus.DebtusUserDbo),
+		func(ctx context.Context, tx dal.ReadwriteTransaction, params *dal4userus.UserModuleWorkerParams[models4debtus.DebtusUserDbo]) error {
 			if !params.UserModule.Data.HasDueTransfers {
 				params.UserModuleUpdates = append(params.UserModuleUpdates, params.UserModule.Data.SetHasDueTransfers(true))
 				logus.Infof(ctx, "User updated & saved to datastore")

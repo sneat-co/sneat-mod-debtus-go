@@ -7,20 +7,20 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/sneat-co/sneat-core-modules/auth/token4auth"
-	common4all2 "github.com/sneat-co/sneat-core-modules/common4all"
+	"github.com/sneat-co/sneat-core-modules/common4all"
 	"github.com/sneat-co/sneat-core-modules/userus/dal4userus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/common4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/debtusbotconst"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/platforms/debtustgbots"
-	facade4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus/dto4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/analytics"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/general"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/invites"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/i18n"
 	"github.com/strongo/logus"
 	"github.com/strongo/strongoapp"
@@ -29,7 +29,7 @@ import (
 	"time"
 )
 
-func NewReceiptTransferDto(ctx context.Context, transfer models4debtus2.TransferEntry) dto4debtus.ApiReceiptTransferDto {
+func NewReceiptTransferDto(ctx context.Context, transfer models4debtus.TransferEntry) dto4debtus.ApiReceiptTransferDto {
 	creator := transfer.Data.Creator()
 	transferDto := dto4debtus.ApiReceiptTransferDto{
 		ID:             transfer.ID,
@@ -62,24 +62,24 @@ func NewReceiptTransferDto(ctx context.Context, transfer models4debtus2.Transfer
 }
 
 func HandleGetReceipt(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	receiptID := common4all2.GetStrID(ctx, w, r, "id")
+	receiptID := common4all.GetStrID(ctx, w, r, "id")
 	if receiptID == "" {
 		return
 	}
 
 	receipt, err := dtdal.Receipt.GetReceiptByID(ctx, nil, receiptID)
-	if common4all2.HasError(ctx, w, err, models4debtus2.ReceiptKind, receiptID, http.StatusBadRequest) {
+	if common4all.HasError(ctx, w, err, models4debtus.ReceiptKind, receiptID, http.StatusBadRequest) {
 		return
 	}
 
-	var transfer models4debtus2.TransferEntry
+	var transfer models4debtus.TransferEntry
 	if err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
-		transfer, err = facade4debtus2.Transfers.GetTransferByID(ctx, tx, receipt.Data.TransferID)
-		if common4all2.HasError(ctx, w, err, models4debtus2.TransfersCollection, receipt.Data.TransferID, http.StatusInternalServerError) {
+		transfer, err = facade4debtus.Transfers.GetTransferByID(ctx, tx, receipt.Data.TransferID)
+		if common4all.HasError(ctx, w, err, models4debtus.TransfersCollection, receipt.Data.TransferID, http.StatusInternalServerError) {
 			return
 		}
 
-		if err = facade4debtus2.CheckTransferCreatorNameAndFixIfNeeded(ctx, tx, transfer); common4all2.HasError(ctx, w, err, models4debtus2.TransfersCollection, receipt.Data.TransferID, http.StatusInternalServerError) {
+		if err = facade4debtus.CheckTransferCreatorNameAndFixIfNeeded(ctx, tx, transfer); common4all.HasError(ctx, w, err, models4debtus.TransfersCollection, receipt.Data.TransferID, http.StatusInternalServerError) {
 			return
 		}
 		return nil
@@ -120,7 +120,7 @@ func HandleGetReceipt(ctx context.Context, w http.ResponseWriter, r *http.Reques
 		Transfer: NewReceiptTransferDto(ctx, transfer),
 	}
 
-	common4all2.JsonToResponse(ctx, w, &receiptDto)
+	common4all.JsonToResponse(ctx, w, &receiptDto)
 }
 
 //func transferContactToDto(transferContact models.TransferCounterpartyInfo) dto4debtus.ContactDto {
@@ -128,11 +128,11 @@ func HandleGetReceipt(ctx context.Context, w http.ResponseWriter, r *http.Reques
 //}
 
 func HandleReceiptAccept(ctx context.Context, w http.ResponseWriter, _ *http.Request) {
-	common4all2.JsonToResponse(ctx, w, "ok")
+	common4all.JsonToResponse(ctx, w, "ok")
 }
 
 func HandleReceiptDecline(ctx context.Context, w http.ResponseWriter, _ *http.Request) {
-	common4all2.JsonToResponse(ctx, w, "ok")
+	common4all.JsonToResponse(ctx, w, "ok")
 }
 
 const RECEIPT_CHANNEL_DRAFT = "draft"
@@ -158,22 +158,22 @@ func HandleSendReceipt(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	switch channel {
 	case "email":
 	case "sms":
-		common4all2.BadRequestMessage(ctx, w, "Not implemented yet")
+		common4all.BadRequestMessage(ctx, w, "Not implemented yet")
 		return
 	default:
-		common4all2.BadRequestMessage(ctx, w, "Unsupported channel")
+		common4all.BadRequestMessage(ctx, w, "Unsupported channel")
 		return
 	}
 
 	toAddress := strings.TrimSpace(r.FormValue("to"))
 
 	if toAddress == "" {
-		common4all2.BadRequestMessage(ctx, w, "'To' parameter is not provided")
+		common4all.BadRequestMessage(ctx, w, "'To' parameter is not provided")
 		return
 	}
 
 	if len(toAddress) > 1024 {
-		common4all2.BadRequestMessage(ctx, w, "'To' parameter is too large")
+		common4all.BadRequestMessage(ctx, w, "'To' parameter is too large")
 		return
 	}
 
@@ -186,18 +186,18 @@ func HandleSendReceipt(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		} else {
 			status = http.StatusInternalServerError
 		}
-		common4all2.ErrorAsJson(ctx, w, status, err)
+		common4all.ErrorAsJson(ctx, w, status, err)
 		return
 	}
 
-	transfer, err := facade4debtus2.Transfers.GetTransferByID(ctx, nil, receipt.Data.TransferID)
+	transfer, err := facade4debtus.Transfers.GetTransferByID(ctx, nil, receipt.Data.TransferID)
 	if err != nil {
-		common4all2.ErrorAsJson(ctx, w, http.StatusInternalServerError, err)
+		common4all.ErrorAsJson(ctx, w, http.StatusInternalServerError, err)
 		return
 	}
 
 	if transfer.Data.CreatorUserID != authInfo.UserID && transfer.Data.Counterparty().UserID != authInfo.UserID {
-		common4all2.ErrorAsJson(ctx, w, http.StatusUnauthorized, errors.New("this transfer does not belong to the current user"))
+		common4all.ErrorAsJson(ctx, w, http.StatusUnauthorized, errors.New("this transfer does not belong to the current user"))
 		return
 	}
 
@@ -215,19 +215,19 @@ func HandleSendReceipt(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	analytics.ReceiptSentFromApi(ctx, r, authInfo.UserID, locale.Code5, "api4debtus", "email")
 
 	if _, _, err = updateReceiptAndTransferOnSent(ctx, receiptID, channel, toAddress, locale.Code5); err != nil {
-		common4all2.ErrorAsJson(ctx, w, http.StatusInternalServerError, err)
+		common4all.ErrorAsJson(ctx, w, http.StatusInternalServerError, err)
 		return
 	}
 }
 
-func updateReceiptAndTransferOnSent(ctx context.Context, receiptID string, channel, sentTo, lang string) (receipt models4debtus2.ReceiptEntry, transfer models4debtus2.TransferEntry, err error) {
+func updateReceiptAndTransferOnSent(ctx context.Context, receiptID string, channel, sentTo, lang string) (receipt models4debtus.ReceiptEntry, transfer models4debtus.TransferEntry, err error) {
 
 	err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) error {
 		if receipt, err = dtdal.Receipt.GetReceiptByID(ctx, tx, receiptID); err != nil {
 			return err
 		}
 		if receipt.Data.SentVia == RECEIPT_CHANNEL_DRAFT {
-			if transfer, err = facade4debtus2.Transfers.GetTransferByID(ctx, tx, receipt.Data.TransferID); err != nil {
+			if transfer, err = facade4debtus.Transfers.GetTransferByID(ctx, tx, receipt.Data.TransferID); err != nil {
 				return err
 			}
 			receipt.Data.DtSent = time.Now()
@@ -343,7 +343,7 @@ func HandleCreateReceipt(ctx context.Context, w http.ResponseWriter, r *http.Req
 		_, _ = w.Write([]byte("Missing transfer parameter"))
 		return
 	}
-	transfer, err := facade4debtus2.Transfers.GetTransferByID(ctx, nil, transferID)
+	transfer, err := facade4debtus.Transfers.GetTransferByID(ctx, nil, transferID)
 	if err != nil {
 		if dal.IsNotFound(err) {
 			w.WriteHeader(http.StatusBadRequest)
@@ -356,7 +356,7 @@ func HandleCreateReceipt(ctx context.Context, w http.ResponseWriter, r *http.Req
 	}
 	var user dbo4userus.UserEntry
 	if user, err = dal4userus.GetUserByID(ctx, nil, authInfo.UserID); err != nil {
-		common4all2.ErrorAsJson(ctx, w, http.StatusInternalServerError, err)
+		common4all.ErrorAsJson(ctx, w, http.StatusInternalServerError, err)
 		return
 	}
 	channel, err := getReceiptChannel(r)
@@ -397,7 +397,7 @@ func HandleCreateReceipt(ctx context.Context, w http.ResponseWriter, r *http.Req
 	if lang == "" {
 		lang = i18n.LocaleCodeEnUS
 	}
-	receiptData := models4debtus2.NewReceiptEntity(creatorUserID, transferID, transfer.Data.Counterparty().UserID, lang, channel, "", general.CreatedOn{
+	receiptData := models4debtus.NewReceiptEntity(creatorUserID, transferID, transfer.Data.Counterparty().UserID, lang, channel, "", general.CreatedOn{
 		CreatedOnPlatform: "api4debtus", // TODO: Replace with actual, pass from client
 		CreatedOnID:       r.Host,
 	})
@@ -441,7 +441,7 @@ func HandleCreateReceipt(ctx context.Context, w http.ResponseWriter, r *http.Req
 		}{
 			ReceiptURL: common4debtus.GetReceiptUrl(receipt.ID, r.Host),
 		}
-		messageToSend, err = common4all2.TextTemplates.RenderTemplate(ctx, translator, trans.MESSENGER_RECEIPT_TEXT, templateParams) // TODO: Consider using just ExecutionContext instead of (ctx, translator)
+		messageToSend, err = common4all.TextTemplates.RenderTemplate(ctx, translator, trans.MESSENGER_RECEIPT_TEXT, templateParams) // TODO: Consider using just ExecutionContext instead of (ctx, translator)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			err = fmt.Errorf("failed to render message template: %w", err)
@@ -450,7 +450,7 @@ func HandleCreateReceipt(ctx context.Context, w http.ResponseWriter, r *http.Req
 		}
 	}
 
-	common4all2.JsonToResponse(ctx, w, struct {
+	common4all.JsonToResponse(ctx, w, struct {
 		ID   string
 		Link string
 		Text string

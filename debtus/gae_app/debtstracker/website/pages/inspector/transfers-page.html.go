@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"github.com/crediterra/money"
 	"github.com/shiyanhui/hero"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"io"
 )
 
-func renderTransfersPage(contact models4debtus2.DebtusSpaceContactEntry, currency money.CurrencyCode, balancesWithoutInterest, balancesWithInterest balanceRow, transfers []models4debtus2.TransferEntry, w io.Writer) {
+func renderTransfersPage(contact models4debtus.DebtusSpaceContactEntry, currency money.CurrencyCode, balancesWithoutInterest, balancesWithInterest balanceRow, transfers []models4debtus.TransferEntry, w io.Writer) {
 	_buffer := hero.GetBuffer()
 	defer hero.PutBuffer(_buffer)
 	_buffer.WriteString(`<!DOCTYPE html>

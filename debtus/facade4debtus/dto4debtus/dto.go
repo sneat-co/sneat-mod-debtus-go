@@ -4,7 +4,7 @@ package dto4debtus
 
 import (
 	"github.com/sneat-co/sneat-core-modules/contactus/dto4contactus"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"time"
 
 	"github.com/crediterra/money"
@@ -60,7 +60,7 @@ type ContactDto struct {
 	Comment string `json:",omitempty"`
 }
 
-func NewContactDto(counterpartyInfo models4debtus2.TransferCounterpartyInfo) ContactDto {
+func NewContactDto(counterpartyInfo models4debtus.TransferCounterpartyInfo) ContactDto {
 	dto := ContactDto{
 		ID:      counterpartyInfo.ContactID,
 		UserID:  counterpartyInfo.UserID,
@@ -139,7 +139,7 @@ func (t TransferDto) String() string {
 	}
 }
 
-func TransfersToDto(userID string, transfers []models4debtus2.TransferEntry) []*TransferDto {
+func TransfersToDto(userID string, transfers []models4debtus.TransferEntry) []*TransferDto {
 	transfersDto := make([]*TransferDto, len(transfers))
 	for i, transfer := range transfers {
 		transfersDto[i] = TransferToDto(userID, transfer)
@@ -154,7 +154,7 @@ type CreateTransferResponse struct {
 	UserBalance         money.Balance `json:",omitempty"`
 }
 
-func TransferToDto(userID string, transfer models4debtus2.TransferEntry) *TransferDto {
+func TransferToDto(userID string, transfer models4debtus.TransferEntry) *TransferDto {
 	transferDto := TransferDto{
 		Id:            transfer.ID,
 		Amount:        transfer.Data.GetAmount(),

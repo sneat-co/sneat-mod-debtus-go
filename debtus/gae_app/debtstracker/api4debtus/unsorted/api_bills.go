@@ -8,8 +8,8 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/sneat-co/sneat-core-modules/auth/token4auth"
-	common4all2 "github.com/sneat-co/sneat-core-modules/common4all"
-	dal4contactus2 "github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
+	"github.com/sneat-co/sneat-core-modules/common4all"
+	"github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
 	"github.com/sneat-co/sneat-core-modules/userus/dal4userus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
 	"github.com/sneat-co/sneat-go-core/facade"
@@ -18,7 +18,7 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/splitus/briefs4splitus"
 	"github.com/sneat-co/sneat-mod-debtus-go/splitus/facade4splitus"
-	models4splitus2 "github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 	"github.com/strongo/decimal"
 	"net/http"
 )
@@ -26,53 +26,53 @@ import (
 func HandleGetBill(ctx context.Context, w http.ResponseWriter, r *http.Request, authInfo token4auth.AuthInfo) {
 	billID := r.URL.Query().Get("id")
 	if billID == "" {
-		common4all2.BadRequestError(ctx, w, errors.New("Missing id parameter"))
+		common4all.BadRequestError(ctx, w, errors.New("Missing id parameter"))
 		return
 	}
 	bill, err := facade4splitus.GetBillByID(ctx, nil, billID)
 	if err != nil {
-		common4all2.InternalError(ctx, w, err)
+		common4all.InternalError(ctx, w, err)
 		return
 	}
 	billToResponse(ctx, w, authInfo.UserID, bill)
 }
 
 func HandleCreateBill(ctx context.Context, w http.ResponseWriter, r *http.Request, authInfo token4auth.AuthInfo) {
-	splitMode := models4splitus2.SplitMode(r.PostFormValue("split"))
-	if !models4splitus2.IsValidBillSplit(splitMode) {
-		common4all2.BadRequestMessage(ctx, w, fmt.Sprintf("Split parameter has unkown value: %v", splitMode))
+	splitMode := models4splitus.SplitMode(r.PostFormValue("split"))
+	if !models4splitus.IsValidBillSplit(splitMode) {
+		common4all.BadRequestMessage(ctx, w, fmt.Sprintf("Split parameter has unkown value: %v", splitMode))
 		return
 	}
 	spaceID := r.PostFormValue("spaceID")
 	if spaceID == "" {
-		common4all2.BadRequestMessage(ctx, w, "Missing required parameter: spaceID")
+		common4all.BadRequestMessage(ctx, w, "Missing required parameter: spaceID")
 		return
 	}
 	amountStr := r.PostFormValue("amount")
 	if amountStr == "" {
-		common4all2.BadRequestMessage(ctx, w, fmt.Sprintf("Missing required parameter: amount. %v", r.PostForm))
+		common4all.BadRequestMessage(ctx, w, fmt.Sprintf("Missing required parameter: amount. %v", r.PostForm))
 		return
 	}
 	amount, err := decimal.ParseDecimal64p2(amountStr)
 	if err != nil {
-		common4all2.BadRequestError(ctx, w, err)
+		common4all.BadRequestError(ctx, w, err)
 		return
 	}
 	var members []dto4debtus.BillMemberDto
 	{
 		membersJSON := r.PostFormValue("members")
 		if err = ffjson.Unmarshal([]byte(membersJSON), &members); err != nil {
-			common4all2.BadRequestError(ctx, w, err)
+			common4all.BadRequestError(ctx, w, err)
 			return
 		}
 
 	}
 	if len(members) == 0 {
-		common4all2.BadRequestMessage(ctx, w, "No members has been provided")
+		common4all.BadRequestMessage(ctx, w, "No members has been provided")
 		return
 	}
-	billEntity := models4splitus2.NewBillEntity(models4splitus2.BillCommon{
-		Status:        models4splitus2.BillStatusDraft,
+	billEntity := models4splitus.NewBillEntity(models4splitus.BillCommon{
+		Status:        models4splitus.BillStatusDraft,
 		SplitMode:     splitMode,
 		CreatorUserID: authInfo.UserID,
 		Name:          r.PostFormValue("name"),
@@ -89,7 +89,7 @@ func HandleCreateBill(ctx context.Context, w http.ResponseWriter, r *http.Reques
 
 	for i, member := range members {
 		if member.ContactID == "" && member.UserID == "" {
-			common4all2.BadRequestMessage(ctx, w, fmt.Sprintf("members[%d]: ContactID == 0 && UserID == 0", i))
+			common4all.BadRequestMessage(ctx, w, fmt.Sprintf("members[%d]: ContactID == 0 && UserID == 0", i))
 			return
 		}
 		if member.ContactID != "" {
@@ -102,15 +102,15 @@ func HandleCreateBill(ctx context.Context, w http.ResponseWriter, r *http.Reques
 
 	var (
 		debtusContacts []models4debtus.DebtusSpaceContactEntry
-		contacts       []dal4contactus2.ContactEntry
+		contacts       []dal4contactus.ContactEntry
 	)
 	if len(contactIDs) > 0 {
 		if debtusContacts, err = facade4debtus.GetDebtusSpaceContactsByIDs(ctx, nil, spaceID, contactIDs); err != nil {
-			common4all2.InternalError(ctx, w, err)
+			common4all.InternalError(ctx, w, err)
 			return
 		}
-		if contacts, err = dal4contactus2.GetContactsByIDs(ctx, nil, spaceID, contactIDs); err != nil {
-			common4all2.InternalError(ctx, w, err)
+		if contacts, err = dal4contactus.GetContactsByIDs(ctx, nil, spaceID, contactIDs); err != nil {
+			common4all.InternalError(ctx, w, err)
 			return
 		}
 	}
@@ -118,7 +118,7 @@ func HandleCreateBill(ctx context.Context, w http.ResponseWriter, r *http.Reques
 	var memberUsers []dbo4userus.UserEntry
 	if len(memberUserIDs) > 0 {
 		if memberUsers, err = dal4userus.GetUsersByIDs(ctx, memberUserIDs); err != nil {
-			common4all2.InternalError(ctx, w, err)
+			common4all.InternalError(ctx, w, err)
 			return
 		}
 	}
@@ -126,7 +126,7 @@ func HandleCreateBill(ctx context.Context, w http.ResponseWriter, r *http.Reques
 	billMembers := make([]*briefs4splitus.BillMemberBrief, len(members))
 	for i, member := range members {
 		if member.UserID != "" && member.ContactID != "" {
-			common4all2.BadRequestMessage(ctx, w, fmt.Sprintf("Member has both UserID and ContactID: %v, %v", member.UserID, member.ContactID))
+			common4all.BadRequestMessage(ctx, w, fmt.Sprintf("Member has both UserID and ContactID: %v, %v", member.UserID, member.ContactID))
 			return
 		}
 		totalByMembers += member.Amount
@@ -156,7 +156,7 @@ func HandleCreateBill(ctx context.Context, w http.ResponseWriter, r *http.Reques
 					goto contactFound
 				}
 			}
-			common4all2.BadRequestError(ctx, w, fmt.Errorf("debtusContact not found by member.ContactID=%s", member.ContactID))
+			common4all.BadRequestError(ctx, w, fmt.Errorf("debtusContact not found by member.ContactID=%s", member.ContactID))
 			return
 		contactFound:
 		}
@@ -170,41 +170,41 @@ func HandleCreateBill(ctx context.Context, w http.ResponseWriter, r *http.Reques
 		}
 	}
 	if totalByMembers != amount {
-		common4all2.BadRequestMessage(ctx, w, fmt.Sprintf("Total amount is not equal to sum of member's amounts: %v != %v", amount, totalByMembers))
+		common4all.BadRequestMessage(ctx, w, fmt.Sprintf("Total amount is not equal to sum of member's amounts: %v != %v", amount, totalByMembers))
 		return
 	}
 
-	billEntity.SplitMode = models4splitus2.SplitModePercentage
+	billEntity.SplitMode = models4splitus.SplitModePercentage
 
 	if err = billEntity.SetBillMembers(billMembers); err != nil {
-		common4all2.InternalError(ctx, w, err)
+		common4all.InternalError(ctx, w, err)
 		return
 	}
 
-	var bill models4splitus2.BillEntry
+	var bill models4splitus.BillEntry
 	err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
 		bill, err = facade4splitus.CreateBill(ctx, tx, spaceID, billEntity)
 		return
 	})
 
 	if err != nil {
-		common4all2.InternalError(ctx, w, err)
+		common4all.InternalError(ctx, w, err)
 		return
 	}
 	billToResponse(ctx, w, authInfo.UserID, bill)
 }
 
-func billToResponse(ctx context.Context, w http.ResponseWriter, userID string, bill models4splitus2.BillEntry) {
+func billToResponse(ctx context.Context, w http.ResponseWriter, userID string, bill models4splitus.BillEntry) {
 	if userID == "" {
-		common4all2.InternalError(ctx, w, errors.New("Required parameter userID == 0."))
+		common4all.InternalError(ctx, w, errors.New("Required parameter userID == 0."))
 		return
 	}
 	if bill.ID == "" {
-		common4all2.InternalError(ctx, w, errors.New("Required parameter bill.ContactID is empty string."))
+		common4all.InternalError(ctx, w, errors.New("Required parameter bill.ContactID is empty string."))
 		return
 	}
 	if bill.Data == nil {
-		common4all2.InternalError(ctx, w, errors.New("Required parameter bill.BillDbo is nil."))
+		common4all.InternalError(ctx, w, errors.New("Required parameter bill.BillDbo is nil."))
 		return
 	}
 	billDto := dto4debtus.BillDto{
@@ -227,5 +227,5 @@ func billToResponse(ctx context.Context, w http.ResponseWriter, userID string, b
 		}
 	}
 	billDto.Members = members
-	common4all2.JsonToResponse(ctx, w, map[string]dto4debtus.BillDto{"BillEntry": billDto}) // TODO: Define DTO as need to clean BillMember.ContactByUser
+	common4all.JsonToResponse(ctx, w, map[string]dto4debtus.BillDto{"BillEntry": billDto}) // TODO: Define DTO as need to clean BillMember.ContactByUser
 }

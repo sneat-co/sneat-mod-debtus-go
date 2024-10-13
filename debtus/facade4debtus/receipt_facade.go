@@ -6,23 +6,23 @@ import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/sneat-core-modules/anybot/facade4anybot"
-	dal4contactus2 "github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
+	"github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/logus"
 	"time"
 )
 
 type userLinkingParty struct {
 	spaceID        string
-	contact        dal4contactus2.ContactEntry
-	contactusSpace dal4contactus2.ContactusSpaceEntry
-	debtusSpace    models4debtus2.DebtusSpaceEntry
-	debtusContact  models4debtus2.DebtusSpaceContactEntry
-	debtusUser     models4debtus2.DebtusUserEntry // TODO: DO we need this?
-	user           dbo4userus.UserEntry           // TODO: DO we need this? Would debtusUser be enough?
+	contact        dal4contactus.ContactEntry
+	contactusSpace dal4contactus.ContactusSpaceEntry
+	debtusSpace    models4debtus.DebtusSpaceEntry
+	debtusContact  models4debtus.DebtusSpaceContactEntry
+	debtusUser     models4debtus.DebtusUserEntry // TODO: DO we need this?
+	user           dbo4userus.UserEntry          // TODO: DO we need this? Would debtusUser be enough?
 }
 
 type usersLinkingDbChanges struct { // use as a pointer as we pass it to FlagAsChanged() and IsChanged()
@@ -37,8 +37,8 @@ func newUsersLinkingDbChanges() *usersLinkingDbChanges {
 
 type receiptDbChanges struct { // use as a pointer as we pass it to FlagAsChanged() and IsChanged()
 	*usersLinkingDbChanges
-	receipt  models4debtus2.ReceiptEntry
-	transfer models4debtus2.TransferEntry
+	receipt  models4debtus.ReceiptEntry
+	transfer models4debtus.TransferEntry
 }
 
 func newReceiptDbChanges() *receiptDbChanges {
@@ -47,12 +47,12 @@ func newReceiptDbChanges() *receiptDbChanges {
 	}
 }
 
-func workaroundReinsertContact(ctx context.Context, receipt models4debtus2.ReceiptEntry, invitedContact models4debtus2.DebtusSpaceContactEntry, changes *receiptDbChanges) (err error) {
+func workaroundReinsertContact(ctx context.Context, receipt models4debtus.ReceiptEntry, invitedContact models4debtus.DebtusSpaceContactEntry, changes *receiptDbChanges) (err error) {
 	if _, err = GetDebtusSpaceContactByID(ctx, nil, receipt.Data.SpaceID, invitedContact.ID); err != nil {
 		if dal.IsNotFound(err) {
 			logus.Warningf(ctx, "workaroundReinsertContact(invitedContact.ContactID=%s) => %v", invitedContact.ID, err)
 			err = nil
-			if receipt.Data.Status == models4debtus2.ReceiptStatusAcknowledged {
+			if receipt.Data.Status == models4debtus.ReceiptStatusAcknowledged {
 				if invitedContactInfo := changes.inviter.contactusSpace.Data.GetContactBriefByContactID(invitedContact.ID); invitedContactInfo != nil {
 					logus.Warningf(ctx, "Transactional retry, Contact was not created in DB but invitedUser already has the Contact info & receipt is acknowledged")
 					changes.invited.debtusContact = invitedContact
@@ -71,7 +71,7 @@ func workaroundReinsertContact(ctx context.Context, receipt models4debtus2.Recei
 }
 
 func AcknowledgeReceipt(ctx context.Context, userCtx facade.UserContext, receiptID string, operation string) (
-	receipt models4debtus2.ReceiptEntry, transfer models4debtus2.TransferEntry, isCounterpartiesJustConnected bool, err error,
+	receipt models4debtus.ReceiptEntry, transfer models4debtus.TransferEntry, isCounterpartiesJustConnected bool, err error,
 ) {
 	currentUserID := userCtx.GetUserID()
 	logus.Debugf(ctx, "AcknowledgeReceipt(receiptID=%s, currentUserID=%s, operation=%s)", receiptID, currentUserID, operation)
@@ -79,21 +79,21 @@ func AcknowledgeReceipt(ctx context.Context, userCtx facade.UserContext, receipt
 	var transferAckStatus string
 	switch operation {
 	case dtdal.AckAccept:
-		transferAckStatus = models4debtus2.TransferAccepted
+		transferAckStatus = models4debtus.TransferAccepted
 	case dtdal.AckDecline:
-		transferAckStatus = models4debtus2.TransferDeclined
+		transferAckStatus = models4debtus.TransferDeclined
 	default:
 		err = facade4anybot.ErrInvalidAcknowledgeType
 		return
 	}
 
-	var invitedContact dal4contactus2.ContactEntry
+	var invitedContact dal4contactus.ContactEntry
 
 	err = facade.RunReadwriteTransaction(ctx, func(tctx context.Context, tx dal.ReadwriteTransaction) (err error) {
 
 		var inviterUser, invitedUser dbo4userus.UserEntry
-		var inviterDebtusUser, invitedDebtusUser models4debtus2.DebtusUserEntry
-		var inviterContact dal4contactus2.ContactEntry
+		var inviterDebtusUser, invitedDebtusUser models4debtus.DebtusUserEntry
+		var inviterContact dal4contactus.ContactEntry
 
 		receipt, transfer, inviterUser, inviterDebtusUser, invitedUser, invitedDebtusUser, err = getReceiptTransferAndUsers(tctx, tx, receiptID, currentUserID)
 		if err != nil {
@@ -101,9 +101,9 @@ func AcknowledgeReceipt(ctx context.Context, userCtx facade.UserContext, receipt
 		}
 
 		spaceID := invitedUser.Data.GetFamilySpaceID()
-		var invitedDebtusSpace models4debtus2.DebtusSpaceEntry
+		var invitedDebtusSpace models4debtus.DebtusSpaceEntry
 		if spaceID != "" {
-			invitedDebtusSpace = models4debtus2.NewDebtusSpaceEntry(spaceID)
+			invitedDebtusSpace = models4debtus.NewDebtusSpaceEntry(spaceID)
 			if err = tx.Get(tctx, invitedDebtusSpace.Record); err != nil {
 				return
 			}
@@ -124,16 +124,16 @@ func AcknowledgeReceipt(ctx context.Context, userCtx facade.UserContext, receipt
 			usersLinkingDbChanges: &usersLinkingDbChanges{
 				inviter: &userLinkingParty{
 					contact:        inviterContact,
-					contactusSpace: dal4contactus2.NewContactusSpaceEntry(inviterSpaceID),
-					debtusSpace:    models4debtus2.NewDebtusSpaceEntry(inviterSpaceID),
-					debtusContact:  models4debtus2.NewDebtusSpaceContactEntry(inviterSpaceID, inviterUser.ID, nil),
+					contactusSpace: dal4contactus.NewContactusSpaceEntry(inviterSpaceID),
+					debtusSpace:    models4debtus.NewDebtusSpaceEntry(inviterSpaceID),
+					debtusContact:  models4debtus.NewDebtusSpaceContactEntry(inviterSpaceID, inviterUser.ID, nil),
 					debtusUser:     inviterDebtusUser,
 				},
 				invited: &userLinkingParty{
 					contact:        invitedContact,
-					contactusSpace: dal4contactus2.NewContactusSpaceEntry(invitedSpaceID),
+					contactusSpace: dal4contactus.NewContactusSpaceEntry(invitedSpaceID),
 					debtusSpace:    invitedDebtusSpace,
-					debtusContact:  models4debtus2.NewDebtusSpaceContactEntry(invitedSpaceID, invitedUser.ID, nil),
+					debtusContact:  models4debtus.NewDebtusSpaceContactEntry(invitedSpaceID, invitedUser.ID, nil),
 					debtusUser:     invitedDebtusUser,
 				},
 			},
@@ -155,7 +155,7 @@ func AcknowledgeReceipt(ctx context.Context, userCtx facade.UserContext, receipt
 			}
 		}
 
-		if receipt.Data.Status == models4debtus2.ReceiptStatusAcknowledged {
+		if receipt.Data.Status == models4debtus.ReceiptStatusAcknowledged {
 			if receipt.Data.AcknowledgedByUserID != currentUserID {
 				err = fmt.Errorf("receipt.AcknowledgedByUserID != currentUserID (%s != %s)", receipt.Data.AcknowledgedByUserID, currentUserID)
 				return
@@ -163,7 +163,7 @@ func AcknowledgeReceipt(ctx context.Context, userCtx facade.UserContext, receipt
 			logus.Debugf(ctx, "ReceiptEntry is already acknowledged")
 		} else {
 			receipt.Data.DtAcknowledged = time.Now()
-			receipt.Data.Status = models4debtus2.ReceiptStatusAcknowledged
+			receipt.Data.Status = models4debtus.ReceiptStatusAcknowledged
 			receipt.Data.AcknowledgedByUserID = currentUserID
 			markReceiptAsViewed(receipt.Data, currentUserID)
 			changes.FlagAsChanged(changes.receipt.Record)
@@ -236,7 +236,7 @@ func AcknowledgeReceipt(ctx context.Context, userCtx facade.UserContext, receipt
 	return
 }
 
-func MarkReceiptAsViewed(ctx context.Context, receiptID, userID string) (receipt models4debtus2.ReceiptEntry, err error) {
+func MarkReceiptAsViewed(ctx context.Context, receiptID, userID string) (receipt models4debtus.ReceiptEntry, err error) {
 	err = facade.RunReadwriteTransaction(ctx, func(tctx context.Context, tx dal.ReadwriteTransaction) error {
 		receipt, err = dtdal.Receipt.GetReceiptByID(tctx, tx, receiptID)
 		if err != nil {
@@ -258,7 +258,7 @@ func MarkReceiptAsViewed(ctx context.Context, receiptID, userID string) (receipt
 	return
 }
 
-func markReceiptAsViewed(receipt *models4debtus2.ReceiptDbo, userID string) (changed bool) {
+func markReceiptAsViewed(receipt *models4debtus.ReceiptDbo, userID string) (changed bool) {
 	alreadyViewedByUser := false
 	for _, uid := range receipt.ViewedByUserIDs {
 		if uid == userID {
@@ -274,10 +274,10 @@ func markReceiptAsViewed(receipt *models4debtus2.ReceiptDbo, userID string) (cha
 }
 
 func getReceiptTransferAndUsers(ctx context.Context, tx dal.ReadSession, receiptID, userID string) (
-	receipt models4debtus2.ReceiptEntry,
-	transfer models4debtus2.TransferEntry,
-	creatorUser dbo4userus.UserEntry, creatorDebtusUser models4debtus2.DebtusUserEntry,
-	counterpartyUser dbo4userus.UserEntry, counterpartyDebtusUser models4debtus2.DebtusUserEntry,
+	receipt models4debtus.ReceiptEntry,
+	transfer models4debtus.TransferEntry,
+	creatorUser dbo4userus.UserEntry, creatorDebtusUser models4debtus.DebtusUserEntry,
+	counterpartyUser dbo4userus.UserEntry, counterpartyDebtusUser models4debtus.DebtusUserEntry,
 	err error,
 ) {
 	logus.Debugf(ctx, "getReceiptTransferAndUsers(receiptID=%s, userID=%s)", receiptID, userID)
@@ -296,13 +296,13 @@ func getReceiptTransferAndUsers(ctx context.Context, tx dal.ReadSession, receipt
 	}
 
 	creatorUser = dbo4userus.NewUserEntry(receipt.Data.CreatorUserID)
-	creatorDebtusUser = models4debtus2.NewDebtusUserEntry(receipt.Data.CreatorUserID)
+	creatorDebtusUser = models4debtus.NewDebtusUserEntry(receipt.Data.CreatorUserID)
 
 	var recordsToGet []dal.Record = []dal.Record{creatorUser.Record, creatorDebtusUser.Record}
 
 	if counterpartyUserID := transfer.Data.Counterparty().UserID; counterpartyUserID != "" {
 		counterpartyUser = dbo4userus.NewUserEntry(counterpartyUserID)
-		counterpartyDebtusUser = models4debtus2.NewDebtusUserEntry(counterpartyUserID)
+		counterpartyDebtusUser = models4debtus.NewDebtusUserEntry(counterpartyUserID)
 		recordsToGet = append(recordsToGet, counterpartyUser.Record, counterpartyDebtusUser.Record)
 	}
 

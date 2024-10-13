@@ -6,7 +6,7 @@ import (
 	"github.com/sneat-co/sneat-core-modules/contactus/dto4contactus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/logus"
 
 	"context"
@@ -87,9 +87,9 @@ func (linker *usersLinker) linkUsersWithinTransaction(
 	{
 		invited.debtusContact.Data.MustMatchCounterparty(inviter.debtusContact)
 
-		addContactJSON := func(debtusSpace models4debtus2.DebtusSpaceEntry, debtusContact models4debtus2.DebtusSpaceContactEntry) (debtusContactBrief *models4debtus2.DebtusContactBrief) {
+		addContactJSON := func(debtusSpace models4debtus.DebtusSpaceEntry, debtusContact models4debtus.DebtusSpaceContactEntry) (debtusContactBrief *models4debtus.DebtusContactBrief) {
 			//debtusContactBrief = debtusSpace.Data.Contacts[debtusContact.ID]
-			debtusContactBrief, _ = models4debtus2.AddOrUpdateDebtusContact(debtusSpace, debtusContact)
+			debtusContactBrief, _ = models4debtus.AddOrUpdateDebtusContact(debtusSpace, debtusContact)
 			linker.changes.FlagAsChanged(debtusSpace.Record)
 			return debtusContactBrief
 		}
@@ -141,7 +141,7 @@ func (linker *usersLinker) getOrCreateInvitedContactByInviterUserAndInviterConta
 	}
 
 	if len(invited.contactusSpace.Data.Contacts) > 0 {
-		var invitedUserContacts []models4debtus2.DebtusSpaceContactEntry
+		var invitedUserContacts []models4debtus.DebtusSpaceContactEntry
 		// Use non transaction context
 		invitedUserContacts, err = GetDebtusSpaceContactsByIDs(tctx, tx, invited.spaceID, invited.contactusSpace.Data.ContactIDs())
 		if err != nil {
@@ -207,9 +207,9 @@ func (linker *usersLinker) getOrCreateInvitedContactByInviterUserAndInviterConta
 
 func (linker *usersLinker) updateInvitedUser(ctx context.Context,
 	invitedUser dbo4userus.UserEntry,
-	invitedDebtusSpace models4debtus2.DebtusSpaceEntry,
+	invitedDebtusSpace models4debtus.DebtusSpaceEntry,
 	inviterUserID string,
-	inviterDebtusContact models4debtus2.DebtusSpaceContactEntry,
+	inviterDebtusContact models4debtus.DebtusSpaceContactEntry,
 ) (err error) {
 	logus.Debugf(ctx, "usersLinker.updateInvitedUser()")
 	var invitedUserChanged bool
@@ -310,7 +310,7 @@ func (linker *usersLinker) updateInviterContact(
 				goto inviterUserContactFound
 			}
 		}
-		if _, changed := models4debtus2.AddOrUpdateDebtusContact(inviter.debtusSpace, inviter.debtusContact); changed {
+		if _, changed := models4debtus.AddOrUpdateDebtusContact(inviter.debtusSpace, inviter.debtusContact); changed {
 			linker.changes.FlagAsChanged(inviter.debtusSpace.Record)
 		}
 	inviterUserContactFound:

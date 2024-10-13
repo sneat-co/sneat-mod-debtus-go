@@ -13,7 +13,7 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal/gaedal"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/logus"
 	"net/http"
 	"strconv"
@@ -55,7 +55,7 @@ func sendReminder(ctx context.Context, reminderID string) (err error) {
 	if err != nil {
 		return err
 	}
-	if reminder.Data.Status != models4debtus2.ReminderStatusCreated {
+	if reminder.Data.Status != models4debtus.ReminderStatusCreated {
 		logus.Infof(ctx, "reminder.Status:%v != models.ReminderStatusCreated", reminder.Data.Status)
 		return nil
 	}
@@ -102,19 +102,19 @@ func sendReminder(ctx context.Context, reminderID string) (err error) {
 
 var errReminderAlreadySentOrIsBeingSent = errors.New("reminder already sent or is being sent")
 
-func sendReminderToUser(ctx context.Context, reminderID string, transfer models4debtus2.TransferEntry) (err error) {
+func sendReminderToUser(ctx context.Context, reminderID string, transfer models4debtus.TransferEntry) (err error) {
 
-	var reminder models4debtus2.Reminder
+	var reminder models4debtus.Reminder
 
 	// If sending notification failed do not try to resend - to prevent spamming.
 	if err = facade.RunReadwriteTransaction(ctx, func(tctx context.Context, tx dal.ReadwriteTransaction) (err error) {
 		if reminder, err = dtdal.Reminder.GetReminderByID(ctx, tx, reminderID); err != nil {
 			return fmt.Errorf("failed to get reminder by id=%v: %w", reminderID, err)
 		}
-		if reminder.Data.Status != models4debtus2.ReminderStatusCreated {
+		if reminder.Data.Status != models4debtus.ReminderStatusCreated {
 			return errReminderAlreadySentOrIsBeingSent
 		}
-		reminder.Data.Status = models4debtus2.ReminderStatusSending
+		reminder.Data.Status = models4debtus.ReminderStatusSending
 		if err = dtdal.Reminder.SaveReminder(tctx, tx, reminder); err != nil { // TODO: UserEntry dtdal.Reminder.SaveReminder()
 			return fmt.Errorf("failed to save reminder with new status to db: %w", err)
 		}
@@ -123,12 +123,12 @@ func sendReminderToUser(ctx context.Context, reminderID string, transfer models4
 		if errors.Is(err, errReminderAlreadySentOrIsBeingSent) {
 			logus.Infof(ctx, err.Error())
 		} else {
-			err = fmt.Errorf("failed to update reminder status to '%v': %w", models4debtus2.ReminderStatusSending, err)
+			err = fmt.Errorf("failed to update reminder status to '%v': %w", models4debtus.ReminderStatusSending, err)
 			logus.Errorf(ctx, err.Error())
 		}
 		return
 	} else {
-		logus.Infof(ctx, "Updated Reminder(id=%v) status to '%v'.", reminderID, models4debtus2.ReminderStatusSending)
+		logus.Infof(ctx, "Updated Reminder(id=%v) status to '%v'.", reminderID, models4debtus.ReminderStatusSending)
 	}
 
 	var db dal.DB
@@ -186,11 +186,11 @@ func sendReminderToUser(ctx context.Context, reminderID string, transfer models4
 				if reminder, err = dtdal.Reminder.GetReminderByID(ctx, tx, reminderID); err != nil {
 					return err
 				}
-				reminder.Data.Status = models4debtus2.ReminderStatusFailed
+				reminder.Data.Status = models4debtus.ReminderStatusFailed
 				return dtdal.Reminder.SaveReminder(ctx, tx, reminder)
 			}, nil)
 			if err != nil {
-				logus.Errorf(ctx, fmt.Errorf("failed to set reminder status to '%v': %w", models4debtus2.ReminderStatusFailed, err).Error())
+				logus.Errorf(ctx, fmt.Errorf("failed to set reminder status to '%v': %w", models4debtus.ReminderStatusFailed, err).Error())
 			} else {
 				logus.Infof(ctx, "Reminder status set to '%v'", reminder.Data.Status)
 			}

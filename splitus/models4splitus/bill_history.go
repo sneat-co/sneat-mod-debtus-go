@@ -5,7 +5,7 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/const4debtus"
-	briefs4splitus2 "github.com/sneat-co/sneat-mod-debtus-go/splitus/briefs4splitus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/briefs4splitus"
 	"time"
 
 	"errors"
@@ -46,21 +46,21 @@ type BillsHistoryDbo struct {
 	TotalAmountAfter     decimal.Decimal64p2 `firestore:",omitempty"`
 	GroupIDs             []string
 	BillIDs              []string
-	BillsSettlementCount int                                `firestore:"billsSettlementCount,omitempty"`
-	BillsSettlementJson  string                             `firestore:"billsSettlementJson,omitempty"`
-	SplitMembersBefore   []briefs4splitus2.SpaceSplitMember `firestore:"splitMembersBefore,omitempty"`
-	SplitMembersAfter    []briefs4splitus2.SpaceSplitMember `firestore:"members,omitempty"`
+	BillsSettlementCount int                               `firestore:"billsSettlementCount,omitempty"`
+	BillsSettlementJson  string                            `firestore:"billsSettlementJson,omitempty"`
+	SplitMembersBefore   []briefs4splitus.SpaceSplitMember `firestore:"splitMembersBefore,omitempty"`
+	SplitMembersAfter    []briefs4splitus.SpaceSplitMember `firestore:"members,omitempty"`
 }
 
-func (entity *BillsHistoryDbo) BillSettlements() (billSettlements []briefs4splitus2.BillSettlementJson) {
-	billSettlements = make([]briefs4splitus2.BillSettlementJson, 0, entity.BillsSettlementCount)
+func (entity *BillsHistoryDbo) BillSettlements() (billSettlements []briefs4splitus.BillSettlementJson) {
+	billSettlements = make([]briefs4splitus.BillSettlementJson, 0, entity.BillsSettlementCount)
 	if err := ffjson.Unmarshal([]byte(entity.BillsSettlementJson), &billSettlements); err != nil {
 		panic(err)
 	}
 	return
 }
 
-func (entity *BillsHistoryDbo) SetBillSettlements(groupID string, billSettlements []briefs4splitus2.BillSettlementJson) { // TODO: Enable support for multiple groups
+func (entity *BillsHistoryDbo) SetBillSettlements(groupID string, billSettlements []briefs4splitus.BillSettlementJson) { // TODO: Enable support for multiple groups
 	if data, err := ffjson.Marshal(&billSettlements); err != nil {
 		panic(err)
 	} else {
@@ -184,7 +184,7 @@ func NewBillHistoryMemberAdded(
 	userID string,
 	bill BillEntry,
 	totalAboutBefore decimal.Decimal64p2,
-	splitMembersBefore, splitMembersAfter []briefs4splitus2.SpaceSplitMember,
+	splitMembersBefore, splitMembersAfter []briefs4splitus.SpaceSplitMember,
 ) (bh BillsHistory) {
 	bh = BillsHistory{
 		Data: &BillsHistoryDbo{

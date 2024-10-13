@@ -10,8 +10,8 @@ import (
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
-	facade4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/decimal"
 	"github.com/strongo/logus"
 	"strings"
@@ -31,7 +31,7 @@ var ParseTransferCommand = botsfw.Command{
 	Action: func(whc botsfw.WebhookContext) (m botsfw.MessageFromBot, err error) {
 		match := transferRegex.FindStringSubmatch(whc.Input().(botinput.WebhookTextMessage).Text())
 		var verb, valueS, counterpartyName, when string
-		var direction models4debtus2.TransferDirection
+		var direction models4debtus.TransferDirection
 		var currency money.CurrencyCode
 
 		for i, name := range transferRegex.SubexpNames() {
@@ -50,7 +50,7 @@ var ParseTransferCommand = botsfw.Command{
 							currency = money.CurrencyCode(strings.ToUpper(v))
 						}
 					case "direction":
-						direction = models4debtus2.TransferDirection(v)
+						direction = models4debtus.TransferDirection(v)
 					case "contact":
 						counterpartyName = v
 					case "when":
@@ -61,9 +61,9 @@ var ParseTransferCommand = botsfw.Command{
 		}
 		if verb == "" {
 			switch direction {
-			case models4debtus2.TransferDirectionUser2Counterparty:
+			case models4debtus.TransferDirectionUser2Counterparty:
 				verb = "got"
-			case models4debtus2.TransferDirectionCounterparty2User:
+			case models4debtus.TransferDirectionCounterparty2User:
 				verb = "gave"
 			}
 		} else {
@@ -82,13 +82,13 @@ var ParseTransferCommand = botsfw.Command{
 
 		const isReturn = false
 
-		creatorInfo := models4debtus2.TransferCounterpartyInfo{
+		creatorInfo := models4debtus.TransferCounterpartyInfo{
 			UserID:      whc.AppUserID(),
 			ContactName: counterpartyName,
 		}
 		ctx := whc.Context()
 
-		from, to := facade4debtus2.TransferCounterparties(direction, creatorInfo)
+		from, to := facade4debtus.TransferCounterparties(direction, creatorInfo)
 
 		//var botUserEntity botsfwmodels.AppUserData
 		//if botUserEntity, err = whc.AppUserData(); err != nil {
@@ -96,13 +96,13 @@ var ParseTransferCommand = botsfw.Command{
 		//}
 		creatorUser := dbo4userus.NewUserEntry(whc.AppUserID())
 
-		request := facade4debtus2.CreateTransferRequest{
+		request := facade4debtus.CreateTransferRequest{
 			IsReturn: isReturn,
 			Amount:   money.Amount{Currency: currency, Value: value},
 		}
 		env := whc.Environment()
 		source := GetTransferSource(whc)
-		newTransfer := facade4debtus2.NewTransferInput(
+		newTransfer := facade4debtus.NewTransferInput(
 			env,
 			source,
 			creatorUser,
@@ -110,7 +110,7 @@ var ParseTransferCommand = botsfw.Command{
 			from, to,
 		)
 
-		output, err := facade4debtus2.Transfers.CreateTransfer(ctx, newTransfer)
+		output, err := facade4debtus.Transfers.CreateTransfer(ctx, newTransfer)
 
 		//transferKey, err = nds.Put(ctx, transferKey, transfer)
 
@@ -132,11 +132,11 @@ var ParseTransferCommand = botsfw.Command{
 			//TODO: Convert to time.Time
 			buffer.WriteString(" " + when)
 		}
-		var counterparty models4debtus2.DebtusSpaceContactEntry
+		var counterparty models4debtus.DebtusSpaceContactEntry
 		switch direction {
-		case models4debtus2.TransferDirectionUser2Counterparty:
+		case models4debtus.TransferDirectionUser2Counterparty:
 			counterparty = output.To.DebtusContact
-		case models4debtus2.TransferDirectionCounterparty2User:
+		case models4debtus.TransferDirectionCounterparty2User:
 			counterparty = output.From.DebtusContact
 		}
 		buffer.WriteString(fmt.Sprintf(".\nTotal balance: %v", counterparty.Data.Balance))
@@ -147,9 +147,9 @@ var ParseTransferCommand = botsfw.Command{
 		//}
 
 		switch direction {
-		case models4debtus2.TransferDirectionCounterparty2User:
+		case models4debtus.TransferDirectionCounterparty2User:
 			buffer.WriteString("\n\nDo you need to return it on a specific date?")
-		case models4debtus2.TransferDirectionUser2Counterparty:
+		case models4debtus.TransferDirectionUser2Counterparty:
 			buffer.WriteString(fmt.Sprintf("\n\nDoes %v have to return it on a specific date?", counterpartyName))
 		}
 		m.Text = buffer.String()

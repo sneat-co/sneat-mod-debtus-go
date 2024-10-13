@@ -7,7 +7,7 @@ import (
 	"github.com/sneat-co/sneat-core-modules/anybot/cmds4anybot"
 	"github.com/sneat-co/sneat-core-modules/common4all"
 	"github.com/sneat-co/sneat-core-modules/userus/delays4userus"
-	dtb_transfer2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/debtusbot/cmd/dtb_transfer"
+	dtbtransfer "github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/debtusbot/cmd/dtb_transfer"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/logus"
@@ -98,8 +98,8 @@ func startReceipt(whc botsfw.WebhookContext, receiptID, operation, localeCode5 s
 		if err = whc.SetLocale(localeCode5); err != nil {
 			return
 		}
-		return dtb_transfer2.ShowReceipt(whc, receiptID)
+		return dtbtransfer.ShowReceipt(whc, receiptID)
 	default:
-		return dtb_transfer2.AcknowledgeReceipt(whc, receiptID, operation)
+		return dtbtransfer.AcknowledgeReceipt(whc, receiptID, operation)
 	}
 }

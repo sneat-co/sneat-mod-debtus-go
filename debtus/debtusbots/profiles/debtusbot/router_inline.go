@@ -3,7 +3,7 @@ package debtusbot
 import (
 	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/bots-go-framework/bots-fw/botsfw"
-	dtb_inline2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/debtusbot/cmd/dtb_inline"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/debtusbot/cmd/dtb_inline"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/debtusbot/cmd/dtb_invite"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/debtusbot/cmd/dtb_transfer"
 	"github.com/strongo/logus"
@@ -29,7 +29,7 @@ var InlineQueryCommand = botsfw.Command{
 		logus.Debugf(ctx, "InlineQueryCommand.Action(query=%v)", query)
 		switch {
 		case query == "":
-			m, err = dtb_inline2.InlineEmptyQuery(whc)
+			m, err = dtb_inline.InlineEmptyQuery(whc)
 		case query == "/invite":
 			m, err = dtb_invite.InlineSendInvite(whc)
 		case strings.HasPrefix(query, "receipt?id="):
@@ -37,9 +37,9 @@ var InlineQueryCommand = botsfw.Command{
 		//case strings.HasPrefix(query, "accept?transfer="):
 		//	m, err = dtb_transfer.InlineAcceptTransfer(whc)
 		default:
-			amountMatches := dtb_inline2.ReInlineQueryAmount.FindStringSubmatch(query)
+			amountMatches := dtb_inline.ReInlineQueryAmount.FindStringSubmatch(query)
 			if amountMatches != nil {
-				return dtb_inline2.InlineNewRecord(whc, amountMatches)
+				return dtb_inline.InlineNewRecord(whc, amountMatches)
 			}
 			logus.Debugf(ctx, "Inline query not matched to any action: [%v]", query)
 		}

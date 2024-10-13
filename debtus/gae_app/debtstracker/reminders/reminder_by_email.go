@@ -8,13 +8,13 @@ import (
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
 	"github.com/sneat-co/sneat-go-core/emails"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/i18n"
 	"github.com/strongo/logus"
 	"time"
 )
 
-func sendReminderByEmail(ctx context.Context, reminder models4debtus2.Reminder, emailTo string, transfer models4debtus2.TransferEntry, user dbo4userus.UserEntry) (err error) {
+func sendReminderByEmail(ctx context.Context, reminder models4debtus.Reminder, emailTo string, transfer models4debtus.TransferEntry, user dbo4userus.UserEntry) (err error) {
 	logus.Debugf(ctx, "sendReminderByEmail(reminder.ContactID=%v, emailTo=%v)", reminder.ID, emailTo)
 
 	emailMessage := emails.Email{

@@ -7,8 +7,8 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
-	briefs4splitus2 "github.com/sneat-co/sneat-mod-debtus-go/splitus/briefs4splitus"
-	models4splitus2 "github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/briefs4splitus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 	"github.com/strongo/decimal"
 	"github.com/strongo/logus"
 	"reflect"
@@ -16,7 +16,7 @@ import (
 
 func Settle2members(ctx context.Context, spaceID, debtorID, sponsorID string, currency money.CurrencyCode, amount decimal.Decimal64p2) (err error) {
 	logus.Debugf(ctx, "Settle2members(spaceID=%v, debtorID=%v, sponsorID=%v, currency=%v, amount=%v)", spaceID, debtorID, sponsorID, currency, amount)
-	query := dal.From(models4splitus2.BillKind).
+	query := dal.From(models4splitus.BillKind).
 		WhereField("GetUserGroupID", dal.Equal, spaceID).
 		WhereField("Currency", dal.Equal, string(currency)).
 		WhereField("DebtorIDs", dal.Equal, debtorID).
@@ -47,16 +47,16 @@ func Settle2members(ctx context.Context, spaceID, debtorID, sponsorID string, cu
 	}
 
 	err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
-		splitusSpace := models4splitus2.NewSplitusSpaceEntry(spaceID)
-		var groupDebtor, groupSponsor briefs4splitus2.SpaceSplitMember
+		splitusSpace := models4splitus.NewSplitusSpaceEntry(spaceID)
+		var groupDebtor, groupSponsor briefs4splitus.SpaceSplitMember
 
 		if err = tx.Get(ctx, splitusSpace.Record); err != nil {
 			return
 		}
 
-		billsSettlement := models4splitus2.BillsHistory{
-			Data: &models4splitus2.BillsHistoryDbo{
-				Action:             models4splitus2.BillHistoryActionSettled,
+		billsSettlement := models4splitus.BillsHistory{
+			Data: &models4splitus.BillsHistoryDbo{
+				Action:             models4splitus.BillHistoryActionSettled,
 				Currency:           currency,
 				SplitMembersBefore: splitusSpace.Data.Members,
 			},
@@ -82,9 +82,9 @@ func Settle2members(ctx context.Context, spaceID, debtorID, sponsorID string, cu
 			amount = v
 		}
 
-		billsToSave := make([]models4splitus2.BillEntry, 0, len(ids))
+		billsToSave := make([]models4splitus.BillEntry, 0, len(ids))
 
-		settlementBills := make([]briefs4splitus2.BillSettlementJson, 0, len(ids))
+		settlementBills := make([]briefs4splitus.BillSettlementJson, 0, len(ids))
 
 		for _, id := range ids {
 			if amount == 0 {
@@ -92,12 +92,12 @@ func Settle2members(ctx context.Context, spaceID, debtorID, sponsorID string, cu
 			} else if amount < 0 {
 				panic(fmt.Sprintf("amount < 0: %v", amount))
 			}
-			var bill models4splitus2.BillEntry
+			var bill models4splitus.BillEntry
 			if bill, err = GetBillByID(ctx, tx, id); err != nil {
 				return
 			}
 			billMembers := bill.Data.GetBillMembers()
-			var debtor, sponsor *briefs4splitus2.BillMemberBrief
+			var debtor, sponsor *briefs4splitus.BillMemberBrief
 			var debtorInvertedBalance, diff decimal.Decimal64p2
 			for i := range billMembers {
 				switch billMembers[i].ID {
@@ -162,7 +162,7 @@ func Settle2members(ctx context.Context, spaceID, debtorID, sponsorID string, cu
 			logus.Debugf(ctx, "groupSponsor.Balance: %v", groupSponsor.Balance)
 
 			billsToSave = append(billsToSave, bill)
-			settlementBills = append(settlementBills, briefs4splitus2.BillSettlementJson{
+			settlementBills = append(settlementBills, briefs4splitus.BillSettlementJson{
 				BillID:    bill.ID,
 				GroupID:   spaceID,
 				DebtorID:  debtorID,

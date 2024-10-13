@@ -5,11 +5,11 @@ import (
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	models4splitus2 "github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 	"github.com/strongo/i18n"
 )
 
-func getGroupBillCardInlineKeyboard(translator i18n.SingleLocaleTranslator, bill models4splitus2.BillEntry) *tgbotapi.InlineKeyboardMarkup {
+func getGroupBillCardInlineKeyboard(translator i18n.SingleLocaleTranslator, bill models4splitus.BillEntry) *tgbotapi.InlineKeyboardMarkup {
 	//	//{{Text: "I paid for the bill alone", CallbackData: joinBillCallbackPrefix + "&i=paid-alone"}},
 	//	//{{Text:"I paid part of this bill",CallbackData:  joinBillCallbackPrefix + "&i=paid-part"}},
 	//	//{{Text: "I owe for this bill", CallbackData: joinBillCallbackPrefix + "&i=owe"}},
@@ -42,7 +42,7 @@ func getGroupBillCardInlineKeyboard(translator i18n.SingleLocaleTranslator, bill
 	}
 }
 
-func getPrivateBillCardInlineKeyboard(translator i18n.SingleLocaleTranslator, botCode string, bill models4splitus2.BillEntry) *tgbotapi.InlineKeyboardMarkup {
+func getPrivateBillCardInlineKeyboard(translator i18n.SingleLocaleTranslator, botCode string, bill models4splitus.BillEntry) *tgbotapi.InlineKeyboardMarkup {
 	callbackData := fmt.Sprintf("split-mode?bill=%v&mode=", bill.ID)
 	return tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{
@@ -67,7 +67,7 @@ func getPrivateBillCardInlineKeyboard(translator i18n.SingleLocaleTranslator, bo
 			},
 			{
 				Text:         translator.Translate("✍ Adjust per person"),
-				CallbackData: callbackData + string(models4splitus2.SplitModePercentage),
+				CallbackData: callbackData + string(models4splitus.SplitModePercentage),
 			},
 		},
 		[]tgbotapi.InlineKeyboardButton{

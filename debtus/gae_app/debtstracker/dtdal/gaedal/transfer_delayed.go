@@ -5,13 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
-	dal4contactus2 "github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
+	"github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
 	"github.com/sneat-co/sneat-core-modules/userus/dal4userus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/const4debtus"
-	facade4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/delaying"
 	"github.com/strongo/logus"
 	"reflect"
@@ -53,7 +53,7 @@ func delayedUpdateTransfersWithCounterparty(ctx context.Context, creatorCounterp
 	if db, err = facade.GetSneatDB(ctx); err != nil {
 		return fmt.Errorf("failed to create database: %w", err)
 	}
-	query := dal.From(models4debtus2.TransfersCollection).
+	query := dal.From(models4debtus.TransfersCollection).
 		WhereField("BothCounterpartyIDs", dal.Equal, creatorCounterpartyID).WhereField("BothCounterpartyIDs", dal.Equal, 0).
 		OrderBy(dal.DescendingField("DtCreated")).
 		SelectKeysOnly(reflect.Int)
@@ -74,7 +74,7 @@ func delayedUpdateTransfersWithCounterparty(ctx context.Context, creatorCounterp
 			delayDuration += 10 * time.Microsecond
 		}
 	} else {
-		query := dal.From(models4debtus2.TransfersCollection).
+		query := dal.From(models4debtus.TransfersCollection).
 			WhereField("BothCounterpartyIDs", dal.Equal, creatorCounterpartyID).WhereField("BothCounterpartyIDs", dal.Equal, counterpartyCounterpartyID).
 			Limit(1).
 			SelectKeysOnly(reflect.Int)
@@ -111,8 +111,8 @@ func delayedUpdateTransferWithCounterparty(ctx context.Context, spaceID, transfe
 		return err
 	}
 
-	counterpartyCounterpartyContact := dal4contactus2.NewContactEntry(spaceID, counterpartyCounterpartyID)
-	if err = dal4contactus2.GetContact(ctx, db, counterpartyCounterpartyContact); err != nil {
+	counterpartyCounterpartyContact := dal4contactus.NewContactEntry(spaceID, counterpartyCounterpartyID)
+	if err = dal4contactus.GetContact(ctx, db, counterpartyCounterpartyContact); err != nil {
 		logus.Errorf(ctx, err.Error())
 		if dal.IsNotFound(err) {
 			return nil
@@ -120,8 +120,8 @@ func delayedUpdateTransferWithCounterparty(ctx context.Context, spaceID, transfe
 		return err
 	}
 
-	counterpartyCounterpartyDebtusContact := models4debtus2.NewDebtusSpaceContactEntry(spaceID, counterpartyCounterpartyID, nil)
-	if err = facade4debtus2.GetDebtusSpaceContact(ctx, db, counterpartyCounterpartyDebtusContact); err != nil {
+	counterpartyCounterpartyDebtusContact := models4debtus.NewDebtusSpaceContactEntry(spaceID, counterpartyCounterpartyID, nil)
+	if err = facade4debtus.GetDebtusSpaceContact(ctx, db, counterpartyCounterpartyDebtusContact); err != nil {
 		logus.Errorf(ctx, err.Error())
 		if dal.IsNotFound(err) {
 			return nil
@@ -144,7 +144,7 @@ func delayedUpdateTransferWithCounterparty(ctx context.Context, spaceID, transfe
 	logus.Debugf(ctx, "counterpartyUser: %v", *counterpartyUser.Data)
 
 	if err := facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) error {
-		transfer, err := facade4debtus2.Transfers.GetTransferByID(ctx, tx, transferID)
+		transfer, err := facade4debtus.Transfers.GetTransferByID(ctx, tx, transferID)
 		if err != nil {
 			return err
 		}
@@ -200,17 +200,17 @@ func delayedUpdateTransferWithCounterparty(ctx context.Context, spaceID, transfe
 		logus.Debugf(ctx, "transfer.To() after: %v", transfer.Data.To())
 
 		if changed {
-			if err = facade4debtus2.Transfers.SaveTransfer(ctx, tx, transfer); err != nil {
+			if err = facade4debtus.Transfers.SaveTransfer(ctx, tx, transfer); err != nil {
 				return err
 			}
 			if !transfer.Data.DtDueOn.IsZero() {
-				counterpartyDebtusSpace := models4debtus2.NewDebtusSpaceEntry(spaceID)
-				if err = models4debtus2.GetDebtusSpace(ctx, tx, counterpartyDebtusSpace); err != nil {
+				counterpartyDebtusSpace := models4debtus.NewDebtusSpaceEntry(spaceID)
+				if err = models4debtus.GetDebtusSpace(ctx, tx, counterpartyDebtusSpace); err != nil {
 					return err
 				}
 
 				if !counterpartyDebtusSpace.Data.HasDueTransfers {
-					if err = facade4debtus2.DelayUpdateHasDueTransfers(ctx, counterpartyCounterpartyContact.Data.UserID, spaceID); err != nil {
+					if err = facade4debtus.DelayUpdateHasDueTransfers(ctx, counterpartyCounterpartyContact.Data.UserID, spaceID); err != nil {
 						return err
 					}
 				}
@@ -255,9 +255,9 @@ func delayedUpdateTransfersWithCreatorName(ctx context.Context, userID string) (
 
 	userName := user.Data.Names.GetFullName()
 
-	query := dal.From(models4debtus2.TransfersCollection).
+	query := dal.From(models4debtus.TransfersCollection).
 		WhereField("BothUserIDs", dal.Equal, userID).
-		SelectInto(models4debtus2.NewTransferRecord)
+		SelectInto(models4debtus.NewTransferRecord)
 
 	var reader dal.Reader
 	reader, err = db.QueryReader(ctx, query)
@@ -269,7 +269,7 @@ func delayedUpdateTransfersWithCreatorName(ctx context.Context, userID string) (
 		if err != nil {
 			return err
 		}
-		transfer := models4debtus2.TransferFromRecord(transferRecord)
+		transfer := models4debtus.TransferFromRecord(transferRecord)
 		if err != nil {
 			if errors.Is(err, dal.ErrNoMoreRecords) {
 				return nil
@@ -281,7 +281,7 @@ func delayedUpdateTransfersWithCreatorName(ctx context.Context, userID string) (
 		go func(transferID string) {
 			defer wg.Done()
 			err := facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) error {
-				transfer, err := facade4debtus2.Transfers.GetTransferByID(ctx, tx, transferID)
+				transfer, err := facade4debtus.Transfers.GetTransferByID(ctx, tx, transferID)
 				if err != nil {
 					return err
 				}
@@ -301,7 +301,7 @@ func delayedUpdateTransfersWithCreatorName(ctx context.Context, userID string) (
 					logus.Infof(ctx, "TransferEntry() creator is not a counterparty")
 				}
 				if changed {
-					if err = facade4debtus2.Transfers.SaveTransfer(ctx, tx, transfer); err != nil {
+					if err = facade4debtus.Transfers.SaveTransfer(ctx, tx, transfer); err != nil {
 						return err
 					}
 				}

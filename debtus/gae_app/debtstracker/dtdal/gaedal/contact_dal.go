@@ -6,11 +6,11 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/sneat-core-modules/contactus/const4contactus"
-	dal4contactus2 "github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
+	"github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
 	"github.com/sneat-co/sneat-go-core/facade"
-	const4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/const4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/const4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/delaying"
 	"github.com/strongo/logus"
 	"strings"
@@ -27,7 +27,7 @@ var _ dtdal.ContactDal = (*ContactDalGae)(nil)
 
 func (contactDalGae ContactDalGae) DeleteContact(ctx context.Context, tx dal.ReadwriteTransaction, spaceID, contactID string) (err error) {
 	logus.Debugf(ctx, "ContactDalGae.DeleteContact(spaceID=%s, contactID=%s)", spaceID, contactID)
-	if err = tx.Delete(ctx, models4debtus2.NewDebtusContactKey(spaceID, contactID)); err != nil {
+	if err = tx.Delete(ctx, models4debtus.NewDebtusContactKey(spaceID, contactID)); err != nil {
 		return
 	}
 	if err = delayDeleteContactTransfers(ctx, contactID, ""); err != nil { // TODO: Move to facade4debtus!
@@ -39,7 +39,7 @@ func (contactDalGae ContactDalGae) DeleteContact(ctx context.Context, tx dal.Rea
 const DeleteContactTransfersFuncKey = "DeleteContactTransfers"
 
 func delayDeleteContactTransfers(ctx context.Context, contactID string, cursor string) error {
-	if err := delayerDeleteContactTransfersDelayFunc.EnqueueWork(ctx, delaying.With(const4debtus2.QueueTransfers, DeleteContactTransfersFuncKey, 0), contactID, cursor); err != nil {
+	if err := delayerDeleteContactTransfersDelayFunc.EnqueueWork(ctx, delaying.With(const4debtus.QueueTransfers, DeleteContactTransfersFuncKey, 0), contactID, cursor); err != nil {
 		return err
 	}
 	return nil
@@ -55,7 +55,7 @@ func delayedDeleteContactTransfers(ctx context.Context, contactID string, cursor
 	}
 	keys := make([]*dal.Key, len(transferIDs))
 	for i, transferID := range transferIDs {
-		keys[i] = models4debtus2.NewTransferKey(transferID)
+		keys[i] = models4debtus.NewTransferKey(transferID)
 	}
 	if err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
 		if err = tx.DeleteMulti(ctx, keys); err != nil {
@@ -73,7 +73,7 @@ func delayedDeleteContactTransfers(ctx context.Context, contactID string, cursor
 	return
 }
 
-func (ContactDalGae) SaveContact(ctx context.Context, tx dal.ReadwriteTransaction, contact models4debtus2.DebtusSpaceContactEntry) error {
+func (ContactDalGae) SaveContact(ctx context.Context, tx dal.ReadwriteTransaction, contact models4debtus.DebtusSpaceContactEntry) error {
 	if err := tx.Set(ctx, contact.Record); err != nil {
 		return fmt.Errorf("failed to SaveContact(): %w", err)
 	}
@@ -81,35 +81,35 @@ func (ContactDalGae) SaveContact(ctx context.Context, tx dal.ReadwriteTransactio
 }
 
 func newUserActiveContactsQuery(userID string) dal.QueryBuilder {
-	return newUserContactsQuery(userID).WhereField("Status", dal.Equal, const4debtus2.StatusActive)
+	return newUserContactsQuery(userID).WhereField("Status", dal.Equal, const4debtus.StatusActive)
 }
 
 func newUserContactsQuery(userID string) dal.QueryBuilder {
 	return dal.From(const4contactus.ContactsCollection).WhereField("UserID", dal.Equal, userID)
 }
 
-func (ContactDalGae) GetContactsWithDebts(ctx context.Context, tx dal.ReadSession, spaceID, userID string) (counterparties []models4debtus2.DebtusSpaceContactEntry, err error) {
+func (ContactDalGae) GetContactsWithDebts(ctx context.Context, tx dal.ReadSession, spaceID, userID string) (counterparties []models4debtus.DebtusSpaceContactEntry, err error) {
 	query := newUserContactsQuery(userID).
 		WhereField("BalanceCount", dal.GreaterThen, 0).
-		SelectInto(models4debtus2.NewDebtusContactRecord)
+		SelectInto(models4debtus.NewDebtusContactRecord)
 	//var (
 	//	counterpartyEntities []*models.DebtusSpaceContactDbo
 	//)
 	records, err := tx.QueryAllRecords(ctx, query)
-	counterparties = make([]models4debtus2.DebtusSpaceContactEntry, len(records))
+	counterparties = make([]models4debtus.DebtusSpaceContactEntry, len(records))
 	for i, record := range records {
-		counterparties[i] = models4debtus2.NewDebtusSpaceContactEntry(spaceID, record.Key().ID.(string), record.Data().(*models4debtus2.DebtusSpaceContactDbo))
+		counterparties[i] = models4debtus.NewDebtusSpaceContactEntry(spaceID, record.Key().ID.(string), record.Data().(*models4debtus.DebtusSpaceContactDbo))
 	}
 	return
 }
 
-func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, tx dal.ReadSession, spaceID string, limit, totalCount int) (contacts []models4debtus2.DebtusSpaceContactEntry, err error) {
+func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, tx dal.ReadSession, spaceID string, limit, totalCount int) (contacts []models4debtus.DebtusSpaceContactEntry, err error) {
 	ctx := whc.Context()
 	appUserID := whc.AppUserID()
 	query := newUserActiveContactsQuery(appUserID).
 		OrderBy(dal.DescendingField("LastTransferAt")).
 		Limit(limit).
-		SelectInto(models4debtus2.NewDebtusContactRecord)
+		SelectInto(models4debtus.NewDebtusContactRecord)
 	if tx == nil {
 		if tx, err = facade.GetSneatDB(ctx); err != nil {
 			return
@@ -123,23 +123,23 @@ func (ContactDalGae) GetLatestContacts(whc botsfw.WebhookContext, tx dal.ReadSes
 		logus.Debugf(ctx, "Querying contacts without index -LastTransferAt")
 		query = newUserActiveContactsQuery(appUserID).
 			Limit(limit).
-			SelectInto(models4debtus2.NewTransferRecord)
+			SelectInto(models4debtus.NewTransferRecord)
 		if records, err = tx.QueryAllRecords(ctx, query); err != nil {
 			return
 		}
 	}
-	contacts = make([]models4debtus2.DebtusSpaceContactEntry, len(records))
+	contacts = make([]models4debtus.DebtusSpaceContactEntry, len(records))
 	for i, record := range records {
 		contactID := record.Key().ID.(string)
-		dbo := record.Data().(*models4debtus2.DebtusSpaceContactDbo)
-		contacts[i] = models4debtus2.NewDebtusSpaceContactEntry(spaceID, contactID, dbo)
+		dbo := record.Data().(*models4debtus.DebtusSpaceContactDbo)
+		contacts[i] = models4debtus.NewDebtusSpaceContactEntry(spaceID, contactID, dbo)
 	}
 	return
 }
 
 func (contactDalGae ContactDalGae) GetContactIDsByTitle(ctx context.Context, tx dal.ReadSession, spaceID, userID string, title string, caseSensitive bool) (contactIDs []string, err error) {
-	contactusSpace := dal4contactus2.NewContactusSpaceEntry(spaceID)
-	if err = dal4contactus2.GetContactusSpace(ctx, tx, contactusSpace); err != nil {
+	contactusSpace := dal4contactus.NewContactusSpaceEntry(spaceID)
+	if err = dal4contactus.GetContactusSpace(ctx, tx, contactusSpace); err != nil {
 		return
 	}
 	if caseSensitive {
@@ -170,8 +170,8 @@ func (contactDalGae ContactDalGae) GetContactIDsByTitle(ctx context.Context, tx 
 //	return
 //}
 
-func (contactDalGae ContactDalGae) InsertContact(ctx context.Context, tx dal.ReadwriteTransaction, contactEntity *models4debtus2.DebtusSpaceContactDbo) (
-	contact models4debtus2.DebtusSpaceContactEntry, err error,
+func (contactDalGae ContactDalGae) InsertContact(ctx context.Context, tx dal.ReadwriteTransaction, contactEntity *models4debtus.DebtusSpaceContactDbo) (
+	contact models4debtus.DebtusSpaceContactEntry, err error,
 ) {
 	contact.Data = contactEntity
 	if err = tx.Insert(ctx, contact.Record); err != nil {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtmocks"
 	"github.com/sneat-co/sneat-mod-debtus-go/splitus/briefs4splitus"
-	models4splitus2 "github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 	"github.com/strongo/decimal"
 	"strings"
 	"testing"
@@ -277,10 +277,10 @@ func TestCreateBillSuccess(t *testing.T) {
 	// }
 }
 
-func createGoodBillSplitByPercentage(t *testing.T) (billEntity *models4splitus2.BillDbo) {
-	billEntity = new(models4splitus2.BillDbo)
-	billEntity.Status = models4splitus2.BillStatusOutstanding
-	billEntity.SplitMode = models4splitus2.SplitModePercentage
+func createGoodBillSplitByPercentage(t *testing.T) (billEntity *models4splitus.BillDbo) {
+	billEntity = new(models4splitus.BillDbo)
+	billEntity.Status = models4splitus.BillStatusOutstanding
+	billEntity.SplitMode = models4splitus.SplitModePercentage
 	billEntity.CreatorUserID = "1"
 	billEntity.AmountTotal = 848
 	billEntity.Currency = "EUR"
@@ -298,10 +298,10 @@ func createGoodBillSplitByPercentage(t *testing.T) (billEntity *models4splitus2.
 	return
 }
 
-func createGoodBillSplitEqually(t *testing.T) (billEntity *models4splitus2.BillDbo, err error) {
-	billEntity = new(models4splitus2.BillDbo)
-	billEntity.Status = models4splitus2.BillStatusOutstanding
-	billEntity.SplitMode = models4splitus2.SplitModeEqually
+func createGoodBillSplitEqually(t *testing.T) (billEntity *models4splitus.BillDbo, err error) {
+	billEntity = new(models4splitus.BillDbo)
+	billEntity.Status = models4splitus.BillStatusOutstanding
+	billEntity.SplitMode = models4splitus.SplitModeEqually
 	billEntity.CreatorUserID = "1"
 	billEntity.AmountTotal = 637
 	billEntity.Currency = "EUR"
@@ -317,7 +317,7 @@ func createGoodBillSplitEqually(t *testing.T) (billEntity *models4splitus2.BillD
 	return
 }
 
-func createGoodBillSplitEquallyWithAdjustments(t *testing.T) (billEntity *models4splitus2.BillDbo, err error) {
+func createGoodBillSplitEquallyWithAdjustments(t *testing.T) (billEntity *models4splitus.BillDbo, err error) {
 	t.Helper()
 
 	if billEntity, err = createGoodBillSplitEqually(t); err != nil {
@@ -349,10 +349,10 @@ func createGoodBillSplitEquallyWithAdjustments(t *testing.T) (billEntity *models
 	return
 }
 
-func createGoodBillSplitByShare(t *testing.T) (billEntity *models4splitus2.BillDbo, err error) {
-	billEntity = new(models4splitus2.BillDbo)
-	billEntity.Status = models4splitus2.BillStatusOutstanding
-	billEntity.SplitMode = models4splitus2.SplitModeShare
+func createGoodBillSplitByShare(t *testing.T) (billEntity *models4splitus.BillDbo, err error) {
+	billEntity = new(models4splitus.BillDbo)
+	billEntity.Status = models4splitus.BillStatusOutstanding
+	billEntity.SplitMode = models4splitus.SplitModeShare
 	billEntity.CreatorUserID = "1"
 	billEntity.AmountTotal = 636
 	billEntity.Currency = "EUR"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
-	briefs4contactus2 "github.com/sneat-co/sneat-core-modules/contactus/briefs4contactus"
+	"github.com/sneat-co/sneat-core-modules/contactus/briefs4contactus"
 	"github.com/sneat-co/sneat-core-modules/contactus/const4contactus"
 	"github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
 	"github.com/sneat-co/sneat-core-modules/contactus/dbo4contactus"
@@ -13,7 +13,7 @@ import (
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/general"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/logus"
 	"github.com/strongo/strongoapp"
 	"strconv"
@@ -28,20 +28,20 @@ func NewInviteDalGae() InviteDalGae {
 	return InviteDalGae{}
 }
 
-func (InviteDalGae) GetInvite(ctx context.Context, tx dal.ReadSession, inviteCode string) (invite models4debtus2.Invite, err error) {
+func (InviteDalGae) GetInvite(ctx context.Context, tx dal.ReadSession, inviteCode string) (invite models4debtus.Invite, err error) {
 	if tx == nil {
 		if tx, err = facade.GetSneatDB(ctx); err != nil {
 			return
 		}
 	}
-	invite = models4debtus2.NewInvite(inviteCode, nil)
+	invite = models4debtus.NewInvite(inviteCode, nil)
 	return invite, tx.Get(ctx, invite.Record)
 }
 
 // ClaimInvite claims invite by user - TODO compare with ClaimInvite2 and get rid of one of them
 func (InviteDalGae) ClaimInvite(ctx context.Context, userID string, inviteCode, claimedOn, claimedVia string) (err error) {
 	err = facade.RunReadwriteTransaction(ctx, func(tctx context.Context, tx dal.ReadwriteTransaction) error {
-		invite := models4debtus2.NewInvite(inviteCode, nil)
+		invite := models4debtus.NewInvite(inviteCode, nil)
 
 		if err = tx.Get(tctx, invite.Record); err != nil {
 			return err
@@ -49,7 +49,7 @@ func (InviteDalGae) ClaimInvite(ctx context.Context, userID string, inviteCode, 
 		logus.Debugf(ctx, "Invite found")
 		// TODO: Check invite.For
 		//invite.ClaimedCount += 1
-		inviteClaim := models4debtus2.NewInviteClaimWithoutID(models4debtus2.NewInviteClaimData(inviteCode, userID, claimedOn, claimedVia))
+		inviteClaim := models4debtus.NewInviteClaimWithoutID(models4debtus.NewInviteClaimData(inviteCode, userID, claimedOn, claimedVia))
 		user := dbo4userus.NewUserEntry(userID)
 		if err = tx.Get(tctx, user.Record); err != nil {
 			return err
@@ -75,16 +75,16 @@ const (
 	PERSONAL_INVITE           = 1
 )
 
-func (InviteDalGae) CreatePersonalInvite(ec strongoapp.ExecutionContext, userID string, inviteBy models4debtus2.InviteBy, inviteToAddress, createdOnPlatform, createdOnID, related string) (models4debtus2.Invite, error) {
-	return createInvite(ec, models4debtus2.InviteTypePersonal, userID, inviteBy, inviteToAddress, createdOnPlatform, createdOnID, INVITE_CODE_LENGTH, AUTO_GENERATE_INVITE_CODE, related, PERSONAL_INVITE)
+func (InviteDalGae) CreatePersonalInvite(ec strongoapp.ExecutionContext, userID string, inviteBy models4debtus.InviteBy, inviteToAddress, createdOnPlatform, createdOnID, related string) (models4debtus.Invite, error) {
+	return createInvite(ec, models4debtus.InviteTypePersonal, userID, inviteBy, inviteToAddress, createdOnPlatform, createdOnID, INVITE_CODE_LENGTH, AUTO_GENERATE_INVITE_CODE, related, PERSONAL_INVITE)
 }
 
-func (InviteDalGae) CreateMassInvite(ec strongoapp.ExecutionContext, userID string, inviteCode string, maxClaimsCount int32, createdOnPlatform string) (invite models4debtus2.Invite, err error) {
-	invite, err = createInvite(ec, models4debtus2.InviteTypePublic, userID, "", "", createdOnPlatform, "", uint8(len(inviteCode)), inviteCode, "", maxClaimsCount)
+func (InviteDalGae) CreateMassInvite(ec strongoapp.ExecutionContext, userID string, inviteCode string, maxClaimsCount int32, createdOnPlatform string) (invite models4debtus.Invite, err error) {
+	invite, err = createInvite(ec, models4debtus.InviteTypePublic, userID, "", "", createdOnPlatform, "", uint8(len(inviteCode)), inviteCode, "", maxClaimsCount)
 	return
 }
 
-func createInvite(ec strongoapp.ExecutionContext, inviteType models4debtus2.InviteType, userID string, inviteBy models4debtus2.InviteBy, inviteToAddress, createdOnPlatform, createdOnID string, inviteCodeLen uint8, inviteCode, related string, maxClaimsCount int32) (invite models4debtus2.Invite, err error) {
+func createInvite(ec strongoapp.ExecutionContext, inviteType models4debtus.InviteType, userID string, inviteBy models4debtus.InviteBy, inviteToAddress, createdOnPlatform, createdOnID string, inviteCodeLen uint8, inviteCode, related string, maxClaimsCount int32) (invite models4debtus.Invite, err error) {
 	if inviteCode != AUTO_GENERATE_INVITE_CODE && !dtdal.InviteCodeRegex.Match([]byte(inviteCode)) {
 		err = fmt.Errorf("Invalid invite code: %v", inviteCode)
 		return
@@ -95,7 +95,7 @@ func createInvite(ec strongoapp.ExecutionContext, inviteType models4debtus2.Invi
 	ctx := ec.Context()
 
 	dtCreated := time.Now()
-	invite = models4debtus2.NewInvite(inviteCode, &models4debtus2.InviteData{
+	invite = models4debtus.NewInvite(inviteCode, &models4debtus.InviteData{
 		Type:    string(inviteType),
 		Channel: string(inviteBy),
 		CreatedOn: general.CreatedOn{
@@ -110,7 +110,7 @@ func createInvite(ec strongoapp.ExecutionContext, inviteType models4debtus2.Invi
 		DtActiveTill:    dtCreated.AddDate(100, 0, 0), // By default is active for 100 years
 	})
 	switch inviteBy {
-	case models4debtus2.InviteByEmail:
+	case models4debtus.InviteByEmail:
 		if inviteToAddress == "" {
 			panic("Emmail address is not supplied")
 		}
@@ -121,7 +121,7 @@ func createInvite(ec strongoapp.ExecutionContext, inviteType models4debtus2.Invi
 		if inviteToAddress != strings.ToLower(inviteToAddress) {
 			invite.Data.ToEmailOriginal = inviteToAddress
 		}
-	case models4debtus2.InviteBySms:
+	case models4debtus.InviteBySms:
 		var phoneNumber int64
 		phoneNumber, err = strconv.ParseInt(inviteToAddress, 10, 64)
 		if err != nil {
@@ -138,7 +138,7 @@ func createInvite(ec strongoapp.ExecutionContext, inviteType models4debtus2.Invi
 					inviteCodeLen = INVITE_CODE_LENGTH
 				}
 				inviteCode = dtdal.RandomCode(inviteCodeLen)
-				existingInvite := models4debtus2.NewInvite(inviteCode, nil)
+				existingInvite := models4debtus.NewInvite(inviteCode, nil)
 
 				if err := tx.Get(ctx, existingInvite.Record); dal.IsNotFound(err) {
 					//logus.Debugf(ctx, "New invite code: %v", inviteCode)
@@ -159,7 +159,7 @@ func createInvite(ec strongoapp.ExecutionContext, inviteType models4debtus2.Invi
 }
 
 // ClaimInvite2 claims invite by user - TODO compare with ClaimInvite and get rid of one of them
-func (InviteDalGae) ClaimInvite2(ctx context.Context, inviteCode string, invite models4debtus2.Invite, claimedByUserID string, claimedOn, claimedVia string) (err error) {
+func (InviteDalGae) ClaimInvite2(ctx context.Context, inviteCode string, invite models4debtus.Invite, claimedByUserID string, claimedOn, claimedVia string) (err error) {
 	var db dal.DB // Needed for query records outside of transaction
 	if db, err = facade.GetSneatDB(ctx); err != nil {
 		return
@@ -175,8 +175,8 @@ func (InviteDalGae) ClaimInvite2(ctx context.Context, inviteCode string, invite 
 		if invite.Data.MaxClaimsCount > 0 && invite.Data.ClaimedCount > invite.Data.MaxClaimsCount {
 			return fmt.Errorf("invite.ClaimedCount > invite.MaxClaimsCount: %v > %v", invite.Data.ClaimedCount, invite.Data.MaxClaimsCount)
 		}
-		inviteClaimData := models4debtus2.NewInviteClaimData(inviteCode, claimedByUserID, claimedOn, claimedVia)
-		inviteClaim := models4debtus2.NewInviteClaim(0, inviteClaimData)
+		inviteClaimData := models4debtus.NewInviteClaimData(inviteCode, claimedByUserID, claimedOn, claimedVia)
+		inviteClaim := models4debtus.NewInviteClaim(0, inviteClaimData)
 		if err = tx.Insert(ctx, inviteClaim.Record); err != nil {
 			return err
 		}
@@ -195,7 +195,7 @@ func (InviteDalGae) ClaimInvite2(ctx context.Context, inviteCode string, invite 
 				WhereField("UserID", dal.Equal, claimedByUserID).
 				WhereField("CounterpartyUserID", dal.Equal, invite.Data.CreatedByUserID).
 				Limit(1).
-				SelectInto(models4debtus2.NewDebtusContactRecord)
+				SelectInto(models4debtus.NewDebtusContactRecord)
 
 			var counterpartyRecords []dal.Record
 			counterpartyRecords, err = db.QueryAllRecords(ctx, counterpartyQuery)
@@ -211,8 +211,8 @@ func (InviteDalGae) ClaimInvite2(ctx context.Context, inviteCode string, invite 
 				}
 
 				counterparty := dal4contactus.NewContactEntryWithData("", "", &dbo4contactus.ContactDbo{
-					ContactBase: briefs4contactus2.ContactBase{
-						ContactBrief: briefs4contactus2.ContactBrief{
+					ContactBase: briefs4contactus.ContactBase{
+						ContactBrief: briefs4contactus.ContactBrief{
 							Names: inviterUser.Data.Names,
 						},
 					},
@@ -242,13 +242,13 @@ func (InviteDalGae) ClaimInvite2(ctx context.Context, inviteCode string, invite 
 	return
 }
 
-func updateUserContactDetails(user dbo4userus.UserEntry, inviteData models4debtus2.InviteData) (changed bool) {
-	switch models4debtus2.InviteBy(inviteData.Channel) {
-	case models4debtus2.InviteByEmail:
+func updateUserContactDetails(user dbo4userus.UserEntry, inviteData models4debtus.InviteData) (changed bool) {
+	switch models4debtus.InviteBy(inviteData.Channel) {
+	case models4debtus.InviteByEmail:
 		changed = !user.Data.EmailVerified
 		panic("Not implemented")
 		//user.SetEmail(inviteData.ToEmail, true)
-	case models4debtus2.InviteBySms:
+	case models4debtus.InviteBySms:
 		if inviteData.ToPhoneNumber != 0 {
 			panic("not implemented")
 			//changed = !user.PhoneNumberConfirmed

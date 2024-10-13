@@ -7,7 +7,7 @@ import (
 	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	dal4contactus2 "github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
+	"github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
 	"github.com/sneat-co/sneat-core-modules/contactus/dto4contactus"
 	"github.com/sneat-co/sneat-core-modules/userus/const4userus"
 	"github.com/sneat-co/sneat-go-core/facade"
@@ -36,7 +36,7 @@ func NewCounterpartyCommand(nextCommand botsfw.Command) botsfw.Command {
 			chatEntity := whc.ChatData()
 			spaceID := ""
 			if chatEntity.IsAwaitingReplyTo(newCounterpartyCommandCode) {
-				contactusSpace := dal4contactus2.NewContactusSpaceEntry(spaceID)
+				contactusSpace := dal4contactus.NewContactusSpaceEntry(spaceID)
 
 				input := whc.Input()
 				input.LogRequest()
@@ -120,7 +120,7 @@ func NewCounterpartyCommand(nextCommand botsfw.Command) botsfw.Command {
 				}
 
 				if !existingContact {
-					if err = dal4contactus2.GetContactusSpace(ctx, nil, contactusSpace); err != nil {
+					if err = dal4contactus.GetContactusSpace(ctx, nil, contactusSpace); err != nil {
 						return
 					}
 

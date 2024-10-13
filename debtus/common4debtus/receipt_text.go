@@ -9,7 +9,7 @@ import (
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/sneat-co/sneat-core-modules/common4all"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/i18n"
 	"github.com/strongo/logus"
 	"github.com/strongo/strongoapp"
@@ -36,7 +36,7 @@ const (
 type receiptTextBuilder struct {
 	//whc botsfw.WebhookContext
 	translator    i18n.SingleLocaleTranslator
-	transfer      models4debtus2.TransferEntry
+	transfer      models4debtus.TransferEntry
 	showReceiptTo ShowReceiptTo
 	viewerUserID  string
 	partyAction   ReceiptPartyAction
@@ -46,7 +46,7 @@ type receiptTextBuilder struct {
 	//showAds        bool
 }
 
-func newReceiptTextBuilder(translator i18n.SingleLocaleTranslator, transfer models4debtus2.TransferEntry, showReceiptTo ShowReceiptTo) receiptTextBuilder {
+func newReceiptTextBuilder(translator i18n.SingleLocaleTranslator, transfer models4debtus.TransferEntry, showReceiptTo ShowReceiptTo) receiptTextBuilder {
 	if transfer.ID == "" {
 		panic("transferID == 0")
 	}
@@ -63,11 +63,11 @@ func newReceiptTextBuilder(translator i18n.SingleLocaleTranslator, transfer mode
 	default:
 		panic(fmt.Sprintf("Unknown showReceiptTo: %v", showReceiptTo))
 	}
-	if (showReceiptTo == ShowReceiptToCreator && r.transfer.Data.Direction() == models4debtus2.TransferDirectionCounterparty2User) ||
-		(showReceiptTo == ShowReceiptToCounterparty && r.transfer.Data.Direction() == models4debtus2.TransferDirectionUser2Counterparty) {
+	if (showReceiptTo == ShowReceiptToCreator && r.transfer.Data.Direction() == models4debtus.TransferDirectionCounterparty2User) ||
+		(showReceiptTo == ShowReceiptToCounterparty && r.transfer.Data.Direction() == models4debtus.TransferDirectionUser2Counterparty) {
 		r.partyAction = ReceiptPartyGot
-	} else if (showReceiptTo == ShowReceiptToCounterparty && r.transfer.Data.Direction() == models4debtus2.TransferDirectionCounterparty2User) ||
-		(showReceiptTo == ShowReceiptToCreator && r.transfer.Data.Direction() == models4debtus2.TransferDirectionUser2Counterparty) {
+	} else if (showReceiptTo == ShowReceiptToCounterparty && r.transfer.Data.Direction() == models4debtus.TransferDirectionCounterparty2User) ||
+		(showReceiptTo == ShowReceiptToCreator && r.transfer.Data.Direction() == models4debtus.TransferDirectionUser2Counterparty) {
 		r.partyAction = ReceiptPartyGive
 	} else {
 		if showReceiptTo != ShowReceiptToCreator && showReceiptTo != ShowReceiptToCounterparty {
@@ -131,7 +131,7 @@ func (r receiptTextBuilder) receiptCommonFooter(buffer *bytes.Buffer) {
 	//}
 }
 
-func TextReceiptForTransfer(ctx context.Context, translator i18n.SingleLocaleTranslator, transfer models4debtus2.TransferEntry, showToUserID string, showReceiptTo ShowReceiptTo, utmParams common4all.UtmParams) string {
+func TextReceiptForTransfer(ctx context.Context, translator i18n.SingleLocaleTranslator, transfer models4debtus.TransferEntry, showToUserID string, showReceiptTo ShowReceiptTo, utmParams common4all.UtmParams) string {
 	logus.Debugf(ctx, "TextReceiptForTransfer(transferID=%v, showToUserID=%v, showReceiptTo=%v)", transfer.ID, showToUserID, showReceiptTo)
 
 	if transfer.ID == "" {
@@ -177,7 +177,7 @@ func TextReceiptForTransfer(ctx context.Context, translator i18n.SingleLocaleTra
 	return buffer.String()
 }
 
-func (r receiptTextBuilder) getReceiptCounterparty() *models4debtus2.TransferCounterpartyInfo {
+func (r receiptTextBuilder) getReceiptCounterparty() *models4debtus.TransferCounterpartyInfo {
 	switch r.showReceiptTo {
 	case ShowReceiptToCreator:
 		return r.transfer.Data.Counterparty()
@@ -248,7 +248,7 @@ func (r receiptTextBuilder) WriteReceiptText(ctx context.Context, buffer *bytes.
 	return nil
 }
 
-func WriteTransferInterest(buffer *bytes.Buffer, transfer models4debtus2.TransferEntry, translator i18n.SingleLocaleTranslator) {
+func WriteTransferInterest(buffer *bytes.Buffer, transfer models4debtus.TransferEntry, translator i18n.SingleLocaleTranslator) {
 	buffer.WriteString(translator.Translate(trans.MESSAGE_TEXT_INTEREST, transfer.Data.InterestPercent, days(translator, int(transfer.Data.InterestPeriod))))
 	if transfer.Data.InterestMinimumPeriod > 1 {
 		buffer.WriteString(", " + translator.Translate(trans.MESSAGE_TEXT_INTEREST_MIN_PERIOD, days(translator, transfer.Data.InterestMinimumPeriod)))

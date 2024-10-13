@@ -4,21 +4,20 @@
 package inspector
 
 import (
+	"github.com/shiyanhui/hero"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"io"
 	"time"
-
-	"github.com/shiyanhui/hero"
 )
 
 func renderUserPage(
 	now time.Time,
 	user dbo4userus.UserEntry,
-	debtusSpace models4debtus2.DebtusSpaceEntry,
+	debtusSpace models4debtus.DebtusSpaceEntry,
 	userBalances balances,
 	contactsMissingInJson, contactsMissedByQuery, matchedContacts map[string]contactWithBalances,
-	contactInfosNotFoundInDb map[string]*models4debtus2.DebtusContactBrief,
+	contactInfosNotFoundInDb map[string]*models4debtus.DebtusContactBrief,
 	w io.Writer) {
 	_buffer := hero.GetBuffer()
 	defer hero.PutBuffer(_buffer)

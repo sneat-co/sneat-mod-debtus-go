@@ -1,13 +1,12 @@
 package models4splitus
 
 import (
+	"errors"
 	"fmt"
 	"github.com/dal-go/dalgo/record"
-	briefs4splitus2 "github.com/sneat-co/sneat-mod-debtus-go/splitus/briefs4splitus"
-	"time"
-
-	"errors"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/briefs4splitus"
 	"github.com/strongo/decimal"
+	"time"
 )
 
 type BillDbo struct {
@@ -150,9 +149,9 @@ func (entity *BillDbo) validateBalance() (err error) {
 	return
 }
 
-func (entity *BillDbo) GetBalance() (billBalanceByMember briefs4splitus2.BillBalanceByMember) {
+func (entity *BillDbo) GetBalance() (billBalanceByMember briefs4splitus.BillBalanceByMember) {
 	members := entity.GetBillMembers()
-	billBalanceByMember = make(briefs4splitus2.BillBalanceByMember, len(members))
+	billBalanceByMember = make(briefs4splitus.BillBalanceByMember, len(members))
 
 	for i, member := range members {
 
@@ -163,7 +162,7 @@ func (entity *BillDbo) GetBalance() (billBalanceByMember briefs4splitus2.BillBal
 		}
 
 		if member.Owes != 0 || member.Paid != 0 {
-			billBalanceByMember[member.ID] = briefs4splitus2.BillMemberBalance{
+			billBalanceByMember[member.ID] = briefs4splitus.BillMemberBalance{
 				Owes: member.Owes,
 				Paid: member.Paid,
 			}
@@ -172,7 +171,7 @@ func (entity *BillDbo) GetBalance() (billBalanceByMember briefs4splitus2.BillBal
 	return
 }
 
-func (entity *BillDbo) SetBillMembers(members []*briefs4splitus2.BillMemberBrief) (err error) {
+func (entity *BillDbo) SetBillMembers(members []*briefs4splitus.BillMemberBrief) (err error) {
 	if err = entity.validateMembersForDuplicatesAndBasicChecks(members); err != nil {
 		return
 	}

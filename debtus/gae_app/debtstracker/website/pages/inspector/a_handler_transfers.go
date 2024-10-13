@@ -8,7 +8,7 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sneat-co/sneat-go-core/facade"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/decimal"
 	"net/http"
 	"sync"
@@ -35,13 +35,13 @@ func (h transfersPage) transfersPageHandler(w http.ResponseWriter, r *http.Reque
 
 	spaceID := urlQuery.Get("space")
 
-	debtusSpace := models4debtus2.NewDebtusSpaceEntry(spaceID)
+	debtusSpace := models4debtus.NewDebtusSpaceEntry(spaceID)
 
-	var transfers []models4debtus2.TransferEntry
+	var transfers []models4debtus.TransferEntry
 
 	var transfersTotalWithoutInterest decimal.Decimal64p2
 
-	debtusContact := models4debtus2.NewDebtusSpaceContactEntry(spaceID, contactID, nil)
+	debtusContact := models4debtus.NewDebtusSpaceContactEntry(spaceID, contactID, nil)
 
 	wg := new(sync.WaitGroup)
 
@@ -104,17 +104,17 @@ func (h transfersPage) transfersPageHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (h transfersPage) processTransfers(ctx context.Context, tx dal.ReadSession, contactID string, currency money.CurrencyCode) (
-	transfers []models4debtus2.TransferEntry,
+	transfers []models4debtus.TransferEntry,
 	balanceWithoutInterest decimal.Decimal64p2,
 	err error,
 ) {
-	query := dal.From(models4debtus2.TransfersCollection).
+	query := dal.From(models4debtus.TransfersCollection).
 		Where(
 			dal.Field("BothCounterpartyIDs").EqualTo(contactID),
 			dal.Field("Currency").EqualTo(currency),
 		).
 		OrderBy(dal.DescendingField("DtCreated")).
-		SelectInto(models4debtus2.NewTransferRecord)
+		SelectInto(models4debtus.NewTransferRecord)
 
 	var reader dal.Reader
 	if reader, err = tx.QueryReader(ctx, query); err != nil {
@@ -130,7 +130,7 @@ func (h transfersPage) processTransfers(ctx context.Context, tx dal.ReadSession,
 			}
 			panic(err)
 		}
-		transfer := models4debtus2.NewTransfer(record.Key().ID.(string), record.Data().(*models4debtus2.TransferData))
+		transfer := models4debtus.NewTransfer(record.Key().ID.(string), record.Data().(*models4debtus.TransferData))
 		transfers = append(transfers, transfer)
 		switch contactID {
 		case transfer.Data.From().ContactID:

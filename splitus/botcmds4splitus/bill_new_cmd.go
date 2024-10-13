@@ -12,7 +12,7 @@ import (
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/splitus/briefs4splitus"
 	"github.com/sneat-co/sneat-mod-debtus-go/splitus/facade4splitus"
-	models4splitus2 "github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 	"github.com/strongo/logus"
 	"net/url"
 
@@ -51,10 +51,10 @@ var newBillCommand = botsfw.Command{
 
 		strUserID := whc.AppUserID()
 
-		billEntity := models4splitus2.NewBillEntity(
-			models4splitus2.BillCommon{
-				Status:        models4splitus2.BillStatusDraft,
-				SplitMode:     models4splitus2.SplitModeEqually,
+		billEntity := models4splitus.NewBillEntity(
+			models4splitus.BillCommon{
+				Status:        models4splitus.BillStatusDraft,
+				SplitMode:     models4splitus.SplitModeEqually,
 				CreatorUserID: strUserID,
 				AmountTotal:   amountValue,
 				Currency:      money.CurrencyCode(query.Get("ctx")),
@@ -90,7 +90,7 @@ var newBillCommand = botsfw.Command{
 		}
 
 		return m, facade.RunReadwriteTransaction(ctx, func(tctx context.Context, tx dal.ReadwriteTransaction) (err error) {
-			var bill models4splitus2.BillEntry
+			var bill models4splitus.BillEntry
 			if bill, err = facade4splitus.CreateBill(ctx, tx, spaceID, billEntity); err != nil {
 				return
 			}

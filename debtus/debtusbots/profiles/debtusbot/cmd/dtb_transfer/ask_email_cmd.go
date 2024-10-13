@@ -8,7 +8,7 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/general"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/invites"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/logus"
 	"strings"
 )
@@ -37,13 +37,13 @@ var AskEmailForReceiptCommand = botsfw.Command{
 	},
 }
 
-func sendReceiptByEmail(whc botsfw.WebhookContext, toEmail, toName string, transfer models4debtus2.TransferEntry) (m botsfw.MessageFromBot, err error) {
+func sendReceiptByEmail(whc botsfw.WebhookContext, toEmail, toName string, transfer models4debtus.TransferEntry) (m botsfw.MessageFromBot, err error) {
 	ctx := whc.Context()
-	receiptEntity := models4debtus2.NewReceiptEntity(whc.AppUserID(), transfer.ID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, string(models4debtus2.InviteByEmail), toEmail, general.CreatedOn{
+	receiptEntity := models4debtus.NewReceiptEntity(whc.AppUserID(), transfer.ID, transfer.Data.Counterparty().UserID, whc.Locale().Code5, string(models4debtus.InviteByEmail), toEmail, general.CreatedOn{
 		CreatedOnPlatform: whc.BotPlatform().ID(),
 		CreatedOnID:       whc.GetBotCode(),
 	})
-	var receipt models4debtus2.ReceiptEntry
+	var receipt models4debtus.ReceiptEntry
 	if receipt, err = dtdal.Receipt.CreateReceipt(ctx, receiptEntity); err != nil {
 		return m, err
 	}

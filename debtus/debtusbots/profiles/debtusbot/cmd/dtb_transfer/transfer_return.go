@@ -8,9 +8,9 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	facade4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/logus"
 	"net/url"
 	"strings"
@@ -41,7 +41,7 @@ var StartReturnWizardCommand = botsfw.Command{
 	},
 }
 
-func askIfReturnedInFull(whc botsfw.WebhookContext, counterparty models4debtus2.DebtusSpaceContactEntry, currency money.CurrencyCode, value decimal.Decimal64p2) (m botsfw.MessageFromBot, err error) {
+func askIfReturnedInFull(whc botsfw.WebhookContext, counterparty models4debtus.DebtusSpaceContactEntry, currency money.CurrencyCode, value decimal.Decimal64p2) (m botsfw.MessageFromBot, err error) {
 	amount := money.Amount{Currency: money.CurrencyCode(currency), Value: value}
 	var mt string
 	switch {
@@ -86,7 +86,7 @@ var AskReturnCounterpartyCommand = CreateAskTransferCounterpartyCommand(
 		AskIfReturnedInFullCommand,
 	},
 	botsfw.Command{}, //newContactCommand - We do not allow to create a new contact on return
-	func(whc botsfw.WebhookContext, counterparty models4debtus2.DebtusSpaceContactEntry) (m botsfw.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, counterparty models4debtus.DebtusSpaceContactEntry) (m botsfw.MessageFromBot, err error) {
 		ctx := whc.Context()
 
 		logus.Debugf(ctx, "StartReturnWizardCommand.onCounterpartySelectedAction(counterparty.ContactID=%v)", counterparty.ID)
@@ -131,7 +131,7 @@ func askToChooseDebt(whc botsfw.WebhookContext, buttons [][]string) (m botsfw.Me
 	return m
 }
 
-func _debtAmountButtonText(whc botsfw.WebhookContext, currency money.CurrencyCode, value decimal.Decimal64p2, counterparty models4debtus2.DebtusSpaceContactEntry) string {
+func _debtAmountButtonText(whc botsfw.WebhookContext, currency money.CurrencyCode, value decimal.Decimal64p2, counterparty models4debtus.DebtusSpaceContactEntry) string {
 	amount := money.Amount{Currency: currency, Value: value.Abs()}
 	var mt string
 	switch {
@@ -201,8 +201,8 @@ func processReturnCommand(whc botsfw.WebhookContext, returnValue decimal.Decimal
 	currency := money.CurrencyCode(awaitingUrl.Query().Get("currency"))
 
 	if transferID != "" && returnValue > 0 {
-		var transfer models4debtus2.TransferEntry
-		if transfer, err = facade4debtus2.Transfers.GetTransferByID(whc.Context(), nil, transferID); err != nil {
+		var transfer models4debtus.TransferEntry
+		if transfer, err = facade4debtus.Transfers.GetTransferByID(whc.Context(), nil, transferID); err != nil {
 			return
 		}
 
@@ -272,7 +272,7 @@ var AskToChooseDebtToReturnCommand = botsfw.Command{
 		ctx := whc.Context()
 		spaceID, contactID, _, _ := getReturnWizardParams(whc)
 		var (
-			theCounterparty models4debtus2.DebtusSpaceContactEntry
+			theCounterparty models4debtus.DebtusSpaceContactEntry
 			balance         money.Balance
 		)
 		if contactID == "" {
@@ -288,7 +288,7 @@ var AskToChooseDebtToReturnCommand = botsfw.Command{
 			//	return m, err
 			//}
 			//user := botAppUser.(*models.DebutsAppUserDataOBSOLETE)
-			var counterparties []models4debtus2.DebtusSpaceContactEntry
+			var counterparties []models4debtus.DebtusSpaceContactEntry
 			if counterparties, err = dtdal.Contact.GetLatestContacts(whc, nil, spaceID, 10, -1); err != nil {
 				return m, err
 			}
@@ -312,7 +312,7 @@ var AskToChooseDebtToReturnCommand = botsfw.Command{
 				return m, nil
 			}
 		} else {
-			var counterparty models4debtus2.DebtusSpaceContactEntry
+			var counterparty models4debtus.DebtusSpaceContactEntry
 			if counterparty, err = getDebtusSpaceContact(whc, spaceID, contactID); err != nil {
 				return m, err
 			}
@@ -336,7 +336,7 @@ var AskToChooseDebtToReturnCommand = botsfw.Command{
 	},
 }
 
-func CreateReturnAndShowReceipt(whc botsfw.WebhookContext, returnToTransferID string, counterpartyID string, direction models4debtus2.TransferDirection, returnAmount money.Amount) (m botsfw.MessageFromBot, err error) {
+func CreateReturnAndShowReceipt(whc botsfw.WebhookContext, returnToTransferID string, counterpartyID string, direction models4debtus.TransferDirection, returnAmount money.Amount) (m botsfw.MessageFromBot, err error) {
 	ctx := whc.Context()
 	logus.Debugf(ctx, "CreateReturnAndShowReceipt(returnToTransferID=%s, counterpartyID=%s)", returnToTransferID, counterpartyID)
 
@@ -345,26 +345,26 @@ func CreateReturnAndShowReceipt(whc botsfw.WebhookContext, returnToTransferID st
 		returnAmount.Value = returnAmount.Value.Abs()
 	}
 
-	creatorInfo := models4debtus2.TransferCounterpartyInfo{
+	creatorInfo := models4debtus.TransferCounterpartyInfo{
 		UserID:    whc.AppUserID(),
 		ContactID: counterpartyID,
 	}
 
-	if m, err = CreateTransferFromBot(whc, true, returnToTransferID, direction, creatorInfo, returnAmount, time.Time{}, models4debtus2.NoInterest()); err != nil {
+	if m, err = CreateTransferFromBot(whc, true, returnToTransferID, direction, creatorInfo, returnAmount, time.Time{}, models4debtus.NoInterest()); err != nil {
 		return m, err
 	}
 	logus.Debugf(ctx, "createReturnAndShowReceipt(): %v", m)
 	return m, err
 }
 
-func getReturnDirectionFromDebtValue(currentDebt money.Amount) (models4debtus2.TransferDirection, error) {
+func getReturnDirectionFromDebtValue(currentDebt money.Amount) (models4debtus.TransferDirection, error) {
 	switch {
 	case currentDebt.Value < 0:
-		return models4debtus2.TransferDirectionUser2Counterparty, nil
+		return models4debtus.TransferDirectionUser2Counterparty, nil
 	case currentDebt.Value > 0:
-		return models4debtus2.TransferDirectionCounterparty2User, nil
+		return models4debtus.TransferDirectionCounterparty2User, nil
 	}
-	return models4debtus2.TransferDirection(""), fmt.Errorf("zero value for currency: [%s]", currentDebt.Currency)
+	return models4debtus.TransferDirection(""), fmt.Errorf("zero value for currency: [%s]", currentDebt.Currency)
 }
 
 func getReturnWizardParams(whc botsfw.WebhookContext) (spaceID, counterpartyID, transferID string, err error) {
@@ -381,9 +381,9 @@ func getReturnWizardParams(whc botsfw.WebhookContext) (spaceID, counterpartyID, 
 	return
 }
 
-func getDebtusSpaceContact(whc botsfw.WebhookContext, spaceID, contactID string) (debtusContact models4debtus2.DebtusSpaceContactEntry, err error) {
+func getDebtusSpaceContact(whc botsfw.WebhookContext, spaceID, contactID string) (debtusContact models4debtus.DebtusSpaceContactEntry, err error) {
 	//debtusContact = new(models.DebtusSpaceContactEntry)
-	if debtusContact, err = facade4debtus2.GetDebtusSpaceContactByID(whc.Context(), nil, spaceID, contactID); err != nil {
+	if debtusContact, err = facade4debtus.GetDebtusSpaceContactByID(whc.Context(), nil, spaceID, contactID); err != nil {
 		return
 	}
 	return

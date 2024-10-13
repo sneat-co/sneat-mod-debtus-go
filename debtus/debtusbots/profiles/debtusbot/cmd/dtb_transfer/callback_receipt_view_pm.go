@@ -9,9 +9,9 @@ import (
 	"github.com/sneat-co/sneat-core-modules/common4all"
 	"github.com/sneat-co/sneat-core-modules/userus/dal4userus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/common4debtus"
-	facade4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/logus"
 	"html"
 	"net/url"
@@ -31,7 +31,7 @@ var ViewReceiptCallbackCommand = botsfw.NewCallbackCommand(VIEW_RECEIPT_CALLBACK
 func ShowReceipt(whc botsfw.WebhookContext, receiptID string) (m botsfw.MessageFromBot, err error) {
 	ctx := whc.Context()
 
-	var receipt models4debtus2.ReceiptEntry
+	var receipt models4debtus.ReceiptEntry
 	if receipt, err = dtdal.Receipt.GetReceiptByID(ctx, nil, receiptID); err != nil {
 		return m, err
 	}
@@ -41,12 +41,12 @@ func ShowReceipt(whc botsfw.WebhookContext, receiptID string) (m botsfw.MessageF
 		return
 	}
 
-	receipt, err = facade4debtus2.MarkReceiptAsViewed(ctx, receiptID, whc.AppUserID())
+	receipt, err = facade4debtus.MarkReceiptAsViewed(ctx, receiptID, whc.AppUserID())
 	if err != nil {
 		return
 	}
 
-	transfer, err := facade4debtus2.Transfers.GetTransferByID(ctx, nil, receipt.Data.TransferID)
+	transfer, err := facade4debtus.Transfers.GetTransferByID(ctx, nil, receipt.Data.TransferID)
 	if err != nil {
 		return m, err
 	}
@@ -55,17 +55,17 @@ func ShowReceipt(whc botsfw.WebhookContext, receiptID string) (m botsfw.MessageF
 
 	var (
 		mt           string
-		counterparty models4debtus2.DebtusSpaceContactEntry
+		counterparty models4debtus.DebtusSpaceContactEntry
 	)
 	counterpartyCounterparty := transfer.Data.Creator()
 
 	if counterpartyCounterparty.ContactID != "" {
-		counterparty, err = facade4debtus2.GetDebtusSpaceContactByID(ctx, nil, receipt.Data.SpaceID, counterpartyCounterparty.ContactID)
+		counterparty, err = facade4debtus.GetDebtusSpaceContactByID(ctx, nil, receipt.Data.SpaceID, counterpartyCounterparty.ContactID)
 	} else {
 		if user, err := dal4userus.GetUserByID(ctx, nil, transfer.Data.CreatorUserID); err != nil {
 			return m, err
 		} else {
-			counterparty.Data = &models4debtus2.DebtusSpaceContactDbo{}
+			counterparty.Data = &models4debtus.DebtusSpaceContactDbo{}
 			counterparty.Data.FirstName = user.Data.Names.FirstName
 			counterparty.Data.LastName = user.Data.Names.LastName
 		}
@@ -88,9 +88,9 @@ func ShowReceipt(whc botsfw.WebhookContext, receiptID string) (m botsfw.MessageF
 
 		if isAcknowledgedAlready {
 			switch transfer.Data.AcknowledgeStatus {
-			case models4debtus2.TransferAccepted:
+			case models4debtus.TransferAccepted:
 				mt += "\n" + whc.Translate(trans.MESSAGE_TEXT_ALREADY_ACCEPTED_TRANSFER)
-			case models4debtus2.TransferDeclined:
+			case models4debtus.TransferDeclined:
 				mt += "\n" + whc.Translate(trans.MESSAGE_TEXT_ALREADY_DECLINED_TRANSFER)
 			default:
 				logus.Errorf(ctx, "!transfer.AcknowledgeTime.IsZero() && transfer.AcknowledgeStatus not in (accepted, declined)")

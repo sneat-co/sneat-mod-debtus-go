@@ -13,11 +13,11 @@ import (
 	"github.com/sneat-co/sneat-core-modules/userus/dal4userus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
 	"github.com/sneat-co/sneat-go-core/facade"
-	common4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/common4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/common4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/platforms/debtustgbots"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/delaying"
 	"github.com/strongo/i18n"
 	"github.com/strongo/logus"
@@ -54,7 +54,7 @@ func delayedCreateReminderForTransferUser(ctx context.Context, transferID string
 	}
 
 	return facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
-		var transfer models4debtus2.TransferEntry
+		var transfer models4debtus.TransferEntry
 		transfer, err = facade4debtus.Transfers.GetTransferByID(ctx, tx, transferID)
 		if err != nil {
 			if dal.IsNotFound(err) {
@@ -88,7 +88,7 @@ func delayedCreateReminderForTransferUser(ctx context.Context, transferID string
 				next = time.Now().Add(7 * 24 * time.Hour)
 			}
 		}
-		reminder := models4debtus2.NewReminder("", models4debtus2.NewReminderViaTelegram(transferUserInfo.TgBotID, transferUserInfo.TgChatID, userID, transferID, isAutomatic, next))
+		reminder := models4debtus.NewReminder("", models4debtus.NewReminderViaTelegram(transferUserInfo.TgBotID, transferUserInfo.TgChatID, userID, transferID, isAutomatic, next))
 		if err = tx.Insert(ctx, reminder.Record); err != nil {
 			return fmt.Errorf("failed to save reminder to db: %w", err)
 		}
@@ -184,13 +184,13 @@ func discardReminder(ctx context.Context, tx dal.ReadwriteTransaction, reminderI
 	logus.Debugf(ctx, "discardReminder(reminderID=%v, transferID=%v, returnTransferID=%v)", reminderID, transferID, returnTransferID)
 
 	var (
-		transfer = models4debtus2.NewTransfer(transferID, nil)
-		reminder = models4debtus2.NewReminder(reminderID, new(models4debtus2.ReminderDbo))
+		transfer = models4debtus.NewTransfer(transferID, nil)
+		reminder = models4debtus.NewReminder(reminderID, new(models4debtus.ReminderDbo))
 	)
 
 	if returnTransferID > "" {
 		//returnTransferKey := models.NewTransferKey(returnTransferID)
-		returnTransfer := models4debtus2.NewTransfer(returnTransferID, nil)
+		returnTransfer := models4debtus.NewTransfer(returnTransferID, nil)
 		//keys := []*datastore.Key{reminderKey, transferKey, returnTransferKey}
 		if err = tx.GetMulti(ctx, []dal.Record{reminder.Record, transfer.Record, returnTransfer.Record}); err != nil {
 			return err
@@ -201,7 +201,7 @@ func discardReminder(ctx context.Context, tx dal.ReadwriteTransaction, reminderI
 		}
 	}
 
-	if reminder, err = dtdal.Reminder.SetReminderStatus(ctx, reminderID, returnTransferID, models4debtus2.ReminderStatusDiscarded, time.Now()); err != nil {
+	if reminder, err = dtdal.Reminder.SetReminderStatus(ctx, reminderID, returnTransferID, models4debtus.ReminderStatusDiscarded, time.Now()); err != nil {
 		return err // DO NOT WRAP as there is check in delayedDiscardReminder() errors.Wrapf(err, "Failed to set reminder status to '%v'", models.ReminderStatusDiscarded)
 	}
 
@@ -242,18 +242,18 @@ func discardReminder(ctx context.Context, tx dal.ReadwriteTransaction, reminderI
 			Campaign: common4all.UTM_CAMPAIGN_RECEIPT_DISCARD,
 		}
 
-		receiptMessageText := common4debtus2.TextReceiptForTransfer(
+		receiptMessageText := common4debtus.TextReceiptForTransfer(
 			ctx,
 			translator,
 			transfer,
 			reminder.Data.UserID,
-			common4debtus2.ShowReceiptToAutodetect,
+			common4debtus.ShowReceiptToAutodetect,
 			utmParams,
 		)
 
 		locale := i18n.GetLocaleByCode5(reminder.Data.Locale) // TODO: Check for supported locales
 
-		transferUrlForUser := common4debtus2.GetTransferUrlForUser(ctx, transferID, reminder.Data.UserID, locale, utmParams)
+		transferUrlForUser := common4debtus.GetTransferUrlForUser(ctx, transferID, reminder.Data.UserID, locale, utmParams)
 
 		receiptMessageText += "\n\n" + strings.Join([]string{
 			translator.Translate(trans.MESSAGE_TEXT_DEBT_IS_RETURNED),
@@ -273,13 +273,13 @@ func discardReminder(ctx context.Context, tx dal.ReadwriteTransaction, reminderI
 	return err
 }
 
-func GetTranslatorForReminder(ctx context.Context, reminder *models4debtus2.ReminderDbo) i18n.SingleLocaleTranslator {
+func GetTranslatorForReminder(ctx context.Context, reminder *models4debtus.ReminderDbo) i18n.SingleLocaleTranslator {
 	return i18n.NewSingleMapTranslator(i18n.GetLocaleByCode5(reminder.Locale), i18n.NewMapTranslator(ctx, i18n.LocaleCodeEnUK, trans.TRANS))
 }
 
 var ErrDuplicateAttemptToDiscardReminder = errors.New("duplicate attempt to close reminder by same return transfer")
 
-func (ReminderDalGae) SetReminderStatus(ctx context.Context, reminderID, returnTransferID string, status string, when time.Time) (reminder models4debtus2.Reminder, err error) {
+func (ReminderDalGae) SetReminderStatus(ctx context.Context, reminderID, returnTransferID string, status string, when time.Time) (reminder models4debtus.Reminder, err error) {
 	var (
 		changed        bool
 		previousStatus string
@@ -289,22 +289,22 @@ func (ReminderDalGae) SetReminderStatus(ctx context.Context, reminderID, returnT
 			return
 		} else {
 			switch status {
-			case string(models4debtus2.ReminderStatusDiscarded):
+			case string(models4debtus.ReminderStatusDiscarded):
 				reminder.Data.DtDiscarded = when
-			case string(models4debtus2.ReminderStatusSent):
+			case string(models4debtus.ReminderStatusSent):
 				reminder.Data.DtSent = when
-			case string(models4debtus2.ReminderStatusSending):
+			case string(models4debtus.ReminderStatusSending):
 				// pass
-			case string(models4debtus2.ReminderStatusViewed):
+			case string(models4debtus.ReminderStatusViewed):
 				reminder.Data.DtViewed = when
-			case string(models4debtus2.ReminderStatusUsed):
+			case string(models4debtus.ReminderStatusUsed):
 				reminder.Data.DtUsed = when
 			default:
 				return errors.New("unsupported status: " + status)
 			}
 			previousStatus = reminder.Data.Status
 			changed = previousStatus != status
-			if returnTransferID != "" && status == string(models4debtus2.ReminderStatusDiscarded) {
+			if returnTransferID != "" && status == string(models4debtus.ReminderStatusDiscarded) {
 				for _, id := range reminder.Data.ClosedByTransferIDs { // TODO: WTF are we doing here?
 					if id == returnTransferID {
 						logus.Infof(ctx, "new status: '%v', Reminder{Status: '%v', ClosedByTransferIDs: %v}", status, reminder.Data.Status, reminder.Data.ClosedByTransferIDs)

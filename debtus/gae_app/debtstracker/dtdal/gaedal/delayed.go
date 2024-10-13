@@ -22,7 +22,7 @@ import (
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/general"
-	models4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/delaying"
 	"github.com/strongo/i18n"
 	"github.com/strongo/logus"
@@ -78,7 +78,7 @@ func GetTelegramChatByUserID(ctx context.Context, userID string) (entityID strin
 		WhereField("AppUserIntID", dal.Equal, userID).
 		OrderBy(dal.DescendingField("DtUpdated")).
 		Limit(1).
-		SelectInto(models4debtus2.NewDebtusTelegramChatRecord)
+		SelectInto(models4debtus.NewDebtusTelegramChatRecord)
 
 	var db dal.DB
 	if db, err = facade.GetSneatDB(ctx); err != nil {
@@ -153,12 +153,12 @@ func onReceiptSentSuccess(ctx context.Context, sentAt time.Time, receiptID, tran
 		return
 	}
 	var mt string
-	var receipt models4debtus2.ReceiptDbo
+	var receipt models4debtus.ReceiptDbo
 	if err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) error {
-		receipt := models4debtus2.NewReceipt(receiptID, nil)
-		transfer := models4debtus2.NewTransfer(transferID, nil)
+		receipt := models4debtus.NewReceipt(receiptID, nil)
+		transfer := models4debtus.NewTransfer(transferID, nil)
 		var (
-			transferEntity models4debtus2.TransferData
+			transferEntity models4debtus.TransferData
 		)
 		// TODO: Replace with DAL call?
 		if err := tx.GetMulti(ctx, []dal.Record{receipt.Record, transfer.Record}); err != nil {
@@ -167,14 +167,14 @@ func onReceiptSentSuccess(ctx context.Context, sentAt time.Time, receiptID, tran
 		if receipt.Data.TransferID != transferID {
 			return errors.New("receipt.TransferID != transferID")
 		}
-		if receipt.Data.Status == models4debtus2.ReceiptStatusSent {
+		if receipt.Data.Status == models4debtus.ReceiptStatusSent {
 			return nil
 		}
 
 		transferEntity.Counterparty().TgBotID = tgBotID
 		transferEntity.Counterparty().TgChatID = tgChatID
 		receipt.Data.DtSent = sentAt
-		receipt.Data.Status = models4debtus2.ReceiptStatusSent
+		receipt.Data.Status = models4debtus.ReceiptStatusSent
 		if err = tx.SetMulti(ctx, []dal.Record{transfer.Record, receipt.Record}); err != nil {
 			return fmt.Errorf("failed to save transfer & receipt to datastore: %w", err)
 		}
@@ -221,7 +221,7 @@ func delayedOnReceiptSendFail(ctx context.Context, receiptID string, tgChatID in
 	if receiptID == "" {
 		return errors.New("receiptID == 0")
 	}
-	var receipt models4debtus2.ReceiptEntry
+	var receipt models4debtus.ReceiptEntry
 	if err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) error {
 		if receipt, err = dtdal.Receipt.GetReceiptByID(ctx, tx, receiptID); err != nil {
 			return err
@@ -311,7 +311,7 @@ func DelaySendReceiptToCounterpartyByTelegram(ctx context.Context, receiptID str
 	return delayerSendReceiptToCounterpartyByTelegram.EnqueueWork(ctx, delaying.With(const4debtus.QueueReceipts, "send-receipt-to-counterparty-by-telegram", time.Second/10), receiptID, tgChatID, localeCode)
 }
 
-func updateReceiptStatus(ctx context.Context, tx dal.ReadwriteTransaction, receiptID string, expectedCurrentStatus, newStatus string) (receipt models4debtus2.ReceiptEntry, err error) {
+func updateReceiptStatus(ctx context.Context, tx dal.ReadwriteTransaction, receiptID string, expectedCurrentStatus, newStatus string) (receipt models4debtus.ReceiptEntry, err error) {
 
 	if err = func() (err error) {
 		if receipt, err = dtdal.Receipt.GetReceiptByID(ctx, tx, receiptID); err != nil {
@@ -335,15 +335,15 @@ func delayedSendReceiptToCounterpartyByTelegram(ctx context.Context, receiptID s
 	logus.Debugf(ctx, "delayedSendReceiptToCounterpartyByTelegram(receiptID=%v, tgChatID=%v, localeCode=%v)", receiptID, tgChatID, localeCode)
 
 	if err := facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
-		var receipt models4debtus2.ReceiptEntry
+		var receipt models4debtus.ReceiptEntry
 
-		if receipt, err = updateReceiptStatus(ctx, tx, receiptID, models4debtus2.ReceiptStatusCreated, models4debtus2.ReceiptStatusSending); err != nil {
+		if receipt, err = updateReceiptStatus(ctx, tx, receiptID, models4debtus.ReceiptStatusCreated, models4debtus.ReceiptStatusSending); err != nil {
 			logus.Errorf(ctx, err.Error())
 			err = nil // Always stop!
 			return
 		}
 
-		var transfer models4debtus2.TransferEntry
+		var transfer models4debtus.TransferEntry
 		if transfer, err = facade4debtus.Transfers.GetTransferByID(ctx, tx, receipt.Data.TransferID); err != nil {
 			logus.Errorf(ctx, err.Error())
 			if dal.IsNotFound(err) {
@@ -437,12 +437,12 @@ func delayedSendReceiptToCounterpartyByTelegram(ctx context.Context, receiptID s
 	return err
 }
 
-func sendReceiptToTelegramChat(ctx context.Context, receipt models4debtus2.ReceiptEntry, transfer models4debtus2.TransferEntry, tgChat anybot.SneatAppTgChatEntry) (err error) {
+func sendReceiptToTelegramChat(ctx context.Context, receipt models4debtus.ReceiptEntry, transfer models4debtus.TransferEntry, tgChat anybot.SneatAppTgChatEntry) (err error) {
 	var messageToTranslate string
 	switch transfer.Data.Direction() {
-	case models4debtus2.TransferDirectionUser2Counterparty:
+	case models4debtus.TransferDirectionUser2Counterparty:
 		messageToTranslate = trans.TELEGRAM_RECEIPT
-	case models4debtus2.TransferDirectionCounterparty2User:
+	case models4debtus.TransferDirectionCounterparty2User:
 		messageToTranslate = trans.TELEGRAM_RECEIPT
 	default:
 		panic(fmt.Errorf("Unknown direction: %v", transfer.Data.Direction()))
@@ -499,7 +499,7 @@ func sendReceiptToTelegramChat(ctx context.Context, receipt models4debtus2.Recei
 	}
 
 	err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
-		if receipt, err = updateReceiptStatus(ctx, tx, receipt.ID, models4debtus2.ReceiptStatusSending, models4debtus2.ReceiptStatusSent); err != nil {
+		if receipt, err = updateReceiptStatus(ctx, tx, receipt.ID, models4debtus.ReceiptStatusSending, models4debtus.ReceiptStatusSent); err != nil {
 			logus.Errorf(ctx, err.Error())
 			err = nil
 			return
@@ -536,7 +536,7 @@ func delayedCreateAndSendReceiptToCounterpartyByTelegram(ctx context.Context, en
 	localeCode := tgChat.BaseTgChatData().PreferredLanguage
 
 	if err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) error {
-		var transfer models4debtus2.TransferEntry
+		var transfer models4debtus.TransferEntry
 		transfer, err = facade4debtus.Transfers.GetTransferByID(ctx, tx, transferID)
 		if err != nil {
 			if dal.IsNotFound(err) {
@@ -560,7 +560,7 @@ func delayedCreateAndSendReceiptToCounterpartyByTelegram(ctx context.Context, en
 		locale := translator.Locale()
 
 		var receiptID string
-		receipt := models4debtus2.NewReceipt("", models4debtus2.NewReceiptEntity(transfer.Data.CreatorUserID, transferID, transfer.Data.Counterparty().UserID, locale.Code5, telegram.PlatformID, tgChat.BaseTgChatData().BotUserIDs[0], general.CreatedOn{
+		receipt := models4debtus.NewReceipt("", models4debtus.NewReceiptEntity(transfer.Data.CreatorUserID, transferID, transfer.Data.Counterparty().UserID, locale.Code5, telegram.PlatformID, tgChat.BaseTgChatData().BotUserIDs[0], general.CreatedOn{
 			CreatedOnID:       transfer.Data.Creator().TgBotID, // TODO: Replace with method call.
 			CreatedOnPlatform: transfer.Data.CreatedOnPlatform,
 		}))

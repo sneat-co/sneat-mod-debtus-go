@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
-	models4auth2 "github.com/sneat-co/sneat-core-modules/auth/models4auth"
+	"github.com/sneat-co/sneat-core-modules/auth/models4auth"
 	"github.com/sneat-co/sneat-core-modules/auth/unsorted4auth"
 	"github.com/sneat-co/sneat-core-modules/common4all"
 	"github.com/sneat-co/sneat-core-modules/core/sneaterrors"
@@ -52,7 +52,7 @@ func (uf userFacade) CreateUserByEmail(
 	email, name string,
 ) (
 	user dbo4userus.UserEntry,
-	userEmail models4auth2.UserEmailEntry,
+	userEmail models4auth.UserEmailEntry,
 	err error,
 ) {
 	err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
@@ -99,7 +99,7 @@ func (uf userFacade) GetOrCreateEmailUser(
 	createUserData *unsorted4auth.CreateUserData,
 	clientInfo common4all.ClientInfo,
 ) (
-	userEmail models4auth2.UserEmailEntry,
+	userEmail models4auth.UserEmailEntry,
 	isNewUser bool,
 	err error,
 ) {
@@ -116,7 +116,7 @@ func (uf userFacade) GetOrCreateEmailUser(
 
 		now := time.Now()
 		isNewUser = true
-		userEmail = models4auth2.NewUserEmail(email, models4auth2.NewUserEmailData(0, isConfirmed, "email"))
+		userEmail = models4auth.NewUserEmail(email, models4auth.NewUserEmailData(0, isConfirmed, "email"))
 		appUser = dbo4userus.NewUserEntry("") //clientInfo
 		appUser.Data.CreatedAt = now
 		appUser.Data.AddAccount(userEmail.UserAccount())

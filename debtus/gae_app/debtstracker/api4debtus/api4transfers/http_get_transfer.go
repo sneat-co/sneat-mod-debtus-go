@@ -5,7 +5,7 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/sneat-core-modules/common4all"
 	"github.com/sneat-co/sneat-go-core/facade"
-	facade4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/api4debtus/unsorted"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"net/http"
@@ -15,13 +15,13 @@ func HandleGetTransfer(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	if transferID := common4all.GetStrID(ctx, w, r, "id"); transferID == "" {
 		return
 	} else {
-		transfer, err := facade4debtus2.Transfers.GetTransferByID(ctx, nil, transferID)
+		transfer, err := facade4debtus.Transfers.GetTransferByID(ctx, nil, transferID)
 		if common4all.HasError(ctx, w, err, models4debtus.TransfersCollection, transferID, http.StatusBadRequest) {
 			return
 		}
 
 		err = facade.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
-			if err = facade4debtus2.CheckTransferCreatorNameAndFixIfNeeded(ctx, tx, transfer); err != nil {
+			if err = facade4debtus.CheckTransferCreatorNameAndFixIfNeeded(ctx, tx, transfer); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				_, _ = w.Write([]byte(err.Error()))
 				return

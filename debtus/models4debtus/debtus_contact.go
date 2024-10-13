@@ -10,7 +10,7 @@ import (
 	"github.com/sneat-co/sneat-core-modules/contactus/dto4contactus"
 	"github.com/sneat-co/sneat-core-modules/core/coremodels"
 	"github.com/sneat-co/sneat-core-modules/spaceus/dbo4spaceus"
-	const4debtus2 "github.com/sneat-co/sneat-mod-debtus-go/debtus/const4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/const4debtus"
 	"github.com/strongo/strongoapp/with"
 	"reflect"
 	"strings"
@@ -19,7 +19,7 @@ import (
 
 func NewDebtusContactDbo(details dto4contactus.ContactDetails) *DebtusSpaceContactDbo {
 	return &DebtusSpaceContactDbo{
-		Status: const4debtus2.StatusActive,
+		Status: const4debtus.StatusActive,
 		CreatedFields: with.CreatedFields{
 			CreatedAtField: with.CreatedAtField{
 				CreatedAt: time.Now(),
@@ -32,7 +32,7 @@ func NewDebtusContactDbo(details dto4contactus.ContactDetails) *DebtusSpaceConta
 type DebtusSpaceContactEntry = record.DataWithID[string, *DebtusSpaceContactDbo]
 
 func NewDebtusSpaceContactEntry(spaceID, contactID string, dbo *DebtusSpaceContactDbo) DebtusSpaceContactEntry {
-	key := dbo4spaceus.NewSpaceModuleItemKey(spaceID, const4debtus2.ModuleID, const4contactus.ContactsCollection, contactID)
+	key := dbo4spaceus.NewSpaceModuleItemKey(spaceID, const4debtus.ModuleID, const4contactus.ContactsCollection, contactID)
 	if dbo == nil {
 		dbo = new(DebtusSpaceContactDbo)
 	}
@@ -40,7 +40,7 @@ func NewDebtusSpaceContactEntry(spaceID, contactID string, dbo *DebtusSpaceConta
 }
 
 func NewDebtusContactKey(spaceID, contactID string) *dal.Key {
-	return dbo4spaceus.NewSpaceModuleItemKey(spaceID, const4debtus2.ModuleID, const4contactus.ContactsCollection, contactID)
+	return dbo4spaceus.NewSpaceModuleItemKey(spaceID, const4debtus.ModuleID, const4contactus.ContactsCollection, contactID)
 }
 
 func DebtusContactRecords(contacts []DebtusSpaceContactEntry) (records []dal.Record) {

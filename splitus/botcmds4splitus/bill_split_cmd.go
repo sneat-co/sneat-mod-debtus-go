@@ -10,14 +10,14 @@ import (
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/sneat-co/sneat-mod-debtus-go/splitus/briefs4splitus"
 	"github.com/sneat-co/sneat-mod-debtus-go/splitus/facade4splitus"
-	models4splitus2 "github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
+	"github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 	"net/url"
 )
 
 const billSharesCommandCode = "bill_shares"
 
 var billSharesCommand = billCallbackCommand(billSharesCommandCode,
-	func(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, callbackUrl *url.URL, bill models4splitus2.BillEntry) (m botsfw.MessageFromBot, err error) {
+	func(whc botsfw.WebhookContext, tx dal.ReadwriteTransaction, callbackUrl *url.URL, bill models4splitus.BillEntry) (m botsfw.MessageFromBot, err error) {
 		whc.Input().LogRequest()
 		ctx := whc.Context()
 		members := bill.Data.GetBillMembers()
@@ -45,7 +45,7 @@ var billSharesCommand = billCallbackCommand(billSharesCommandCode,
 							m.Shares = 0
 						}
 						members[i] = m
-						bill.Data.SplitMode = models4splitus2.SplitModeShare
+						bill.Data.SplitMode = models4splitus.SplitModeShare
 						member = m
 						if err = bill.Data.SetBillMembers(members); err != nil {
 							return
