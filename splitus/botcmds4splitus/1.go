@@ -2,12 +2,12 @@ package botcmds4splitus
 
 import "github.com/strongo/delaying"
 
-func InitDelaying(mustRegisterFunc func(key string, i any) delaying.Function) {
+func InitDelaying(mustRegisterFunc func(key string, i any) delaying.Delayer) {
 	delayUpdateBillCards = mustRegisterFunc("UpdateBillCards", delayedUpdateBillCards)
 	delayUpdateBillTgChatCard = mustRegisterFunc("UpdateBillTgChatCard", delayedUpdateBillTgChartCard)
 }
 
 var (
-	delayUpdateBillCards      delaying.Function
-	delayUpdateBillTgChatCard delaying.Function
+	delayUpdateBillCards      delaying.Delayer
+	delayUpdateBillTgChatCard delaying.Delayer
 )

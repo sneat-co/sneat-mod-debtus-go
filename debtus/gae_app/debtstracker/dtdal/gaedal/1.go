@@ -4,7 +4,7 @@ import (
 	"github.com/strongo/delaying"
 )
 
-func InitDelaying(mustRegisterFunc func(key string, i any) delaying.Function) {
+func InitDelaying(mustRegisterFunc func(key string, i any) delaying.Delayer) {
 
 	delayerUpdateInviteClaimedCount = mustRegisterFunc("UpdateInviteClaimedCount", delayedUpdateInviteClaimedCount)
 	delayerUpdateTransfersWithCounterparty = mustRegisterFunc(DELAY_UPDATE_TRANSFERS_WITH_COUNTERPARTY, delayedUpdateTransfersWithCounterparty)
@@ -47,5 +47,5 @@ var (
 	delayerUpdateTransferOnReturn,
 	delayerOnReceiptSendFail,
 	delayerCreateReminderForTransferUser,
-	delayerOnReceiptSentSuccess delaying.Function
+	delayerOnReceiptSentSuccess delaying.Delayer
 )

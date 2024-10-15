@@ -10,9 +10,9 @@ import (
 )
 
 var delayerUpdateUserHasDueTransfers,
-	delayerUpdateSpaceHasDueTransfers delaying.Function
+	delayerUpdateSpaceHasDueTransfers delaying.Delayer
 
-func InitDelays4debtus(mustRegisterFunc func(key string, i any) delaying.Function) {
+func InitDelays4debtus(mustRegisterFunc func(key string, i any) delaying.Delayer) {
 	delayerUpdateUserHasDueTransfers = mustRegisterFunc("delayedUpdateUserHasDueTransfers", delayedUpdateUserHasDueTransfers)
 	delayerUpdateSpaceHasDueTransfers = mustRegisterFunc("delayedUpdateSpaceHasDueTransfers", delayedUpdateSpaceHasDueTransfers)
 }

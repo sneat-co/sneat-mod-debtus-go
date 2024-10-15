@@ -7,7 +7,7 @@ import (
 	"github.com/strongo/delaying"
 )
 
-var delayerUpdateUserWithGroups delaying.Function
+var delayerUpdateUserWithGroups delaying.Delayer
 
 func delayUpdateUserWithGroups(ctx context.Context, userID string, groupIDs2add, groupIDs2remove []string) (err error) { // TODO: make args meaningful
 	args := []any{userID, groupIDs2add, groupIDs2remove}
@@ -15,11 +15,11 @@ func delayUpdateUserWithGroups(ctx context.Context, userID string, groupIDs2add,
 	return delayerUpdateUserWithGroups.EnqueueWorkMulti(ctx, params, args)
 }
 
-var delayerUpdateGroupUsers delaying.Function
-var delayerUpdateContactWithGroups delaying.Function
+var delayerUpdateGroupUsers delaying.Delayer
+var delayerUpdateContactWithGroups delaying.Delayer
 
 // ------------------------------------------------------------
-var delayerUpdateGroupWithBill delaying.Function
+var delayerUpdateGroupWithBill delaying.Delayer
 
 func DelayUpdateGroupWithBill(ctx context.Context, groupID, billID string) (err error) {
 	if err = delayerUpdateGroupWithBill.EnqueueWork(ctx, delaying.With(const4splitus.QueueSplitus, "UpdateGroupWithBill", 0), groupID, billID); err != nil {
@@ -29,7 +29,7 @@ func DelayUpdateGroupWithBill(ctx context.Context, groupID, billID string) (err 
 }
 
 // ------------------------------------------------------------
-var delayerUpdateBillDependencies delaying.Function
+var delayerUpdateBillDependencies delaying.Delayer
 
 func DelayUpdateBillDependencies(ctx context.Context, billID string) (err error) {
 	if err = delayerUpdateBillDependencies.EnqueueWork(ctx, delaying.With(const4splitus.QueueSplitus, "UpdateBillDependencies", 0), billID); err != nil {
@@ -38,12 +38,12 @@ func DelayUpdateBillDependencies(ctx context.Context, billID string) (err error)
 	return
 }
 
-var delayerUpdateUsersWithBill delaying.Function
-var delayerUpdateUserWithBill delaying.Function
+var delayerUpdateUsersWithBill delaying.Delayer
+var delayerUpdateUserWithBill delaying.Delayer
 
 //------------------------------------------------------------
 
-func InitDelaying(mustRegisterFunc func(key string, i any) delaying.Function) {
+func InitDelaying(mustRegisterFunc func(key string, i any) delaying.Delayer) {
 	delayerUpdateUserWithGroups = mustRegisterFunc("delayedUpdateUserWithGroups", delayedUpdateUserWithGroups)
 	delayerUpdateGroupUsers = mustRegisterFunc("delayedUpdateGroupUsers", delayedUpdateGroupUsers)
 	delayerUpdateContactWithGroups = mustRegisterFunc("delayedUpdateContactWithGroup", delayedUpdateContactWithGroup)
