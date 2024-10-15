@@ -21,7 +21,7 @@ require (
 	github.com/shiyanhui/hero v0.0.2
 	github.com/sneat-co/debtstracker-translations v0.2.2
 	github.com/sneat-co/sneat-core-modules v0.15.3
-	github.com/sneat-co/sneat-go-core v0.37.1
+	github.com/sneat-co/sneat-go-core v0.37.2
 	github.com/strongo/decimal v0.1.1
 	github.com/strongo/delaying v0.1.0
 	github.com/strongo/gamp v0.0.1
