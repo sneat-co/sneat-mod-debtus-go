@@ -33,7 +33,7 @@ require (
 	github.com/strongo/strongoapp v0.25.4
 	github.com/strongo/validation v0.0.7
 	github.com/yaa110/go-persian-calendar v1.2.1
-	golang.org/x/net v0.32.0
+	golang.org/x/net v0.33.0
 )
 
 require (
