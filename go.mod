@@ -20,7 +20,7 @@ require (
 	github.com/sendgrid/sendgrid-go v3.16.0+incompatible
 	github.com/shiyanhui/hero v0.0.2
 	github.com/sneat-co/debtstracker-translations v0.2.4
-	github.com/sneat-co/sneat-core-modules v0.15.12
+	github.com/sneat-co/sneat-core-modules v0.15.13
 	github.com/sneat-co/sneat-go-core v0.37.4
 	github.com/strongo/decimal v0.1.1
 	github.com/strongo/delaying v0.1.0
@@ -42,7 +42,7 @@ require (
 	github.com/bots-go-framework/bots-go-core v0.0.3 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/mock v1.6.0 // indirect
-	github.com/gosimple/slug v1.14.0 // indirect
+	github.com/gosimple/slug v1.15.0 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
 	github.com/sendgrid/rest v2.6.9+incompatible // indirect
 	github.com/strongo/facebook v1.8.1 // indirect
