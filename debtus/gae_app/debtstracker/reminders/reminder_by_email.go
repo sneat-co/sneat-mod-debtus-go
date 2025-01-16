@@ -33,7 +33,7 @@ func sendReminderByEmail(ctx context.Context, reminder models4debtus.Reminder, e
 	}
 
 	var sent emails.Sent
-	sent, err = emailClient.Send(emailMessage)
+	sent, err = emailClient.Send(ctx, emailMessage)
 
 	sentAt := time.Now()
 
