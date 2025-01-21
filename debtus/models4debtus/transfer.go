@@ -9,7 +9,7 @@ import (
 	"github.com/sneat-co/sneat-core-modules/auth/models4auth"
 	"github.com/sneat-co/sneat-core-modules/contactus/dto4contactus"
 	"github.com/sneat-co/sneat-core-modules/core/coremodels"
-	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/general"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/general4debtus"
 	"github.com/strongo/decimal"
 	"reflect"
 	"time"
@@ -167,7 +167,7 @@ func (t *TransferData) GetLendingValue() decimal.Decimal64p2 {
 
 type TransferData struct {
 	hasObsoleteProps bool
-	general.CreatedOn
+	general4debtus.CreatedOn
 	from *TransferCounterpartyInfo
 	to   *TransferCounterpartyInfo
 
@@ -875,7 +875,7 @@ func (t *TransferData) Validate() (err error) {
 //	// 	}
 //	// }
 //
-//	// Make general application-wide checks and call hooks if any
+//	// Make general4debtus application-wide checks and call hooks if any
 //	//checkHasProperties(TransfersCollection, properties)
 //
 //	return

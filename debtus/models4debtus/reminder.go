@@ -2,7 +2,6 @@ package models4debtus
 
 import (
 	"errors"
-	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/dal-go/dalgo/record"
 	"time"
 )
@@ -128,7 +127,7 @@ func (r *ReminderDbo) Validate() (err error) {
 func NewReminderViaTelegram(botID string, chatID int64, userID, transferID string, isAutomatic bool, next time.Time) (reminder *ReminderDbo) {
 	return &ReminderDbo{
 		Status:      ReminderStatusCreated,
-		SentVia:     telegram.PlatformID,
+		SentVia:     "telegram",
 		BotID:       botID,
 		ChatIntID:   chatID,
 		UserID:      userID,

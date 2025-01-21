@@ -2,16 +2,14 @@ package common4debtus
 
 import (
 	"bytes"
+	"context"
 	"github.com/crediterra/money"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/sneat-co/sneat-go-bots/bots"
+	"github.com/sneat-co/sneat-go-core/utm"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/i18n"
 	"regexp"
 	"testing"
-
-	"context"
-	"github.com/bots-go-framework/bots-fw-telegram"
 )
 
 func TestWriteReceiptText(t *testing.T) {
@@ -47,9 +45,9 @@ func TestWriteReceiptText(t *testing.T) {
 
 	receiptTextBuilder := newReceiptTextBuilder(translator, transfer, ShowReceiptToCounterparty)
 
-	utmParams := bots.UtmParams{
+	utmParams := utm.Params{
 		Source:   "BotIdUnitTest",
-		Medium:   telegram.PlatformID,
+		Medium:   "telegram",
 		Campaign: "unit-test-campaign",
 	}
 

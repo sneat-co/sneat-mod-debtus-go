@@ -7,9 +7,9 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
-	"github.com/sneat-co/sneat-go-bots/bots/botprofiles/anybot/facade4anybot"
 	"github.com/sneat-co/sneat-go-core/facade"
-	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtstracker/dtdal"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/errors4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/logus"
 	"time"
@@ -83,7 +83,7 @@ func AcknowledgeReceipt(ctx context.Context, userCtx facade.UserContext, receipt
 	case dtdal.AckDecline:
 		transferAckStatus = models4debtus.TransferDeclined
 	default:
-		err = facade4anybot.ErrInvalidAcknowledgeType
+		err = errors4debtus.ErrInvalidAcknowledgeType
 		return
 	}
 
@@ -111,7 +111,7 @@ func AcknowledgeReceipt(ctx context.Context, userCtx facade.UserContext, receipt
 
 		if transfer.Data.CreatorUserID == currentUserID {
 			logus.Errorf(tctx, "An attempt to claim receipt on self created transfer")
-			err = facade4anybot.ErrSelfAcknowledgement
+			err = errors4debtus.ErrSelfAcknowledgement
 			return
 		}
 
@@ -213,7 +213,7 @@ func AcknowledgeReceipt(ctx context.Context, userCtx facade.UserContext, receipt
 	}, dal.TxWithCrossGroup())
 
 	if err != nil {
-		if errors.Is(err, facade4anybot.ErrSelfAcknowledgement) {
+		if errors.Is(err, errors4debtus.ErrSelfAcknowledgement) {
 			err = nil
 			return
 		}

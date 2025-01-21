@@ -5,7 +5,7 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"github.com/sneat-co/sneat-go-core/facade"
-	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 )
 

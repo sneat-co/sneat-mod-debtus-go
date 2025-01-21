@@ -3,13 +3,12 @@ package facade4debtus
 import (
 	"context"
 	"fmt"
-	"github.com/bots-go-framework/bots-fw-telegram"
 	"github.com/crediterra/go-interest"
 	"github.com/crediterra/money"
 	"github.com/sneat-co/sneat-core-modules/spaceus/dto4spaceus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
-	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
-	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtmocks"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtstracker/dtdal"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtstracker/dtmocks"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/decimal"
 	"github.com/strongo/strongoapp"
@@ -54,7 +53,7 @@ func TestCreateTransfer(t *testing.T) {
 	c := context.Background()
 	assert := assertHelper{t: t}
 
-	source := dtdal.NewTransferSourceBot(telegram.PlatformID, "test-bot", "444")
+	source := dtdal.NewTransferSourceBot("telegram", "test-bot", "444")
 
 	currency := money.CurrencyEUR
 
@@ -385,7 +384,7 @@ func testCreateTransfer(t *testing.T, testCase createTransferTestCase) {
 	assert := assertHelper{t: t}
 	currency := money.CurrencyEUR
 
-	source := dtdal.NewTransferSourceBot(telegram.PlatformID, "test-bot", "444")
+	source := dtdal.NewTransferSourceBot("telegram", "test-bot", "444")
 
 	const (
 		userID    = "u1"

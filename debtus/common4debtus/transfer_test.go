@@ -3,7 +3,7 @@ package common4debtus
 import (
 	"context"
 	"github.com/sneat-co/sneat-core-modules/auth/token4auth"
-	"github.com/sneat-co/sneat-go-bots/bots"
+	"github.com/sneat-co/sneat-go-core/utm"
 	"github.com/strongo/i18n"
 	"regexp"
 	"testing"
@@ -22,10 +22,10 @@ func TestGetTransferUrlForUser(t *testing.T) {
 	var (
 		transferUrl string
 		re          *regexp.Regexp
-		utm         bots.UtmParams
+		utmParams   utm.Params
 	)
 	{
-		transferUrl = GetTransferUrlForUser(context.Background(), "123", "", i18n.LocaleRuRu, utm)
+		transferUrl = GetTransferUrlForUser(context.Background(), "123", "", i18n.LocaleRuRu, utmParams)
 
 		re = regexp.MustCompile(`^https://(\w+\.\w+)/transfer\?id=\d+&lang=ru`)
 		if !re.MatchString(transferUrl) {
@@ -35,14 +35,14 @@ func TestGetTransferUrlForUser(t *testing.T) {
 		}
 	}
 
-	utm = bots.UtmParams{
+	utmParams = utm.Params{
 		Source:   "S1",
 		Medium:   "M1",
 		Campaign: "C1",
 	}
 
 	{
-		transferUrl = GetTransferUrlForUser(context.Background(), "123", "", i18n.LocaleRuRu, utm)
+		transferUrl = GetTransferUrlForUser(context.Background(), "123", "", i18n.LocaleRuRu, utmParams)
 
 		re = regexp.MustCompile(`^https://(\w+\.\w+)/transfer\?id=\d+&lang=ru&utm=S1;M1;C1`)
 		if !re.MatchString(transferUrl) {
@@ -53,7 +53,7 @@ func TestGetTransferUrlForUser(t *testing.T) {
 	}
 
 	{
-		transferUrl = GetTransferUrlForUser(context.Background(), "123", "234", i18n.LocaleRuRu, utm)
+		transferUrl = GetTransferUrlForUser(context.Background(), "123", "234", i18n.LocaleRuRu, utmParams)
 
 		re = regexp.MustCompile(`^https://(\w+\.\w+)/transfer\?id=\d+&lang=ru&utm=S1;M1;C1&secret=[\-\.\w]+$`)
 		if !re.MatchString(transferUrl) {

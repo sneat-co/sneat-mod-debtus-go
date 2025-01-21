@@ -2,7 +2,7 @@ package common4debtus
 
 import (
 	"context"
-	"github.com/sneat-co/sneat-go-bots/bots"
+	"github.com/sneat-co/sneat-go-core/utm"
 	"github.com/strongo/i18n"
 	"regexp"
 	"testing"
@@ -10,7 +10,7 @@ import (
 
 func TestGetCounterpartyUrl(t *testing.T) {
 	var (
-		utm bots.UtmParams
+		utm utm.Params
 	)
 	counterpartyUrl, _ := GetCounterpartyUrl(context.Background(), "123", "", i18n.LocaleRuRu, utm)
 

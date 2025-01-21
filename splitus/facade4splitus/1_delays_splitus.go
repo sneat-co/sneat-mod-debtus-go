@@ -2,21 +2,12 @@ package facade4splitus
 
 import (
 	"context"
-	"github.com/sneat-co/sneat-core-modules/userus/const4userus"
 	"github.com/sneat-co/sneat-mod-debtus-go/splitus/const4splitus"
 	"github.com/strongo/delaying"
 )
 
-var delayerUpdateUserWithGroups delaying.Delayer
-
-func delayUpdateUserWithGroups(ctx context.Context, userID string, groupIDs2add, groupIDs2remove []string) (err error) { // TODO: make args meaningful
-	args := []any{userID, groupIDs2add, groupIDs2remove}
-	params := delaying.With(const4userus.QueueUsers, "update-user-with-groups", 0)
-	return delayerUpdateUserWithGroups.EnqueueWorkMulti(ctx, params, args)
-}
-
-var delayerUpdateGroupUsers delaying.Delayer
-var delayerUpdateContactWithGroups delaying.Delayer
+var DelayerUpdateGroupUsers delaying.Delayer
+var DelayerUpdateContactWithGroups delaying.Delayer
 
 // ------------------------------------------------------------
 var delayerUpdateGroupWithBill delaying.Delayer
@@ -44,13 +35,9 @@ var delayerUpdateUserWithBill delaying.Delayer
 //------------------------------------------------------------
 
 func InitDelaying(mustRegisterFunc func(key string, i any) delaying.Delayer) {
-	delayerUpdateUserWithGroups = mustRegisterFunc("delayedUpdateUserWithGroups", delayedUpdateUserWithGroups)
-	delayerUpdateGroupUsers = mustRegisterFunc("delayedUpdateGroupUsers", delayedUpdateGroupUsers)
-	delayerUpdateContactWithGroups = mustRegisterFunc("delayedUpdateContactWithGroup", delayedUpdateContactWithGroup)
 	delayerUpdateGroupWithBill = mustRegisterFunc("delayedUpdateContactWithGroup", delayedUpdateGroupWithBill)
 	delayerUpdateBillDependencies = mustRegisterFunc("delayerUpdateBillDependencies", delayedUpdateBillDependencies)
 	delayerUpdateUsersWithBill = mustRegisterFunc(updateUsersWithBillKeyName, delayedUpdateUsersWithBill)
 	delayerUpdateGroupWithBill = mustRegisterFunc("delayedUpdateWithBill", delayedUpdateGroupWithBill)
 	delayerUpdateUserWithBill = mustRegisterFunc("delayedUpdateUserWithBill", delayedUpdateUserWithBill)
-
 }

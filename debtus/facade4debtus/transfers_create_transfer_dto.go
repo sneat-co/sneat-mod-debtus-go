@@ -7,7 +7,7 @@ import (
 	"github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
 	"github.com/sneat-co/sneat-core-modules/spaceus/dto4spaceus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
-	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/validation"
 	"time"

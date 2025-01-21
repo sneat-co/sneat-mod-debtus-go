@@ -6,7 +6,7 @@ import (
 	"github.com/sneat-co/sneat-core-modules/userus/dal4userus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
 	"github.com/sneat-co/sneat-go-core/facade"
-	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtmocks"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtstracker/dtmocks"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"testing"
 

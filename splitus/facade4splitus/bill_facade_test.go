@@ -3,7 +3,7 @@ package facade4splitus
 import (
 	"context"
 	"fmt"
-	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtmocks"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtstracker/dtmocks"
 	"github.com/sneat-co/sneat-mod-debtus-go/splitus/briefs4splitus"
 	"github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 	"github.com/strongo/decimal"

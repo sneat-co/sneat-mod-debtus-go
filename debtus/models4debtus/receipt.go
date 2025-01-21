@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
-	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/general"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/general4debtus"
 	"reflect"
 	"time"
 )
@@ -62,7 +62,7 @@ type ReceiptDbo struct {
 	ViewedByUserIDs      []string   `json:"viewedByUserIDs,omitempty" firestore:"viewedByUserIDs,omitempty"`
 	CounterpartyUserID   string     `json:"counterpartyUserID" firestore:"counterpartyUserID"`                         // TODO: Is it always equal to AcknowledgedByUserID?
 	AcknowledgedByUserID string     `json:"acknowledgedByUserID,omitempty" firestore:"acknowledgedByUserID,omitempty"` // TODO: Is it always equal to CounterpartyUserID?
-	general.CreatedOn
+	general4debtus.CreatedOn
 	TgInlineMsgID  string    `firestore:"tgInlineMsgID,omitempty"`
 	DtCreated      time.Time `json:"dtCreated" firestore:"dtCreated"`
 	DtSent         time.Time `json:"dtSent,omitempty" firestore:"dtSent,omitempty"`
@@ -79,7 +79,7 @@ func NewReceiptIncompleteKey() *dal.Key {
 	return dal.NewIncompleteKey(ReceiptKind, reflect.Int, nil)
 }
 
-func NewReceiptEntity(creatorUserID, transferID, counterpartyUserID, lang, sentVia, sentTo string, createdOn general.CreatedOn) *ReceiptDbo {
+func NewReceiptEntity(creatorUserID, transferID, counterpartyUserID, lang, sentVia, sentTo string, createdOn general4debtus.CreatedOn) *ReceiptDbo {
 	if creatorUserID == counterpartyUserID {
 		panic("creatorUserID == counterpartyUserID")
 	}

@@ -3,14 +3,14 @@ package models4debtus
 import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
-	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/general"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/general4debtus"
 	"time"
 )
 
 const FeedbackKind = "Feedback"
 
 type FeedbackData struct {
-	general.CreatedOn
+	general4debtus.CreatedOn
 	// Deprecated: use UserStrID instead
 	UserID    int64
 	UserStrID string

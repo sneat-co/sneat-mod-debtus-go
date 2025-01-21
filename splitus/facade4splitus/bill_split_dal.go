@@ -3,7 +3,7 @@ package facade4splitus
 import (
 	"context"
 	"errors"
-	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/splitus/models4splitus"
 )
 

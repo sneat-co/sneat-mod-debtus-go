@@ -13,7 +13,7 @@ import (
 	"github.com/sneat-co/sneat-core-modules/spaceus/dto4spaceus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
 	"github.com/sneat-co/sneat-go-core/facade"
-	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/logus"
 	"reflect"
@@ -215,7 +215,6 @@ func CreateContact(
 			}
 
 			if changes.HasChanges() {
-				//db, err := dtdal.DB.GetDB(tctx)
 				if err = tx.SetMulti(tctx, changes.Records()); err != nil {
 					err = fmt.Errorf("failed to save entity related to new Contact: %w", err)
 					return
