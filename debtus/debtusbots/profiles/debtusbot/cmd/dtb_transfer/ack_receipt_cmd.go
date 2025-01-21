@@ -4,8 +4,8 @@ import (
 	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/sneat-co/sneat-core-modules/anybot/facade4anybot"
-	"github.com/sneat-co/sneat-core-modules/common4all"
+	"github.com/sneat-co/sneat-go-bots/bots"
+	"github.com/sneat-co/sneat-go-bots/bots/botprofiles/anybot/facade4anybot"
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/common4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/debtusbot/cmd/dtb_general"
@@ -62,7 +62,7 @@ func AcknowledgeReceipt(whc botsfw.WebhookContext, receiptID, operation string) 
 			return
 		}
 
-		utm := common4all.NewUtmParams(whc, common4all.UTM_CAMPAIGN_RECEIPT)
+		utm := bots.NewUtmParams(whc, bots.UTM_CAMPAIGN_RECEIPT)
 		if whc.Input().InputType() == botinput.WebhookInputCallbackQuery {
 			if m, err = whc.NewEditMessage(common4debtus.TextReceiptForTransfer(ctx, whc, transfer, "", common4debtus.ShowReceiptToCounterparty, utm)+"\n\n"+operationMessage, botsfw.MessageFormatHTML); err != nil {
 				return

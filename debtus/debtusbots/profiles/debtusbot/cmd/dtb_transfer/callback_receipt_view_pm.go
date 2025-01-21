@@ -6,8 +6,8 @@ import (
 	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/sneat-co/sneat-core-modules/common4all"
 	"github.com/sneat-co/sneat-core-modules/userus/dal4userus"
+	"github.com/sneat-co/sneat-go-bots/bots"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/common4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
@@ -74,7 +74,7 @@ func ShowReceipt(whc botsfw.WebhookContext, receiptID string) (m botsfw.MessageF
 	if err != nil {
 		return m, err
 	}
-	utm := common4all.NewUtmParams(whc, common4all.UTM_CAMPAIGN_REMINDER)
+	utm := bots.NewUtmParams(whc, bots.UTM_CAMPAIGN_REMINDER)
 	mt = common4debtus.TextReceiptForTransfer(ctx, whc, transfer, whc.AppUserID(), common4debtus.ShowReceiptToAutodetect, utm)
 
 	logus.Debugf(ctx, "ReceiptEntry text: %v", mt)

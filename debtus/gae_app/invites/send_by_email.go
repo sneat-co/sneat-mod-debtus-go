@@ -7,6 +7,7 @@ import (
 	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/sneat-co/sneat-core-modules/common4all"
 	"github.com/sneat-co/sneat-core-modules/emailing"
+	"github.com/sneat-co/sneat-go-bots/bots"
 	"github.com/sneat-co/sneat-go-core/emails"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/common4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
@@ -43,10 +44,10 @@ func SendInviteByEmail(ec strongoapp.ExecutionContext, translator i18n.SingleLoc
 		FromName:   fromName,
 		InviteCode: inviteCode,
 		TgBot:      telegramBotID,
-		Utm: common4all.UtmParams{
+		Utm: bots.UtmParams{
 			Source:   utmSource,
 			Medium:   string(models4debtus.InviteByEmail),
-			Campaign: common4all.UTM_CAMPAIGN_ONBOARDING_INVITE,
+			Campaign: bots.UTM_CAMPAIGN_ONBOARDING_INVITE,
 		}.String(),
 	}
 

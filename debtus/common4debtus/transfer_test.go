@@ -3,7 +3,7 @@ package common4debtus
 import (
 	"context"
 	"github.com/sneat-co/sneat-core-modules/auth/token4auth"
-	"github.com/sneat-co/sneat-core-modules/common4all"
+	"github.com/sneat-co/sneat-go-bots/bots"
 	"github.com/strongo/i18n"
 	"regexp"
 	"testing"
@@ -22,7 +22,7 @@ func TestGetTransferUrlForUser(t *testing.T) {
 	var (
 		transferUrl string
 		re          *regexp.Regexp
-		utm         common4all.UtmParams
+		utm         bots.UtmParams
 	)
 	{
 		transferUrl = GetTransferUrlForUser(context.Background(), "123", "", i18n.LocaleRuRu, utm)
@@ -35,7 +35,7 @@ func TestGetTransferUrlForUser(t *testing.T) {
 		}
 	}
 
-	utm = common4all.UtmParams{
+	utm = bots.UtmParams{
 		Source:   "S1",
 		Medium:   "M1",
 		Campaign: "C1",

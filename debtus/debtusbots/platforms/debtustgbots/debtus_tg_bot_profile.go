@@ -2,7 +2,7 @@ package debtustgbots
 
 import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
-	"github.com/sneat-co/sneat-core-modules/anybot"
+	"github.com/sneat-co/sneat-go-bots/bots/botprofiles/anybot"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/debtusbotconst"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/debtusbot"
 )

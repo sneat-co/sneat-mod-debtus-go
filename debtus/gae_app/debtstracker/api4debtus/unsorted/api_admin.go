@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/sneat-core-modules/auth/token4auth"
-	"github.com/sneat-co/sneat-core-modules/auth/unsorted4auth"
 	"github.com/sneat-co/sneat-core-modules/common4all"
 	"github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
 	"github.com/sneat-co/sneat-core-modules/core/queues"
 	"github.com/sneat-co/sneat-core-modules/userus/dal4userus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
+	"github.com/sneat-co/sneat-go-bots/bots"
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus/dto4debtus"
@@ -41,7 +41,7 @@ func HandleAdminFindUser(ctx context.Context, w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		tgUsers, err := unsorted4auth.TgUser.FindByUserName(ctx, nil, tgUserText)
+		tgUsers, err := bots.TgUser.FindByUserName(ctx, nil, tgUserText)
 
 		if err != nil {
 			common4all.InternalError(ctx, w, err)

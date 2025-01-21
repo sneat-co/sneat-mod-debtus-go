@@ -1,7 +1,7 @@
 package facade4debtus
 
 import (
-	"github.com/sneat-co/sneat-core-modules/anybot/facade4anybot"
+	"github.com/sneat-co/sneat-go-bots/bots/botprofiles/anybot/facade4anybot"
 	"github.com/strongo/delaying"
 )
 

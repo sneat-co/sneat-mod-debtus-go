@@ -14,13 +14,13 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/sneat-co/sneat-core-modules/common4all"
 	"github.com/sneat-co/sneat-core-modules/contactus/briefs4contactus"
 	"github.com/sneat-co/sneat-core-modules/contactus/dal4contactus"
 	"github.com/sneat-co/sneat-core-modules/contactus/dbo4contactus"
 	"github.com/sneat-co/sneat-core-modules/spaceus/dto4spaceus"
 	"github.com/sneat-co/sneat-core-modules/userus/dal4userus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
+	"github.com/sneat-co/sneat-go-bots/bots"
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/common4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/debtusbot/cmd/dtb_general"
@@ -719,7 +719,7 @@ func CreateTransferFromBot(
 	}
 
 	{
-		utm := common4all.NewUtmParams(whc, common4all.UTM_CAMPAIGN_RECEIPT)
+		utm := bots.NewUtmParams(whc, bots.UTM_CAMPAIGN_RECEIPT)
 		receiptMessageText := common4debtus.TextReceiptForTransfer(ctx, whc, output.Transfer, whc.AppUserID(), common4debtus.ShowReceiptToAutodetect, utm)
 
 		switch whc.BotPlatform().ID() {
@@ -771,11 +771,11 @@ func createSendReceiptOptionsMessage(whc botsfw.WebhookContext, transfer models4
 	mt := whc.Translate(trans.MESSAGE_TEXT_YOU_CAN_SEND_RECEIPT, html.EscapeString(transfer.Data.Counterparty().ContactName))
 	var utmCampaign string
 	if transfer.Data.IsReturn {
-		utmCampaign = common4all.UTM_CAMPAIGN_DEBT_RETURNED
+		utmCampaign = bots.UTM_CAMPAIGN_DEBT_RETURNED
 	} else {
-		utmCampaign = common4all.UTM_CAMPAIGN_DEBT_CREATED
+		utmCampaign = bots.UTM_CAMPAIGN_DEBT_CREATED
 	}
-	utmParams := common4all.NewUtmParams(whc, utmCampaign)
+	utmParams := bots.NewUtmParams(whc, utmCampaign)
 	transferUrlForUser := common4debtus.GetTransferUrlForUser(ctx, transfer.ID, whc.AppUserID(), whc.Locale(), utmParams)
 	mt = strings.Replace(mt, "<a receipt>", fmt.Sprintf(`<a href="%v">`, transferUrlForUser), 1)
 	if s, err := common4debtus.GetCounterpartyUrl(ctx, transfer.Data.Counterparty().ContactID, whc.AppUserID(), whc.Locale(), utmParams); err != nil {
@@ -814,10 +814,10 @@ func createSendReceiptOptionsMessage(whc botsfw.WebhookContext, transfer models4
 		telegramKeyboard.InlineKeyboard = [][]tgbotapi.InlineKeyboardButton{
 			{sendReceiptByTelegramButton(transfer.ID, whc)},
 		}
-		utmParams := common4all.UtmParams{
+		utmParams := bots.UtmParams{
 			Source:   telegram.PlatformID,
-			Medium:   common4all.UTM_MEDIUM_BOT,
-			Campaign: common4all.UTM_CAMPAIGN_TRANSFER_SEND_RECEIPT,
+			Medium:   bots.UTM_MEDIUM_BOT,
+			Campaign: bots.UTM_CAMPAIGN_TRANSFER_SEND_RECEIPT,
 		}
 		transferUrl := common4debtus.GetTransferUrlForUser(ctx, transfer.ID, whc.AppUserID(), whc.Locale(), utmParams)
 

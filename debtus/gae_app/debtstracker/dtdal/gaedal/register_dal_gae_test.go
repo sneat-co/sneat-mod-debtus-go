@@ -2,6 +2,7 @@ package gaedal
 
 import (
 	"github.com/sneat-co/sneat-core-modules/auth/unsorted4auth"
+	"github.com/sneat-co/sneat-go-bots/bots"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
 	"testing"
 )
@@ -19,7 +20,7 @@ func TestRegisterDal(t *testing.T) {
 	//dtdal.Bill = nil
 	dtdal.Receipt = nil
 	dtdal.Reminder = nil
-	unsorted4auth.TgUser = nil
+	bots.TgUser = nil
 	dtdal.Transfer = nil
 	unsorted4auth.User = nil
 	unsorted4auth.UserGooglePlus = nil
@@ -58,8 +59,8 @@ func TestRegisterDal(t *testing.T) {
 	//if dtdal.Group == nil {
 	//	t.Error("dtdal.Invite == nil")
 	//}
-	if unsorted4auth.TgUser == nil {
-		t.Error("dtdal.TgUser == nil")
+	if bots.TgUser == nil {
+		t.Error("bots.TgUser == nil")
 	}
 	if dtdal.Transfer == nil {
 		t.Error("dtdal.Transfer == nil")

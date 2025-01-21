@@ -96,8 +96,8 @@ func (uf userFacade) GetOrCreateEmailUser(
 	ctx context.Context,
 	email string,
 	isConfirmed bool,
-	createUserData *unsorted4auth.CreateUserData,
-	clientInfo common4all.ClientInfo,
+	_ *unsorted4auth.CreateUserData,
+	_ common4all.ClientInfo,
 ) (
 	userEmail models4auth.UserEmailEntry,
 	isNewUser bool,

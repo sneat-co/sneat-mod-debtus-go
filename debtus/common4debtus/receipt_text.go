@@ -8,7 +8,7 @@ import (
 	"github.com/crediterra/money"
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/sneat-co/sneat-core-modules/common4all"
+	"github.com/sneat-co/sneat-go-bots/bots"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"github.com/strongo/i18n"
 	"github.com/strongo/logus"
@@ -131,7 +131,7 @@ func (r receiptTextBuilder) receiptCommonFooter(buffer *bytes.Buffer) {
 	//}
 }
 
-func TextReceiptForTransfer(ctx context.Context, translator i18n.SingleLocaleTranslator, transfer models4debtus.TransferEntry, showToUserID string, showReceiptTo ShowReceiptTo, utmParams common4all.UtmParams) string {
+func TextReceiptForTransfer(ctx context.Context, translator i18n.SingleLocaleTranslator, transfer models4debtus.TransferEntry, showToUserID string, showReceiptTo ShowReceiptTo, utmParams bots.UtmParams) string {
 	logus.Debugf(ctx, "TextReceiptForTransfer(transferID=%v, showToUserID=%v, showReceiptTo=%v)", transfer.ID, showToUserID, showReceiptTo)
 
 	if transfer.ID == "" {
@@ -193,7 +193,7 @@ func (r receiptTextBuilder) getReceiptCounterparty() *models4debtus.TransferCoun
 //	return r.translateAndFormatMessage(messageTextToTranslate, r.transfer.Data.GetAmount(), utmParams)
 //}
 
-func (r receiptTextBuilder) WriteReceiptText(ctx context.Context, buffer *bytes.Buffer, utmParams common4all.UtmParams) error {
+func (r receiptTextBuilder) WriteReceiptText(ctx context.Context, buffer *bytes.Buffer, utmParams bots.UtmParams) error {
 	var messageTextToTranslate string
 	if r.transfer.Data.IsReturn {
 		switch r.partyAction {
@@ -267,7 +267,7 @@ func days(t i18n.SingleLocaleTranslator, d int) string {
 	return t.Translate(messageTextToTranslate, d)
 }
 
-func (r receiptTextBuilder) translateAndFormatMessage(ctx context.Context, messageTextToTranslate string, amount money.Amount, utmParams common4all.UtmParams) (string, error) {
+func (r receiptTextBuilder) translateAndFormatMessage(ctx context.Context, messageTextToTranslate string, amount money.Amount, utmParams bots.UtmParams) (string, error) {
 	userID := r.viewerUserID
 
 	counterpartyInfo := r.getReceiptCounterparty()
@@ -275,7 +275,7 @@ func (r receiptTextBuilder) translateAndFormatMessage(ctx context.Context, messa
 	var counterpartyText string
 	{
 		// TODO: Disabled URL due to issue with Telegram parser
-		if userID == "" || utmParams.Medium == common4all.UTM_MEDIUM_SMS || utmParams.Medium == telegram.PlatformID {
+		if userID == "" || utmParams.Medium == bots.UTM_MEDIUM_SMS || utmParams.Medium == telegram.PlatformID {
 			counterpartyText = counterpartyInfo.Name()
 		} else {
 			counterpartyUrl, err := GetCounterpartyUrl(ctx, counterpartyInfo.ContactID, userID, r.translator.Locale(), utmParams)

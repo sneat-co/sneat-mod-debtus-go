@@ -5,6 +5,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/sneat-co/sneat-core-modules/auth/api4auth"
 	"github.com/sneat-co/sneat-core-modules/common4all"
+	"github.com/sneat-co/sneat-go-bots/bots/botauth/api4botauth"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/api4debtus/api4transfers"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/api4debtus/unsorted"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
@@ -30,7 +31,7 @@ func InitApi(router *httprouter.Router) {
 	}
 
 	POST("/api4debtus/auth/login-id", api4auth.OptionalAuth(api4auth.HandleAuthLoginId))
-	POST("/api4debtus/auth/sign-in-with-pin", api4auth.OptionalAuth(api4auth.HandleSignInWithPin))
+	POST("/api4debtus/auth/sign-in-with-pin", api4auth.OptionalAuth(api4botauth.HandleSignInWithPin))
 	POST("/api4debtus/auth/sign-in-with-fbm", api4auth.OptionalAuth(api4auth.HandleSignInWithFbm))
 	POST("/api4debtus/auth/sign-in", api4auth.OptionalAuth(api4auth.HandleSignInWithCode))
 	POST("/api4debtus/auth/fb/signed", api4auth.OptionalAuth(api4auth.HandleSignedWithFacebook))

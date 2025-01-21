@@ -6,7 +6,7 @@ import (
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/sneat-co/sneat-core-modules/common4all"
+	"github.com/sneat-co/sneat-go-bots/bots"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/common4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/debtusbot/cmd/dtb_general"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
@@ -59,7 +59,7 @@ func showHistoryCard(whc botsfw.WebhookContext, limit int) (m botsfw.MessageFrom
 		) + common4debtus.HORIZONTAL_LINE + dtb_general.AdSlot(whc, UTM_CAMPAIGN_TRANSFER_HISTORY))
 		if hasMore {
 			//api4transfers = api4transfers[:limit]
-			utmParams := common4all.FillUtmParams(whc, common4all.UtmParams{Campaign: UTM_CAMPAIGN_TRANSFER_HISTORY})
+			utmParams := bots.FillUtmParams(whc, bots.UtmParams{Campaign: UTM_CAMPAIGN_TRANSFER_HISTORY})
 			m.Keyboard = &tgbotapi.InlineKeyboardMarkup{
 				InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{
 					{
@@ -99,7 +99,7 @@ func transferHistoryRows(whc botsfw.WebhookContext, transfers []models4debtus.Tr
 				transfer.ID,
 				whc.AppUserID(),
 				whc.Locale(),
-				common4all.NewUtmParams(whc, "history"),
+				bots.NewUtmParams(whc, "history"),
 			),
 			transfer.Data.GetAmount(),
 		)

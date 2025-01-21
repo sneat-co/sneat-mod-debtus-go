@@ -8,9 +8,9 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/crediterra/money"
 	"github.com/sneat-co/sneat-core-modules/auth/token4auth"
-	"github.com/sneat-co/sneat-core-modules/auth/unsorted4auth"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
 	"github.com/sneat-co/sneat-core-modules/userus/facade4userus"
+	"github.com/sneat-co/sneat-go-bots/bots"
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-go-core/httpserver"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/platforms/debtustgbots"
@@ -87,7 +87,7 @@ func HandleTgHelperCurrencySelected(ctx context.Context, w http.ResponseWriter, 
 				logus.Errorf(ctx, "panic in HandleTgHelperCurrencySelected() => dtdal.TgChat.DoSomething() => sendToTelegram(): %v", r)
 			}
 		}()
-		errs <- unsorted4auth.TgChat.DoSomething(ctx, &userTask, currency, tgChatID, authInfo, user,
+		errs <- bots.TgChat.DoSomething(ctx, &userTask, currency, tgChatID, authInfo, user,
 			func(tgChat botsfwtgmodels.TgChatData) error {
 				// TODO: This is some serious architecture sheet. Too sleepy to make it right, just make it working.
 				botID := "TODO:setup_bot_id"

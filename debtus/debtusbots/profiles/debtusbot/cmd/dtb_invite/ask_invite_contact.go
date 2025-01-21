@@ -6,7 +6,7 @@ import (
 	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/sneat-co/sneat-core-modules/common4all"
+	"github.com/sneat-co/sneat-go-bots/bots"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/profiles/debtusbot/cmd/dtb_general"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/invites"
@@ -49,7 +49,7 @@ func AskInviteAddress(channel, icon, commandText, messageCode, invalidMessageCod
 						"Stranger",
 						invite.ID,
 						whc.GetBotCode(),
-						common4all.UtmSourceFromContext(whc),
+						bots.UtmSourceFromContext(whc),
 					)
 					if err != nil {
 						return m, err

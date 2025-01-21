@@ -11,11 +11,10 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/debtstracker-translations/emoji"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/sneat-co/sneat-core-modules/anybot"
-	"github.com/sneat-co/sneat-core-modules/auth/unsorted4auth"
 	"github.com/sneat-co/sneat-core-modules/common4all"
 	"github.com/sneat-co/sneat-core-modules/userus/dal4userus"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
+	"github.com/sneat-co/sneat-go-bots/bots/botprofiles/anybot"
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/const4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/debtusbots/platforms/debtustgbots"
@@ -376,15 +375,15 @@ func delayedSendReceiptToCounterpartyByTelegram(ctx context.Context, receiptID s
 				logus.Warningf(ctx, "UserEntry %v has account with missing bot id => %v", counterpartyUser.ID, telegramAccount.String())
 				continue
 			}
-			var tgChatID int64
-			if tgChatID, err = strconv.ParseInt(telegramAccount.ID, 10, 64); err != nil {
-				logus.Errorf(ctx, "invalid Telegram chat ContactID - not an integer: %v", telegramAccount.String())
-				continue
-			}
-			if tgChat, err = unsorted4auth.TgChat.GetTgChatByID(ctx, telegramAccount.App, tgChatID); err != nil {
-				logus.Errorf(ctx, "failed to load user's Telegram chat entity: %v", err)
-				continue
-			}
+			//var tgChatID int64
+			//if tgChatID, err = strconv.ParseInt(telegramAccount.ID, 10, 64); err != nil {
+			//	logus.Errorf(ctx, "invalid Telegram chat ContactID - not an integer: %v", telegramAccount.String())
+			//	continue
+			//}
+			//if tgChat, err = unsorted4auth.TgChat.GetTgChatByID(ctx, telegramAccount.App, tgChatID); err != nil {
+			//	logus.Errorf(ctx, "failed to load user's Telegram chat entity: %v", err)
+			//	continue
+			//}
 			if tgChat.Data.DtForbiddenLast.IsZero() {
 				if err = sendReceiptToTelegramChat(ctx, receipt, transfer, tgChat); err != nil {
 					//failedToSend = true

@@ -6,6 +6,8 @@ import (
 	"github.com/sneat-co/sneat-core-modules/auth/facade4auth"
 	"github.com/sneat-co/sneat-core-modules/auth/unsorted4auth"
 	"github.com/sneat-co/sneat-core-modules/common4all"
+	"github.com/sneat-co/sneat-go-bots/bots"
+	"github.com/sneat-co/sneat-go-bots/bots/botauth/facade4botauth"
 	"github.com/sneat-co/sneat-go-core/facade"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/gae_app/debtstracker/dtdal"
 	"net/http"
@@ -22,7 +24,6 @@ func RegisterDal() {
 	unsorted4auth.User = facade4auth.NewUserDalGae()
 	//dtdal.Bill = facade4splitus.newBillDalGae()
 	//dtdal.Split = splitDalGae{}
-	dtdal.TgGroup = facade4auth.NewTgGroupDalGae()
 	//dtdal.BillSchedule = NewBillScheduleDalGae()
 	dtdal.Receipt = NewReceiptDalGae()
 	dtdal.Reminder = NewReminderDalGae()
@@ -37,8 +38,9 @@ func RegisterDal() {
 	dtdal.Twilio = NewTwilioDalGae()
 	dtdal.Invite = NewInviteDalGae()
 	dtdal.Admin = NewAdminDalGae()
-	unsorted4auth.TgChat = facade4auth.NewTgChatDalGae()
-	unsorted4auth.TgUser = facade4auth.NewTgUserDalGae()
+	//dtdal.TgGroup = facade4auth.NewTgGroupDalGae()
+	bots.TgChat = facade4botauth.NewTgChatDalGae()
+	bots.TgUser = facade4botauth.NewTgUserDalGae()
 	//dtdal.Group = facade4splitus.NewGroupDalGae()
 	dtdal.Feedback = NewFeedbackDalGae()
 	//dtdal.UserVk = NewUserVkDalGae()

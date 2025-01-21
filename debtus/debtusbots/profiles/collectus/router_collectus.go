@@ -3,8 +3,8 @@ package collectus
 import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/sneat-co/debtstracker-translations/trans"
-	"github.com/sneat-co/sneat-core-modules/anybot/cmds4anybot"
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"
+	"github.com/sneat-co/sneat-go-bots/bots/botprofiles/anybot/cmds4anybot"
 )
 
 var botParams = cmds4anybot.BotParams{

@@ -5,12 +5,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/sneat-co/sneat-core-modules/auth/token4auth"
-	"github.com/sneat-co/sneat-core-modules/common4all"
+	"github.com/sneat-co/sneat-go-bots/bots"
 	"github.com/strongo/i18n"
 	"io"
 )
 
-func GetCounterpartyUrl(ctx context.Context, counterpartyID string, currentUserID string, locale i18n.Locale, utmParams common4all.UtmParams) (string, error) {
+func GetCounterpartyUrl(ctx context.Context, counterpartyID string, currentUserID string, locale i18n.Locale, utmParams bots.UtmParams) (string, error) {
 	var buffer bytes.Buffer
 	if err := WriteCounterpartyUrl(ctx, &buffer, counterpartyID, currentUserID, locale, utmParams); err != nil {
 		return "", err
@@ -19,7 +19,7 @@ func GetCounterpartyUrl(ctx context.Context, counterpartyID string, currentUserI
 }
 
 func WriteCounterpartyUrl(
-	ctx context.Context, writer io.Writer, counterpartyID string, currentUserID string, locale i18n.Locale, utmParams common4all.UtmParams,
+	ctx context.Context, writer io.Writer, counterpartyID string, currentUserID string, locale i18n.Locale, utmParams bots.UtmParams,
 ) (err error) {
 	host := GetWebsiteHost(utmParams.Source)
 	_, _ = writer.Write([]byte(fmt.Sprintf("https://%v/counterparty?id=%v&lang=%v", host, counterpartyID, locale.SiteCode())))
