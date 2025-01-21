@@ -8,8 +8,8 @@ require (
 	github.com/bots-go-framework/bots-api-telegram v0.7.3
 	github.com/bots-go-framework/bots-fw v0.40.6
 	github.com/bots-go-framework/bots-fw-store v0.8.2
-	github.com/bots-go-framework/bots-fw-telegram v0.13.9
-	github.com/bots-go-framework/bots-fw-telegram-models v0.3.8
+	github.com/bots-go-framework/bots-fw-telegram v0.13.10
+	github.com/bots-go-framework/bots-fw-telegram-models v0.3.9
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85
 	github.com/crediterra/money v0.3.0
 	github.com/dal-go/dalgo v0.14.2
