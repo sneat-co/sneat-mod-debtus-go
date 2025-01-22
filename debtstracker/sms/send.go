@@ -2,9 +2,9 @@ package sms
 
 import (
 	"context"
-	"github.com/sneat-co/debtstracker-translations/trans"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtstracker/dtdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/common4debtus"
+	"github.com/sneat-co/sneat-translations/trans"
 	"github.com/strongo/gotwilio"
 	"github.com/strongo/i18n"
 	"github.com/strongo/logus"

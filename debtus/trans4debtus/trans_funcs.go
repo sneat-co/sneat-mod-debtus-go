@@ -2,7 +2,7 @@ package trans4debtus
 
 import (
 	"fmt"
-	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/sneat-co/sneat-translations/trans"
 	"github.com/strongo/i18n"
 	"strings"
 )

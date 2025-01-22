@@ -33,12 +33,12 @@ github.com/sanity-io/litter v1.5.6 h1:hCFycYzhRnW4niFbbmR7QKdmds69PbVa/sNmEN5euS
 github.com/sanity-io/litter v1.5.6/go.mod h1:9gzJgR2i4ZpjZHsKvUXIRQVk7P+yM3e+jAF7bU2UI5U=
 github.com/shiyanhui/hero v0.0.2 h1:RF8fwiIeWbVsdki8LCS905pxLjCQbOz/NcKE0g1ZOJc=
 github.com/shiyanhui/hero v0.0.2/go.mod h1:aBlyf5bmklQfvOmVQm5i04lIGFY7t2QYIJdqEMNGJZM=
-github.com/sneat-co/debtstracker-translations v0.3.0 h1:TWbRhTcW36pOkPeLQ6RpCnPmQfbUM+Bdt9/2xnMJY3o=
-github.com/sneat-co/debtstracker-translations v0.3.0/go.mod h1:w/yIhO2vkoNJALVRKIL066RjW24vHvfTVoxx/ACvr2s=
 github.com/sneat-co/sneat-core-modules v0.18.0 h1:ZCb1bya/j92qaRJH09Zfbyh2nVE2z/oQoAXFGakE2/8=
 github.com/sneat-co/sneat-core-modules v0.18.0/go.mod h1:hnsGS2sRtRC085CvogRSnQ739FDII+vzd/7GigViGFk=
 github.com/sneat-co/sneat-go-core v0.42.0 h1:Nku8RWyAPu24xoKlIyPPgZyQ5KlgvcNST79imyoRDks=
 github.com/sneat-co/sneat-go-core v0.42.0/go.mod h1:pDLlPtg0h12jk04+61nkFKuaqDlNHXqjX4lBZF0B4/g=
+github.com/sneat-co/sneat-translations v0.4.0 h1:MLEgmx92Rh7Jz9UVLfFReVteHre9zkUI8jWSErJzQOM=
+github.com/sneat-co/sneat-translations v0.4.0/go.mod h1:H6k5pUsOwBLgyXG7ZZiKI8McdARkIGX0GPMdly1L/VU=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v0.0.0-20161117074351-18a02ba4a312/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=

@@ -3,7 +3,7 @@ package pages
 import (
 	"context"
 	"github.com/julienschmidt/httprouter"
-	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/sneat-co/sneat-translations/trans"
 	"github.com/strongo/logus"
 	"html/template"
 	"net/http"

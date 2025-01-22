@@ -2,7 +2,7 @@ package pages
 
 import (
 	"github.com/julienschmidt/httprouter"
-	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/sneat-co/sneat-translations/trans"
 	"html/template"
 	"net/http"
 )

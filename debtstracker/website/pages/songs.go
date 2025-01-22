@@ -6,7 +6,7 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/sneat-co/debtstracker-translations/trans"
+	"github.com/sneat-co/sneat-translations/trans"
 )
 
 var iouADanceTmpl *template.Template
