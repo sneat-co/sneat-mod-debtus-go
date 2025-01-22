@@ -34,8 +34,8 @@ func (TransferDalGae) DelayUpdateTransfersOnReturn(ctx context.Context, returnTr
 	return delayer4debtus.UpdateTransfersOnReturn.EnqueueWork(ctx, delaying.With(const4debtus.QueueTransfers, "update-api4transfers-on-return", 0), returnTransferID, transferReturnsUpdate)
 }
 
-func updateTransfersOnReturn(ctx context.Context, returnTransferID string, transferReturnsUpdate []dtdal.TransferReturnUpdate) (err error) {
-	logus.Debugf(ctx, "updateTransfersOnReturn(returnTransferID=%v, transferReturnsUpdate=%+v)", returnTransferID, transferReturnsUpdate)
+func delayedUpdateTransfersOnReturn(ctx context.Context, returnTransferID string, transferReturnsUpdate []dtdal.TransferReturnUpdate) (err error) {
+	logus.Debugf(ctx, "delayedUpdateTransfersOnReturn(returnTransferID=%v, transferReturnsUpdate=%+v)", returnTransferID, transferReturnsUpdate)
 	for i, transferReturnUpdate := range transferReturnsUpdate {
 		if transferReturnUpdate.TransferID == "" {
 			panic(fmt.Sprintf("transferReturnsUpdates[%d].TransferID == 0", i))
@@ -54,8 +54,8 @@ func DelayUpdateTransferOnReturn(ctx context.Context, returnTransferID, transfer
 	return delayer4debtus.UpdateTransferOnReturn.EnqueueWork(ctx, delaying.With(const4debtus.QueueTransfers, "update-transfer-on-return", 0), returnTransferID, transferID, returnedAmount)
 }
 
-func updateTransferOnReturn(ctx context.Context, returnTransferID, transferID string, returnedAmount decimal.Decimal64p2) (err error) {
-	logus.Debugf(ctx, "updateTransferOnReturn(returnTransferID=%v, transferID=%v, returnedAmount=%v)", returnTransferID, transferID, returnedAmount)
+func delayedUpdateTransferOnReturn(ctx context.Context, returnTransferID, transferID string, returnedAmount decimal.Decimal64p2) (err error) {
+	logus.Debugf(ctx, "delayedUpdateTransferOnReturn(returnTransferID=%v, transferID=%v, returnedAmount=%v)", returnTransferID, transferID, returnedAmount)
 
 	var transfer, returnTransfer models4debtus.TransferEntry
 
