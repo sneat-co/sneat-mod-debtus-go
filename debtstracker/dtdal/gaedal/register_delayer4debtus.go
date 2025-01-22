@@ -16,4 +16,8 @@ func RegisterDelayers4Debtus() {
 	delayer4debtus.UpdateTransfersWithCreatorName = delaying.MustRegisterFunc("UpdateTransfersWithCreatorName", delayedUpdateTransfersWithCreatorName)
 	delayer4debtus.UpdateTransfersOnReturn = delaying.MustRegisterFunc("UpdateTransfersOnReturn", delayedUpdateTransfersOnReturn)
 	delayer4debtus.UpdateTransferOnReturn = delaying.MustRegisterFunc("UpdateTransferOnReturn", delayedUpdateTransferOnReturn)
+	delayer4debtus.SetReminderIsSent = delaying.MustRegisterFunc("delayedSetReminderIsSent", delayedSetReminderIsSent)
+	delayer4debtus.DeleteContactTransfersDelayFunc = delaying.MustRegisterFunc(DeleteContactTransfersFuncKey, delayedDeleteContactTransfers) // TODO: Duplicate of delayDeleteContactTransfers ?
+	delayer4debtus.FixTransfersIsOutstanding = delaying.MustRegisterFunc("delayedFixTransfersIsOutstanding", delayedFixTransfersIsOutstanding)
+
 }
