@@ -2,7 +2,7 @@ module github.com/sneat-co/sneat-mod-debtus-go
 
 go 1.22.7
 
-toolchain go1.22.11
+toolchain go1.23.5
 
 require (
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85
