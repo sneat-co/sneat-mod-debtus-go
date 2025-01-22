@@ -4,8 +4,6 @@ go 1.22.7
 
 toolchain go1.22.11
 
-//replace github.com/sneat-co/sneat-core-modules => ../sneat-core-modules
-
 require (
 	github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85
 	github.com/crediterra/money v0.3.0
