@@ -13,8 +13,8 @@ require (
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
 	github.com/sanity-io/litter v1.5.6
 	github.com/shiyanhui/hero v0.0.2
-	github.com/sneat-co/sneat-core-modules v0.18.2
-	github.com/sneat-co/sneat-go-core v0.42.0
+	github.com/sneat-co/sneat-core-modules v0.19.2
+	github.com/sneat-co/sneat-go-core v0.45.0
 	github.com/sneat-co/sneat-translations v0.4.1
 	github.com/strongo/decimal v0.1.1
 	github.com/strongo/delaying v0.1.0
@@ -31,7 +31,7 @@ require (
 
 require (
 	github.com/alexsergivan/transliterator v1.0.1 // indirect
-	github.com/bots-go-framework/bots-fw-store v0.9.0 // indirect
+	github.com/bots-go-framework/bots-fw-store v0.10.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/gosimple/slug v1.15.0 // indirect
