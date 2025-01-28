@@ -4,6 +4,8 @@ github.com/bots-go-framework/bots-fw-store v0.8.2 h1:Ss2ZRFoBeNgEy1TWzRIoVdERMoA
 github.com/bots-go-framework/bots-fw-store v0.8.2/go.mod h1:ZxeNr86seS59kKyf9zol15vdZEcH+1CjjzHOFokGrVI=
 github.com/bots-go-framework/bots-fw-store v0.9.0 h1:GDeTB7O4ePWiHAYanG8E4Eb3yB++bDGCQD15X7cabPA=
 github.com/bots-go-framework/bots-fw-store v0.9.0/go.mod h1:ZxeNr86seS59kKyf9zol15vdZEcH+1CjjzHOFokGrVI=
+github.com/bots-go-framework/bots-fw-store v0.10.0 h1:e6bD274mjrHVp+X05/7uqqT3s5xZOqV9divKTaM2W+w=
+github.com/bots-go-framework/bots-fw-store v0.10.0/go.mod h1:7oU4B8j5HuJZM8AftosbyQD+AqckXsDv8eU1auGPzn8=
 github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85 h1:DhDOfMUBIn76rBNxBE/cGrO69Xup+a0i9cEW1Dip5L0=
 github.com/crediterra/go-interest v0.0.0-20180510115340-54da66993b85/go.mod h1:G8FV2IlQjC168M2ZNvih9I+8pInny334pxTzcR+QhWw=
 github.com/crediterra/money v0.3.0 h1:dHWEZhkMGGxkHTAbGQOaeg8eYbL8qJSCgcqdOTbNg20=
@@ -39,8 +41,12 @@ github.com/sneat-co/sneat-core-modules v0.18.0 h1:ZCb1bya/j92qaRJH09Zfbyh2nVE2z/
 github.com/sneat-co/sneat-core-modules v0.18.0/go.mod h1:hnsGS2sRtRC085CvogRSnQ739FDII+vzd/7GigViGFk=
 github.com/sneat-co/sneat-core-modules v0.18.2 h1:H7ik3JhTLCt6OPHTEm8x91i0YprA7k9YGjmaW/GeIW0=
 github.com/sneat-co/sneat-core-modules v0.18.2/go.mod h1:bfpPtk02c+ROZS6+N/9SsDlnYxUJbrS4GQ8eDDFHHp8=
+github.com/sneat-co/sneat-core-modules v0.19.2 h1:uAH0CvdQml5tRDwyAoPZJTXZlEavWaqwMCo7Fz96im0=
+github.com/sneat-co/sneat-core-modules v0.19.2/go.mod h1:ubPODCv5mf2zLIX4MvYCgiISe7OXVy5x6al7Bp1N8Pc=
 github.com/sneat-co/sneat-go-core v0.42.0 h1:Nku8RWyAPu24xoKlIyPPgZyQ5KlgvcNST79imyoRDks=
 github.com/sneat-co/sneat-go-core v0.42.0/go.mod h1:pDLlPtg0h12jk04+61nkFKuaqDlNHXqjX4lBZF0B4/g=
+github.com/sneat-co/sneat-go-core v0.45.0 h1:oozl/4C1iBLlSJj5yaDFU8M3uoTR+utRiuhAv9nenaQ=
+github.com/sneat-co/sneat-go-core v0.45.0/go.mod h1:pDLlPtg0h12jk04+61nkFKuaqDlNHXqjX4lBZF0B4/g=
 github.com/sneat-co/sneat-translations v0.4.0 h1:MLEgmx92Rh7Jz9UVLfFReVteHre9zkUI8jWSErJzQOM=
 github.com/sneat-co/sneat-translations v0.4.0/go.mod h1:H6k5pUsOwBLgyXG7ZZiKI8McdARkIGX0GPMdly1L/VU=
 github.com/sneat-co/sneat-translations v0.4.1 h1:TVjQX+0HtqL815441CxTGwG5mpaM0IEOXFZo/7tEBpw=
