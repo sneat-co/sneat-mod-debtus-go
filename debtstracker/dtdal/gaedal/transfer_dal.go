@@ -29,7 +29,7 @@ func NewTransferDalGae() TransferDalGae {
 var _ dtdal.TransferDal = (*TransferDalGae)(nil)
 
 func _loadDueOnTransfers(ctx context.Context, tx dal.ReadSession, userID string, limit int, filter func(q dal.QueryBuilder) dal.QueryBuilder) (transfers []models4debtus.TransferEntry, err error) {
-	q := dal.From(models4debtus.TransfersCollection).
+	q := dal.From(models4debtus.TransfersCollectionRef).
 		WhereField("BothUserIDs", "=", userID).
 		WhereField("IsOutstanding", "=", true).OrderBy(dal.AscendingField("DtDueOn"))
 	q = filter(q).Limit(limit)
@@ -78,7 +78,7 @@ func (transferDalGae TransferDalGae) LoadOutstandingTransfers(ctx context.Contex
 	const limit = 100
 
 	// TODO: Load outstanding transfer just for the specific contact & specific direction
-	q := dal.From(models4debtus.TransfersCollection).
+	q := dal.From(models4debtus.TransfersCollectionRef).
 		Where(
 			dal.WhereField("BothUserIDs", dal.Equal, userID),
 			dal.WhereField("Currency", dal.Equal, string(currency)),
@@ -172,7 +172,7 @@ func (transferDalGae TransferDalGae) LoadTransfersByUserID(ctx context.Context, 
 		err = errors.New("userID == 0")
 		return
 	}
-	q := dal.From(models4debtus.TransfersCollection).
+	q := dal.From(models4debtus.TransfersCollectionRef).
 		WhereField("BothUserIDs", dal.Equal, userID).
 		OrderBy(dal.DescendingField("DtCreated")).
 		SelectInto(models4debtus.NewTransferRecord)
@@ -196,7 +196,7 @@ func (transferDalGae TransferDalGae) LoadTransferIDsByContactID(ctx context.Cont
 		err = errors.New("LoadTransferIDsByContactID(): contactID == 0")
 		return
 	}
-	q := dal.From(models4debtus.TransfersCollection).
+	q := dal.From(models4debtus.TransfersCollectionRef).
 		WhereField("BothCounterpartyIDs", dal.Equal, contactID).
 		Limit(limit).
 		StartFrom(dal.Cursor(startCursor)).
@@ -244,7 +244,7 @@ func (transferDalGae TransferDalGae) LoadTransfersByContactID(ctx context.Contex
 		err = errors.New("LoadTransfersByContactID(): contactID == 0")
 		return
 	}
-	q := dal.From(models4debtus.TransfersCollection).
+	q := dal.From(models4debtus.TransfersCollectionRef).
 		WhereField("BothCounterpartyIDs", dal.Equal, contactID).
 		OrderBy(dal.DescendingField("DtCreated")).
 		Limit(limit).
@@ -259,7 +259,7 @@ func (transferDalGae TransferDalGae) LoadTransfersByContactID(ctx context.Contex
 }
 
 func (transferDalGae TransferDalGae) LoadLatestTransfers(ctx context.Context, offset, limit int) ([]models4debtus.TransferEntry, error) {
-	q := dal.From(models4debtus.TransfersCollection).
+	q := dal.From(models4debtus.TransfersCollectionRef).
 		OrderBy(dal.DescendingField("DtCreated")).
 		Limit(limit).
 		Offset(offset).

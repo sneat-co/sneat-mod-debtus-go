@@ -46,7 +46,7 @@ func (reminderDalGae ReminderDalGae) SaveReminder(ctx context.Context, tx dal.Re
 }
 
 func (reminderDalGae ReminderDalGae) GetSentReminderIDsByTransferID(ctx context.Context, tx dal.ReadSession, transferID int) ([]int, error) {
-	q := dal.From(models4debtus.ReminderKind).Where(
+	q := dal.From(dal.NewRootCollectionRef(models4debtus.ReminderKind, "")).Where(
 		dal.WhereField("TransferID", dal.Equal, transferID),
 		dal.WhereField("Status", dal.Equal, models4debtus.ReminderStatusSent),
 	).SelectKeysOnly(reflect.Int)
@@ -63,7 +63,7 @@ func (reminderDalGae ReminderDalGae) GetSentReminderIDsByTransferID(ctx context.
 }
 
 func (reminderDalGae ReminderDalGae) GetActiveReminderIDsByTransferID(ctx context.Context, tx dal.ReadSession, transferID int) ([]int, error) {
-	q := dal.From(models4debtus.ReminderKind).Where(
+	q := dal.From(dal.NewRootCollectionRef(models4debtus.ReminderKind, "")).Where(
 		dal.WhereField("TransferID", dal.Equal, transferID),
 		dal.WhereField("DtNext", dal.GreaterThen, time.Time{}),
 	).SelectKeysOnly(reflect.Int)

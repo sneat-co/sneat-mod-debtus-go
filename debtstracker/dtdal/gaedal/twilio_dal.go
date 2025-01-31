@@ -21,7 +21,7 @@ func NewTwilioDalGae() TwilioDalGae {
 }
 
 func (TwilioDalGae) GetLastTwilioSmsesForUser(ctx context.Context, tx dal.ReadSession, userID string, to string, limit int) (result []models4debtus.TwilioSms, err error) {
-	q := dal.From(models4debtus.TwilioSmsKind).
+	q := dal.From(dal.NewRootCollectionRef(models4debtus.TwilioSmsKind, "")).
 		WhereField("UserID", dal.Equal, userID).
 		OrderBy(dal.DescendingField("DtCreated"))
 

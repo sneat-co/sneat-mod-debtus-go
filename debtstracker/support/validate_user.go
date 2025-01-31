@@ -41,7 +41,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	query := dal.From(const4contactus.ContactsCollection).WhereField("UserID", dal.Equal, userID).SelectInto(func() dal.Record {
+	query := dal.From(dal.NewRootCollectionRef(const4contactus.ContactsCollection, "")).WhereField("UserID", dal.Equal, userID).SelectInto(func() dal.Record {
 		return dal.NewRecordWithIncompleteKey(dbo4userus.UsersCollection, reflect.Int64, new(dbo4userus.UserDbo))
 	})
 	userCounterpartyRecords, err := db.QueryAllRecords(ctx, query)
@@ -58,7 +58,7 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	//slices.Sort(counterpartyIDs)
 
-	query = dal.From(models4debtus.TransfersCollection).WhereField("BothUserIDs", dal.Equal, userID).OrderBy(dal.AscendingField("DtCreated")).SelectInto(func() dal.Record {
+	query = dal.From(dal.NewRootCollectionRef(models4debtus.TransfersCollection, "")).WhereField("BothUserIDs", dal.Equal, userID).OrderBy(dal.AscendingField("DtCreated")).SelectInto(func() dal.Record {
 		return dal.NewRecordWithIncompleteKey(models4debtus.AppUserKind, reflect.Int64, new(models4debtus.DebutsAppUserDataOBSOLETE))
 	})
 

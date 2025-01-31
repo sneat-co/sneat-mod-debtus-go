@@ -89,7 +89,7 @@ func (contactPage) verifyTransfers(ctx context.Context, contactID string) (
 	//select := dal.Select{
 	//	From: &dal.CollectionRef{Name: models.TransfersCollection},
 	//}
-	query := dal.From(models4debtus.TransfersCollection).
+	query := dal.From(models4debtus.TransfersCollectionRef).
 		Where(dal.Field("BothCounterpartyIDs").EqualTo(contactID)).
 		SelectInto(models4debtus.NewTransferRecord)
 

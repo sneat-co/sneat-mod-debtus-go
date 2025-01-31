@@ -56,6 +56,8 @@ const ( // TransferEntry statuses
 
 const TransfersCollection = "transfers"
 
+var TransfersCollectionRef = dal.NewRootCollectionRef(TransfersCollection, "")
+
 //var _ datastore.PropertyLoadSaver = (*TransferData)(nil)
 
 type TransferEntry = record.DataWithID[string, *TransferData]

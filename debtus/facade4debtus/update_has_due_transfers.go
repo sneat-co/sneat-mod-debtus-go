@@ -28,7 +28,7 @@ func delayedUpdateSpaceHasDueTransfers(ctx context.Context, userID, spaceID stri
 }
 
 func checkHasDueTransfers(ctx context.Context, db dal.ReadSession, userID, spaceID string) (hasDueTransfer bool, err error) {
-	q := dal.From(models4debtus.TransfersCollection).
+	q := dal.From(dal.NewRootCollectionRef(models4debtus.TransfersCollection, "")).
 		WhereField("BothUserIDs", dal.Equal, userID).
 		WhereField("IsOutstanding", dal.Equal, true).
 		WhereField("DtDueOn", dal.GreaterThen, time.Time{}).

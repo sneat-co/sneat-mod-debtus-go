@@ -96,7 +96,7 @@ func (f *TransferFixer) FixAllIfNeeded(ctx context.Context) (err error) {
 }
 
 func FixTransfers(ctx context.Context) (loadedCount int, fixedCount int, failedCount int, err error) {
-	query := dal.From(models4debtus.TransfersCollection).SelectInto(func() dal.Record {
+	query := dal.From(models4debtus.TransfersCollectionRef).SelectInto(func() dal.Record {
 		return models4debtus.NewTransferWithIncompleteKey(nil).Record
 	})
 	//query.Limit = 50

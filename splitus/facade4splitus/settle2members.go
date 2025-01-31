@@ -16,7 +16,7 @@ import (
 
 func Settle2members(ctx context.Context, spaceID, debtorID, sponsorID string, currency money.CurrencyCode, amount decimal.Decimal64p2) (err error) {
 	logus.Debugf(ctx, "Settle2members(spaceID=%v, debtorID=%v, sponsorID=%v, currency=%v, amount=%v)", spaceID, debtorID, sponsorID, currency, amount)
-	query := dal.From(models4splitus.BillKind).
+	query := dal.From(dal.NewRootCollectionRef(models4splitus.BillKind, "")).
 		WhereField("GetUserGroupID", dal.Equal, spaceID).
 		WhereField("Currency", dal.Equal, string(currency)).
 		WhereField("DebtorIDs", dal.Equal, debtorID).

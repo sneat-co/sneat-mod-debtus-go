@@ -186,7 +186,7 @@ func mergeContactTransfers(ctx context.Context, tx dal.ReadwriteTransaction, wg 
 	defer func() {
 		wg.Done()
 	}()
-	transfersQ := dal.From(models4debtus.TransfersCollection).
+	transfersQ := dal.From(models4debtus.TransfersCollectionRef).
 		Where(dal.Field("BothCounterpartyIDs").EqualTo(sourceContactID)).
 		SelectInto(func() dal.Record {
 			return models4debtus.NewTransfer("", nil).Record

@@ -54,7 +54,7 @@ func delayedUpdateTransfersWithCounterparty(ctx context.Context, creatorCounterp
 	if db, err = facade.GetSneatDB(ctx); err != nil {
 		return fmt.Errorf("failed to create database: %w", err)
 	}
-	query := dal.From(models4debtus.TransfersCollection).
+	query := dal.From(models4debtus.TransfersCollectionRef).
 		WhereField("BothCounterpartyIDs", dal.Equal, creatorCounterpartyID).WhereField("BothCounterpartyIDs", dal.Equal, 0).
 		OrderBy(dal.DescendingField("DtCreated")).
 		SelectKeysOnly(reflect.Int)
@@ -75,7 +75,7 @@ func delayedUpdateTransfersWithCounterparty(ctx context.Context, creatorCounterp
 			delayDuration += 10 * time.Microsecond
 		}
 	} else {
-		query := dal.From(models4debtus.TransfersCollection).
+		query := dal.From(models4debtus.TransfersCollectionRef).
 			WhereField("BothCounterpartyIDs", dal.Equal, creatorCounterpartyID).WhereField("BothCounterpartyIDs", dal.Equal, counterpartyCounterpartyID).
 			Limit(1).
 			SelectKeysOnly(reflect.Int)
@@ -256,7 +256,7 @@ func delayedUpdateTransfersWithCreatorName(ctx context.Context, userID string) (
 
 	userName := user.Data.Names.GetFullName()
 
-	query := dal.From(models4debtus.TransfersCollection).
+	query := dal.From(models4debtus.TransfersCollectionRef).
 		WhereField("BothUserIDs", dal.Equal, userID).
 		SelectInto(models4debtus.NewTransferRecord)
 

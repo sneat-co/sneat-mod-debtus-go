@@ -191,7 +191,7 @@ func (InviteDalGae) ClaimInvite2(ctx context.Context, inviteCode string, invite 
 		if invite.Data.MaxClaimsCount == 1 {
 			user.Data.InvitedByUserID = invite.Data.CreatedByUserID
 			userChanged = true
-			counterpartyQuery := dal.From(const4contactus.ContactsCollection).
+			counterpartyQuery := dal.From(dal.NewRootCollectionRef(const4contactus.ContactsCollection, "")).
 				WhereField("UserID", dal.Equal, claimedByUserID).
 				WhereField("CounterpartyUserID", dal.Equal, invite.Data.CreatedByUserID).
 				Limit(1).

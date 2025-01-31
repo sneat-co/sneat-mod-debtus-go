@@ -85,7 +85,7 @@ func newUserActiveContactsQuery(userID string) dal.QueryBuilder {
 }
 
 func newUserContactsQuery(userID string) dal.QueryBuilder {
-	return dal.From(const4contactus.ContactsCollection).WhereField("UserID", dal.Equal, userID)
+	return dal.From(dal.NewRootCollectionRef(const4contactus.ContactsCollection, "")).WhereField("UserID", dal.Equal, userID)
 }
 
 func (ContactDalGae) GetContactsWithDebts(ctx context.Context, tx dal.ReadSession, spaceID, userID string) (counterparties []models4debtus.DebtusSpaceContactEntry, err error) {

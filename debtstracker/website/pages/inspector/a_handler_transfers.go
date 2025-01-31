@@ -108,7 +108,7 @@ func (h transfersPage) processTransfers(ctx context.Context, tx dal.ReadSession,
 	balanceWithoutInterest decimal.Decimal64p2,
 	err error,
 ) {
-	query := dal.From(models4debtus.TransfersCollection).
+	query := dal.From(models4debtus.TransfersCollectionRef).
 		Where(
 			dal.Field("BothCounterpartyIDs").EqualTo(contactID),
 			dal.Field("Currency").EqualTo(currency),
