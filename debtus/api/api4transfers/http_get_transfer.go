@@ -5,7 +5,7 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/sneat-co/sneat-core-modules/common4all"
 	"github.com/sneat-co/sneat-go-core/facade"
-	"github.com/sneat-co/sneat-mod-debtus-go/debtus/api4debtus"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtus/api/api4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/facade4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/models4debtus"
 	"net/http"
