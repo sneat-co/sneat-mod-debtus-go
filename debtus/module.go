@@ -2,6 +2,7 @@ package debtus
 
 import (
 	"github.com/sneat-co/sneat-go-core/module"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtstracker/dtdal/debtusdal"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/api/api4debtus"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/api/api4transfers"
 	"github.com/sneat-co/sneat-mod-debtus-go/debtus/const4debtus"
@@ -13,6 +14,7 @@ import (
 const moduleID = const4debtus.ModuleID
 
 func Module() module.Module {
+	debtusdal.RegisterDal() // TODO: This does not feels right, should be done in some module's init?
 	return module.NewModule(moduleID,
 		module.RegisterRoutes(func(handle module.HTTPHandleFunc) {
 			// TODO: This should be unified with the rest of APIs
