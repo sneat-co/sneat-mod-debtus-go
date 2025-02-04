@@ -6,7 +6,6 @@ import (
 	"net/http"
 )
 
-// RegisterHttpRoutes initiates users module
 func InitApiForDebtus(handle strongoapp.HandleHttpWithContext) {
 	handle(http.MethodGet, "/api4debtus/receipt-get", HandleGetReceipt)
 	handle(http.MethodPost, "/api4debtus/receipt-create", api4auth.AuthOnly(HandleCreateReceipt))

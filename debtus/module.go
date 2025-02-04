@@ -10,8 +10,10 @@ import (
 	"net/http"
 )
 
+const moduleID = const4debtus.ModuleID
+
 func Module() module.Module {
-	return module.NewModule(const4debtus.ModuleID,
+	return module.NewModule(moduleID,
 		module.RegisterRoutes(func(handle module.HTTPHandleFunc) {
 			// TODO: This should be unified with the rest of APIs
 			api4debtus.InitApiForDebtus(func(method, path string, handler strongoapp.HttpHandlerWithContext) {
