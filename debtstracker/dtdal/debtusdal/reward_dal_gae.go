@@ -1,4 +1,4 @@
-package gaedal
+package debtusdal
 
 import (
 	"context"

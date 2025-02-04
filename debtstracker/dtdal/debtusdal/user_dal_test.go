@@ -1,4 +1,4 @@
-package gaedal
+package debtusdal
 
 import (
 	"github.com/sneat-co/sneat-core-modules/userus/dbo4userus"

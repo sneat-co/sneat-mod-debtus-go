@@ -6,9 +6,9 @@ import (
 
 func TestNewLoginPinKey(t *testing.T) {
 	//const loginPinID = 157
-	//gaedal.testIntKey(t, loginPinID, NewLoginPinKey(context.Background(), loginPinID))
+	//debtusdal.testIntKey(t, loginPinID, NewLoginPinKey(context.Background(), loginPinID))
 }
 
 func TestNewLoginPinIncompleteKey(t *testing.T) {
-	//gaedal.testIncompleteKey(t, NewLoginPinIncompleteKey(context.Background()))
+	//debtusdal.testIncompleteKey(t, NewLoginPinIncompleteKey(context.Background()))
 }

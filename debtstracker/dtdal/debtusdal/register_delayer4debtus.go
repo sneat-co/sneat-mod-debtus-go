@@ -1,4 +1,4 @@
-package gaedal
+package debtusdal
 
 import (
 	"github.com/sneat-co/sneat-mod-debtus-go/debtstracker/dtdal/delayer4debtus"

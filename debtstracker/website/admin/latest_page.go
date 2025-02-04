@@ -3,11 +3,12 @@ package admin
 import (
 	"fmt"
 	"github.com/julienschmidt/httprouter"
-	"github.com/sneat-co/sneat-mod-debtus-go/debtstracker/dtdal/gaedal"
+	"github.com/sneat-co/sneat-mod-debtus-go/debtstracker/dtdal/debtusdal"
 	"net/http"
 )
 
 func LatestPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	_, _ = w, r
 	panic("disabled: switch to Firestore authentication")
 	//c := appengine.NewContext(r)
 	//
@@ -59,7 +60,7 @@ func LatestPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 func FixTransfersHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	c := r.Context()
-	loadedCount, fixedCount, failedCount, err := gaedal.FixTransfers(c)
+	loadedCount, fixedCount, failedCount, err := debtusdal.FixTransfers(c)
 	stats := fmt.Sprintf("\nLoaded: %v, Fixed: %v, Failed: %v", loadedCount, fixedCount, failedCount)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

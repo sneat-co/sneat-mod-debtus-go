@@ -1,4 +1,4 @@
-package gaedal
+package debtusdal
 
 import (
 	"github.com/dal-go/dalgo/dal"
