@@ -13,8 +13,8 @@ require (
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
 	github.com/sanity-io/litter v1.5.6
 	github.com/shiyanhui/hero v0.0.2
-	github.com/sneat-co/sneat-core-modules v0.23.2
-	github.com/sneat-co/sneat-go-core v0.45.1
+	github.com/sneat-co/sneat-core-modules v0.23.4
+	github.com/sneat-co/sneat-go-core v0.45.4
 	github.com/sneat-co/sneat-translations v0.4.1
 	github.com/strongo/decimal v0.1.1
 	github.com/strongo/delaying v0.1.0
